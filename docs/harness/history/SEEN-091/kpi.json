@@ -1,0 +1,36 @@
+{
+  "ticket": "SEEN-091",
+  "delivered_at": "2026-09-23T22:03:08.759340+00:00",
+  "points": null,
+  "cycle_time_seconds": 873,
+  "stage_seconds": {
+    "clarify": 80,
+    "solution": 131,
+    "tdd": 326,
+    "review": 186,
+    "deliver": 149
+  },
+  "attempts": 1,
+  "rework": 0,
+  "red_before_green": true,
+  "coverage": {
+    "package": "@seen/core",
+    "lines": 100.0,
+    "delta": 0.0
+  },
+  "findings": {
+    "by_severity": {
+      "high": 1,
+      "medium": 2,
+      "low": 1
+    },
+    "fixed": 4,
+    "waived": 0
+  },
+  "first_pass_ci": true,
+  "tokens": null,
+  "cost": null,
+  "escaped_defects": [],
+  "harness_version": "1",
+  "note": null
+}
