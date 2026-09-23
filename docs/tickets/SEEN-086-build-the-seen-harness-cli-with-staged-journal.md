@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: []
-status: review
+status: done
 ---
 # SEEN-086: Build the Seen harness CLI with staged journal and receipts
 
@@ -23,7 +23,7 @@ status: review
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | review |
+| Status | done |
 
 ## Description
 
@@ -69,8 +69,9 @@ Taken on 23 September 2026 before implementation, in a grilling session over thi
 
 ## Outcome
 
-Delivered on 23 September 2026 on branch `claude/SEENE-006-accounts-clients-sites` at Ruud's
-instruction, rather than on a branch of its own. This ticket has no journal by design, so the
+Delivered on 23 September 2026 and merged as pull request #1 (merge commit e482662), without
+the independent review the harness asks for: the same session wrote and implemented the ticket,
+so a review by it would have been a self-review. This ticket has no journal by design, so the
 evidence is here, in the test suite and in the pull request.
 
 **The harness**: `harness/` with `run.py`, `cli.py`, `journal.py`, `gates.py`, `repository.py`,
