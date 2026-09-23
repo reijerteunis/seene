@@ -1,22 +1,22 @@
 # Graph Report - seene  (2026-09-23)
 
 ## Corpus Check
-- 148 files · ~67,154 words
+- 152 files · ~68,295 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 3 file(s) not represented in the graph (top: (none) 2, .toml 1)
 
 ## Summary
-- 391 nodes · 932 edges · 15 communities (10 shown, 5 thin omitted)
+- 399 nodes · 939 edges · 16 communities (11 shown, 5 thin omitted)
 - Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 36 edges (avg confidence: 0.92)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `5d0d7262`
+- Built from commit: `8feba5f7`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
-- require
+- cli.py
 - .evaluate
 - .start
 - Repository
@@ -28,8 +28,9 @@
 - DeliveryTest
 - GraphTest
 - graphify
-- HarnessError
+- require
 - SEEN-087: Install graphify, build the repo graph and wire it into both assistants
+- SEEN-089: Enforce TDD and CI quality gates in the harness
 
 ## God Nodes (most connected - your core abstractions)
 1. `require()` - 47 edges
@@ -58,15 +59,15 @@
 ## Import Cycles
 - None detected.
 
-## Communities (15 total, 5 thin omitted)
+## Communities (16 total, 5 thin omitted)
 
-### Community 0 - "require"
-Cohesion: 0.07
-Nodes (56): argparse, phases_for(), Running and recording a verification command. A check is a real subprocess in…, Run one check and return the evidence to record., run(), advance(), build_parser(), check() (+48 more)
+### Community 0 - "cli.py"
+Cohesion: 0.06
+Nodes (50): argparse, phases_for(), Running and recording a verification command. A check is a real subprocess in…, Run one check and return the evidence to record., run(), advance(), build_parser(), check() (+42 more)
 
 ### Community 1 - ".evaluate"
 Cohesion: 0.10
-Nodes (9): advance_record(), check_record(), ClarifyGateTest, GateTest, NonCodeGateTest, RequiredFieldTest, ReviewGateTest, SolutionGateTest (+1 more)
+Nodes (10): advance_record(), check_record(), ClarifyGateTest, GateTest, NonCodeGateTest, What each stage gate proves before a ticket may leave its stage. The three…, RequiredFieldTest, ReviewGateTest (+2 more)
 
 ### Community 2 - ".start"
 Cohesion: 0.10
@@ -78,7 +79,7 @@ Nodes (12): Every file in the project that git can see, ignored files excluded.,
 
 ### Community 4 - "helpers.py"
 Cohesion: 0.09
-Nodes (14): harness_tests, add_remote(), make_project(), ProjectTest, A throwaway project to run harness commands against. Tests never touch the…, A git repository shaped like Seen: a ticket, the harness files, one commit., Base class giving each test its own project and ticket., A bare repository to push to, so delivery can be verified without a network. (+6 more)
+Nodes (15): harness_tests, add_remote(), make_project(), ProjectTest, A throwaway project to run harness commands against. Tests never touch the…, A git repository shaped like Seen: a ticket, the harness files, one commit., Base class giving each test its own project and ticket., A bare repository to push to, so delivery can be verified without a network. (+7 more)
 
 ### Community 5 - "doctor.py"
 Cohesion: 0.17
@@ -92,28 +93,32 @@ Nodes (6): graphify, Ground rules, Index of docs/, Seen: Claude Code entry point
 Cohesion: 0.26
 Nodes (4): CommandTest, GraphTest, A graphify on PATH that reports what it was asked, and nothing else., The graph is derived from the tree, not evidence about it. The post-commit hook…
 
-### Community 13 - "HarnessError"
-Cohesion: 0.06
-Nodes (48): datetime, Exception, harness, Read a stage evidence file, which must live where drafts live. Anywhere else it…, read_evidence(), _evidence(), Delivery: the deliver stage's own gate, and the receipt it writes. There is no…, Every record must already be in the history that was pushed. The receipt is the… (+40 more)
+### Community 13 - "require"
+Cohesion: 0.07
+Nodes (52): datetime, Exception, harness, Read a stage evidence file, which must live where drafts live. Anywhere else it…, read_evidence(), _evidence(), Delivery: the deliver stage's own gate, and the receipt it writes. There is no…, Every record must already be in the history that was pushed. The receipt is the… (+44 more)
 
 ### Community 14 - "SEEN-087: Install graphify, build the repo graph and wire it into both assistants"
 Cohesion: 0.25
 Nodes (7): Acceptance criteria, Blocks, Clarified, Context, Depends on, Description, SEEN-087: Install graphify, build the repo graph and wire it into both assistants
 
+### Community 15 - "SEEN-089: Enforce TDD and CI quality gates in the harness"
+Cohesion: 0.25
+Nodes (7): Acceptance criteria, Blocks, Carried in from SEEN-087, Context, Depends on, Description, SEEN-089: Enforce TDD and CI quality gates in the harness
+
 ## Knowledge Gaps
-- **10 isolated node(s):** `Description`, `Acceptance criteria`, `Clarified`, `Depends on`, `Blocks` (+5 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 108 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **16 isolated node(s):** `Description`, `Acceptance criteria`, `Carried in from SEEN-087`, `Depends on`, `Blocks` (+11 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 115 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
 - **5 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `HarnessError` connect `HarnessError` to `require`, `.evaluate`, `.start`, `Repository`, `doctor.py`, `RecordTest`, `DoctorTest`, `DeliveryTest`?**
-  _High betweenness centrality (0.367) - this node is a cross-community bridge._
-- **Why does `Repository` connect `Repository` to `require`, `.evaluate`, `.start`, `DoctorTest`, `DeliveryTest`, `GraphTest`, `HarnessError`?**
-  _High betweenness centrality (0.169) - this node is a cross-community bridge._
-- **Why does `require()` connect `require` to `Repository`, `HarnessError`?**
-  _High betweenness centrality (0.123) - this node is a cross-community bridge._
+- **Why does `HarnessError` connect `require` to `cli.py`, `.evaluate`, `.start`, `Repository`, `doctor.py`, `RecordTest`, `DoctorTest`, `DeliveryTest`?**
+  _High betweenness centrality (0.352) - this node is a cross-community bridge._
+- **Why does `Repository` connect `Repository` to `cli.py`, `.evaluate`, `.start`, `DoctorTest`, `DeliveryTest`, `GraphTest`, `require`?**
+  _High betweenness centrality (0.162) - this node is a cross-community bridge._
+- **Why does `require()` connect `require` to `cli.py`, `Repository`?**
+  _High betweenness centrality (0.118) - this node is a cross-community bridge._
 - **Are the 19 inferred relationships involving `HarnessError` (e.g. with `journal_problems()` and `Repository`) actually correct?**
   _`HarnessError` has 19 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 6 inferred relationships involving `Repository` (e.g. with `HarnessError` and `DeliveryTest`) actually correct?**

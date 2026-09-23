@@ -96,10 +96,10 @@
     "semantic_hash": "737bb777ce47e80a15ae7d805419e9f3"
   },
   "harness/paths.py": {
-    "mtime": 1790179506.79651,
-    "seen": 1790179547.763523,
-    "ast_hash": "71e98be8cf8b4c3614f2522f73d596d8",
-    "semantic_hash": "71e98be8cf8b4c3614f2522f73d596d8"
+    "mtime": 1790179777.5483925,
+    "seen": 1790179811.694911,
+    "ast_hash": "d23ec4ffe94c8798941316e44a8df3c7",
+    "semantic_hash": ""
   },
   "harness/repository.py": {
     "mtime": 1790178962.5823014,
@@ -174,10 +174,10 @@
     "semantic_hash": "0fcd630ee0c154e1e1f61b9b51c71101"
   },
   "harness/tests/test_graph.py": {
-    "mtime": 1790179515.6925695,
-    "seen": 1790179547.7635279,
-    "ast_hash": "ec0ed0cba0a15bde42eba8f3eadecd2f",
-    "semantic_hash": "ec0ed0cba0a15bde42eba8f3eadecd2f"
+    "mtime": 1790179768.3955755,
+    "seen": 1790179811.6949172,
+    "ast_hash": "790ded4c2ca12b19a346f5c4d521f165",
+    "semantic_hash": ""
   },
   "harness/tests/test_isolation.py": {
     "mtime": 1790178962.5832276,
@@ -822,9 +822,9 @@
     "semantic_hash": ""
   },
   "docs/tickets/SEEN-087-install-graphify-build-the-repo-graph-and-wire.md": {
-    "mtime": 1790179430.2152822,
-    "seen": 1790179690.818478,
-    "ast_hash": "e68f6b76ade9bd2c7bf4e0bb40685285",
+    "mtime": 1790179800.363271,
+    "seen": 1790179811.694967,
+    "ast_hash": "b3cb7fd5b1893b8c252a4a8b414e2d09",
     "semantic_hash": ""
   },
   "docs/tickets/SEEN-088-integrate-jev-ai-typed-decisions-into-the.md": {
@@ -855,6 +855,66 @@
     "mtime": 1790178962.5813932,
     "seen": 1790179690.81848,
     "ast_hash": "cd3a0df61b83340faf4c420c16c1c7e5",
+    "semantic_hash": ""
+  },
+  "docs/harness/history/SEEN-087/0010.json": {
+    "mtime": 1790179751.4653451,
+    "seen": 1790179811.6949031,
+    "ast_hash": "923c2d0133a8d7d6c8c64ff61096bed6",
+    "semantic_hash": ""
+  },
+  "docs/harness/history/SEEN-087/0011.json": {
+    "mtime": 1790179757.943272,
+    "seen": 1790179811.694904,
+    "ast_hash": "b3b5c31d435a7574aec878fea32b68be",
+    "semantic_hash": ""
+  },
+  "docs/harness/history/SEEN-087/0012.json": {
+    "mtime": 1790179769.6866333,
+    "seen": 1790179811.694904,
+    "ast_hash": "76efbcdf1357443d42d3ea2be458d23f",
+    "semantic_hash": ""
+  },
+  "docs/harness/history/SEEN-087/0013.json": {
+    "mtime": 1790179778.832997,
+    "seen": 1790179811.694905,
+    "ast_hash": "393e8b2c6a6740185c07ad0a8f296b0a",
+    "semantic_hash": ""
+  },
+  "docs/harness/history/SEEN-087/0014.json": {
+    "mtime": 1790179791.2944458,
+    "seen": 1790179811.694905,
+    "ast_hash": "9129a1609c3291a640bf3626a4f7b46c",
+    "semantic_hash": ""
+  },
+  "docs/harness/history/SEEN-087/0015.json": {
+    "mtime": 1790179800.4126573,
+    "seen": 1790179811.694906,
+    "ast_hash": "9f80f135a1a24b22127827871f8863b9",
+    "semantic_hash": ""
+  },
+  "docs/harness/history/SEEN-087/0016.json": {
+    "mtime": 1790179824.1966584,
+    "seen": 1790179857.2887192,
+    "ast_hash": "077753ec9dcadb0398da7c98238511ac",
+    "semantic_hash": ""
+  },
+  "docs/harness/history/SEEN-087/0017.json": {
+    "mtime": 1790179824.341523,
+    "seen": 1790179857.28872,
+    "ast_hash": "a1152b750b6e60b86827e7faf76f69ec",
+    "semantic_hash": ""
+  },
+  "docs/harness/history/SEEN-087/0018.json": {
+    "mtime": 1790179849.0712717,
+    "seen": 1790179857.28872,
+    "ast_hash": "b87b69e5709a54cae954ccf25595aa76",
+    "semantic_hash": ""
+  },
+  "docs/harness/history/SEEN-087/0019.json": {
+    "mtime": 1790179892.127358,
+    "seen": 1790179902.548855,
+    "ast_hash": "1636f055483dc2fa86b7e0d1924e8b25",
     "semantic_hash": ""
   }
 }
