@@ -31,10 +31,10 @@ Create the monorepo with pnpm workspaces and turborepo: apps/api (NestJS), apps/
 
 ## Acceptance criteria
 
-- [ ] pnpm install and pnpm turbo build succeed from a clean clone in under 5 minutes
+- [ ] pnpm install and pnpm turbo build succeed from a clean clone in under 5 minutes, timed and recorded
 - [ ] pnpm turbo test runs a passing placeholder test in each of the six packages
 - [ ] apps/api answers GET /health with HTTP 200 and apps/worker processes a hello job from a local Redis
-- [ ] GitHub Actions runs lint, test and build on every pull request and blocks merge on failure
+- [ ] GitHub Actions runs lint, typecheck, test and build on every pull request, and its result is required before merge as far as the plan allows (amended at clarify on 23 September 2026: branch protection is unavailable on a private repository on the free plan, so the blocking half is SEEN-090's, which settles the plan)
 
 ## Carried in from SEEN-087
 

@@ -37,6 +37,19 @@ Install gitleaks in the pre-commit hook and CI, make the harness refuse to write
 - [ ] Branch protection on main requires the CI check and a pull request, verified with the GitHub API
 - [ ] Deleting a journal directory through the harness asks Jev is_destructive, then the human, and records both before acting
 
+## Carried in from SEEN-006 and SEEN-089
+
+Branch protection is not available on this plan: the repository is private on the free tier and the
+API answers 403, "Upgrade to GitHub Pro or make this repository public". SEEN-006 therefore delivers
+CI on every pull request and records the blocking half as a limit. Settle the plan here before
+claiming the control: either GitHub Pro, or accept that the discipline is the harness refusing
+delivery rather than GitHub refusing merge, and say so in the ticket rather than leaving a green tick
+that means nothing.
+
+Also carried in: the refusal message for a blocking decision prints the question's sense verbatim, so
+a decision that failed to clear its threshold reads "clears its threshold". Fix it where the gate
+enforcement lives.
+
 ## Depends on
 
 - [SEEN-086](SEEN-086-build-the-seen-harness-cli-with-staged-journal.md): Build the Seen harness CLI with staged journal and receipts

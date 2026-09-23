@@ -1,0 +1,88 @@
+{
+  "sequence": 3,
+  "ticket": "SEEN-006",
+  "timestamp": "2026-09-23T19:10:05.520748+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "5983797f6c4ffd592df8777100308090b249cb9b",
+  "prev_hash": "1620f1cc8f3381ceacf3574fee593162034e168d1dacb2b0b0330802c4104e0e",
+  "data": {
+    "from_stage": "clarify",
+    "to_stage": "solution",
+    "evidence": {
+      "scope": "Create the pnpm and turborepo monorepo with all six packages, shared TypeScript, ESLint and Vitest configuration, a working health endpoint, a worker that processes a job from Redis, and CI that lints, tests and builds every package.",
+      "acceptance": [
+        "pnpm install and pnpm turbo build succeed from a clean clone in under 5 minutes: evidenced by a recorded timed run and by CI, which starts from a clean checkout every time",
+        "pnpm turbo test runs a passing test in each of the six packages: evidenced by the recorded run naming all six",
+        "apps/api answers GET /health with HTTP 200 and apps/worker processes a hello job from a local Redis: evidenced by tests that make the request and enqueue the job rather than asserting a constant",
+        "GitHub Actions runs lint, typecheck, test and build on every pull request: evidenced by a green run on this ticket's own pull request. The criterion was amended in the ticket rather than met with an asterisk, because branch protection cannot be configured on this plan",
+        "Carried in from SEEN-087: a commit changing packages/core rebuilds the graph, and a graph query for a symbol in packages/core returns its callers: evidenced by the query recorded as a note at the tdd stage"
+      ],
+      "decisions": [
+        "The stack is fixed by CLAUDE.md and not reopened here: NestJS for apps/api and apps/worker, BullMQ on Redis for the worker, Next.js App Router for apps/web, Vitest for tests across the repository",
+        "Packages are plain TypeScript compiled by the consuming app with no publish step, so a change to the trade record propagates in one commit. Stated in the ticket and kept",
+        "Redis for the worker test is the local redis-server already on this machine rather than Docker, whose daemon is not running. CI starts a Redis service container instead",
+        "Node 24.15.0 is the version on this machine and goes in .nvmrc, which the Seene removal deleted",
+        "The six packages get real tests rather than assertions on constants where the ticket already names behaviour: a health request and an enqueued job. The three library packages get the placeholder the ticket asks for, because their behaviour belongs to later tickets and inventing it now would widen the scope",
+        "apps/web is tested over a pure module rather than a rendered component: App Router rendering tests need a DOM and a React testing setup, and they arrive with the first real screen in SEEN-024",
+        "CI declares a Redis service container and the worker test reads host and port from the environment with a local default, so the same test runs on this machine and on a runner",
+        "A placeholder test asserts the package's own exported name, which proves it resolves, compiles and runs under Vitest, and claims nothing further",
+        "Not in this ticket: no database, no migrations, no Supabase, no Secret Manager, no tenant schema. Those are SEEN-007 and SEEN-008, and the health endpoint touches nothing but the process",
+        "Branch protection is unavailable: private repository, free plan, and the API answers 403 'Upgrade to GitHub Pro or make this repository public'. Rather than deliver AC4 with a limit attached, the criterion is amended in the ticket to what CI can actually do, and SEEN-090 settles the plan and owns the blocking half. Founder, 23 September 2026",
+        "Versions are pinned as installed rather than floating: pnpm 10.31.0 via packageManager, Node 24.15.0 in .nvmrc, and the dependency versions resolved at install time are committed in the lockfile"
+      ],
+      "open_questions": [],
+      "changes_agent_action": false,
+      "graph_impact": [
+        "Nothing in the graph depends on this yet: the repository is documents and the harness. This ticket creates the surface every later product ticket attaches to"
+      ]
+    },
+    "decisions": [
+      {
+        "question": "clarified",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.81,
+          "no": 0.19
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.8,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "question": "risk",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "medium",
+        "probabilities": {
+          "low": 0.39,
+          "medium": 0.61,
+          "high": 0.0
+        },
+        "confidence": 0.42,
+        "score": 0.61,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

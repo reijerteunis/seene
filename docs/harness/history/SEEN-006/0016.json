@@ -1,0 +1,28 @@
+{
+  "sequence": 16,
+  "ticket": "SEEN-006",
+  "timestamp": "2026-09-23T19:17:27.921601+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "5983797f6c4ffd592df8777100308090b249cb9b",
+  "prev_hash": "09d4e72ae634a3b45ddc22a99a74ec601b0deda8f8c37f89455fb6b667d68329",
+  "data": {
+    "command": [
+      "pnpm",
+      "--filter",
+      "@seen/web",
+      "test"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "duration_ms": 670,
+    "output": "\n> @seen/web@0.0.0 test /Users/ruudvanengelenhoven/Development/seene/apps/web\n> vitest run\n\n\n RUN  v3.2.7 /Users/ruudvanengelenhoven/Development/seene/apps/web\n\n\n⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯\n\n FAIL  src/site.test.ts [ src/site.test.ts ]\nError: Cannot find module './site' imported from '/Users/ruudvanengelenhoven/Development/seene/apps/web/src/site.test.ts'\n ❯ src/site.test.ts:3:1\n      1| import { describe, expect, it } from 'vitest';\n      2| \n      3| import { site } from './site';\n       | ^\n      4| \n      5| describe('the site', () => {\n\nCaused by: Error: Failed to load url ./site (resolved id: ./site) in /Users/ruudvanengelenhoven/Development/seene/apps/web/src/site.test.ts. Does the file exist?\n ❯ loadAndTransform ../../node_modules/.pnpm/vite@7.3.6_@types+node@24.13.6/node_modules/vite/dist/node/chunks/config.js:22739:33\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯\n\n\n Test Files  1 failed (1)\n      Tests  no tests\n   Start at  21:17:27\n   Duration  151ms (transform 11ms, setup 0ms, collect 0ms, tests 0ms, environment 0ms, prepare 26ms)\n\n/Users/ruudvanengelenhoven/Development/seene/apps/web:\n ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @seen/web@0.0.0 test: `vitest run`\nExit status 1\n",
+    "output_sha256": "7cd1367d01ae8f454a92c9b8e3c78b39a7a40f60c0061ef447681665bbf7508e",
+    "output_truncated": false,
+    "before": "e0625439c7b42eeffb8da9f4ed22a865c680cae3400c67cb3cffec8fa6cd1822",
+    "after": "e0625439c7b42eeffb8da9f4ed22a865c680cae3400c67cb3cffec8fa6cd1822"
+  }
+}

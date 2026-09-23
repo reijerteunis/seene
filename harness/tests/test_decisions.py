@@ -7,7 +7,7 @@ here runs against a stub transport: no test calls the API.
 import json
 import os
 
-from harness import cli, jev
+from harness import cli, jev, thresholds
 from harness.errors import HarnessError
 from harness.tests.test_lifecycle import CommandTest, clarify_evidence, solution_evidence
 
@@ -147,15 +147,22 @@ class FallbackTest(QuestionTest):
         with self.assertRaisesRegex(HarnessError, '--answer'):
             self.decide('clarified')
 
-    def test_a_failing_api_falls_back_rather_than_failing_the_command(self):
+    def test_a_failing_api_asks_the_human_and_says_why(self):
+        """A transport failure is not fatal: it becomes a question for a person.
+
+        The refusal carries the failure, so nobody has to guess whether the
+        model disagreed or the network did.
+        """
         self.write('.env.local', 'JEV_API_KEY=stub-credential\n')
 
         def broken(endpoint, payload, credential, timeout):
             raise OSError('connection reset')
         jev.TRANSPORT = broken
+        with self.assertRaisesRegex(HarnessError, 'connection reset'):
+            self.decide('clarified')
         data = self.decide('clarified', '--answer', 'no', '--confidence', '0.9')['data']
         self.assertEqual(data['source'], 'human')
-        self.assertIn('connection reset', data['fallback_reason'])
+        self.assertEqual(data['outcome'], 'no')
 
     def test_a_human_answer_outside_the_options_is_refused(self):
         jev.TRANSPORT = None
@@ -183,6 +190,34 @@ class TransportTest(QuestionTest):
         self.assertEqual(request.get_header('Authorization'), 'Bearer the-credential')
         self.assertEqual(request.get_header('Content-type'), 'application/json')
         self.assertEqual(json.loads(request.data), {'question': 'x'})
+
+
+class OverrideTest(QuestionTest):
+    """A human answer beats the model, even when the model is reachable.
+
+    Otherwise the override the harness documents does not exist: with a
+    credential present every question goes to the API and --answer is ignored.
+    """
+
+    def test_an_explicit_answer_is_not_sent_to_the_model(self):
+        transport = stub()
+        jev.TRANSPORT = transport
+        data = self.decide('clarified', '--answer', 'yes', '--confidence', '0.9')['data']
+        self.assertEqual(data['source'], 'human')
+        self.assertEqual(data['probabilities']['yes'], 0.9)
+        self.assertTrue(data['passed'])
+        self.assertEqual(transport.sent, [], 'the model is not asked what a human has answered')
+
+    def test_the_other_questions_still_go_to_the_model(self):
+        transport = stub()
+        jev.TRANSPORT = transport
+        answers = jev.ask_many(self.root, thresholds.load(self.root),
+                               ['clarified', 'risk'], {'ticket': 'SEEN-001'},
+                               {'clarified': 'no'}, 0.95)
+        by_question = {answer['question']: answer for answer in answers}
+        self.assertEqual(by_question['clarified']['source'], 'human')
+        self.assertEqual(by_question['risk']['source'], 'jev')
+        self.assertEqual(sorted(transport.sent[0]['payload']['questions']), ['risk'])
 
 
 class SecrecyTest(QuestionTest):

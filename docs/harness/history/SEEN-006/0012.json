@@ -1,0 +1,28 @@
+{
+  "sequence": 12,
+  "ticket": "SEEN-006",
+  "timestamp": "2026-09-23T19:16:24.637656+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "5983797f6c4ffd592df8777100308090b249cb9b",
+  "prev_hash": "28c23fcae30e857ab67bdac077d3038941a627f3840a38e47f63fc5a61105c76",
+  "data": {
+    "command": [
+      "pnpm",
+      "--filter",
+      "@seen/api",
+      "test"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "duration_ms": 731,
+    "output": "\n> @seen/api@0.0.0 test /Users/ruudvanengelenhoven/Development/seene/apps/api\n> vitest run\n\n\n RUN  v3.2.7 /Users/ruudvanengelenhoven/Development/seene/apps/api\n\n\n⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯\n\n FAIL  src/health.test.ts [ src/health.test.ts ]\nError: Cannot find module './app.module' imported from '/Users/ruudvanengelenhoven/Development/seene/apps/api/src/health.test.ts'\n ❯ src/health.test.ts:6:1\n      4| import { afterAll, beforeAll, describe, expect, it } from 'vitest';\n      5| \n      6| import { AppModule } from './app.module';\n       | ^\n      7| \n      8| describe('GET /health', () => {\n\nCaused by: Error: Failed to load url ./app.module (resolved id: ./app.module) in /Users/ruudvanengelenhoven/Development/seene/apps/api/src/health.test.ts. Does the file exist?\n ❯ loadAndTransform ../../node_modules/.pnpm/vite@7.3.6_@types+node@24.13.6/node_modules/vite/dist/node/chunks/config.js:22739:33\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯\n\n\n Test Files  1 failed (1)\n      Tests  no tests\n   Start at  21:16:24\n   Duration  312ms (transform 16ms, setup 0ms, collect 0ms, tests 0ms, environment 0ms, prepare 29ms)\n\n/Users/ruudvanengelenhoven/Development/seene/apps/api:\n ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @seen/api@0.0.0 test: `vitest run`\nExit status 1\n",
+    "output_sha256": "db906cabb0bf141dc4408562161c8a53bba01f4cf8300e8a6c1427207476d0d2",
+    "output_truncated": false,
+    "before": "423d5148da8ef462fbd6615e3837a360f8a8574b3ddb405bf8afc7b66b3bb862",
+    "after": "423d5148da8ef462fbd6615e3837a360f8a8574b3ddb405bf8afc7b66b3bb862"
+  }
+}

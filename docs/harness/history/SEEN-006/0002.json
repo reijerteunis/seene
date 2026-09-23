@@ -1,0 +1,15 @@
+{
+  "sequence": 2,
+  "ticket": "SEEN-006",
+  "timestamp": "2026-09-23T19:08:21.521102+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "5983797f6c4ffd592df8777100308090b249cb9b",
+  "prev_hash": "fb71bfaef6100aa71904b651b7561eb746ccbce19b0dedc2660be22d150925d9",
+  "data": {
+    "text": "# What Jev found unresolved, answered\n\nThe first clarify record scored 0.72 on `clarified`, under the 0.8 threshold. Re-reading it, four\nthings were genuinely unsettled, and hand-waving past them is exactly what the gate exists to stop.\n\n1. **What apps/web's test actually tests.** Next.js App Router components need a DOM environment and\n   a React testing setup, which is real work for a scaffold ticket. Decision: apps/web gets a Vitest\n   test over a pure module (the site metadata it exports), not a rendered component. Rendering tests\n   arrive with the first real screen, in SEEN-024.\n\n2. **Where Redis comes from in CI.** The local machine has redis-server; a GitHub runner does not.\n   Decision: the CI job declares a Redis service container, and the worker test reads its host and\n   port from the environment with a local default, so the same test runs in both places.\n\n3. **What a placeholder test asserts.** Decision: each library package exports its own name and a\n   test asserts it, which proves the package resolves, compiles and runs under Vitest. That is all a\n   placeholder should claim, and the packages' real behaviour belongs to the tickets that own it.\n\n4. **What is not in this ticket.** No database, no migrations, no Supabase, no Secret Manager and no\n   tenant schema: those are SEEN-007 and SEEN-008. The api health endpoint touches nothing but the\n   process itself.\n\nOne defect noticed while being refused: the refusal message reads \"The clarified question clears its\nthreshold: 0.72 against 0.8\", which says the opposite of what happened. The blocking rule names each\nquestion's sense and the message prints that word verbatim. It belongs to SEEN-089, which owns the\ngate enforcement, and is recorded there.\n"
+  }
+}
