@@ -1,0 +1,20 @@
+{
+  "sequence": 25,
+  "ticket": "SEEN-091",
+  "timestamp": "2026-09-23T22:16:07.711227+00:00",
+  "harness_version": "1",
+  "kind": "reopen",
+  "stage": "delivered",
+  "attempt": 2,
+  "actor": "claude:reviewer",
+  "head": "f581ef0cd363939d454c7b05d804607b47f01f19",
+  "prev_hash": "16d7b1f221f7233ddb9afbeb2bcb08c4b1c8fdb95b314e1940614fb29212b02b",
+  "data": {
+    "from_stage": "delivered",
+    "to_stage": "tdd",
+    "to_attempt": 3,
+    "voided_receipt": "16d7b1f221f7233ddb9afbeb2bcb08c4b1c8fdb95b314e1940614fb29212b02b",
+    "voided_commit": "dbecd43d8246d64b731baa013a6f3e95bc2b3bab",
+    "reason": "doctor's append-only proof treats every file under docs/harness/history as a record, so kpi.json rewritten at a second delivery reads as a rewritten record and CI refuses the ticket. It is a cache, explicitly allowed beside the records; only NNNN.json files are append-only."
+  }
+}

@@ -104,3 +104,27 @@ class DoctorTest(CommandTest):
 
     def test_the_command_passes_on_a_healthy_project(self):
         self.assertTrue(self.run_harness('doctor')['ok'])
+
+
+class AppendOnlyScopeTest(DoctorTest):
+    """Records are append-only. The files beside them are not records."""
+
+    def test_a_rewritten_kpi_cache_is_not_a_rewritten_record(self):
+        self.start()
+        self.write('docs/harness/history/' + self.ticket_id + '/kpi.json', '{"ticket": "a"}')
+        self.commit()
+        self.write('docs/harness/history/' + self.ticket_id + '/kpi.json', '{"ticket": "b"}')
+        self.commit('docs: the ticket delivered again, so its figures changed')
+
+        report = self.report()
+        self.assertTrue(report['ok'], report['problems'])
+
+    def test_a_rewritten_record_is_still_caught(self):
+        self.start()
+        self.commit()
+        record = self.root / 'docs/harness/history' / self.ticket_id / '0001.json'
+        record.write_text(record.read_text().replace('claude:implementer', 'codex:reviewer'))
+        self.commit('docs: quietly rewrite the record')
+
+        problems = self.report()['problems']
+        self.assertTrue(any('0001.json' in problem for problem in problems), problems)
