@@ -1,0 +1,27 @@
+{
+  "sequence": 10,
+  "ticket": "SEEN-090",
+  "timestamp": "2026-09-23T21:04:30.908347+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "6ff2e142a1ffbf655c14d234cb6ff6b1716391e6",
+  "prev_hash": "e55a93dac66f4c64ca9486cd57d1be2b1f3d08902673fbc8d3d05b797d2e0be7",
+  "data": {
+    "command": [
+      "sh",
+      "-c",
+      "python3 -m unittest discover -s harness/tests && python3 harness/run.py lint && pnpm turbo run lint typecheck test --output-logs=errors-only"
+    ],
+    "phase": "regression",
+    "exit_code": 0,
+    "duration_ms": 56382,
+    "output": ".........................................................................................................................................................................................................\n----------------------------------------------------------------------\nRan 201 tests in 55.297s\n\nOK\n{\n  \"ok\": true,\n  \"checked\": \"test code\",\n  \"hosts\": [\n    \"api.bol.com\",\n    \"sellingpartnerapi\",\n    \"api.ebay.com\",\n    \"sellerapi.kaufland.com\",\n    \"api.otto.market\"\n  ]\n}\n• turbo 2.11.3\n\n   • Packages in scope: @seen/agent, @seen/api, @seen/connectors, @seen/core, @seen/web, @seen/worker\n   • Running lint, typecheck, test in 6 packages\n   • Remote caching disabled\n\n\n Tasks:    18 successful, 18 total\nCached:    18 cached, 18 total\n  Time:    24ms >>> FULL TURBO\n\n",
+    "output_sha256": "e0d576f9864af2c01aad837ee66b781822cff741254468149a9514825e3ca41b",
+    "output_truncated": false,
+    "before": "73d06cec21ad8215a4410bcec78d1bd434170265f6fbcb0a953e7bcbc2e06995",
+    "after": "73d06cec21ad8215a4410bcec78d1bd434170265f6fbcb0a953e7bcbc2e06995"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "sequence": 5,
+  "ticket": "SEEN-090",
+  "timestamp": "2026-09-23T20:56:39.590475+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "6ff2e142a1ffbf655c14d234cb6ff6b1716391e6",
+  "prev_hash": "de252ccc6975908611ee7d36b2b1a448e4aea909a147eb1f36ac151205af2ed8",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_security"
+    ],
+    "phase": "green",
+    "exit_code": 0,
+    "duration_ms": 722,
+    "output": "..........\n----------------------------------------------------------------------\nRan 10 tests in 0.653s\n\nOK\n",
+    "output_sha256": "111081c2a036afca488aecd108031f5535496c061911c349327906b14de27cfc",
+    "output_truncated": false,
+    "before": "e6663081f9eea602d8ce85f0e90693487f3dba741c8adbb0967f4e73f57276bb",
+    "after": "e6663081f9eea602d8ce85f0e90693487f3dba741c8adbb0967f4e73f57276bb"
+  }
+}
