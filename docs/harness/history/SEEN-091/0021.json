@@ -1,0 +1,30 @@
+{
+  "sequence": 21,
+  "ticket": "SEEN-091",
+  "timestamp": "2026-09-23T22:09:21.820325+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "head": "5e74f8a45e0b29bab11cf61d06df7c6752c95398",
+  "prev_hash": "c5eb24baa9b3c39e289a0cc2ab2b812a9d3a2d33dd04356bc33a83774f430958",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "behaviour": "A report or a KPI record written after the receipt does not refuse the merge, because delivery writes both, while any other change after the receipt still does",
+          "failure_reason": "HarnessError naming the four report files changed after the receipt was written",
+          "red": 17,
+          "green": 18
+        }
+      ],
+      "regression": 20,
+      "coverage_delta": null
+    },
+    "decisions": []
+  }
+}

@@ -120,8 +120,11 @@ def _require_committed(repository, folder):
 
 
 # What delivery itself writes after the receipt is taken, and therefore the only
-# paths a commit between the receipt and the tip may touch.
-DELIVERY_WRITES = ('docs/harness/history/', 'docs/harness/coverage.json', 'graphify-out/')
+# paths a commit between the receipt and the tip may touch. Reports are here
+# because the week a ticket delivers in includes that ticket, so regenerating
+# them at delivery is the normal thing to do rather than an unreviewed change.
+DELIVERY_WRITES = ('docs/harness/history/', 'docs/harness/coverage.json',
+                   'docs/harness/reports/', 'graphify-out/')
 
 
 def verify_merge(repository, folder, records):
