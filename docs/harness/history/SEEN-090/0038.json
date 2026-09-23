@@ -1,0 +1,44 @@
+{
+  "sequence": 38,
+  "ticket": "SEEN-090",
+  "timestamp": "2026-09-23T21:47:14.339168+00:00",
+  "harness_version": "1",
+  "kind": "receipt",
+  "stage": "deliver",
+  "attempt": 4,
+  "actor": "claude:implementer",
+  "head": "cb8e5364f640194c20a8c6c4443508ede864c526",
+  "prev_hash": "a527b78e8fa3d388f0c80748a8a708faff1bcdcda4fd40b8a5582cb06344e9a4",
+  "data": {
+    "from_stage": "deliver",
+    "to_stage": "delivered",
+    "commit": "cb8e5364f640194c20a8c6c4443508ede864c526",
+    "branch": "claude/SEEN-090-add-harness-security-controls",
+    "remote": "origin",
+    "tree": "2448db7bbcc91549a7d7d5f665ad772bae84084c70b26540ab41284627112e1b",
+    "pull_request": "https://github.com/reijerteunis/seene/pull/8",
+    "limits": [
+      "Branch protection is not configured and was deliberately not bought; the enforcement is the harness refusing delivery, which GitHub does not know about",
+      "The pre-commit hook needs gitleaks installed, and refuses to commit without it rather than scanning nothing quietly",
+      "core.hooksPath is per clone, so a fresh clone runs one command before doctor passes",
+      "The environment rule compares against variables present at write time; a credential that was never in the environment is not caught",
+      "Reviewed by the session that wrote it: self-review, not independent"
+    ],
+    "evidence": {
+      "remote": "origin",
+      "pull_request": "https://github.com/reijerteunis/seene/pull/8",
+      "limits": [
+        "Branch protection is not configured and was deliberately not bought; the enforcement is the harness refusing delivery, which GitHub does not know about",
+        "The pre-commit hook needs gitleaks installed, and refuses to commit without it rather than scanning nothing quietly",
+        "core.hooksPath is per clone, so a fresh clone runs one command before doctor passes",
+        "The environment rule compares against variables present at write time; a credential that was never in the environment is not caught",
+        "Reviewed by the session that wrote it: self-review, not independent"
+      ]
+    },
+    "coverage": {
+      "package": "@seen/core",
+      "lines": 100.0,
+      "delta": 0.0
+    }
+  }
+}
