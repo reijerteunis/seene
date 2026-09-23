@@ -34,8 +34,8 @@ change_types = ["documentation", "research", "verification", "policy"]
 # The decision layer. The questions themselves live in harness/jev.py, because
 # their structure is what the harness is; these are the bars they must clear.
 [jev]
-endpoint = "https://thejevai.com/v1/systemone"
-model = "typesafe/jev-1.13"
+endpoint = "https://api.typesafe.ai/v1/systemone"
+model = "jev-latest"
 timeout_seconds = 60
 
 [jev.thresholds]

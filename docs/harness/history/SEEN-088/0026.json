@@ -1,0 +1,20 @@
+{
+  "sequence": 26,
+  "ticket": "SEEN-088",
+  "timestamp": "2026-09-23T18:58:12.393268+00:00",
+  "harness_version": "1",
+  "kind": "reopen",
+  "stage": "delivered",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "head": "0b52211a3d19d802eae1438c05d32ab7276992db",
+  "prev_hash": "10215e20c985c47f5b35bff8f1b79529441e13f27f2eea5286e7b7bc1262c661",
+  "data": {
+    "from_stage": "delivered",
+    "to_stage": "tdd",
+    "to_attempt": 3,
+    "voided_receipt": "10215e20c985c47f5b35bff8f1b79529441e13f27f2eea5286e7b7bc1262c661",
+    "voided_commit": "5865c40653108548b48822d00b92c1c0419afbb1",
+    "reason": "The ticket named the wrong service. The API is api.typesafe.ai/v1/systemone with model jev-latest, a questions map rather than one question per call, and answers shaped {noul: 0.95} or {score, legend, probabilities, confidence}. The delivered implementation cannot work against it, and the receipt attests a commit that must not be what merges."
+  }
+}

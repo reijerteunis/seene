@@ -368,21 +368,21 @@ def stage_decisions(repository, records, args, current, rules, evidence):
     """
     stage = current['stage']
     taken = recorded_decisions(records, stage, current['attempt'])
-    answers = []
-    for name in jev.questions_for(stage):
-        if name in taken:
-            answers.append(taken[name])
-            continue
-        if not jev.credential(repository.root):
-            answers.append(jev.unavailable(
+    outstanding = [name for name in jev.questions_for(stage) if name not in taken]
+    fresh = {}
+    if outstanding:
+        if jev.credential(repository.root):
+            # One request for the whole stage, which is what the API is shaped for.
+            fresh = {answer['question']: answer
+                     for answer in jev.ask_many(repository.root, rules, outstanding,
+                                                state_for(records, current, evidence))}
+        else:
+            fresh = {name: jev.unavailable(
                 name, jev.QUESTIONS[name],
                 f'No Jev credential. Record a human answer with: harness decide {args.ticket} '
                 f'--question {name} --answer <option> --confidence <0 to 1> '
-                f'--actor {args.actor}'))
-            continue
-        answers.append(jev.ask(repository.root, rules, name,
-                               state_for(records, current, evidence)))
-    return answers
+                f'--actor {args.actor}') for name in outstanding}
+    return [taken.get(name) or fresh[name] for name in jev.questions_for(stage)]
 
 
 def require_decisions_pass(stage, answers):

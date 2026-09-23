@@ -1,0 +1,30 @@
+{
+  "sequence": 31,
+  "ticket": "SEEN-088",
+  "timestamp": "2026-09-23T19:00:50.332761+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "head": "0b52211a3d19d802eae1438c05d32ab7276992db",
+  "prev_hash": "b0e1c818b4fa4b1650585a70b2fffd3b3c111d492968acf100449d654d7e663b",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "behaviour": "The decision layer speaks the API's real contract: api.typesafe.ai with model jev-latest, a questions map carrying the whole stage in one request, a noul read as one probability, and a score read by level index into the option names with its legend, weighted value and confidence",
+          "failure_reason": "Nine errors and two failures on the rewritten tests, including KeyError 'questions' and a request that carried one question per call",
+          "red": 27,
+          "green": 28
+        }
+      ],
+      "regression": 30,
+      "coverage_delta": null
+    },
+    "decisions": []
+  }
+}

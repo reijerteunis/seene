@@ -12,27 +12,42 @@ from harness.errors import HarnessError
 from harness.tests.test_lifecycle import CommandTest, clarify_evidence, solution_evidence
 
 
-def stub(answer, score=None):
-    """A transport that answers in the shape the question asked for.
+# Answer bodies in the shape the live API returned on 23 September 2026. A noul
+# is one probability; a score is a weighted value with a legend, a probability
+# per level and a confidence.
+def noul(probability=0.93):
+    return {'type': 'noul', 'noul': probability}
 
-    One canned body per question type, because a real answer to a score question
-    is never yes or no, and a stub that ignores the type tests nothing.
-    """
+
+def score(probabilities, value=1.0, confidence=0.7):
+    return {'type': 'score', 'score': value, 'confidence': confidence,
+            'probabilities': {str(index): p for index, p in enumerate(probabilities)},
+            'legend': {str(index): f'level {index}' for index in range(len(probabilities))}}
+
+
+def stub(default=None, answers=None):
+    """A transport shaped like the API: one request, a map of answers back."""
     sent = []
 
     def transport(endpoint, payload, credential, timeout):
         sent.append(dict(endpoint=endpoint, payload=payload, credential=credential))
-        if payload['type'] == 'score':
-            return score or SCORE
-        return answer
+        replies = {}
+        for name, question in payload['questions'].items():
+            if answers and name in answers:
+                replies[name] = answers[name]
+            elif question['type'] == 'score':
+                replies[name] = score([0.2, 0.7, 0.1])
+            else:
+                replies[name] = default if default is not None else noul()
+        return {'model': 'jev-1.13.0', 'answers': replies,
+                'usage': {'input_tokens': 320, 'output_tokens': 36}}
 
     transport.sent = sent
     return transport
 
 
-NOUL = {'answer': 'yes', 'probabilities': {'yes': 0.93, 'no': 0.07}, 'model': 'typesafe/jev-1.13'}
-SCORE = {'answer': 'medium', 'probabilities': {'low': 0.2, 'medium': 0.7, 'high': 0.1},
-         'model': 'typesafe/jev-1.13'}
+NOUL = None      # kept so the old call sites read naturally after the rewrite below
+SCORE = None
 
 
 class QuestionTest(CommandTest):
@@ -53,28 +68,43 @@ class QuestionTest(CommandTest):
 class AnswerTest(QuestionTest):
 
     def test_an_answer_becomes_a_decision_record(self):
-        jev.TRANSPORT = stub(NOUL)
+        jev.TRANSPORT = stub()
         record = self.decide('clarified')
         self.assertEqual(record['kind'], 'decision')
         data = record['data']
         self.assertEqual(data['question'], 'clarified')
         self.assertEqual(data['source'], 'jev')
-        self.assertEqual(data['model'], 'typesafe/jev-1.13')
+        self.assertEqual(data['model'], 'jev-1.13.0')
         self.assertEqual(data['outcome'], 'yes')
         self.assertEqual(data['probabilities']['yes'], 0.93)
+        self.assertAlmostEqual(data['probabilities']['no'], 0.07)
         self.assertEqual(data['threshold'], 0.8)
         self.assertTrue(data['passed'])
 
-    def test_a_score_question_carries_every_option(self):
-        jev.TRANSPORT = stub(SCORE)
+    def test_a_score_question_carries_every_option_by_name(self):
+        """The API answers by level index; the record answers by option name."""
+        jev.TRANSPORT = stub()
         data = self.decide('risk')['data']
         self.assertEqual(data['type'], 'score')
         self.assertEqual(sorted(data['probabilities']), ['high', 'low', 'medium'])
         self.assertEqual(data['outcome'], 'medium')
+        self.assertEqual(data['probabilities']['medium'], 0.7)
+        self.assertEqual(data['confidence'], 0.7)
+        self.assertEqual(data['score'], 1.0)
+
+    def test_one_request_carries_every_question_a_stage_owns(self):
+        transport = stub()
+        jev.TRANSPORT = transport
+        self.submit('clarify', clarify_evidence())
+        self.assertEqual(len(transport.sent), 1, 'a stage is one call, not one per question')
+        asked = transport.sent[0]['payload']['questions']
+        self.assertEqual(sorted(asked), ['clarified', 'risk'])
+        self.assertEqual(asked['risk']['type'], 'score')
+        self.assertEqual(len(asked['risk']['criteria']), 3)
+        self.assertEqual(asked['clarified']['type'], 'noul')
 
     def test_a_probability_below_the_threshold_does_not_pass(self):
-        jev.TRANSPORT = stub({'answer': 'yes', 'probabilities': {'yes': 0.6, 'no': 0.4},
-                              'model': 'typesafe/jev-1.13'})
+        jev.TRANSPORT = stub(noul(0.6))
         self.assertFalse(self.decide('clarified')['data']['passed'])
 
     def test_the_record_carries_the_state_that_was_judged(self):
@@ -82,18 +112,19 @@ class AnswerTest(QuestionTest):
         jev.TRANSPORT = transport
         self.decide('clarified')
         payload = transport.sent[0]['payload']
-        self.assertEqual(payload['model'], 'typesafe/jev-1.13')
-        self.assertIn('clarified', json.dumps(payload))
+        self.assertEqual(payload['model'], 'jev-latest')
+        self.assertIn('clarified', payload['questions'])
+        self.assertIn('SEEN-001', json.dumps(payload['state']))
 
     def test_an_unknown_question_names_the_ones_that_exist(self):
-        jev.TRANSPORT = stub(NOUL)
+        jev.TRANSPORT = stub()
         with self.assertRaisesRegex(HarnessError, 'clarified'):
             self.decide('is_it_friday')
 
     def test_the_threshold_comes_from_the_threshold_file(self):
         path = self.root / 'harness' / 'thresholds.toml'
         path.write_text(path.read_text().replace('clarified = 0.8', 'clarified = 0.95'))
-        jev.TRANSPORT = stub(NOUL)
+        jev.TRANSPORT = stub()
         data = self.decide('clarified')['data']
         self.assertEqual(data['threshold'], 0.95)
         self.assertFalse(data['passed'], '0.93 does not clear 0.95')
@@ -147,7 +178,7 @@ class TransportTest(QuestionTest):
         with the credential.
         """
         request = jev.build_request('https://example.test/v1/systemone',
-                                    {'question': 'x'}, 'the-credential', )
+                                    {'question': 'x'}, 'the-credential')
         self.assertIn('seen-harness', request.get_header('User-agent'))
         self.assertEqual(request.get_header('Authorization'), 'Bearer the-credential')
         self.assertEqual(request.get_header('Content-type'), 'application/json')
@@ -163,9 +194,9 @@ class SecrecyTest(QuestionTest):
 
         def echoing(endpoint, payload, credential, timeout):
             # An API that reflects the request, credentials and all.
-            return {'answer': 'yes', 'probabilities': {'yes': 0.9, 'no': 0.1},
-                    'model': 'typesafe/jev-1.13', 'echo': {'credential': credential,
-                                                           'env': dict(os.environ)}}
+            return {'model': 'jev-1.13.0',
+                    'answers': {name: noul(0.9) for name in payload['questions']},
+                    'echo': {'credential': credential, 'env': dict(os.environ)}}
         jev.TRANSPORT = echoing
         record = self.decide('clarified')
         written = json.dumps(record)
@@ -190,14 +221,12 @@ class SecrecyTest(QuestionTest):
 class GateTest(QuestionTest):
 
     def test_advance_from_clarify_is_refused_below_the_threshold(self):
-        jev.TRANSPORT = stub({'answer': 'no', 'probabilities': {'yes': 0.41, 'no': 0.59},
-                              'model': 'typesafe/jev-1.13'})
+        jev.TRANSPORT = stub(noul(0.41))
         with self.assertRaisesRegex(HarnessError, 'clarified'):
             self.submit('clarify', clarify_evidence())
 
     def test_the_refusal_quotes_the_probability_it_judged_on(self):
-        jev.TRANSPORT = stub({'answer': 'no', 'probabilities': {'yes': 0.41, 'no': 0.59},
-                              'model': 'typesafe/jev-1.13'})
+        jev.TRANSPORT = stub(noul(0.41))
         try:
             self.submit('clarify', clarify_evidence())
             self.fail('the advance should have been refused')
@@ -205,7 +234,7 @@ class GateTest(QuestionTest):
             self.assertIn('0.41', str(error))
 
     def test_a_clear_answer_lets_the_advance_through_and_is_recorded_beside_it(self):
-        jev.TRANSPORT = stub(NOUL)
+        jev.TRANSPORT = stub()
         record = self.submit('clarify', clarify_evidence())
         self.assertEqual(record['data']['to_stage'], 'solution')
         questions = [decision['question'] for decision in record['data']['decisions']]
@@ -238,7 +267,7 @@ class GateTest(QuestionTest):
             cli.require_decisions_pass('clarify', [answer])
 
     def test_a_billing_or_policy_gate_ticket_needs_a_second_reviewer(self):
-        jev.TRANSPORT = stub(NOUL)
+        jev.TRANSPORT = stub()
         self.submit('clarify', clarify_evidence())
         self.submit('solution', solution_evidence())
         draft = self.run_harness('draft', self.ticket_id, '--stage', 'review')
