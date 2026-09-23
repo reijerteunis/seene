@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: []
-status: doing
+status: done
 ---
 # SEEN-006: Scaffold the pnpm turborepo monorepo with all six packages
 
@@ -23,7 +23,7 @@ status: doing
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | doing |
+| Status | done |
 
 ## Description
 
