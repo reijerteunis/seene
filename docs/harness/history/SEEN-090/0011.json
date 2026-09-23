@@ -1,0 +1,15 @@
+{
+  "sequence": 11,
+  "ticket": "SEEN-090",
+  "timestamp": "2026-09-23T21:09:35.546603+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "bf3e38704dd2ddfa7ed063d915f79ef2ae738aff",
+  "prev_hash": "9b6414bed1dfd0bd02c86b56120f1d6e1d9185ee7f6fc6c274dff79271b42d44",
+  "data": {
+    "text": "# I destroyed my own uncommitted work, and CI caught it\n\nWhile proving the pre-commit hook blocks a fake AWS key, the first attempt used AWS's documented\nexample key, which gitleaks allowlists, so the commit went through. To remove that commit I ran\n`git reset --hard HEAD~1`, which also discarded every uncommitted edit to tracked files: the\nenvironment-value rule in `journal.py`, the lint and discard commands in `cli.py`, the hook checks in\n`doctor.py` and the allowlist in `.claude/settings.json`. The new files survived because they were\nuntracked, which is exactly why it looked fine: `harness/secrets.py` and the tests were still there.\n\nThe commit that followed carried the tests and not the code they test. CI failed on\n`invalid choice: 'discard'` and on three environment-value tests, which is the only reason it was\ncaught before the ticket claimed to be done.\n\nEverything is restored and the suite passes. Two things worth keeping from it:\n\n- `git reset --hard` is not an undo for a commit when there is uncommitted work beside it.\n  `git reset --soft HEAD~1` would have removed the commit and kept everything.\n- A green local suite immediately before a commit does not prove the commit contains what was green.\n  SEEN-094's `verify-merge` checks the other end of that gap; nothing yet checks this one.\n\nThe second point is a finding for SEEN-091 or a later harness ticket: `advance` could compare the\ntree against the checks it cites, in the way delivery already compares the tree against review.\n"
+  }
+}
