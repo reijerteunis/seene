@@ -173,43 +173,30 @@
       "source_location": "L102"
     },
     {
-      "id": "harness_tests_test_merge_deliverycheckstest",
-      "label": "DeliveryChecksTest",
+      "id": "harness_tests_test_kpi_repeatedreviewtest",
+      "label": "RepeatedReviewTest",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
       "community": 130,
-      "community_name": "MergeTest",
+      "community_name": "test_kpi.py",
       "file_type": "code",
-      "norm_label": "deliverycheckstest",
-      "source_file": "harness/tests/test_merge.py",
-      "source_location": "L20"
+      "norm_label": "repeatedreviewtest",
+      "source_file": "harness/tests/test_kpi.py",
+      "source_location": "L141"
     },
     {
-      "id": "harness_tests_test_merge_mergetest",
-      "label": "MergeTest",
+      "id": "harness_tests_test_kpi_ticketfigurestest",
+      "label": "TicketFiguresTest",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
       "community": 130,
-      "community_name": "MergeTest",
+      "community_name": "test_kpi.py",
       "file_type": "code",
-      "norm_label": "mergetest",
-      "source_file": "harness/tests/test_merge.py",
-      "source_location": "L59"
-    },
-    {
-      "id": "harness_tests_test_merge_supersededruntest",
-      "label": "SupersededRunTest",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 130,
-      "community_name": "MergeTest",
-      "file_type": "code",
-      "norm_label": "supersededruntest",
-      "source_file": "harness/tests/test_merge.py",
-      "source_location": "L118"
+      "norm_label": "ticketfigurestest",
+      "source_file": "harness/tests/test_kpi.py",
+      "source_location": "L54"
     },
     {
       "id": "harness_tests_test_doctor_doctortest",
@@ -719,30 +706,56 @@
       "source_location": "L10"
     },
     {
-      "id": "harness_tests_test_kpi_repeatedreviewtest",
-      "label": "RepeatedReviewTest",
+      "id": "harness_tests_test_merge_bookkeepingafterreceipttest",
+      "label": "BookkeepingAfterReceiptTest",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
       "community": 9,
       "community_name": "DeliveryWalk",
       "file_type": "code",
-      "norm_label": "repeatedreviewtest",
-      "source_file": "harness/tests/test_kpi.py",
-      "source_location": "L141"
+      "norm_label": "bookkeepingafterreceipttest",
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L153"
     },
     {
-      "id": "harness_tests_test_kpi_ticketfigurestest",
-      "label": "TicketFiguresTest",
+      "id": "harness_tests_test_merge_deliverycheckstest",
+      "label": "DeliveryChecksTest",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
       "community": 9,
       "community_name": "DeliveryWalk",
       "file_type": "code",
-      "norm_label": "ticketfigurestest",
-      "source_file": "harness/tests/test_kpi.py",
-      "source_location": "L54"
+      "norm_label": "deliverycheckstest",
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L20"
+    },
+    {
+      "id": "harness_tests_test_merge_mergetest",
+      "label": "MergeTest",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 9,
+      "community_name": "DeliveryWalk",
+      "file_type": "code",
+      "norm_label": "mergetest",
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L59"
+    },
+    {
+      "id": "harness_tests_test_merge_supersededruntest",
+      "label": "SupersededRunTest",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 9,
+      "community_name": "DeliveryWalk",
+      "file_type": "code",
+      "norm_label": "supersededruntest",
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L118"
     },
     {
       "id": "harness_tests_test_reopen_reopentest",
@@ -2378,280 +2391,184 @@
       "source_location": "L32"
     },
     {
-      "id": "harness_tests_test_merge_deliverycheckstest_setup",
-      "label": ".setUp()",
+      "id": "harness_tests_test_kpi_at",
+      "label": "at()",
       "_callable": true,
       "_origin": "ast",
       "community": 130,
-      "community_name": "MergeTest",
+      "community_name": "test_kpi.py",
       "file_type": "code",
-      "norm_label": ".setup()",
-      "source_file": "harness/tests/test_merge.py",
+      "norm_label": "at()",
+      "source_file": "harness/tests/test_kpi.py",
+      "source_location": "L10"
+    },
+    {
+      "id": "harness_tests_test_kpi_journal_with_a_return",
+      "label": "journal_with_a_return()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 130,
+      "community_name": "test_kpi.py",
+      "file_type": "code",
+      "norm_label": "journal_with_a_return()",
+      "source_file": "harness/tests/test_kpi.py",
       "source_location": "L22"
     },
     {
-      "id": "harness_tests_test_merge_deliverycheckstest_test_a_check_still_running_refuses_the_delivery",
-      "label": ".test_a_check_still_running_refuses_the_delivery()",
+      "id": "harness_tests_test_kpi_record",
+      "label": "record()",
       "_callable": true,
       "_origin": "ast",
       "community": 130,
-      "community_name": "MergeTest",
+      "community_name": "test_kpi.py",
       "file_type": "code",
-      "norm_label": ".test_a_check_still_running_refuses_the_delivery()",
-      "source_file": "harness/tests/test_merge.py",
-      "source_location": "L40"
+      "norm_label": "record()",
+      "source_file": "harness/tests/test_kpi.py",
+      "source_location": "L16"
     },
     {
-      "id": "harness_tests_test_merge_deliverycheckstest_test_a_commit_nobody_built_is_not_a_commit_that_passed",
-      "label": ".test_a_commit_nobody_built_is_not_a_commit_that_passed()",
+      "id": "harness_tests_test_kpi_repeatedreviewtest_journal",
+      "label": ".journal()",
       "_callable": true,
       "_origin": "ast",
       "community": 130,
-      "community_name": "MergeTest",
+      "community_name": "test_kpi.py",
       "file_type": "code",
-      "norm_label": ".test_a_commit_nobody_built_is_not_a_commit_that_passed()",
-      "source_file": "harness/tests/test_merge.py",
-      "source_location": "L45"
+      "norm_label": ".journal()",
+      "source_file": "harness/tests/test_kpi.py",
+      "source_location": "L144"
     },
     {
-      "id": "harness_tests_test_merge_deliverycheckstest_test_a_delivery_passes_when_every_check_concluded_green",
-      "label": ".test_a_delivery_passes_when_every_check_concluded_green()",
+      "id": "harness_tests_test_kpi_repeatedreviewtest_test_findings_are_counted_once_not_once_per_review",
+      "label": ".test_findings_are_counted_once_not_once_per_review()",
       "_callable": true,
       "_origin": "ast",
       "community": 130,
-      "community_name": "MergeTest",
+      "community_name": "test_kpi.py",
       "file_type": "code",
-      "norm_label": ".test_a_delivery_passes_when_every_check_concluded_green()",
-      "source_file": "harness/tests/test_merge.py",
-      "source_location": "L31"
+      "norm_label": ".test_findings_are_counted_once_not_once_per_review()",
+      "source_file": "harness/tests/test_kpi.py",
+      "source_location": "L157"
     },
     {
-      "id": "harness_tests_test_merge_deliverycheckstest_test_a_failed_check_refuses_the_delivery_and_names_it",
-      "label": ".test_a_failed_check_refuses_the_delivery_and_names_it()",
+      "id": "harness_tests_test_kpi_repeatedreviewtest_test_rework_per_ticket_is_reported_to_two_decimals",
+      "label": ".test_rework_per_ticket_is_reported_to_two_decimals()",
       "_callable": true,
       "_origin": "ast",
       "community": 130,
-      "community_name": "MergeTest",
+      "community_name": "test_kpi.py",
       "file_type": "code",
-      "norm_label": ".test_a_failed_check_refuses_the_delivery_and_names_it()",
-      "source_file": "harness/tests/test_merge.py",
-      "source_location": "L35"
+      "norm_label": ".test_rework_per_ticket_is_reported_to_two_decimals()",
+      "source_file": "harness/tests/test_kpi.py",
+      "source_location": "L163"
     },
     {
-      "id": "harness_tests_test_merge_deliverycheckstest_test_gh_that_cannot_answer_refuses_rather_than_passes",
-      "label": ".test_gh_that_cannot_answer_refuses_rather_than_passes()",
+      "id": "harness_tests_test_kpi_ticketfigurestest_measure",
+      "label": ".measure()",
       "_callable": true,
       "_origin": "ast",
       "community": 130,
-      "community_name": "MergeTest",
+      "community_name": "test_kpi.py",
       "file_type": "code",
-      "norm_label": ".test_gh_that_cannot_answer_refuses_rather_than_passes()",
-      "source_file": "harness/tests/test_merge.py",
-      "source_location": "L50"
+      "norm_label": ".measure()",
+      "source_file": "harness/tests/test_kpi.py",
+      "source_location": "L56"
     },
     {
-      "id": "harness_tests_test_merge_deliverycheckstest_test_gh_that_cannot_answer_refuses_rather_than_passes_broken",
-      "label": "broken()",
+      "id": "harness_tests_test_kpi_ticketfigurestest_test_a_slice_citing_a_red_that_passed_fails_the_measure",
+      "label": ".test_a_slice_citing_a_red_that_passed_fails_the_measure()",
       "_callable": true,
       "_origin": "ast",
       "community": 130,
-      "community_name": "MergeTest",
+      "community_name": "test_kpi.py",
       "file_type": "code",
-      "norm_label": "broken()",
-      "source_file": "harness/tests/test_merge.py",
-      "source_location": "L51"
-    },
-    {
-      "id": "harness_tests_test_merge_deliverycheckstest_with_checks",
-      "label": ".with_checks()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 130,
-      "community_name": "MergeTest",
-      "file_type": "code",
-      "norm_label": ".with_checks()",
-      "source_file": "harness/tests/test_merge.py",
-      "source_location": "L27"
-    },
-    {
-      "id": "harness_tests_test_merge_mergetest_merge_check",
-      "label": ".merge_check()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 130,
-      "community_name": "MergeTest",
-      "file_type": "code",
-      "norm_label": ".merge_check()",
-      "source_file": "harness/tests/test_merge.py",
-      "source_location": "L78"
-    },
-    {
-      "id": "harness_tests_test_merge_mergetest_setup",
-      "label": ".setUp()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 130,
-      "community_name": "MergeTest",
-      "file_type": "code",
-      "norm_label": ".setup()",
-      "source_file": "harness/tests/test_merge.py",
-      "source_location": "L61"
-    },
-    {
-      "id": "harness_tests_test_merge_mergetest_test_a_clean_delivery_is_ready_to_merge",
-      "label": ".test_a_clean_delivery_is_ready_to_merge()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 130,
-      "community_name": "MergeTest",
-      "file_type": "code",
-      "norm_label": ".test_a_clean_delivery_is_ready_to_merge()",
-      "source_file": "harness/tests/test_merge.py",
+      "norm_label": ".test_a_slice_citing_a_red_that_passed_fails_the_measure()",
+      "source_file": "harness/tests/test_kpi.py",
       "source_location": "L81"
     },
     {
-      "id": "harness_tests_test_merge_mergetest_test_a_pull_request_body_without_the_receipt_hash_refuses_the_merge",
-      "label": ".test_a_pull_request_body_without_the_receipt_hash_refuses_the_merge()",
+      "id": "harness_tests_test_kpi_ticketfigurestest_test_a_stage_revisited_after_a_return_is_counted_twice",
+      "label": ".test_a_stage_revisited_after_a_return_is_counted_twice()",
       "_callable": true,
       "_origin": "ast",
       "community": 130,
-      "community_name": "MergeTest",
+      "community_name": "test_kpi.py",
       "file_type": "code",
-      "norm_label": ".test_a_pull_request_body_without_the_receipt_hash_refuses_the_merge()",
-      "source_file": "harness/tests/test_merge.py",
-      "source_location": "L100"
+      "norm_label": ".test_a_stage_revisited_after_a_return_is_counted_twice()",
+      "source_file": "harness/tests/test_kpi.py",
+      "source_location": "L62"
     },
     {
-      "id": "harness_tests_test_merge_mergetest_test_a_source_change_after_the_receipt_refuses_the_merge",
-      "label": ".test_a_source_change_after_the_receipt_refuses_the_merge()",
+      "id": "harness_tests_test_kpi_ticketfigurestest_test_a_ticket_with_no_journal_is_measurable_and_honest_about_it",
+      "label": ".test_a_ticket_with_no_journal_is_measurable_and_honest_about_it()",
       "_callable": true,
       "_origin": "ast",
       "community": 130,
-      "community_name": "MergeTest",
+      "community_name": "test_kpi.py",
       "file_type": "code",
-      "norm_label": ".test_a_source_change_after_the_receipt_refuses_the_merge()",
-      "source_file": "harness/tests/test_merge.py",
+      "norm_label": ".test_a_ticket_with_no_journal_is_measurable_and_honest_about_it()",
+      "source_file": "harness/tests/test_kpi.py",
+      "source_location": "L90"
+    },
+    {
+      "id": "harness_tests_test_kpi_ticketfigurestest_test_coverage_comes_from_the_measurement_the_gate_required",
+      "label": ".test_coverage_comes_from_the_measurement_the_gate_required()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 130,
+      "community_name": "test_kpi.py",
+      "file_type": "code",
+      "norm_label": ".test_coverage_comes_from_the_measurement_the_gate_required()",
+      "source_file": "harness/tests/test_kpi.py",
       "source_location": "L86"
     },
     {
-      "id": "harness_tests_test_merge_mergetest_test_a_ticket_that_has_not_delivered_cannot_be_merge_verified",
-      "label": ".test_a_ticket_that_has_not_delivered_cannot_be_merge_verified()",
+      "id": "harness_tests_test_kpi_ticketfigurestest_test_cycle_time_runs_from_the_start_record_to_the_receipt",
+      "label": ".test_cycle_time_runs_from_the_start_record_to_the_receipt()",
       "_callable": true,
       "_origin": "ast",
       "community": 130,
-      "community_name": "MergeTest",
+      "community_name": "test_kpi.py",
       "file_type": "code",
-      "norm_label": ".test_a_ticket_that_has_not_delivered_cannot_be_merge_verified()",
-      "source_file": "harness/tests/test_merge.py",
-      "source_location": "L112"
+      "norm_label": ".test_cycle_time_runs_from_the_start_record_to_the_receipt()",
+      "source_file": "harness/tests/test_kpi.py",
+      "source_location": "L59"
     },
     {
-      "id": "harness_tests_test_merge_mergetest_test_journal_and_bookkeeping_commits_after_the_receipt_are_fine",
-      "label": ".test_journal_and_bookkeeping_commits_after_the_receipt_are_fine()",
+      "id": "harness_tests_test_kpi_ticketfigurestest_test_findings_are_split_by_severity_and_a_waiver_is_not_a_fix",
+      "label": ".test_findings_are_split_by_severity_and_a_waiver_is_not_a_fix()",
       "_callable": true,
       "_origin": "ast",
       "community": 130,
-      "community_name": "MergeTest",
+      "community_name": "test_kpi.py",
       "file_type": "code",
-      "norm_label": ".test_journal_and_bookkeeping_commits_after_the_receipt_are_fine()",
-      "source_file": "harness/tests/test_merge.py",
-      "source_location": "L93"
+      "norm_label": ".test_findings_are_split_by_severity_and_a_waiver_is_not_a_fix()",
+      "source_file": "harness/tests/test_kpi.py",
+      "source_location": "L72"
     },
     {
-      "id": "harness_tests_test_merge_mergetest_test_the_command_appends_nothing_so_the_receipt_stays_last",
-      "label": ".test_the_command_appends_nothing_so_the_receipt_stays_last()",
+      "id": "harness_tests_test_kpi_ticketfigurestest_test_red_before_green_holds_when_every_slice_cites_a_failing_red",
+      "label": ".test_red_before_green_holds_when_every_slice_cites_a_failing_red()",
       "_callable": true,
       "_origin": "ast",
       "community": 130,
-      "community_name": "MergeTest",
+      "community_name": "test_kpi.py",
       "file_type": "code",
-      "norm_label": ".test_the_command_appends_nothing_so_the_receipt_stays_last()",
-      "source_file": "harness/tests/test_merge.py",
-      "source_location": "L105"
+      "norm_label": ".test_red_before_green_holds_when_every_slice_cites_a_failing_red()",
+      "source_file": "harness/tests/test_kpi.py",
+      "source_location": "L78"
     },
     {
-      "id": "harness_tests_test_merge_mergetest_with_body",
-      "label": ".with_body()",
+      "id": "harness_tests_test_kpi_ticketfigurestest_test_rework_counts_returns_and_reopens",
+      "label": ".test_rework_counts_returns_and_reopens()",
       "_callable": true,
       "_origin": "ast",
       "community": 130,
-      "community_name": "MergeTest",
+      "community_name": "test_kpi.py",
       "file_type": "code",
-      "norm_label": ".with_body()",
-      "source_file": "harness/tests/test_merge.py",
-      "source_location": "L73"
-    },
-    {
-      "id": "harness_tests_test_merge_runs",
-      "label": "runs()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 130,
-      "community_name": "MergeTest",
-      "file_type": "code",
-      "norm_label": "runs()",
-      "source_file": "harness/tests/test_merge.py",
-      "source_location": "L14"
-    },
-    {
-      "id": "harness_tests_test_merge_supersededruntest_setup",
-      "label": ".setUp()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 130,
-      "community_name": "MergeTest",
-      "file_type": "code",
-      "norm_label": ".setup()",
-      "source_file": "harness/tests/test_merge.py",
-      "source_location": "L126"
-    },
-    {
-      "id": "harness_tests_test_merge_supersededruntest_test_a_superseded_failure_does_not_refuse_the_delivery",
-      "label": ".test_a_superseded_failure_does_not_refuse_the_delivery()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 130,
-      "community_name": "MergeTest",
-      "file_type": "code",
-      "norm_label": ".test_a_superseded_failure_does_not_refuse_the_delivery()",
-      "source_file": "harness/tests/test_merge.py",
-      "source_location": "L137"
-    },
-    {
-      "id": "harness_tests_test_merge_supersededruntest_test_a_superseded_success_does_not_rescue_a_failing_check",
-      "label": ".test_a_superseded_success_does_not_rescue_a_failing_check()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 130,
-      "community_name": "MergeTest",
-      "file_type": "code",
-      "norm_label": ".test_a_superseded_success_does_not_rescue_a_failing_check()",
-      "source_file": "harness/tests/test_merge.py",
-      "source_location": "L141"
-    },
-    {
-      "id": "harness_tests_test_merge_supersededruntest_test_each_check_name_is_judged_on_its_own_latest_run",
-      "label": ".test_each_check_name_is_judged_on_its_own_latest_run()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 130,
-      "community_name": "MergeTest",
-      "file_type": "code",
-      "norm_label": ".test_each_check_name_is_judged_on_its_own_latest_run()",
-      "source_file": "harness/tests/test_merge.py",
-      "source_location": "L146"
-    },
-    {
-      "id": "harness_tests_test_merge_supersededruntest_with_runs",
-      "label": ".with_runs()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 130,
-      "community_name": "MergeTest",
-      "file_type": "code",
-      "norm_label": ".with_runs()",
-      "source_file": "harness/tests/test_merge.py",
-      "source_location": "L131"
+      "norm_label": ".test_rework_counts_returns_and_reopens()",
+      "source_file": "harness/tests/test_kpi.py",
+      "source_location": "L68"
     },
     {
       "id": "harness_report_duration",
@@ -5687,7 +5604,7 @@
       "file_type": "code",
       "norm_label": "verify_merge()",
       "source_file": "harness/delivery.py",
-      "source_location": "L127"
+      "source_location": "L130"
     },
     {
       "id": "harness_errors_require",
@@ -5942,184 +5859,340 @@
       "source_location": "L32"
     },
     {
-      "id": "harness_tests_test_kpi_at",
-      "label": "at()",
+      "id": "harness_tests_test_merge_bookkeepingafterreceipttest_commit_file",
+      "label": ".commit_file()",
       "_callable": true,
       "_origin": "ast",
       "community": 9,
       "community_name": "DeliveryWalk",
       "file_type": "code",
-      "norm_label": "at()",
-      "source_file": "harness/tests/test_kpi.py",
-      "source_location": "L10"
+      "norm_label": ".commit_file()",
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L169"
     },
     {
-      "id": "harness_tests_test_kpi_journal_with_a_return",
-      "label": "journal_with_a_return()",
+      "id": "harness_tests_test_merge_bookkeepingafterreceipttest_setup",
+      "label": ".setUp()",
       "_callable": true,
       "_origin": "ast",
       "community": 9,
       "community_name": "DeliveryWalk",
       "file_type": "code",
-      "norm_label": "journal_with_a_return()",
-      "source_file": "harness/tests/test_kpi.py",
+      "norm_label": ".setup()",
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L156"
+    },
+    {
+      "id": "harness_tests_test_merge_bookkeepingafterreceipttest_test_a_kpi_record_written_after_the_receipt_is_fine",
+      "label": ".test_a_kpi_record_written_after_the_receipt_is_fine()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 9,
+      "community_name": "DeliveryWalk",
+      "file_type": "code",
+      "norm_label": ".test_a_kpi_record_written_after_the_receipt_is_fine()",
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L179"
+    },
+    {
+      "id": "harness_tests_test_merge_bookkeepingafterreceipttest_test_a_report_regenerated_after_the_receipt_is_fine",
+      "label": ".test_a_report_regenerated_after_the_receipt_is_fine()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 9,
+      "community_name": "DeliveryWalk",
+      "file_type": "code",
+      "norm_label": ".test_a_report_regenerated_after_the_receipt_is_fine()",
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L174"
+    },
+    {
+      "id": "harness_tests_test_merge_bookkeepingafterreceipttest_test_a_source_change_after_the_receipt_is_still_refused",
+      "label": ".test_a_source_change_after_the_receipt_is_still_refused()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 9,
+      "community_name": "DeliveryWalk",
+      "file_type": "code",
+      "norm_label": ".test_a_source_change_after_the_receipt_is_still_refused()",
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L183"
+    },
+    {
+      "id": "harness_tests_test_merge_deliverycheckstest_setup",
+      "label": ".setUp()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 9,
+      "community_name": "DeliveryWalk",
+      "file_type": "code",
+      "norm_label": ".setup()",
+      "source_file": "harness/tests/test_merge.py",
       "source_location": "L22"
     },
     {
-      "id": "harness_tests_test_kpi_record",
-      "label": "record()",
+      "id": "harness_tests_test_merge_deliverycheckstest_test_a_check_still_running_refuses_the_delivery",
+      "label": ".test_a_check_still_running_refuses_the_delivery()",
       "_callable": true,
       "_origin": "ast",
       "community": 9,
       "community_name": "DeliveryWalk",
       "file_type": "code",
-      "norm_label": "record()",
-      "source_file": "harness/tests/test_kpi.py",
-      "source_location": "L16"
+      "norm_label": ".test_a_check_still_running_refuses_the_delivery()",
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L40"
     },
     {
-      "id": "harness_tests_test_kpi_repeatedreviewtest_journal",
-      "label": ".journal()",
+      "id": "harness_tests_test_merge_deliverycheckstest_test_a_commit_nobody_built_is_not_a_commit_that_passed",
+      "label": ".test_a_commit_nobody_built_is_not_a_commit_that_passed()",
       "_callable": true,
       "_origin": "ast",
       "community": 9,
       "community_name": "DeliveryWalk",
       "file_type": "code",
-      "norm_label": ".journal()",
-      "source_file": "harness/tests/test_kpi.py",
-      "source_location": "L144"
+      "norm_label": ".test_a_commit_nobody_built_is_not_a_commit_that_passed()",
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L45"
     },
     {
-      "id": "harness_tests_test_kpi_repeatedreviewtest_test_findings_are_counted_once_not_once_per_review",
-      "label": ".test_findings_are_counted_once_not_once_per_review()",
+      "id": "harness_tests_test_merge_deliverycheckstest_test_a_delivery_passes_when_every_check_concluded_green",
+      "label": ".test_a_delivery_passes_when_every_check_concluded_green()",
       "_callable": true,
       "_origin": "ast",
       "community": 9,
       "community_name": "DeliveryWalk",
       "file_type": "code",
-      "norm_label": ".test_findings_are_counted_once_not_once_per_review()",
-      "source_file": "harness/tests/test_kpi.py",
-      "source_location": "L157"
+      "norm_label": ".test_a_delivery_passes_when_every_check_concluded_green()",
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L31"
     },
     {
-      "id": "harness_tests_test_kpi_repeatedreviewtest_test_rework_per_ticket_is_reported_to_two_decimals",
-      "label": ".test_rework_per_ticket_is_reported_to_two_decimals()",
+      "id": "harness_tests_test_merge_deliverycheckstest_test_a_failed_check_refuses_the_delivery_and_names_it",
+      "label": ".test_a_failed_check_refuses_the_delivery_and_names_it()",
       "_callable": true,
       "_origin": "ast",
       "community": 9,
       "community_name": "DeliveryWalk",
       "file_type": "code",
-      "norm_label": ".test_rework_per_ticket_is_reported_to_two_decimals()",
-      "source_file": "harness/tests/test_kpi.py",
-      "source_location": "L163"
+      "norm_label": ".test_a_failed_check_refuses_the_delivery_and_names_it()",
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L35"
     },
     {
-      "id": "harness_tests_test_kpi_ticketfigurestest_measure",
-      "label": ".measure()",
+      "id": "harness_tests_test_merge_deliverycheckstest_test_gh_that_cannot_answer_refuses_rather_than_passes",
+      "label": ".test_gh_that_cannot_answer_refuses_rather_than_passes()",
       "_callable": true,
       "_origin": "ast",
       "community": 9,
       "community_name": "DeliveryWalk",
       "file_type": "code",
-      "norm_label": ".measure()",
-      "source_file": "harness/tests/test_kpi.py",
-      "source_location": "L56"
+      "norm_label": ".test_gh_that_cannot_answer_refuses_rather_than_passes()",
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L50"
     },
     {
-      "id": "harness_tests_test_kpi_ticketfigurestest_test_a_slice_citing_a_red_that_passed_fails_the_measure",
-      "label": ".test_a_slice_citing_a_red_that_passed_fails_the_measure()",
+      "id": "harness_tests_test_merge_deliverycheckstest_test_gh_that_cannot_answer_refuses_rather_than_passes_broken",
+      "label": "broken()",
       "_callable": true,
       "_origin": "ast",
       "community": 9,
       "community_name": "DeliveryWalk",
       "file_type": "code",
-      "norm_label": ".test_a_slice_citing_a_red_that_passed_fails_the_measure()",
-      "source_file": "harness/tests/test_kpi.py",
-      "source_location": "L81"
+      "norm_label": "broken()",
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L51"
     },
     {
-      "id": "harness_tests_test_kpi_ticketfigurestest_test_a_stage_revisited_after_a_return_is_counted_twice",
-      "label": ".test_a_stage_revisited_after_a_return_is_counted_twice()",
+      "id": "harness_tests_test_merge_deliverycheckstest_with_checks",
+      "label": ".with_checks()",
       "_callable": true,
       "_origin": "ast",
       "community": 9,
       "community_name": "DeliveryWalk",
       "file_type": "code",
-      "norm_label": ".test_a_stage_revisited_after_a_return_is_counted_twice()",
-      "source_file": "harness/tests/test_kpi.py",
-      "source_location": "L62"
+      "norm_label": ".with_checks()",
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L27"
     },
     {
-      "id": "harness_tests_test_kpi_ticketfigurestest_test_a_ticket_with_no_journal_is_measurable_and_honest_about_it",
-      "label": ".test_a_ticket_with_no_journal_is_measurable_and_honest_about_it()",
+      "id": "harness_tests_test_merge_mergetest_merge_check",
+      "label": ".merge_check()",
       "_callable": true,
       "_origin": "ast",
       "community": 9,
       "community_name": "DeliveryWalk",
       "file_type": "code",
-      "norm_label": ".test_a_ticket_with_no_journal_is_measurable_and_honest_about_it()",
-      "source_file": "harness/tests/test_kpi.py",
-      "source_location": "L90"
-    },
-    {
-      "id": "harness_tests_test_kpi_ticketfigurestest_test_coverage_comes_from_the_measurement_the_gate_required",
-      "label": ".test_coverage_comes_from_the_measurement_the_gate_required()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "DeliveryWalk",
-      "file_type": "code",
-      "norm_label": ".test_coverage_comes_from_the_measurement_the_gate_required()",
-      "source_file": "harness/tests/test_kpi.py",
-      "source_location": "L86"
-    },
-    {
-      "id": "harness_tests_test_kpi_ticketfigurestest_test_cycle_time_runs_from_the_start_record_to_the_receipt",
-      "label": ".test_cycle_time_runs_from_the_start_record_to_the_receipt()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "DeliveryWalk",
-      "file_type": "code",
-      "norm_label": ".test_cycle_time_runs_from_the_start_record_to_the_receipt()",
-      "source_file": "harness/tests/test_kpi.py",
-      "source_location": "L59"
-    },
-    {
-      "id": "harness_tests_test_kpi_ticketfigurestest_test_findings_are_split_by_severity_and_a_waiver_is_not_a_fix",
-      "label": ".test_findings_are_split_by_severity_and_a_waiver_is_not_a_fix()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "DeliveryWalk",
-      "file_type": "code",
-      "norm_label": ".test_findings_are_split_by_severity_and_a_waiver_is_not_a_fix()",
-      "source_file": "harness/tests/test_kpi.py",
-      "source_location": "L72"
-    },
-    {
-      "id": "harness_tests_test_kpi_ticketfigurestest_test_red_before_green_holds_when_every_slice_cites_a_failing_red",
-      "label": ".test_red_before_green_holds_when_every_slice_cites_a_failing_red()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "DeliveryWalk",
-      "file_type": "code",
-      "norm_label": ".test_red_before_green_holds_when_every_slice_cites_a_failing_red()",
-      "source_file": "harness/tests/test_kpi.py",
+      "norm_label": ".merge_check()",
+      "source_file": "harness/tests/test_merge.py",
       "source_location": "L78"
     },
     {
-      "id": "harness_tests_test_kpi_ticketfigurestest_test_rework_counts_returns_and_reopens",
-      "label": ".test_rework_counts_returns_and_reopens()",
+      "id": "harness_tests_test_merge_mergetest_setup",
+      "label": ".setUp()",
       "_callable": true,
       "_origin": "ast",
       "community": 9,
       "community_name": "DeliveryWalk",
       "file_type": "code",
-      "norm_label": ".test_rework_counts_returns_and_reopens()",
-      "source_file": "harness/tests/test_kpi.py",
-      "source_location": "L68"
+      "norm_label": ".setup()",
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L61"
+    },
+    {
+      "id": "harness_tests_test_merge_mergetest_test_a_clean_delivery_is_ready_to_merge",
+      "label": ".test_a_clean_delivery_is_ready_to_merge()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 9,
+      "community_name": "DeliveryWalk",
+      "file_type": "code",
+      "norm_label": ".test_a_clean_delivery_is_ready_to_merge()",
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L81"
+    },
+    {
+      "id": "harness_tests_test_merge_mergetest_test_a_pull_request_body_without_the_receipt_hash_refuses_the_merge",
+      "label": ".test_a_pull_request_body_without_the_receipt_hash_refuses_the_merge()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 9,
+      "community_name": "DeliveryWalk",
+      "file_type": "code",
+      "norm_label": ".test_a_pull_request_body_without_the_receipt_hash_refuses_the_merge()",
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L100"
+    },
+    {
+      "id": "harness_tests_test_merge_mergetest_test_a_source_change_after_the_receipt_refuses_the_merge",
+      "label": ".test_a_source_change_after_the_receipt_refuses_the_merge()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 9,
+      "community_name": "DeliveryWalk",
+      "file_type": "code",
+      "norm_label": ".test_a_source_change_after_the_receipt_refuses_the_merge()",
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L86"
+    },
+    {
+      "id": "harness_tests_test_merge_mergetest_test_a_ticket_that_has_not_delivered_cannot_be_merge_verified",
+      "label": ".test_a_ticket_that_has_not_delivered_cannot_be_merge_verified()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 9,
+      "community_name": "DeliveryWalk",
+      "file_type": "code",
+      "norm_label": ".test_a_ticket_that_has_not_delivered_cannot_be_merge_verified()",
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L112"
+    },
+    {
+      "id": "harness_tests_test_merge_mergetest_test_journal_and_bookkeeping_commits_after_the_receipt_are_fine",
+      "label": ".test_journal_and_bookkeeping_commits_after_the_receipt_are_fine()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 9,
+      "community_name": "DeliveryWalk",
+      "file_type": "code",
+      "norm_label": ".test_journal_and_bookkeeping_commits_after_the_receipt_are_fine()",
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L93"
+    },
+    {
+      "id": "harness_tests_test_merge_mergetest_test_the_command_appends_nothing_so_the_receipt_stays_last",
+      "label": ".test_the_command_appends_nothing_so_the_receipt_stays_last()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 9,
+      "community_name": "DeliveryWalk",
+      "file_type": "code",
+      "norm_label": ".test_the_command_appends_nothing_so_the_receipt_stays_last()",
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L105"
+    },
+    {
+      "id": "harness_tests_test_merge_mergetest_with_body",
+      "label": ".with_body()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 9,
+      "community_name": "DeliveryWalk",
+      "file_type": "code",
+      "norm_label": ".with_body()",
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L73"
+    },
+    {
+      "id": "harness_tests_test_merge_runs",
+      "label": "runs()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 9,
+      "community_name": "DeliveryWalk",
+      "file_type": "code",
+      "norm_label": "runs()",
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L14"
+    },
+    {
+      "id": "harness_tests_test_merge_supersededruntest_setup",
+      "label": ".setUp()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 9,
+      "community_name": "DeliveryWalk",
+      "file_type": "code",
+      "norm_label": ".setup()",
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L126"
+    },
+    {
+      "id": "harness_tests_test_merge_supersededruntest_test_a_superseded_failure_does_not_refuse_the_delivery",
+      "label": ".test_a_superseded_failure_does_not_refuse_the_delivery()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 9,
+      "community_name": "DeliveryWalk",
+      "file_type": "code",
+      "norm_label": ".test_a_superseded_failure_does_not_refuse_the_delivery()",
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L137"
+    },
+    {
+      "id": "harness_tests_test_merge_supersededruntest_test_a_superseded_success_does_not_rescue_a_failing_check",
+      "label": ".test_a_superseded_success_does_not_rescue_a_failing_check()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 9,
+      "community_name": "DeliveryWalk",
+      "file_type": "code",
+      "norm_label": ".test_a_superseded_success_does_not_rescue_a_failing_check()",
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L141"
+    },
+    {
+      "id": "harness_tests_test_merge_supersededruntest_test_each_check_name_is_judged_on_its_own_latest_run",
+      "label": ".test_each_check_name_is_judged_on_its_own_latest_run()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 9,
+      "community_name": "DeliveryWalk",
+      "file_type": "code",
+      "norm_label": ".test_each_check_name_is_judged_on_its_own_latest_run()",
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L146"
+    },
+    {
+      "id": "harness_tests_test_merge_supersededruntest_with_runs",
+      "label": ".with_runs()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 9,
+      "community_name": "DeliveryWalk",
+      "file_type": "code",
+      "norm_label": ".with_runs()",
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L131"
     },
     {
       "id": "harness_tests_test_reopen_reopentest_deliver",
@@ -9786,26 +9859,70 @@
       "source_location": "L1"
     },
     {
-      "id": "harness_tests_test_merge_rationale_119",
-      "label": "A commit can carry more than one run of the same check. GitHub shows the latest\u2026",
+      "id": "harness_tests_test_kpi",
+      "label": "test_kpi.py",
       "_origin": "ast",
       "community": 130,
-      "community_name": "MergeTest",
-      "file_type": "rationale",
-      "norm_label": "a commit can carry more than one run of the same check. github shows the latest...",
-      "source_file": "harness/tests/test_merge.py",
-      "source_location": "L119"
+      "community_name": "test_kpi.py",
+      "file_type": "code",
+      "norm_label": "test_kpi.py",
+      "source_file": "harness/tests/test_kpi.py",
+      "source_location": "L1"
     },
     {
-      "id": "harness_tests_test_merge_rationale_15",
-      "label": "Check runs in the shape gh reports them.",
+      "id": "harness_tests_test_kpi_rationale_1",
+      "label": "Figures derived from what was recorded, never from what anyone remembers.",
       "_origin": "ast",
       "community": 130,
-      "community_name": "MergeTest",
+      "community_name": "test_kpi.py",
       "file_type": "rationale",
-      "norm_label": "check runs in the shape gh reports them.",
-      "source_file": "harness/tests/test_merge.py",
-      "source_location": "L15"
+      "norm_label": "figures derived from what was recorded, never from what anyone remembers.",
+      "source_file": "harness/tests/test_kpi.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "harness_tests_test_kpi_rationale_11",
+      "label": "A timestamp minutes after ten, so a journal can span an hour or more.",
+      "_origin": "ast",
+      "community": 130,
+      "community_name": "test_kpi.py",
+      "file_type": "rationale",
+      "norm_label": "a timestamp minutes after ten, so a journal can span an hour or more.",
+      "source_file": "harness/tests/test_kpi.py",
+      "source_location": "L11"
+    },
+    {
+      "id": "harness_tests_test_kpi_rationale_142",
+      "label": "A review re-run lists its findings again; they are still the same findings.",
+      "_origin": "ast",
+      "community": 130,
+      "community_name": "test_kpi.py",
+      "file_type": "rationale",
+      "norm_label": "a review re-run lists its findings again; they are still the same findings.",
+      "source_file": "harness/tests/test_kpi.py",
+      "source_location": "L142"
+    },
+    {
+      "id": "harness_tests_test_kpi_rationale_23",
+      "label": "start, clarify, solution, tdd, review, back to tdd, review again, deliver,\u2026",
+      "_origin": "ast",
+      "community": 130,
+      "community_name": "test_kpi.py",
+      "file_type": "rationale",
+      "norm_label": "start, clarify, solution, tdd, review, back to tdd, review again, deliver,...",
+      "source_file": "harness/tests/test_kpi.py",
+      "source_location": "L23"
+    },
+    {
+      "id": "harness_tests_test_kpi_rationale_63",
+      "label": "Rework is time spent, so tdd counts both visits rather than the last.",
+      "_origin": "ast",
+      "community": 130,
+      "community_name": "test_kpi.py",
+      "file_type": "rationale",
+      "norm_label": "rework is time spent, so tdd counts both visits rather than the last.",
+      "source_file": "harness/tests/test_kpi.py",
+      "source_location": "L63"
     },
     {
       "id": "harness_init",
@@ -10417,7 +10534,7 @@
       "node_kind": "heading",
       "norm_label": "blocks",
       "source_file": "docs/tickets/SEEN-091-collect-harness-kpis-per-ticket-and-produce.md",
-      "source_location": "L103"
+      "source_location": "L108"
     },
     {
       "id": "docs_tickets_seen_091_collect_harness_kpis_per_ticket_and_produce_context",
@@ -10429,7 +10546,7 @@
       "node_kind": "heading",
       "norm_label": "context",
       "source_file": "docs/tickets/SEEN-091-collect-harness-kpis-per-ticket-and-produce.md",
-      "source_location": "L107"
+      "source_location": "L112"
     },
     {
       "id": "docs_tickets_seen_091_collect_harness_kpis_per_ticket_and_produce_depends_on",
@@ -10441,7 +10558,7 @@
       "node_kind": "heading",
       "norm_label": "depends on",
       "source_file": "docs/tickets/SEEN-091-collect-harness-kpis-per-ticket-and-produce.md",
-      "source_location": "L98"
+      "source_location": "L103"
     },
     {
       "id": "docs_tickets_seen_091_collect_harness_kpis_per_ticket_and_produce_description",
@@ -10489,7 +10606,7 @@
       "node_kind": "heading",
       "norm_label": "what the first report says",
       "source_file": "docs/tickets/SEEN-091-collect-harness-kpis-per-ticket-and-produce.md",
-      "source_location": "L89"
+      "source_location": "L94"
     },
     {
       "id": "docs_tickets_seen_092_sync_the_harness_skill_to_claude_code_and_codex_acceptance_criteria",
@@ -11324,7 +11441,7 @@
       "node_kind": "heading",
       "norm_label": "against the targets",
       "source_file": "docs/harness/reports/2026-W39.md",
-      "source_location": "L16"
+      "source_location": "L17"
     },
     {
       "id": "docs_harness_reports_2026_w39_findings",
@@ -11336,7 +11453,7 @@
       "node_kind": "heading",
       "norm_label": "findings",
       "source_file": "docs/harness/reports/2026-W39.md",
-      "source_location": "L25"
+      "source_location": "L26"
     },
     {
       "id": "docs_harness_reports_2026_w39_not_measurable_yet",
@@ -11348,7 +11465,7 @@
       "node_kind": "heading",
       "norm_label": "not measurable yet",
       "source_file": "docs/harness/reports/2026-W39.md",
-      "source_location": "L32"
+      "source_location": "L33"
     },
     {
       "id": "docs_harness_reports_2026_w39_week_39_of_2026",
@@ -11379,7 +11496,7 @@
       "label": "sprint-0.md",
       "_origin": "ast",
       "community": 151,
-      "community_name": "Sprint 0: 27 of 77 points delivered",
+      "community_name": "Sprint 0: 30 of 77 points delivered",
       "file_type": "document",
       "node_kind": "page",
       "norm_label": "sprint-0.md",
@@ -11391,46 +11508,46 @@
       "label": "Against the targets",
       "_origin": "ast",
       "community": 151,
-      "community_name": "Sprint 0: 27 of 77 points delivered",
+      "community_name": "Sprint 0: 30 of 77 points delivered",
       "file_type": "document",
       "node_kind": "heading",
       "norm_label": "against the targets",
       "source_file": "docs/harness/reports/sprint-0.md",
-      "source_location": "L16"
+      "source_location": "L17"
     },
     {
       "id": "docs_harness_reports_sprint_0_findings",
       "label": "Findings",
       "_origin": "ast",
       "community": 151,
-      "community_name": "Sprint 0: 27 of 77 points delivered",
+      "community_name": "Sprint 0: 30 of 77 points delivered",
       "file_type": "document",
       "node_kind": "heading",
       "norm_label": "findings",
       "source_file": "docs/harness/reports/sprint-0.md",
-      "source_location": "L25"
+      "source_location": "L26"
     },
     {
       "id": "docs_harness_reports_sprint_0_not_measurable_yet",
       "label": "Not measurable yet",
       "_origin": "ast",
       "community": 151,
-      "community_name": "Sprint 0: 27 of 77 points delivered",
+      "community_name": "Sprint 0: 30 of 77 points delivered",
       "file_type": "document",
       "node_kind": "heading",
       "norm_label": "not measurable yet",
       "source_file": "docs/harness/reports/sprint-0.md",
-      "source_location": "L32"
+      "source_location": "L33"
     },
     {
-      "id": "docs_harness_reports_sprint_0_sprint_0_27_of_77_points_delivered",
-      "label": "Sprint 0: 27 of 77 points delivered",
+      "id": "docs_harness_reports_sprint_0_sprint_0_30_of_77_points_delivered",
+      "label": "Sprint 0: 30 of 77 points delivered",
       "_origin": "ast",
       "community": 151,
-      "community_name": "Sprint 0: 27 of 77 points delivered",
+      "community_name": "Sprint 0: 30 of 77 points delivered",
       "file_type": "document",
       "node_kind": "heading",
-      "norm_label": "sprint 0: 27 of 77 points delivered",
+      "norm_label": "sprint 0: 30 of 77 points delivered",
       "source_file": "docs/harness/reports/sprint-0.md",
       "source_location": "L1"
     },
@@ -11439,7 +11556,7 @@
       "label": "What delivered",
       "_origin": "ast",
       "community": 151,
-      "community_name": "Sprint 0: 27 of 77 points delivered",
+      "community_name": "Sprint 0: 30 of 77 points delivered",
       "file_type": "document",
       "node_kind": "heading",
       "norm_label": "what delivered",
@@ -20602,7 +20719,7 @@
       "source_location": "L580"
     },
     {
-      "id": "harness_delivery_rationale_128",
+      "id": "harness_delivery_rationale_131",
       "label": "Whether the receipt still describes what is about to merge. Read-only, and it\u2026",
       "_origin": "ast",
       "community": 8,
@@ -20610,7 +20727,7 @@
       "file_type": "rationale",
       "norm_label": "whether the receipt still describes what is about to merge. read-only, and it...",
       "source_file": "harness/delivery.py",
-      "source_location": "L128"
+      "source_location": "L131"
     },
     {
       "id": "harness_errors_rationale_9",
@@ -21399,17 +21516,6 @@
       "source_location": "L16"
     },
     {
-      "id": "harness_tests_test_kpi",
-      "label": "test_kpi.py",
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "DeliveryWalk",
-      "file_type": "code",
-      "norm_label": "test_kpi.py",
-      "source_file": "harness/tests/test_kpi.py",
-      "source_location": "L1"
-    },
-    {
       "id": "harness_tests_test_delivery_rationale_11",
       "label": "The walk to a delivered ticket, without the tests. Separated so other files can\u2026",
       "_origin": "ast",
@@ -21443,59 +21549,48 @@
       "source_location": "L33"
     },
     {
-      "id": "harness_tests_test_kpi_rationale_1",
-      "label": "Figures derived from what was recorded, never from what anyone remembers.",
+      "id": "harness_tests_test_merge_rationale_119",
+      "label": "A commit can carry more than one run of the same check. GitHub shows the latest\u2026",
       "_origin": "ast",
       "community": 9,
       "community_name": "DeliveryWalk",
       "file_type": "rationale",
-      "norm_label": "figures derived from what was recorded, never from what anyone remembers.",
-      "source_file": "harness/tests/test_kpi.py",
-      "source_location": "L1"
+      "norm_label": "a commit can carry more than one run of the same check. github shows the latest...",
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L119"
     },
     {
-      "id": "harness_tests_test_kpi_rationale_11",
-      "label": "A timestamp minutes after ten, so a journal can span an hour or more.",
+      "id": "harness_tests_test_merge_rationale_15",
+      "label": "Check runs in the shape gh reports them.",
       "_origin": "ast",
       "community": 9,
       "community_name": "DeliveryWalk",
       "file_type": "rationale",
-      "norm_label": "a timestamp minutes after ten, so a journal can span an hour or more.",
-      "source_file": "harness/tests/test_kpi.py",
-      "source_location": "L11"
+      "norm_label": "check runs in the shape gh reports them.",
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L15"
     },
     {
-      "id": "harness_tests_test_kpi_rationale_142",
-      "label": "A review re-run lists its findings again; they are still the same findings.",
+      "id": "harness_tests_test_merge_rationale_154",
+      "label": "What delivery itself writes may follow the receipt; nothing else may.",
       "_origin": "ast",
       "community": 9,
       "community_name": "DeliveryWalk",
       "file_type": "rationale",
-      "norm_label": "a review re-run lists its findings again; they are still the same findings.",
-      "source_file": "harness/tests/test_kpi.py",
-      "source_location": "L142"
+      "norm_label": "what delivery itself writes may follow the receipt; nothing else may.",
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L154"
     },
     {
-      "id": "harness_tests_test_kpi_rationale_23",
-      "label": "start, clarify, solution, tdd, review, back to tdd, review again, deliver,\u2026",
+      "id": "harness_tests_test_merge_rationale_175",
+      "label": "The week includes the ticket that just delivered, so the report moves.",
       "_origin": "ast",
       "community": 9,
       "community_name": "DeliveryWalk",
       "file_type": "rationale",
-      "norm_label": "start, clarify, solution, tdd, review, back to tdd, review again, deliver,...",
-      "source_file": "harness/tests/test_kpi.py",
-      "source_location": "L23"
-    },
-    {
-      "id": "harness_tests_test_kpi_rationale_63",
-      "label": "Rework is time spent, so tdd counts both visits rather than the last.",
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "DeliveryWalk",
-      "file_type": "rationale",
-      "norm_label": "rework is time spent, so tdd counts both visits rather than the last.",
-      "source_file": "harness/tests/test_kpi.py",
-      "source_location": "L63"
+      "norm_label": "the week includes the ticket that just delivered, so the report moves.",
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L175"
     },
     {
       "id": "docs_tickets_seen_064_apply_return_and_cancellation_decisions_through_acceptance_criteria",
@@ -23752,7 +23847,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "harness/delivery.py",
-      "source_location": "L135",
+      "source_location": "L138",
       "weight": 1.0
     },
     {
@@ -23764,7 +23859,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "harness/delivery.py",
-      "source_location": "L150",
+      "source_location": "L153",
       "weight": 1.0
     },
     {
@@ -23776,7 +23871,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "harness/delivery.py",
-      "source_location": "L151",
+      "source_location": "L154",
       "weight": 1.0
     },
     {
@@ -23788,7 +23883,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "harness/delivery.py",
-      "source_location": "L155",
+      "source_location": "L158",
       "weight": 1.0
     },
     {
@@ -28124,8 +28219,56 @@
       "weight": 1.0
     },
     {
+      "source": "harness_tests_test_merge_bookkeepingafterreceipttest_setup",
+      "target": "harness_tests_test_merge_bookkeepingafterreceipttest_setup",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L157",
+      "weight": 1.0
+    },
+    {
+      "source": "harness_tests_test_merge_bookkeepingafterreceipttest_test_a_kpi_record_written_after_the_receipt_is_fine",
+      "target": "harness_tests_test_merge_bookkeepingafterreceipttest_commit_file",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L180",
+      "weight": 1.0
+    },
+    {
+      "source": "harness_tests_test_merge_bookkeepingafterreceipttest_test_a_report_regenerated_after_the_receipt_is_fine",
+      "target": "harness_tests_test_merge_bookkeepingafterreceipttest_commit_file",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L176",
+      "weight": 1.0
+    },
+    {
+      "source": "harness_tests_test_merge_bookkeepingafterreceipttest_test_a_source_change_after_the_receipt_is_still_refused",
+      "target": "harness_tests_test_merge_bookkeepingafterreceipttest_commit_file",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L184",
+      "weight": 1.0
+    },
+    {
       "source": "harness_tests_test_merge_deliverycheckstest_setup",
-      "target": "harness_tests_test_merge_supersededruntest_setup",
+      "target": "harness_tests_test_merge_bookkeepingafterreceipttest_setup",
       "relation": "calls",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -28209,7 +28352,7 @@
     },
     {
       "source": "harness_tests_test_merge_mergetest_setup",
-      "target": "harness_tests_test_merge_supersededruntest_setup",
+      "target": "harness_tests_test_merge_bookkeepingafterreceipttest_setup",
       "relation": "calls",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -28317,7 +28460,7 @@
     },
     {
       "source": "harness_tests_test_merge_supersededruntest_setup",
-      "target": "harness_tests_test_merge_supersededruntest_setup",
+      "target": "harness_tests_test_merge_bookkeepingafterreceipttest_setup",
       "relation": "calls",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -35680,7 +35823,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/harness/reports/2026-W39.md",
-      "source_location": "L16",
+      "source_location": "L17",
       "weight": 1.0
     },
     {
@@ -35691,7 +35834,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/harness/reports/2026-W39.md",
-      "source_location": "L25",
+      "source_location": "L26",
       "weight": 1.0
     },
     {
@@ -35713,12 +35856,12 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/harness/reports/2026-W39.md",
-      "source_location": "L32",
+      "source_location": "L33",
       "weight": 1.0
     },
     {
       "source": "docs_harness_reports_sprint_0",
-      "target": "docs_harness_reports_sprint_0_sprint_0_27_of_77_points_delivered",
+      "target": "docs_harness_reports_sprint_0_sprint_0_30_of_77_points_delivered",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -35728,29 +35871,29 @@
       "weight": 1.0
     },
     {
-      "source": "docs_harness_reports_sprint_0_sprint_0_27_of_77_points_delivered",
+      "source": "docs_harness_reports_sprint_0_sprint_0_30_of_77_points_delivered",
       "target": "docs_harness_reports_sprint_0_against_the_targets",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/harness/reports/sprint-0.md",
-      "source_location": "L16",
+      "source_location": "L17",
       "weight": 1.0
     },
     {
-      "source": "docs_harness_reports_sprint_0_sprint_0_27_of_77_points_delivered",
+      "source": "docs_harness_reports_sprint_0_sprint_0_30_of_77_points_delivered",
       "target": "docs_harness_reports_sprint_0_findings",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/harness/reports/sprint-0.md",
-      "source_location": "L25",
+      "source_location": "L26",
       "weight": 1.0
     },
     {
-      "source": "docs_harness_reports_sprint_0_sprint_0_27_of_77_points_delivered",
+      "source": "docs_harness_reports_sprint_0_sprint_0_30_of_77_points_delivered",
       "target": "docs_harness_reports_sprint_0_what_delivered",
       "relation": "contains",
       "_origin": "ast",
@@ -35761,14 +35904,14 @@
       "weight": 1.0
     },
     {
-      "source": "docs_harness_reports_sprint_0_sprint_0_27_of_77_points_delivered",
+      "source": "docs_harness_reports_sprint_0_sprint_0_30_of_77_points_delivered",
       "target": "docs_harness_reports_sprint_0_not_measurable_yet",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/harness/reports/sprint-0.md",
-      "source_location": "L32",
+      "source_location": "L33",
       "weight": 1.0
     },
     {
@@ -42313,12 +42456,12 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/tickets/SEEN-091-collect-harness-kpis-per-ticket-and-produce.md",
-      "source_location": "L89",
+      "source_location": "L94",
       "weight": 1.0
     },
     {
       "source": "docs_tickets_seen_091_collect_harness_kpis_per_ticket_and_produce_seen_091_collect_harness_kpis_per_ticket_and_produce_weekly_and_sprint_reports",
-      "target": "docs_tickets_seen_091_collect_harness_kpis_per_ticket_and_produce_blocks",
+      "target": "docs_tickets_seen_091_collect_harness_kpis_per_ticket_and_produce_depends_on",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -42329,13 +42472,24 @@
     },
     {
       "source": "docs_tickets_seen_091_collect_harness_kpis_per_ticket_and_produce_seen_091_collect_harness_kpis_per_ticket_and_produce_weekly_and_sprint_reports",
+      "target": "docs_tickets_seen_091_collect_harness_kpis_per_ticket_and_produce_blocks",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/tickets/SEEN-091-collect-harness-kpis-per-ticket-and-produce.md",
+      "source_location": "L108",
+      "weight": 1.0
+    },
+    {
+      "source": "docs_tickets_seen_091_collect_harness_kpis_per_ticket_and_produce_seen_091_collect_harness_kpis_per_ticket_and_produce_weekly_and_sprint_reports",
       "target": "docs_tickets_seen_091_collect_harness_kpis_per_ticket_and_produce_context",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/tickets/SEEN-091-collect-harness-kpis-per-ticket-and-produce.md",
-      "source_location": "L107",
+      "source_location": "L112",
       "weight": 1.0
     },
     {
@@ -42369,17 +42523,6 @@
       "confidence_score": 1.0,
       "source_file": "docs/tickets/SEEN-091-collect-harness-kpis-per-ticket-and-produce.md",
       "source_location": "L59",
-      "weight": 1.0
-    },
-    {
-      "source": "docs_tickets_seen_091_collect_harness_kpis_per_ticket_and_produce_seen_091_collect_harness_kpis_per_ticket_and_produce_weekly_and_sprint_reports",
-      "target": "docs_tickets_seen_091_collect_harness_kpis_per_ticket_and_produce_depends_on",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/tickets/SEEN-091-collect-harness-kpis-per-ticket-and-produce.md",
-      "source_location": "L98",
       "weight": 1.0
     },
     {
@@ -43138,7 +43281,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "harness/delivery.py",
-      "source_location": "L127",
+      "source_location": "L130",
       "weight": 1.0
     },
     {
@@ -44525,6 +44668,17 @@
       "confidence_score": 1.0,
       "source_file": "harness/tests/test_merge.py",
       "source_location": "L14",
+      "weight": 1.0
+    },
+    {
+      "source": "harness_tests_test_merge",
+      "target": "harness_tests_test_merge_bookkeepingafterreceipttest",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L153",
       "weight": 1.0
     },
     {
@@ -46241,6 +46395,17 @@
       "confidence_score": 1.0,
       "source_file": "harness/tests/test_lifecycle.py",
       "source_location": "L99",
+      "weight": 1.0
+    },
+    {
+      "source": "harness_tests_test_merge_bookkeepingafterreceipttest",
+      "target": "harness_tests_test_delivery_deliverywalk",
+      "relation": "inherits",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L153",
       "weight": 1.0
     },
     {
@@ -48565,6 +48730,61 @@
       "weight": 1.0
     },
     {
+      "source": "harness_tests_test_merge_bookkeepingafterreceipttest",
+      "target": "harness_tests_test_merge_bookkeepingafterreceipttest_setup",
+      "relation": "method",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L156",
+      "weight": 1.0
+    },
+    {
+      "source": "harness_tests_test_merge_bookkeepingafterreceipttest",
+      "target": "harness_tests_test_merge_bookkeepingafterreceipttest_commit_file",
+      "relation": "method",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L169",
+      "weight": 1.0
+    },
+    {
+      "source": "harness_tests_test_merge_bookkeepingafterreceipttest",
+      "target": "harness_tests_test_merge_bookkeepingafterreceipttest_test_a_report_regenerated_after_the_receipt_is_fine",
+      "relation": "method",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L174",
+      "weight": 1.0
+    },
+    {
+      "source": "harness_tests_test_merge_bookkeepingafterreceipttest",
+      "target": "harness_tests_test_merge_bookkeepingafterreceipttest_test_a_kpi_record_written_after_the_receipt_is_fine",
+      "relation": "method",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L179",
+      "weight": 1.0
+    },
+    {
+      "source": "harness_tests_test_merge_bookkeepingafterreceipttest",
+      "target": "harness_tests_test_merge_bookkeepingafterreceipttest_test_a_source_change_after_the_receipt_is_still_refused",
+      "relation": "method",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L183",
+      "weight": 1.0
+    },
+    {
       "source": "harness_tests_test_merge_deliverycheckstest",
       "target": "harness_tests_test_merge_deliverycheckstest_setup",
       "relation": "method",
@@ -50116,14 +50336,14 @@
       "weight": 1.0
     },
     {
-      "source": "harness_delivery_rationale_128",
+      "source": "harness_delivery_rationale_131",
       "target": "harness_delivery_verify_merge",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "harness/delivery.py",
-      "source_location": "L128",
+      "source_location": "L131",
       "weight": 1.0
     },
     {
@@ -51455,6 +51675,28 @@
       "confidence_score": 1.0,
       "source_file": "harness/tests/test_merge.py",
       "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "harness_tests_test_merge_rationale_154",
+      "target": "harness_tests_test_merge_bookkeepingafterreceipttest",
+      "relation": "rationale_for",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L154",
+      "weight": 1.0
+    },
+    {
+      "source": "harness_tests_test_merge_rationale_175",
+      "target": "harness_tests_test_merge_bookkeepingafterreceipttest_test_a_report_regenerated_after_the_receipt_is_fine",
+      "relation": "rationale_for",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L175",
       "weight": 1.0
     },
     {
@@ -58901,7 +59143,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/tickets/SEEN-091-collect-harness-kpis-per-ticket-and-produce.md",
-      "source_location": "L105",
+      "source_location": "L110",
       "weight": 1.0
     },
     {
@@ -58912,7 +59154,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/tickets/SEEN-091-collect-harness-kpis-per-ticket-and-produce.md",
-      "source_location": "L109",
+      "source_location": "L114",
       "weight": 1.0
     },
     {
@@ -58923,7 +59165,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/tickets/SEEN-091-collect-harness-kpis-per-ticket-and-produce.md",
-      "source_location": "L110",
+      "source_location": "L115",
       "weight": 1.0
     },
     {
@@ -58934,7 +59176,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/tickets/SEEN-091-collect-harness-kpis-per-ticket-and-produce.md",
-      "source_location": "L111",
+      "source_location": "L116",
       "weight": 1.0
     },
     {
@@ -59889,6 +60131,17 @@
       "weight": 0.8
     },
     {
+      "source": "harness_tests_test_merge_bookkeepingafterreceipttest",
+      "target": "harness_errors_harnesserror",
+      "relation": "uses",
+      "_origin": "ast",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "harness/tests/test_merge.py",
+      "source_location": "L185",
+      "weight": 0.8
+    },
+    {
       "source": "harness_tests_test_merge_deliverycheckstest",
       "target": "harness_errors_harnesserror",
       "relation": "uses",
@@ -60066,5 +60319,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "4364047b3a3833a300146da7a9867ca2300d0072"
+  "built_at_commit": "dbecd43d8246d64b731baa013a6f3e95bc2b3bab"
 }

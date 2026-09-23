@@ -1,17 +1,17 @@
 # Graph Report - seene  (2026-09-24)
 
 ## Corpus Check
-- 387 files · ~134,626 words
+- 397 files · ~136,827 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 4 file(s) not represented in the graph (top: (none) 3, .toml 1)
 
 ## Summary
-- 1786 nodes · 3327 edges · 162 communities (146 shown, 16 thin omitted)
-- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 84 edges (avg confidence: 0.93)
+- 1794 nodes · 3341 edges · 162 communities (146 shown, 16 thin omitted)
+- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 85 edges (avg confidence: 0.93)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `4364047b`
+- Built from commit: `dbecd43d`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -144,7 +144,7 @@
 - vitest
 - api/tsconfig.json
 - worker/tsconfig.json
-- MergeTest
+- test_kpi.py
 - report.py
 - SEEN-089: Enforce the TDD gates in the harness
 - SEEN-090: Add harness security controls: secrets, permissions, injection, supply chain
@@ -165,7 +165,7 @@
 - .fingerprint
 - scripts
 - Week 39 of 2026
-- Sprint 0: 27 of 77 points delivered
+- Sprint 0: 30 of 77 points delivered
 - SEEN-093: Add harness reopen to void a receipt before merge
 - SEEN-094: Verify delivery against CI and verify the merge against the receipt
 - cost.py
@@ -178,13 +178,13 @@
 - write_once
 
 ## God Nodes (most connected - your core abstractions)
-1. `HarnessError` - 73 edges
+1. `HarnessError` - 74 edges
 2. `require()` - 67 edges
 3. `Repository` - 46 edges
 4. `CommandTest` - 36 edges
 5. `execute()` - 30 edges
 6. `clarify_evidence()` - 26 edges
-7. `DeliveryWalk` - 20 edges
+7. `DeliveryWalk` - 21 edges
 8. `DoctorTest` - 20 edges
 9. `RecordTest` - 19 edges
 10. `append()` - 18 edges
@@ -231,8 +231,8 @@ Cohesion: 0.06
 Nodes (60): argparse, demonstrates_failure(), phases_for(), Running and recording a verification command. A check is a real subprocess in…, Whether a run is evidence that a test failed. Exit zero is a passing command,…, Run one check and return the evidence to record., run(), build_parser() (+52 more)
 
 ### Community 9 - "DeliveryWalk"
-Cohesion: 0.08
-Nodes (16): DeliveryTest, DeliveryWalk, The walk to a delivered ticket, without the tests. Separated so other files can…, No test reaches GitHub. Green by default; a test that cares says otherwise., Take a ticket through every stage, with real recorded checks., at(), journal_with_a_return(), Figures derived from what was recorded, never from what anyone remembers. (+8 more)
+Cohesion: 0.06
+Nodes (16): DeliveryTest, DeliveryWalk, The walk to a delivered ticket, without the tests. Separated so other files can…, No test reaches GitHub. Green by default; a test that cares says otherwise., Take a ticket through every stage, with real recorded checks., BookkeepingAfterReceiptTest, DeliveryChecksTest, broken() (+8 more)
 
 ### Community 10 - "GraphTest"
 Cohesion: 0.29
@@ -698,9 +698,9 @@ Nodes (8): compilerOptions, baseUrl, outDir, rootDir, exclude, extends, include,
 Cohesion: 0.22
 Nodes (8): compilerOptions, baseUrl, outDir, rootDir, exclude, extends, include, ../../tsconfig.base.json
 
-### Community 130 - "MergeTest"
-Cohesion: 0.11
-Nodes (7): DeliveryChecksTest, broken(), MergeTest, A commit can carry more than one run of the same check. GitHub shows the latest…, Check runs in the shape gh reports them., runs(), SupersededRunTest
+### Community 130 - "test_kpi.py"
+Cohesion: 0.14
+Nodes (10): at(), journal_with_a_return(), Figures derived from what was recorded, never from what anyone remembers., A timestamp minutes after ten, so a journal can span an hour or more., A review re-run lists its findings again; they are still the same findings., start, clarify, solution, tdd, review, back to tdd, review again, deliver,…, Rework is time spent, so tdd counts both visits rather than the last., record() (+2 more)
 
 ### Community 131 - "report.py"
 Cohesion: 0.14
@@ -766,9 +766,9 @@ Nodes (6): scripts, build, lint, start, test, typecheck
 Cohesion: 0.33
 Nodes (5): Against the targets, Findings, Not measurable yet, Week 39 of 2026, What delivered
 
-### Community 151 - "Sprint 0: 27 of 77 points delivered"
+### Community 151 - "Sprint 0: 30 of 77 points delivered"
 Cohesion: 0.33
-Nodes (5): Against the targets, Findings, Not measurable yet, Sprint 0: 27 of 77 points delivered, What delivered
+Nodes (5): Against the targets, Findings, Not measurable yet, Sprint 0: 30 of 77 points delivered, What delivered
 
 ### Community 152 - "SEEN-093: Add harness reopen to void a receipt before merge"
 Cohesion: 0.33
@@ -792,20 +792,20 @@ Nodes (3): LEDGER_CURRENCY, packageName, sumCents()
 
 ## Knowledge Gaps
 - **730 isolated node(s):** `graphify-mcp`, `name`, `version`, `private`, `description` (+725 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 970 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 972 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
 - **16 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `HarnessError` connect `HarnessError` to `gates.py`, `.evaluate`, `MergeTest`, `Repository`, `RecordTest`, `require`, `DeliveryWalk`, `GraphTest`, `DoctorTest`, `RepositoryTest`, `doctor.py`, `CoverageTest`, `stub`, `CommandTest`, `ReportTest`, `jev.py`, `DiscardTest`, `advance`, `delivery.py`?**
-  _High betweenness centrality (0.244) - this node is a cross-community bridge._
+- **Why does `HarnessError` connect `HarnessError` to `gates.py`, `.evaluate`, `test_kpi.py`, `Repository`, `RecordTest`, `require`, `DeliveryWalk`, `GraphTest`, `DoctorTest`, `RepositoryTest`, `doctor.py`, `CoverageTest`, `stub`, `CommandTest`, `ReportTest`, `jev.py`, `DiscardTest`, `advance`, `delivery.py`?**
+  _High betweenness centrality (0.251) - this node is a cross-community bridge._
 - **Why does `Seen: MVP architecture` connect `kpi.py` to `CLAUDE.md`?**
-  _High betweenness centrality (0.148) - this node is a cross-community bridge._
+  _High betweenness centrality (0.155) - this node is a cross-community bridge._
 - **Why does `read_evidence()` connect `delivery.py` to `require`, `advance`, `HarnessError`, `kpi.py`?**
-  _High betweenness centrality (0.137) - this node is a cross-community bridge._
-- **Are the 39 inferred relationships involving `HarnessError` (e.g. with `list_tickets()` and `main()`) actually correct?**
-  _`HarnessError` has 39 INFERRED edges - model-reasoned connections that need verification._
+  _High betweenness centrality (0.145) - this node is a cross-community bridge._
+- **Are the 40 inferred relationships involving `HarnessError` (e.g. with `list_tickets()` and `main()`) actually correct?**
+  _`HarnessError` has 40 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 8 inferred relationships involving `Repository` (e.g. with `HarnessError` and `DeliveryTest`) actually correct?**
   _`Repository` has 8 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 7 inferred relationships involving `execute()` (e.g. with `advance()` and `check()`) actually correct?**
