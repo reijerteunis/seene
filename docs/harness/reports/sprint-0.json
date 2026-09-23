@@ -263,6 +263,46 @@
       "note": null
     },
     {
+      "ticket": "SEEN-092",
+      "delivered_at": "2026-09-23T22:40:37.408652+00:00",
+      "points": 2,
+      "cycle_time_seconds": 1004,
+      "stage_seconds": {
+        "clarify": 84,
+        "solution": 19,
+        "tdd": 581,
+        "review": 194,
+        "deliver": 124
+      },
+      "attempts": 1,
+      "rework": 0,
+      "red_before_green": true,
+      "coverage": {
+        "package": "@seen/core",
+        "lines": 100.0,
+        "delta": 0.0
+      },
+      "findings": {
+        "by_severity": {
+          "medium": 2,
+          "low": 1
+        },
+        "fixed": 3,
+        "waived": 0
+      },
+      "first_pass_ci": true,
+      "tokens": {
+        "input_tokens": 54,
+        "output_tokens": 34381,
+        "cache_read_input_tokens": 23609168,
+        "cache_creation_input_tokens": 35164
+      },
+      "cost": null,
+      "escaped_defects": [],
+      "harness_version": "1",
+      "note": null
+    },
+    {
       "ticket": "SEEN-093",
       "delivered_at": "2026-09-23T18:55:54.819175+00:00",
       "points": 2,
@@ -341,16 +381,16 @@
     }
   ],
   "totals": {
-    "tickets": 9,
-    "points_delivered": 30,
-    "median_cycle_time_seconds": 1554.5,
-    "rework_per_ticket": 1.25,
+    "tickets": 10,
+    "points_delivered": 32,
+    "median_cycle_time_seconds": 1126,
+    "rework_per_ticket": 1.11,
     "first_pass_ci_rate": 1.0,
     "first_pass_ci_unknown": 8,
     "findings_by_severity": {
-      "medium": 19,
+      "medium": 21,
       "high": 13,
-      "low": 10,
+      "low": 11,
       "blocking": 2
     },
     "points_planned": 77
