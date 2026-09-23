@@ -1,0 +1,39 @@
+{
+  "sequence": 3,
+  "ticket": "SEEN-093",
+  "timestamp": "2026-09-23T18:52:05.972210+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "9272f85f6cb320a9c59e53652512b9483d5309e6",
+  "prev_hash": "12611f786046bc7b275b0a1599745984a3992db405aa25589ef10c644fde1a7d",
+  "data": {
+    "from_stage": "clarify",
+    "to_stage": "solution",
+    "evidence": {
+      "scope": "Let a delivered ticket be reopened before its work is merged: void the receipt with a recorded reason, return the ticket to tdd on a new attempt, and refuse once the delivered commit is in the default branch.",
+      "acceptance": [
+        "reopen on a delivered ticket appends a reopen record carrying the voided receipt hash, the reason and the actor, and status shows tdd on the next attempt: evidenced by the record and its test",
+        "reopen on a ticket that is not delivered is refused, naming the stage it is in: evidenced by the test",
+        "reopen after the delivered commit reached the default branch is refused, naming the merge: evidenced by a test that merges the commit first",
+        "verify-delivery after a reopen writes a second receipt and doctor still verifies the chain: evidenced by the test that walks a ticket through twice",
+        "A voided receipt is never deleted or rewritten: evidenced by the chain verifying across the reopen"
+      ],
+      "decisions": [
+        "A receipt is final when the work is merged, not when it is written. SEEN-086 made delivered terminal on the opposite assumption, and two tickets found defects after their receipts, each patched on the branch so the receipt attested a commit that was not the one merging. Founder, 23 September 2026",
+        "Reopening is refused once the commit is an ancestor of the default branch: a merged receipt is history, and history is not edited",
+        "The reopen record follows the receipt rather than replacing it, so the journal reads receipt, void, rework, second receipt, and SEEN-091 can count the rework where it happened",
+        "This is new capability rather than a correction of SEEN-088, which is why it is its own ticket rather than a patch on an open branch"
+      ],
+      "open_questions": [],
+      "changes_agent_action": false,
+      "graph_impact": [
+        "verify-delivery in harness/delivery.py writes the receipt and is what reopen voids",
+        "journal.state applies the last transition, so a reopen record is read the same way an advance or a return is"
+      ]
+    },
+    "decisions": []
+  }
+}

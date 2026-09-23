@@ -1,12 +1,12 @@
 # Tickets
 
-92 tickets for the Seen MVP, one file per ticket, grouped by sprint. Each file carries YAML frontmatter (id, epic, sprint, gate, estimate, executor, changes_agent_action, marketplaces, depends_on, status) so the backlog can be filtered with grep or loaded by a script. Status values: todo, doing, review, done, parked. Update the status line in the frontmatter and the table when a ticket moves.
+93 tickets for the Seen MVP, one file per ticket, grouped by sprint. Each file carries YAML frontmatter (id, epic, sprint, gate, estimate, executor, changes_agent_action, marketplaces, depends_on, status) so the backlog can be filtered with grep or loaded by a script. Status values: todo, doing, review, done, parked. Update the status line in the frontmatter and the table when a ticket moves.
 
 Conventions: branch `claude/<id>-<slug>` (or `codex/`), commit messages `feat(<id>): ...`, `fix(<id>): ...`, `docs(<id>): ...`; a ticket is done only when every acceptance criterion is checked and the tests named in it run in CI.
 
 ## Sprint 0: Harness first, then foundations, three read connectors, ingest, day-0 registrations
 
-24 Sep - 9 Oct 2026, sprint gate G0, 21 tickets, 68 build points.
+24 Sep - 9 Oct 2026, sprint gate G0, 22 tickets, 70 build points.
 
 | Ticket | Title | Epic | Pts | Executor | Depends on |
 |---|---|---|---|---|---|
@@ -22,6 +22,7 @@ Conventions: branch `claude/<id>-<slug>` (or `codex/`), commit messages `feat(<i
 | [SEEN-089](SEEN-089-enforce-tdd-and-ci-quality-gates-in-the-harness.md) | Enforce TDD and CI quality gates in the harness | E10 | 5 | Claude Code | SEEN-006, SEEN-086 |
 | [SEEN-090](SEEN-090-add-harness-security-controls-secrets.md) | Add harness security controls: secrets, permissions, injection, supply chain | E10 | 3 | Claude Code | SEEN-086, SEEN-088 |
 | [SEEN-091](SEEN-091-collect-harness-kpis-per-ticket-and-produce.md) | Collect harness KPIs per ticket and produce weekly and sprint reports | E10 | 3 | Claude Code | SEEN-086, SEEN-089 |
+| [SEEN-093](SEEN-093-add-harness-reopen-to-void-a-receipt-before.md) | Add harness reopen to void a receipt before merge | E10 | 2 | Claude Code | SEEN-086 |
 | [SEEN-092](SEEN-092-sync-the-harness-skill-to-claude-code-and-codex.md) | Sync the harness skill to Claude Code and Codex and retire the Seene leftovers | E10 | 2 | Claude Code | SEEN-086, SEEN-087, SEEN-088, SEEN-089, SEEN-090, SEEN-091 |
 | [SEEN-007](SEEN-007-provision-gcp-europe-west4-and-supabase-eu-with.md) | Provision GCP europe-west4 and Supabase EU with telemetry | E0 | 5 | Claude Code | SEEN-006, SEEN-092 |
 | [SEEN-008](SEEN-008-create-trade-record-schema-v1-with-tenant-id.md) | Create trade-record schema v1 with tenant_id and RLS on every table | E0 | 5 | Claude Code | SEEN-006, SEEN-007, SEEN-092 |
@@ -166,4 +167,4 @@ Conventions: branch `claude/<id>-<slug>` (or `codex/`), commit messages `feat(<i
 | E7 | Modules: Reconcile, Comply, Serve | Switch on continuous reconciliation, listing compliance fixes and buyer correspondence per tenant as scheduled tasks, tools and policy rows on the same record. | SEEN-042, SEEN-043, SEEN-045, SEEN-049, SEEN-050, SEEN-051, SEEN-055, SEEN-057, SEEN-061, SEEN-062, SEEN-063, SEEN-064 |
 | E8 | Price module | Snapshot competing offers, model net margin per marketplace and move prices inside bands through a governor, counting headroom captured from ingested orders. | SEEN-068, SEEN-069, SEEN-070, SEEN-071, SEEN-072, SEEN-074, SEEN-075, SEEN-076 |
 | E9 | Grow, retailer view, hardening and day-120 metrics | Read ad reports into margin, give retailers a scoped read-only view, pass load, security and restore drills, and produce the day-120 metrics pack. | SEEN-077, SEEN-078, SEEN-079, SEEN-080, SEEN-081, SEEN-082, SEEN-083, SEEN-084, SEEN-085 |
-| E10 | Development harness | Give every ticket one fast, evidence-recording procedure across Claude Code and Codex, with graphify for context, Jev for typed gate decisions, CI as the definition of done, security controls built into the stages, and a KPI record per ticket. | SEEN-086, SEEN-087, SEEN-088, SEEN-089, SEEN-090, SEEN-091, SEEN-092 |
+| E10 | Development harness | Give every ticket one fast, evidence-recording procedure across Claude Code and Codex, with graphify for context, Jev for typed gate decisions, CI as the definition of done, security controls built into the stages, and a KPI record per ticket. | SEEN-086, SEEN-087, SEEN-088, SEEN-089, SEEN-090, SEEN-091, SEEN-092, SEEN-093 |

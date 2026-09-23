@@ -1,0 +1,35 @@
+{
+  "sequence": 12,
+  "ticket": "SEEN-093",
+  "timestamp": "2026-09-23T18:55:54.819175+00:00",
+  "harness_version": "1",
+  "kind": "receipt",
+  "stage": "deliver",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "e9096baebaae2456587a5308b5c22f2ae4a6c424",
+  "prev_hash": "9ee3ad6f2a15eefaeb477c751c5095de8a417c1b2203702faf099db9920207c7",
+  "data": {
+    "from_stage": "deliver",
+    "to_stage": "delivered",
+    "commit": "e9096baebaae2456587a5308b5c22f2ae4a6c424",
+    "branch": "claude/SEEN-093-add-harness-reopen",
+    "remote": "origin",
+    "tree": "4f5b220097f9d6d053abc4d4aa92a5cea8bfc18f183918572b537e1ddf2d1fc6",
+    "pull_request": "https://github.com/reijerteunis/seene/pull/4",
+    "limits": [
+      "Reviewed by the session that wrote it: self-review, not independent",
+      "CI green is checked by eye rather than by verify-delivery, until SEEN-089",
+      "Record 1 names a commit that no longer exists, explained in the note at record 2"
+    ],
+    "evidence": {
+      "remote": "origin",
+      "pull_request": "https://github.com/reijerteunis/seene/pull/4",
+      "limits": [
+        "Reviewed by the session that wrote it: self-review, not independent",
+        "CI green is checked by eye rather than by verify-delivery, until SEEN-089",
+        "Record 1 names a commit that no longer exists, explained in the note at record 2"
+      ]
+    }
+  }
+}
