@@ -1,0 +1,48 @@
+{
+  "sequence": 21,
+  "ticket": "SEEN-006",
+  "timestamp": "2026-09-23T19:19:46.139143+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "3b61eddf8b4a0b56306a29bb2bf385735a4b97ee",
+  "prev_hash": "ee612b0737f1543c489403e7549c5be16dba5b8e8e85df8ffbfe526860180cfe",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "behaviour": "The workspace resolves and the three library packages compile and run under Vitest",
+          "failure_reason": "Cannot find module './index' from packages/agent/src/index.test.ts, and the same for connectors and core",
+          "red": 10,
+          "green": 11
+        },
+        {
+          "behaviour": "apps/api answers GET /health with 200, naming itself so a load balancer hitting the wrong process can tell",
+          "failure_reason": "Cannot find module './app.module' from apps/api/src/health.test.ts",
+          "red": 12,
+          "green": 13
+        },
+        {
+          "behaviour": "apps/worker processes a hello job from a real Redis and returns what it greeted",
+          "failure_reason": "Cannot find module './hello' from apps/worker/src/hello.test.ts",
+          "red": 14,
+          "green": 15
+        },
+        {
+          "behaviour": "apps/web carries the product's name and description in one pure module the layout uses for its metadata",
+          "failure_reason": "Cannot find module './site' from apps/web/src/site.test.ts",
+          "red": 16,
+          "green": 17
+        }
+      ],
+      "regression": 20,
+      "coverage_delta": null
+    },
+    "decisions": []
+  }
+}
