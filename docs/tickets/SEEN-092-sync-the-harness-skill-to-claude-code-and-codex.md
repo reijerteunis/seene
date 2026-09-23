@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-086, SEEN-087, SEEN-088, SEEN-089, SEEN-090, SEEN-091]
-status: doing
+status: done
 ---
 # SEEN-092: Sync the harness skill to Claude Code and Codex and retire the Seene leftovers
 
@@ -23,7 +23,7 @@ status: doing
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | doing |
+| Status | done |
 
 ## Description
 
