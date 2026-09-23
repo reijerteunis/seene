@@ -84,6 +84,11 @@ committed with `--no-verify`, which is the case CI exists to catch. The branch i
 run stays in the Actions history as the evidence. Worth knowing: AWS's own documentation example key
 is allowlisted by gitleaks, so a test using it proves nothing.
 
+**The rule was too crude, and CI found that too.** Judging a credential by length alone refused
+ordinary words: CI has `GITHUB_EVENT_NAME=pull_request`, and a delivery record legitimately contains
+those words, so four delivery tests failed there and passed here. A variable now counts by name or by
+shape, and review returned the ticket for it.
+
 **And I destroyed my own work.** Removing a test commit with `git reset --hard HEAD~1` also discarded
 every uncommitted edit to tracked files, while the new untracked files survived, so the commit that
 followed carried the tests and not the code they test. CI caught it. `git reset --soft` would have
