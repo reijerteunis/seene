@@ -71,3 +71,11 @@ class ProjectTest(unittest.TestCase):
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(text)
         return path
+
+
+def add_remote(root):
+    """A bare repository to push to, so delivery can be verified without a network."""
+    remote = Path(tempfile.mkdtemp()) / 'origin.git'
+    subprocess.run(['git', 'init', '--bare', '-q', str(remote)], check=True)
+    git(root, 'remote', 'add', 'origin', str(remote))
+    return remote

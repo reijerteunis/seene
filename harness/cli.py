@@ -236,6 +236,15 @@ def check(repository, folder, records, args, current, rules):
 
 
 def read_evidence(repository, relative):
+    """Read a stage evidence file, which must live where drafts live.
+
+    Anywhere else it is an untracked file in the tree, so submitting it would
+    change the fingerprint that review attested and delivery would later refuse
+    the ticket for a change the harness itself caused.
+    """
+    require(Path(relative).parts[:1] == (str(DRAFTS),),
+            f'Stage evidence must live in {DRAFTS}/, where harness draft puts it, so that '
+            f'submitting it cannot change the tree under review: {relative}')
     try:
         return json.loads(repository.file_inside(relative).read_text())
     except json.JSONDecodeError as error:

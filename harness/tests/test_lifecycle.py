@@ -29,10 +29,11 @@ class CommandTest(ProjectTest):
         return [json.loads(path.read_text()) for path in sorted(folder.glob('[0-9]*.json'))]
 
     def submit(self, stage, data, actor='claude:implementer', **changes):
-        path = self.root / f'{stage}.json'
+        relative = f'.harness-drafts/{self.ticket_id}-{stage}.json'
+        path = self.root / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(dict(data, **changes)))
-        return self.run_harness('advance', self.ticket_id, '--file', f'{stage}.json',
-                                '--actor', actor)
+        return self.run_harness('advance', self.ticket_id, '--file', relative, '--actor', actor)
 
 
 class StartTest(CommandTest):
@@ -227,9 +228,16 @@ class AdvanceTest(CommandTest):
 
     def test_evidence_that_is_not_json_is_refused(self):
         self.start()
-        self.write('broken.json', '{oops')
+        self.write('.harness-drafts/broken.json', '{oops')
         with self.assertRaisesRegex(HarnessError, 'JSON'):
-            self.run_harness('advance', self.ticket_id, '--file', 'broken.json',
+            self.run_harness('advance', self.ticket_id, '--file', '.harness-drafts/broken.json',
+                             '--actor', 'claude:implementer')
+
+    def test_evidence_written_outside_the_drafts_directory_is_refused(self):
+        self.start()
+        self.write('clarify.json', json.dumps(clarify_evidence()))
+        with self.assertRaisesRegex(HarnessError, 'harness-drafts'):
+            self.run_harness('advance', self.ticket_id, '--file', 'clarify.json',
                              '--actor', 'claude:implementer')
 
     def test_the_chain_holds_across_every_record(self):

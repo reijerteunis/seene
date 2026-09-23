@@ -69,21 +69,37 @@ class Repository:
             paths.append(path)
         return paths
 
-    def fingerprint(self):
-        """A hash of the tree, ignoring the journal and the drafts.
+    def _blob_ids(self, paths):
+        """Git's own hash for files on disk, in one call rather than one each."""
+        if not paths:
+            return {}
+        result = subprocess.run(['git', '-C', str(self.root), 'hash-object', '--stdin-paths'],
+                                input='\n'.join(paths), capture_output=True, text=True, timeout=120)
+        require(result.returncode == 0, result.stderr.strip() or 'git hash-object failed')
+        return dict(zip(paths, result.stdout.split()))
 
-        Recording evidence about a tree must not change that tree, which is why
-        docs/harness/history and .harness-drafts are excluded. See
-        docs/adr/0002-the-receipt-attests-the-tree-minus-the-journal.md.
+    def fingerprint(self):
+        """A hash of the tree's content, ignoring the journal and the drafts.
+
+        Content, not history: committing a file must not change the fingerprint,
+        because the receipt has to survive the journal commit that carries it.
+        Every entry is a git blob id, so a file hashes the same whether it is
+        committed or still sitting in the working tree.
+        See docs/adr/0002-the-receipt-attests-the-tree-minus-the-journal.md.
         """
-        parts = [self.head()]
-        for path in sorted(set(self._pending())):
-            if path.startswith(FINGERPRINT_EXCLUDED):
-                continue
-            full = self.root / path
-            content = hashlib.sha256(full.read_bytes()).hexdigest() if full.is_file() else 'absent'
-            parts.append(f'{path}:{content}')
-        return hashlib.sha256('\n'.join(parts).encode()).hexdigest()
+        entries = {}
+        for line in self.git('ls-files', '-s').splitlines():
+            details, _, path = line.partition('\t')
+            if not path.startswith(FINGERPRINT_EXCLUDED):
+                entries[path] = details.split()[1]
+        changed = [path for path in sorted(set(self._pending()))
+                   if not path.startswith(FINGERPRINT_EXCLUDED)]
+        present = [path for path in changed if (self.root / path).is_file()]
+        for path in changed:
+            entries.pop(path, None)
+        entries.update(self._blob_ids(present))
+        listing = '\n'.join(f'{path}:{blob}' for path, blob in sorted(entries.items()))
+        return hashlib.sha256(listing.encode()).hexdigest()
 
     def is_clean(self):
         return not [path for path in self._pending() if not path.startswith(FINGERPRINT_EXCLUDED)]
