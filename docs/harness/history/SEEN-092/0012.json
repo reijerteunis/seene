@@ -1,0 +1,27 @@
+{
+  "sequence": 12,
+  "ticket": "SEEN-092",
+  "timestamp": "2026-09-23T22:38:06.267152+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "review",
+  "attempt": 1,
+  "actor": "claude:reviewer",
+  "head": "ad67e8a04bc8f2dd06a60cb13827448403f0557e",
+  "prev_hash": "f883ea3ff187802c6db75efd6c4609a6ec91ecdde34fce7e065e98cc939ff470",
+  "data": {
+    "command": [
+      "sh",
+      "-c",
+      "python3 -m unittest discover -s harness/tests && python3 harness/run.py doctor && python3 harness/run.py lint"
+    ],
+    "phase": "qa",
+    "exit_code": 0,
+    "duration_ms": 68915,
+    "output": "..........................................................................................................................................................................................................................................................\n----------------------------------------------------------------------\nRan 250 tests in 67.793s\n\nOK\n{\n  \"ok\": true,\n  \"checked\": [\n    \"python\",\n    \"thresholds\",\n    \"templates\",\n    \"journals\",\n    \"append_only\",\n    \"gitignore\",\n    \"hooks\",\n    \"skill\",\n    \"marketplace_hosts\",\n    \"links\"\n  ],\n  \"problems\": []\n}\n{\n  \"ok\": true,\n  \"checked\": \"test code\",\n  \"hosts\": [\n    \"api.bol.com\",\n    \"sellingpartnerapi\",\n    \"api.ebay.com\",\n    \"sellerapi.kaufland.com\",\n    \"api.otto.market\"\n  ]\n}\n",
+    "output_sha256": "6e72cecf4d655e3f42e6d14f6ac6d73d67ee8ad39cded467d6ea4406719cc53e",
+    "output_truncated": false,
+    "before": "452c30e457ad16caab490871db41549e8f79494a4ff8189cf1ff0d55adcf1795",
+    "after": "452c30e457ad16caab490871db41549e8f79494a4ff8189cf1ff0d55adcf1795"
+  }
+}
