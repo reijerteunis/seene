@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-086]
-status: doing
+status: done
 ---
 # SEEN-093: Add harness reopen to void a receipt before merge
 
@@ -23,7 +23,7 @@ status: doing
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | doing |
+| Status | done |
 
 ## Description
 
@@ -42,11 +42,11 @@ the journal reads receipt, void, rework, second receipt, and rework is counted w
 
 ## Acceptance criteria
 
-- [ ] reopen on a delivered ticket appends a reopen record carrying the voided receipt hash, the reason and the actor, and status then shows the ticket at tdd on the next attempt
-- [ ] reopen is refused on a ticket that is not delivered, and the refusal names the stage it is in
-- [ ] reopen is refused when the delivered commit is an ancestor of the default branch, naming the merge commit
-- [ ] verify-delivery after a reopen writes a second receipt, and doctor still verifies the whole chain
-- [ ] A voided receipt is never deleted or rewritten: the reopen record follows it, and a test proves the chain still verifies
+- [x] reopen on a delivered ticket appends a reopen record carrying the voided receipt hash, the reason and the actor, and status then shows the ticket at tdd on the next attempt
+- [x] reopen is refused on a ticket that is not delivered, and the refusal names the stage it is in
+- [x] reopen is refused when the delivered commit is an ancestor of the default branch, naming the merge commit
+- [x] verify-delivery after a reopen writes a second receipt, and doctor still verifies the whole chain
+- [x] A voided receipt is never deleted or rewritten: the reopen record follows it, and a test proves the chain still verifies
 
 ## Depends on
 
