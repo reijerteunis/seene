@@ -110,11 +110,19 @@ class RecordTest(unittest.TestCase):
         with self.assertRaisesRegex(HarnessError, 'kind'):
             self.append(kind='approve')
 
-    def test_state_reports_the_stage_and_attempt_of_the_last_record(self):
+    def test_state_applies_the_transition_the_last_record_describes(self):
         self.append(kind='start')
-        self.append(kind='return', stage='solution', attempt=2)
+        self.append(kind='advance', stage='clarify',
+                    data=dict(from_stage='clarify', to_stage='solution'))
         self.assertEqual(journal.state(journal.read(self.folder)),
-                         dict(stage='solution', attempt=2, records=2))
+                         dict(stage='solution', attempt=1, records=2))
+
+    def test_a_return_raises_the_attempt(self):
+        self.append(kind='start')
+        self.append(kind='return', stage='review',
+                    data=dict(from_stage='review', to_stage='tdd', to_attempt=2, reason='x'))
+        self.assertEqual(journal.state(journal.read(self.folder)),
+                         dict(stage='tdd', attempt=2, records=2))
 
 
 if __name__ == '__main__':

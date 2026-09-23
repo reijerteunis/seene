@@ -95,8 +95,20 @@ def write_once(path, payload):
         temporary.unlink(missing_ok=True)
 
 
+TRANSITIONS = ('advance', 'return', 'receipt')
+
+
 def state(records):
-    """Where a ticket stands: the stage and attempt of its most recent record."""
+    """Where a ticket stands now.
+
+    A record's envelope says where the ticket was when it was written, so an
+    advance is stamped with the stage it left. The transition it describes lives
+    in its data, and applying it to the last record is what "now" means.
+    """
     require(records, 'No journal exists for this ticket; start it first')
     last = records[-1]
-    return dict(stage=last['stage'], attempt=last['attempt'], records=len(records))
+    stage, attempt = last['stage'], last['attempt']
+    if last['kind'] in TRANSITIONS:
+        stage = last['data']['to_stage']
+        attempt = last['data'].get('to_attempt', attempt)
+    return dict(stage=stage, attempt=attempt, records=len(records))
