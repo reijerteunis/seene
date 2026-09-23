@@ -32,7 +32,7 @@ Install graphify (uv tool install graphifyy), register it for Claude Code and Co
 ## Acceptance criteria
 
 - [x] graphify claude install and graphify install --platform codex both succeed and /graphify query works in a Claude Code session on this repository
-- [x] graphify hook install is in place and a commit changing harness/ rebuilds graphify-out/graph.json, which lands with the following commit (re-pointed from packages/core, which arrives with SEEN-006, and from 'the same commit': graphify rebuilds in the background after the commit, which is why the graph is outside the reviewed-tree fingerprint)
+- [x] The graph is refreshed by CI on every push and by verify-delivery locally, so a commit changing harness/ or packages/core is reflected in graphify-out/graph.json without anyone remembering (amended on 23 September 2026: the post-commit hook was uninstalled after it broke four git operations in one session by leaving the tree dirty behind every commit, including a 20,000-line conflict in graph.json on three rebases; the graph now refreshes on the same cadence as the receipt and the coverage baseline)
 - [x] The MCP server exposes query_graph, get_neighbors, shortest_path and get_pr_impact to Claude Code and Codex and a query for the stage gate returns its callers (re-pointed from the policy gate, which arrives with SEEN-033)
 - [x] CI runs graphify extract --code-only and fails when the graph does not parse; GRAPH_REPORT.md is an artefact of the run
 - [x] harness graph SEEN-087 impact writes the impact set into the journal as a note
@@ -45,6 +45,15 @@ after it, so two acceptance criteria are re-pointed at code that exists: `harnes
 the deterministic code-only extraction, with no API key and no per-build token spend. The MCP server
 is the `graphify-mcp` executable rather than `python -m graphify.serve`, because a uv tool install
 isolates the package from the system python.
+
+## Amended after delivery
+
+The post-commit and post-checkout hooks were uninstalled on 23 September 2026, during SEEN-089. They
+rebuilt the graph in the background after every commit, which left `graphify-out` dirty and broke four
+git operations in one session: two branch switches, two pulls, and three rebases that had to resolve a
+20,000-line conflict in `graph.json`. The graph is still committed, as this ticket decided, and still
+refreshed: CI rebuilds it on every push, and `verify-delivery` refreshes it locally, which is the same
+cadence as the receipt and the coverage baseline. The merge driver stays configured.
 
 ## Outcome
 

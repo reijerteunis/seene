@@ -7,6 +7,8 @@ gh; SEEN-089 adds the CI check and SEEN-091 the KPI check, and each refuses
 rather than passes when it cannot be run.
 """
 
+import subprocess
+
 from . import coverage, gates, journal
 from .errors import require
 from .paths import HISTORY, WORKING_STAGES
@@ -31,6 +33,8 @@ def verify(repository, folder, records, args, current):
             f'{commit[:8]} is not the tip of {branch} on the {data["remote"]} remote; '
             'push the branch before verifying delivery')
 
+    _refresh_graph(repository)
+
     # The baseline moves here and nowhere else, so a delta always compares this
     # ticket's measurement with the last one that actually delivered.
     measurement = _latest_coverage(records)
@@ -54,6 +58,21 @@ def verify(repository, folder, records, args, current):
                 receipt_file=str(path.relative_to(repository.root)),
                 next_step='Commit and push this record, then put the receipt hash in the '
                           'pull request body.')
+
+
+def _refresh_graph(repository):
+    """Bring the committed graph up to date with the code being delivered.
+
+    graphify's own hooks did this after every commit and left the tree dirty
+    behind each one, which broke four git operations in a single session. Here it
+    happens once, on the same cadence as the receipt and the coverage baseline,
+    and a failure is not fatal: the graph is context, not evidence.
+    """
+    try:
+        subprocess.run(['graphify', 'update', '.'], cwd=repository.root,
+                       capture_output=True, timeout=600, check=False)
+    except (OSError, subprocess.TimeoutExpired):
+        return
 
 
 def _latest_coverage(records):
