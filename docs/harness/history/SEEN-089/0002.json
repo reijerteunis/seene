@@ -1,0 +1,15 @@
+{
+  "sequence": 2,
+  "ticket": "SEEN-089",
+  "timestamp": "2026-09-23T19:05:58.678591+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "913ee2de782452fbf07c548cb521dd14b9856ee8",
+  "prev_hash": "323f67143b593e3946c81307106299096b828ff7db03b43334911b798a999527",
+  "data": {
+    "text": "# SEEN-089 declares a dependency that is not delivered\n\nThe ticket's frontmatter says `depends_on: [SEEN-006, SEEN-086]`. SEEN-086 is done; SEEN-006, which\nscaffolds the pnpm turborepo monorepo, is not. There is no `package.json`, no `pnpm-workspace.yaml`\nand no `packages/` in the tree.\n\nThree of the five acceptance criteria need it:\n\n- AC2 wants a non-negative coverage delta on `packages/core`, which does not exist.\n- AC3 wants CI to run typecheck, migrations twice, tests with coverage, build and\n  `pnpm audit --audit-level high`. None of those have anything to run against, and migrations need\n  SEEN-007 and SEEN-008 as well.\n- The carried-in work from SEEN-087 and SEEN-088 (refuse a delivery whose checks are not green,\n  compare the receipt's commit to the branch tip) needs none of it.\n\nWhat can be built today, against the harness itself: the RED-must-actually-fail rule, per-slice\nevidence enforcement, the CI-green condition on `verify-delivery`, the receipt-versus-tip check at\nmerge, the pull request template, and rework counting. That is most of the ticket's value and all of\nits carried-in work.\n\nThis is a judgement for the founder, recorded here before the clarify record is written.\n"
+  }
+}

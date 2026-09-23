@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-006, SEEN-086]
-status: doing
+status: parked
 ---
 # SEEN-089: Enforce TDD and CI quality gates in the harness
 
@@ -23,7 +23,7 @@ status: doing
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | doing |
+| Status | parked (waiting for SEEN-006) |
 
 ## Description
 

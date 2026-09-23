@@ -1,7 +1,7 @@
 # Graph Report - seene  (2026-09-23)
 
 ## Corpus Check
-- 207 files · ~84,761 words
+- 208 files · ~85,305 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 3 file(s) not represented in the graph (top: (none) 2, .toml 1)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `2e9ee7aa`
+- Built from commit: `913ee2de`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -643,7 +643,7 @@ Cohesion: 0.27
 Nodes (8): Read a stage evidence file, which must live where drafts live. Anywhere else it…, read_evidence(), _evidence(), Delivery: the deliver stage's own gate, and the receipt it writes. There is no…, Every record must already be in the history that was pushed. The receipt is the…, _require_committed(), verify(), The Seen development harness. One procedure per ticket, five stages, and an…
 
 ## Knowledge Gaps
-- **528 isolated node(s):** `Description`, `Acceptance criteria`, `Outcome`, `Depends on`, `Blocks` (+523 more)
+- **528 isolated node(s):** `Description`, `Acceptance criteria`, `Carried in from SEEN-087`, `Depends on`, `Blocks` (+523 more)
   These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 666 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
 - **8 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -651,16 +651,16 @@ Nodes (8): Read a stage evidence file, which must live where drafts live. Anywhe
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `read_evidence()` connect `delivery.py` to `cli.py`, `HarnessError`, `advance`, `Seen: MVP architecture`?**
-  _High betweenness centrality (0.329) - this node is a cross-community bridge._
-- **Why does `Seen: MVP architecture` connect `Seen: MVP architecture` to `CLAUDE.md`?**
   _High betweenness centrality (0.328) - this node is a cross-community bridge._
+- **Why does `Seen: MVP architecture` connect `Seen: MVP architecture` to `CLAUDE.md`?**
+  _High betweenness centrality (0.327) - this node is a cross-community bridge._
 - **Why does `Agent runtime and the policy gate` connect `Seen: MVP architecture` to `delivery.py`?**
-  _High betweenness centrality (0.325) - this node is a cross-community bridge._
+  _High betweenness centrality (0.323) - this node is a cross-community bridge._
 - **Are the 21 inferred relationships involving `HarnessError` (e.g. with `journal_problems()` and `Repository`) actually correct?**
   _`HarnessError` has 21 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 6 inferred relationships involving `Repository` (e.g. with `HarnessError` and `DeliveryTest`) actually correct?**
   _`Repository` has 6 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 2 inferred relationships involving `DoctorTest` (e.g. with `HarnessError` and `Repository`) actually correct?**
   _`DoctorTest` has 2 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `Description`, `Acceptance criteria`, `Outcome` to the rest of the system?**
+- **What connects `Description`, `Acceptance criteria`, `Carried in from SEEN-087` to the rest of the system?**
   _528 weakly-connected nodes found - possible documentation gaps or missing edges._
