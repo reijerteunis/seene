@@ -53,11 +53,11 @@ request.
 
 ## Acceptance criteria
 
-- [ ] verify-delivery refuses when any check on the delivered commit is not green, when one has not concluded, and when there are none at all
-- [ ] verify-delivery refuses when gh is missing or unauthenticated, naming what to install or authenticate, rather than passing
-- [ ] verify-merge refuses when a commit after the receipt touches anything but the journal, the coverage baseline and the graph, naming the file
-- [ ] verify-merge refuses a pull request body without the receipt hash, and passes when the receipt is the last record and the tip is green
-- [ ] The pull request template exists and carries the acceptance criteria, the red and green evidence, the review findings and the receipt hash
+- [x] verify-delivery refuses when any check on the delivered commit is not green, when one has not concluded, and when there are none at all
+- [x] verify-delivery refuses when gh is missing or unauthenticated, naming what to install or authenticate, rather than passing
+- [x] verify-merge refuses when a commit after the receipt touches anything but the journal, the coverage baseline and the graph, naming the file
+- [x] verify-merge refuses a pull request body without the receipt hash, and passes when the receipt is the last record and the tip is green
+- [x] The pull request template exists and carries the acceptance criteria, the red and green evidence, the review findings and the receipt hash
 
 ## Depends on
 
