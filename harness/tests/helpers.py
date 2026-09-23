@@ -51,7 +51,10 @@ def make_project(ticket_id='SEEN-001', branch=None):
     hooks = root / '.githooks'
     hooks.mkdir()
     hook = hooks / 'pre-commit'
-    hook.write_text('#!/bin/sh\nexec gitleaks protect --staged --redact --no-banner\n')
+    # A no-op stand-in: doctor checks that the hook exists, is executable and is
+    # wired up, and none of that needs gitleaks installed. The real hook is
+    # exercised by hand and by CI, not by every unit test.
+    hook.write_text('#!/bin/sh\n# stand-in for the real pre-commit hook\nexit 0\n')
     hook.chmod(0o755)
     git(root, 'config', 'core.hooksPath', '.githooks')
     tickets = root / 'docs' / 'tickets'
