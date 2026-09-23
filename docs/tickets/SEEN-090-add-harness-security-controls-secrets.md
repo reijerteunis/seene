@@ -94,6 +94,11 @@ the same check, and `verify-delivery` judged all of them, so one superseded fail
 GitHub itself showed as green. Each check name is now judged on its latest run. Review returned the
 ticket a second time for it.
 
+**And the gitleaks action never scanned anything on a pull request**: it enumerates pull request
+commits through the API and dies on the token's permissions first, reporting a secrets failure with
+no secret behind it. The binary replaces it, which is also the tool the pre-commit hook uses, so what
+passes locally passes in CI.
+
 **And I destroyed my own work.** Removing a test commit with `git reset --hard HEAD~1` also discarded
 every uncommitted edit to tracked files, while the new untracked files survived, so the commit that
 followed carried the tests and not the code they test. CI caught it. `git reset --soft` would have
