@@ -41,7 +41,7 @@ Harness commands, once SEEN-086 has landed: `python3 harness/run.py doctor | sta
 | [CONTEXT.md](CONTEXT.md) | Glossary: the harness terms, the product terms they collide with, and the resolution of the three meanings of gate |
 | [docs/adr/](docs/adr/) | Architecture decision records: journal integrity, the delivery receipt, the SEEN-086 bootstrap exemption |
 
-### Tickets (92, 324 build points)
+### Tickets (93, 326 build points)
 
 | Ticket | Title | Epic | Size |
 |---|---|---|---|
@@ -58,6 +58,7 @@ Harness commands, once SEEN-086 has landed: `python3 harness/run.py doctor | sta
 | [SEEN-089](docs/tickets/SEEN-089-enforce-tdd-and-ci-quality-gates-in-the-harness.md) | Enforce TDD and CI quality gates in the harness | E10 | 5 pt |
 | [SEEN-090](docs/tickets/SEEN-090-add-harness-security-controls-secrets.md) | Add harness security controls: secrets, permissions, injection, supply chain | E10 | 3 pt |
 | [SEEN-091](docs/tickets/SEEN-091-collect-harness-kpis-per-ticket-and-produce.md) | Collect harness KPIs per ticket and produce weekly and sprint reports | E10 | 3 pt |
+| [SEEN-093](docs/tickets/SEEN-093-add-harness-reopen-to-void-a-receipt-before.md) | Add harness reopen to void a receipt before merge | E10 | 2 pt |
 | [SEEN-092](docs/tickets/SEEN-092-sync-the-harness-skill-to-claude-code-and-codex.md) | Sync the harness skill to Claude Code and Codex and retire the Seene leftovers | E10 | 2 pt |
 | [SEEN-007](docs/tickets/SEEN-007-provision-gcp-europe-west4-and-supabase-eu-with.md) | Provision GCP europe-west4 and Supabase EU with telemetry | E0 | 5 pt |
 | [SEEN-008](docs/tickets/SEEN-008-create-trade-record-schema-v1-with-tenant-id.md) | Create trade-record schema v1 with tenant_id and RLS on every table | E0 | 5 pt |
