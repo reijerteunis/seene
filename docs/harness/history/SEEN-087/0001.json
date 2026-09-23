@@ -1,0 +1,17 @@
+{
+  "sequence": 1,
+  "ticket": "SEEN-087",
+  "timestamp": "2026-09-23T15:59:17.417788+00:00",
+  "harness_version": "1",
+  "kind": "start",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "acfef8a4760c3a7839393e98d0092f8ad2b1960e",
+  "prev_hash": null,
+  "data": {
+    "ticket_file": "docs/tickets/SEEN-087-install-graphify-build-the-repo-graph-and-wire.md",
+    "ticket_snapshot": "---\nid: SEEN-087\ntitle: \"Install graphify, build the repo graph and wire it into both assistants\"\nepic: E10\nepic_name: \"Development harness\"\nsprint: 0\nsprint_dates: \"24 Sep - 9 Oct 2026\"\ngate: G0\nestimate: 3\nexecutor: claude-code\nchanges_agent_action: false\nmarketplaces: []\ndepends_on: [SEEN-086]\nstatus: doing\n---\n# SEEN-087: Install graphify, build the repo graph and wire it into both assistants\n\n| | |\n|---|---|\n| Epic | E10 Development harness |\n| Sprint | 0 (24 Sep - 9 Oct 2026), gate G0 |\n| Estimate | 3 points (one point is about two hours with Claude Code) |\n| Executor | Claude Code |\n| Changes an agent action | no |\n| Marketplaces | none |\n| Status | doing |\n\n## Description\n\nInstall graphify (uv tool install graphifyy), register it for Claude Code and Codex, build the graph of the repository, docs and SQL schema into graphify-out/, install the git hook so the graph rebuilds on commit and branch switch, run python -m graphify.serve graphify-out/graph.json as an MCP server in both assistants, and add graphify extract to CI so GRAPH_REPORT.md is produced on every run. Add harness graph <ticket> <impact|path|explain|prs> in harness/run.py as a thin wrapper that writes the answer into the journal. The decision that matters: graphify-out/graph.json is committed so a fresh clone has context before its first build; code extraction is local and deterministic, and only the docs pass uses a model.\n\n## Acceptance criteria\n\n- [ ] graphify claude install and graphify install --platform codex both succeed and /graphify query works in a Claude Code session on this repository\n- [ ] graphify hook install is in place and a commit changing packages/core updates graphify-out/graph.json in the same commit\n- [ ] The MCP server exposes query_graph, get_neighbors, shortest_path and get_pr_impact to Claude Code and Codex and a query for the policy gate returns its callers\n- [ ] CI runs graphify extract and fails when the graph does not parse; GRAPH_REPORT.md is an artefact of the run\n- [ ] harness graph SEEN-087 impact writes the impact set into the journal as a note\n\n## Depends on\n\n- [SEEN-086](SEEN-086-build-the-seen-harness-cli-with-staged-journal.md): Build the Seen harness CLI with staged journal and receipts\n\n## Blocks\n\n- [SEEN-092](SEEN-092-sync-the-harness-skill-to-claude-code-and-codex.md): Sync the harness skill to Claude Code and Codex and retire the Seene leftovers\n\n## Context\n\n- Product requirements: [docs/prd/prd.md](../prd/prd.md)\n- Architecture: [docs/architecture.md](../architecture.md)\n- Development plan and gates: [docs/development-plan.md](../development-plan.md)\n- Epic goal: Give every ticket one fast, evidence-recording procedure across Claude Code and Codex, with graphify for context, Jev for typed gate decisions, CI as the definition of done, security controls built into the stages, and a KPI record per ticket.\n",
+    "base_commit": "acfef8a4760c3a7839393e98d0092f8ad2b1960e"
+  }
+}

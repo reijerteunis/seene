@@ -1,0 +1,17 @@
+{
+  "0": "require",
+  "1": ".evaluate",
+  "2": ".start",
+  "3": "Repository",
+  "4": "helpers.py",
+  "5": "doctor.py",
+  "6": "Seen: Claude Code entry point",
+  "7": "RecordTest",
+  "8": "DoctorTest",
+  "9": "DeliveryTest",
+  "10": "GraphTest",
+  "11": "tests/__init__.py",
+  "12": "graphify",
+  "13": "HarnessError",
+  "14": "SEEN-087: Install graphify, build the repo graph and wire it into both assistants"
+}

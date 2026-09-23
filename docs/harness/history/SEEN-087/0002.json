@@ -1,0 +1,15 @@
+{
+  "sequence": 2,
+  "ticket": "SEEN-087",
+  "timestamp": "2026-09-23T16:00:16.606653+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "acfef8a4760c3a7839393e98d0092f8ad2b1960e",
+  "prev_hash": "ea5c1b7827fd1fd4763283c17a918df935356ed65657a5e689bdd76ef5f7b38d",
+  "data": {
+    "text": "# Established before clarify: what graphify 0.9.65 actually offers\n\nChecked on this machine, 23 September 2026, against `graphify --help` and `uv tool list`.\n\n- graphifyy v0.9.65 is already installed as a uv tool, exposing two executables: `graphify` and\n  `graphify-mcp`. The ticket's `python -m graphify.serve graphify-out/graph.json` is not how this\n  version runs its MCP server: a uv tool install puts the package in an isolated virtual\n  environment, so the system python cannot import it. The MCP entry point is `graphify-mcp`.\n- `graphify claude install` exists and writes a graphify section into CLAUDE.md plus a PreToolUse\n  hook. `graphify install --platform codex` covers the other assistant. Both match the ticket.\n- `graphify hook install` installs post-commit and post-checkout hooks, as the ticket describes.\n- `graphify extract <path>` is the headless CI command. Its semantic pass needs an LLM API key;\n  `--code-only` runs AST extraction alone, with no key and no network.\n- The CLI verbs are `query`, `path`, `explain`, `affected`, `prs` and `god-nodes`. The ticket names\n  MCP tools (`query_graph`, `get_neighbors`, `shortest_path`, `get_pr_impact`), which are the\n  server's names rather than the CLI's, and are verified separately once the server is registered.\n\n## Two acceptance criteria presume code that does not exist yet\n\nAC2 expects a commit changing `packages/core` to update the graph, and AC3 expects a query for the\npolicy gate to return its callers. `packages/core` arrives with SEEN-006 and the policy gate with\nSEEN-033. The sprint table orders SEEN-006 before SEEN-087, so the ticket was written expecting the\nmonorepo to exist. The tree today holds documents and the harness and nothing else.\n"
+  }
+}

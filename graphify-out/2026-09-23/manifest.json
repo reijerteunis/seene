@@ -1,0 +1,920 @@
+{
+  "docs/harness/history/SEEN-087/0001.json": {
+    "mtime": 1790179157.4181974,
+    "seen": 1790179547.763514,
+    "ast_hash": "b708a993f96798090072936d6b05eea5",
+    "semantic_hash": "b708a993f96798090072936d6b05eea5"
+  },
+  "docs/harness/history/SEEN-087/0002.json": {
+    "mtime": 1790179216.6069994,
+    "seen": 1790179547.763517,
+    "ast_hash": "de5c8e17373218e06bca0d955aafab31",
+    "semantic_hash": "de5c8e17373218e06bca0d955aafab31"
+  },
+  "docs/harness/history/SEEN-087/0003.json": {
+    "mtime": 1790179403.0742242,
+    "seen": 1790179547.7635179,
+    "ast_hash": "51fc66bdfe86b31fd9961bb10ac20edf",
+    "semantic_hash": "51fc66bdfe86b31fd9961bb10ac20edf"
+  },
+  "docs/harness/history/SEEN-087/0004.json": {
+    "mtime": 1790179452.2722194,
+    "seen": 1790179547.7635179,
+    "ast_hash": "4ad7e3aaff75b65a3be4fd1a1d2b1943",
+    "semantic_hash": "4ad7e3aaff75b65a3be4fd1a1d2b1943"
+  },
+  "docs/harness/history/SEEN-087/0005.json": {
+    "mtime": 1790179483.9956207,
+    "seen": 1790179547.763519,
+    "ast_hash": "1bf309bbe11a1e2cebab082ee5964d6d",
+    "semantic_hash": "1bf309bbe11a1e2cebab082ee5964d6d"
+  },
+  "docs/harness/history/SEEN-087/0006.json": {
+    "mtime": 1790179523.2144895,
+    "seen": 1790179547.763519,
+    "ast_hash": "38b4222ffdea85daa9402f34e411a31f",
+    "semantic_hash": "38b4222ffdea85daa9402f34e411a31f"
+  },
+  "docs/harness/history/SEEN-087/0007.json": {
+    "mtime": 1790179535.6136453,
+    "seen": 1790179547.76352,
+    "ast_hash": "5950863967ea179f4c9a30b9c18ed05f",
+    "semantic_hash": "5950863967ea179f4c9a30b9c18ed05f"
+  },
+  "harness/__init__.py": {
+    "mtime": 1790178962.5814736,
+    "seen": 1790179547.76352,
+    "ast_hash": "492528ca53bf564e3966b5d0e02530c6",
+    "semantic_hash": "492528ca53bf564e3966b5d0e02530c6"
+  },
+  "harness/checks.py": {
+    "mtime": 1790178962.5815432,
+    "seen": 1790179547.76352,
+    "ast_hash": "b46e9c17749ba09f3bb2faec38988620",
+    "semantic_hash": "b46e9c17749ba09f3bb2faec38988620"
+  },
+  "harness/cli.py": {
+    "mtime": 1790179506.7966506,
+    "seen": 1790179547.763521,
+    "ast_hash": "07dffe0c25824f87c2d95ee918db0e80",
+    "semantic_hash": "07dffe0c25824f87c2d95ee918db0e80"
+  },
+  "harness/delivery.py": {
+    "mtime": 1790178962.5817199,
+    "seen": 1790179547.763521,
+    "ast_hash": "d6724edc486ead21d7bcb44a36c50352",
+    "semantic_hash": "d6724edc486ead21d7bcb44a36c50352"
+  },
+  "harness/doctor.py": {
+    "mtime": 1790178962.58182,
+    "seen": 1790179547.7635221,
+    "ast_hash": "305da5905ae570d19972082009bbf24d",
+    "semantic_hash": "305da5905ae570d19972082009bbf24d"
+  },
+  "harness/errors.py": {
+    "mtime": 1790178962.5818858,
+    "seen": 1790179547.7635221,
+    "ast_hash": "aba316d113b10118ad1e49c91d218743",
+    "semantic_hash": "aba316d113b10118ad1e49c91d218743"
+  },
+  "harness/gates.py": {
+    "mtime": 1790178962.5819952,
+    "seen": 1790179547.7635221,
+    "ast_hash": "ffcf7328c6ed5f969c31bbe6dd3851fe",
+    "semantic_hash": "ffcf7328c6ed5f969c31bbe6dd3851fe"
+  },
+  "harness/graph.py": {
+    "mtime": 1790179506.782949,
+    "seen": 1790179547.763523,
+    "ast_hash": "ccd61c493958461336bb077949bdb204",
+    "semantic_hash": "ccd61c493958461336bb077949bdb204"
+  },
+  "harness/journal.py": {
+    "mtime": 1790178962.5821025,
+    "seen": 1790179547.763523,
+    "ast_hash": "737bb777ce47e80a15ae7d805419e9f3",
+    "semantic_hash": "737bb777ce47e80a15ae7d805419e9f3"
+  },
+  "harness/paths.py": {
+    "mtime": 1790179777.5483925,
+    "seen": 1790179811.694911,
+    "ast_hash": "d23ec4ffe94c8798941316e44a8df3c7",
+    "semantic_hash": ""
+  },
+  "harness/repository.py": {
+    "mtime": 1790178962.5823014,
+    "seen": 1790179547.763524,
+    "ast_hash": "adc1e68441cb151134dd60e098e72cd4",
+    "semantic_hash": "adc1e68441cb151134dd60e098e72cd4"
+  },
+  "harness/run.py": {
+    "mtime": 1790178962.5823839,
+    "seen": 1790179547.763524,
+    "ast_hash": "4d492d6450bb4871c08a2677af155827",
+    "semantic_hash": "4d492d6450bb4871c08a2677af155827"
+  },
+  "harness/templates/clarify.json": {
+    "mtime": 1790178962.5824995,
+    "seen": 1790179547.763525,
+    "ast_hash": "1d34cf0ab6bd860d28869f0981a53be0",
+    "semantic_hash": "1d34cf0ab6bd860d28869f0981a53be0"
+  },
+  "harness/templates/deliver.json": {
+    "mtime": 1790178962.5825655,
+    "seen": 1790179547.763525,
+    "ast_hash": "d782ecf22db941db0beada0280f754f8",
+    "semantic_hash": "d782ecf22db941db0beada0280f754f8"
+  },
+  "harness/templates/review.json": {
+    "mtime": 1790178962.582632,
+    "seen": 1790179547.763525,
+    "ast_hash": "e3bc0d05c3439ddc418eb90101a3ac0f",
+    "semantic_hash": "e3bc0d05c3439ddc418eb90101a3ac0f"
+  },
+  "harness/templates/solution.json": {
+    "mtime": 1790178962.5826936,
+    "seen": 1790179547.763526,
+    "ast_hash": "e156cb60afac46a7207157fe83222fc5",
+    "semantic_hash": "e156cb60afac46a7207157fe83222fc5"
+  },
+  "harness/templates/tdd-non-code.json": {
+    "mtime": 1790178962.5827498,
+    "seen": 1790179547.763526,
+    "ast_hash": "07f7d3365e522369572ce0d5c450d862",
+    "semantic_hash": "07f7d3365e522369572ce0d5c450d862"
+  },
+  "harness/templates/tdd.json": {
+    "mtime": 1790178962.5828123,
+    "seen": 1790179547.763526,
+    "ast_hash": "d85bc950020ba65c28bb571a2ec42899",
+    "semantic_hash": "d85bc950020ba65c28bb571a2ec42899"
+  },
+  "harness/tests/__init__.py": {
+    "mtime": 1790178962.5828438,
+    "seen": 1790179547.763527,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "harness/tests/helpers.py": {
+    "mtime": 1790178962.5829391,
+    "seen": 1790179547.763527,
+    "ast_hash": "f2c2bc24106d95c9b9ba2d2cec910b72",
+    "semantic_hash": "f2c2bc24106d95c9b9ba2d2cec910b72"
+  },
+  "harness/tests/test_delivery.py": {
+    "mtime": 1790178962.583051,
+    "seen": 1790179547.7635279,
+    "ast_hash": "6fcb571f92f4e4bd15d447e19da600ab",
+    "semantic_hash": "6fcb571f92f4e4bd15d447e19da600ab"
+  },
+  "harness/tests/test_doctor.py": {
+    "mtime": 1790178962.58316,
+    "seen": 1790179547.7635279,
+    "ast_hash": "0fcd630ee0c154e1e1f61b9b51c71101",
+    "semantic_hash": "0fcd630ee0c154e1e1f61b9b51c71101"
+  },
+  "harness/tests/test_graph.py": {
+    "mtime": 1790179768.3955755,
+    "seen": 1790179811.6949172,
+    "ast_hash": "790ded4c2ca12b19a346f5c4d521f165",
+    "semantic_hash": ""
+  },
+  "harness/tests/test_isolation.py": {
+    "mtime": 1790178962.5832276,
+    "seen": 1790179547.763529,
+    "ast_hash": "203de073c6b328a6e57c123b95d09103",
+    "semantic_hash": "203de073c6b328a6e57c123b95d09103"
+  },
+  "harness/tests/test_journal.py": {
+    "mtime": 1790178962.58334,
+    "seen": 1790179547.763529,
+    "ast_hash": "85a9fd4ccd1aec9a441b57df21887dc6",
+    "semantic_hash": "85a9fd4ccd1aec9a441b57df21887dc6"
+  },
+  "harness/tests/test_lifecycle.py": {
+    "mtime": 1790178962.5834754,
+    "seen": 1790179547.763529,
+    "ast_hash": "cf30c17ed43f783b1e1512382d92ce35",
+    "semantic_hash": "cf30c17ed43f783b1e1512382d92ce35"
+  },
+  "harness/tests/test_repository.py": {
+    "mtime": 1790178962.5835495,
+    "seen": 1790179547.76353,
+    "ast_hash": "bc99ad57510528ea0de4f40e98c9d8f0",
+    "semantic_hash": "bc99ad57510528ea0de4f40e98c9d8f0"
+  },
+  "harness/tests/test_stage_gates.py": {
+    "mtime": 1790178962.5836797,
+    "seen": 1790179547.76353,
+    "ast_hash": "d038801409a60ac84720a36beb0d1fc1",
+    "semantic_hash": "d038801409a60ac84720a36beb0d1fc1"
+  },
+  "harness/thresholds.py": {
+    "mtime": 1790178962.5837429,
+    "seen": 1790179547.763531,
+    "ast_hash": "384b27686955fc028d42f6c02ae248a5",
+    "semantic_hash": "384b27686955fc028d42f6c02ae248a5"
+  },
+  ".claude/settings.json": {
+    "mtime": 1790179656.4189863,
+    "seen": 1790179690.81841,
+    "ast_hash": "79d778c20c337612cf957aceb8146a94",
+    "semantic_hash": ""
+  },
+  ".mcp.json": {
+    "mtime": 1790179656.4191089,
+    "seen": 1790179690.818413,
+    "ast_hash": "702a2550a77fbfa7a7ed66ece203fb78",
+    "semantic_hash": ""
+  },
+  "docs/harness/history/SEEN-087/0008.json": {
+    "mtime": 1790179666.593339,
+    "seen": 1790179690.81842,
+    "ast_hash": "e5124a4c918bdc697927f9136f546b1b",
+    "semantic_hash": ""
+  },
+  "docs/harness/history/SEEN-087/0009.json": {
+    "mtime": 1790179689.9187284,
+    "seen": 1790179690.818421,
+    "ast_hash": "dddc0cbf67234a14f3486859479a831a",
+    "semantic_hash": ""
+  },
+  ".github/workflows/ci.yml": {
+    "mtime": 1790179666.1584828,
+    "seen": 1790179690.818435,
+    "ast_hash": "7f86f1ffcff50da6410357927659feb5",
+    "semantic_hash": ""
+  },
+  "CLAUDE.md": {
+    "mtime": 1790179656.4192107,
+    "seen": 1790179690.8184361,
+    "ast_hash": "8ca3034a3a4b7214af7ce04b3757ebb8",
+    "semantic_hash": ""
+  },
+  "CONTEXT.md": {
+    "mtime": 1790178962.5727425,
+    "seen": 1790179690.8184361,
+    "ast_hash": "11fc286e5807d0b4cdde712915388ff8",
+    "semantic_hash": ""
+  },
+  "docs/adr/0001-journal-integrity-file-bytes-and-git-as-notary.md": {
+    "mtime": 1790178962.5728831,
+    "seen": 1790179690.818437,
+    "ast_hash": "489216dc2437ec6b12972b071696c978",
+    "semantic_hash": ""
+  },
+  "docs/adr/0002-the-receipt-attests-the-tree-minus-the-journal.md": {
+    "mtime": 1790178962.5729618,
+    "seen": 1790179690.818437,
+    "ast_hash": "219fa89bef9453ae653a3e73e310ee88",
+    "semantic_hash": ""
+  },
+  "docs/adr/0003-seen-086-is-the-bootstrap-ticket-and-has-no-journal.md": {
+    "mtime": 1790178962.5730329,
+    "seen": 1790179690.8184378,
+    "ast_hash": "79be110d11a6352322e1029c8f8e28b5",
+    "semantic_hash": ""
+  },
+  "docs/architecture.md": {
+    "mtime": 1790178962.5731854,
+    "seen": 1790179690.8184378,
+    "ast_hash": "51212c11d7641ed5539e1bcecfc3d8af",
+    "semantic_hash": ""
+  },
+  "docs/development-plan.md": {
+    "mtime": 1790178962.5732875,
+    "seen": 1790179690.818439,
+    "ast_hash": "93fce930c62e569a921a99e14d0709ff",
+    "semantic_hash": ""
+  },
+  "docs/harness/workflow.md": {
+    "mtime": 1790178962.5734754,
+    "seen": 1790179690.818439,
+    "ast_hash": "7db3e763f49ff357c49815ccdc1a975f",
+    "semantic_hash": ""
+  },
+  "docs/prd/prd.md": {
+    "mtime": 1790178962.573627,
+    "seen": 1790179690.81844,
+    "ast_hash": "dccc061d22cff748a6fa597068bf23f8",
+    "semantic_hash": ""
+  },
+  "docs/tickets/README.md": {
+    "mtime": 1790178962.5737507,
+    "seen": 1790179690.81844,
+    "ast_hash": "527af0db158d32d3e3e56410aa5052a3",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-001-register-amazon-sp-api-developer-and-file-ads.md": {
+    "mtime": 1790178962.573829,
+    "seen": 1790179690.81844,
+    "ast_hash": "4d00df6aa241505299dd025d791a7159",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-002-obtain-ebay-production-keys-and-file.md": {
+    "mtime": 1790178962.5739176,
+    "seen": 1790179690.818441,
+    "ast_hash": "258ef6440ec26b87d2f6f7c0fbcfecbb",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-003-obtain-bol-credentials-and-verify-oauth-grant.md": {
+    "mtime": 1790178962.5739994,
+    "seen": 1790179690.818441,
+    "ast_hash": "66ec919b8fe56bc5cc73f4839104c4e4",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-004-set-up-postmark-inbound-domain-and-stripe.md": {
+    "mtime": 1790178962.5740783,
+    "seen": 1790179690.8184419,
+    "ast_hash": "db67b953dadabfd7286d468da836b798",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-005-review-partao-contract-and-draft-dpa-and-amazon.md": {
+    "mtime": 1790178962.5741591,
+    "seen": 1790179690.8184419,
+    "ast_hash": "db81e614e4161ef32f844123897ac715",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-006-scaffold-the-pnpm-turborepo-monorepo-with-all.md": {
+    "mtime": 1790179430.215411,
+    "seen": 1790179690.818443,
+    "ast_hash": "d4fe89258f290dde543317e17da033e5",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-007-provision-gcp-europe-west4-and-supabase-eu-with.md": {
+    "mtime": 1790178962.5743175,
+    "seen": 1790179690.818443,
+    "ast_hash": "9cc9ad82edd8e5a75d9f559d2c34dcc7",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-008-create-trade-record-schema-v1-with-tenant-id.md": {
+    "mtime": 1790178962.5744028,
+    "seen": 1790179690.818443,
+    "ast_hash": "b59a80440d8697b17e53938fe2b9454e",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-009-define-connector-interface-capability-matrix.md": {
+    "mtime": 1790178962.5745099,
+    "seen": 1790179690.818444,
+    "ast_hash": "ac1eee020b36d7055d12edf2143a5efe",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-010-add-per-marketplace-rate-limiting-with-header.md": {
+    "mtime": 1790178962.5746,
+    "seen": 1790179690.818444,
+    "ast_hash": "b32f7a46f4b90c8dd30e58d9624b7ff2",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-011-build-bol-retailer-api-v10-connector-for-orders.md": {
+    "mtime": 1790178962.574707,
+    "seen": 1790179690.818445,
+    "ast_hash": "d52eaf4803fd6b05d6f673d2e54e799b",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-012-build-ebay-connector-for-orders-returns.md": {
+    "mtime": 1790178962.57479,
+    "seen": 1790179690.818445,
+    "ast_hash": "28f0c4e07c25f5eab42da9c0d1ab6681",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-013-build-amazon-sp-api-connector-for-orders.md": {
+    "mtime": 1790178962.5748806,
+    "seen": 1790179690.8184462,
+    "ast_hash": "243604e9bdce3c31378dcaef508e2618",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-014-run-ingest-workers-with-idempotent-upserts-raw.md": {
+    "mtime": 1790178962.574961,
+    "seen": 1790179690.8184462,
+    "ast_hash": "c59d8d7e961893b35af82d403358cf12",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-015-verify-amazon-report-names-and-finances.md": {
+    "mtime": 1790178962.575039,
+    "seen": 1790179690.8184462,
+    "ast_hash": "42eafc64f1dacf547cf523cb34ef36a2",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-016-encode-fee-schedules-per-marketplace-and.md": {
+    "mtime": 1790178962.5751212,
+    "seen": 1790179690.818447,
+    "ast_hash": "e3a7baa00aa11b2c3c3384781082ff7e",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-017-compute-fee-expectations-per-order-line-from.md": {
+    "mtime": 1790178962.5752037,
+    "seen": 1790179690.818447,
+    "ast_hash": "1eb19c0634659e85eeb17b5deeac7fdc",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-018-match-settlement-lines-to-order-lines.md": {
+    "mtime": 1790178962.5752833,
+    "seen": 1790179690.8184478,
+    "ast_hash": "bc524cb3c8f287d1c1256dbfe60f1898",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-019-implement-fee-detectors-as-pure-tested-functions.md": {
+    "mtime": 1790178962.575375,
+    "seen": 1790179690.8184478,
+    "ast_hash": "5946e49e676cc0fbdd7e54181423c0aa",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-020-implement-shipment-return-and-inventory.md": {
+    "mtime": 1790178962.5754557,
+    "seen": 1790179690.8184478,
+    "ast_hash": "a49adc43fb637e38fe18d3265b93fa91",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-021-persist-findings-with-rule-confidence-evidence.md": {
+    "mtime": 1790178962.5755424,
+    "seen": 1790179690.8184488,
+    "ast_hash": "ce0bf6942f2097f48941af4ffff0f4fb",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-022-generate-the-audit-pdf-with-scorecard-and-line.md": {
+    "mtime": 1790178962.5756342,
+    "seen": 1790179690.8184488,
+    "ast_hash": "e2143881212100e20e7aa9aa6bfd2cc8",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-023-measure-the-recoverable-pool-per-marketplace.md": {
+    "mtime": 1790178962.5757325,
+    "seen": 1790179690.8184488,
+    "ast_hash": "3abda522208a899f07433ab9d8a46cfa",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-024-ship-ops-console-v1-for-tenants-connections-and.md": {
+    "mtime": 1790178962.5758152,
+    "seen": 1790179690.81845,
+    "ast_hash": "17827bfa94be113fe0d2a06dc57b8116",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-025-run-three-real-90-day-audits-and-deliver-the.md": {
+    "mtime": 1790178962.5759037,
+    "seen": 1790179690.81845,
+    "ast_hash": "7fdea653335c75510b56ce77038a4646",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-026-verify-bol-compensation-request-form-structure.md": {
+    "mtime": 1790178962.5759966,
+    "seen": 1790179690.818451,
+    "ast_hash": "f2d06d710d10c3511a124b6816363e16",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-027-build-the-claims-rail-with-api-assisted-and.md": {
+    "mtime": 1790178962.5760782,
+    "seen": 1790179690.818451,
+    "ast_hash": "9b35738dc6aa69a54731081d8ceec751",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-028-contest-ebay-payment-disputes-and-cases-by-api.md": {
+    "mtime": 1790178962.5761747,
+    "seen": 1790179690.818451,
+    "ast_hash": "750a2b220a43777b768b11b1ce27fa3c",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-029-build-the-bol-assisted-case-pack-with-tracking.md": {
+    "mtime": 1790178962.5762494,
+    "seen": 1790179690.818452,
+    "ast_hash": "d33905b5039b6e3c7267e9aea4f5fe8f",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-030-build-the-amazon-assisted-case-pack-with-report.md": {
+    "mtime": 1790178962.576333,
+    "seen": 1790179690.818452,
+    "ast_hash": "4e67fa170d4d4df99add2e918049ea46",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-031-match-credits-to-claims-as-the-only-billable.md": {
+    "mtime": 1790178962.5764112,
+    "seen": 1790179690.818453,
+    "ast_hash": "d1d912cb47c3a2a3ab2101f1b1cd3bc8",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-032-write-append-only-audit-events-before-every.md": {
+    "mtime": 1790178962.57649,
+    "seen": 1790179690.818453,
+    "ast_hash": "effb78ab133e76f3228f689527cbcc85",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-033-implement-policy-gate-v1-with-caps-and.md": {
+    "mtime": 1790178962.5765672,
+    "seen": 1790179690.818454,
+    "ast_hash": "c1d20cb8f085f18734b76077ab2f5767",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-034-build-agent-runtime-v1-with-the-fixed-tool-set.md": {
+    "mtime": 1790178962.5766528,
+    "seen": 1790179690.818454,
+    "ast_hash": "2f9597d2c82468d571ed9c2aa18a4ed3",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-035-build-the-approval-inbox-with-approve-edit-and.md": {
+    "mtime": 1790178962.5767503,
+    "seen": 1790179690.818454,
+    "ast_hash": "8a8997ca3bd7f12b4c73c7d7a16ab4fe",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-036-create-the-eval-set-of-30-real-findings-with.md": {
+    "mtime": 1790178962.576831,
+    "seen": 1790179690.8184571,
+    "ast_hash": "30cfa3dfc8252ce540505fcd48a1875d",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-037-file-the-first-ten-claims-across-two.md": {
+    "mtime": 1790178962.5769248,
+    "seen": 1790179690.818458,
+    "ast_hash": "e67763e28dd870c5b1845df550e47ec3",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-038-verify-shopify-payments-payout-scopes-and.md": {
+    "mtime": 1790178962.5770042,
+    "seen": 1790179690.818458,
+    "ast_hash": "cfbb5fd6634b7fe2afc22cc2acc66312",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-039-create-stripe-customers-with-sepa-and-card-and.md": {
+    "mtime": 1790178962.57709,
+    "seen": 1790179690.8184588,
+    "ast_hash": "af24410f74d9038979ec927392bc5e49",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-040-issue-invoices-with-recovery-share-lines-from.md": {
+    "mtime": 1790178962.5771673,
+    "seen": 1790179690.8184588,
+    "ast_hash": "140d059173ff6ee3ae77b23e4917841d",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-041-generate-and-send-the-monthly-statement-pdf.md": {
+    "mtime": 1790178962.577269,
+    "seen": 1790179690.8184588,
+    "ast_hash": "088c5d9b9b7e9313c3b0ec0dc1155e6e",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-042-ship-the-reconcile-module-with-margin-and-fee.md": {
+    "mtime": 1790178962.5773509,
+    "seen": 1790179690.81846,
+    "ast_hash": "7de27883199611a7ccbbac8f4d7122e2",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-043-export-finance-csv-of-settlements-and-matched.md": {
+    "mtime": 1790178962.5774324,
+    "seen": 1790179690.81846,
+    "ast_hash": "647b3d6af3baab92c5b213691efb0872",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-044-build-the-shopify-admin-graphql-connector-as.md": {
+    "mtime": 1790178962.5775099,
+    "seen": 1790179690.818461,
+    "ast_hash": "beb2ddd04430ec10810b1b515752f1bf",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-045-add-module-switches-per-tenant-with-scheduling.md": {
+    "mtime": 1790178962.5775845,
+    "seen": 1790179690.818461,
+    "ast_hash": "c6ab167978638fa649a9f946558a399a",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-046-build-customer-facing-findings-and-claims-views.md": {
+    "mtime": 1790178962.577662,
+    "seen": 1790179690.818461,
+    "ast_hash": "271ec9dcfedc98c60b7859194b2fcb9a",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-047-issue-the-first-invoice-and-send-the-signed.md": {
+    "mtime": 1790178962.5777388,
+    "seen": 1790179690.818462,
+    "ast_hash": "f293c9f2321841b6ac50469143a2d248",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-048-verify-kaufland-settlement-and-ticket-endpoints.md": {
+    "mtime": 1790178962.5778263,
+    "seen": 1790179690.818462,
+    "ast_hash": "5bcbb7079bf5c47cc89a89d4bad534e7",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-049-encode-listing-spec-rules-per-marketplace-in.md": {
+    "mtime": 1790178962.5779006,
+    "seen": 1790179690.818463,
+    "ast_hash": "c98000004bb16a75fad49412ec4de40d",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-050-ingest-listings-with-content-hash-and-drift.md": {
+    "mtime": 1790178962.5779731,
+    "seen": 1790179690.818463,
+    "ast_hash": "25e5d4e8b69429c664034254e945a3c3",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-051-add-propose-listing-fix-and-apply-listing-fix.md": {
+    "mtime": 1790178962.5780435,
+    "seen": 1790179690.818463,
+    "ast_hash": "c722e01e13845fa01896161c5f1cf580",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-052-write-listing-content-through-bol-and-ebay-apis.md": {
+    "mtime": 1790178962.5781245,
+    "seen": 1790179690.818464,
+    "ast_hash": "9a992cf7252f5840c9b87e501608a0b1",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-053-write-listing-content-through-amazon-listings.md": {
+    "mtime": 1790178962.5782077,
+    "seen": 1790179690.818464,
+    "ast_hash": "66d4209f27d8201ddf0d8c0420112218",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-054-build-the-kaufland-connector-with-tickets-as.md": {
+    "mtime": 1790178962.5782907,
+    "seen": 1790179690.818465,
+    "ast_hash": "c4f7a8f4e263bfa1e4a392e3281af516",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-055-monitor-unauthorised-sellers-from-competing.md": {
+    "mtime": 1790178962.5783749,
+    "seen": 1790179690.818465,
+    "ast_hash": "b0107d300280098f325d6c8867af23ab",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-056-show-comply-defects-and-fix-diffs-in-the-inbox.md": {
+    "mtime": 1790178962.5784562,
+    "seen": 1790179690.818466,
+    "ast_hash": "0df3230cbd4411777b4c38f79dcd50bd",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-057-verify-listing-fixes-on-three-marketplaces-and.md": {
+    "mtime": 1790178962.5785427,
+    "seen": 1790179690.818466,
+    "ast_hash": "7b46bdd09c814543bcbdd04fb32edd78",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-058-verify-ebay-messaging-deprecation-and-choose.md": {
+    "mtime": 1790178962.578613,
+    "seen": 1790179690.818466,
+    "ast_hash": "a937d1bfe7ea7f8fa553bd5d85b58952",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-059-verify-otto-rate-limits-and-obtain-otto-api-keys.md": {
+    "mtime": 1790178962.5786734,
+    "seen": 1790179690.8184671,
+    "ast_hash": "69b7edd60f69c23f295e4fbb83a10b10",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-060-build-the-otto-connector-for-orders-returns.md": {
+    "mtime": 1790178962.578745,
+    "seen": 1790179690.8184671,
+    "ast_hash": "681db9d1445fbc4caa5fe6ac949f6cc3",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-061-ingest-message-threads-from-amazon-ebay.md": {
+    "mtime": 1790178962.5788188,
+    "seen": 1790179690.818468,
+    "ast_hash": "9fb468cffcfe6c170d64a907d64c2074",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-062-parse-the-forwarded-mailbox-via-postmark.md": {
+    "mtime": 1790178962.5788848,
+    "seen": 1790179690.818468,
+    "ast_hash": "4660063b0b47defedf7b05e3d12e04aa",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-063-add-reply-message-tool-bound-to-tenant-service.md": {
+    "mtime": 1790178962.5789533,
+    "seen": 1790179690.818468,
+    "ast_hash": "3870f0109411d926e66a071b4d6e5d86",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-064-apply-return-and-cancellation-decisions-through.md": {
+    "mtime": 1790178962.5790265,
+    "seen": 1790179690.818469,
+    "ast_hash": "65954c94e04049cafd0a662c36416205",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-065-implement-the-trust-ramp-with-autonomy-per.md": {
+    "mtime": 1790178962.5790894,
+    "seen": 1790179690.818469,
+    "ast_hash": "255df95c8e89c6bbc24dbf4161487cf8",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-066-track-claim-and-dispute-deadlines-with-alerts.md": {
+    "mtime": 1790178962.5791671,
+    "seen": 1790179690.81847,
+    "ast_hash": "4fc4ef0c462c396f93bccf7d39844e02",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-067-show-serve-threads-and-drafts-in-the-inbox.md": {
+    "mtime": 1790178962.579263,
+    "seen": 1790179690.81847,
+    "ast_hash": "cb3c837e1e96416c9edd42efceb25d5a",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-068-verify-the-kaufland-virtual-buy-box-endpoint.md": {
+    "mtime": 1790178962.5793502,
+    "seen": 1790179690.81847,
+    "ast_hash": "d336a9b9dafe15c3422b8097839cc384",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-069-snapshot-competing-offers-from-bol-by-ean-and.md": {
+    "mtime": 1790178962.579429,
+    "seen": 1790179690.818471,
+    "ast_hash": "3f5f47419e76d791fbb792600f534882",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-070-snapshot-amazon-pricing-on-a-tiered-clock.md": {
+    "mtime": 1790178962.579527,
+    "seen": 1790179690.818471,
+    "ast_hash": "7a6e3d37035001e49e968546a162606c",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-071-model-net-margin-per-marketplace-from-cost.md": {
+    "mtime": 1790178962.579597,
+    "seen": 1790179690.818472,
+    "ast_hash": "e8b347839bac500df629881fd5f8db01",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-072-implement-the-price-governor-with-bands.md": {
+    "mtime": 1790178962.5796812,
+    "seen": 1790179690.818472,
+    "ast_hash": "b220318d23be77378140f80e255437d1",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-073-write-prices-through-bol-offers-and-ebay.md": {
+    "mtime": 1790178962.5797658,
+    "seen": 1790179690.8184729,
+    "ast_hash": "956e4905c2242c14543ad857f5353b8a",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-074-add-propose-price-and-apply-price-tools-with.md": {
+    "mtime": 1790178962.5798447,
+    "seen": 1790179690.8184729,
+    "ast_hash": "4561639ef670f72f2c70e65ef6f8c160",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-075-meter-headroom-entries-and-show-the-price-view.md": {
+    "mtime": 1790178962.5799246,
+    "seen": 1790179690.8184729,
+    "ast_hash": "5794df7c87c58dc77cf2cd80c25d3886",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-076-run-the-daily-bol-buy-box-feedback-loop.md": {
+    "mtime": 1790178962.5799932,
+    "seen": 1790179690.818474,
+    "ast_hash": "9c041e54a05a2b0e971ac8d39691ff7f",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-077-read-ad-reports-from-amazon-ads-bol-advertising.md": {
+    "mtime": 1790178962.5800788,
+    "seen": 1790179690.818474,
+    "ast_hash": "028e141f14829ceeb00f08830ed6d2b5",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-078-attribute-ad-cost-into-margin-and-publish-the.md": {
+    "mtime": 1790178962.5801613,
+    "seen": 1790179690.818475,
+    "ast_hash": "185c3dcd0be66afeec316c07d6c96927",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-079-propose-campaign-budgets-through-the-gate-no.md": {
+    "mtime": 1790178962.5802503,
+    "seen": 1790179690.818475,
+    "ast_hash": "c10ce87e1c788a639a4fa6bd0c0d8748",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-080-build-the-retailer-read-only-view-via-a-scoped.md": {
+    "mtime": 1790178962.5803378,
+    "seen": 1790179690.818475,
+    "ast_hash": "0a3d5e3ce0f3f003c044aa783872a39d",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-081-load-test-ingest-on-50-tenants-and-run-rate.md": {
+    "mtime": 1790178962.5804224,
+    "seen": 1790179690.818476,
+    "ast_hash": "03ebd48871b3e0ac958508eca6d53ec0",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-082-run-rls-penetration-tests-and-the-restore-drill.md": {
+    "mtime": 1790178962.5805087,
+    "seen": 1790179690.818476,
+    "ast_hash": "2edbe6e12d7c0763e97cd1527e434705",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-083-expire-amazon-pii-after-30-days-and-delete.md": {
+    "mtime": 1790178962.5805953,
+    "seen": 1790179690.8184772,
+    "ast_hash": "39abab7eb6ed3ba3413d20016adfdb8a",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-084-build-the-day-120-metrics-dashboard-and-csv.md": {
+    "mtime": 1790178962.5806713,
+    "seen": 1790179690.8184772,
+    "ast_hash": "00fa7e732d9736b3b6ad3796eec35bd1",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-085-run-restore-drill-close-pen-test-findings-sign.md": {
+    "mtime": 1790178962.580752,
+    "seen": 1790179690.8184772,
+    "ast_hash": "a3a8ec840ef3f6d633c3a7091e41dce3",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-086-build-the-seen-harness-cli-with-staged-journal.md": {
+    "mtime": 1790178962.6130648,
+    "seen": 1790179690.818478,
+    "ast_hash": "2bd5d4cc802b49831bf02dcac03c4bee",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-087-install-graphify-build-the-repo-graph-and-wire.md": {
+    "mtime": 1790179800.363271,
+    "seen": 1790179811.694967,
+    "ast_hash": "b3cb7fd5b1893b8c252a4a8b414e2d09",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-088-integrate-jev-ai-typed-decisions-into-the.md": {
+    "mtime": 1790178962.5810642,
+    "seen": 1790179690.818479,
+    "ast_hash": "474c7f516e090afdd9036c8bed83c0d1",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-089-enforce-tdd-and-ci-quality-gates-in-the-harness.md": {
+    "mtime": 1790178962.5811446,
+    "seen": 1790179690.818479,
+    "ast_hash": "e419a27cf6fa9c9589d5bf1125c7af4c",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-090-add-harness-security-controls-secrets.md": {
+    "mtime": 1790178962.581225,
+    "seen": 1790179690.818479,
+    "ast_hash": "f296054c69568e45f15a5c9cac342c5b",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-091-collect-harness-kpis-per-ticket-and-produce.md": {
+    "mtime": 1790178962.581315,
+    "seen": 1790179690.81848,
+    "ast_hash": "b7ab9192130ebdb68992779de8073583",
+    "semantic_hash": ""
+  },
+  "docs/tickets/SEEN-092-sync-the-harness-skill-to-claude-code-and-codex.md": {
+    "mtime": 1790178962.5813932,
+    "seen": 1790179690.81848,
+    "ast_hash": "cd3a0df61b83340faf4c420c16c1c7e5",
+    "semantic_hash": ""
+  },
+  "docs/harness/history/SEEN-087/0010.json": {
+    "mtime": 1790179751.4653451,
+    "seen": 1790179811.6949031,
+    "ast_hash": "923c2d0133a8d7d6c8c64ff61096bed6",
+    "semantic_hash": ""
+  },
+  "docs/harness/history/SEEN-087/0011.json": {
+    "mtime": 1790179757.943272,
+    "seen": 1790179811.694904,
+    "ast_hash": "b3b5c31d435a7574aec878fea32b68be",
+    "semantic_hash": ""
+  },
+  "docs/harness/history/SEEN-087/0012.json": {
+    "mtime": 1790179769.6866333,
+    "seen": 1790179811.694904,
+    "ast_hash": "76efbcdf1357443d42d3ea2be458d23f",
+    "semantic_hash": ""
+  },
+  "docs/harness/history/SEEN-087/0013.json": {
+    "mtime": 1790179778.832997,
+    "seen": 1790179811.694905,
+    "ast_hash": "393e8b2c6a6740185c07ad0a8f296b0a",
+    "semantic_hash": ""
+  },
+  "docs/harness/history/SEEN-087/0014.json": {
+    "mtime": 1790179791.2944458,
+    "seen": 1790179811.694905,
+    "ast_hash": "9129a1609c3291a640bf3626a4f7b46c",
+    "semantic_hash": ""
+  },
+  "docs/harness/history/SEEN-087/0015.json": {
+    "mtime": 1790179800.4126573,
+    "seen": 1790179811.694906,
+    "ast_hash": "9f80f135a1a24b22127827871f8863b9",
+    "semantic_hash": ""
+  },
+  "docs/harness/history/SEEN-087/0016.json": {
+    "mtime": 1790179824.1966584,
+    "seen": 1790179857.2887192,
+    "ast_hash": "077753ec9dcadb0398da7c98238511ac",
+    "semantic_hash": ""
+  },
+  "docs/harness/history/SEEN-087/0017.json": {
+    "mtime": 1790179824.341523,
+    "seen": 1790179857.28872,
+    "ast_hash": "a1152b750b6e60b86827e7faf76f69ec",
+    "semantic_hash": ""
+  },
+  "docs/harness/history/SEEN-087/0018.json": {
+    "mtime": 1790179849.0712717,
+    "seen": 1790179857.28872,
+    "ast_hash": "b87b69e5709a54cae954ccf25595aa76",
+    "semantic_hash": ""
+  },
+  "docs/harness/history/SEEN-087/0019.json": {
+    "mtime": 1790179892.127358,
+    "seen": 1790179902.548855,
+    "ast_hash": "1636f055483dc2fa86b7e0d1924e8b25",
+    "semantic_hash": ""
+  }
+}

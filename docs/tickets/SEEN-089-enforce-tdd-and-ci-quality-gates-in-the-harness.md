@@ -37,6 +37,13 @@ Make harness check record command, exit code, duration and output hash per phase
 - [ ] The PR template is applied automatically and verify-delivery refuses a PR body without the receipt hash
 - [ ] harness return SEEN-089 --to tdd appends a rework record and status shows the ticket back in tdd
 
+## Carried in from SEEN-087
+
+SEEN-087 wrote its delivery receipt while a CI job was red, because SEEN-086's verify-delivery is
+offline by design. Add both halves here: verify-delivery refuses while any check on the delivered
+SHA is not green, and the merge check compares the receipt's commit to the branch tip, so a fix
+pushed after a receipt cannot be merged under a receipt that attests the commit before it.
+
 ## Depends on
 
 - [SEEN-006](SEEN-006-scaffold-the-pnpm-turborepo-monorepo-with-all.md): Scaffold the pnpm turborepo monorepo with all six packages

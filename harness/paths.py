@@ -26,6 +26,10 @@ HISTORY = Path('docs/harness/history')
 TEMPLATES = Path('harness/templates')
 # Thresholds and vocabularies. Fatal when missing: never silently defaulted.
 THRESHOLDS = Path('harness/thresholds.toml')
+# The committed knowledge graph: context before a session reads any file.
+GRAPH_DIRECTORY = Path('graphify-out')
+GRAPH_FILE = GRAPH_DIRECTORY / 'graph.json'
+
 # Working copies of templates. Gitignored; only the journal is evidence.
 DRAFTS = Path('.harness-drafts')
 # Advisory lock so two sessions never interleave writes to one journal.
@@ -38,8 +42,13 @@ RECORD_NAME = re.compile(r'^\d{4}\.json$')
 ALLOWED_BESIDE_RECORDS = ('kpi.json', 'attachments')
 
 # Paths whose contents must not affect the reviewed-tree fingerprint: the
-# journal grows while a ticket proceeds, and drafts are scratch space.
-FINGERPRINT_EXCLUDED = (str(HISTORY) + '/', str(DRAFTS) + '/', str(LOCK))
+# journal grows while a ticket proceeds, drafts are scratch space, and the
+# graph is derived from the tree rather than evidence about it. graphify's
+# post-commit hook rewrites the graph in the background after every commit,
+# so counting it would make delivery refuse a ticket for a change no person
+# made. See docs/adr/0002-the-receipt-attests-the-tree-minus-the-journal.md.
+FINGERPRINT_EXCLUDED = (str(HISTORY) + '/', str(DRAFTS) + '/', str(GRAPH_DIRECTORY) + '/',
+                        str(LOCK))
 
 TEMPLATE_FOR_STAGE = {
     'clarify': 'clarify.json',

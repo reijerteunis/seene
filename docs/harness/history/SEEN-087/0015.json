@@ -1,0 +1,30 @@
+{
+  "sequence": 15,
+  "ticket": "SEEN-087",
+  "timestamp": "2026-09-23T16:10:00.412306+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "head": "2b48275a48ff58e467e0f8f009e5b87ae728ae24",
+  "prev_hash": "aa3fd1d8df1b9afb0d87341fa6df0bd02b16243e394da7bdbd6200b05b6f1958",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "behaviour": "The reviewed-tree fingerprint ignores graphify-out, so a graph the post-commit hook rebuilt after a commit cannot make delivery refuse the ticket",
+          "failure_reason": "AssertionError comparing two fingerprints: writing graph.json and GRAPH_REPORT.md changed the hash",
+          "red": 12,
+          "green": 13
+        }
+      ],
+      "regression": 14,
+      "coverage_delta": null
+    },
+    "decisions": []
+  }
+}

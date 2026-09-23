@@ -36,6 +36,13 @@ Create the monorepo with pnpm workspaces and turborepo: apps/api (NestJS), apps/
 - [ ] apps/api answers GET /health with HTTP 200 and apps/worker processes a hello job from a local Redis
 - [ ] GitHub Actions runs lint, test and build on every pull request and blocks merge on failure
 
+## Carried in from SEEN-087
+
+SEEN-087 graphed this repository before the monorepo existed, so two of its acceptance criteria were
+re-pointed at `harness/` and the stage gate. Re-verify both here once the packages exist: a commit
+changing `packages/core` must update `graphify-out/graph.json` in the same commit, and a graph query
+for a symbol in `packages/core` must return its callers.
+
 ## Depends on
 
 - none
