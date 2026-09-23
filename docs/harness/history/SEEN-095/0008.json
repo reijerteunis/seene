@@ -1,0 +1,27 @@
+{
+  "sequence": 8,
+  "ticket": "SEEN-095",
+  "timestamp": "2026-09-23T22:55:36.808768+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "cba0a912a7da239f5ac28727a21a0f8860f8927c",
+  "prev_hash": "f55509d821748650328041b1635accb8f7e37f4b09a5415be2e8e7f220528412",
+  "data": {
+    "command": [
+      "sh",
+      "-c",
+      "python3 -m unittest discover -s harness/tests && python3 harness/run.py lint && python3 harness/run.py doctor"
+    ],
+    "phase": "regression",
+    "exit_code": 0,
+    "duration_ms": 73051,
+    "output": "....................................................................................................................................................................................................................................................................\n----------------------------------------------------------------------\nRan 260 tests in 71.684s\n\nOK\n{\n  \"ok\": true,\n  \"checked\": \"test code\",\n  \"hosts\": [\n    \"api.bol.com\",\n    \"sellingpartnerapi\",\n    \"api.ebay.com\",\n    \"sellerapi.kaufland.com\",\n    \"api.otto.market\"\n  ]\n}\n{\n  \"ok\": true,\n  \"checked\": [\n    \"python\",\n    \"thresholds\",\n    \"templates\",\n    \"journals\",\n    \"append_only\",\n    \"gitignore\",\n    \"hooks\",\n    \"skill\",\n    \"ticket_status\",\n    \"marketplace_hosts\",\n    \"links\"\n  ],\n  \"problems\": []\n}\n",
+    "output_sha256": "f70d5d8931fbb3fd5b4a7a1fb95f71dbc8e668674ee33708459a8159563598a8",
+    "output_truncated": false,
+    "before": "a2d776d049ccc800ea51774a3257e8bc78c491523f2e587a94df1833104c1956",
+    "after": "a2d776d049ccc800ea51774a3257e8bc78c491523f2e587a94df1833104c1956"
+  }
+}

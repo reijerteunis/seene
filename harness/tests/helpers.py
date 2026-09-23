@@ -19,7 +19,7 @@ id: SEEN-001
 estimate: 2
 executor: claude-code
 changes_agent_action: false
-status: todo
+status: doing
 ---
 # SEEN-001: A ticket to work
 
