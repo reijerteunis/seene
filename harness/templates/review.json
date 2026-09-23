@@ -1,0 +1,11 @@
+{
+  "reviewer": "codex:reviewer",
+  "independence": "independent",
+  "acceptance_evidence": [
+    "Acceptance criterion, and the recorded evidence that satisfies it."
+  ],
+  "findings": [],
+  "checks": [],
+  "security_checklist": [],
+  "verdict": "pass"
+}

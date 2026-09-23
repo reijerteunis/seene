@@ -1,0 +1,23 @@
+{
+  "approach": "The chosen shape, the interfaces it adds or changes, and why this one.",
+  "changes": [
+    "Path, and what changes in it."
+  ],
+  "migrations": [],
+  "tests_first": [
+    "Behaviour, the exact test command, and what the RED must demonstrate."
+  ],
+  "alternatives": [
+    "Alternative considered, and the reason it was rejected."
+  ],
+  "risks": [
+    "Risk, and how it is mitigated."
+  ],
+  "rollback": "How this change is undone if it goes wrong in production.",
+  "new_dependencies": [],
+  "tenant_tables": [
+    "Table touched, its tenant_id column and its RLS policy, or 'none' when no table is touched."
+  ],
+  "buyer_pii": "Which buyer fields are persisted, how they are encrypted and which job expires them, or 'none'.",
+  "policy_gate_action": null
+}

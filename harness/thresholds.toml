@@ -1,0 +1,32 @@
+# Thresholds and vocabularies the stage gates apply.
+#
+# A value belongs here only when changing it is a legitimate decision that
+# should not require a code change, and should be visible as a diff a human
+# reviews. Structure (the stages, the record envelope, what advance means)
+# lives in code. Missing or malformed, this file is fatal: a harness running
+# on silent defaults is a harness with unknown rules.
+#
+# Later tickets add their own sections: SEEN-088 [jev], SEEN-089 [coverage],
+# SEEN-090 [security].
+
+[tickets]
+prefix = "SEEN"
+
+[actors]
+tools = ["claude", "codex", "human"]
+roles = ["implementer", "reviewer"]
+
+[stages]
+return_targets = ["clarify", "solution", "tdd"]
+
+[checks]
+phases = ["red", "green", "regression", "qa"]
+default_timeout_seconds = 600
+maximum_timeout_seconds = 3600
+output_limit_bytes = 65536
+
+[review]
+severities = ["low", "medium", "high", "blocking"]
+
+[non_code]
+change_types = ["documentation", "research", "verification", "policy"]

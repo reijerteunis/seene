@@ -1,0 +1,7 @@
+{
+  "remote": "origin",
+  "pull_request": "The pull request URL.",
+  "limits": [
+    "What this delivery does not do, and what a reader should not assume from it."
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "mode": "code",
+  "slices": [
+    {
+      "behaviour": "The behaviour this slice adds.",
+      "failure_reason": "The assertion that failed before the change, in the words of the runner.",
+      "red": 0,
+      "green": 0
+    }
+  ],
+  "regression": 0,
+  "coverage_delta": null
+}
