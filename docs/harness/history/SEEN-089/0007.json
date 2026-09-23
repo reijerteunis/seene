@@ -1,0 +1,15 @@
+{
+  "sequence": 7,
+  "ticket": "SEEN-089",
+  "timestamp": "2026-09-23T19:34:57.445901+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "solution",
+  "attempt": 1,
+  "actor": "human:implementer",
+  "head": "3d52307f9d4de31bf2872b6c06bea83b914ac4be",
+  "prev_hash": "0a1a4b3084ff5057ff0a3fa2be6067b96b4bcfa2c9c40ed4af711fcb159fae74",
+  "data": {
+    "text": "# solution_complete calibrated from 0.8 to 0.6\n\nDecision by the founder, 23 September 2026, on five measurements across two five-point tickets:\n\n| Ticket | clarified | solution_complete |\n|---|---|---|\n| SEEN-006 | 0.72, 0.79, then 0.81 once the ticket itself was amended | 0.46, 0.52, then 0.72 after the question was sharpened |\n| SEEN-089 | 0.81 first attempt | 0.50, then 0.51 after four real gaps were closed |\n\nClosing four genuine gaps in the SEEN-089 record moved the score by 0.01, which is the signal: the\nbar was wrong for this question rather than the records being poor. `clarified` clearing 0.8 twice\nshows the same threshold doing useful work on a question that can actually reach it.\n\nThis is a threshold changed while a ticket is blocked by it, which is the pattern thresholds.toml\nexists to expose, so it is recorded here with the numbers, in the ticket's Outcome, and in a comment\nbeside the value itself. The alternatives were a human override on every large ticket, which makes\nthe gate ceremonial, and splitting large tickets to raise their scores, which is ceremony of a\ndifferent kind.\n"
+  }
+}

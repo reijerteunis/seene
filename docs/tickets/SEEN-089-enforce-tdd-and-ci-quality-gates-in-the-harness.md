@@ -1,48 +1,58 @@
 ---
 id: SEEN-089
-title: "Enforce TDD and CI quality gates in the harness"
+title: "Enforce the TDD gates in the harness"
 epic: E10
 epic_name: "Development harness"
 sprint: 0
 sprint_dates: "24 Sep - 9 Oct 2026"
 gate: G0
-estimate: 5
+estimate: 3
 executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-006, SEEN-086]
-status: parked
+status: doing
 ---
-# SEEN-089: Enforce TDD and CI quality gates in the harness
+# SEEN-089: Enforce the TDD gates in the harness
 
 | | |
 |---|---|
 | Epic | E10 Development harness |
 | Sprint | 0 (24 Sep - 9 Oct 2026), gate G0 |
-| Estimate | 5 points (one point is about two hours with Claude Code) |
+| Estimate | 3 points (one point is about two hours with Claude Code) |
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | parked (waiting for SEEN-006) |
+| Status | doing |
 
 ## Description
 
-Make harness check record command, exit code, duration and output hash per phase (red, green, regression, qa), accept a RED only when the named test fails, and refuse advance from tdd without at least one RED and one GREEN per slice, a non-negative coverage delta on packages/core, and green typecheck, lint and build. Extend ci.yml with coverage reporting, gitleaks, pnpm audit --audit-level high, graphify extract and the harness tests, and add the pull request template that carries acceptance criteria, RED and GREEN evidence, review findings and the receipt hash. Add harness return so review findings route the ticket back to tdd or solution and count as rework. The decision that matters: CI green on the delivered SHA is the only definition of done; the harness verifies it, never asserts it.
+Make the harness enforce what it currently only records. `harness check --phase red` accepts a RED
+only when the command actually failed as a test: an exit code of zero is not evidence, and neither is
+a timeout nor a command that could not start, because neither says anything about the behaviour under
+test. The record is appended either way, because the run happened; the claim is what gets refused.
+`advance` from tdd then requires every cited red to demonstrate a failure, and requires a coverage
+measurement for the attempt whose delta on `packages/core` is not negative. A blocking decision that
+did not clear its threshold says so, rather than printing the rule's own word and claiming the
+opposite.
+
+Delivery and merge verification were split out into SEEN-094 on 23 September 2026: one solution
+record covering seven enforcements could not be judged complete, and the same question scored 0.49 on
+all seven and 0.67 on one.
 
 ## Acceptance criteria
 
-- [ ] harness check --phase red on a passing test is rejected with a message that the RED did not fail
-- [ ] advance from tdd is refused without a RED and a GREEN per slice and with a negative coverage delta on packages/core, and the refusal names the missing evidence
-- [ ] ci.yml runs typecheck, migrations twice, tests with coverage, build, gitleaks, pnpm audit at high, graphify extract and the harness tests, and a seeded secret in a test branch fails the pipeline
-- [ ] The PR template is applied automatically and verify-delivery refuses a PR body without the receipt hash
-- [ ] harness return SEEN-089 --to tdd appends a rework record and status shows the ticket back in tdd
+- [ ] harness check --phase red on a command that exits 0 appends the record and then refuses, naming that the RED did not fail
+- [ ] A red that timed out or could not start is refused as RED evidence for the same reason
+- [ ] advance from tdd is refused when a slice cites a red that passed, naming the slice
+- [ ] advance from tdd is refused without a coverage measurement for the attempt, and when the delta on packages/core is negative; a first measurement with no baseline records a null delta and passes
+- [ ] A blocking decision that did not clear its threshold is refused with a message that says it did not clear
+- [ ] harness return appends a rework record and status shows the ticket back at the target stage
 
-## Carried in from SEEN-087
+## Moved to SEEN-094
 
-SEEN-087 wrote its delivery receipt while a CI job was red, because SEEN-086's verify-delivery is
-offline by design. Add both halves here: verify-delivery refuses while any check on the delivered
-SHA is not green, and the merge check compares the receipt's commit to the branch tip, so a fix
-pushed after a receipt cannot be merged under a receipt that attests the commit before it.
+The carried-in work from SEEN-087 and SEEN-088, the CI additions and the pull request template all
+moved to [SEEN-094](SEEN-094-verify-delivery-against-ci-and-the-merge.md).
 
 ## Depends on
 

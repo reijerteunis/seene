@@ -1,0 +1,85 @@
+{
+  "sequence": 5,
+  "ticket": "SEEN-089",
+  "timestamp": "2026-09-23T19:32:49.430186+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "3d52307f9d4de31bf2872b6c06bea83b914ac4be",
+  "prev_hash": "7e5a85cf349de4b28a57c240353b4518c606a787c6147a6f69a1d1aad118fa09",
+  "data": {
+    "from_stage": "clarify",
+    "to_stage": "solution",
+    "evidence": {
+      "scope": "Make the harness enforce what it currently only records: a RED that did not fail is refused, a tdd stage without a red and a green per slice or with coverage going backwards cannot advance, and a delivery whose checks are not green on the delivered commit is refused.",
+      "acceptance": [
+        "harness check --phase red on a passing command is refused with a message saying the RED did not fail: evidenced by the test and by a recorded attempt",
+        "advance from tdd is refused without a red and a green per slice, and with a negative coverage delta on packages/core, naming what is missing: evidenced by tests for each refusal",
+        "ci.yml runs typecheck, tests with coverage, build, gitleaks, pnpm audit at high, graphify extract and the harness tests, and a seeded secret on a throwaway branch fails the pipeline: evidenced by a green run and by the deliberately failed one",
+        "The pull request template is applied automatically and verify-delivery refuses a pull request body without the receipt hash: evidenced by the template file and the refusal test",
+        "harness return appends a rework record and status shows the ticket back at the target stage: already delivered by SEEN-086 and re-verified here by a test",
+        "Carried in: verify-delivery refuses while a check on the delivered commit is not green, and refuses a receipt whose commit is behind the branch tip: evidenced by tests against a stubbed checks reader"
+      ],
+      "decisions": [
+        "AC3 is amended rather than deferred: migrations applied twice need the database SEEN-007 and SEEN-008 deliver, so that half is re-pointed to SEEN-008 which can prove idempotence against a real schema. Founder, 23 September 2026",
+        "Coverage is measured by vitest with the v8 provider on packages/core only, and the last delivered figure is kept in docs/harness/coverage.json so a delta has something to compare against. Coverage for the other packages is reported and not gated, because a gate on a package with placeholder tests measures nothing",
+        "The CI green check reads the GitHub checks API through gh when it is available, and refuses the delivery when gh is missing or unauthenticated rather than passing silently: a delivery that cannot be verified is not a delivery verified",
+        "A RED is judged by its exit code and its phase: zero is not a RED, and neither is a timeout or a command that could not start, because neither says anything about the behaviour under test",
+        "The refusal message defect from SEEN-006 is fixed here rather than in SEEN-090: it is gate enforcement, which is this ticket's subject"
+      ],
+      "open_questions": [],
+      "changes_agent_action": false,
+      "graph_impact": [
+        "harness/checks.py records the phases; the RED rule belongs beside the recording",
+        "harness/gates.py holds the tdd relations that the coverage and evidence rules extend",
+        "harness/delivery.py is where the CI and receipt-versus-tip checks attach"
+      ]
+    },
+    "decisions": [
+      {
+        "question": "clarified",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.81,
+          "no": 0.19
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.8,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "question": "risk",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "medium",
+        "probabilities": {
+          "low": 0.02,
+          "medium": 0.98,
+          "high": 0.0
+        },
+        "confidence": 0.97,
+        "score": 0.99,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}
