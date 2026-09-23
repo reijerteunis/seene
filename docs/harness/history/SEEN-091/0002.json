@@ -1,0 +1,15 @@
+{
+  "sequence": 2,
+  "ticket": "SEEN-091",
+  "timestamp": "2026-09-23T21:49:54.369316+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "94406c81a16dda4d67281aa21570dccd91e6e8a0",
+  "prev_hash": "6c24aeb3bf38a7e8bbeb8628667f6f893a0ca57fe68869e762f345e4d9ffcb95",
+  "data": {
+    "text": "# The first report has to cover tickets that predate it\n\nSix tickets have delivered: SEEN-086, SEEN-087, SEEN-088, SEEN-093, SEEN-006, SEEN-094, SEEN-089 and\nSEEN-090. None of them wrote a `kpi.json`, because the field did not exist until this ticket, and\nSEEN-086 has no journal at all: it is the bootstrap, exempt by design.\n\nSo a report that reads `kpi.json` files would cover nothing at all this week, which would be a\nreporting system whose first output is empty while eight tickets sit delivered in the tree. Three\ndecisions follow.\n\n**The journal is the source, and kpi.json is a cache.** `harness report` derives every figure from the\njournals themselves, exactly as `verify-delivery` will when it writes the file. A ticket delivered\nbefore this ticket existed is therefore covered in full, and a ticket delivered after it is covered\nidentically whether or not its `kpi.json` is present. The file remains useful, because it is what a\nlater reader sees beside the receipt without recomputing anything, and because SEEN-091's own criteria\nask for it.\n\n**A ticket with no journal is listed, not omitted.** SEEN-086 appears in the report with its points\nand its delivery date from the ticket file, and every timing as `null`, with the reason named. A\nreport that quietly drops the one ticket that built the harness would be a poor first report.\n\n**Delivered means the ticket's frontmatter says done or the journal holds a receipt.** SEEN-086 has\nonly the first, which is the whole reason the second cannot be the only test.\n"
+  }
+}

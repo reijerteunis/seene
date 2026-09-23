@@ -7,9 +7,10 @@ gh; SEEN-089 adds the CI check and SEEN-091 the KPI check, and each refuses
 rather than passes when it cannot be run.
 """
 
+import json
 import subprocess
 
-from . import coverage, gates, github, journal
+from . import coverage, gates, github, journal, kpi
 from .errors import require
 from .paths import HISTORY, WORKING_STAGES
 
@@ -35,7 +36,12 @@ def verify(repository, folder, records, args, current):
     # CI is the definition of done, and this is where the harness stops asserting
     # it and starts verifying it. SEEN-087 and SEEN-088 both wrote receipts over
     # red checks for want of these four lines.
-    github.require_green(repository, commit, 'delivery')
+    verified = github.require_green(repository, commit, 'delivery')
+    runs = {}
+    for run in verified:
+        runs[run['name']] = runs.get(run['name'], 0) + 1
+    checks = [dict(name=run['name'], conclusion=run['conclusion'], runs=runs[run['name']])
+              for run in verified]
 
     _refresh_graph(repository)
 
@@ -51,11 +57,17 @@ def verify(repository, folder, records, args, current):
                             data=dict(from_stage='deliver', to_stage='delivered',
                                       commit=commit, branch=branch, remote=data['remote'],
                                       tree=tree, pull_request=data['pull_request'],
-                                      limits=data['limits'], evidence=data,
+                                      limits=data['limits'], evidence=data, checks=checks,
                                       coverage=measurement and dict(
                                           package=measurement['package'],
                                           lines=measurement['lines'],
                                           delta=measurement['delta'])))
+    # The KPI record is a cache of what harness report computes from this
+    # journal, so a reader sees the numbers beside the receipt without
+    # recomputing them, and the report is identical either way.
+    figures = kpi.measure(journal.read(folder), record['ticket'])
+    (folder / 'kpi.json').write_text(json.dumps(figures, indent=2, ensure_ascii=False) + '\n')
+
     path = folder / f'{record["sequence"]:04d}.json'
     return dict(record=record,
                 receipt_sha256=journal.digest(path),

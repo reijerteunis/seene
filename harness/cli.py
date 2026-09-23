@@ -7,6 +7,7 @@ shell.
 """
 
 import argparse
+from datetime import date
 import json
 import os
 from pathlib import Path
@@ -15,7 +16,8 @@ import shutil
 import subprocess
 import sys
 
-from . import checks, coverage as coverage_module, doctor, gates, graph as graph_module, jev, journal, thresholds
+from . import (checks, cost as cost_module, coverage as coverage_module, doctor, gates,
+               graph as graph_module, jev, journal, kpi, report as report_module, thresholds)
 from .errors import HarnessError, require
 from .paths import (DRAFTS, HISTORY, KINDS, LOCK, NON_CODE_TEMPLATE, STAGES, TEMPLATES,
                     TEMPLATE_FOR_STAGE, WORKING_STAGES)
@@ -128,6 +130,11 @@ def build_parser():
     deliver = ticket_command('verify-delivery', 'Confirm the delivery and write the receipt')
     deliver.add_argument('--file', required=True, help='Completed deliver evidence JSON')
     deliver.add_argument('--actor', required=True)
+
+    report = commands.add_parser('report', help='Aggregate delivered tickets into a report')
+    report.add_argument('--week', action='store_true', help='The ISO week of --date, or today')
+    report.add_argument('--sprint', type=int, help='Planned against delivered for one sprint')
+    report.add_argument('--date', help='The date whose week to report, YYYY-MM-DD')
 
     commands.add_parser('lint', help='Refuse live marketplace hosts in test code')
     commands.add_parser('doctor', help='Check the harness files, the journals and the links')
@@ -569,6 +576,86 @@ def reopen(repository, folder, records, args, current):
                                     reason=args.reason))
 
 
+def ticket_figures(repository):
+    """Every delivered ticket's figures, derived from its journal.
+
+    A ticket delivered before kpi.json existed is covered identically, because
+    the journal is the source and the file is only a cache. A ticket with no
+    journal at all, which SEEN-086 is by design, is listed from its ticket file
+    rather than dropped.
+    """
+    from . import report as reporting
+    figures = []
+    for path in sorted((repository.root / 'docs' / 'tickets').glob('*.md')):
+        header = reporting.frontmatter(path)
+        identifier = reporting._field(header, 'id')
+        if not identifier:
+            continue
+        status = reporting._field(header, 'status')
+        points = reporting._field(header, 'estimate')
+        folder = repository.root / HISTORY / identifier
+        records = journal.read(folder) if folder.is_dir() else []
+        has_receipt = any(record['kind'] == 'receipt' for record in records)
+        if not has_receipt and status != 'done':
+            continue
+        delivered_at = None
+        if not records:
+            delivered_at = repository.git('log', '-1', '--format=%cI', '--', str(path)) or None
+        measured = kpi.measure(records, identifier,
+                               points=int(points) if points and points.isdigit() else None,
+                               delivered_at=delivered_at)
+        if records and measured['delivered_at']:
+            measured['tokens'] = cost_module.tokens_between(
+                repository.root, records[0]['timestamp'], measured['delivered_at'])
+        measured['escaped_defects'] = reporting.escaped_defects(repository.root, identifier)
+        figures.append(measured)
+    return figures
+
+
+UNMEASURABLE = [
+    'Eval pass rate for policy-gate action tickets: the eval set is SEEN-036 and no such ticket '
+    'has been worked, so a figure here would be invented',
+    'Escaped defects: counted from tickets whose frontmatter names an earlier one, and none has '
+    'been written yet',
+    'Cost in euros: the session logs carry tokens, and a price per token is stale the day it is '
+    'written, so only tokens are reported',
+]
+
+
+def write_report(repository, args):
+    from . import report as reporting
+    require(args.week or args.sprint is not None, 'Ask for --week or --sprint <n>')
+    figures = ticket_figures(repository)
+    if args.sprint is not None:
+        planned = 0
+        for path in sorted((repository.root / 'docs' / 'tickets').glob('*.md')):
+            header = reporting.frontmatter(path)
+            if reporting._field(header, 'sprint') == str(args.sprint):
+                points = reporting._field(header, 'estimate')
+                planned += int(points) if points and points.isdigit() else 0
+        covered = [entry for entry in figures
+                   if reporting._field(reporting.frontmatter(
+                       next(iter(sorted((repository.root / 'docs' / 'tickets')
+                                        .glob(f'{entry["ticket"]}-*.md')), ), ), ), 'sprint')
+                   == str(args.sprint)]
+        totals = reporting.totals(covered)
+        totals['points_planned'] = planned
+        name = f'sprint-{args.sprint}'
+        title = f'Sprint {args.sprint}: {totals["points_delivered"]} of {planned} points delivered'
+    else:
+        when = args.date or repository.git('log', '-1', '--format=%cs')
+        covered = reporting.within_week(figures, when)
+        totals = reporting.totals(covered)
+        year, week, _ = date.fromisoformat(when).isocalendar()
+        name = f'{year}-W{week:02d}'
+        title = f'Week {week} of {year}'
+    payload = dict(name=name, generated_for=name, tickets=covered, totals=totals,
+                   unmeasurable=UNMEASURABLE)
+    markdown = reporting.render(title, covered, totals, UNMEASURABLE)
+    written = reporting.write(repository.root, name, markdown, payload)
+    return dict(written, tickets=len(covered), totals=totals)
+
+
 def list_tickets(repository):
     history = repository.root / HISTORY
     tickets = []
@@ -597,6 +684,8 @@ def execute(args):
         require(result['ok'],
                 'The harness self-check found problems:\n  ' + '\n  '.join(result['problems']))
         return result
+    if args.command == 'report':
+        return write_report(repository, args)
     if args.command == 'lint':
         from . import secrets
         found = secrets.marketplace_hosts(repository.root)

@@ -1,0 +1,15 @@
+{
+  "sequence": 4,
+  "ticket": "SEEN-091",
+  "timestamp": "2026-09-23T21:51:45.025553+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "solution",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "94406c81a16dda4d67281aa21570dccd91e6e8a0",
+  "prev_hash": "a1e24acc3d7490055ad509369f121eaf4d28f73e2284c54dad048e4cd6a5ee97",
+  "data": {
+    "text": "# Cost is derivable after all, and the record was wrong to say otherwise\n\nThe ticket says cost comes \"from session logs where available, else from a --cost note\", and I had\nwritten the solution as though no log existed. It does. Claude Code keeps one JSONL per session under\n`~/.claude/projects/<project>/`, and the current one carries 934 entries with a `usage` object holding\n`input_tokens`, `output_tokens`, `cache_read_input_tokens` and `cache_creation_input_tokens`, each\nbeside an ISO timestamp.\n\nSo cost is attributable: a ticket's window is its start record to its receipt, and the tokens for that\nticket are the usage entries whose timestamp falls inside it, summed across every log for this project.\nThis session works tickets one after another, so the windows do not overlap, and where two sessions run\nat once the figure is shared between them and the report says so rather than splitting it arbitrarily.\n\nThree consequences, decided here:\n\n- The log directory is derived from the project path the same way Claude Code derives it, and its\n  absence is not an error: cost is null, which is the honest answer on a machine without the logs.\n- Nothing from a log enters a record except the four token counts. Session logs carry prompts and file\n  contents, none of which belongs in a journal, and the same environment-value rule applies anyway.\n- Euros are not computed. Token counts are facts from the log; a price per token is a number that\n  changes and would be stale in the record the day it is written. The report shows tokens, and a\n  `--cost` note carries euros when someone has a figure worth recording.\n"
+  }
+}

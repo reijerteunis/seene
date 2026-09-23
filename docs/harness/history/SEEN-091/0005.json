@@ -1,0 +1,100 @@
+{
+  "sequence": 5,
+  "ticket": "SEEN-091",
+  "timestamp": "2026-09-23T21:52:06.570937+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "solution",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "94406c81a16dda4d67281aa21570dccd91e6e8a0",
+  "prev_hash": "23fad11f0603d936405622996c1764da0d0757e718c1af8eda65f9156dc22b54",
+  "data": {
+    "from_stage": "solution",
+    "to_stage": "tdd",
+    "evidence": {
+      "approach": "harness/kpi.py reads one ticket's journal and returns its figures; harness/report.py aggregates many and renders them. Nothing is stored that can be derived.\n\nFrom the journal: cycle time from the start record to the receipt, and per stage by summing every span between entering and leaving it, so a stage revisited after a return counts twice because rework is time spent. Rework is the count of return and reopen records. Findings by severity come from the review advance, split into fixed and waived by each finding's status. RED-before-GREEN is true when every slice in every accepted tdd record cites a red that actually failed. Coverage delta comes from the coverage check the tdd gate already requires.\n\nFrom git, at the two commits the journal names: tests added is the net change in lines in files matching the test patterns between the start record's base commit and the receipt's commit.\n\nFirst-pass CI needs something the journal does not have today, so verify-delivery starts recording the checks it already fetches: their names and conclusions, and how many runs each name had. First-pass is then one run per check, all green, which is observable rather than remembered. For the eight tickets delivered before this, it is null, and the report says so rather than guessing.\n\nCost comes from the session logs, which do exist: Claude Code keeps one JSONL per session under ~/.claude/projects/<project>/, each entry carrying a usage object and an ISO timestamp. A ticket's tokens are the usage entries falling between its start record and its receipt, summed across every log for this project. Only the four token counts are read; a session log holds prompts and file contents, none of which belongs in a journal. Euros are not computed, because a price per token is stale the day it is written; a --cost note carries euros when someone has a figure worth recording, and with no logs at all the field is null. Escaped defects are counted at report time from any ticket whose frontmatter names an earlier one in a fixes field.\n\nkpi.json is written at delivery as a cache of exactly what the report computes, so a reader sees the numbers beside the receipt without recomputing them, and a report covering a ticket delivered before this ticket existed is identical either way.\n\nThe record kpi.json carries exactly these fields: ticket, delivered_at, points, cycle_time_seconds, stage_seconds as a map of stage to seconds, attempts, rework, red_before_green, tests_added_lines, coverage (package, lines, delta), findings as a map of severity to counts with fixed and waived beside it, first_pass_ci as true, false or null, cost as a map of tokens and euros or null, escaped_defects as a list of ticket ids, and harness_version. The report's JSON carries the same records under tickets, with totals beside them: median_cycle_time_seconds, first_pass_ci_rate, rework_per_ticket, findings_by_severity and points_delivered.\n\nThe Markdown has four sections in this order: what delivered, with one row per ticket; the totals against the targets in docs/harness/workflow.md; the findings, by severity; and what is not measurable yet, naming each field and why. The last section exists because a report that omits what it cannot measure reads as though everything were measured.\n\nTest files are recognised by the patterns harness/secrets.py already uses for the marketplace lint, so one definition of a test file serves both. --week takes an optional --date and otherwise uses today; --sprint takes the number and reads every ticket whose frontmatter carries that sprint, so planned and delivered come from the same place.\n\nReports and kpi.json sit outside the reviewed-tree fingerprint, beside the journal, the drafts, the graph and the coverage baseline. They are written by a command anyone can run at any time, and kpi.json is written by delivery itself, so counting them would let a report refuse a delivery, or a delivery invalidate its own receipt. That is the circularity ADR 0002 resolves, and SEEN-089 reintroduced it once already with the coverage baseline.",
+      "changes": [
+        "harness/paths.py: the reports directory and kpi.json join the fingerprint exclusions",
+        "harness/kpi.py: new, measure(records, ticket, repository) returning the fields above",
+        "harness/report.py: new, week() and sprint() aggregation, and render() for the Markdown",
+        "harness/cost.py: new, the session log window reader, reading token counts and nothing else",
+        "harness/cli.py: report --week, report --sprint <n>, --date, and note --cost",
+        "harness/delivery.py: writes kpi.json beside the receipt and records the checks it verified",
+        "harness/secrets.py: the test-file patterns exported for reuse by tests_added_lines",
+        "docs/harness/reports/: the committed reports, Markdown with JSON beside it",
+        "harness/tests/test_kpi.py: new, the figures from synthetic journals and a report over several"
+      ],
+      "migrations": [],
+      "tests_first": [
+        "Writing a report does not change the reviewed-tree fingerprint: the RED must fail because the reports directory is counted",
+        "A journal with a return counts the revisited stage twice and reports rework as one: the RED must fail because no kpi module exists",
+        "Findings are split by severity into fixed and waived, and a waived finding is not counted as fixed: the RED must fail for the same reason",
+        "A ticket with no journal is listed with its points and null timings rather than omitted: the RED must fail because the report reads journals only",
+        "The weekly report covers only tickets whose receipt falls in that ISO week in UTC: the RED must fail because the week is not computed",
+        "A ticket whose frontmatter names an earlier one increments that ticket's escaped defects: the RED must fail because nothing reads the frontmatter",
+        "A report carrying a credential in a ticket title is refused by the same rule as the journal: the RED must fail because reports are written without the check",
+        "Tokens are summed only from entries inside the ticket's window, and a missing log directory yields null rather than zero: the RED must fail because no cost module exists"
+      ],
+      "alternatives": [
+        "Storing the figures in the journal as they happen, rejected because a derived number stored is a number that can disagree with what it was derived from",
+        "Counting tests added by parsing test functions, rejected because it needs a parser per language and the figure only has to be comparable with itself",
+        "Reading CI history from GitHub for first-pass, rejected because the API keeps runs only as long as it keeps them, and a KPI that changes when a log expires is not a record"
+      ],
+      "risks": [
+        "Cycle time is wall-clock, so a ticket left overnight looks slow; accepted, because the alternative is a session claiming how long it worked, and the harness does not take claims where it can take facts",
+        "Tests added counts lines in test files, which rewards verbosity; it is reported beside coverage rather than alone, and neither is a target",
+        "Two sessions working at once would share a window, so the tokens are attributed to both; the report says so rather than splitting them arbitrarily"
+      ],
+      "rollback": "Revert the commit. Nothing else reads kpi.json, and journals are unchanged.",
+      "new_dependencies": [],
+      "tenant_tables": [
+        "none"
+      ],
+      "buyer_pii": "none",
+      "policy_gate_action": null
+    },
+    "decisions": [
+      {
+        "question": "solution_complete",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.6,
+          "no": 0.4
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "question": "touches_billing_or_policy_gate",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.16,
+          "no": 0.84
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

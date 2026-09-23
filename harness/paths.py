@@ -31,6 +31,12 @@ THRESHOLDS = Path('harness/thresholds.toml')
 # the same reason the journal does.
 COVERAGE_BASELINE = Path('docs/harness/coverage.json')
 
+# Reports, written by a command anyone can run, and the per-ticket KPI cache
+# delivery writes. Both sit outside the fingerprint for the same reason the
+# journal does: writing a record about a tree must not change that tree.
+REPORTS = Path('docs/harness/reports')
+KPI_FILE = 'kpi.json'
+
 # The committed knowledge graph: context before a session reads any file.
 GRAPH_DIRECTORY = Path('graphify-out')
 GRAPH_FILE = GRAPH_DIRECTORY / 'graph.json'
@@ -53,7 +59,7 @@ ALLOWED_BESIDE_RECORDS = ('kpi.json', 'attachments')
 # so counting it would make delivery refuse a ticket for a change no person
 # made. See docs/adr/0002-the-receipt-attests-the-tree-minus-the-journal.md.
 FINGERPRINT_EXCLUDED = (str(HISTORY) + '/', str(DRAFTS) + '/', str(GRAPH_DIRECTORY) + '/',
-                        str(COVERAGE_BASELINE), str(LOCK))
+                        str(COVERAGE_BASELINE), str(REPORTS) + '/', str(LOCK))
 
 TEMPLATE_FOR_STAGE = {
     'clarify': 'clarify.json',

@@ -1,0 +1,320 @@
+{
+  "name": "2026-W39",
+  "generated_for": "2026-W39",
+  "tickets": [
+    {
+      "ticket": "SEEN-006",
+      "delivered_at": "2026-09-23T19:26:34.041151+00:00",
+      "points": 3,
+      "cycle_time_seconds": 1126,
+      "stage_seconds": {
+        "clarify": 138,
+        "solution": 300,
+        "tdd": 337,
+        "review": 186,
+        "deliver": 163
+      },
+      "attempts": 2,
+      "rework": 1,
+      "red_before_green": true,
+      "coverage": null,
+      "findings": {
+        "by_severity": {
+          "medium": 1,
+          "high": 2,
+          "low": 2
+        },
+        "fixed": 5,
+        "waived": 0
+      },
+      "first_pass_ci": null,
+      "tokens": {
+        "input_tokens": 170,
+        "output_tokens": 118466,
+        "cache_read_input_tokens": 46922057,
+        "cache_creation_input_tokens": 127929
+      },
+      "cost": null,
+      "escaped_defects": [],
+      "harness_version": "1",
+      "note": null
+    },
+    {
+      "ticket": "SEEN-086",
+      "delivered_at": "2026-09-23T17:56:02+02:00",
+      "points": 8,
+      "cycle_time_seconds": null,
+      "stage_seconds": {},
+      "attempts": null,
+      "rework": null,
+      "red_before_green": null,
+      "coverage": null,
+      "findings": {
+        "by_severity": {},
+        "fixed": 0,
+        "waived": 0
+      },
+      "first_pass_ci": null,
+      "tokens": null,
+      "cost": null,
+      "escaped_defects": [],
+      "harness_version": null,
+      "note": "Measured from the ticket file: this ticket has no journal"
+    },
+    {
+      "ticket": "SEEN-087",
+      "delivered_at": "2026-09-23T16:11:32.125373+00:00",
+      "points": 3,
+      "cycle_time_seconds": 734,
+      "stage_seconds": {
+        "clarify": 245,
+        "solution": 49,
+        "tdd": 280,
+        "review": 116,
+        "deliver": 43
+      },
+      "attempts": 2,
+      "rework": 1,
+      "red_before_green": true,
+      "coverage": null,
+      "findings": {
+        "by_severity": {
+          "high": 1,
+          "medium": 3,
+          "low": 1
+        },
+        "fixed": 5,
+        "waived": 0
+      },
+      "first_pass_ci": null,
+      "tokens": {
+        "input_tokens": 142,
+        "output_tokens": 81572,
+        "cache_read_input_tokens": 23662357,
+        "cache_creation_input_tokens": 84138
+      },
+      "cost": null,
+      "escaped_defects": [],
+      "harness_version": "1",
+      "note": null
+    },
+    {
+      "ticket": "SEEN-088",
+      "delivered_at": "2026-09-23T19:03:38.731227+00:00",
+      "points": 3,
+      "cycle_time_seconds": 2246,
+      "stage_seconds": {
+        "clarify": 104,
+        "solution": 54,
+        "tdd": 573,
+        "review": 191,
+        "deliver": 174,
+        "delivered": 1148
+      },
+      "attempts": 4,
+      "rework": 3,
+      "red_before_green": true,
+      "coverage": null,
+      "findings": {
+        "by_severity": {
+          "high": 3,
+          "medium": 4,
+          "low": 1,
+          "blocking": 1
+        },
+        "fixed": 9,
+        "waived": 0
+      },
+      "first_pass_ci": null,
+      "tokens": {
+        "input_tokens": 332,
+        "output_tokens": 206032,
+        "cache_read_input_tokens": 73358891,
+        "cache_creation_input_tokens": 190073
+      },
+      "cost": null,
+      "escaped_defects": [],
+      "harness_version": "1",
+      "note": null
+    },
+    {
+      "ticket": "SEEN-089",
+      "delivered_at": "2026-09-23T19:55:17.364889+00:00",
+      "points": 3,
+      "cycle_time_seconds": 2975,
+      "stage_seconds": {
+        "clarify": 1627,
+        "solution": 481,
+        "tdd": 748,
+        "review": 77,
+        "deliver": 40
+      },
+      "attempts": 1,
+      "rework": 0,
+      "red_before_green": true,
+      "coverage": {
+        "package": "@seen/core",
+        "lines": 100.0,
+        "delta": null
+      },
+      "findings": {
+        "by_severity": {
+          "high": 1,
+          "medium": 2,
+          "low": 1
+        },
+        "fixed": 4,
+        "waived": 0
+      },
+      "first_pass_ci": null,
+      "tokens": {
+        "input_tokens": 376,
+        "output_tokens": 249212,
+        "cache_read_input_tokens": 108962679,
+        "cache_creation_input_tokens": 250329
+      },
+      "cost": null,
+      "escaped_defects": [],
+      "harness_version": "1",
+      "note": null
+    },
+    {
+      "ticket": "SEEN-090",
+      "delivered_at": "2026-09-23T21:47:14.339168+00:00",
+      "points": 3,
+      "cycle_time_seconds": 3674,
+      "stage_seconds": {
+        "clarify": 510,
+        "solution": 65,
+        "tdd": 1796,
+        "review": 690,
+        "deliver": 610
+      },
+      "attempts": 4,
+      "rework": 3,
+      "red_before_green": true,
+      "coverage": {
+        "package": "@seen/core",
+        "lines": 100.0,
+        "delta": 0.0
+      },
+      "findings": {
+        "by_severity": {
+          "blocking": 1,
+          "high": 3,
+          "medium": 3,
+          "low": 2
+        },
+        "fixed": 9,
+        "waived": 0
+      },
+      "first_pass_ci": null,
+      "tokens": {
+        "input_tokens": 284,
+        "output_tokens": 151325,
+        "cache_read_input_tokens": 105601447,
+        "cache_creation_input_tokens": 157768
+      },
+      "cost": null,
+      "escaped_defects": [],
+      "harness_version": "1",
+      "note": null
+    },
+    {
+      "ticket": "SEEN-093",
+      "delivered_at": "2026-09-23T18:55:54.819175+00:00",
+      "points": 2,
+      "cycle_time_seconds": 284,
+      "stage_seconds": {
+        "clarify": 55,
+        "solution": 50,
+        "tdd": 87,
+        "review": 49,
+        "deliver": 41
+      },
+      "attempts": 1,
+      "rework": 0,
+      "red_before_green": true,
+      "coverage": null,
+      "findings": {
+        "by_severity": {
+          "low": 1,
+          "medium": 1
+        },
+        "fixed": 2,
+        "waived": 0
+      },
+      "first_pass_ci": null,
+      "tokens": {
+        "input_tokens": 36,
+        "output_tokens": 27471,
+        "cache_read_input_tokens": 8399991,
+        "cache_creation_input_tokens": 30008
+      },
+      "cost": null,
+      "escaped_defects": [],
+      "harness_version": "1",
+      "note": null
+    },
+    {
+      "ticket": "SEEN-094",
+      "delivered_at": "2026-09-23T20:35:59.502451+00:00",
+      "points": 2,
+      "cycle_time_seconds": 780,
+      "stage_seconds": {
+        "clarify": 201,
+        "solution": 30,
+        "tdd": 322,
+        "review": 87,
+        "deliver": 137
+      },
+      "attempts": 1,
+      "rework": 0,
+      "red_before_green": true,
+      "coverage": {
+        "package": "@seen/core",
+        "lines": 100.0,
+        "delta": 0.0
+      },
+      "findings": {
+        "by_severity": {
+          "high": 1,
+          "medium": 2,
+          "low": 1
+        },
+        "fixed": 4,
+        "waived": 0
+      },
+      "first_pass_ci": null,
+      "tokens": {
+        "input_tokens": 88,
+        "output_tokens": 70970,
+        "cache_read_input_tokens": 29727352,
+        "cache_creation_input_tokens": 63766
+      },
+      "cost": null,
+      "escaped_defects": [],
+      "harness_version": "1",
+      "note": null
+    }
+  ],
+  "totals": {
+    "tickets": 8,
+    "points_delivered": 27,
+    "median_cycle_time_seconds": 1126,
+    "rework_per_ticket": 1.14,
+    "first_pass_ci_rate": null,
+    "first_pass_ci_unknown": 8,
+    "findings_by_severity": {
+      "medium": 16,
+      "high": 11,
+      "low": 9,
+      "blocking": 2
+    }
+  },
+  "unmeasurable": [
+    "Eval pass rate for policy-gate action tickets: the eval set is SEEN-036 and no such ticket has been worked, so a figure here would be invented",
+    "Escaped defects: counted from tickets whose frontmatter names an earlier one, and none has been written yet",
+    "Cost in euros: the session logs carry tokens, and a price per token is stale the day it is written, so only tokens are reported"
+  ]
+}

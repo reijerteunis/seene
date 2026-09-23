@@ -27,15 +27,34 @@ status: doing
 
 ## Description
 
-Write docs/harness/history/<ticket>/kpi.json at verify-delivery with cycle time total and per stage, first-pass CI result, RED-before-GREEN compliance, tests added, coverage delta, review findings by severity with fixed and waived counts, rework count, tokens and cost (from session logs where available, else from a --cost note), and escaped defects linked later by fix tickets. Add harness report --week and --sprint <n> that aggregate into docs/harness/reports/ as Markdown plus JSON, with the targets from docs/harness/workflow.md shown against actuals. The decision that matters: KPIs are derived from journal records that already exist, never typed in by hand, except cost where no log is available.
+Derive a KPI record from each ticket's journal at delivery, and aggregate those records into weekly
+and sprint reports. Every number comes from records that already exist: cycle time from the start
+record to the receipt and per stage from the records that enter and leave it, first-pass CI from the
+checks on the first commit pushed, RED-before-GREEN from the cited slices, findings by severity from
+the review record, rework from the return and reopen records, and coverage from the measurement the
+tdd gate already requires.
+
+The decision that matters: nothing is typed in by hand. Cost is the one exception, because no session
+log is available to read; where none exists the KPI records it as `null` rather than zero, since zero
+is a claim and null is the truth.
+
+`harness report --week` writes `docs/harness/reports/<year>-W<week>.md` and its JSON beside it,
+covering every ticket delivered in that ISO week by the receipt's timestamp in UTC, with median cycle
+time, first-pass CI rate, rework per ticket, findings by severity and points delivered.
+`harness report --sprint <n>` compares planned points, from the estimates in the frontmatter of every
+ticket carrying that sprint, against delivered points from the receipts.
+
+The eval pass rate for policy-gate action tickets is reported as not yet measurable rather than as
+zero: the eval set belongs to SEEN-036 and no policy-gate action ticket has been worked, so a figure
+here would be invented.
 
 ## Acceptance criteria
 
-- [ ] verify-delivery writes kpi.json with every field listed in the description populated from the journal
-- [ ] harness report --week writes docs/harness/reports/<year>-W<week>.md and .json covering every ticket delivered that week, with median cycle time, first-pass CI rate, rework per ticket, findings by severity and points delivered
-- [ ] harness report --sprint 0 shows planned versus delivered build points and the eval pass rate for gate-action tickets
-- [ ] A fix ticket that names an earlier ticket in its frontmatter increments escaped defects on that ticket in the next report
-- [ ] The report contains no secret, token or environment value, checked by the same test as the journal
+- [ ] verify-delivery writes kpi.json carrying cycle time total and per stage, first-pass CI, RED-before-GREEN compliance, tests added, coverage delta, findings by severity with fixed and waived counts, rework, cost and escaped defects
+- [ ] harness report --week writes the Markdown and the JSON for every ticket delivered that week, with median cycle time, first-pass CI rate, rework per ticket, findings by severity and points delivered
+- [ ] harness report --sprint 0 shows planned against delivered build points, and reports the eval pass rate as not yet measurable
+- [ ] A fix ticket naming an earlier ticket in its frontmatter increments escaped defects on that ticket in the next report
+- [ ] No report can contain a secret, token or environment value, by the same rule as the journal
 
 ## Depends on
 

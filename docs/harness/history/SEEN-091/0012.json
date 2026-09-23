@@ -1,0 +1,36 @@
+{
+  "sequence": 12,
+  "ticket": "SEEN-091",
+  "timestamp": "2026-09-23T21:57:33.115235+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "94406c81a16dda4d67281aa21570dccd91e6e8a0",
+  "prev_hash": "d629ed84ae858e51619474433c38af186ee226fa73f4be84f68d0aa9ad56070b",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "behaviour": "One ticket's figures are derived from its journal: cycle time, a stage counted once per visit so rework shows as time spent, attempts, rework, RED-before-GREEN, coverage, findings by severity, and a ticket with no journal listed honestly rather than dropped",
+          "failure_reason": "ImportError: cannot import name kpi from harness, and every test in the file errored",
+          "red": 6,
+          "green": 7
+        },
+        {
+          "behaviour": "A finding is counted once however many times review lists it, and the rework figure is reported to two decimals rather than sixteen",
+          "failure_reason": "SEEN-090 reported thirty findings because four review records each listed the same nine, and rework read 1.1428571428571428",
+          "red": 8,
+          "green": 9
+        }
+      ],
+      "regression": 11,
+      "coverage_delta": null
+    },
+    "decisions": []
+  }
+}
