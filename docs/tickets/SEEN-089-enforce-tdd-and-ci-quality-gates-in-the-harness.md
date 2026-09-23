@@ -42,12 +42,42 @@ all seven and 0.67 on one.
 
 ## Acceptance criteria
 
-- [ ] harness check --phase red on a command that exits 0 appends the record and then refuses, naming that the RED did not fail
-- [ ] A red that timed out or could not start is refused as RED evidence for the same reason
-- [ ] advance from tdd is refused when a slice cites a red that passed, naming the slice
-- [ ] advance from tdd is refused without a coverage measurement for the attempt, and when the delta on packages/core is negative; a first measurement with no baseline records a null delta and passes
-- [ ] A blocking decision that did not clear its threshold is refused with a message that says it did not clear
-- [ ] harness return appends a rework record and status shows the ticket back at the target stage
+- [x] harness check --phase red on a command that exits 0 appends the record and then refuses, naming that the RED did not fail
+- [x] A red that timed out or could not start is refused as RED evidence for the same reason
+- [x] advance from tdd is refused when a slice cites a red that passed, naming the slice
+- [x] advance from tdd is refused without a coverage measurement for the attempt, and when the delta on packages/core is negative; a first measurement with no baseline records a null delta and passes
+- [x] A blocking decision that did not clear its threshold is refused with a message that says it did not clear
+- [x] harness return appends a rework record and status shows the ticket back at the target stage
+
+## Outcome
+
+Delivered on 23 September 2026. Three slices, each with a red that failed for the reason the solution
+record predicted.
+
+**A RED that did not fail is refused**, and the run is still recorded: the fact happened, the claim is
+what gets rejected. Exit zero contradicts it; a timeout or a command that could not start cannot
+support it. The tdd gate holds cited reds to the same rule, so evidence recorded before this commit
+cannot be laundered through it.
+
+**Coverage on `packages/core` is measured by one fixed command** and compared with the last delivered
+figure, which only a delivery moves. A first measurement has no baseline and is not a regression.
+The real measurement on this tree is 100% of lines, recorded at record 17.
+
+**A refusal now says what happened.** A blocking decision that failed to clear its threshold read as
+one that cleared, because the message printed the rule's own word.
+
+**The regression check caught a defect I had just written.** Writing the coverage baseline at delivery
+changed the tree the receipt had attested a moment earlier, so the receipt could not survive the
+delivery that produced it, which is the circularity ADR 0002 exists to resolve. The baseline is
+bookkeeping, and now sits outside the fingerprint beside the journal, the drafts and the graph. The
+tdd gate refused the advance until it was fixed.
+
+**This ticket was split and its gate recalibrated, both on evidence.** The original scope covered
+seven enforcements and its solution record scored 0.50, 0.51 and 0.49 on `solution_complete`; closing
+four genuine gaps moved it by 0.01, while the same question asked about one enforcement scored 0.67.
+Delivery and merge verification moved to [SEEN-094](SEEN-094-verify-delivery-against-ci-and-the-merge.md),
+and the threshold moved from 0.8 to 0.6 with the five measurements recorded beside the value. The
+final record reached 0.59 and the founder overrode it at 0.85, on the record, at record 9.
 
 ## Moved to SEEN-094
 
