@@ -91,6 +91,12 @@ included the ticket that had just delivered. Reports now sit beside the journal,
 and the graph as things delivery writes; anything else after a receipt is still refused. The receipt
 was voided and written again rather than the check overridden.
 
+**And the append-only proof could not tell a record from a cache.** `kpi.json` is rewritten whenever a
+ticket delivers again, which is what a reopen leads to, so `doctor` reported a rewritten record and CI
+refused this delivery. Any reopened ticket could never have delivered, which would have made SEEN-093's
+reopen unusable. The proof now covers the numbered records; the cache and the attachments beside them
+are not records.
+
 ### What the first report says
 
 27 points delivered across eight tickets, median cycle time 18 minutes, rework 1.14 per ticket
