@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-086, SEEN-089]
-status: doing
+status: done
 ---
 # SEEN-091: Collect harness KPIs per ticket and produce weekly and sprint reports
 
@@ -23,7 +23,7 @@ status: doing
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | doing |
+| Status | done |
 
 ## Description
 
