@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-086, SEEN-087]
-status: todo
+status: doing
 ---
 # SEEN-096: Add codegraph and repowise and assign each context tool its stage
 
@@ -23,7 +23,7 @@ status: todo
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | todo |
+| Status | doing |
 
 ## Description
 
