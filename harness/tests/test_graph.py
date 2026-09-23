@@ -89,10 +89,16 @@ class GraphTest(CommandTest):
         self.assertEqual(record['data']['exit_code'], 2,
                          'a failed query is a fact about the work')
 
-    def test_the_graph_directory_does_not_change_the_reviewed_tree(self):
+    def test_the_graph_does_not_change_the_reviewed_tree(self):
+        """The graph is derived from the tree, not evidence about it.
+
+        The post-commit hook rewrites it in the background after every commit,
+        so counting it would make delivery refuse a ticket for a change the tool
+        made rather than a person.
+        """
         from harness.repository import Repository
         repository = Repository(self.root)
         before = repository.fingerprint()
         self.write('graphify-out/graph.json', json.dumps({'nodes': [1], 'edges': []}))
-        self.assertNotEqual(before, repository.fingerprint(),
-                            'the graph is committed, so it is part of the tree under review')
+        self.write('graphify-out/GRAPH_REPORT.md', '# rebuilt\n')
+        self.assertEqual(before, repository.fingerprint())

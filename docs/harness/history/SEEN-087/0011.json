@@ -1,0 +1,18 @@
+{
+  "sequence": 11,
+  "ticket": "SEEN-087",
+  "timestamp": "2026-09-23T16:09:17.942893+00:00",
+  "harness_version": "1",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 1,
+  "actor": "claude:reviewer",
+  "head": "2b48275a48ff58e467e0f8f009e5b87ae728ae24",
+  "prev_hash": "149123371d48b1df03fae5c47a2f06c9f6082105d9c509b2981863b87a06545f",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 2,
+    "reason": "The reviewed-tree fingerprint counts graphify-out/, which the post-commit hook rewrites in the background after every commit. Delivery would then refuse every ticket for a change the tool made rather than a person. The graph is derived from the tree, not evidence about it, so it belongs with the journal and the drafts outside the fingerprint."
+  }
+}

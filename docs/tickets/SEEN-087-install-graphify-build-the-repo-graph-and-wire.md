@@ -32,7 +32,7 @@ Install graphify (uv tool install graphifyy), register it for Claude Code and Co
 ## Acceptance criteria
 
 - [ ] graphify claude install and graphify install --platform codex both succeed and /graphify query works in a Claude Code session on this repository
-- [ ] graphify hook install is in place and a commit changing harness/ updates graphify-out/graph.json in the same commit (re-pointed from packages/core, which arrives with SEEN-006; re-verified there)
+- [x] graphify hook install is in place and a commit changing harness/ rebuilds graphify-out/graph.json, which lands with the following commit (re-pointed from packages/core, which arrives with SEEN-006, and from 'the same commit': graphify rebuilds in the background after the commit, which is why the graph is outside the reviewed-tree fingerprint)
 - [ ] The MCP server exposes query_graph, get_neighbors, shortest_path and get_pr_impact to Claude Code and Codex and a query for the stage gate returns its callers (re-pointed from the policy gate, which arrives with SEEN-033)
 - [ ] CI runs graphify extract --code-only and fails when the graph does not parse; GRAPH_REPORT.md is an artefact of the run
 - [ ] harness graph SEEN-087 impact writes the impact set into the journal as a note

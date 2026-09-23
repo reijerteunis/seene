@@ -1,0 +1,28 @@
+{
+  "sequence": 12,
+  "ticket": "SEEN-087",
+  "timestamp": "2026-09-23T16:09:29.686205+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "head": "2b48275a48ff58e467e0f8f009e5b87ae728ae24",
+  "prev_hash": "2d34927ed7d058606d771451b20adc2445c87f6125364f388f62fae953e9af03",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_graph"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "duration_ms": 1206,
+    "output": ".......F.\n======================================================================\nFAIL: test_the_graph_does_not_change_the_reviewed_tree (harness.tests.test_graph.GraphTest.test_the_graph_does_not_change_the_reviewed_tree)\nThe graph is derived from the tree, not evidence about it.\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_graph.py\", line 104, in test_the_graph_does_not_change_the_reviewed_tree\n    self.assertEqual(before, repository.fingerprint())\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: '00a610049e3fc9355bce1a6289d9b8ea6a451804b4699887350577726b000bf0' != 'c40c6e1a8e4b53d075a26e4e5bb8e4c051ff480d3a427b0223bc4a0a23d106ac'\n- 00a610049e3fc9355bce1a6289d9b8ea6a451804b4699887350577726b000bf0\n+ c40c6e1a8e4b53d075a26e4e5bb8e4c051ff480d3a427b0223bc4a0a23d106ac\n\n\n----------------------------------------------------------------------\nRan 9 tests in 1.136s\n\nFAILED (failures=1)\n",
+    "output_sha256": "f1d573ade8264dbc5b50786dcaa7858088a20c4ac1b2f9013cfadf72109d3aef",
+    "output_truncated": false,
+    "before": "306d4409fedf1cef8711441b13f80b9f2184747d1f43f12e150bd96d5e42b4c9",
+    "after": "306d4409fedf1cef8711441b13f80b9f2184747d1f43f12e150bd96d5e42b4c9"
+  }
+}
