@@ -22,7 +22,7 @@ TDD. Work runs in vertical slices. `harness check <ticket> --phase red -- <comma
 
 Review. The review is independent: a different session, and where possible a different model (Codex reviews Claude Code's work and the other way round), reads the solution record, the diff, the journal and the graph impact, and writes findings with file, line, claim and failure scenario. Jev scores each finding (`severity`: low, medium, high, blocking) and answers `must_fix` (noul); findings at or above the policy threshold return the ticket to `tdd` or `solution` with `harness return`, and the return is counted as rework. The security checklist runs here for every ticket: no secret in the diff (gitleaks), no new dependency without lockfile and audit, no live marketplace call in a test, no PII field without the expiry job, no tool without a policy-gate declaration.
 
-Deliver. Commit with the ticket id, push the branch, open the pull request from the template (summary, acceptance criteria checked, RED and GREEN evidence, review findings and resolutions, KPI snapshot), wait for CI, then `harness verify-delivery <ticket>`. It is the deliver stage's own stage gate, not an advance: it checks the commit is on the remote, CI is green for that SHA, the journal has every stage record and the KPI file exists, then appends the receipt record and moves the ticket to `delivered`. The receipt attests the code commit and the reviewed-tree fingerprint, which excludes the journal and the drafts, so the trailing journal-only commit that carries the receipt cannot invalidate it. SEEN-086 ships the offline half (remote, journal, fingerprint); the CI check arrives with SEEN-089 and the KPI check with SEEN-091, and each refuses rather than passes when it cannot be run. A push is not a merge; merge to `main` requires the PR checks and the receipt hash, which is the sha256 of the receipt record file, in the PR body.
+Deliver. Commit with the ticket id, push the branch, open the pull request from the template at `.github/pull_request_template.md` (summary, acceptance criteria checked, RED and GREEN evidence, review findings and resolutions, KPI snapshot), wait for CI, then `harness verify-delivery <ticket>`. It is the deliver stage's own stage gate, not an advance: it checks the commit is on the remote, CI is green for that SHA, the journal has every stage record and the KPI file exists, then appends the receipt record and moves the ticket to `delivered`. The receipt attests the code commit and the reviewed-tree fingerprint, which excludes the journal and the drafts, so the trailing journal-only commit that carries the receipt cannot invalidate it. SEEN-086 ships the offline half (remote, journal, fingerprint); the CI check arrives with SEEN-089 and the KPI check with SEEN-091, and each refuses rather than passes when it cannot be run. A push is not a merge; merge to `main` requires the PR checks and the receipt hash, which is the sha256 of the receipt record file, in the PR body.
 
 ## Tooling
 
@@ -59,24 +59,70 @@ Secrets: gitleaks runs in the pre-commit hook and in CI; `.env.local` is gitigno
 
 | Purpose | Command |
 |---|---|
-| Check the harness, graph and skill copies | `python3 harness/run.py doctor` |
+| Check the harness, the journals, the hooks and the links | `python3 harness/run.py doctor` |
 | Start a ticket | `python3 harness/run.py start SEEN-042 --ticket docs/tickets/SEEN-042-....md --actor claude:implementer` |
 | Where am I | `python3 harness/run.py status SEEN-042` |
 | Read the journal | `python3 harness/run.py history SEEN-042 [--kind note]` |
-| Draft the current stage record | `python3 harness/run.py draft SEEN-042` |
-| Record a decision, question or handoff | `python3 harness/run.py note SEEN-042 --file note.md --actor claude:implementer` |
-| Run and record a check | `python3 harness/run.py check SEEN-042 --phase red -- pnpm test --filter core` |
-| Pass a stage gate | `python3 harness/run.py advance SEEN-042 --file solution.json --actor claude:implementer` |
-| Ask the graph | `python3 harness/run.py graph SEEN-042 impact` (wraps graphify query, path, explain, prs) |
-| Ask Jev a typed question on the record | `python3 harness/run.py decide SEEN-042 --question risk` |
+| Draft the current stage record | `python3 harness/run.py draft SEEN-042 [--non-code]` |
+| Record a decision, question or handoff | `python3 harness/run.py note SEEN-042 --file .harness-drafts/note.md --actor claude:implementer` |
+| Run and record a check | `python3 harness/run.py check SEEN-042 --phase red --actor claude:implementer -- pnpm test --filter core` |
+| Measure coverage on the gated package | `python3 harness/run.py coverage SEEN-042 --actor claude:implementer` |
+| Pass a stage gate | `python3 harness/run.py advance SEEN-042 --file .harness-drafts/SEEN-042-solution.json --actor claude:implementer` |
+| Ask the graph | `python3 harness/run.py graph SEEN-042 impact --about "policy gate" --actor claude:implementer` |
+| Ask Jev a typed question | `python3 harness/run.py decide SEEN-042 --question risk --actor claude:implementer` |
 | Route a finding back | `python3 harness/run.py return SEEN-042 --to tdd --reason "..." --actor codex:reviewer` |
-| Confirm delivery | `python3 harness/run.py verify-delivery SEEN-042` |
-| Weekly or sprint KPI report | `python3 harness/run.py report --week` or `--sprint 2` |
-| Sync the skill copies | `python3 harness/run.py sync` |
+| Void a receipt before merge | `python3 harness/run.py reopen SEEN-042 --reason "..." --actor codex:reviewer` |
+| Confirm delivery | `python3 harness/run.py verify-delivery SEEN-042 --file .harness-drafts/SEEN-042-deliver.json --actor claude:implementer` |
+| Check the receipt still describes what merges | `python3 harness/run.py verify-merge SEEN-042` |
+| Weekly or sprint report | `python3 harness/run.py report --week` or `--sprint 0` |
+| Refuse live marketplace hosts in test code | `python3 harness/run.py lint` |
+| Generate the skill copies | `python3 harness/run.py sync` |
+| Remove an uncommitted journal | `python3 harness/run.py discard SEEN-042 --reason "..." --confirm SEEN-042 --actor human:implementer` |
+
+Every writing command refuses unless the branch is `claude/<ticket>-…` or `codex/<ticket>-…`, and
+refuses on `main` or a detached HEAD.
 
 ## Repository layout
 
-`harness/run.py` and `harness/*.py` (Python 3.12, standard library plus `tomllib`, no framework), `harness/thresholds.toml` (thresholds, checklists, allowed commands), `harness/templates/` (one JSON per stage), `harness/tests/` (unittest, run in CI), `docs/harness/skill.md` (the single maintained skill), `docs/harness/workflow.md` (this document, kept in step), `docs/harness/history/<ticket>/` (journal), `docs/harness/reports/` (KPI reports), `graphify-out/` (graph, report, committed), `.harness-drafts/` (gitignored working copies).
+`harness/run.py` and `harness/*.py` (Python 3.12 floor, standard library only): `cli`, `journal`,
+`gates`, `checks`, `coverage`, `delivery`, `github`, `graph`, `jev`, `kpi`, `report`, `secrets`,
+`skills`, `doctor`, `repository`, `thresholds`, `paths`, `errors`, `cost`. Beside them
+`harness/thresholds.toml` (numbers and vocabularies), `harness/templates/` (one JSON per stage plus
+the non-code variant), and `harness/tests/`.
+
+In the repository: `docs/harness/skill.md` (the single maintained skill, generated into
+`.claude/skills/seen-harness/` and `.agents/skills/seen-harness/`), `docs/harness/workflow.md` (this
+document), `docs/harness/history/<ticket>/` (journals, with `kpi.json` and `attachments/` beside the
+records), `docs/harness/reports/` (weekly and sprint reports), `docs/harness/coverage.json` (the last
+delivered figure), `docs/harness/discarded.jsonl` (what the harness removed), `graphify-out/` (the
+committed graph), `.githooks/pre-commit` (gitleaks), and `.harness-drafts/` (gitignored, where stage
+evidence is authored).
+
+The journal, the drafts, the graph, the reports and the coverage baseline are outside the
+reviewed-tree fingerprint: recording evidence about a tree must not change that tree.
+
+## What the building of it settled
+
+Ten tickets built this harness on 23 and 24 September 2026, and five conventions came out of the work
+rather than the plan.
+
+**Amend a criterion rather than deliver it with an asterisk.** Four tickets met a criterion that could
+not be met as written: branch protection on a free plan, `packages/core` before the monorepo existed,
+migrations before a database, a pull request template that `gh pr create` bypasses. Each was amended
+in the ticket with the reason. The clarify gate refuses a record that defers instead of resolving.
+
+**The Outcome is written before review**, because the fingerprint covers the ticket file.
+
+**Evidence is authored in `.harness-drafts/`**, for the same reason.
+
+**A receipt is final when the work is merged**, not when it is written. `reopen` voids one before a
+merge; after a merge it refuses, because a merged receipt is history.
+
+**The gates are calibrated on measurements, not taste.** `clarified` holds at 0.8, which it reaches
+when a record genuinely resolves what the ticket asks. `solution_complete` moved to 0.6 on five
+measurements across two tickets, recorded beside the value in `thresholds.toml`. A ticket whose
+solution record cannot be judged complete is usually a ticket doing too many things: SEEN-089 scored
+0.49 covering seven enforcements and 0.67 covering one, and was split.
 
 ## Tickets
 

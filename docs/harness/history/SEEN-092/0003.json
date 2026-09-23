@@ -1,0 +1,15 @@
+{
+  "sequence": 3,
+  "ticket": "SEEN-092",
+  "timestamp": "2026-09-23T22:24:56.935336+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "1d9c678914fbaad5aa7b5140048d1a693fe3f7d1",
+  "prev_hash": "ab0136c1078de3861dbeaac0057de67d82bdc4eafee834fe1c3a4628d99c3f7f",
+  "data": {
+    "text": "# Where a skill lives, and what it must carry\n\nEstablished on this machine, 24 September 2026, from the two skills already installed.\n\n**Shape.** A skill is a Markdown file whose YAML frontmatter carries `name` and `description`, and the\ndescription is what an assistant reads when deciding whether the skill applies. graphify's and\n`grill-with-docs` both follow it; the harness skill will too.\n\n**Claude Code** reads `~/.claude/skills/<name>/SKILL.md` for a personal skill and\n`.claude/skills/<name>/SKILL.md` inside a project for a project one. The project path is what this\nticket writes, because the harness belongs to this repository rather than to a machine.\n\n**Codex** reads `~/.codex/skills/<name>/SKILL.md`: that is where `graphify install --platform codex`\nput its copy, outside any repository. The project-level `.agents/skills/seen-harness/SKILL.md` the\nworkflow document names is therefore a copy Codex does not read by itself.\n\nThat is a real gap between the plan and how the tools work, and it has two honest answers. `sync`\nwrites the project copy at `.agents/skills/seen-harness/SKILL.md`, which is versioned with the\nrepository and is what a reviewer reads, and it also writes `~/.codex/skills/seen-harness/SKILL.md`\nwhen that directory exists, which is what Codex actually loads. The second is outside the repository\nso it cannot be committed, and `doctor` checks the drift of the committed copies only: a machine's\nown installation is that machine's business, and a self-check that failed on someone else's laptop\nconfiguration would be noise.\n"
+  }
+}

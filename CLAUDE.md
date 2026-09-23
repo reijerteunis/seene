@@ -29,7 +29,11 @@ Every ticket runs through the Seen harness (`docs/harness/workflow.md`): five st
 
 After cloning, wire up the git hooks once: `git config core.hooksPath .githooks`. The pre-commit hook runs gitleaks on staged changes, and `doctor` refuses until it is set.
 
-Harness commands, once SEEN-086 has landed: `python3 harness/run.py doctor | start | status | history | draft | note | check | advance | graph | decide | return | verify-delivery | report | sync`. Leftover from the previous project until SEEN-092 removes them: `.claude/skills/seene-harness` and `.claude/settings.json` reference a `harness/run.py` from Seene that no longer exists in this tree; ignore them.
+Harness commands: `python3 harness/run.py doctor | start | status | history | draft | note | check |
+coverage | advance | graph | decide | return | reopen | verify-delivery | verify-merge | report |
+lint | sync | discard | list`. Every writing command refuses unless the branch is
+`claude/<ticket>-…` or `codex/<ticket>-…`. The skill both assistants read is generated from
+`docs/harness/skill.md` by `sync`, and `doctor` refuses when a copy has been edited by hand.
 
 ## Index of docs/
 

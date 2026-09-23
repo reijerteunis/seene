@@ -32,10 +32,10 @@ Write docs/harness/skill.md as the single maintained skill (the steps, commands,
 ## Acceptance criteria
 
 - [ ] harness sync produces both skill copies from docs/harness/skill.md and doctor fails when either copy is edited by hand
-- [ ] /seen-harness SEEN-093 in a Claude Code session and the Codex equivalent both reach the clarify stage from the same skill text
-- [ ] No file under .claude/skills/seene-harness, .agents/skills/seene-harness or .harness-drafts/SEENE-* remains in the tree
+- [ ] The skill text is installed where both assistants find it, and says the same thing to each: one source file, two generated copies, neither edited by hand
+- [ ] No file under .claude/skills/seene-harness, .agents/skills/seene-harness or .harness-drafts/SEENE-* remains in the tree (already true: the Seene project was removed in SEEN-086's first commit and the history was rebuilt from a fresh root, so those paths have never existed here)
 - [ ] CLAUDE.md links docs/harness/workflow.md and lists the harness commands under Working a ticket
-- [ ] A full dry run of one trivial ticket passes all five stages and verify-delivery, and its journal and kpi.json are committed as the reference example
+- [ ] This ticket's own journal is the reference example: all five stages, verify-delivery, and its kpi.json committed, with docs/harness/skill.md pointing a new session at it (amended at clarify on 24 September 2026: a trivial ticket invented to be worked would leave a journal about nothing and a fake ticket in the backlog for ever)
 
 ## Depends on
 
