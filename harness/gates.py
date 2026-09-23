@@ -189,6 +189,11 @@ def _review(data, records, current, repository, thresholds):
                 f'Finding {finding["id"]} is {finding["status"]}; resolve every finding or '
                 'return the ticket, and do not relabel it')
         require(_filled(finding.get('resolution')), f'Finding {finding["id"]} is missing resolution')
+    if _needs_two_reviewers(records):
+        require(_filled(data.get('second_reviewer')),
+                'This change touches billing or the policy gate, so the review needs a '
+                'second_reviewer and a security checklist')
+        require(data.get('security_checklist'), 'The security checklist must be answered')
     require(data['independence'] in ('independent', 'self-review'),
             'Disclose independence as independent or self-review')
     if data['independence'] == 'independent':
@@ -200,6 +205,15 @@ def _review(data, records, current, repository, thresholds):
 
 
 GATES = {'clarify': _clarify, 'solution': _solution, 'tdd': _tdd, 'review': _review}
+
+
+def _needs_two_reviewers(records):
+    for record in reversed(records):
+        if record['kind'] == 'advance' and record['data'].get('from_stage') == 'solution':
+            return any(decision['question'] == 'touches_billing_or_policy_gate'
+                       and decision['outcome'] == 'yes'
+                       for decision in record['data'].get('decisions', []))
+    return False
 
 
 def evaluate(stage, data, records, current, repository, thresholds):

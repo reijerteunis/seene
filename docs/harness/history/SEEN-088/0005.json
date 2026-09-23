@@ -1,0 +1,55 @@
+{
+  "sequence": 5,
+  "ticket": "SEEN-088",
+  "timestamp": "2026-09-23T18:28:50.923774+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "solution",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "3097b6ccd6fadf8a7c8d4f366746db9e27aba6d9",
+  "prev_hash": "3faba15abe304e94b2fd9f57b59a65d42a0e1774e75b1145b35b457eede11e76",
+  "data": {
+    "from_stage": "solution",
+    "to_stage": "tdd",
+    "evidence": {
+      "approach": "harness/jev.py holds the typed questions, the transport and the fallback. A question is a small structure in code (name, type, options, the stage it belongs to); its threshold is in thresholds.toml. ask() returns one answer shape whatever answered it, carrying source (jev or human), the probabilities, the threshold and the outcome, and cli.decide appends that as a decision record. The transport is a seam: one function that posts JSON, replaced wholesale in tests, so the live contract can be finished when a valid credential exists without touching anything else. On advance, the questions belonging to that stage are asked automatically when a credential exists; with none, advance requires the answers already recorded for this stage and attempt and names the command that records them, so a missing judgement is never filled in silently.",
+      "changes": [
+        "harness/jev.py: new, the questions, the transport seam, the human fallback and the answer shape",
+        "harness/cli.py: the decide subcommand, and advance asking the questions its stage owns",
+        "harness/gates.py: the clarify gate refuses below the clarified threshold; the review gate requires a second reviewer when the solution recorded touches_billing_or_policy_gate as yes",
+        "harness/paths.py: the decision record kind",
+        "harness/thresholds.toml: the jev section, the endpoint, the model and the four thresholds",
+        "harness/tests/test_decisions.py: new, the whole layer against a stub transport",
+        ".env.local: the credential, gitignored, read before the environment"
+      ],
+      "migrations": [],
+      "tests_first": [
+        "A jev answer becomes a decision record carrying model, question, probabilities, threshold and outcome: the RED must fail on there being no jev module",
+        "With no credential the answer comes from the human and the record says source human, rather than the command failing: the RED must fail because the missing credential raises",
+        "No decision record contains the credential or the value of any environment variable, even when the transport echoes them back: the RED must fail because the raw response is stored",
+        "advance from clarify is refused when clarified is below the threshold, and the refusal names the question and the probability: the RED must fail because advance ignores decisions",
+        "advance from solution carries touches_billing_or_policy_gate into the review stage, where the gate then requires a second reviewer and a non-empty security checklist: the RED must fail because the review gate does not read the solution's decisions",
+        "A threshold comes from thresholds.toml rather than the code: the RED must fail on the jev section not existing"
+      ],
+      "alternatives": [
+        "Prompting on stdin whenever there is no credential, rejected because the harness usually runs without a terminal and would hang; it prompts when it has a terminal and otherwise names the command to run",
+        "Letting advance answer its own questions from the evidence file, rejected because the session would then be recording its own judgement as the human's",
+        "Holding the question definitions in thresholds.toml, rejected by the admission rule: their structure is what the harness is, only the numbers are tunable"
+      ],
+      "risks": [
+        "The live contract is unverified, so the response parser is written against a shape nobody has seen; mitigated by isolating it in one function, by every test using a stub, and by the journal recording that the live path is unverified",
+        "A credential could reach a record through an echoed error body; mitigated by building the record from an explicit field list and by a test that asserts no environment value appears in it",
+        "Jev could become a rubber stamp if a session both asks and answers; mitigated by the actor on every decision record and by the human fallback never being auto-answered"
+      ],
+      "rollback": "Revert the commit. The decision layer is additive: without it the stage gates behave exactly as they do today.",
+      "new_dependencies": [],
+      "tenant_tables": [
+        "none"
+      ],
+      "buyer_pii": "none",
+      "policy_gate_action": null
+    },
+    "decisions": []
+  }
+}

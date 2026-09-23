@@ -231,7 +231,10 @@ class AdvanceTest(CommandTest):
         self.assertEqual(record['kind'], 'advance')
         self.assertEqual(record['stage'], 'clarify')
         self.assertEqual(record['data']['to_stage'], 'solution')
-        self.assertEqual(record['data']['decisions'], [])
+        self.assertEqual([d['question'] for d in record['data']['decisions']],
+                         ['clarified', 'risk'])
+        self.assertEqual({d['source'] for d in record['data']['decisions']}, {'unavailable'},
+                         'with no credential the judgement is recorded as not made')
         self.assertEqual(self.run_harness('status', self.ticket_id)['stage'], 'solution')
 
     def test_a_refused_advance_leaves_no_record(self):

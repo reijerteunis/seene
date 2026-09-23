@@ -15,7 +15,7 @@ import shutil
 import subprocess
 import sys
 
-from . import checks, doctor, gates, graph as graph_module, journal, thresholds
+from . import checks, doctor, gates, graph as graph_module, jev, journal, thresholds
 from .errors import HarnessError, require
 from .paths import (DRAFTS, HISTORY, KINDS, LOCK, NON_CODE_TEMPLATE, STAGES, TEMPLATES,
                     TEMPLATE_FOR_STAGE, WORKING_STAGES)
@@ -23,10 +23,14 @@ from .repository import Repository
 
 DEFAULT_ROOT = Path(__file__).resolve().parents[1]
 TICKET_COMMANDS = ('start', 'status', 'history', 'draft', 'note', 'check', 'advance',
-                   'return', 'graph', 'reopen', 'verify-delivery')
-WRITING_COMMANDS = ('start', 'note', 'check', 'advance', 'return', 'graph', 'reopen',
+                   'return', 'graph', 'decide', 'reopen', 'verify-delivery')
+WRITING_COMMANDS = ('start', 'note', 'check', 'advance', 'return', 'graph', 'decide', 'reopen',
                     'verify-delivery')
 BRANCH = re.compile(r'^(claude|codex)/(?P<ticket>[A-Z]+-\d+)-')
+
+# The questions that can refuse an advance. The others inform rather than block.
+BLOCKING = {'clarify': ('clarified',), 'solution': ('solution_complete',),
+            'tdd': (), 'review': ('must_fix',), 'deliver': ()}
 
 NEXT_COMMAND = {
     'clarify': 'harness draft <ticket>, fill in the scope and the acceptance checks, '
@@ -83,6 +87,13 @@ def build_parser():
     back.add_argument('--to', required=True)
     back.add_argument('--reason', required=True)
     back.add_argument('--actor', required=True)
+
+    decide = ticket_command('decide', 'Ask Jev a typed question on the record and keep the answer')
+    decide.add_argument('--question', required=True, help=', '.join(sorted(jev.QUESTIONS)))
+    decide.add_argument('--answer', help='The human answer, when there is no credential')
+    decide.add_argument('--confidence', type=float, default=1.0,
+                        help='How sure the human is, 0 to 1 (default 1.0)')
+    decide.add_argument('--actor', required=True)
 
     graph = ticket_command('graph', 'Ask the knowledge graph and record the answer')
     graph.add_argument('mode', help='impact, path, explain or prs')
@@ -207,7 +218,9 @@ def draft(repository, records, args):
     require(not target.exists(),
             f'A draft already exists; edit or delete it: {target.relative_to(repository.root)}')
     target.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(source, target)
+    content = json.loads(source.read_text())
+    content.update(extra_review_fields(records, stage))
+    target.write_text(json.dumps(content, indent=2, ensure_ascii=False) + '\n')
     current = journal.state(records)
     available = [dict(record=record['sequence'], phase=record['data']['phase'],
                       exit_code=record['data']['exit_code'], command=record['data']['command'])
@@ -222,6 +235,36 @@ def draft(repository, records, args):
                          'to advance. Unchanged template text counts as a missing answer.')
 
 
+def decide(repository, folder, records, args, current, rules):
+    """Ask one typed question about this ticket and keep the answer."""
+    answer = jev.ask(repository.root, rules, args.question, state_for(records, current),
+                     args.answer, args.confidence)
+    return journal.append(folder, records, kind='decision', stage=current['stage'],
+                          attempt=current['attempt'], actor=args.actor,
+                          head=repository.head(), ticket=args.ticket, data=answer)
+
+
+def state_for(records, current, evidence=None):
+    """What Jev is given to judge: the ticket, the stage and the record at hand.
+
+    Internal working text only. No credential is in it, and nothing is read from
+    the environment to build it.
+    """
+    return dict(ticket=records[0]['data']['ticket_id'] if 'ticket_id' in records[0]['data']
+                else records[0]['ticket'],
+                stage=current['stage'],
+                attempt=current['attempt'],
+                ticket_text=records[0]['data']['ticket_snapshot'],
+                record=evidence if evidence is not None else _latest_evidence(records))
+
+
+def _latest_evidence(records):
+    for record in reversed(records):
+        if record['kind'] == 'advance':
+            return record['data']['evidence']
+    return {}
+
+
 def graph(repository, folder, records, args, current, rules):
     """Ask the graph and keep the answer, as a note at the current stage.
 
@@ -232,6 +275,31 @@ def graph(repository, folder, records, args, current, rules):
     return journal.append(folder, records, kind='note', stage=current['stage'],
                           attempt=current['attempt'], actor=args.actor,
                           head=repository.head(), ticket=args.ticket, data=evidence)
+
+
+def extra_review_fields(records, stage):
+    """What a review must answer beyond the template, given the solution's decisions.
+
+    A change that touches billing or the policy gate is reviewed twice and
+    against the security checklist, so the draft asks for both rather than
+    leaving a reviewer to remember.
+    """
+    if stage != 'review':
+        return {}
+    for record in reversed(records):
+        if record['kind'] == 'advance' and record['data'].get('from_stage') == 'solution':
+            for decision in record['data'].get('decisions', []):
+                if (decision['question'] == 'touches_billing_or_policy_gate'
+                        and decision['outcome'] == 'yes'):
+                    return {'second_reviewer': 'The second reviewer, tool:role. Required because '
+                                               'this change touches billing or the policy gate.',
+                            'security_checklist': [
+                                'No secret in the diff',
+                                'No new dependency without a lockfile entry and an audit',
+                                'No live marketplace call in a test',
+                                'No PII field without its expiry job',
+                                'No tool without a policy-gate declaration']}
+    return {}
 
 
 def note(repository, folder, records, args, current):
@@ -275,16 +343,67 @@ def read_evidence(repository, relative):
         raise HarnessError(f'Stage evidence is not valid JSON: {error}')
 
 
+def recorded_decisions(records, stage, attempt):
+    """Decisions already taken for this stage and this attempt, latest per question."""
+    taken = {}
+    for record in records:
+        if (record['kind'] == 'decision' and record['stage'] == stage
+                and record['attempt'] == attempt):
+            taken[record['data']['question']] = record['data']
+    return taken
+
+
+def stage_decisions(repository, records, args, current, rules, evidence):
+    """Every question this stage owns, answered once.
+
+    An answer already recorded for this stage and attempt is reused rather than
+    asked again. Without a credential the harness refuses and names the command
+    that records a human answer, because a judgement nobody made is not one.
+    """
+    stage = current['stage']
+    taken = recorded_decisions(records, stage, current['attempt'])
+    answers = []
+    for name in jev.questions_for(stage):
+        if name in taken:
+            answers.append(taken[name])
+            continue
+        if not jev.credential(repository.root):
+            answers.append(jev.unavailable(
+                name, jev.QUESTIONS[name],
+                f'No Jev credential. Record a human answer with: harness decide {args.ticket} '
+                f'--question {name} --answer <option> --confidence <0 to 1> '
+                f'--actor {args.actor}'))
+            continue
+        answers.append(jev.ask(repository.root, rules, name,
+                               state_for(records, current, evidence)))
+    return answers
+
+
+def require_decisions_pass(stage, answers):
+    """Refuse an advance a decision did not clear, naming what it judged on."""
+    for answer in answers:
+        if answer['passed'] is False and answer['question'] in BLOCKING.get(stage, ()):
+            probability = answer['probabilities'].get(
+                'yes', answer['probabilities'].get(answer['outcome'], 0.0))
+            raise HarnessError(
+                f'The {answer["question"]} question did not clear its threshold: '
+                f'{probability} against {answer["threshold"]}, answered {answer["outcome"]!r} '
+                f'by {answer["source"]}. Resolve what is still open, record a note saying how, '
+                f'then advance again')
+
+
 def advance(repository, folder, records, args, current, rules):
     stage = current['stage']
     data = read_evidence(repository, args.file)
     data.update(gates.evaluate(stage, data, records, current, repository, rules))
+    answers = stage_decisions(repository, records, args, current, rules, data)
+    require_decisions_pass(stage, answers)
     next_stage = STAGES[STAGES.index(stage) + 1]
     record = journal.append(folder, records, kind='advance', stage=stage,
                             attempt=current['attempt'], actor=args.actor,
                             head=repository.head(), ticket=args.ticket,
                             data=dict(from_stage=stage, to_stage=next_stage, evidence=data,
-                                      decisions=[]))
+                                      decisions=answers))
     discard_draft(repository, args.ticket, stage)
     return record
 
@@ -394,7 +513,7 @@ def execute(args):
             return delivery.verify(repository, folder, records, args, current)
         require(current['stage'] in WORKING_STAGES,
                 f'{args.ticket} is {current["stage"]}; open a follow-up ticket for further work')
-        handlers = dict(note=note, check=check, advance=advance, graph=graph)
+        handlers = dict(note=note, check=check, advance=advance, graph=graph, decide=decide)
         handlers['return'] = go_back
         handler = handlers[args.command]
         if handler is note:
