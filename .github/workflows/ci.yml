@@ -26,6 +26,12 @@ jobs:
       - name: Harness tests
         run: python3 -m unittest discover -s harness/tests -v
 
+      # core.hooksPath is a per-clone setting, so a fresh checkout has none and
+      # doctor rightly says so. Setting it here is the same single command a
+      # person runs after cloning.
+      - name: Wire up the git hooks
+        run: git config core.hooksPath .githooks
+
       - name: Harness self-check
         run: python3 harness/run.py doctor
 

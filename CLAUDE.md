@@ -27,6 +27,8 @@ Every ticket runs through the Seen harness (`docs/harness/workflow.md`): five st
 6. Human tickets (executor `human`) are registrations, verifications against a live account and real-data runs. Do them with Ruud, record the outcome in the ticket file under a `## Outcome` heading, and never invent API facts a verification ticket was meant to establish.
 7. When a ticket changes an agent action (`changes_agent_action: true`), the tool must declare reversibility, action type and a euro impact estimator, and the gate decision must be written to `agent_actions` and `audit_events` before execution.
 
+After cloning, wire up the git hooks once: `git config core.hooksPath .githooks`. The pre-commit hook runs gitleaks on staged changes, and `doctor` refuses until it is set.
+
 Harness commands, once SEEN-086 has landed: `python3 harness/run.py doctor | start | status | history | draft | note | check | advance | graph | decide | return | verify-delivery | report | sync`. Leftover from the previous project until SEEN-092 removes them: `.claude/skills/seene-harness` and `.claude/settings.json` reference a `harness/run.py` from Seene that no longer exists in this tree; ignore them.
 
 ## Index of docs/
