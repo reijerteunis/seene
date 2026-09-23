@@ -15,7 +15,7 @@ import shutil
 import subprocess
 import sys
 
-from . import checks, doctor, gates, graph as graph_module, jev, journal, thresholds
+from . import checks, coverage as coverage_module, doctor, gates, graph as graph_module, jev, journal, thresholds
 from .errors import HarnessError, require
 from .paths import (DRAFTS, HISTORY, KINDS, LOCK, NON_CODE_TEMPLATE, STAGES, TEMPLATES,
                     TEMPLATE_FOR_STAGE, WORKING_STAGES)
@@ -23,8 +23,9 @@ from .repository import Repository
 
 DEFAULT_ROOT = Path(__file__).resolve().parents[1]
 TICKET_COMMANDS = ('start', 'status', 'history', 'draft', 'note', 'check', 'advance',
-                   'return', 'graph', 'decide', 'reopen', 'verify-delivery')
-WRITING_COMMANDS = ('start', 'note', 'check', 'advance', 'return', 'graph', 'decide', 'reopen',
+                   'return', 'graph', 'decide', 'coverage', 'reopen', 'verify-delivery')
+WRITING_COMMANDS = ('start', 'note', 'check', 'advance', 'return', 'graph', 'decide', 'coverage',
+                    'reopen',
                     'verify-delivery')
 BRANCH = re.compile(r'^(claude|codex)/(?P<ticket>[A-Z]+-\d+)-')
 
@@ -94,6 +95,10 @@ def build_parser():
     back.add_argument('--reason', required=True)
     back.add_argument('--actor', required=True)
 
+    measure = ticket_command('coverage', 'Measure coverage on the gated package and record the delta')
+    measure.add_argument('--actor', required=True)
+    measure.add_argument('--timeout', type=int, help='Seconds before the command is stopped')
+
     decide = ticket_command('decide', 'Ask Jev a typed question on the record and keep the answer')
     decide.add_argument('--question', required=True, help=', '.join(sorted(jev.QUESTIONS)))
     decide.add_argument('--answer', help='The human answer, when there is no credential')
@@ -124,9 +129,10 @@ def build_parser():
 def parse(argv):
     parser = build_parser()
     known, extra = parser.parse_known_args(argv)
-    if known.command == 'check':
-        require(extra and extra[0] == '--', 'Put the check command after --')
-        known.argv = extra[1:]
+    if known.command in ('check', 'coverage'):
+        require(extra and extra[0] == '--' or known.command == 'coverage',
+                'Put the check command after --')
+        known.argv = extra[1:] if extra else []
     else:
         require(not extra, f'Unrecognised arguments: {" ".join(extra)}')
     return known
@@ -241,6 +247,19 @@ def draft(repository, records, args):
                          'to advance. Unchanged template text counts as a missing answer.')
 
 
+def coverage(repository, folder, records, args, current, rules):
+    """Measure the gated package and record what it is against what it was."""
+    require(current['stage'] == 'tdd', 'Coverage is measured at the tdd stage')
+    limits = rules['checks']
+    command = list(getattr(args, 'argv', None) or coverage_module.DEFAULT_COMMAND)
+    evidence = checks.run(repository, command, 'coverage',
+                          args.timeout or limits['default_timeout_seconds'],
+                          limits['output_limit_bytes'])
+    return journal.append(folder, records, kind='check', stage='tdd', attempt=current['attempt'],
+                          actor=args.actor, head=repository.head(), ticket=args.ticket,
+                          data=coverage_module.compare(repository.root, evidence))
+
+
 def decide(repository, folder, records, args, current, rules):
     """Ask one typed question about this ticket and keep the answer."""
     answer = jev.ask(repository.root, rules, args.question, state_for(records, current),
@@ -328,9 +347,17 @@ def check(repository, folder, records, args, current, rules):
     require(0 < timeout <= limits['maximum_timeout_seconds'],
             f'A check timeout must be between 1 and {limits["maximum_timeout_seconds"]} seconds')
     evidence = checks.run(repository, args.argv, phase, timeout, limits['output_limit_bytes'])
-    return journal.append(folder, records, kind='check', stage=stage, attempt=current['attempt'],
-                          actor=args.actor, head=repository.head(), ticket=args.ticket,
-                          data=evidence)
+    record = journal.append(folder, records, kind='check', stage=stage, attempt=current['attempt'],
+                            actor=args.actor, head=repository.head(), ticket=args.ticket,
+                            data=evidence)
+    # The run is recorded either way, because it happened. What is refused is the
+    # claim that it was a RED, which an exit code of zero contradicts and which a
+    # timeout or a failure to start cannot support.
+    require(phase != 'red' or checks.demonstrates_failure(evidence),
+            f'Recorded as check {record["sequence"]}, but this RED did not fail: the command exited '
+            f'{evidence["exit_code"]}. A RED is a test failing for the reason the solution record '
+            'predicted, not a command that passed, timed out or could not start')
+    return record
 
 
 def read_evidence(repository, relative):
@@ -402,8 +429,12 @@ def require_decisions_pass(stage, answers):
             continue
         probability = answer['probabilities'].get(
             'yes', answer['probabilities'].get(answer['outcome'], 0.0))
+        # The message says what happened. Printing the rule's own word made a
+        # decision that failed read as one that cleared, which is the opposite
+        # of what a refusal is for.
+        happened = 'did not clear' if sense == 'clears' else 'cleared'
         raise HarnessError(
-            f'The {answer["question"]} question {sense} its threshold: {probability} against '
+            f'The {answer["question"]} question {happened} its threshold: {probability} against '
             f'{answer["threshold"]}, answered {answer["outcome"]!r} by {answer["source"]}. '
             f'Resolve what is still open, record a note saying how, then advance again')
 
@@ -529,7 +560,8 @@ def execute(args):
             return delivery.verify(repository, folder, records, args, current)
         require(current['stage'] in WORKING_STAGES,
                 f'{args.ticket} is {current["stage"]}; open a follow-up ticket for further work')
-        handlers = dict(note=note, check=check, advance=advance, graph=graph, decide=decide)
+        handlers = dict(note=note, check=check, advance=advance, graph=graph, decide=decide,
+                        coverage=coverage)
         handlers['return'] = go_back
         handler = handlers[args.command]
         if handler is note:

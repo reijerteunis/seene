@@ -1,0 +1,100 @@
+{
+  "sequence": 10,
+  "ticket": "SEEN-089",
+  "timestamp": "2026-09-23T19:40:50.790973+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "solution",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "3d52307f9d4de31bf2872b6c06bea83b914ac4be",
+  "prev_hash": "c88de6984724e35892f7e0f720f157cea351744a1efa44d045bd38c7feb0d33c",
+  "data": {
+    "from_stage": "solution",
+    "to_stage": "tdd",
+    "evidence": {
+      "approach": "Two enforcements and one message, each beside the thing it judges.\n\nThe RED rule: checks.py gains demonstrates_failure, which is true only for an exit code between 1 and 123. cli.check appends the record and then refuses when a red did not fail, so the run stays in the journal and the claim does not, and gates.py requires every cited red to demonstrate a failure rather than merely carry the label.\n\nThe coverage gate: `harness coverage <ticket> --actor <actor>` is its own command, not a check phase, because it does one fixed thing rather than running whatever it is handed. It shells out to `pnpm --filter @seen/core test -- --coverage.enabled --coverage.reporter=json-summary`, reads packages/core/coverage/coverage-summary.json, takes lines.pct, compares it with the packages['@seen/core'] entry in docs/harness/coverage.json, and appends a check record of phase coverage carrying both figures and the delta. A missing entry means no baseline, so the delta is null and the gate passes: a first measurement is not a regression. verify-delivery writes the measured figure back to docs/harness/coverage.json as the new baseline, so the file only ever moves on a delivery, and it is committed with the receipt. The tdd gate requires exactly one coverage record for the stage and attempt, and refuses a delta below zero, naming both figures.\n\nThe message: a blocking decision that did not clear currently prints the rule's own word and reads as though it had. The message is built from what happened rather than from the sense string.",
+      "changes": [
+        "harness/checks.py: demonstrates_failure, and the exit codes that prove nothing (0 is not a failure, 124 is a timeout, 127 could not start)",
+        "harness/cli.py: check appends then refuses a red that did not fail; the coverage subcommand; the corrected refusal message",
+        "harness/coverage.py: new, runs the coverage command, reads coverage-summary.json, computes the delta against the baseline and returns the record",
+        "harness/gates.py: each cited red must demonstrate a failure; the tdd gate requires one coverage record for the attempt with a non-negative delta",
+        "harness/delivery.py: writes the measured coverage back to docs/harness/coverage.json at delivery",
+        "docs/harness/coverage.json: new, one line-coverage figure per gated package, moved only by a delivery",
+        "packages/core/package.json: @vitest/coverage-v8 and the coverage reporter configuration",
+        "harness/tests/test_enforcement.py: new, one test per refusal, with the coverage command stubbed by a fixture summary file"
+      ],
+      "migrations": [],
+      "tests_first": [
+        "harness check --phase red on a command exiting 0 appends the record and refuses, naming that the RED did not fail: the RED must fail because the command succeeds quietly today",
+        "A red that timed out is not RED evidence: the RED must fail because only exit 0 is rejected",
+        "advance from tdd is refused when a slice cites a red that passed: the RED must fail because the gate checks only phase and order",
+        "advance from tdd is refused without a coverage record for the attempt, and when the delta is negative, naming the figure: the RED must fail because coverage is not read at all",
+        "A first measurement with no baseline records a null delta and passes: the RED must fail because a missing baseline raises",
+        "A blocking decision that did not clear says so rather than saying it cleared: the RED must fail on the message reading 'clears its threshold'"
+      ],
+      "alternatives": [
+        "Refusing without recording, rejected because the run happened and a journal that drops inconvenient facts is not evidence",
+        "Judging a RED by its output text, rejected as brittle across runners",
+        "Making coverage a check phase that runs whatever it is handed, rejected because the figure must come from one known command or the delta compares different things",
+        "Keeping the baseline in the journal rather than a file, rejected because a delta needs the last delivered figure across tickets, and searching every journal for it is slower and less obvious than one committed file"
+      ],
+      "risks": [
+        "Applying the rule retroactively would invalidate recorded evidence; it applies from this commit forward",
+        "The baseline file can be edited to make a delta look fine; mitigated by it being one small committed file, moved only at delivery, and read in the same diff a reviewer sees",
+        "Coverage on packages/core is meaningful only while it holds real code; today it holds cents arithmetic, which is exactly the kind of thing the floor is for"
+      ],
+      "rollback": "Revert the commit; recording is unchanged and existing journals stay valid.",
+      "new_dependencies": [
+        "@vitest/coverage-v8 for packages/core"
+      ],
+      "tenant_tables": [
+        "none"
+      ],
+      "buyer_pii": "none",
+      "policy_gate_action": null
+    },
+    "decisions": [
+      {
+        "question": "solution_complete",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "human",
+        "model": null,
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.85,
+          "no": 0.0
+        },
+        "confidence": 0.85,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "question": "touches_billing_or_policy_gate",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.07,
+          "no": 0.93
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

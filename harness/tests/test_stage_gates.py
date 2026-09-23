@@ -13,10 +13,19 @@ from harness.repository import Repository
 from harness.tests.helpers import ProjectTest
 
 
-def check_record(sequence, phase, stage='tdd', attempt=1, exit_code=0):
+def check_record(sequence, phase, stage='tdd', attempt=1, exit_code=None, **extra):
+    """A recorded check. A red fails by default, because a red that passed is not one."""
+    if exit_code is None:
+        exit_code = 1 if phase == 'red' else 0
     return dict(sequence=sequence, ticket='SEEN-001', kind='check', stage=stage,
                 attempt=attempt, actor='claude:implementer',
-                data=dict(phase=phase, exit_code=exit_code, command=['pytest']))
+                data=dict(phase=phase, exit_code=exit_code, command=['pytest'], **extra))
+
+
+def coverage_record(sequence, delta=0.5, attempt=1):
+    """A measurement of the gated package, which the tdd gate requires for the attempt."""
+    return check_record(sequence, 'coverage', attempt=attempt, package='@seen/core',
+                        lines=90.0, baseline=None if delta is None else 90.0 - delta, delta=delta)
 
 
 def advance_record(sequence, from_stage, evidence, attempt=1):
@@ -150,7 +159,8 @@ class TddGateTest(GateTest):
     def journal_with_checks(self, attempt=1):
         return self.records + [check_record(2, 'red', attempt=attempt),
                                check_record(3, 'green', attempt=attempt),
-                               check_record(4, 'regression', attempt=attempt)]
+                               check_record(4, 'regression', attempt=attempt),
+                               coverage_record(5, attempt=attempt)]
 
     def test_a_slice_citing_recorded_checks_passes(self):
         self.evaluate('tdd', self.code_tdd(), records=self.journal_with_checks())
@@ -164,13 +174,14 @@ class TddGateTest(GateTest):
     def test_a_check_from_an_earlier_attempt_may_not_be_reused(self):
         records = self.records + [check_record(2, 'red', attempt=1),
                                   check_record(3, 'green', attempt=2),
-                                  check_record(4, 'regression', attempt=2)]
+                                  check_record(4, 'regression', attempt=2),
+                                  coverage_record(5, attempt=2)]
         with self.assertRaisesRegex(HarnessError, 'attempt'):
             self.evaluate('tdd', self.code_tdd(), records=records, attempt=2)
 
     def test_a_green_recorded_before_its_red_is_refused(self):
         records = self.records + [check_record(2, 'green'), check_record(3, 'red'),
-                                  check_record(4, 'regression')]
+                                  check_record(4, 'regression'), coverage_record(5)]
         data = self.code_tdd(slices=[dict(behaviour='x', failure_reason='y', red=3, green=2)])
         with self.assertRaisesRegex(HarnessError, 'order'):
             self.evaluate('tdd', data, records=records)
@@ -182,7 +193,7 @@ class TddGateTest(GateTest):
 
     def test_the_regression_must_run_after_the_last_green(self):
         records = self.records + [check_record(2, 'regression'), check_record(3, 'red'),
-                                  check_record(4, 'green')]
+                                  check_record(4, 'green'), coverage_record(5)]
         data = self.code_tdd(slices=[dict(behaviour='x', failure_reason='y', red=3, green=4)],
                              regression=2)
         with self.assertRaisesRegex(HarnessError, 'order'):
@@ -190,7 +201,7 @@ class TddGateTest(GateTest):
 
     def test_a_cited_check_of_the_wrong_phase_is_refused(self):
         records = self.records + [check_record(2, 'green'), check_record(3, 'green'),
-                                  check_record(4, 'regression')]
+                                  check_record(4, 'regression'), coverage_record(5)]
         with self.assertRaisesRegex(HarnessError, 'red'):
             self.evaluate('tdd', self.code_tdd(), records=records)
 

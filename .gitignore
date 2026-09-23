@@ -33,3 +33,4 @@ graphify-out/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]/
 # Monorepo build and tool output (SEEN-006)
 .turbo/
 *.tsbuildinfo
+coverage/

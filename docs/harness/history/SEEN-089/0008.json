@@ -1,0 +1,15 @@
+{
+  "sequence": 8,
+  "ticket": "SEEN-089",
+  "timestamp": "2026-09-23T19:37:59.493249+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "solution",
+  "attempt": 1,
+  "actor": "human:implementer",
+  "head": "3d52307f9d4de31bf2872b6c06bea83b914ac4be",
+  "prev_hash": "481cc029e3a2a1617a484bcf8dd869c81b38ede15e3179bda20a11e5e3f17e03",
+  "data": {
+    "text": "# Split, on evidence rather than on taste\n\nThe solution record for the whole of SEEN-089 scored 0.50, 0.51 and 0.49 on `solution_complete`, and\nclosing four genuine gaps in it moved the score by 0.01. The same question, asked about the RED rule\nalone, scored 0.67. Seven enforcements in one five-point ticket cannot be described in a record\nanyone can judge complete, and the model was consistent about it across seven attempts.\n\nDecision by the founder, 23 September 2026: SEEN-089 keeps the TDD enforcement, which is the RED\nrule, the coverage gate on `packages/core` and the refusal-message fix. SEEN-094 takes delivery and\nmerge verification: CI green on the commit the receipt attests, `harness verify-merge`, the pull\nrequest template with the receipt hash, and gitleaks plus `pnpm audit` in CI. Both escaped-defect\nfixes travel together in SEEN-094, which keeps them one story.\n\nThe backlog is now 94 tickets and 329 build points; Sprint 0 carries 23 tickets and 73 points. Two\nthings changed the total today: SEEN-093, which added `reopen`, and this split.\n"
+  }
+}

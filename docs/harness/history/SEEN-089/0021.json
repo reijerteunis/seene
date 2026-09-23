@@ -1,0 +1,27 @@
+{
+  "sequence": 21,
+  "ticket": "SEEN-089",
+  "timestamp": "2026-09-23T19:53:06.881316+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "4046a1f6e02fc71a345f879b53bbf3ddd7805532",
+  "prev_hash": "97a30ab05873a5a21be8799a1f63e88ee1ffb6c0fbc9ae061e6cef2201e97604",
+  "data": {
+    "command": [
+      "sh",
+      "-c",
+      "python3 -m unittest discover -s harness/tests && pnpm turbo run lint typecheck test --output-logs=errors-only"
+    ],
+    "phase": "regression",
+    "exit_code": 0,
+    "duration_ms": 34827,
+    "output": ".............................................................................................................................................................................................\n----------------------------------------------------------------------\nRan 189 tests in 34.581s\n\nOK\n• turbo 2.11.3\n\n   • Packages in scope: @seen/agent, @seen/api, @seen/connectors, @seen/core, @seen/web, @seen/worker\n   • Running lint, typecheck, test in 6 packages\n   • Remote caching disabled\n\n\n Tasks:    18 successful, 18 total\nCached:    18 cached, 18 total\n  Time:    6ms >>> FULL TURBO\n\n",
+    "output_sha256": "af0de0a042e07e57d47b7b25cd59071da4d6fcd7ebe28a43ca2706ab0816a8fb",
+    "output_truncated": false,
+    "before": "62311d4fd345adedb86386e14f8c942f38e2876eb2a93922658dc6002511f44d",
+    "after": "62311d4fd345adedb86386e14f8c942f38e2876eb2a93922658dc6002511f44d"
+  }
+}

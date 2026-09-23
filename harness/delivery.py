@@ -7,7 +7,7 @@ gh; SEEN-089 adds the CI check and SEEN-091 the KPI check, and each refuses
 rather than passes when it cannot be run.
 """
 
-from . import gates, journal
+from . import coverage, gates, journal
 from .errors import require
 from .paths import HISTORY, WORKING_STAGES
 
@@ -31,19 +31,36 @@ def verify(repository, folder, records, args, current):
             f'{commit[:8]} is not the tip of {branch} on the {data["remote"]} remote; '
             'push the branch before verifying delivery')
 
+    # The baseline moves here and nowhere else, so a delta always compares this
+    # ticket's measurement with the last one that actually delivered.
+    measurement = _latest_coverage(records)
+    if measurement is not None:
+        coverage.record_baseline(repository.root, measurement['lines'], measurement['package'])
+
     record = journal.append(folder, records, kind='receipt', stage='deliver',
                             attempt=current['attempt'], actor=args.actor,
                             head=commit, ticket=args.ticket,
                             data=dict(from_stage='deliver', to_stage='delivered',
                                       commit=commit, branch=branch, remote=data['remote'],
                                       tree=tree, pull_request=data['pull_request'],
-                                      limits=data['limits'], evidence=data))
+                                      limits=data['limits'], evidence=data,
+                                      coverage=measurement and dict(
+                                          package=measurement['package'],
+                                          lines=measurement['lines'],
+                                          delta=measurement['delta'])))
     path = folder / f'{record["sequence"]:04d}.json'
     return dict(record=record,
                 receipt_sha256=journal.digest(path),
                 receipt_file=str(path.relative_to(repository.root)),
                 next_step='Commit and push this record, then put the receipt hash in the '
                           'pull request body.')
+
+
+def _latest_coverage(records):
+    for record in reversed(records):
+        if record['kind'] == 'check' and record['data'].get('phase') == 'coverage':
+            return record['data']
+    return None
 
 
 def _evidence(repository, args):

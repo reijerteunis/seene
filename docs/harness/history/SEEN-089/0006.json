@@ -1,0 +1,15 @@
+{
+  "sequence": 6,
+  "ticket": "SEEN-089",
+  "timestamp": "2026-09-23T19:33:56.891756+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "solution",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "3d52307f9d4de31bf2872b6c06bea83b914ac4be",
+  "prev_hash": "ec82c61fb146763196c7b9a1ba1b0071f20017c56097f88823b60ed04c2cbf97",
+  "data": {
+    "text": "# Four things the solution record left unresolved\n\nJev answered `solution_complete` at 0.50. Re-reading it, four mechanisms were named without being\ndecided, and the fourth is the one that matters.\n\n1. **The first coverage figure has nothing to compare against.** Decision: when\n   `docs/harness/coverage.json` holds no entry for a package, the delta is recorded as `null` and the\n   gate passes, with the measured figure becoming the baseline at delivery. A first measurement is\n   not a regression.\n\n2. **What \"checks green\" means.** Decision: every check run GitHub reports for the delivered commit\n   must have concluded, and all must be success or skipped. A check still running refuses the\n   delivery rather than passing it, because a delivery verified against a pending check is not\n   verified.\n\n3. **Which commit the checks are read for.** Decision: the commit the receipt attests, not the branch\n   tip, because that is the commit the receipt makes a claim about.\n\n4. **The receipt can never be the branch tip at delivery, by construction.** `verify-delivery`\n   attests HEAD and then appends the receipt record, which is committed afterwards, so the tip is\n   always one commit ahead. Comparing them at delivery would refuse every delivery. Decision: it is a\n   merge-time check, and it gets its own command. `harness verify-merge <ticket>` runs before the\n   merge button: the last record is a receipt, its commit is an ancestor of the branch tip, every\n   commit between the two touches only the journal, the pull request body carries the receipt hash,\n   and the checks on the tip are green. That is the check that would have caught both defects which\n   escaped receipts: SEEN-087's CI assertion and SEEN-088's transport, because in each case a code\n   commit followed the receipt.\n"
+  }
+}

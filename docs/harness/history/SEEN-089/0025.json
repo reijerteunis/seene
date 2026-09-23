@@ -1,0 +1,44 @@
+{
+  "sequence": 25,
+  "ticket": "SEEN-089",
+  "timestamp": "2026-09-23T19:55:17.364889+00:00",
+  "harness_version": "1",
+  "kind": "receipt",
+  "stage": "deliver",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "d669eeb4080c58a2a188403704cb6aa02d526290",
+  "prev_hash": "642b71d1be17d157ee939e0ddbad1766dfbf56f640217f5afeb9bf8d96147374",
+  "data": {
+    "from_stage": "deliver",
+    "to_stage": "delivered",
+    "commit": "d669eeb4080c58a2a188403704cb6aa02d526290",
+    "branch": "claude/SEEN-089-enforce-tdd-and-ci-quality-gates",
+    "remote": "origin",
+    "tree": "ce09c4e9fb5da021bf685c7c09144b737678bb68e1ff1ca7f82cc984951b3914",
+    "pull_request": "https://github.com/reijerteunis/seene/pull/6",
+    "limits": [
+      "The coverage floor covers packages/core only; the other five carry placeholder tests, and a floor under those would measure nothing",
+      "The RED rule applies from this commit forward; records written earlier are not re-judged",
+      "Delivery and merge verification are SEEN-094's, so a delivery whose CI is red is still accepted today",
+      "Reviewed by the session that wrote it: self-review, not independent",
+      "solution_complete was overridden by the founder at 0.85 against Jev's 0.59"
+    ],
+    "evidence": {
+      "remote": "origin",
+      "pull_request": "https://github.com/reijerteunis/seene/pull/6",
+      "limits": [
+        "The coverage floor covers packages/core only; the other five carry placeholder tests, and a floor under those would measure nothing",
+        "The RED rule applies from this commit forward; records written earlier are not re-judged",
+        "Delivery and merge verification are SEEN-094's, so a delivery whose CI is red is still accepted today",
+        "Reviewed by the session that wrote it: self-review, not independent",
+        "solution_complete was overridden by the founder at 0.85 against Jev's 0.59"
+      ]
+    },
+    "coverage": {
+      "package": "@seen/core",
+      "lines": 100.0,
+      "delta": null
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "sequence": 3,
+  "ticket": "SEEN-089",
+  "timestamp": "2026-09-23T19:06:47.460146+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "913ee2de782452fbf07c548cb521dd14b9856ee8",
+  "prev_hash": "ddc5ff4956a5f9cde60cf99b2594f87ab0b77e0608e1ecd6eee5de7e3704a343",
+  "data": {
+    "text": "# Parked at clarify until SEEN-006 delivers\n\nDecision by the founder, 23 September 2026: SEEN-089 waits for the monorepo rather than being split\nor built against stubs. Its declared dependency is real, and three of its five acceptance criteria\nhave nothing to run against until `packages/core` exists.\n\nThe journal stops here at the clarify stage. Resuming needs no context beyond these two records:\n`harness status SEEN-089` will say clarify, and the note at record 2 lists what is buildable today\nand what is not.\n\nThe carried-in work from SEEN-087 and SEEN-088 travels with this ticket: refuse a delivery whose\nchecks are not green on the delivered commit, and compare the receipt's commit to the branch tip at\nmerge. Two defects have already escaped receipts for want of it.\n"
+  }
+}

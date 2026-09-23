@@ -1,0 +1,27 @@
+{
+  "sequence": 20,
+  "ticket": "SEEN-089",
+  "timestamp": "2026-09-23T19:50:22.502163+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "4046a1f6e02fc71a345f879b53bbf3ddd7805532",
+  "prev_hash": "8ecb4371fe9e43eaa42f39c442bc6dd7a2c2ca9443d483230b0aaf8d16d8d967",
+  "data": {
+    "command": [
+      "sh",
+      "-c",
+      "python3 -m unittest discover -s harness/tests && pnpm turbo run lint typecheck test --output-logs=errors-only"
+    ],
+    "phase": "regression",
+    "exit_code": 1,
+    "duration_ms": 33631,
+    "output": "..............................F...................................................................................................F..............F..........................................\n======================================================================\nFAIL: test_the_receipt_survives_the_journal_commit_that_carries_it (test_delivery.DeliveryTest.test_the_receipt_survives_the_journal_commit_that_carries_it)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_delivery.py\", line 92, in test_the_receipt_survives_the_journal_commit_that_carries_it\n    self.assertEqual(Repository(self.root).fingerprint(), before,\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                     'committing the receipt must not invalidate the receipt')\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: '2a426f03ba275e217ecf53708ef4de62fd7553e56bf4a49e3f7e7dc82240bdca' != '64d8f79ea4da504c71368a67d474b0fb75fb47b84ac6adcc62edf6290bb4dd8c'\n- 2a426f03ba275e217ecf53708ef4de62fd7553e56bf4a49e3f7e7dc82240bdca\n+ 64d8f79ea4da504c71368a67d474b0fb75fb47b84ac6adcc62edf6290bb4dd8c\n : committing the receipt must not invalidate the receipt\n\n======================================================================\nFAIL: test_the_receipt_survives_the_journal_commit_that_carries_it (harness.tests.test_delivery.DeliveryTest.test_the_receipt_survives_the_journal_commit_that_carries_it)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_delivery.py\", line 92, in test_the_receipt_survives_the_journal_commit_that_carries_it\n    self.assertEqual(Repository(self.root).fingerprint(), before,\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                     'committing the receipt must not invalidate the receipt')\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: '2a426f03ba275e217ecf53708ef4de62fd7553e56bf4a49e3f7e7dc82240bdca' != '64d8f79ea4da504c71368a67d474b0fb75fb47b84ac6adcc62edf6290bb4dd8c'\n- 2a426f03ba275e217ecf53708ef4de62fd7553e56bf4a49e3f7e7dc82240bdca\n+ 64d8f79ea4da504c71368a67d474b0fb75fb47b84ac6adcc62edf6290bb4dd8c\n : committing the receipt must not invalidate the receipt\n\n======================================================================\nFAIL: test_the_receipt_survives_the_journal_commit_that_carries_it (test_reopen.ReopenTest.test_the_receipt_survives_the_journal_commit_that_carries_it)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_delivery.py\", line 92, in test_the_receipt_survives_the_journal_commit_that_carries_it\n    self.assertEqual(Repository(self.root).fingerprint(), before,\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                     'committing the receipt must not invalidate the receipt')\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: '2a426f03ba275e217ecf53708ef4de62fd7553e56bf4a49e3f7e7dc82240bdca' != '64d8f79ea4da504c71368a67d474b0fb75fb47b84ac6adcc62edf6290bb4dd8c'\n- 2a426f03ba275e217ecf53708ef4de62fd7553e56bf4a49e3f7e7dc82240bdca\n+ 64d8f79ea4da504c71368a67d474b0fb75fb47b84ac6adcc62edf6290bb4dd8c\n : committing the receipt must not invalidate the receipt\n\n----------------------------------------------------------------------\nRan 188 tests in 33.578s\n\nFAILED (failures=3)\n",
+    "output_sha256": "cff152248b5e4178e6c3ceeea8ca21fa869c87e270293a369a002757779d77cf",
+    "output_truncated": false,
+    "before": "3eb946b5d87d4602eb86d1834a45177a04764c528dba992a0e2165e19be3ce47",
+    "after": "3eb946b5d87d4602eb86d1834a45177a04764c528dba992a0e2165e19be3ce47"
+  }
+}

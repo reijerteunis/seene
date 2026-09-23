@@ -1,0 +1,15 @@
+{
+  "sequence": 4,
+  "ticket": "SEEN-089",
+  "timestamp": "2026-09-23T19:32:31.185907+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "3d52307f9d4de31bf2872b6c06bea83b914ac4be",
+  "prev_hash": "9a5dee2e495e080cc9b42e3230e527489f69e9c7bb65095582100eb69e67624d",
+  "data": {
+    "text": "# Resumed: the dependency delivered\n\nSEEN-006 merged, so `packages/core`, `pnpm turbo`, lint, typecheck, test and build all exist and this\nticket has something real to enforce against. The journal picked up at clarify from records 1 to 3\nwith nothing else needed: `harness status` said clarify, and the note at record 2 already listed what\nwas buildable and what was not.\n\nOne criterion is amended rather than deferred, following what SEEN-006 established: AC3 asked CI to\napply migrations twice, and there is no database until SEEN-007 and SEEN-008. That half is re-pointed\nto SEEN-008, which owns the schema and can prove idempotence against a real one.\n\nWhat this ticket now carries, beyond its own five criteria:\n\n- From SEEN-087 and SEEN-088: `verify-delivery` refuses while a check on the delivered commit is not\n  green, and the merge check compares the receipt's commit to the branch tip, so a fix pushed after a\n  receipt cannot merge under a receipt that attests the commit before it. Two defects escaped for\n  want of this.\n- From SEEN-006: the refusal message for a blocking decision prints the question's sense verbatim, so\n  a decision that failed to clear reads \"clears its threshold\". It belongs here, where the gate\n  enforcement lives, rather than in SEEN-090 where it was first parked.\n"
+  }
+}
