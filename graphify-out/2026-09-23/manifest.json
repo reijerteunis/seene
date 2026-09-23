@@ -240,9 +240,9 @@
     "semantic_hash": ""
   },
   ".github/workflows/ci.yml": {
-    "mtime": 1790179666.1584828,
-    "seen": 1790179690.818435,
-    "ast_hash": "7f86f1ffcff50da6410357927659feb5",
+    "mtime": 1790179984.12158,
+    "seen": 1790179984.60461,
+    "ast_hash": "8128b6852c41e7429c22a0d91a766bc5",
     "semantic_hash": ""
   },
   "CLAUDE.md": {
@@ -834,9 +834,9 @@
     "semantic_hash": ""
   },
   "docs/tickets/SEEN-089-enforce-tdd-and-ci-quality-gates-in-the-harness.md": {
-    "mtime": 1790178962.5811446,
-    "seen": 1790179690.818479,
-    "ast_hash": "e419a27cf6fa9c9589d5bf1125c7af4c",
+    "mtime": 1790179984.1217098,
+    "seen": 1790179984.604652,
+    "ast_hash": "575342e5b4ba4ff44cd39e816d9bedfa",
     "semantic_hash": ""
   },
   "docs/tickets/SEEN-090-add-harness-security-controls-secrets.md": {

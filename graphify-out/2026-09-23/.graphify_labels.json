@@ -1,5 +1,5 @@
 {
-  "0": "require",
+  "0": "cli.py",
   "1": ".evaluate",
   "2": ".start",
   "3": "Repository",
@@ -12,6 +12,7 @@
   "10": "GraphTest",
   "11": "tests/__init__.py",
   "12": "graphify",
-  "13": "HarnessError",
-  "14": "SEEN-087: Install graphify, build the repo graph and wire it into both assistants"
+  "13": "require",
+  "14": "SEEN-087: Install graphify, build the repo graph and wire it into both assistants",
+  "15": "SEEN-089: Enforce TDD and CI quality gates in the harness"
 }
