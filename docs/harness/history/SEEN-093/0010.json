@@ -1,0 +1,27 @@
+{
+  "sequence": 10,
+  "ticket": "SEEN-093",
+  "timestamp": "2026-09-23T18:54:58.436999+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "review",
+  "attempt": 1,
+  "actor": "claude:reviewer",
+  "head": "b5128d866676095d503a669c35b5e8ead76328d0",
+  "prev_hash": "d1b7ef7ac711eb3eda85e4b7c87336267f9ddeebad83d27e0cd64879c8a6a857",
+  "data": {
+    "command": [
+      "python3",
+      "harness/run.py",
+      "doctor"
+    ],
+    "phase": "qa",
+    "exit_code": 0,
+    "duration_ms": 76,
+    "output": "{\n  \"ok\": true,\n  \"checked\": [\n    \"python\",\n    \"thresholds\",\n    \"templates\",\n    \"journals\",\n    \"append_only\",\n    \"gitignore\",\n    \"links\"\n  ],\n  \"problems\": []\n}\n",
+    "output_sha256": "69762832db559f6b7a4276dae3b708e3a13bf794f930c181d047ad298973a9a6",
+    "output_truncated": false,
+    "before": "4f5b220097f9d6d053abc4d4aa92a5cea8bfc18f183918572b537e1ddf2d1fc6",
+    "after": "4f5b220097f9d6d053abc4d4aa92a5cea8bfc18f183918572b537e1ddf2d1fc6"
+  }
+}

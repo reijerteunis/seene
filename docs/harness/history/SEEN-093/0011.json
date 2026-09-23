@@ -1,0 +1,58 @@
+{
+  "sequence": 11,
+  "ticket": "SEEN-093",
+  "timestamp": "2026-09-23T18:55:13.575148+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "review",
+  "attempt": 1,
+  "actor": "claude:reviewer",
+  "head": "b5128d866676095d503a669c35b5e8ead76328d0",
+  "prev_hash": "4e67aa48d0c23d395ab23a5947bbd6a02b8c17cbee337ae9b3c0adec00c72ae8",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "deliver",
+    "evidence": {
+      "reviewer": "claude:reviewer",
+      "independence": "self-review",
+      "acceptance_evidence": [
+        "AC1, reopen returns a delivered ticket to tdd with the voided receipt hash and the reason: test_a_delivered_ticket_returns_to_tdd_on_the_next_attempt and test_the_record_carries_the_reason_and_the_commit_it_voided",
+        "AC2, a ticket that is not delivered may not be reopened, and the refusal names its stage: test_a_ticket_that_is_not_delivered_may_not_be_reopened",
+        "AC3, a merged ticket may not be reopened: test_a_merged_ticket_may_not_be_reopened merges the branch into main, pushes it, and expects the refusal",
+        "AC4, a second delivery writes a second receipt and doctor still verifies: test_a_reopened_ticket_can_be_delivered_again walks the whole cycle twice",
+        "AC5, the receipt is never edited: test_the_receipt_itself_is_untouched compares the file's bytes and its sha256 before and after"
+      ],
+      "findings": [
+        {
+          "id": "R-01",
+          "severity": "low",
+          "claim": "Record 1 of this journal names a commit that no longer exists, because start ran while the branch was accidentally based on another ticket's branch and the branch was rebased afterwards",
+          "failure_scenario": "A reader follows record 1's head to understand what the ticket started from and finds nothing there",
+          "status": "resolved",
+          "resolution": "Recorded in the note at record 2 rather than by rewriting record 1. The underlying nuisance, that graphify's background rebuild blocks a branch switch straight after a commit, is named there too"
+        },
+        {
+          "id": "R-02",
+          "severity": "medium",
+          "claim": "Reopening could become routine and hollow out what a receipt means",
+          "failure_scenario": "Every ticket delivers early, gets reopened twice, and the receipt stops being evidence of anything",
+          "status": "resolved",
+          "resolution": "Every reopen is a record with a reason and an actor, it is refused after merge, and SEEN-091 counts reopens as rework. The harness makes it visible rather than impossible, which is the same stance it takes on waivers"
+        }
+      ],
+      "checks": [
+        9,
+        10
+      ],
+      "security_checklist": [
+        "No secret in the diff",
+        "No new dependency: git and the standard library",
+        "No live marketplace call in a test",
+        "The command refuses after merge, so it cannot be used to rewrite history that others have pulled"
+      ],
+      "verdict": "pass",
+      "tree": "4f5b220097f9d6d053abc4d4aa92a5cea8bfc18f183918572b537e1ddf2d1fc6"
+    },
+    "decisions": []
+  }
+}
