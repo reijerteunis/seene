@@ -1,0 +1,123 @@
+"""The self-check a session runs before it starts working.
+
+It reports problems rather than repairing them, because a silent repair hides
+the drift a reviewer needs to see, and it reports all of them at once, because
+fixing five problems one command at a time is five round trips. Local and
+offline: nothing here waits on a network, so nobody has a reason to skip it.
+"""
+
+import json
+import re
+import sys
+
+from . import journal
+from .errors import HarnessError
+from .paths import (DRAFTS, HISTORY, LOCK, NON_CODE_TEMPLATE, TEMPLATES, TEMPLATE_FOR_STAGE,
+                    THRESHOLDS)
+
+PYTHON_FLOOR = (3, 12)
+# Markdown links, excluding image embeds.
+LINK = re.compile(r'(?<!\!)\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)')
+FENCE = re.compile(r'^\s*(```|~~~)')
+EXTERNAL = ('http://', 'https://', 'mailto:', 'tel:', '//')
+
+
+def python_problems(version):
+    if tuple(version[:2]) < PYTHON_FLOOR:
+        floor = '.'.join(str(part) for part in PYTHON_FLOOR)
+        return [f'The harness needs Python {floor} or later, not '
+                f'{".".join(str(part) for part in version[:3])}']
+    return []
+
+
+def template_problems(repository):
+    problems = []
+    for name in list(TEMPLATE_FOR_STAGE.values()) + [NON_CODE_TEMPLATE]:
+        path = repository.root / TEMPLATES / name
+        if not path.is_file():
+            problems.append(f'Missing template: {TEMPLATES / name}')
+            continue
+        try:
+            content = json.loads(path.read_text())
+        except json.JSONDecodeError as error:
+            problems.append(f'{TEMPLATES / name} is not readable JSON: {error}')
+            continue
+        if not isinstance(content, dict) or not content:
+            problems.append(f'{TEMPLATES / name} must be a JSON object with at least one field')
+    return problems
+
+
+def journal_problems(repository):
+    """Journals whose chain, numbering or contents no longer verify."""
+    problems = []
+    history = repository.root / HISTORY
+    if not history.is_dir():
+        return problems
+    for folder in sorted(path for path in history.iterdir() if path.is_dir()):
+        try:
+            journal.read(folder)
+        except HarnessError as error:
+            problems.append(f'{HISTORY / folder.name}: {error}')
+    return problems
+
+
+def rewritten_record_problems(repository):
+    """Records git has seen change after the commit that created them.
+
+    The chain makes a rewrite expensive; this makes it provable, because
+    recomputing every later hash still leaves the modification in history.
+    """
+    return [f'{name} was committed as a modification or a deletion; a journal is append-only'
+            for name in repository.rewritten_history_records()]
+
+
+def gitignore_problems(repository):
+    path = repository.root / '.gitignore'
+    if not path.is_file():
+        return ['Missing .gitignore; drafts and the lock file would be committed']
+    ignored = {line.strip().rstrip('/') for line in path.read_text().splitlines()}
+    return [f'.gitignore does not ignore {name}'
+            for name in (str(DRAFTS), str(LOCK)) if name.rstrip('/') not in ignored]
+
+
+def link_problems(repository):
+    """Relative markdown links that do not resolve.
+
+    The docs are what this project mostly consists of, and a renamed ticket file
+    silently breaks the entry point every session reads first.
+    """
+    problems = []
+    for name in repository.tracked_and_untracked():
+        if not name.endswith('.md'):
+            continue
+        path = repository.root / name
+        if not path.is_file():
+            continue
+        fenced = False
+        for number, line in enumerate(path.read_text(errors='replace').splitlines(), start=1):
+            if FENCE.match(line):
+                fenced = not fenced
+                continue
+            if fenced:
+                continue
+            for target in LINK.findall(line):
+                if target.startswith('#') or target.startswith(EXTERNAL):
+                    continue
+                if not (path.parent / target.split('#')[0]).exists():
+                    problems.append(f'{name}:{number} link does not resolve: {target}')
+    return problems
+
+
+def report(repository, rules):
+    """Run every check and collect what is wrong."""
+    sections = {
+        'python': python_problems(sys.version_info),
+        'thresholds': [] if (repository.root / THRESHOLDS).is_file() else [f'{THRESHOLDS} missing'],
+        'templates': template_problems(repository),
+        'journals': journal_problems(repository),
+        'append_only': rewritten_record_problems(repository),
+        'gitignore': gitignore_problems(repository),
+        'links': link_problems(repository),
+    }
+    problems = [problem for found in sections.values() for problem in found]
+    return dict(ok=not problems, checked=list(sections), problems=problems)

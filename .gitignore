@@ -1,0 +1,20 @@
+# Working copies of stage templates. Only the journal is evidence.
+.harness-drafts/
+# The harness's advisory lock, never committed.
+.harness.lock
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Node, from SEEN-006 onwards
+node_modules/
+.next/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Secrets and local settings
+.env
+.env.local
+.DS_Store

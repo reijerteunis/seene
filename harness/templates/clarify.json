@@ -1,0 +1,12 @@
+{
+  "scope": "What this ticket delivers, in one sentence, and where its edge is.",
+  "acceptance": [
+    "The ticket's criterion restated as a check, and the evidence that will satisfy it."
+  ],
+  "decisions": [
+    "Decision taken, why, and on whose authority."
+  ],
+  "open_questions": [],
+  "changes_agent_action": false,
+  "graph_impact": []
+}
