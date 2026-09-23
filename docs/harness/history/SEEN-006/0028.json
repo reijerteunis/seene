@@ -1,0 +1,30 @@
+{
+  "sequence": 28,
+  "ticket": "SEEN-006",
+  "timestamp": "2026-09-23T19:23:53.401241+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "head": "a61151dc29039a1553e4d51b109309726c7f8e3a",
+  "prev_hash": "04ad53bfed72b2c1fd03a62af174b21c7ad8b0f6d9d8f1e19136bde93768c8f2",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "behaviour": "The worker and its events connection are both subscribed before anything is enqueued, so a completion cannot be missed",
+          "failure_reason": "TypeError: worker.ready is not a function, in both tests",
+          "red": 25,
+          "green": 26
+        }
+      ],
+      "regression": 27,
+      "coverage_delta": null
+    },
+    "decisions": []
+  }
+}

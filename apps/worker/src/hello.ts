@@ -23,22 +23,35 @@ export interface HelloResult {
   greeted: string;
 }
 
-export function startHelloWorker(): Worker<HelloPayload, HelloResult> & {
-  createQueueEventsInstance: () => QueueEvents;
-} {
+export interface HelloWorker extends Worker<HelloPayload, HelloResult> {
+  /** The events connection waitUntilFinished needs, owned so it cannot be forgotten. */
+  events: QueueEvents;
+  /**
+   * Resolves once the worker and its events connection are both subscribed.
+   *
+   * Without this a job can finish before the events connection subscribes, and
+   * waitUntilFinished then waits for an event that has already gone past. It
+   * passed on a laptop and timed out in CI on the same commit, which is what a
+   * race looks like from the outside.
+   */
+  ready: () => Promise<void>;
+}
+
+export function startHelloWorker(): HelloWorker {
   const worker = new Worker<HelloPayload, HelloResult>(
     HELLO_QUEUE,
     async (job) => ({ greeted: job.data.name }),
     { connection },
-  ) as Worker<HelloPayload, HelloResult> & { createQueueEventsInstance: () => QueueEvents };
+  ) as HelloWorker;
 
-  // waitUntilFinished needs its own events connection; keeping it beside the
-  // worker means a caller cannot forget to close one of the two.
-  const events = new QueueEvents(HELLO_QUEUE, { connection });
-  worker.createQueueEventsInstance = () => events;
+  worker.events = new QueueEvents(HELLO_QUEUE, { connection });
+  worker.ready = async () => {
+    await Promise.all([worker.waitUntilReady(), worker.events.waitUntilReady()]);
+  };
+
   const close = worker.close.bind(worker);
   worker.close = async (force?: boolean) => {
-    await events.close();
+    await worker.events.close();
     return close(force);
   };
 

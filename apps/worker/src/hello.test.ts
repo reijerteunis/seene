@@ -13,10 +13,17 @@ describe('the hello job', () => {
     await queue.close();
   });
 
-  it('is processed by the worker and returns what it greeted', async () => {
-    const job = await queue.add('hello', { name: 'Seen' });
+  it('is ready before anything is enqueued, so no completion can be missed', async () => {
+    await worker.ready();
 
-    const result = await job.waitUntilFinished(worker.createQueueEventsInstance());
+    expect(worker.isRunning()).toBe(true);
+  });
+
+  it('is processed by the worker and returns what it greeted', async () => {
+    await worker.ready();
+
+    const job = await queue.add('hello', { name: 'Seen' });
+    const result = await job.waitUntilFinished(worker.events);
 
     expect(result).toEqual({ greeted: 'Seen' });
   });
