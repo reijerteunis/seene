@@ -35,6 +35,42 @@ jobs:
       - name: Harness self-check
         run: python3 harness/run.py doctor
 
+  secrets:
+    name: Secrets and supply chain
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Full history: a credential is findable in an old commit, not only
+          # at the tip, and that is exactly the one nobody remembers.
+          fetch-depth: 0
+
+      - name: gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      # A high advisory with no fix available still fails. Waiving one is a
+      # decision recorded in the ticket that waives it, not a flag here.
+      - name: Audit
+        run: pnpm audit --audit-level high
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: No live marketplace host in test code
+        run: python3 harness/run.py lint
+
   node:
     name: Monorepo (Node 24)
     runs-on: ubuntu-latest
