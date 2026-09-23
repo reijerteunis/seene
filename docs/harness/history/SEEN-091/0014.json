@@ -1,0 +1,122 @@
+{
+  "sequence": 14,
+  "ticket": "SEEN-091",
+  "timestamp": "2026-09-23T22:00:39.635440+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "review",
+  "attempt": 1,
+  "actor": "claude:reviewer",
+  "head": "8875def0ed8f4834ad6b84c0a80b91e9e6667833",
+  "prev_hash": "622df3c86bd2f7136d6c5c937dd5e55b4f6d9ddb47ca95d6c8332da7ab9006c9",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "deliver",
+    "evidence": {
+      "reviewer": "claude:reviewer",
+      "independence": "self-review",
+      "acceptance_evidence": [
+        "AC1, kpi.json carries every field: verify-delivery writes it from the same measure the report uses, and this ticket's own delivery produces one",
+        "AC2, the weekly report covers every ticket delivered that week: docs/harness/reports/2026-W39.md lists all eight with median cycle time, rework, findings by severity and points",
+        "AC3, the sprint report compares planned against delivered: sprint-0 reads 27 of 77 points, and the eval pass rate is reported as not yet measurable rather than as zero",
+        "AC4, a fix ticket increments escaped defects: test_a_fix_ticket_increments_escaped_defects_on_what_it_fixed, with a fixture ticket naming an earlier one",
+        "AC5, no report can carry a credential: test_a_report_carrying_a_credential_is_refused, using the same rule as the journal",
+        "The retrospective requirement: the first report covers eight tickets that predate it, including SEEN-086 which has no journal"
+      ],
+      "findings": [
+        {
+          "id": "R-01",
+          "severity": "high",
+          "file": "harness/kpi.py",
+          "line": 95,
+          "claim": "Findings were counted once per review record, so a returned ticket multiplied its own findings",
+          "failure_scenario": "SEEN-090 reported thirty findings from nine, because four reviews each listed the same set. Every KPI derived from findings would be wrong in proportion to how much a ticket was reworked, which inverts the measure: the tickets that were reviewed most carefully would look the worst",
+          "status": "resolved",
+          "resolution": "Findings are counted by id with the most recent record winning, so a finding resolved on the second pass is one finding. Red at 8, green at 9"
+        },
+        {
+          "id": "R-02",
+          "severity": "medium",
+          "claim": "A report reading only kpi.json files would have covered nothing",
+          "failure_scenario": "Eight tickets had delivered before this one, none with a kpi.json, so the first weekly report would have been empty while the work sat in the tree, and nobody would have trusted the second one either",
+          "status": "resolved",
+          "resolution": "The journal is the source and kpi.json is a cache. Found by the clarify gate refusing three times, and recorded at record 2"
+        },
+        {
+          "id": "R-03",
+          "severity": "medium",
+          "claim": "Reports and kpi.json were inside the reviewed-tree fingerprint",
+          "failure_scenario": "Running harness report would change the tree a receipt attested, so a report could refuse a delivery, and delivery writing kpi.json would invalidate its own receipt. The coverage baseline did exactly this in SEEN-089",
+          "status": "resolved",
+          "resolution": "Both sit outside the fingerprint, with a test. Named in the solution record before it was written, which is the first time this class of bug was caught before it happened"
+        },
+        {
+          "id": "R-04",
+          "severity": "low",
+          "claim": "First-pass CI is null for every ticket delivered so far",
+          "failure_scenario": "A KPI that reads null for eight tickets looks like a measure nobody implemented",
+          "status": "resolved",
+          "resolution": "verify-delivery records the checks it verifies from now on, and the report's last section names the field as not yet measurable with the reason. Guessing a value for the eight would have been worse than saying so"
+        }
+      ],
+      "checks": [
+        13
+      ],
+      "security_checklist": [
+        "No secret in the diff",
+        "Reports are refused when they carry an environment value, by the same rule as the journal",
+        "The session log reader takes four token counts and nothing else: a log holds prompts and file contents that do not belong in a journal",
+        "No new dependency",
+        "No PII, no database, no agent action"
+      ],
+      "verdict": "pass",
+      "tree": "5e1d84e206cf96f0ed7b0cce9e17e57ec1859c8a5b9c8766c540251004b69a33"
+    },
+    "decisions": [
+      {
+        "question": "severity",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high",
+          "blocking"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "high",
+        "probabilities": {
+          "low": 0.03,
+          "medium": 0.11,
+          "high": 0.47,
+          "blocking": 0.39
+        },
+        "confidence": 0.44,
+        "score": 2.21,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      },
+      {
+        "question": "must_fix",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.36,
+          "no": 0.64
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.7,
+        "passed": false,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

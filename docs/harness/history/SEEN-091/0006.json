@@ -1,0 +1,28 @@
+{
+  "sequence": 6,
+  "ticket": "SEEN-091",
+  "timestamp": "2026-09-23T21:52:43.408174+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "94406c81a16dda4d67281aa21570dccd91e6e8a0",
+  "prev_hash": "81f80cd8d4a913a3ebbea9acd088dfc78136cfd3e40eaeb0cb87d4393f5f72d2",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_kpi"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "duration_ms": 35,
+    "output": "E\n======================================================================\nERROR: test_kpi (unittest.loader._FailedTest.test_kpi)\n----------------------------------------------------------------------\nImportError: Failed to import test module: test_kpi\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/.local/share/mise/installs/python/3.14.5/lib/python3.14/unittest/loader.py\", line 137, in loadTestsFromName\n    module = __import__(module_name)\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_kpi.py\", line 5, in <module>\n    from harness import kpi, report\nImportError: cannot import name 'kpi' from 'harness' (/Users/ruudvanengelenhoven/Development/seene/harness/__init__.py)\n\n\n----------------------------------------------------------------------\nRan 1 test in 0.000s\n\nFAILED (errors=1)\n",
+    "output_sha256": "9ad436027bbdea10e1692bc3ffa6ea52e1f202cf0cf5d3ea8003cff968bd9390",
+    "output_truncated": false,
+    "before": "2d7ba665bf44d9de559b37f9ac2a7e1ad17c033da546f3ff00325663a126740c",
+    "after": "2d7ba665bf44d9de559b37f9ac2a7e1ad17c033da546f3ff00325663a126740c"
+  }
+}

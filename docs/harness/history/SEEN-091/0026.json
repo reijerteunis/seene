@@ -1,0 +1,28 @@
+{
+  "sequence": 26,
+  "ticket": "SEEN-091",
+  "timestamp": "2026-09-23T22:16:10.765389+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "head": "f581ef0cd363939d454c7b05d804607b47f01f19",
+  "prev_hash": "d23dda4ad2b3437febbcff2cea3c9cf4c601faa4fa0e8adb362248fad21e290b",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_doctor.AppendOnlyScopeTest"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "duration_ms": 2919,
+    "output": ".F..............\n======================================================================\nFAIL: test_a_rewritten_kpi_cache_is_not_a_rewritten_record (harness.tests.test_doctor.AppendOnlyScopeTest.test_a_rewritten_kpi_cache_is_not_a_rewritten_record)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_doctor.py\", line 120, in test_a_rewritten_kpi_cache_is_not_a_rewritten_record\n    self.assertTrue(report['ok'], report['problems'])\n    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: False is not true : ['docs/harness/history/SEEN-001/kpi.json was committed as a modification or a deletion; a journal is append-only']\n\n----------------------------------------------------------------------\nRan 16 tests in 2.836s\n\nFAILED (failures=1)\n",
+    "output_sha256": "25ecd4ac983847c9d82c757baf9c0d2a0dd20c89c4a95670b7aa1b972c4d31c3",
+    "output_truncated": false,
+    "before": "4374b34c49457c2336761e83658518936bc7f5dcb89bb51bf6f9d0ffb22f6ba6",
+    "after": "4374b34c49457c2336761e83658518936bc7f5dcb89bb51bf6f9d0ffb22f6ba6"
+  }
+}

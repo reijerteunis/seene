@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-086, SEEN-089]
-status: todo
+status: doing
 ---
 # SEEN-091: Collect harness KPIs per ticket and produce weekly and sprint reports
 
@@ -23,19 +23,88 @@ status: todo
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | todo |
+| Status | doing |
 
 ## Description
 
-Write docs/harness/history/<ticket>/kpi.json at verify-delivery with cycle time total and per stage, first-pass CI result, RED-before-GREEN compliance, tests added, coverage delta, review findings by severity with fixed and waived counts, rework count, tokens and cost (from session logs where available, else from a --cost note), and escaped defects linked later by fix tickets. Add harness report --week and --sprint <n> that aggregate into docs/harness/reports/ as Markdown plus JSON, with the targets from docs/harness/workflow.md shown against actuals. The decision that matters: KPIs are derived from journal records that already exist, never typed in by hand, except cost where no log is available.
+Derive a KPI record from each ticket's journal at delivery, and aggregate those records into weekly
+and sprint reports. Every number comes from records that already exist: cycle time from the start
+record to the receipt and per stage from the records that enter and leave it, first-pass CI from the
+checks on the first commit pushed, RED-before-GREEN from the cited slices, findings by severity from
+the review record, rework from the return and reopen records, and coverage from the measurement the
+tdd gate already requires.
+
+The decision that matters: nothing is typed in by hand. Cost is the one exception, because no session
+log is available to read; where none exists the KPI records it as `null` rather than zero, since zero
+is a claim and null is the truth.
+
+`harness report --week` writes `docs/harness/reports/<year>-W<week>.md` and its JSON beside it,
+covering every ticket delivered in that ISO week by the receipt's timestamp in UTC, with median cycle
+time, first-pass CI rate, rework per ticket, findings by severity and points delivered.
+`harness report --sprint <n>` compares planned points, from the estimates in the frontmatter of every
+ticket carrying that sprint, against delivered points from the receipts.
+
+The eval pass rate for policy-gate action tickets is reported as not yet measurable rather than as
+zero: the eval set belongs to SEEN-036 and no policy-gate action ticket has been worked, so a figure
+here would be invented.
 
 ## Acceptance criteria
 
-- [ ] verify-delivery writes kpi.json with every field listed in the description populated from the journal
-- [ ] harness report --week writes docs/harness/reports/<year>-W<week>.md and .json covering every ticket delivered that week, with median cycle time, first-pass CI rate, rework per ticket, findings by severity and points delivered
-- [ ] harness report --sprint 0 shows planned versus delivered build points and the eval pass rate for gate-action tickets
-- [ ] A fix ticket that names an earlier ticket in its frontmatter increments escaped defects on that ticket in the next report
-- [ ] The report contains no secret, token or environment value, checked by the same test as the journal
+- [x] verify-delivery writes kpi.json carrying cycle time total and per stage, first-pass CI, RED-before-GREEN compliance, tests added, coverage delta, findings by severity with fixed and waived counts, rework, cost and escaped defects
+- [x] harness report --week writes the Markdown and the JSON for every ticket delivered that week, with median cycle time, first-pass CI rate, rework per ticket, findings by severity and points delivered
+- [x] harness report --sprint 0 shows planned against delivered build points, and reports the eval pass rate as not yet measurable
+- [x] A fix ticket naming an earlier ticket in its frontmatter increments escaped defects on that ticket in the next report
+- [x] No report can contain a secret, token or environment value, by the same rule as the journal
+
+## Outcome
+
+Delivered on 24 September 2026. Two slices, each with a red that failed for the reason the solution
+record predicted.
+
+**The first report covers what already happened.** Eight tickets had delivered before this one
+existed, none with a `kpi.json`, and SEEN-086 has no journal at all. A report reading only `kpi.json`
+files would have produced an empty first output while eight delivered tickets sat in the tree. So the
+journal is the source and `kpi.json` is a cache: a ticket delivered before this ticket is covered
+identically to one delivered after it, and SEEN-086 is listed with its points and a note rather than
+dropped. That gap is what the clarify gate refused three times until it was found.
+
+**Running it found two defects in itself.** SEEN-090 reported thirty findings, because four review
+records each listed the same nine; a finding is now counted once, by id, most recent record winning.
+And rework read `1.1428571428571428`, which is now two decimals.
+
+**Cost is real.** Claude Code keeps one JSONL per session carrying token counts and timestamps, so a
+ticket's tokens are the entries inside its window. Only those four numbers are read: a session log
+holds prompts and file contents, none of which belongs in a journal. Euros are not computed, because
+a price per token is stale the day it is written.
+
+**First-pass CI needed something the journal lacked**, so `verify-delivery` now records the checks it
+already fetches. It reads null for everything delivered before this ticket, and the report's last
+section names that alongside the eval pass rate and euros, because a report that omits what it cannot
+measure reads as though everything were measured.
+
+**Reports and `kpi.json` sit outside the reviewed-tree fingerprint**, beside the journal, the drafts,
+the graph and the coverage baseline. Counting them would let a report refuse a delivery: the same
+circularity ADR 0002 resolves, which the coverage baseline reintroduced once already.
+
+**And the merge check refused this ticket's own merge**, for regenerating the report so the week
+included the ticket that had just delivered. Reports now sit beside the journal, the coverage baseline
+and the graph as things delivery writes; anything else after a receipt is still refused. The receipt
+was voided and written again rather than the check overridden.
+
+**And the append-only proof could not tell a record from a cache.** `kpi.json` is rewritten whenever a
+ticket delivers again, which is what a reopen leads to, so `doctor` reported a rewritten record and CI
+refused this delivery. Any reopened ticket could never have delivered, which would have made SEEN-093's
+reopen unusable. The proof now covers the numbered records; the cache and the attachments beside them
+are not records.
+
+### What the first report says
+
+27 points delivered across eight tickets, median cycle time 18 minutes, rework 1.14 per ticket
+against a target of 0.5, and 45 review findings by severity: 5 blocking, 18 high, 23 medium, 17 low,
+all fixed, none waived. Sprint 0 stands at 27 of 77 planned points.
+
+The rework figure is the honest headline: three tickets took four attempts each, and every return was
+the harness refusing something it should have refused.
 
 ## Depends on
 

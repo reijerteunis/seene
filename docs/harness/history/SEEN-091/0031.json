@@ -1,0 +1,27 @@
+{
+  "sequence": 31,
+  "ticket": "SEEN-091",
+  "timestamp": "2026-09-23T22:19:56.164372+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "review",
+  "attempt": 3,
+  "actor": "claude:reviewer",
+  "head": "8b2593ec9be116040bbfbbf345e8294aa80b70db",
+  "prev_hash": "226e86e229bac10dcf2d7d74ec52f73b6429553c8d9469882bddf4e0619eac1b",
+  "data": {
+    "command": [
+      "sh",
+      "-c",
+      "python3 -m unittest discover -s harness/tests && python3 harness/run.py doctor"
+    ],
+    "phase": "qa",
+    "exit_code": 0,
+    "duration_ms": 60952,
+    "output": "..................................................................................................................................................................................................................................................\n----------------------------------------------------------------------\nRan 242 tests in 60.309s\n\nOK\n{\n  \"ok\": true,\n  \"checked\": [\n    \"python\",\n    \"thresholds\",\n    \"templates\",\n    \"journals\",\n    \"append_only\",\n    \"gitignore\",\n    \"hooks\",\n    \"marketplace_hosts\",\n    \"links\"\n  ],\n  \"problems\": []\n}\n",
+    "output_sha256": "cf40cff4b649230f1bec3928fba99164164a6205c2e32588684c9cc66ba00eab",
+    "output_truncated": false,
+    "before": "b65741130fbedd71b34a44befb3bb751e153585e7d53f49cfdfcbc15e8e369bd",
+    "after": "b65741130fbedd71b34a44befb3bb751e153585e7d53f49cfdfcbc15e8e369bd"
+  }
+}

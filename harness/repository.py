@@ -9,7 +9,7 @@ from pathlib import Path
 import subprocess
 
 from .errors import HarnessError, require
-from .paths import FINGERPRINT_EXCLUDED, HISTORY
+from .paths import FINGERPRINT_EXCLUDED, HISTORY, RECORD_NAME
 
 
 class Repository:
@@ -113,9 +113,17 @@ class Repository:
         return [name for name in listed.splitlines() if name]
 
     def _history_paths(self, filter_letter):
+        """Record files only.
+
+        A journal directory also holds kpi.json and attachments, which are not
+        records: the KPI cache is rewritten whenever a ticket delivers again, and
+        treating that as a rewritten record would make a reopen impossible to
+        deliver from.
+        """
         listed = self.git('log', f'--diff-filter={filter_letter}', '--name-only',
                           '--pretty=format:', '--', str(HISTORY))
-        return {name for name in listed.splitlines() if name}
+        return {name for name in listed.splitlines()
+                if name and RECORD_NAME.match(name.rsplit('/', 1)[-1])}
 
     def rewritten_history_records(self):
         """Journal files git has seen change after the commit that created them.

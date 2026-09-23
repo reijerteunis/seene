@@ -148,3 +148,39 @@ class SupersededRunTest(DeliveryWalk):
                        (3, 'lint', 'failure'))
         with self.assertRaisesRegex(HarnessError, 'lint'):
             self.verify()
+
+
+class BookkeepingAfterReceiptTest(DeliveryWalk):
+    """What delivery itself writes may follow the receipt; nothing else may."""
+
+    def setUp(self):
+        super().setUp()
+        self.walk_to_deliver()
+        self.commit_and_push()
+        self.receipt = self.verify()
+        self.git('add', '-A')
+        self.git('commit', '-q', '-m', 'docs: record delivery receipt')
+        self.git('push', '-q', 'origin', 'HEAD')
+        github.PULL_REQUEST = lambda repository: dict(
+            number=1, body=f"receipt {self.receipt['receipt_sha256']}",
+            headRefName='claude/SEEN-001-a-ticket')
+        self.addCleanup(setattr, github, 'PULL_REQUEST', None)
+
+    def commit_file(self, path, text):
+        self.write(path, text)
+        self.git('add', '-A')
+        self.git('commit', '-q', '-m', f'chore: {path}')
+
+    def test_a_report_regenerated_after_the_receipt_is_fine(self):
+        """The week includes the ticket that just delivered, so the report moves."""
+        self.commit_file('docs/harness/reports/2026-W39.md', '# the week, including this ticket\n')
+        self.assertTrue(self.run_harness('verify-merge', self.ticket_id)['ready'])
+
+    def test_a_kpi_record_written_after_the_receipt_is_fine(self):
+        self.commit_file('docs/harness/history/SEEN-001/kpi.json', '{"ticket": "SEEN-001"}')
+        self.assertTrue(self.run_harness('verify-merge', self.ticket_id)['ready'])
+
+    def test_a_source_change_after_the_receipt_is_still_refused(self):
+        self.commit_file('packages/core/src/late.ts', 'export const late = true;\n')
+        with self.assertRaisesRegex(HarnessError, 'late.ts'):
+            self.run_harness('verify-merge', self.ticket_id)

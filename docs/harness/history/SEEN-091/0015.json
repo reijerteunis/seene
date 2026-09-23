@@ -1,0 +1,68 @@
+{
+  "sequence": 15,
+  "ticket": "SEEN-091",
+  "timestamp": "2026-09-23T22:03:08.759340+00:00",
+  "harness_version": "1",
+  "kind": "receipt",
+  "stage": "deliver",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "4364047b3a3833a300146da7a9867ca2300d0072",
+  "prev_hash": "a04213c3dcf47543d31614a3d5972593fbcd4327dfe6431fc1dcaf83f14fc006",
+  "data": {
+    "from_stage": "deliver",
+    "to_stage": "delivered",
+    "commit": "4364047b3a3833a300146da7a9867ca2300d0072",
+    "branch": "claude/SEEN-091-collect-harness-kpis",
+    "remote": "origin",
+    "tree": "5e1d84e206cf96f0ed7b0cce9e17e57ec1859c8a5b9c8766c540251004b69a33",
+    "pull_request": "https://github.com/reijerteunis/seene/pull/9",
+    "limits": [
+      "First-pass CI is null for the eight tickets delivered before this one, because the receipt only started carrying its checks here",
+      "Cost is tokens, not euros: a price per token is stale the day it is written",
+      "Tokens are attributed by time window, so two sessions running at once would share a figure",
+      "Tests added is counted as lines in test files, which rewards verbosity and is reported beside coverage rather than alone",
+      "The eval pass rate for policy-gate action tickets is not measurable: no such ticket has been worked",
+      "Reviewed by the session that wrote it: self-review, not independent"
+    ],
+    "evidence": {
+      "remote": "origin",
+      "pull_request": "https://github.com/reijerteunis/seene/pull/9",
+      "limits": [
+        "First-pass CI is null for the eight tickets delivered before this one, because the receipt only started carrying its checks here",
+        "Cost is tokens, not euros: a price per token is stale the day it is written",
+        "Tokens are attributed by time window, so two sessions running at once would share a figure",
+        "Tests added is counted as lines in test files, which rewards verbosity and is reported beside coverage rather than alone",
+        "The eval pass rate for policy-gate action tickets is not measurable: no such ticket has been worked",
+        "Reviewed by the session that wrote it: self-review, not independent"
+      ]
+    },
+    "checks": [
+      {
+        "name": "Harness tests (Python 3.12)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Knowledge graph",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Monorepo (Node 24)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Secrets and supply chain",
+        "conclusion": "success",
+        "runs": 1
+      }
+    ],
+    "coverage": {
+      "package": "@seen/core",
+      "lines": 100.0,
+      "delta": 0.0
+    }
+  }
+}

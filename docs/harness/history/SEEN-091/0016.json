@@ -1,0 +1,20 @@
+{
+  "sequence": 16,
+  "ticket": "SEEN-091",
+  "timestamp": "2026-09-23T22:07:55.420837+00:00",
+  "harness_version": "1",
+  "kind": "reopen",
+  "stage": "delivered",
+  "attempt": 1,
+  "actor": "claude:reviewer",
+  "head": "5e74f8a45e0b29bab11cf61d06df7c6752c95398",
+  "prev_hash": "3544a2c2c6a2f491cdd589026fa4f4289eabdc45aae56f078b4adf3bf9069db1",
+  "data": {
+    "from_stage": "delivered",
+    "to_stage": "tdd",
+    "to_attempt": 2,
+    "voided_receipt": "3544a2c2c6a2f491cdd589026fa4f4289eabdc45aae56f078b4adf3bf9069db1",
+    "voided_commit": "4364047b3a3833a300146da7a9867ca2300d0072",
+    "reason": "verify-merge allows commits after the receipt only when they touch the journal, the coverage baseline or the graph. Reports are the same kind of derived bookkeeping, written by the same delivery, and regenerating them so the week includes the ticket that just delivered is the normal thing to do. The allowlist is missing them."
+  }
+}

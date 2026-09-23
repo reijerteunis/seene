@@ -1,0 +1,142 @@
+{
+  "sequence": 32,
+  "ticket": "SEEN-091",
+  "timestamp": "2026-09-23T22:19:57.065333+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "review",
+  "attempt": 3,
+  "actor": "claude:reviewer",
+  "head": "4a87cee6a083b7e1c71a16a29723209109ab8914",
+  "prev_hash": "f2e5fb7ddd99ed1639a3003cca2a33f3d7cb7e2812ab822c3fa558c75ce998db",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "deliver",
+    "evidence": {
+      "reviewer": "claude:reviewer",
+      "independence": "self-review",
+      "acceptance_evidence": [
+        "AC1, kpi.json carries every field: verify-delivery writes it from the same measure the report uses, and this ticket's own delivery produces one",
+        "AC2, the weekly report covers every ticket delivered that week: docs/harness/reports/2026-W39.md lists all eight with median cycle time, rework, findings by severity and points",
+        "AC3, the sprint report compares planned against delivered: sprint-0 reads 27 of 77 points, and the eval pass rate is reported as not yet measurable rather than as zero",
+        "AC4, a fix ticket increments escaped defects: test_a_fix_ticket_increments_escaped_defects_on_what_it_fixed, with a fixture ticket naming an earlier one",
+        "AC5, no report can carry a credential: test_a_report_carrying_a_credential_is_refused, using the same rule as the journal",
+        "The retrospective requirement: the first report covers eight tickets that predate it, including SEEN-086 which has no journal"
+      ],
+      "findings": [
+        {
+          "id": "R-06",
+          "severity": "high",
+          "file": "harness/repository.py",
+          "line": 105,
+          "claim": "The append-only proof treated every file in a journal directory as a record",
+          "failure_scenario": "kpi.json is rewritten whenever a ticket delivers again, which is exactly what a reopen leads to, so doctor reported a rewritten record and CI refused the delivery. Any ticket that reopens could never deliver, which makes the reopen SEEN-093 added unusable",
+          "status": "resolved",
+          "resolution": "The proof covers NNNN.json records; kpi.json and attachments are the allowlisted files beside them. A genuinely edited record is still caught, with a test for each. Reopened at record 25, red at 26 against the unfixed code, green at 27"
+        },
+        {
+          "id": "R-05",
+          "severity": "medium",
+          "file": "harness/delivery.py",
+          "line": 60,
+          "claim": "verify-merge refused a report regenerated after the receipt",
+          "failure_scenario": "The week a ticket delivers in includes that ticket, so the report moves at delivery. Every ticket from here would have been refused at the merge check for doing the normal thing, and the workaround would be to skip verify-merge, which is the one control standing in for branch protection",
+          "status": "resolved",
+          "resolution": "Reports join the journal, the coverage baseline and the graph as things delivery writes. Any other change after the receipt is still refused. Found by the check refusing this ticket's own merge; reopened at record 16, red at 17, green at 18"
+        },
+        {
+          "id": "R-01",
+          "severity": "high",
+          "file": "harness/kpi.py",
+          "line": 95,
+          "claim": "Findings were counted once per review record, so a returned ticket multiplied its own findings",
+          "failure_scenario": "SEEN-090 reported thirty findings from nine, because four reviews each listed the same set. Every KPI derived from findings would be wrong in proportion to how much a ticket was reworked, which inverts the measure: the tickets that were reviewed most carefully would look the worst",
+          "status": "resolved",
+          "resolution": "Findings are counted by id with the most recent record winning, so a finding resolved on the second pass is one finding. Red at 8, green at 9"
+        },
+        {
+          "id": "R-02",
+          "severity": "medium",
+          "claim": "A report reading only kpi.json files would have covered nothing",
+          "failure_scenario": "Eight tickets had delivered before this one, none with a kpi.json, so the first weekly report would have been empty while the work sat in the tree, and nobody would have trusted the second one either",
+          "status": "resolved",
+          "resolution": "The journal is the source and kpi.json is a cache. Found by the clarify gate refusing three times, and recorded at record 2"
+        },
+        {
+          "id": "R-03",
+          "severity": "medium",
+          "claim": "Reports and kpi.json were inside the reviewed-tree fingerprint",
+          "failure_scenario": "Running harness report would change the tree a receipt attested, so a report could refuse a delivery, and delivery writing kpi.json would invalidate its own receipt. The coverage baseline did exactly this in SEEN-089",
+          "status": "resolved",
+          "resolution": "Both sit outside the fingerprint, with a test. Named in the solution record before it was written, which is the first time this class of bug was caught before it happened"
+        },
+        {
+          "id": "R-04",
+          "severity": "low",
+          "claim": "First-pass CI is null for every ticket delivered so far",
+          "failure_scenario": "A KPI that reads null for eight tickets looks like a measure nobody implemented",
+          "status": "resolved",
+          "resolution": "verify-delivery records the checks it verifies from now on, and the report's last section names the field as not yet measurable with the reason. Guessing a value for the eight would have been worse than saying so"
+        }
+      ],
+      "checks": [
+        31
+      ],
+      "security_checklist": [
+        "No secret in the diff",
+        "Reports are refused when they carry an environment value, by the same rule as the journal",
+        "The session log reader takes four token counts and nothing else: a log holds prompts and file contents that do not belong in a journal",
+        "No new dependency",
+        "No PII, no database, no agent action"
+      ],
+      "verdict": "pass",
+      "tree": "295a6d6314e1e5c463a40a62f1557e95210f7194f22ce883b82a1f4fbe463bf3"
+    },
+    "decisions": [
+      {
+        "question": "severity",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high",
+          "blocking"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "blocking",
+        "probabilities": {
+          "low": 0.06,
+          "medium": 0.09,
+          "high": 0.13,
+          "blocking": 0.72
+        },
+        "confidence": 0.52,
+        "score": 2.52,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      },
+      {
+        "question": "must_fix",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.41,
+          "no": 0.59
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.7,
+        "passed": false,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

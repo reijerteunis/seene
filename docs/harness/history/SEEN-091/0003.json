@@ -1,0 +1,91 @@
+{
+  "sequence": 3,
+  "ticket": "SEEN-091",
+  "timestamp": "2026-09-23T21:49:55.117617+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "94406c81a16dda4d67281aa21570dccd91e6e8a0",
+  "prev_hash": "efdf4d2fe3f053c8d15bf09518a427a4fd431300ed56157cd2c55b007cc235bb",
+  "data": {
+    "from_stage": "clarify",
+    "to_stage": "solution",
+    "evidence": {
+      "scope": "Derive a KPI record from each ticket's journal at delivery, and aggregate those records into weekly and sprint reports, so the numbers come from what was recorded rather than from what anyone remembers.",
+      "acceptance": [
+        "verify-delivery writes kpi.json carrying cycle time total and per stage, first-pass CI, RED-before-GREEN compliance, tests added, coverage delta, findings by severity with fixed and waived counts, rework, cost and escaped defects: evidenced by the file this ticket's own delivery writes",
+        "harness report --week writes docs/harness/reports/<year>-W<week>.md and .json covering every ticket delivered that week, with median cycle time, first-pass CI rate, rework per ticket, findings by severity and points delivered: evidenced by the report this ticket produces for the current week",
+        "harness report --sprint 0 shows planned against delivered build points, and reports the eval pass rate as not yet measurable rather than as zero: evidenced by the sprint report, with the criterion amended in the ticket because no policy-gate action ticket exists to measure",
+        "A fix ticket naming an earlier ticket in its frontmatter increments escaped defects on that ticket in the next report: evidenced by a test with a fixture ticket",
+        "No report can contain a secret, token or environment value, using the same rule as the journal: evidenced by a test that writes a report with a credential in a ticket title",
+        "The first weekly report covers the eight tickets already delivered, including SEEN-086 which has no journal: evidenced by the report this ticket produces"
+      ],
+      "decisions": [
+        "Every number is derived from records that already exist, and nothing is typed in by hand. Cost is the exception the ticket names, and where no session log exists the KPI records it as null rather than zero, because zero is a claim and null is the truth",
+        "The eval pass rate for policy-gate action tickets is out of scope here: the eval set is SEEN-036 and no such ticket has been worked. The sprint report shows the field as not yet measurable rather than as zero, and the criterion is amended to say so",
+        "Cycle time is measured from the start record to the receipt, and per stage from the record that enters a stage to the one that leaves it, summing repeats after a return rather than taking the last pass, because rework is time spent",
+        "First-pass CI means the checks on the first commit pushed for the ticket, which the journal records as the head of the first check written after the branch existed",
+        "Reports are written into docs/harness/reports/ and committed, because a report nobody can read later is not a report",
+        "Tests added is counted from the diff between the ticket's first and last commit, as the change in lines matching a test file pattern, because counting test functions would need a parser per language and the number only has to be comparable with itself",
+        "A week is the ISO week of the receipt's timestamp in UTC, so a report is the same wherever it is generated",
+        "Points delivered come from the estimate in each ticket's frontmatter, and planned points for a sprint from every ticket carrying that sprint number, so the two halves of the comparison come from the same place",
+        "Cost is supplied by harness note --cost when a session log is unavailable, and the KPI reads the most recent such note; with none, it is null",
+        "The journal is the source and kpi.json is a cache: harness report derives every figure from the journals, so the eight tickets delivered before this ticket existed are covered in full rather than appearing as an empty first report",
+        "A ticket with no journal is listed rather than omitted: SEEN-086 is the bootstrap and appears with its points and delivery date from the ticket file, every timing null, with the reason named",
+        "Delivered means the frontmatter says done or the journal holds a receipt, because SEEN-086 has only the first"
+      ],
+      "open_questions": [],
+      "changes_agent_action": false,
+      "graph_impact": [
+        "delivery.verify is where kpi.json is written, beside the receipt it already writes",
+        "journal records are the only input, so the reader belongs next to journal.read"
+      ]
+    },
+    "decisions": [
+      {
+        "question": "clarified",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.81,
+          "no": 0.19
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.8,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "question": "risk",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "medium",
+        "probabilities": {
+          "low": 0.45,
+          "medium": 0.55,
+          "high": 0.0
+        },
+        "confidence": 0.32,
+        "score": 0.55,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

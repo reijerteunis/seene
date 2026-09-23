@@ -1,0 +1,27 @@
+{
+  "sequence": 11,
+  "ticket": "SEEN-091",
+  "timestamp": "2026-09-23T21:57:16.596188+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "94406c81a16dda4d67281aa21570dccd91e6e8a0",
+  "prev_hash": "9cbbfc38433951668c33dd407399a4885b37d8b47dd812f83951274de9d3bc1b",
+  "data": {
+    "command": [
+      "sh",
+      "-c",
+      "python3 -m unittest discover -s harness/tests && python3 harness/run.py lint && python3 harness/run.py doctor && pnpm turbo run lint typecheck test --output-logs=errors-only"
+    ],
+    "phase": "regression",
+    "exit_code": 0,
+    "duration_ms": 55236,
+    "output": "...............................................................................................................................................................................................................................\n----------------------------------------------------------------------\nRan 223 tests in 53.761s\n\nOK\n{\n  \"ok\": true,\n  \"checked\": \"test code\",\n  \"hosts\": [\n    \"api.bol.com\",\n    \"sellingpartnerapi\",\n    \"api.ebay.com\",\n    \"sellerapi.kaufland.com\",\n    \"api.otto.market\"\n  ]\n}\n{\n  \"ok\": true,\n  \"checked\": [\n    \"python\",\n    \"thresholds\",\n    \"templates\",\n    \"journals\",\n    \"append_only\",\n    \"gitignore\",\n    \"hooks\",\n    \"marketplace_hosts\",\n    \"links\"\n  ],\n  \"problems\": []\n}\n• turbo 2.11.3\n\n   • Packages in scope: @seen/agent, @seen/api, @seen/connectors, @seen/core, @seen/web, @seen/worker\n   • Running lint, typecheck, test in 6 packages\n   • Remote caching disabled\n\n\n Tasks:    18 successful, 18 total\nCached:    18 cached, 18 total\n  Time:    23ms >>> FULL TURBO\n\n",
+    "output_sha256": "beabe8d3d60822b995908fc885cff57f58e03f02daf229f715e64c95bb391194",
+    "output_truncated": false,
+    "before": "5a2616b9706f3f25a2523f466d0560eae3d128382b74157760b179bbd461e71c",
+    "after": "5a2616b9706f3f25a2523f466d0560eae3d128382b74157760b179bbd461e71c"
+  }
+}

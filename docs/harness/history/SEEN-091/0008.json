@@ -1,0 +1,28 @@
+{
+  "sequence": 8,
+  "ticket": "SEEN-091",
+  "timestamp": "2026-09-23T21:55:08.270973+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "94406c81a16dda4d67281aa21570dccd91e6e8a0",
+  "prev_hash": "4f0dd3e5d4debe796d2d5110bf1358cb3d18c74145ea56363ed132ef30e76c80",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_kpi.RepeatedReviewTest"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "duration_ms": 399,
+    "output": "FF\n======================================================================\nFAIL: test_findings_are_counted_once_not_once_per_review (harness.tests.test_kpi.RepeatedReviewTest.test_findings_are_counted_once_not_once_per_review)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_kpi.py\", line 159, in test_findings_are_counted_once_not_once_per_review\n    self.assertEqual(findings['by_severity'], {'high': 1, 'low': 1, 'medium': 1})\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: {'high': 2, 'low': 2, 'medium': 1} != {'high': 1, 'low': 1, 'medium': 1}\n- {'high': 2, 'low': 2, 'medium': 1}\n?          ^         ^\n\n+ {'high': 1, 'low': 1, 'medium': 1}\n?          ^         ^\n\n\n======================================================================\nFAIL: test_rework_per_ticket_is_reported_to_two_decimals (harness.tests.test_kpi.RepeatedReviewTest.test_rework_per_ticket_is_reported_to_two_decimals)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_kpi.py\", line 167, in test_rework_per_ticket_is_reported_to_two_decimals\n    self.assertEqual(figures['rework_per_ticket'], 0.67)\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 0.6666666666666666 != 0.67\n\n----------------------------------------------------------------------\nRan 2 tests in 0.351s\n\nFAILED (failures=2)\n",
+    "output_sha256": "33df9b74b66776b399cee244a06698c61892c9f356b5634b25f170a913f92245",
+    "output_truncated": false,
+    "before": "63aec20c1ae16bb5be45e3a8ec2dd6283c6b2d41b773c45edd6f672408525e27",
+    "after": "63aec20c1ae16bb5be45e3a8ec2dd6283c6b2d41b773c45edd6f672408525e27"
+  }
+}

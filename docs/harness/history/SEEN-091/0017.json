@@ -1,0 +1,28 @@
+{
+  "sequence": 17,
+  "ticket": "SEEN-091",
+  "timestamp": "2026-09-23T22:07:58.699942+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "head": "5e74f8a45e0b29bab11cf61d06df7c6752c95398",
+  "prev_hash": "3d0c7478b1df3d8a1824a93e24f35f2214e80ea7f3f3e9be7411aff92412eec2",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_merge.BookkeepingAfterReceiptTest"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "duration_ms": 3159,
+    "output": ".E.\n======================================================================\nERROR: test_a_report_regenerated_after_the_receipt_is_fine (harness.tests.test_merge.BookkeepingAfterReceiptTest.test_a_report_regenerated_after_the_receipt_is_fine)\nThe week includes the ticket that just delivered, so the report moves.\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_merge.py\", line 177, in test_a_report_regenerated_after_the_receipt_is_fine\n    self.assertTrue(self.run_harness('verify-merge', self.ticket_id)['ready'])\n                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_lifecycle.py\", line 21, in run_harness\n    return cli.execute(cli.parse(['--root', str(self.root), *args]))\n           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/cli.py\", line 724, in execute\n    return delivery.verify_merge(repository, folder, records)\n           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/delivery.py\", line 145, in verify_merge\n    require(not unreviewed,\n    ~~~~~~~^^^^^^^^^^^^^^^^\n            f'Changed after the receipt was written: {\", \".join(unreviewed)}. '\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n            'The receipt attests a tree that is not the one merging. Run harness reopen, '\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n            'fix it under review, and deliver again')\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/errors.py\", line 11, in require\n    raise HarnessError(message)\nharness.errors.HarnessError: Changed after the receipt was written: docs/harness/reports/2026-W39.md. The receipt attests a tree that is not the one merging. Run harness reopen, fix it under review, and deliver again\n\n----------------------------------------------------------------------\nRan 3 tests in 3.084s\n\nFAILED (errors=1)\n",
+    "output_sha256": "be458a704ff6862b52a44af8e66ed617f1c5696e9e12960d7e79c7e2a7c9c693",
+    "output_truncated": false,
+    "before": "5948eb2358414d2a5a36df4535267a7e91a3d04f54031fa54f08b549de8a684d",
+    "after": "5948eb2358414d2a5a36df4535267a7e91a3d04f54031fa54f08b549de8a684d"
+  }
+}
