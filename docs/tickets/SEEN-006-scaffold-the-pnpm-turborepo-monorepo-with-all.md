@@ -68,6 +68,12 @@ do, and SEEN-090 settles the plan and owns the blocking half.
 **SEEN-087's carried-in verification passed.** A commit changing `packages/core` rebuilt the graph,
 and `harness graph SEEN-006 impact --about "sumCents()"` returned its importer, recorded at record 19.
 
+**CI caught a flaky test the machine could not.** The worker test timed out on one run and passed on
+another at the same commit: `waitUntilFinished` waits for a completion event, and the events
+connection was subscribing after the worker had started, so on a fast runner the job could finish
+before anything was listening. The worker now owns its events connection and exposes `ready()`.
+Review returned the ticket for it, and ten consecutive local runs follow the fix.
+
 **Two harness defects surfaced while working this ticket and were fixed here**, each recorded as a
 note rather than folded quietly into a later ticket. The `solution_complete` question asked whether a
 record "names everything the change needs", which no thirty-file scaffold clears; it now asks whether

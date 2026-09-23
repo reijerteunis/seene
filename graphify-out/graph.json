@@ -4,19 +4,6 @@
   "graph": {},
   "nodes": [
     {
-      "id": "harness_tests_test_stage_gates_clarifygatetest",
-      "label": "ClarifyGateTest",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 1,
-      "community_name": ".evaluate",
-      "file_type": "code",
-      "norm_label": "clarifygatetest",
-      "source_file": "harness/tests/test_stage_gates.py",
-      "source_location": "L93"
-    },
-    {
       "id": "harness_tests_test_stage_gates_gatetest",
       "label": "GateTest",
       "_callable": true,
@@ -173,13 +160,26 @@
       "source_location": "L4"
     },
     {
+      "id": "harness_tests_test_stage_gates_clarifygatetest",
+      "label": "ClarifyGateTest",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 13,
+      "community_name": "HarnessError",
+      "file_type": "code",
+      "norm_label": "clarifygatetest",
+      "source_file": "harness/tests/test_stage_gates.py",
+      "source_location": "L93"
+    },
+    {
       "id": "apps_worker_src_hello_hellopayload",
       "label": "HelloPayload",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
-      "community": 15,
-      "community_name": "worker/package.json",
+      "community": 143,
+      "community_name": "hello.ts",
       "file_type": "code",
       "norm_label": "hellopayload",
       "source_file": "apps/worker/src/hello.ts",
@@ -191,12 +191,25 @@
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
-      "community": 15,
-      "community_name": "worker/package.json",
+      "community": 143,
+      "community_name": "hello.ts",
       "file_type": "code",
       "norm_label": "helloresult",
       "source_file": "apps/worker/src/hello.ts",
       "source_location": "L22"
+    },
+    {
+      "id": "apps_worker_src_hello_helloworker",
+      "label": "HelloWorker",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 143,
+      "community_name": "hello.ts",
+      "file_type": "code",
+      "norm_label": "helloworker",
+      "source_file": "apps/worker/src/hello.ts",
+      "source_location": "L26"
     },
     {
       "id": "harness_tests_test_decisions_answertest",
@@ -485,16 +498,76 @@
       "source_location": "L15"
     },
     {
+      "id": "harness_cli_draft",
+      "label": "draft()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "require",
+      "file_type": "code",
+      "norm_label": "draft()",
+      "source_file": "harness/cli.py",
+      "source_location": "L217"
+    },
+    {
+      "id": "harness_cli_read_evidence",
+      "label": "read_evidence()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "require",
+      "file_type": "code",
+      "norm_label": "read_evidence()",
+      "source_file": "harness/cli.py",
+      "source_location": "L336"
+    },
+    {
       "id": "harness_delivery_evidence",
       "label": "_evidence()",
       "_callable": true,
       "_origin": "ast",
       "community": 0,
-      "community_name": "gates.py",
+      "community_name": "require",
       "file_type": "code",
       "norm_label": "_evidence()",
       "source_file": "harness/delivery.py",
       "source_location": "L49"
+    },
+    {
+      "id": "harness_delivery_require_committed",
+      "label": "_require_committed()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "require",
+      "file_type": "code",
+      "norm_label": "_require_committed()",
+      "source_file": "harness/delivery.py",
+      "source_location": "L58"
+    },
+    {
+      "id": "harness_delivery_verify",
+      "label": "verify()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "require",
+      "file_type": "code",
+      "norm_label": "verify()",
+      "source_file": "harness/delivery.py",
+      "source_location": "L15"
+    },
+    {
+      "id": "harness_errors_require",
+      "label": "require()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "require",
+      "file_type": "code",
+      "norm_label": "require()",
+      "source_file": "harness/errors.py",
+      "source_location": "L8"
     },
     {
       "id": "harness_gates_cited_check",
@@ -502,7 +575,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 0,
-      "community_name": "gates.py",
+      "community_name": "require",
       "file_type": "code",
       "norm_label": "cited_check()",
       "source_file": "harness/gates.py",
@@ -514,7 +587,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 0,
-      "community_name": "gates.py",
+      "community_name": "require",
       "file_type": "code",
       "norm_label": "_clarify()",
       "source_file": "harness/gates.py",
@@ -526,7 +599,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 0,
-      "community_name": "gates.py",
+      "community_name": "require",
       "file_type": "code",
       "norm_label": "evaluate()",
       "source_file": "harness/gates.py",
@@ -538,7 +611,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 0,
-      "community_name": "gates.py",
+      "community_name": "require",
       "file_type": "code",
       "norm_label": "_filled()",
       "source_file": "harness/gates.py",
@@ -550,7 +623,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 0,
-      "community_name": "gates.py",
+      "community_name": "require",
       "file_type": "code",
       "norm_label": "latest_evidence()",
       "source_file": "harness/gates.py",
@@ -562,7 +635,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 0,
-      "community_name": "gates.py",
+      "community_name": "require",
       "file_type": "code",
       "norm_label": "load_template()",
       "source_file": "harness/gates.py",
@@ -574,7 +647,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 0,
-      "community_name": "gates.py",
+      "community_name": "require",
       "file_type": "code",
       "norm_label": "_needs_two_reviewers()",
       "source_file": "harness/gates.py",
@@ -586,7 +659,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 0,
-      "community_name": "gates.py",
+      "community_name": "require",
       "file_type": "code",
       "norm_label": "_non_code()",
       "source_file": "harness/gates.py",
@@ -598,7 +671,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 0,
-      "community_name": "gates.py",
+      "community_name": "require",
       "file_type": "code",
       "norm_label": "record_at()",
       "source_file": "harness/gates.py",
@@ -610,7 +683,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 0,
-      "community_name": "gates.py",
+      "community_name": "require",
       "file_type": "code",
       "norm_label": "reject_placeholders()",
       "source_file": "harness/gates.py",
@@ -622,7 +695,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 0,
-      "community_name": "gates.py",
+      "community_name": "require",
       "file_type": "code",
       "norm_label": "require_template_fields()",
       "source_file": "harness/gates.py",
@@ -634,7 +707,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 0,
-      "community_name": "gates.py",
+      "community_name": "require",
       "file_type": "code",
       "norm_label": "_review()",
       "source_file": "harness/gates.py",
@@ -646,7 +719,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 0,
-      "community_name": "gates.py",
+      "community_name": "require",
       "file_type": "code",
       "norm_label": "_solution()",
       "source_file": "harness/gates.py",
@@ -658,7 +731,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 0,
-      "community_name": "gates.py",
+      "community_name": "require",
       "file_type": "code",
       "norm_label": "_strings()",
       "source_file": "harness/gates.py",
@@ -670,7 +743,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 0,
-      "community_name": "gates.py",
+      "community_name": "require",
       "file_type": "code",
       "norm_label": "_tdd()",
       "source_file": "harness/gates.py",
@@ -682,11 +755,23 @@
       "_callable": true,
       "_origin": "ast",
       "community": 0,
-      "community_name": "gates.py",
+      "community_name": "require",
       "file_type": "code",
       "norm_label": "template_name()",
       "source_file": "harness/gates.py",
       "source_location": "L20"
+    },
+    {
+      "id": "harness_journal_state",
+      "label": "state()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "require",
+      "file_type": "code",
+      "norm_label": "state()",
+      "source_file": "harness/journal.py",
+      "source_location": "L101"
     },
     {
       "id": "harness_tests_test_stage_gates_advance_record",
@@ -747,18 +832,6 @@
       "norm_label": ".filled_clarify()",
       "source_file": "harness/tests/test_stage_gates.py",
       "source_location": "L49"
-    },
-    {
-      "id": "harness_tests_test_stage_gates_gatetest_setup",
-      "label": ".setUp()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 1,
-      "community_name": ".evaluate",
-      "file_type": "code",
-      "norm_label": ".setup()",
-      "source_file": "harness/tests/test_stage_gates.py",
-      "source_location": "L30"
     },
     {
       "id": "harness_tests_test_stage_gates_gatetest_template",
@@ -1613,18 +1686,6 @@
       "source_location": "L92"
     },
     {
-      "id": "harness_tests_helpers_make_project",
-      "label": "make_project()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 120,
-      "community_name": "ProjectTest",
-      "file_type": "code",
-      "norm_label": "make_project()",
-      "source_file": "harness/tests/helpers.py",
-      "source_location": "L38"
-    },
-    {
       "id": "harness_tests_helpers_projecttest_git",
       "label": ".git()",
       "_callable": true,
@@ -1733,6 +1794,18 @@
       "source_location": "L32"
     },
     {
+      "id": "harness_tests_helpers_make_project",
+      "label": "make_project()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 13,
+      "community_name": "HarnessError",
+      "file_type": "code",
+      "norm_label": "make_project()",
+      "source_file": "harness/tests/helpers.py",
+      "source_location": "L38"
+    },
+    {
       "id": "packages_core_src_index_sumcents",
       "label": "sumCents()",
       "_callable": true,
@@ -1749,36 +1822,12 @@
       "label": "startHelloWorker()",
       "_callable": true,
       "_origin": "ast",
-      "community": 15,
-      "community_name": "worker/package.json",
+      "community": 143,
+      "community_name": "hello.ts",
       "file_type": "code",
       "norm_label": "starthelloworker()",
       "source_file": "apps/worker/src/hello.ts",
-      "source_location": "L26"
-    },
-    {
-      "id": "harness_checks_phases_for",
-      "label": "phases_for()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 16,
-      "community_name": "checks.py",
-      "file_type": "code",
-      "norm_label": "phases_for()",
-      "source_file": "harness/checks.py",
-      "source_location": "L24"
-    },
-    {
-      "id": "harness_checks_run",
-      "label": "run()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 16,
-      "community_name": "checks.py",
-      "file_type": "code",
-      "norm_label": "run()",
-      "source_file": "harness/checks.py",
-      "source_location": "L28"
+      "source_location": "L40"
     },
     {
       "id": "harness_graph_ask",
@@ -1786,7 +1835,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 16,
-      "community_name": "checks.py",
+      "community_name": "graph.py",
       "file_type": "code",
       "norm_label": "ask()",
       "source_file": "harness/graph.py",
@@ -1798,7 +1847,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 16,
-      "community_name": "checks.py",
+      "community_name": "graph.py",
       "file_type": "code",
       "norm_label": "build_command()",
       "source_file": "harness/graph.py",
@@ -1889,6 +1938,42 @@
       "source_location": "L33"
     },
     {
+      "id": "harness_thresholds_load",
+      "label": "load()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 18,
+      "community_name": "doctor.py",
+      "file_type": "code",
+      "norm_label": "load()",
+      "source_file": "harness/thresholds.py",
+      "source_location": "L23"
+    },
+    {
+      "id": "harness_checks_phases_for",
+      "label": "phases_for()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 19,
+      "community_name": "advance",
+      "file_type": "code",
+      "norm_label": "phases_for()",
+      "source_file": "harness/checks.py",
+      "source_location": "L24"
+    },
+    {
+      "id": "harness_checks_run",
+      "label": "run()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 19,
+      "community_name": "advance",
+      "file_type": "code",
+      "norm_label": "run()",
+      "source_file": "harness/checks.py",
+      "source_location": "L28"
+    },
+    {
       "id": "harness_cli_advance",
       "label": "advance()",
       "_callable": true,
@@ -1899,6 +1984,42 @@
       "norm_label": "advance()",
       "source_file": "harness/cli.py",
       "source_location": "L411"
+    },
+    {
+      "id": "harness_cli_build_parser",
+      "label": "build_parser()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 19,
+      "community_name": "advance",
+      "file_type": "code",
+      "norm_label": "build_parser()",
+      "source_file": "harness/cli.py",
+      "source_location": "L54"
+    },
+    {
+      "id": "harness_cli_build_parser_ticket_command",
+      "label": "ticket_command()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 19,
+      "community_name": "advance",
+      "file_type": "code",
+      "norm_label": "ticket_command()",
+      "source_file": "harness/cli.py",
+      "source_location": "L60"
+    },
+    {
+      "id": "harness_cli_check",
+      "label": "check()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 19,
+      "community_name": "advance",
+      "file_type": "code",
+      "norm_label": "check()",
+      "source_file": "harness/cli.py",
+      "source_location": "L319"
     },
     {
       "id": "harness_cli_discard_draft",
@@ -1925,16 +2046,16 @@
       "source_location": "L543"
     },
     {
-      "id": "harness_cli_read_evidence",
-      "label": "read_evidence()",
+      "id": "harness_cli_parse",
+      "label": "parse()",
       "_callable": true,
       "_origin": "ast",
       "community": 19,
       "community_name": "advance",
       "file_type": "code",
-      "norm_label": "read_evidence()",
+      "norm_label": "parse()",
       "source_file": "harness/cli.py",
-      "source_location": "L336"
+      "source_location": "L124"
     },
     {
       "id": "harness_cli_require_decisions_pass",
@@ -3341,6 +3462,18 @@
       "source_location": "L27"
     },
     {
+      "id": "harness_tests_test_stage_gates_gatetest_setup",
+      "label": ".setUp()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 3,
+      "community_name": "Repository",
+      "file_type": "code",
+      "norm_label": ".setup()",
+      "source_file": "harness/tests/test_stage_gates.py",
+      "source_location": "L30"
+    },
+    {
       "id": "harness_tests_test_isolation_entrypointtest_test_a_refusal_goes_to_stderr_with_a_non_zero_exit",
       "label": ".test_a_refusal_goes_to_stderr_with_a_non_zero_exit()",
       "_callable": true,
@@ -3581,42 +3714,6 @@
       "source_location": "L94"
     },
     {
-      "id": "harness_cli_build_parser",
-      "label": "build_parser()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "cli.py",
-      "file_type": "code",
-      "norm_label": "build_parser()",
-      "source_file": "harness/cli.py",
-      "source_location": "L54"
-    },
-    {
-      "id": "harness_cli_build_parser_ticket_command",
-      "label": "ticket_command()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "cli.py",
-      "file_type": "code",
-      "norm_label": "ticket_command()",
-      "source_file": "harness/cli.py",
-      "source_location": "L60"
-    },
-    {
-      "id": "harness_cli_check",
-      "label": "check()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "cli.py",
-      "file_type": "code",
-      "norm_label": "check()",
-      "source_file": "harness/cli.py",
-      "source_location": "L319"
-    },
-    {
       "id": "harness_cli_decide",
       "label": "decide()",
       "_callable": true,
@@ -3639,18 +3736,6 @@
       "norm_label": "describe()",
       "source_file": "harness/cli.py",
       "source_location": "L196"
-    },
-    {
-      "id": "harness_cli_draft",
-      "label": "draft()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "cli.py",
-      "file_type": "code",
-      "norm_label": "draft()",
-      "source_file": "harness/cli.py",
-      "source_location": "L217"
     },
     {
       "id": "harness_cli_execute",
@@ -3761,18 +3846,6 @@
       "source_location": "L311"
     },
     {
-      "id": "harness_cli_parse",
-      "label": "parse()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "cli.py",
-      "file_type": "code",
-      "norm_label": "parse()",
-      "source_file": "harness/cli.py",
-      "source_location": "L124"
-    },
-    {
       "id": "harness_cli_reopen",
       "label": "reopen()",
       "_callable": true,
@@ -3845,42 +3918,6 @@
       "source_location": "L253"
     },
     {
-      "id": "harness_delivery_require_committed",
-      "label": "_require_committed()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "cli.py",
-      "file_type": "code",
-      "norm_label": "_require_committed()",
-      "source_file": "harness/delivery.py",
-      "source_location": "L58"
-    },
-    {
-      "id": "harness_delivery_verify",
-      "label": "verify()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "cli.py",
-      "file_type": "code",
-      "norm_label": "verify()",
-      "source_file": "harness/delivery.py",
-      "source_location": "L15"
-    },
-    {
-      "id": "harness_errors_require",
-      "label": "require()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "cli.py",
-      "file_type": "code",
-      "norm_label": "require()",
-      "source_file": "harness/errors.py",
-      "source_location": "L8"
-    },
-    {
       "id": "harness_journal_append",
       "label": "append()",
       "_callable": true,
@@ -3915,30 +3952,6 @@
       "norm_label": "read()",
       "source_file": "harness/journal.py",
       "source_location": "L31"
-    },
-    {
-      "id": "harness_journal_state",
-      "label": "state()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "cli.py",
-      "file_type": "code",
-      "norm_label": "state()",
-      "source_file": "harness/journal.py",
-      "source_location": "L101"
-    },
-    {
-      "id": "harness_thresholds_load",
-      "label": "load()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "cli.py",
-      "file_type": "code",
-      "norm_label": "load()",
-      "source_file": "harness/thresholds.py",
-      "source_location": "L23"
     },
     {
       "id": "harness_tests_test_delivery_deliverytest_commit_and_push",
@@ -4217,22 +4230,77 @@
       "source_location": "L36"
     },
     {
+      "id": "harness_delivery",
+      "label": "delivery.py",
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "require",
+      "file_type": "code",
+      "norm_label": "delivery.py",
+      "source_file": "harness/delivery.py",
+      "source_location": "L1"
+    },
+    {
       "id": "harness_gates",
       "label": "gates.py",
       "_origin": "ast",
       "community": 0,
-      "community_name": "gates.py",
+      "community_name": "require",
       "file_type": "code",
       "norm_label": "gates.py",
       "source_file": "harness/gates.py",
       "source_location": "L1"
     },
     {
+      "id": "harness_cli_rationale_337",
+      "label": "Read a stage evidence file, which must live where drafts live. Anywhere else it\u2026",
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "require",
+      "file_type": "rationale",
+      "norm_label": "read a stage evidence file, which must live where drafts live. anywhere else it...",
+      "source_file": "harness/cli.py",
+      "source_location": "L337"
+    },
+    {
+      "id": "harness_delivery_rationale_1",
+      "label": "Delivery: the deliver stage's own gate, and the receipt it writes. There is no\u2026",
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "require",
+      "file_type": "rationale",
+      "norm_label": "delivery: the deliver stage's own gate, and the receipt it writes. there is no...",
+      "source_file": "harness/delivery.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "harness_delivery_rationale_59",
+      "label": "Every record must already be in the history that was pushed. The receipt is the\u2026",
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "require",
+      "file_type": "rationale",
+      "norm_label": "every record must already be in the history that was pushed. the receipt is the...",
+      "source_file": "harness/delivery.py",
+      "source_location": "L59"
+    },
+    {
+      "id": "harness_errors_rationale_9",
+      "label": "Refuse unless the condition holds. Never repairs, never warns and continues.",
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "require",
+      "file_type": "rationale",
+      "norm_label": "refuse unless the condition holds. never repairs, never warns and continues.",
+      "source_file": "harness/errors.py",
+      "source_location": "L9"
+    },
+    {
       "id": "harness_gates_rationale_1",
       "label": "What each stage gate proves before a ticket may leave its stage. Three layers,\u2026",
       "_origin": "ast",
       "community": 0,
-      "community_name": "gates.py",
+      "community_name": "require",
       "file_type": "rationale",
       "norm_label": "what each stage gate proves before a ticket may leave its stage. three layers,...",
       "source_file": "harness/gates.py",
@@ -4243,7 +4311,7 @@
       "label": "A check a stage record points at, confirmed to be usable evidence here. A check\u2026",
       "_origin": "ast",
       "community": 0,
-      "community_name": "gates.py",
+      "community_name": "require",
       "file_type": "rationale",
       "norm_label": "a check a stage record points at, confirmed to be usable evidence here. a check...",
       "source_file": "harness/gates.py",
@@ -4254,7 +4322,7 @@
       "label": "The evidence of the most recent accepted advance out of a stage.",
       "_origin": "ast",
       "community": 0,
-      "community_name": "gates.py",
+      "community_name": "require",
       "file_type": "rationale",
       "norm_label": "the evidence of the most recent accepted advance out of a stage.",
       "source_file": "harness/gates.py",
@@ -4265,7 +4333,7 @@
       "label": "Run one stage gate and return the facts the harness adds to the record.",
       "_origin": "ast",
       "community": 0,
-      "community_name": "gates.py",
+      "community_name": "require",
       "file_type": "rationale",
       "norm_label": "run one stage gate and return the facts the harness adds to the record.",
       "source_file": "harness/gates.py",
@@ -4276,7 +4344,7 @@
       "label": "Every key the template carries must be answered. A key the template ships as an\u2026",
       "_origin": "ast",
       "community": 0,
-      "community_name": "gates.py",
+      "community_name": "require",
       "file_type": "rationale",
       "norm_label": "every key the template carries must be answered. a key the template ships as an...",
       "source_file": "harness/gates.py",
@@ -4287,7 +4355,7 @@
       "label": "Every free-text string in a document, skipping enumerated answers.",
       "_origin": "ast",
       "community": 0,
-      "community_name": "gates.py",
+      "community_name": "require",
       "file_type": "rationale",
       "norm_label": "every free-text string in a document, skipping enumerated answers.",
       "source_file": "harness/gates.py",
@@ -4298,11 +4366,22 @@
       "label": "Refuse evidence still carrying the template's example prose. Copying a template\u2026",
       "_origin": "ast",
       "community": 0,
-      "community_name": "gates.py",
+      "community_name": "require",
       "file_type": "rationale",
       "norm_label": "refuse evidence still carrying the template's example prose. copying a template...",
       "source_file": "harness/gates.py",
       "source_location": "L82"
+    },
+    {
+      "id": "harness_journal_rationale_102",
+      "label": "Where a ticket stands now. A record's envelope says where the ticket was when\u2026",
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "require",
+      "file_type": "rationale",
+      "norm_label": "where a ticket stands now. a record's envelope says where the ticket was when...",
+      "source_file": "harness/journal.py",
+      "source_location": "L102"
     },
     {
       "id": "harness_tests_test_graph_rationale_30",
@@ -5598,11 +5677,23 @@
       "source_location": "L2"
     },
     {
+      "id": "context",
+      "label": "CONTEXT.md",
+      "_origin": "ast",
+      "community": 115,
+      "community_name": "CONTEXT.md",
+      "file_type": "document",
+      "node_kind": "page",
+      "norm_label": "context.md",
+      "source_file": "CONTEXT.md",
+      "source_location": "L1"
+    },
+    {
       "id": "context_development_harness",
       "label": "Development harness",
       "_origin": "ast",
       "community": 115,
-      "community_name": "Seen",
+      "community_name": "CONTEXT.md",
       "file_type": "document",
       "node_kind": "heading",
       "norm_label": "development harness",
@@ -5614,7 +5705,7 @@
       "label": "Example dialogue",
       "_origin": "ast",
       "community": 115,
-      "community_name": "Seen",
+      "community_name": "CONTEXT.md",
       "file_type": "document",
       "node_kind": "heading",
       "norm_label": "example dialogue",
@@ -5626,7 +5717,7 @@
       "label": "Flagged ambiguities",
       "_origin": "ast",
       "community": 115,
-      "community_name": "Seen",
+      "community_name": "CONTEXT.md",
       "file_type": "document",
       "node_kind": "heading",
       "norm_label": "flagged ambiguities",
@@ -5638,7 +5729,7 @@
       "label": "Language",
       "_origin": "ast",
       "community": 115,
-      "community_name": "Seen",
+      "community_name": "CONTEXT.md",
       "file_type": "document",
       "node_kind": "heading",
       "norm_label": "language",
@@ -5650,7 +5741,7 @@
       "label": "Product",
       "_origin": "ast",
       "community": 115,
-      "community_name": "Seen",
+      "community_name": "CONTEXT.md",
       "file_type": "document",
       "node_kind": "heading",
       "norm_label": "product",
@@ -5662,7 +5753,7 @@
       "label": "Seen",
       "_origin": "ast",
       "community": 115,
-      "community_name": "Seen",
+      "community_name": "CONTEXT.md",
       "file_type": "document",
       "node_kind": "heading",
       "norm_label": "seen",
@@ -6116,17 +6207,6 @@
       "norm_label": "graphify",
       "source_file": ".mcp.json",
       "source_location": "L1"
-    },
-    {
-      "id": "harness_tests_helpers_rationale_39",
-      "label": "A git repository shaped like Seen: a ticket, the harness files, one commit.",
-      "_origin": "ast",
-      "community": 120,
-      "community_name": "ProjectTest",
-      "file_type": "rationale",
-      "norm_label": "a git repository shaped like seen: a ticket, the harness files, one commit.",
-      "source_file": "harness/tests/helpers.py",
-      "source_location": "L39"
     },
     {
       "id": "harness_tests_helpers_rationale_60",
@@ -7130,6 +7210,17 @@
       "source_location": ""
     },
     {
+      "id": "harness_checks",
+      "label": "checks.py",
+      "_origin": "ast",
+      "community": 13,
+      "community_name": "HarnessError",
+      "file_type": "code",
+      "norm_label": "checks.py",
+      "source_file": "harness/checks.py",
+      "source_location": "L1"
+    },
+    {
       "id": "harness_errors",
       "label": "errors.py",
       "_origin": "ast",
@@ -7273,14 +7364,14 @@
       "source_location": "L1"
     },
     {
-      "id": "harness_thresholds",
-      "label": "thresholds.py",
+      "id": "harness_checks_rationale_1",
+      "label": "Running and recording a verification command. A check is a real subprocess in\u2026",
       "_origin": "ast",
       "community": 13,
       "community_name": "HarnessError",
-      "file_type": "code",
-      "norm_label": "thresholds.py",
-      "source_file": "harness/thresholds.py",
+      "file_type": "rationale",
+      "norm_label": "running and recording a verification command. a check is a real subprocess in...",
+      "source_file": "harness/checks.py",
       "source_location": "L1"
     },
     {
@@ -7326,6 +7417,17 @@
       "norm_label": "a throwaway project to run harness commands against. tests never touch the...",
       "source_file": "harness/tests/helpers.py",
       "source_location": "L1"
+    },
+    {
+      "id": "harness_tests_helpers_rationale_39",
+      "label": "A git repository shaped like Seen: a ticket, the harness files, one commit.",
+      "_origin": "ast",
+      "community": 13,
+      "community_name": "HarnessError",
+      "file_type": "rationale",
+      "norm_label": "a git repository shaped like seen: a ticket, the harness files, one commit.",
+      "source_file": "harness/tests/helpers.py",
+      "source_location": "L39"
     },
     {
       "id": "harness_tests_test_decisions_rationale_1",
@@ -7435,17 +7537,6 @@
       "file_type": "rationale",
       "norm_label": "what each stage gate proves before a ticket may leave its stage. the three...",
       "source_file": "harness/tests/test_stage_gates.py",
-      "source_location": "L1"
-    },
-    {
-      "id": "harness_thresholds_rationale_1",
-      "label": "The numbers and vocabularies the stage gates apply. Missing or malformed, this\u2026",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "HarnessError",
-      "file_type": "rationale",
-      "norm_label": "the numbers and vocabularies the stage gates apply. missing or malformed, this...",
-      "source_file": "harness/thresholds.py",
       "source_location": "L1"
     },
     {
@@ -8413,6 +8504,83 @@
       "source_location": "L5"
     },
     {
+      "id": "apps_worker_src_hello",
+      "label": "hello.ts",
+      "_origin": "ast",
+      "community": 143,
+      "community_name": "hello.ts",
+      "file_type": "code",
+      "norm_label": "hello.ts",
+      "source_file": "apps/worker/src/hello.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "apps_worker_src_hello_connection",
+      "label": "connection",
+      "_origin": "ast",
+      "community": 143,
+      "community_name": "hello.ts",
+      "file_type": "code",
+      "norm_label": "connection",
+      "source_file": "apps/worker/src/hello.ts",
+      "source_location": "L13"
+    },
+    {
+      "id": "apps_worker_src_hello_hello_queue",
+      "label": "HELLO_QUEUE",
+      "_origin": "ast",
+      "community": 143,
+      "community_name": "hello.ts",
+      "file_type": "code",
+      "norm_label": "hello_queue",
+      "source_file": "apps/worker/src/hello.ts",
+      "source_location": "L11"
+    },
+    {
+      "id": "apps_worker_src_hello_test",
+      "label": "hello.test.ts",
+      "_origin": "ast",
+      "community": 143,
+      "community_name": "hello.ts",
+      "file_type": "code",
+      "norm_label": "hello.test.ts",
+      "source_file": "apps/worker/src/hello.test.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "apps_worker_src_main",
+      "label": "worker/src/main.ts",
+      "_origin": "ast",
+      "community": 143,
+      "community_name": "hello.ts",
+      "file_type": "code",
+      "norm_label": "worker/src/main.ts",
+      "source_file": "apps/worker/src/main.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "apps_worker_src_main_worker",
+      "label": "worker",
+      "_origin": "ast",
+      "community": 143,
+      "community_name": "hello.ts",
+      "file_type": "code",
+      "norm_label": "worker",
+      "source_file": "apps/worker/src/main.ts",
+      "source_location": "L7"
+    },
+    {
+      "id": "ref_bullmq",
+      "label": "bullmq",
+      "_origin": "ast",
+      "community": 143,
+      "community_name": "hello.ts",
+      "file_type": "concept",
+      "norm_label": "bullmq",
+      "source_file": "apps/worker/package.json",
+      "source_location": "L16"
+    },
+    {
       "id": "apps_worker_package",
       "label": "worker/package.json",
       "_origin": "ast",
@@ -8589,72 +8757,6 @@
       "source_location": "L3"
     },
     {
-      "id": "apps_worker_src_hello",
-      "label": "hello.ts",
-      "_origin": "ast",
-      "community": 15,
-      "community_name": "worker/package.json",
-      "file_type": "code",
-      "norm_label": "hello.ts",
-      "source_file": "apps/worker/src/hello.ts",
-      "source_location": "L1"
-    },
-    {
-      "id": "apps_worker_src_hello_connection",
-      "label": "connection",
-      "_origin": "ast",
-      "community": 15,
-      "community_name": "worker/package.json",
-      "file_type": "code",
-      "norm_label": "connection",
-      "source_file": "apps/worker/src/hello.ts",
-      "source_location": "L13"
-    },
-    {
-      "id": "apps_worker_src_hello_hello_queue",
-      "label": "HELLO_QUEUE",
-      "_origin": "ast",
-      "community": 15,
-      "community_name": "worker/package.json",
-      "file_type": "code",
-      "norm_label": "hello_queue",
-      "source_file": "apps/worker/src/hello.ts",
-      "source_location": "L11"
-    },
-    {
-      "id": "apps_worker_src_hello_test",
-      "label": "hello.test.ts",
-      "_origin": "ast",
-      "community": 15,
-      "community_name": "worker/package.json",
-      "file_type": "code",
-      "norm_label": "hello.test.ts",
-      "source_file": "apps/worker/src/hello.test.ts",
-      "source_location": "L1"
-    },
-    {
-      "id": "apps_worker_src_main",
-      "label": "worker/src/main.ts",
-      "_origin": "ast",
-      "community": 15,
-      "community_name": "worker/package.json",
-      "file_type": "code",
-      "norm_label": "worker/src/main.ts",
-      "source_file": "apps/worker/src/main.ts",
-      "source_location": "L1"
-    },
-    {
-      "id": "apps_worker_src_main_worker",
-      "label": "worker",
-      "_origin": "ast",
-      "community": 15,
-      "community_name": "worker/package.json",
-      "file_type": "code",
-      "norm_label": "worker",
-      "source_file": "apps/worker/src/main.ts",
-      "source_location": "L7"
-    },
-    {
       "id": "apps_worker_package_json_ref_seen_core",
       "label": "@seen/core",
       "_origin": "ast",
@@ -8664,17 +8766,6 @@
       "norm_label": "@seen/core",
       "source_file": "apps/worker/package.json",
       "source_location": "L15"
-    },
-    {
-      "id": "ref_bullmq",
-      "label": "bullmq",
-      "_origin": "ast",
-      "community": 15,
-      "community_name": "worker/package.json",
-      "file_type": "concept",
-      "norm_label": "bullmq",
-      "source_file": "apps/worker/package.json",
-      "source_location": "L16"
     },
     {
       "id": "ref_ioredis",
@@ -8688,55 +8779,22 @@
       "source_location": "L17"
     },
     {
-      "id": "harness_checks",
-      "label": "checks.py",
-      "_origin": "ast",
-      "community": 16,
-      "community_name": "checks.py",
-      "file_type": "code",
-      "norm_label": "checks.py",
-      "source_file": "harness/checks.py",
-      "source_location": "L1"
-    },
-    {
       "id": "harness_graph",
       "label": "graph.py",
       "_origin": "ast",
       "community": 16,
-      "community_name": "checks.py",
+      "community_name": "graph.py",
       "file_type": "code",
       "norm_label": "graph.py",
       "source_file": "harness/graph.py",
       "source_location": "L1"
     },
     {
-      "id": "harness_checks_rationale_1",
-      "label": "Running and recording a verification command. A check is a real subprocess in\u2026",
-      "_origin": "ast",
-      "community": 16,
-      "community_name": "checks.py",
-      "file_type": "rationale",
-      "norm_label": "running and recording a verification command. a check is a real subprocess in...",
-      "source_file": "harness/checks.py",
-      "source_location": "L1"
-    },
-    {
-      "id": "harness_checks_rationale_29",
-      "label": "Run one check and return the evidence to record.",
-      "_origin": "ast",
-      "community": 16,
-      "community_name": "checks.py",
-      "file_type": "rationale",
-      "norm_label": "run one check and return the evidence to record.",
-      "source_file": "harness/checks.py",
-      "source_location": "L29"
-    },
-    {
       "id": "harness_graph_rationale_1",
       "label": "Asking graphify a question and keeping the answer in the journal. The harness\u2026",
       "_origin": "ast",
       "community": 16,
-      "community_name": "checks.py",
+      "community_name": "graph.py",
       "file_type": "rationale",
       "norm_label": "asking graphify a question and keeping the answer in the journal. the harness...",
       "source_file": "harness/graph.py",
@@ -8747,7 +8805,7 @@
       "label": "Run one graphify verb in the project root and return what to record.",
       "_origin": "ast",
       "community": 16,
-      "community_name": "checks.py",
+      "community_name": "graph.py",
       "file_type": "rationale",
       "norm_label": "run one graphify verb in the project root and return what to record.",
       "source_file": "harness/graph.py",
@@ -9003,6 +9061,17 @@
       "source_location": "L1"
     },
     {
+      "id": "harness_thresholds",
+      "label": "thresholds.py",
+      "_origin": "ast",
+      "community": 18,
+      "community_name": "doctor.py",
+      "file_type": "code",
+      "norm_label": "thresholds.py",
+      "source_file": "harness/thresholds.py",
+      "source_location": "L1"
+    },
+    {
       "id": "harness_doctor_rationale_1",
       "label": "The self-check a session runs before it starts working. It reports problems\u2026",
       "_origin": "ast",
@@ -9080,6 +9149,17 @@
       "source_location": "L1"
     },
     {
+      "id": "harness_thresholds_rationale_1",
+      "label": "The numbers and vocabularies the stage gates apply. Missing or malformed, this\u2026",
+      "_origin": "ast",
+      "community": 18,
+      "community_name": "doctor.py",
+      "file_type": "rationale",
+      "norm_label": "the numbers and vocabularies the stage gates apply. missing or malformed, this...",
+      "source_file": "harness/thresholds.py",
+      "source_location": "L1"
+    },
+    {
       "id": "harness_run",
       "label": "run.py",
       "_origin": "ast",
@@ -9088,18 +9168,6 @@
       "file_type": "code",
       "norm_label": "run.py",
       "source_file": "harness/run.py",
-      "source_location": "L1"
-    },
-    {
-      "id": "docs_adr_0002_the_receipt_attests_the_tree_minus_the_journal",
-      "label": "0002-the-receipt-attests-the-tree-minus-the-journal.md",
-      "_origin": "ast",
-      "community": 19,
-      "community_name": "advance",
-      "file_type": "document",
-      "node_kind": "page",
-      "norm_label": "0002-the-receipt-attests-the-tree-minus-the-journal.md",
-      "source_file": "docs/adr/0002-the-receipt-attests-the-tree-minus-the-journal.md",
       "source_location": "L1"
     },
     {
@@ -9187,15 +9255,15 @@
       "source_location": "L34"
     },
     {
-      "id": "harness_cli_rationale_337",
-      "label": "Read a stage evidence file, which must live where drafts live. Anywhere else it\u2026",
+      "id": "harness_checks_rationale_29",
+      "label": "Run one check and return the evidence to record.",
       "_origin": "ast",
       "community": 19,
       "community_name": "advance",
       "file_type": "rationale",
-      "norm_label": "read a stage evidence file, which must live where drafts live. anywhere else it...",
-      "source_file": "harness/cli.py",
-      "source_location": "L337"
+      "norm_label": "run one check and return the evidence to record.",
+      "source_file": "harness/checks.py",
+      "source_location": "L29"
     },
     {
       "id": "harness_cli_rationale_389",
@@ -14877,15 +14945,15 @@
       "source_location": "L1"
     },
     {
-      "id": "context",
-      "label": "CONTEXT.md",
+      "id": "docs_adr_0002_the_receipt_attests_the_tree_minus_the_journal",
+      "label": "0002-the-receipt-attests-the-tree-minus-the-journal.md",
       "_origin": "ast",
       "community": 5,
       "community_name": "CLAUDE.md",
       "file_type": "document",
       "node_kind": "page",
-      "norm_label": "context.md",
-      "source_file": "CONTEXT.md",
+      "norm_label": "0002-the-receipt-attests-the-tree-minus-the-journal.md",
+      "source_file": "docs/adr/0002-the-receipt-attests-the-tree-minus-the-journal.md",
       "source_location": "L1"
     },
     {
@@ -17192,17 +17260,6 @@
       "source_location": "L1"
     },
     {
-      "id": "harness_delivery",
-      "label": "delivery.py",
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "cli.py",
-      "file_type": "code",
-      "norm_label": "delivery.py",
-      "source_file": "harness/delivery.py",
-      "source_location": "L1"
-    },
-    {
       "id": "harness_cli_rationale_1",
       "label": "The commands a session runs, and the order they may be run in. Two families:\u2026",
       "_origin": "ast",
@@ -17300,50 +17357,6 @@
       "norm_label": "void a receipt while the work can still change. a receipt is final when the...",
       "source_file": "harness/cli.py",
       "source_location": "L447"
-    },
-    {
-      "id": "harness_delivery_rationale_1",
-      "label": "Delivery: the deliver stage's own gate, and the receipt it writes. There is no\u2026",
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "cli.py",
-      "file_type": "rationale",
-      "norm_label": "delivery: the deliver stage's own gate, and the receipt it writes. there is no...",
-      "source_file": "harness/delivery.py",
-      "source_location": "L1"
-    },
-    {
-      "id": "harness_delivery_rationale_59",
-      "label": "Every record must already be in the history that was pushed. The receipt is the\u2026",
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "cli.py",
-      "file_type": "rationale",
-      "norm_label": "every record must already be in the history that was pushed. the receipt is the...",
-      "source_file": "harness/delivery.py",
-      "source_location": "L59"
-    },
-    {
-      "id": "harness_errors_rationale_9",
-      "label": "Refuse unless the condition holds. Never repairs, never warns and continues.",
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "cli.py",
-      "file_type": "rationale",
-      "norm_label": "refuse unless the condition holds. never repairs, never warns and continues.",
-      "source_file": "harness/errors.py",
-      "source_location": "L9"
-    },
-    {
-      "id": "harness_journal_rationale_102",
-      "label": "Where a ticket stands now. A record's envelope says where the ticket was when\u2026",
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "cli.py",
-      "file_type": "rationale",
-      "norm_label": "where a ticket stands now. a record's envelope says where the ticket was when...",
-      "source_file": "harness/journal.py",
-      "source_location": "L102"
     },
     {
       "id": "harness_journal_rationale_22",
@@ -18938,18 +18951,6 @@
       "type": "external"
     },
     {
-      "id": "shutil",
-      "label": "shutil",
-      "_origin": "semantic",
-      "community": 13,
-      "community_name": "HarnessError",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "shutil",
-      "source_file": "",
-      "type": "external"
-    },
-    {
       "id": "stat",
       "label": "stat",
       "_origin": "semantic",
@@ -18958,6 +18959,18 @@
       "external": true,
       "file_type": "concept",
       "norm_label": "stat",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "subprocess",
+      "label": "subprocess",
+      "_origin": "semantic",
+      "community": 13,
+      "community_name": "HarnessError",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "subprocess",
       "source_file": "",
       "type": "external"
     },
@@ -18974,14 +18987,14 @@
       "type": "external"
     },
     {
-      "id": "tomllib",
-      "label": "tomllib",
+      "id": "time",
+      "label": "time",
       "_origin": "semantic",
       "community": 13,
       "community_name": "HarnessError",
       "external": true,
       "file_type": "concept",
-      "norm_label": "tomllib",
+      "norm_label": "time",
       "source_file": "",
       "type": "external"
     },
@@ -18998,30 +19011,6 @@
       "type": "external"
     },
     {
-      "id": "subprocess",
-      "label": "subprocess",
-      "_origin": "semantic",
-      "community": 16,
-      "community_name": "checks.py",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "subprocess",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "time",
-      "label": "time",
-      "_origin": "semantic",
-      "community": 16,
-      "community_name": "checks.py",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "time",
-      "source_file": "",
-      "type": "external"
-    },
-    {
       "id": "re",
       "label": "re",
       "_origin": "semantic",
@@ -19030,6 +19019,18 @@
       "external": true,
       "file_type": "concept",
       "norm_label": "re",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "tomllib",
+      "label": "tomllib",
+      "_origin": "semantic",
+      "community": 18,
+      "community_name": "doctor.py",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "tomllib",
       "source_file": "",
       "type": "external"
     },
@@ -19054,6 +19055,18 @@
       "external": true,
       "file_type": "concept",
       "norm_label": "argparse",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "shutil",
+      "label": "shutil",
+      "_origin": "semantic",
+      "community": 8,
+      "community_name": "cli.py",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "shutil",
       "source_file": "",
       "type": "external"
     }
@@ -28985,13 +28998,24 @@
     },
     {
       "source": "apps_worker_src_hello",
-      "target": "apps_worker_src_hello_starthelloworker",
+      "target": "apps_worker_src_hello_helloworker",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/worker/src/hello.ts",
       "source_location": "L26",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_worker_src_hello",
+      "target": "apps_worker_src_hello_starthelloworker",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "apps/worker/src/hello.ts",
+      "source_location": "L40",
       "weight": 1.0
     },
     {
@@ -50390,5 +50414,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "f395f041bb721692ca1b7dc70b9ca5d86e5f3922"
+  "built_at_commit": "036e88c0de1878d212aacad0ffe0330f09f57b2e"
 }
