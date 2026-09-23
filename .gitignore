@@ -26,3 +26,6 @@ graphify-out/graph.html
 graphify-out/.graphify_root
 graphify-out/.graphify_labels.json
 graphify-out/.graphify_labels.json.sig
+# Dated snapshots graphify writes beside the graph: regenerable, and they
+# double the churn on every commit.
+graphify-out/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]/
