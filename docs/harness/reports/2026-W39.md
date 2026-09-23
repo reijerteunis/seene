@@ -10,7 +10,7 @@
 | SEEN-088 | 3 | 37m | 4 | 3 | 9 (9 fixed, 0 waived) | - |
 | SEEN-089 | 3 | 49m | 1 | 0 | 4 (4 fixed, 0 waived) | - |
 | SEEN-090 | 3 | 1h 1m | 4 | 3 | 9 (9 fixed, 0 waived) | 0.0 |
-| SEEN-091 | 3 | 14m | 1 | 0 | 4 (4 fixed, 0 waived) | 0.0 |
+| SEEN-091 | 3 | 14m | 2 | 1 | 5 (5 fixed, 0 waived) | 0.0 |
 | SEEN-093 | 2 | 4m | 1 | 0 | 2 (2 fixed, 0 waived) | - |
 | SEEN-094 | 2 | 13m | 1 | 0 | 4 (4 fixed, 0 waived) | 0.0 |
 
@@ -19,7 +19,7 @@
 | Measure | This report | Target |
 |---|---|---|
 | Median cycle time | 16m | under 2 days per ticket |
-| Rework per ticket | 1.0 | under 0.5 over a sprint |
+| Rework per ticket | 1.12 | under 0.5 over a sprint |
 | First-pass CI | 100% | 80% |
 | Points delivered | 30 | against plan |
 
@@ -28,7 +28,7 @@
 - blocking: 2
 - high: 12
 - low: 10
-- medium: 18
+- medium: 19
 
 ## Not measurable yet
 

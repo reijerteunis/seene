@@ -228,12 +228,13 @@
       "stage_seconds": {
         "clarify": 80,
         "solution": 131,
-        "tdd": 326,
-        "review": 186,
-        "deliver": 149
+        "tdd": 412,
+        "review": 259,
+        "deliver": 149,
+        "delivered": 286
       },
-      "attempts": 1,
-      "rework": 0,
+      "attempts": 2,
+      "rework": 1,
       "red_before_green": true,
       "coverage": {
         "package": "@seen/core",
@@ -243,10 +244,10 @@
       "findings": {
         "by_severity": {
           "high": 1,
-          "medium": 2,
+          "medium": 3,
           "low": 1
         },
-        "fixed": 4,
+        "fixed": 5,
         "waived": 0
       },
       "first_pass_ci": true,
@@ -343,11 +344,11 @@
     "tickets": 9,
     "points_delivered": 30,
     "median_cycle_time_seconds": 999.5,
-    "rework_per_ticket": 1.0,
+    "rework_per_ticket": 1.12,
     "first_pass_ci_rate": 1.0,
     "first_pass_ci_unknown": 8,
     "findings_by_severity": {
-      "medium": 18,
+      "medium": 19,
       "high": 12,
       "low": 10,
       "blocking": 2
