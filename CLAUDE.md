@@ -47,7 +47,7 @@ lint | sync | discard | list`. Every writing command refuses unless the branch i
 | [CONTEXT.md](CONTEXT.md) | Glossary: the harness terms, the product terms they collide with, and the resolution of the three meanings of gate |
 | [docs/adr/](docs/adr/) | Architecture decision records: journal integrity, the delivery receipt, the SEEN-086 bootstrap exemption |
 
-### Tickets (94, 328 build points)
+### Tickets (95, 329 build points)
 
 | Ticket | Title | Epic | Size |
 |---|---|---|---|
@@ -63,6 +63,7 @@ lint | sync | discard | list`. Every writing command refuses unless the branch i
 | [SEEN-088](docs/tickets/SEEN-088-integrate-jev-ai-typed-decisions-into-the.md) | Integrate Jev AI typed decisions into the harness gates | E10 | 3 pt |
 | [SEEN-089](docs/tickets/SEEN-089-enforce-tdd-and-ci-quality-gates-in-the-harness.md) | Enforce the TDD gates in the harness | E10 | 3 pt |
 | [SEEN-094](docs/tickets/SEEN-094-verify-delivery-against-ci-and-the-merge.md) | Verify delivery against CI and verify the merge against the receipt | E10 | 2 pt |
+| [SEEN-095](docs/tickets/SEEN-095-check-ticket-status-against-its-own-journal.md) | Check a ticket's status against its own journal | E10 | 1 pt |
 | [SEEN-090](docs/tickets/SEEN-090-add-harness-security-controls-secrets.md) | Add harness security controls: secrets, permissions, injection, supply chain | E10 | 3 pt |
 | [SEEN-091](docs/tickets/SEEN-091-collect-harness-kpis-per-ticket-and-produce.md) | Collect harness KPIs per ticket and produce weekly and sprint reports | E10 | 3 pt |
 | [SEEN-093](docs/tickets/SEEN-093-add-harness-reopen-to-void-a-receipt-before.md) | Add harness reopen to void a receipt before merge | E10 | 2 pt |
