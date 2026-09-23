@@ -1,0 +1,27 @@
+{
+  "sequence": 7,
+  "ticket": "SEEN-095",
+  "timestamp": "2026-09-23T22:49:29.841781+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "d585a543f8ffa26207038d35a7167afdc60dee6c",
+  "prev_hash": "22474e90afd084e0263af37d1bfb3e6e7ca16e4b3b8026af223cabc863a7c5f4",
+  "data": {
+    "command": [
+      "sh",
+      "-c",
+      "python3 -m unittest discover -s harness/tests && python3 harness/run.py lint && python3 harness/run.py doctor"
+    ],
+    "phase": "regression",
+    "exit_code": 1,
+    "duration_ms": 67166,
+    "output": "..................................FF..............F...............................................................................................................................E.................................................................................\n======================================================================\nERROR: test_the_chain_still_verifies_across_a_reopen (test_reopen.ReopenTest.test_the_chain_still_verifies_across_a_reopen)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_reopen.py\", line 54, in test_the_chain_still_verifies_across_a_reopen\n    self.assertTrue(self.run_harness('doctor')['ok'])\n                    ~~~~~~~~~~~~~~~~^^^^^^^^^^\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_lifecycle.py\", line 21, in run_harness\n    return cli.execute(cli.parse(['--root', str(self.root), *args]))\n           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/cli.py\", line 685, in execute\n    require(result['ok'],\n    ~~~~~~~^^^^^^^^^^^^^^\n            'The harness self-check found problems:\\n  ' + '\\n  '.join(result['problems']))\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/errors.py\", line 11, in require\n    raise HarnessError(message)\nharness.errors.HarnessError: The harness self-check found problems:\n  SEEN-001 says todo but its journal is at tdd\n\n======================================================================\nFAIL: test_a_healthy_project_passes (test_doctor.AppendOnlyScopeTest.test_a_healthy_project_passes)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_doctor.py\", line 24, in test_a_healthy_project_passes\n    self.assertTrue(report['ok'], report['problems'])\n    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: False is not true : ['SEEN-001 says todo but its journal is at clarify']\n\n======================================================================\nFAIL: test_a_rewritten_kpi_cache_is_not_a_rewritten_record (test_doctor.AppendOnlyScopeTest.test_a_rewritten_kpi_cache_is_not_a_rewritten_record)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_doctor.py\", line 120, in test_a_rewritten_kpi_cache_is_not_a_rewritten_record\n    self.assertTrue(report['ok'], report['problems'])\n    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: False is not true : ['SEEN-001 says todo but its journal is at clarify']\n\n======================================================================\nFAIL: test_a_healthy_project_passes (test_doctor.DoctorTest.test_a_healthy_project_passes)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_doctor.py\", line 24, in test_a_healthy_project_passes\n    self.assertTrue(report['ok'], report['problems'])\n    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: False is not true : ['SEEN-001 says todo but its journal is at clarify']\n\n----------------------------------------------------------------------\nRan 260 tests in 67.072s\n\nFAILED (failures=3, errors=1)\n",
+    "output_sha256": "c93c21d430121ae05ca82c872291361545832d2afc65196c1bc3a39fe14b1dcd",
+    "output_truncated": false,
+    "before": "388272e14426c11dea68e6e137515f6e8e09e5e3fb9a9609348b6f512de508cc",
+    "after": "388272e14426c11dea68e6e137515f6e8e09e5e3fb9a9609348b6f512de508cc"
+  }
+}

@@ -31,7 +31,7 @@ Obtain Bol partner platform API credentials from the friendly brand, confirm the
 
 ## Acceptance criteria
 
-- [ ] Client id and secret stored in Secret Manager under the friendly brand's Bol connection
+- [ ] Client id and secret stored in the secrets provider (.env.local in development, Secret Manager after go-live) under the friendly brand's Bol connection
 - [ ] A token request with the client-credentials grant returns a bearer token and its lifetime is recorded
 - [ ] Rate limits per endpoint family recorded in packages/connectors/bol/README.md with the documentation date
 - [ ] GET /retailer/orders with the token returns HTTP 200 for the friendly brand

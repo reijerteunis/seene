@@ -31,7 +31,7 @@ Obtain Kaufland seller API keys from a pilot, confirm in the Seller API document
 
 ## Acceptance criteria
 
-- [ ] Kaufland client key and secret stored in Secret Manager for one pilot connection
+- [ ] Kaufland client key and secret stored in the secrets provider (.env.local in development, Secret Manager after go-live) for one pilot connection
 - [ ] Settlement detail source and ticket endpoints recorded in packages/connectors/kaufland/README.md with the documentation date
 - [ ] A signed test call to the orders endpoint returns HTTP 200
 

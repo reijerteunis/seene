@@ -1,0 +1,18 @@
+{
+  "sequence": 11,
+  "ticket": "SEEN-095",
+  "timestamp": "2026-09-23T23:07:46.095277+00:00",
+  "harness_version": "1",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 1,
+  "actor": "claude:reviewer",
+  "head": "a261add24f253bc3e80494cb3600cff1cdb08853",
+  "prev_hash": "fdfd70557cbd868e38b606ff5fefbc9cb741f3808305a8f968a2e6368322ff0f",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 2,
+    "reason": "A plan revision landed in the working tree after this ticket's review: two tickets renumbered, three sentences restored to CLAUDE.md, and eight statuses that the revision had reset. The reviewed tree is no longer the tree that would deliver, so the review has to see what actually ships."
+  }
+}

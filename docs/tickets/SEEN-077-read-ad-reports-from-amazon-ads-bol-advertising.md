@@ -34,7 +34,7 @@ Implement ad report ingest in packages/connectors: Amazon Ads API (sponsored pro
 - [ ] Daily ad spend per campaign and SKU ingested from all three ad APIs for the friendly brand
 - [ ] Ad spend per marketplace per day reconciles to ad charge settlement lines within 5% over a month
 - [ ] Re-ingest produces zero duplicate report rows
-- [ ] Ads credentials are read from Secret Manager per connection like every other credential
+- [ ] Ads credentials are read from the secrets provider (.env.local in development, Secret Manager after go-live) per connection like every other credential
 
 ## Depends on
 

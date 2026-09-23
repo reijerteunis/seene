@@ -27,11 +27,11 @@ status: todo
 
 ## Description
 
-Create the eBay developer account, generate production keys, configure the OAuth consent flow (RuName) for the Sell Fulfillment, Post-Order, Finances and Inventory scopes and file the Application Growth Check request to lift the default call limits. Complete the consent flow once for the friendly brand and store the user token reference in Secret Manager for the eBay connector in packages/connectors/ebay.
+Create the eBay developer account, generate production keys, configure the OAuth consent flow (RuName) for the Sell Fulfillment, Post-Order, Finances and Inventory scopes and file the Application Growth Check request to lift the default call limits. Complete the consent flow once for the friendly brand and store the user token reference in the secrets provider (.env.local in development, Secret Manager after go-live) for the eBay connector in packages/connectors/ebay.
 
 ## Acceptance criteria
 
-- [ ] Production app id, cert id and RuName exist and are stored in Secret Manager
+- [ ] Production app id, cert id and RuName exist and are stored in the secrets provider (.env.local in development, Secret Manager after go-live)
 - [ ] Friendly brand's OAuth user token obtained with the sell.fulfillment, sell.finances and sell.inventory scopes
 - [ ] Application Growth Check request filed and its reference recorded in the runbook
 - [ ] A manual call to GET /sell/fulfillment/v1/order with the token returns HTTP 200

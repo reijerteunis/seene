@@ -27,14 +27,14 @@ status: todo
 
 ## Description
 
-Register the Postmark inbound domain for the forwarded mailbox with the inbound webhook pointing at apps/api, and create the Stripe account with SEPA Direct Debit and card enabled and EU VAT settings configured. Store the API keys and webhook signing secrets in Secret Manager. Nothing is wired yet; this ticket removes the waiting time for the Sprint 3 billing and Sprint 5 mailbox work.
+Register the Postmark inbound domain for the forwarded mailbox with the inbound webhook pointing at apps/api, and create the Stripe account with SEPA Direct Debit and card enabled and EU VAT settings configured. Store the API keys and webhook signing secrets in the secrets provider (.env.local in development, Secret Manager after go-live). Nothing is wired yet; this ticket removes the waiting time for the Sprint 3 billing and Sprint 5 mailbox work.
 
 ## Acceptance criteria
 
 - [ ] Postmark inbound domain verified with MX records and the inbound webhook URL saved
 - [ ] Stripe account activated with SEPA Direct Debit and card payment methods enabled
 - [ ] Stripe tax settings show EU VAT collection with the company VAT number
-- [ ] Postmark server token, Stripe secret key and both webhook signing secrets stored in Secret Manager
+- [ ] Postmark server token, Stripe secret key and both webhook signing secrets stored in the secrets provider (.env.local in development, Secret Manager after go-live)
 
 ## Depends on
 

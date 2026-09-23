@@ -33,7 +33,7 @@ Register a public SP-API developer application in Seller Central on day 0 and re
 
 - [ ] SP-API developer profile submitted with all four roles requested and the submission date recorded in the runbook
 - [ ] Amazon Ads API application submitted and its case id recorded
-- [ ] LWA client id and secret stored in Secret Manager under the friendly brand's Amazon connection
+- [ ] LWA client id and secret stored in the secrets provider (.env.local in development, Secret Manager after go-live) under the friendly brand's Amazon connection
 - [ ] Approval lead time from Amazon's first response noted in the plan risks section
 
 ## Depends on

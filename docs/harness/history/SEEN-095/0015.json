@@ -1,0 +1,26 @@
+{
+  "sequence": 15,
+  "ticket": "SEEN-095",
+  "timestamp": "2026-09-23T23:09:11.621372+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "head": "a261add24f253bc3e80494cb3600cff1cdb08853",
+  "prev_hash": "517b8cee5ce5ef131d7566d6f596af5b8856d5e7f29dfcbc96f8ed9209b1ca8f",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "non-code",
+      "change_type": "policy",
+      "reason": "Attempt 2 changes documentation and the backlog's numbering only: the revision's two tickets renumbered to SEEN-096 and SEEN-097, three sentences and the command list restored to CLAUDE.md, and eight statuses the revision had reset put back. The check itself was written and proven in attempt 1 at records 4 and 5, and record 13 runs everything again.",
+      "sources": [],
+      "checks": [
+        13
+      ]
+    },
+    "decisions": []
+  }
+}

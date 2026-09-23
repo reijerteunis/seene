@@ -34,7 +34,7 @@ Implement a token-bucket limiter per connection and endpoint family in packages/
 - [ ] A unit test with a mocked 429 and Retry-After of 2 seconds delays the retry by at least 2 and at most 3 seconds
 - [ ] Two worker processes against one mocked connection never exceed the configured requests per second in a 60-second test
 - [ ] Backoff stops after 5 retries and moves the job to the failed queue with the last response body attached
-- [ ] Rate-limit hits are counted per connection and visible as a metric in Cloud Logging
+- [ ] Rate-limit hits are counted per connection and visible as a metric in the local telemetry (Cloud Logging after go-live)
 
 ## Depends on
 

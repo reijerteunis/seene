@@ -41,8 +41,8 @@
     },
     {
       "ticket": "SEEN-086",
-      "delivered_at": "2026-09-23T17:56:02+02:00",
-      "points": 8,
+      "delivered_at": "2026-09-24T01:05:47+02:00",
+      "points": 5,
       "cycle_time_seconds": null,
       "stage_seconds": {},
       "attempts": null,
@@ -140,7 +140,7 @@
     {
       "ticket": "SEEN-089",
       "delivered_at": "2026-09-23T19:55:17.364889+00:00",
-      "points": 3,
+      "points": 5,
       "cycle_time_seconds": 2975,
       "stage_seconds": {
         "clarify": 1627,
@@ -378,19 +378,60 @@
       "escaped_defects": [],
       "harness_version": "1",
       "note": null
+    },
+    {
+      "ticket": "SEEN-095",
+      "delivered_at": "2026-09-23T23:13:05.831502+00:00",
+      "points": 1,
+      "cycle_time_seconds": 1583,
+      "stage_seconds": {
+        "clarify": 13,
+        "solution": 16,
+        "tdd": 589,
+        "review": 839,
+        "deliver": 123
+      },
+      "attempts": 2,
+      "rework": 1,
+      "red_before_green": true,
+      "coverage": {
+        "package": "@seen/core",
+        "lines": 100.0,
+        "delta": 0.0
+      },
+      "findings": {
+        "by_severity": {
+          "high": 1,
+          "medium": 1,
+          "low": 1
+        },
+        "fixed": 3,
+        "waived": 0
+      },
+      "first_pass_ci": true,
+      "tokens": {
+        "input_tokens": 110,
+        "output_tokens": 50377,
+        "cache_read_input_tokens": 50446005,
+        "cache_creation_input_tokens": 61051
+      },
+      "cost": null,
+      "escaped_defects": [],
+      "harness_version": "1",
+      "note": null
     }
   ],
   "totals": {
-    "tickets": 10,
+    "tickets": 11,
     "points_delivered": 32,
-    "median_cycle_time_seconds": 1126,
-    "rework_per_ticket": 1.11,
+    "median_cycle_time_seconds": 1354.5,
+    "rework_per_ticket": 1.1,
     "first_pass_ci_rate": 1.0,
     "first_pass_ci_unknown": 8,
     "findings_by_severity": {
-      "medium": 21,
-      "high": 13,
-      "low": 11,
+      "medium": 22,
+      "high": 14,
+      "low": 12,
       "blocking": 2
     }
   },

@@ -11,13 +11,14 @@ Read the three documents in this order before writing code: the PRD for what and
 - Deterministic code reconciles, the model reasons: matching, fee expectation and euro arithmetic are pure functions with tests in `packages/core`; classification, drafting and correspondence are the model behind the fixed tool set in `packages/agent`.
 - Every table carries `tenant_id` with row-level security. Credentials live in Secret Manager per connection, never in the database or in code.
 - A credit is billable only as an ingested settlement line linked to a claim. Never let a person or the agent create a billable event directly.
-- Stack: pnpm and turborepo monorepo, `apps/api` (NestJS), `apps/worker` (NestJS + BullMQ on Memorystore Redis), `apps/web` (Next.js, Supabase Auth), `packages/core`, `packages/connectors`, `packages/agent`; Supabase Postgres in the EU; GCP europe-west4 (Cloud Run, Scheduler, Secret Manager, Logging). Node version in `.nvmrc`.
+- Stack: pnpm and turborepo monorepo, `apps/api` (NestJS), `apps/worker` (NestJS + BullMQ on Redis), `apps/web` (Next.js, Supabase Auth), `packages/core`, `packages/connectors`, `packages/agent`; Supabase Postgres. Node version in `.nvmrc`.
+- Local first, cloud by decision. Development and the first pilots run on the local Docker environment (`pnpm dev:up`: Supabase CLI stack, Redis, Mailpit, telemetry collector); CI runs the same services. Nothing is deployed to Google Cloud until Ruud records a go decision in the SEEN-007 journal. Code never imports a cloud SDK outside the provider packages: secrets, storage and telemetry are abstractions selected by configuration (.env.local, local Supabase Storage and the console now; Secret Manager, the Supabase EU project and Cloud Logging after go-live). Sync cadences are BullMQ repeatable jobs, not Cloud Scheduler.
 - Amounts are in cents as integers with a currency code; use `EUR` in text, never the euro sign in code comments or docs. British spelling. No em dashes or en dashes anywhere, in code, docs or customer-facing copy; use a plain hyphen or rewrite the sentence.
 - Buyer PII (names, addresses) is persisted only as far as a claim needs it, encrypted at rest, and expires after 30 days.
 
 ## Working a ticket
 
-Every ticket runs through the Seen harness (`docs/harness/workflow.md`): five stages, clarify, solution, tdd, review, deliver, one command each, with the evidence written to `docs/harness/history/<ticket>/` as it happens. Until SEEN-086 to SEEN-092 have delivered the harness, follow the same five stages by hand and keep the records in the same place. SEEN-086 is the bootstrap ticket and is exempt: the harness does not exist while it is being built, so it has no journal at all, and its evidence is its test suite, its pull request body and an `## Outcome` section in the ticket file. Every ticket from SEEN-087 onwards has a journal written by the harness itself; a hand-written journal record is a falsification, not a stand-in. Context comes from the graphify knowledge graph (`/graphify query`, the MCP tools `query_graph`, `get_neighbors`, `shortest_path`, `get_pr_impact`) before reading files; judgement calls at the stage gates go to Jev through `harness decide` and are recorded with their probabilities.
+Every ticket runs through the Seen harness (`docs/harness/workflow.md`): five stages, clarify, solution, tdd, review, deliver, one command each, with the evidence written to `docs/harness/history/<ticket>/` as it happens. Until SEEN-086 to SEEN-092 have delivered the harness, follow the same five stages by hand and keep the records in the same place. SEEN-086 is the bootstrap ticket and is exempt: the harness did not exist while it was being built, so it has no journal at all, and its evidence is its test suite, its pull request body and an `## Outcome` section in the ticket file. Every ticket from SEEN-087 onwards has a journal written by the harness itself; a hand-written journal record is a falsification, not a stand-in. Context comes from the graph tools before reading files, one tool call per question: `codegraph_explore` (symbols, callers, callees, blast radius, verbatim source) while writing code; repowise `get_context`, `get_risk`, `get_why`, `get_change_risk`, `get_health`, `get_dead_code` at clarify, solution and review; graphify `query_graph` and `shortest_path` for the map across code and documents. Judgement calls at the gates go to Jev through `harness decide` and are recorded with their probabilities.
 
 1. Read `docs/prd/prd.md`, `docs/architecture.md`, `docs/harness/workflow.md` and the ticket file. The ticket's acceptance criteria are the definition of done; do not widen the scope.
 2. Branch from `main` as `claude/<ticket-id>-<slug>` (Codex sessions use `codex/`). One ticket per branch.
@@ -27,12 +28,15 @@ Every ticket runs through the Seen harness (`docs/harness/workflow.md`): five st
 6. Human tickets (executor `human`) are registrations, verifications against a live account and real-data runs. Do them with Ruud, record the outcome in the ticket file under a `## Outcome` heading, and never invent API facts a verification ticket was meant to establish.
 7. When a ticket changes an agent action (`changes_agent_action: true`), the tool must declare reversibility, action type and a euro impact estimator, and the gate decision must be written to `agent_actions` and `audit_events` before execution.
 
-After cloning, wire up the git hooks once: `git config core.hooksPath .githooks`. The pre-commit hook runs gitleaks on staged changes, and `doctor` refuses until it is set.
+Harness commands, once SEEN-086 has landed: `python3 harness/run.py doctor | start | status | history | draft | note | check | advance | graph | decide | return | verify-delivery | report | sync`. Leftover from the previous project until SEEN-092 removes them: `.claude/skills/seene-harness` and `.claude/settings.json` reference a `harness/run.py` from Seene that no longer exists in this tree; ignore them.
+
+After cloning, wire up the git hooks once: `git config core.hooksPath .githooks`. The pre-commit hook
+runs gitleaks on staged changes, and `doctor` refuses until it is set.
 
 Harness commands: `python3 harness/run.py doctor | start | status | history | draft | note | check |
 coverage | advance | graph | decide | return | reopen | verify-delivery | verify-merge | report |
 lint | sync | discard | list`. Every writing command refuses unless the branch is
-`claude/<ticket>-…` or `codex/<ticket>-…`. The skill both assistants read is generated from
+`claude/<ticket-id>-…` or `codex/<ticket-id>-…`. The skill both assistants read is generated from
 `docs/harness/skill.md` by `sync`, and `doctor` refuses when a copy has been edited by hand.
 
 ## Index of docs/
@@ -42,12 +46,10 @@ lint | sync | discard | list`. Every writing command refuses unless the branch i
 | [docs/prd/prd.md](docs/prd/prd.md) | Product requirements for the MVP: summary, problem, goals and non-goals, users, principles, scope by module, journeys, functional requirements FR-1 to FR-46, capability routing, pricing and metering, data and security, gates and metrics, release plan, risks, open questions, glossary |
 | [docs/architecture.md](docs/architecture.md) | MVP architecture: principles, capability routing per marketplace, system context, services, trade record data model, agent runtime and policy gate, modules, infrastructure and security, open verifications |
 | [docs/development-plan.md](docs/development-plan.md) | Sprint calendar (harness days from 24 Sep, Sprint 0 to 7 to 29 Jan 2027), gates G0 to G7, team and capacity, day-0 checklist, not in the MVP, risks |
-| [docs/harness/workflow.md](docs/harness/workflow.md) | The development harness: why, principles, the five stages and their stage gates, graphify and Jev AI integration, CI, the ten KPIs, security controls, commands, repository layout, the harness tickets |
+| [docs/harness/workflow.md](docs/harness/workflow.md) | The development harness: why, principles, the five stages and their gates, graphify and Jev AI integration, CI, the ten KPIs, security controls, commands, repository layout, the harness tickets |
 | [docs/tickets/README.md](docs/tickets/README.md) | Ticket index by sprint with points, executors and dependencies, plus the epic table |
-| [CONTEXT.md](CONTEXT.md) | Glossary: the harness terms, the product terms they collide with, and the resolution of the three meanings of gate |
-| [docs/adr/](docs/adr/) | Architecture decision records: journal integrity, the delivery receipt, the SEEN-086 bootstrap exemption |
 
-### Tickets (94, 328 build points)
+### Tickets (97, 355 build points)
 
 | Ticket | Title | Epic | Size |
 |---|---|---|---|
@@ -57,17 +59,19 @@ lint | sync | discard | list`. Every writing command refuses unless the branch i
 | [SEEN-003](docs/tickets/SEEN-003-obtain-bol-credentials-and-verify-oauth-grant.md) | Obtain Bol credentials and verify OAuth grant and rate limits | E0 | human |
 | [SEEN-004](docs/tickets/SEEN-004-set-up-postmark-inbound-domain-and-stripe.md) | Set up Postmark inbound domain and Stripe account | E0 | human |
 | [SEEN-005](docs/tickets/SEEN-005-review-partao-contract-and-draft-dpa-and-amazon.md) | Review Partao contract and draft DPA and Amazon data statement | E0 | human |
-| [SEEN-086](docs/tickets/SEEN-086-build-the-seen-harness-cli-with-staged-journal.md) | Build the Seen harness CLI with staged journal and receipts | E10 | 8 pt |
+| [SEEN-086](docs/tickets/SEEN-086-build-the-seen-harness-cli-with-staged-journal.md) | Build the Seen harness CLI with staged journal and receipts | E10 | 5 pt |
 | [SEEN-006](docs/tickets/SEEN-006-scaffold-the-pnpm-turborepo-monorepo-with-all.md) | Scaffold the pnpm turborepo monorepo with all six packages | E0 | 3 pt |
+| [SEEN-097](docs/tickets/SEEN-097-set-up-the-local-docker-development-environment.md) | Set up the local Docker development environment | E0 | 3 pt |
 | [SEEN-087](docs/tickets/SEEN-087-install-graphify-build-the-repo-graph-and-wire.md) | Install graphify, build the repo graph and wire it into both assistants | E10 | 3 pt |
+| [SEEN-096](docs/tickets/SEEN-096-add-codegraph-and-repowise-and-assign-each.md) | Add codegraph and repowise and assign each context tool its stage | E10 | 3 pt |
 | [SEEN-088](docs/tickets/SEEN-088-integrate-jev-ai-typed-decisions-into-the.md) | Integrate Jev AI typed decisions into the harness gates | E10 | 3 pt |
-| [SEEN-089](docs/tickets/SEEN-089-enforce-tdd-and-ci-quality-gates-in-the-harness.md) | Enforce the TDD gates in the harness | E10 | 3 pt |
-| [SEEN-094](docs/tickets/SEEN-094-verify-delivery-against-ci-and-the-merge.md) | Verify delivery against CI and verify the merge against the receipt | E10 | 2 pt |
+| [SEEN-089](docs/tickets/SEEN-089-enforce-tdd-and-ci-quality-gates-in-the-harness.md) | Enforce TDD and CI quality gates in the harness | E10 | 5 pt |
 | [SEEN-090](docs/tickets/SEEN-090-add-harness-security-controls-secrets.md) | Add harness security controls: secrets, permissions, injection, supply chain | E10 | 3 pt |
 | [SEEN-091](docs/tickets/SEEN-091-collect-harness-kpis-per-ticket-and-produce.md) | Collect harness KPIs per ticket and produce weekly and sprint reports | E10 | 3 pt |
-| [SEEN-093](docs/tickets/SEEN-093-add-harness-reopen-to-void-a-receipt-before.md) | Add harness reopen to void a receipt before merge | E10 | 2 pt |
 | [SEEN-092](docs/tickets/SEEN-092-sync-the-harness-skill-to-claude-code-and-codex.md) | Sync the harness skill to Claude Code and Codex and retire the Seene leftovers | E10 | 2 pt |
-| [SEEN-007](docs/tickets/SEEN-007-provision-gcp-europe-west4-and-supabase-eu-with.md) | Provision GCP europe-west4 and Supabase EU with telemetry | E0 | 5 pt |
+| [SEEN-093](docs/tickets/SEEN-093-add-harness-reopen-to-void-a-receipt-before.md) | Add harness reopen to void a receipt before merge | E10 | 2 pt |
+| [SEEN-094](docs/tickets/SEEN-094-verify-delivery-against-ci-and-the-merge.md) | Verify delivery against CI and verify the merge against the receipt | E10 | 2 pt |
+| [SEEN-095](docs/tickets/SEEN-095-check-ticket-status-against-its-own-journal.md) | Check a ticket's status against its own journal | E10 | 1 pt |
 | [SEEN-008](docs/tickets/SEEN-008-create-trade-record-schema-v1-with-tenant-id.md) | Create trade-record schema v1 with tenant_id and RLS on every table | E0 | 5 pt |
 | [SEEN-009](docs/tickets/SEEN-009-define-connector-interface-capability-matrix.md) | Define connector interface, capability matrix and credential access | E1 | 5 pt |
 | [SEEN-010](docs/tickets/SEEN-010-add-per-marketplace-rate-limiting-with-header.md) | Add per-marketplace rate limiting with header-driven backoff | E1 | 3 pt |
@@ -100,6 +104,7 @@ lint | sync | discard | list`. Every writing command refuses unless the branch i
 | [SEEN-035](docs/tickets/SEEN-035-build-the-approval-inbox-with-approve-edit-and.md) | Build the approval inbox with approve, edit and reject | E4 | 5 pt |
 | [SEEN-036](docs/tickets/SEEN-036-create-the-eval-set-of-30-real-findings-with.md) | Create the eval set of 30 real findings with expected drafts | E4 | 3 pt |
 | [SEEN-037](docs/tickets/SEEN-037-file-the-first-ten-claims-across-two.md) | File the first ten claims across two marketplaces from the inbox | E3 | human |
+| [SEEN-007](docs/tickets/SEEN-007-go-live-on-google-cloud-after-the-go-no-go.md) | Go live on Google Cloud after the go/no-go decision | E0 | 5 pt |
 | Sprint 3 | 9 - 20 Nov 2026 | Reconcile module, Stripe billing, statements, Shopify | gate G3 |
 | [SEEN-038](docs/tickets/SEEN-038-verify-shopify-payments-payout-scopes-and.md) | Verify Shopify Payments payout scopes and create the custom app | E1 | human |
 | [SEEN-039](docs/tickets/SEEN-039-create-stripe-customers-with-sepa-and-card-and.md) | Create Stripe customers with SEPA and card and handle webhooks | E6 | 5 pt |
@@ -153,19 +158,3 @@ lint | sync | discard | list`. Every writing command refuses unless the branch i
 | [SEEN-083](docs/tickets/SEEN-083-expire-amazon-pii-after-30-days-and-delete.md) | Expire Amazon PII after 30 days and delete tenants on request | E9 | 3 pt |
 | [SEEN-084](docs/tickets/SEEN-084-build-the-day-120-metrics-dashboard-and-csv.md) | Build the day-120 metrics dashboard and CSV export | E9 | 5 pt |
 | [SEEN-085](docs/tickets/SEEN-085-run-restore-drill-close-pen-test-findings-sign.md) | Run restore drill, close pen-test findings, sign metrics pack | E9 | human |
-
-## graphify
-
-The repository's knowledge graph lives in `graphify-out/` and is committed, so a fresh clone has
-context before its first build. Ask it before reading files.
-
-- `graphify query "<question>"` for a scoped subgraph, `graphify path "<A>" "<B>"` for how two things
-  connect, `graphify explain "<concept>"` for one concept, `graphify affected "<symbol>"` for what a
-  change touches. The same graph is available as MCP tools (`query_graph`, `get_neighbors`,
-  `shortest_path`, `get_pr_impact`) in Claude Code and Codex.
-- `graphify-out/GRAPH_REPORT.md` is for broad architecture review, not for answering a specific
-  question. Reach for it after query, path and explain have not surfaced enough.
-- The post-commit hook runs `graphify update .`, so the graph follows the code without an API call.
-  A commit that changes code carries the updated graph with it.
-- `harness graph <ticket> <impact|path|explain|prs>` asks the same graph and writes the answer into
-  the ticket's journal, with the hash of the graph that answered.

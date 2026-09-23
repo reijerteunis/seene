@@ -1,0 +1,27 @@
+{
+  "sequence": 10,
+  "ticket": "SEEN-095",
+  "timestamp": "2026-09-23T22:58:48.550638+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "review",
+  "attempt": 1,
+  "actor": "claude:reviewer",
+  "head": "c7a9c2ef329381cc6d8a5f4520d40bff4b137be2",
+  "prev_hash": "101d411ab970cd301ba378c645329e5f5d7023fe00a83053b1d756be34a534bc",
+  "data": {
+    "command": [
+      "sh",
+      "-c",
+      "python3 -m unittest discover -s harness/tests && python3 harness/run.py doctor && python3 harness/run.py lint"
+    ],
+    "phase": "qa",
+    "exit_code": 1,
+    "duration_ms": 69531,
+    "output": "....................................................................................................................................................................................................................................................................\n----------------------------------------------------------------------\nRan 260 tests in 68.816s\n\nOK\nHarness: The harness self-check found problems:\n  SEEN-006 says todo, but its receipt attests 0fb2c6bb which is merged; it is done\n  docs/tickets/SEEN-007-go-live-on-google-cloud-after-the-go-no-go.md:42 link does not resolve: SEEN-094-set-up-the-local-docker-development-environment.md\n  CLAUDE.md:55 link does not resolve: docs/tickets/SEEN-094-set-up-the-local-docker-development-environment.md\n  CLAUDE.md:57 link does not resolve: docs/tickets/SEEN-093-add-codegraph-and-repowise-and-assign-each.md\n  docs/tickets/README.md:20 link does not resolve: SEEN-094-set-up-the-local-docker-development-environment.md\n  docs/tickets/README.md:22 link does not resolve: SEEN-093-add-codegraph-and-repowise-and-assign-each.md\n  docs/tickets/SEEN-006-scaffold-the-pnpm-turborepo-monorepo-with-all.md:45 link does not resolve: SEEN-094-set-up-the-local-docker-development-environment.md\n  docs/tickets/SEEN-008-create-trade-record-schema-v1-with-tenant-id.md:44 link does not resolve: SEEN-094-set-up-the-local-docker-development-environment.md\n",
+    "output_sha256": "a414c1ad22c3ee73d88d89193e9246015208cf5c4999aa860fd6cafc32888047",
+    "output_truncated": false,
+    "before": "a2d776d049ccc800ea51774a3257e8bc78c491523f2e587a94df1833104c1956",
+    "after": "c378b65dded7890b0a50a1f1a85d46a374e7ade4c8e89894fac9e566b6488180"
+  }
+}

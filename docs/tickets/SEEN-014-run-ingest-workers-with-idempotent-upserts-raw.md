@@ -27,13 +27,13 @@ status: todo
 
 ## Description
 
-Build the ingest stage in apps/worker: one BullMQ queue per connector, jobs keyed per tenant and stream, handlers that upsert on (tenant_id, marketplace, external_id) with an updated_at watermark, and a raw payload archive in Supabase Storage keyed by connection, stream and fetch time written before any mapping. Cloud Scheduler triggers orders hourly and settlements daily through an apps/api endpoint that enqueues the jobs, and last_sync per stream is written on connections.
+Build the ingest stage in apps/worker: one BullMQ queue per connector, jobs keyed per tenant and stream, handlers that upsert on (tenant_id, marketplace, external_id) with an updated_at watermark, and a raw payload archive in Supabase Storage keyed by connection, stream and fetch time written before any mapping. BullMQ repeatable jobs trigger orders hourly and settlements daily for every active connection, so no Cloud Scheduler is needed locally or after go-live, and last_sync per stream is written on connections.
 
 ## Acceptance criteria
 
 - [ ] Running the same 90-day backfill twice produces zero duplicate rows in orders, shipments, returns, settlements and settlement_lines
 - [ ] Every raw response is stored in the archive before its mapped rows, verified by a test that fails the mapping and still finds the archive object
-- [ ] Cloud Scheduler jobs exist for orders (hourly) and settlements (daily) and enqueue a job for every active connection
+- [ ] Repeatable jobs exist for orders (hourly) and settlements (daily) and enqueue a job for every active connection, verified against the local Redis
 - [ ] connections.last_sync per stream updates after each successful run and the log shows rows written per run
 - [ ] 90 days of orders, shipments, returns and settlement lines from Bol, eBay and Amazon exist for the friendly brand
 
@@ -49,6 +49,7 @@ Build the ingest stage in apps/worker: one BullMQ queue per connector, jobs keye
 - [SEEN-017](SEEN-017-compute-fee-expectations-per-order-line-from.md): Compute fee_expectations per order line from schedules and APIs
 - [SEEN-018](SEEN-018-match-settlement-lines-to-order-lines.md): Match settlement_lines to order_lines deterministically
 - [SEEN-024](SEEN-024-ship-ops-console-v1-for-tenants-connections-and.md): Ship ops console v1 for tenants, connections and sync status
+- [SEEN-007](SEEN-007-go-live-on-google-cloud-after-the-go-no-go.md): Go live on Google Cloud after the go/no-go decision
 - [SEEN-044](SEEN-044-build-the-shopify-admin-graphql-connector-as.md): Build the Shopify Admin GraphQL connector as product and stock truth
 - [SEEN-054](SEEN-054-build-the-kaufland-connector-with-tickets-as.md): Build the Kaufland connector with tickets as the claims rail
 - [SEEN-060](SEEN-060-build-the-otto-connector-for-orders-returns.md): Build the Otto connector for orders, returns, receipts and messages
