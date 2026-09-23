@@ -1,0 +1,114 @@
+{
+  "sequence": 13,
+  "ticket": "SEEN-092",
+  "timestamp": "2026-09-23T22:38:33.234994+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "review",
+  "attempt": 1,
+  "actor": "claude:reviewer",
+  "head": "53cbeb158b85271b1b26eaa3cf2fc8abc5c56dd8",
+  "prev_hash": "3e5bfae35e7ab718f7a970be77a27beafe236c7e7a60c80c3ca63e73d5be07dc",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "deliver",
+    "evidence": {
+      "reviewer": "claude:reviewer",
+      "independence": "self-review",
+      "acceptance_evidence": [
+        "AC1, sync generates both copies and doctor fails on a hand edit: eight tests in test_skill.py, and doctor on this tree reports nothing",
+        "AC2, the skill is where each assistant looks: sync wrote all three paths including ~/.codex/skills/seen-harness/SKILL.md, and each copy carries the frontmatter an assistant reads",
+        "AC3, no Seene leftover remains: already true, because the project was removed in SEEN-086's first commit and the history rebuilt from a fresh root. Recorded at record 2 rather than claimed as work",
+        "AC4, CLAUDE.md links the workflow and lists the commands as they now are: the list gained coverage, lint, discard, reopen, verify-merge and sync, and lost nothing that does not exist",
+        "AC5, this ticket's journal is the reference example, with its kpi.json committed and the skill pointing at it",
+        "The workflow document describes the harness as built: the command table, the modules, what sits outside the fingerprint, and the five conventions the ten tickets settled"
+      ],
+      "findings": [
+        {
+          "id": "R-01",
+          "severity": "medium",
+          "file": "harness/tests/helpers.py",
+          "line": 50,
+          "claim": "Adding a check to doctor broke every test project, because the fixture had nothing for it to check",
+          "failure_scenario": "Ten tests failed on a self-check finding a missing skill source in a project that never had one. The same gap as the pre-commit hook in SEEN-090: a fixture that does not carry the controls cannot exercise them, and the failure looks like a defect in the check",
+          "status": "resolved",
+          "resolution": "The fixture generates the source and both copies the same way sync does, so the drift check is exercised rather than skipped"
+        },
+        {
+          "id": "R-02",
+          "severity": "medium",
+          "claim": "The Codex copy lives outside the repository, so doctor cannot see it drift",
+          "failure_scenario": "Someone edits ~/.codex/skills/seen-harness/SKILL.md, no check notices, and Codex reads something different from what Claude Code reads",
+          "status": "resolved",
+          "resolution": "sync rewrites it whenever it runs, and the ticket and the workflow document both say the check covers the committed copies only. A self-check that failed on another machine's configuration would be noise, and claiming coverage that does not exist would be worse than naming the limit"
+        },
+        {
+          "id": "R-03",
+          "severity": "low",
+          "claim": "Two acceptance criteria were satisfied before the ticket started",
+          "failure_scenario": "A reader takes the ticked boxes as work done here and looks for commits that do not exist",
+          "status": "resolved",
+          "resolution": "Both say what made them true and when. The Seene removal happened in SEEN-086's first commit; the allowlist came from SEEN-090"
+        }
+      ],
+      "checks": [
+        12
+      ],
+      "security_checklist": [
+        "No secret in the diff",
+        "No new dependency",
+        "sync writes outside the repository only into a directory that already exists, and never creates one",
+        "No live marketplace host in any test file",
+        "No PII, no database, no agent action"
+      ],
+      "verdict": "pass",
+      "tree": "05c856189059da182c133af26c30c1d1ec6ffd9f26a9a863ba1e03d3c5dc10c5"
+    },
+    "decisions": [
+      {
+        "question": "severity",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high",
+          "blocking"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "medium",
+        "probabilities": {
+          "low": 0.03,
+          "medium": 0.61,
+          "high": 0.34,
+          "blocking": 0.02
+        },
+        "confidence": 0.59,
+        "score": 1.35,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      },
+      {
+        "question": "must_fix",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.2,
+          "no": 0.8
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.7,
+        "passed": false,
+        "fallback_reason": null
+      }
+    ]
+  }
+}
