@@ -39,47 +39,35 @@ Add harness/jev.py calling POST https://api.typesafe.ai/v1/systemone with model 
 
 ## Outcome
 
-Delivered on 23 September 2026, receipt
-`10215e20c985c47f5b35bff8f1b79529441e13f27f2eea5286e7b7bc1262c661`, pull request #3. 25 journal
-records, two attempts, one return.
+Delivered on 23 September 2026 after one reopen. 35 journal records, three attempts, one return and
+one voided receipt.
 
-**The live call is unverified.** The credential in this shell is rejected by the API with
-`401 Invalid API key`, and the two distinct 401 messages establish that the endpoint authenticates
-through the Authorization header while this key is not valid for it (record 3). The request and
-response bodies are therefore written to the shape the ticket describes and verified only against a
-stub. A valid Jev credential in `.env.local` is all that is outstanding; nothing else changes.
+**The first delivery was against a service that does not exist.** The ticket named
+`thejevai.com/v1/systemone` with model `typesafe/jev-1.13`. That host is TypeSafe's playground: it
+rejects API credentials, which is why two valid-looking keys came back as `Invalid API key` and why
+the endpoint was blamed last rather than first. The real contract, from
+https://docs.typesafe.ai/api.md, is `POST https://api.typesafe.ai/v1/systemone` with model
+`jev-latest`, a map of questions in one request, a noul answered as a single probability, and a score
+answered by level index with a legend, a weighted value and a confidence. The ticket text and
+`docs/harness/workflow.md` are corrected at the source, so no later session inherits the wrong facts.
 
-**The fallback is not a stopgap, and this ticket is its own evidence.** Records 21 and 22 are human
-answers, and record 22 carries the real failure it fell back from (`HTTPError: 403`). Records 11 and
-19 carry judgements recorded as `unavailable`, which block nothing and are countable by SEEN-091.
+**It is verified live.** Record 29 is the first real judgement this harness has taken: Jev rated this
+ticket's own risk `medium` at 0.65, score 1.31, confidence 0.48. Record 34 carries the review gate's
+own decisions, `severity: blocking` at 0.78 and `must_fix: no` at 0.42, both from `jev-1.13.0`.
 
-**Three defects the tests and the gates caught.** Every blocking question was treated as one that
-must clear its threshold, which inverted `must_fix`: a review finding nothing to fix would have been
-refused and one finding a blocking defect would have passed. Every existing test would have called
-the live API, because a credential sits in this shell and the default transport is the real one.
-Requiring a recorded judgement before every advance would have made the harness unusable without a
-key, contradicting the ticket's own "records the fallback, and continues".
+**The receipt for the wrong implementation was voided, not patched.** SEEN-093 was built for exactly
+this: record 26 voids receipt `10215e20...` with its reason, the receipt file is untouched, and the
+journal reads receipt, void, rework, second receipt. Two earlier tickets were patched after their
+receipts instead, and that is the habit this replaced.
 
-**And the gate refused this delivery once.** `.env.example` entered the tree after review attested
-it, and `verify-delivery` would not write a receipt over an unreviewed file. It was removed rather
-than the gate overridden; documenting the credential belongs to SEEN-090.
+**Three defects found in review, all resolved**: the wrong service (blocking), invented answer shapes
+(high), and questions carrying no criteria, so the model was given a bare question and no rubric
+(medium).
 
-### After the receipt: the transport could never have worked
-
-Found on 23 September 2026 while re-testing with a second credential. The service sits behind
-Cloudflare, which rejects Python's default user agent (`Python-urllib/3.x`) with error 1010 before
-the API sees the request. `curl` is allowed through, `urllib` is not, which is why record 22 fell
-back with `HTTPError: 403` rather than a 401 about the credential. Any user agent of our own fixes
-it, and the request now names itself and accepts JSON.
-
-The journal was already closed, and `harness check` refused to record the red and the green, which is
-the terminal stage behaving as designed. The evidence is `TransportTest.test_the_request_names_itself`
-and this paragraph. This is the second defect to escape a receipt, and both would have been caught by
-the check SEEN-089 carries: refuse a delivery whose checks are not green on the delivered commit, and
-compare the receipt's commit to the branch tip at merge.
-
-The credential remains rejected at the application layer (`401 Invalid API key`) with the request
-reaching the API, so the live path is still unverified.
+**Earlier in this journal**: the gate was inverted on `must_fix`, every test would have called the
+live API, requiring a judgement before every advance would have made the harness unusable without a
+key, and the transport could never have reached the API at all because Cloudflare rejects Python's
+default user agent. Record 8 is a meaningless check, disowned in the note at record 9.
 
 ## Depends on
 

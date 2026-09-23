@@ -1,0 +1,117 @@
+{
+  "sequence": 34,
+  "ticket": "SEEN-088",
+  "timestamp": "2026-09-23T19:01:49.752142+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "review",
+  "attempt": 3,
+  "actor": "claude:reviewer",
+  "head": "2ac25066832323c72bb1a42a829c42927342f6b5",
+  "prev_hash": "fda1f2552aab67706e16ae33868065bbd91d5ecade35ebb494de4ee94e9fb59a",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "deliver",
+    "evidence": {
+      "reviewer": "claude:reviewer",
+      "independence": "self-review",
+      "acceptance_evidence": [
+        "AC1, a decision record with model, question, probabilities, threshold and outcome: record 29 is one, taken live from jev-1.13.0, rating this ticket's own risk medium at 0.65 with a score of 1.31 and a confidence of 0.48",
+        "AC2, advance from clarify refused below the threshold, naming what it judged on: test_advance_from_clarify_is_refused_below_the_threshold and test_the_refusal_quotes_the_probability_it_judged_on",
+        "AC3, a billing or policy-gate change adds the checklist and a second reviewer: test_a_billing_or_policy_gate_ticket_needs_a_second_reviewer",
+        "AC4, with no credential every decision point records the fallback and continues: records 11 and 19 of this journal carry unavailable decisions, and records 21 and 22 are human answers, record 22 naming the API failure it fell back from",
+        "AC5, the credential is read from .env.local first and never reaches a record: test_the_credential_is_read_from_the_env_file_before_the_environment and test_no_decision_record_holds_the_credential_or_any_environment_value, the latter against an API that echoes the whole environment back",
+        "The contract itself: one request carries every question a stage owns, proven by test_one_request_carries_every_question_a_stage_owns and by the live call at record 29"
+      ],
+      "findings": [
+        {
+          "id": "R-06",
+          "severity": "blocking",
+          "file": "harness/thresholds.toml",
+          "line": 30,
+          "claim": "The whole integration was written against a service that does not exist: thejevai.com is the playground, not the API",
+          "failure_scenario": "Every decision in the MVP falls back to a human while appearing integrated, and the harness reports 401s that look like a credential problem and are not. Two valid credentials were blamed before the endpoint was",
+          "status": "resolved",
+          "resolution": "Corrected to api.typesafe.ai/v1/systemone with model jev-latest from the published API reference, the ticket and workflow.md corrected at the source, and verified with a live call recorded at record 29. The receipt that attested the wrong implementation was voided at record 26 rather than patched over"
+        },
+        {
+          "id": "R-07",
+          "severity": "high",
+          "file": "harness/jev.py",
+          "line": 120,
+          "claim": "The answer shapes were invented: a noul returns one probability, not an answer plus a distribution, and a score returns level indices with a legend and a confidence",
+          "failure_scenario": "The first real call parses into empty probabilities and an outcome of None, every threshold comparison silently reads 0.0, and every gate either refuses everything or passes everything",
+          "status": "resolved",
+          "resolution": "Rewritten against the published shapes with a red at 27 and a green at 28. The level index maps back to the option name, so records still read low, medium, high and blocking rather than 0, 1 and 2"
+        },
+        {
+          "id": "R-08",
+          "severity": "medium",
+          "claim": "Questions carried no criteria, so the model was given a bare question and no rubric",
+          "failure_scenario": "Risk and severity scores drift, because nothing says what medium means for this project, and the recorded probabilities cannot be compared between tickets",
+          "status": "resolved",
+          "resolution": "Every question now carries criteria in the API's own format: true and false descriptions for a noul, an ordered level description for a score, written in this project's terms"
+        }
+      ],
+      "checks": [
+        32,
+        33
+      ],
+      "security_checklist": [
+        "No secret in the diff: .env.local is gitignored and the credential is read, never recorded",
+        "A test proves an API echoing the environment back cannot get any of it into the journal",
+        "No new dependency: urllib from the standard library",
+        "No test can reach the live API: the test base strips the credential and nulls the transport",
+        "The one live call in this ticket was deliberate, authorised at clarify, and carries only this ticket's own record as state"
+      ],
+      "verdict": "pass",
+      "tree": "3bd4f8a5ff753b2bb5393e1bd4e7237de093e1f0338427e9bb26cd5c4a209550"
+    },
+    "decisions": [
+      {
+        "question": "severity",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high",
+          "blocking"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "blocking",
+        "probabilities": {
+          "low": 0.01,
+          "medium": 0.01,
+          "high": 0.2,
+          "blocking": 0.78
+        },
+        "confidence": 0.75,
+        "score": 2.75,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      },
+      {
+        "question": "must_fix",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.42,
+          "no": 0.58
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.7,
+        "passed": false,
+        "fallback_reason": null
+      }
+    ]
+  }
+}
