@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-086, SEEN-094]
-status: doing
+status: done
 ---
 # SEEN-095: Check a ticket's status against its own journal
 
@@ -23,13 +23,13 @@ status: doing
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | doing |
+| Status | done |
 
 ## Description
 
 `doctor` verifies the journals, the chain, the hooks, the links and the skill copies, but nothing
 compares a ticket's frontmatter against its own journal. Two tickets, SEEN-006 and SEEN-089, sat at
-`status: doing` for hours after they had delivered and merged, because both mark-done commits were
+`status: done` for hours after they had delivered and merged, because both mark-done commits were
 lost in a rebase conflict and nothing noticed. A ticket's status is what the backlog, the sprint
 report and every session reads first, so a status that disagrees with the journal beside it misleads
 everyone who looks.
