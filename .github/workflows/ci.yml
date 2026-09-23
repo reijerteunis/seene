@@ -1,0 +1,30 @@
+# CI is the only definition of done. SEEN-086 runs the harness's own tests on
+# the version floor; SEEN-089 extends this with typecheck, migrations, coverage,
+# gitleaks, pnpm audit and graphify once there is product code to run them on.
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+jobs:
+  harness:
+    name: Harness tests (Python 3.12)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # doctor asks git which journal records were ever committed as a
+          # modification, which a shallow clone cannot answer.
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Harness tests
+        run: python3 -m unittest discover -s harness/tests -v
+
+      - name: Harness self-check
+        run: python3 harness/run.py doctor

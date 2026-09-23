@@ -125,6 +125,20 @@ class StatusTest(CommandTest):
         self.assertNotIn('status', calls, 'status must not fingerprint the tree')
         self.assertLessEqual(len([call for call in calls if call != 'rev-parse']), 2)
 
+    def test_status_stays_well_inside_its_budget(self):
+        self.start()
+        for _ in range(20):
+            self.write('.harness-drafts/note.md', 'A thought.')
+            self.run_harness('note', self.ticket_id, '--file', '.harness-drafts/note.md',
+                             '--actor', 'claude:implementer')
+        started = time.monotonic()
+        self.run_harness('status', self.ticket_id)
+        elapsed = time.monotonic() - started
+        # The design budget is 200 ms. The assertion is loose on purpose: a tight
+        # wall-clock check in CI is flaky by construction, and the properties that
+        # keep status fast are asserted in the test above.
+        self.assertLess(elapsed, 1.0, f'status took {elapsed * 1000:.0f} ms')
+
     def test_status_of_an_unstarted_ticket_says_so(self):
         with self.assertRaisesRegex(HarnessError, 'start it first'):
             self.run_harness('status', self.ticket_id)

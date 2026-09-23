@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: []
-status: doing
+status: review
 ---
 # SEEN-086: Build the Seen harness CLI with staged journal and receipts
 
@@ -23,7 +23,7 @@ status: doing
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | doing |
+| Status | review |
 
 ## Description
 
@@ -55,17 +55,63 @@ Taken on 23 September 2026 before implementation, in a grilling session over thi
 
 ## Acceptance criteria
 
-- [ ] start creates docs/harness/history/<ticket>/0001.json holding the ticket path, the full ticket text, the actor and stage clarify, and refuses a ticket that already has a journal
-- [ ] advance refuses a stage file missing any required field of its template and names the field, and refuses a value left identical to the template's example text
-- [ ] a passing advance appends a record whose prev_hash equals the sha256 of the previous record file on disk, reproducible with shasum -a 256 and no harness
-- [ ] check appends a record whatever the exit code, carrying command, phase, exit code, duration_ms and output_sha256, and the tdd stage gate refuses slices citing checks from another stage or attempt or cited out of order
-- [ ] the tdd stage accepts mode non-code with a change type and a reason, and requires sources when the change type is verification
-- [ ] doctor verifies the hash chain of every journal, fails when any record under docs/harness/history has been committed as a modification or a deletion, checks thresholds.toml, the templates, the gitignore entries, the Python floor and that every relative markdown link in the repository resolves, and reports every problem before exiting non-zero
-- [ ] every writing command refuses when the current branch is not claude/<id>- or codex/<id>-, and refuses on main and on a detached HEAD
-- [ ] status prints stage, attempt, branch, last actor, chain head and the next command, makes at most one git call, never fingerprints the tree and never touches the network
-- [ ] verify-delivery confirms the tip commit is on the remote, that the journal holds one accepted record per stage and that the reviewed-tree fingerprint still matches review, then appends the receipt and sets the stage to delivered, without requiring gh
-- [ ] the Seene project is removed in a chore(SEEN-086) commit, .harness-drafts/ and the lock file are gitignored, and .github/workflows/ci.yml runs the harness tests
-- [ ] python3 -m unittest discover -s harness/tests passes locally on 3.14 and in CI on 3.12, and no test can write under the repository's own docs/harness/history
+- [x] start creates docs/harness/history/<ticket>/0001.json holding the ticket path, the full ticket text, the actor and stage clarify, and refuses a ticket that already has a journal
+- [x] advance refuses a stage file missing any required field of its template and names the field, and refuses a value left identical to the template's example text
+- [x] a passing advance appends a record whose prev_hash equals the sha256 of the previous record file on disk, reproducible with shasum -a 256 and no harness
+- [x] check appends a record whatever the exit code, carrying command, phase, exit code, duration_ms and output_sha256, and the tdd stage gate refuses slices citing checks from another stage or attempt or cited out of order
+- [x] the tdd stage accepts mode non-code with a change type and a reason, and requires sources when the change type is verification
+- [x] doctor verifies the hash chain of every journal, fails when any record under docs/harness/history has been committed as a modification or a deletion, checks thresholds.toml, the templates, the gitignore entries, the Python floor and that every relative markdown link in the repository resolves, and reports every problem before exiting non-zero
+- [x] every writing command refuses when the current branch is not claude/<id>- or codex/<id>-, and refuses on main and on a detached HEAD
+- [x] status prints stage, attempt, branch, last actor, chain head and the next command, makes at most one git call, never fingerprints the tree and never touches the network
+- [x] verify-delivery confirms the tip commit is on the remote, that the journal holds one accepted record per stage and that the reviewed-tree fingerprint still matches review, then appends the receipt and sets the stage to delivered, without requiring gh
+- [x] the Seene project is removed in a chore(SEEN-086) commit, .harness-drafts/ and the lock file are gitignored, and .github/workflows/ci.yml runs the harness tests
+- [x] python3 -m unittest discover -s harness/tests passes locally on 3.14 and in CI on 3.12, and no test can write under the repository's own docs/harness/history
+
+## Outcome
+
+Delivered on 23 September 2026 on branch `claude/SEENE-006-accounts-clients-sites` at Ruud's
+instruction, rather than on a branch of its own. This ticket has no journal by design, so the
+evidence is here, in the test suite and in the pull request.
+
+**The harness**: `harness/` with `run.py`, `cli.py`, `journal.py`, `gates.py`, `repository.py`,
+`checks.py`, `delivery.py`, `doctor.py`, `thresholds.py`, `paths.py` and `errors.py`, about 1,100
+lines, Python standard library only. Six templates, one threshold file, `.gitignore` and
+`.github/workflows/ci.yml`.
+
+**Tests**: 115, `python3 -m unittest discover -s harness/tests`, about 11 seconds. Every test builds
+a throwaway git repository; two tests assert that no test can write into this repository's journal.
+
+**Self-check**: `python3 harness/run.py doctor` passes on this tree, including the markdown link
+check across 100 documents.
+
+### What the build changed about the design
+
+Four things were decided in the grilling session and corrected while implementing them. All four
+were found by a test rather than by review.
+
+1. **A record's envelope stamps the stage the ticket left, so the current stage is the transition
+   applied to the last record.** The first version read the envelope directly, which left a ticket
+   at clarify after it had advanced.
+2. **The reviewed-tree fingerprint hashes content, not history.** The first version mixed HEAD into
+   the hash, so committing the journal changed it, and the receipt could not survive the commit
+   that carries it. It now uses git blob ids for every file git can see, so a file hashes the same
+   whether it is committed or still in the working tree.
+3. **Stage evidence must be authored in `.harness-drafts/`.** Anywhere else it is an untracked file
+   in the tree, so submitting it changed the fingerprint review had attested, and delivery refused
+   the ticket for a change the harness itself had caused.
+4. **The append-only proof distinguishes three shapes.** A record that still exists and was
+   committed as a modification is a rewrite. A record that is gone while its journal directory is
+   still there is a removal, which the numbering check cannot see when the missing record was the
+   last one. Retiring a whole journal, as this ticket's own removal commit did for 250 Seene
+   records, is neither. The first version failed on all deletions and would have failed on this
+   repository for ever.
+
+### Not in this ticket, by design
+
+CI green as a delivery condition and the RED-that-actually-failed rule (SEEN-089), the KPI file
+(SEEN-091), `graph` (SEEN-087), `decide` (SEEN-088), `sync` and the skill (SEEN-092). Between now
+and SEEN-089, `verify-delivery` will confirm a delivery whose CI was red; the human watching the
+pull request is the control until then.
 
 ## Depends on
 

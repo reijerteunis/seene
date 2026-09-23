@@ -112,16 +112,31 @@ class Repository:
         listed = self.git('ls-files', '--cached', '--others', '--exclude-standard')
         return [name for name in listed.splitlines() if name]
 
+    def _history_paths(self, filter_letter):
+        listed = self.git('log', f'--diff-filter={filter_letter}', '--name-only',
+                          '--pretty=format:', '--', str(HISTORY))
+        return {name for name in listed.splitlines() if name}
+
     def rewritten_history_records(self):
-        """Journal files that were ever committed as a modification or a deletion.
+        """Journal files git has seen change after the commit that created them.
 
         The hash chain makes an accidental rewrite detectable and a deliberate
         one expensive; this makes it provable, because recomputing every later
-        hash still leaves the modification visible in history.
+        hash still leaves the modification in history.
+
+        Two shapes count. A record that still exists and was ever committed as a
+        modification: the file was edited in place. A record that is gone while
+        its journal is still here: one record was removed from a live ticket,
+        which the numbering check cannot see when the missing record was the
+        last one. Retiring a whole journal, as the Seene project's removal did,
+        is neither: the directory is gone and nothing claims otherwise.
         """
-        changed = self.git('log', '--diff-filter=MD', '--name-only', '--pretty=format:',
-                           '--', str(HISTORY))
-        return sorted({name for name in changed.splitlines() if name})
+        rewritten = [name for name in self._history_paths('M') if (self.root / name).is_file()]
+        for name in self._history_paths('D'):
+            path = self.root / name
+            if not path.exists() and path.parent.is_dir():
+                rewritten.append(name)
+        return sorted(set(rewritten))
 
     def contains_commit(self, commit):
         try:
