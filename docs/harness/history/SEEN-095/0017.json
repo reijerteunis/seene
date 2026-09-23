@@ -1,0 +1,113 @@
+{
+  "sequence": 17,
+  "ticket": "SEEN-095",
+  "timestamp": "2026-09-23T23:11:02.006604+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "review",
+  "attempt": 2,
+  "actor": "claude:reviewer",
+  "head": "945516bd5d7adf5efbe0401993449f3e8415a947",
+  "prev_hash": "e1914defcdaee3a2f1314a2dfe87b03cdc29b45ca392063f6c77e273bb20770d",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "deliver",
+    "evidence": {
+      "reviewer": "claude:reviewer",
+      "independence": "self-review",
+      "acceptance_evidence": [
+        "AC1, a merged receipt with the wrong status is reported with both values: test_a_merged_receipt_with_a_status_of_doing_is_reported, and ten real cases this afternoon",
+        "AC2, a working stage saying done or todo is reported: two tests, one for each",
+        "AC3, SEEN-086 passes as the bootstrap: test_the_bootstrap_may_be_done_with_no_journal, and doctor on this tree says nothing about it",
+        "AC4, a delivered ticket awaiting merge may say review: test_a_delivered_receipt_not_yet_merged_may_say_review, which is this ticket's own state right now",
+        "AC5, nothing is repaired: test_the_check_repairs_nothing asserts the wrong status is still there afterwards"
+      ],
+      "findings": [
+        {
+          "id": "R-01",
+          "severity": "high",
+          "claim": "A plan revision in the working tree had reset eight delivered tickets to todo and renumbered over two merged ones",
+          "failure_scenario": "The backlog, the sprint report and every session read the status first. Eight tickets that had delivered would have read as unstarted, the sprint report would have shown 27 points as zero, and two merged tickets would have had their numbers reused by different work, with receipts and pull request bodies quoting the old meaning",
+          "status": "resolved",
+          "resolution": "The check named all eight with the receipt commit proving each merged. The revision's two tickets are renumbered SEEN-096 and SEEN-097, its direction left untouched, and three sentences the code enforces are restored to CLAUDE.md. Recorded in the reconciliation commit and in the note at record 14"
+        },
+        {
+          "id": "R-02",
+          "severity": "medium",
+          "file": "harness/tests/helpers.py",
+          "line": 20,
+          "claim": "The test fixture's ticket said todo while the test started a journal",
+          "failure_scenario": "Every test project tripped the new check, which is exactly the disagreement it reports, so ten tests failed on a fixture that did not behave like a real ticket",
+          "status": "resolved",
+          "resolution": "The fixture says doing, as a started ticket does. The same class of fixture gap as the pre-commit hook in SEEN-090 and the skill in SEEN-092: a fixture that does not carry the controls cannot exercise them"
+        },
+        {
+          "id": "R-03",
+          "severity": "low",
+          "claim": "Record 12 is a contrived check, run out of habit",
+          "failure_scenario": "A reader takes it as evidence of a failing test for this ticket",
+          "status": "resolved",
+          "resolution": "Disowned in the note at record 14 and cited by nothing. Second in eleven tickets, after record 8 of SEEN-088, which is worth knowing as a rate"
+        }
+      ],
+      "checks": [
+        16
+      ],
+      "security_checklist": [
+        "No secret in the diff",
+        "No new dependency",
+        "The check reads ticket frontmatter and journals, both already walked by other checks",
+        "No live marketplace host in any test file",
+        "No PII, no database, no agent action"
+      ],
+      "verdict": "pass",
+      "tree": "cfe7a8362e5e3131c0f907bf58139f3c31fab5ed550a0c53a4b700f4635d02a7"
+    },
+    "decisions": [
+      {
+        "question": "severity",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high",
+          "blocking"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "high",
+        "probabilities": {
+          "low": 0.06,
+          "medium": 0.38,
+          "high": 0.42,
+          "blocking": 0.14
+        },
+        "confidence": 0.37,
+        "score": 1.64,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      },
+      {
+        "question": "must_fix",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.36,
+          "no": 0.64
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.7,
+        "passed": false,
+        "fallback_reason": null
+      }
+    ]
+  }
+}
