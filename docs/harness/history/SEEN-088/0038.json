@@ -1,0 +1,90 @@
+{
+  "sequence": 38,
+  "ticket": "SEEN-088",
+  "timestamp": "2026-09-23T19:03:26.483559+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "review",
+  "attempt": 4,
+  "actor": "claude:reviewer",
+  "head": "489847c142e826713e1d7d67dfa15a6616aac342",
+  "prev_hash": "ca3bab80cfcbf031dee393d5569b5780dedacef634f58c7768a6328168d5543d",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "deliver",
+    "evidence": {
+      "reviewer": "claude:reviewer",
+      "independence": "self-review",
+      "acceptance_evidence": [
+        "Attempt 4 is documentation only: the ticket's Outcome and the CLAUDE.md convention. The acceptance evidence of attempt 3 stands unchanged and is recorded at record 34",
+        "The live contract is verified: record 29 for risk and record 34 for severity and must_fix, all from jev-1.13.0",
+        "The full suite passes at record 37, and doctor verified the chain at record 33"
+      ],
+      "findings": [
+        {
+          "id": "R-09",
+          "severity": "medium",
+          "claim": "A ticket's Outcome section is written after review by nature, and the reviewed-tree fingerprint covers the ticket file, so verify-delivery refuses every ticket that documents itself honestly",
+          "failure_scenario": "Every one of the remaining tickets reaches delivery, adds its Outcome, and is refused; the obvious workaround is to write the Outcome after the receipt, which puts the tree that merges out of step with the tree the receipt attests",
+          "status": "resolved",
+          "resolution": "The convention is now in CLAUDE.md: the Outcome is written before advancing out of review, and only the receipt hash, which cannot exist earlier, goes in the pull request body. This ticket took the non-code documentation path for attempt 4 to prove it"
+        }
+      ],
+      "checks": [
+        37
+      ],
+      "security_checklist": [
+        "No code changed in this attempt",
+        "No secret in the diff"
+      ],
+      "verdict": "pass",
+      "tree": "164600b9a423e93a0100419598bb8ca2ae7828f554f5e4aacaee1d35fb075fa7"
+    },
+    "decisions": [
+      {
+        "question": "severity",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high",
+          "blocking"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "blocking",
+        "probabilities": {
+          "low": 0.01,
+          "medium": 0.07,
+          "high": 0.12,
+          "blocking": 0.8
+        },
+        "confidence": 0.71,
+        "score": 2.71,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      },
+      {
+        "question": "must_fix",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.3,
+          "no": 0.7
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.7,
+        "passed": false,
+        "fallback_reason": null
+      }
+    ]
+  }
+}
