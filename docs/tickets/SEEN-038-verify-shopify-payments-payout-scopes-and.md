@@ -27,11 +27,11 @@ status: todo
 
 ## Description
 
-Create the custom app on the friendly brand's Shopify store, confirm the Admin API scopes needed for products, orders and Shopify Payments payouts (read_products, read_orders, read_shopify_payments_payouts) and whether payouts require the store to be on Shopify Payments, then store the token in Secret Manager for packages/connectors/shopify. The decision that matters: Shopify is only ever read, never written, so the scope set is the minimum for products, orders and payouts.
+Create the custom app on the friendly brand's Shopify store, confirm the Admin API scopes needed for products, orders and Shopify Payments payouts (read_products, read_orders, read_shopify_payments_payouts) and whether payouts require the store to be on Shopify Payments, then store the token in the secrets provider (.env.local in development, Secret Manager after go-live) for packages/connectors/shopify. The decision that matters: Shopify is only ever read, never written, so the scope set is the minimum for products, orders and payouts.
 
 ## Acceptance criteria
 
-- [ ] Custom app installed with the verified scopes and the token stored in Secret Manager
+- [ ] Custom app installed with the verified scopes and the token stored in the secrets provider (.env.local in development, Secret Manager after go-live)
 - [ ] A manual GraphQL query for shopifyPaymentsAccount payouts returns data or a documented reason it cannot
 - [ ] Scope list recorded in packages/connectors/shopify/README.md with the documentation date
 

@@ -33,7 +33,7 @@ Add the metrics pack to the ops console in apps/web: brands live, euros identifi
 
 - [ ] Dashboard shows the eight metrics with a period selector and each metric links to its SQL view
 - [ ] CSV export contains the same figures as the dashboard for the period
-- [ ] Gross margin per tenant uses agent_runs cost and per-tenant infrastructure cost from Cloud Logging
+- [ ] Gross margin per tenant uses agent_runs cost and per-tenant infrastructure cost from the telemetry logs
 - [ ] Autonomy rate per action type equals autonomous decisions over all decisions in agent_actions
 
 ## Depends on

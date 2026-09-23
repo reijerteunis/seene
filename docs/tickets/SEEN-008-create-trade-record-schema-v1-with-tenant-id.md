@@ -10,7 +10,7 @@ estimate: 5
 executor: claude-code
 changes_agent_action: false
 marketplaces: []
-depends_on: [SEEN-006, SEEN-007, SEEN-092]
+depends_on: [SEEN-006, SEEN-092, SEEN-094]
 status: todo
 ---
 # SEEN-008: Create trade-record schema v1 with tenant_id and RLS on every table
@@ -40,8 +40,8 @@ Write the Supabase migration for trade-record schema v1 in packages/core/db: ten
 ## Depends on
 
 - [SEEN-006](SEEN-006-scaffold-the-pnpm-turborepo-monorepo-with-all.md): Scaffold the pnpm turborepo monorepo with all six packages
-- [SEEN-007](SEEN-007-provision-gcp-europe-west4-and-supabase-eu-with.md): Provision GCP europe-west4 and Supabase EU with telemetry
 - [SEEN-092](SEEN-092-sync-the-harness-skill-to-claude-code-and-codex.md): Sync the harness skill to Claude Code and Codex and retire the Seene leftovers
+- [SEEN-097](SEEN-097-set-up-the-local-docker-development-environment.md): Set up the local Docker development environment
 
 ## Blocks
 

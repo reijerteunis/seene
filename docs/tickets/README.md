@@ -1,12 +1,12 @@
 # Tickets
 
-95 tickets for the Seen MVP, one file per ticket, grouped by sprint. Each file carries YAML frontmatter (id, epic, sprint, gate, estimate, executor, changes_agent_action, marketplaces, depends_on, status) so the backlog can be filtered with grep or loaded by a script. Status values: todo, doing, review, done, parked. Update the status line in the frontmatter and the table when a ticket moves.
+97 tickets for the Seen MVP, one file per ticket, grouped by sprint. Each file carries YAML frontmatter (id, epic, sprint, gate, estimate, executor, changes_agent_action, marketplaces, depends_on, status) so the backlog can be filtered with grep or loaded by a script. Status values: todo, doing, review, done, parked. Update the status line in the frontmatter and the table when a ticket moves.
 
 Conventions: branch `claude/<id>-<slug>` (or `codex/`), commit messages `feat(<id>): ...`, `fix(<id>): ...`, `docs(<id>): ...`; a ticket is done only when every acceptance criterion is checked and the tests named in it run in CI.
 
 ## Sprint 0: Harness first, then foundations, three read connectors, ingest, day-0 registrations
 
-24 Sep - 9 Oct 2026, sprint gate G0, 24 tickets, 73 build points.
+24 Sep - 9 Oct 2026, sprint gate G0, 25 tickets, 71 build points.
 
 | Ticket | Title | Epic | Pts | Executor | Depends on |
 |---|---|---|---|---|---|
@@ -15,19 +15,20 @@ Conventions: branch `claude/<id>-<slug>` (or `codex/`), commit messages `feat(<i
 | [SEEN-003](SEEN-003-obtain-bol-credentials-and-verify-oauth-grant.md) | Obtain Bol credentials and verify OAuth grant and rate limits | E0 | 1 | human |  |
 | [SEEN-004](SEEN-004-set-up-postmark-inbound-domain-and-stripe.md) | Set up Postmark inbound domain and Stripe account | E0 | 1 | human |  |
 | [SEEN-005](SEEN-005-review-partao-contract-and-draft-dpa-and-amazon.md) | Review Partao contract and draft DPA and Amazon data statement | E0 | 2 | human |  |
-| [SEEN-086](SEEN-086-build-the-seen-harness-cli-with-staged-journal.md) | Build the Seen harness CLI with staged journal and receipts | E10 | 8 | Claude Code |  |
+| [SEEN-086](SEEN-086-build-the-seen-harness-cli-with-staged-journal.md) | Build the Seen harness CLI with staged journal and receipts | E10 | 5 | Claude Code |  |
 | [SEEN-006](SEEN-006-scaffold-the-pnpm-turborepo-monorepo-with-all.md) | Scaffold the pnpm turborepo monorepo with all six packages | E0 | 3 | Claude Code |  |
+| [SEEN-097](SEEN-097-set-up-the-local-docker-development-environment.md) | Set up the local Docker development environment | E0 | 3 | Claude Code | SEEN-006 |
 | [SEEN-087](SEEN-087-install-graphify-build-the-repo-graph-and-wire.md) | Install graphify, build the repo graph and wire it into both assistants | E10 | 3 | Claude Code | SEEN-086 |
+| [SEEN-096](SEEN-096-add-codegraph-and-repowise-and-assign-each.md) | Add codegraph and repowise and assign each context tool its stage | E10 | 3 | Claude Code | SEEN-086, SEEN-087 |
 | [SEEN-088](SEEN-088-integrate-jev-ai-typed-decisions-into-the.md) | Integrate Jev AI typed decisions into the harness gates | E10 | 3 | Claude Code | SEEN-086 |
-| [SEEN-089](SEEN-089-enforce-tdd-and-ci-quality-gates-in-the-harness.md) | Enforce the TDD gates in the harness | E10 | 3 | Claude Code | SEEN-006, SEEN-086 |
-| [SEEN-094](SEEN-094-verify-delivery-against-ci-and-the-merge.md) | Verify delivery against CI and verify the merge against the receipt | E10 | 2 | Claude Code | SEEN-086, SEEN-093 |
-| [SEEN-095](SEEN-095-check-ticket-status-against-its-own-journal.md) | Check a ticket's status against its own journal | E10 | 1 | Claude Code | SEEN-086, SEEN-094 |
+| [SEEN-089](SEEN-089-enforce-tdd-and-ci-quality-gates-in-the-harness.md) | Enforce TDD and CI quality gates in the harness | E10 | 5 | Claude Code | SEEN-006, SEEN-086, SEEN-094 |
 | [SEEN-090](SEEN-090-add-harness-security-controls-secrets.md) | Add harness security controls: secrets, permissions, injection, supply chain | E10 | 3 | Claude Code | SEEN-086, SEEN-088 |
 | [SEEN-091](SEEN-091-collect-harness-kpis-per-ticket-and-produce.md) | Collect harness KPIs per ticket and produce weekly and sprint reports | E10 | 3 | Claude Code | SEEN-086, SEEN-089 |
+| [SEEN-092](SEEN-092-sync-the-harness-skill-to-claude-code-and-codex.md) | Sync the harness skill to Claude Code and Codex and retire the Seene leftovers | E10 | 2 | Claude Code | SEEN-086, SEEN-087, SEEN-088, SEEN-089, SEEN-090, SEEN-091, SEEN-093 |
 | [SEEN-093](SEEN-093-add-harness-reopen-to-void-a-receipt-before.md) | Add harness reopen to void a receipt before merge | E10 | 2 | Claude Code | SEEN-086 |
-| [SEEN-092](SEEN-092-sync-the-harness-skill-to-claude-code-and-codex.md) | Sync the harness skill to Claude Code and Codex and retire the Seene leftovers | E10 | 2 | Claude Code | SEEN-086, SEEN-087, SEEN-088, SEEN-089, SEEN-090, SEEN-091 |
-| [SEEN-007](SEEN-007-provision-gcp-europe-west4-and-supabase-eu-with.md) | Provision GCP europe-west4 and Supabase EU with telemetry | E0 | 5 | Claude Code | SEEN-006, SEEN-092 |
-| [SEEN-008](SEEN-008-create-trade-record-schema-v1-with-tenant-id.md) | Create trade-record schema v1 with tenant_id and RLS on every table | E0 | 5 | Claude Code | SEEN-006, SEEN-007, SEEN-092 |
+| [SEEN-094](SEEN-094-verify-delivery-against-ci-and-the-merge.md) | Verify delivery against CI and verify the merge against the receipt | E10 | 2 | Claude Code | SEEN-086, SEEN-093 |
+| [SEEN-095](SEEN-095-check-ticket-status-against-its-own-journal.md) | Check a ticket's status against its own journal | E10 | 1 | Claude Code | SEEN-086, SEEN-094 |
+| [SEEN-008](SEEN-008-create-trade-record-schema-v1-with-tenant-id.md) | Create trade-record schema v1 with tenant_id and RLS on every table | E0 | 5 | Claude Code | SEEN-006, SEEN-092, SEEN-094 |
 | [SEEN-009](SEEN-009-define-connector-interface-capability-matrix.md) | Define connector interface, capability matrix and credential access | E1 | 5 | Claude Code | SEEN-006, SEEN-008 |
 | [SEEN-010](SEEN-010-add-per-marketplace-rate-limiting-with-header.md) | Add per-marketplace rate limiting with header-driven backoff | E1 | 3 | Claude Code | SEEN-009 |
 | [SEEN-011](SEEN-011-build-bol-retailer-api-v10-connector-for-orders.md) | Build Bol Retailer API v10 connector for orders to commissions | E1 | 5 | Claude Code | SEEN-003, SEEN-009, SEEN-010 |
@@ -55,7 +56,7 @@ Conventions: branch `claude/<id>-<slug>` (or `codex/`), commit messages `feat(<i
 
 ## Sprint 2: Claims rail, evidence, approval inbox, policy gate v1, audit log, credit matching
 
-26 Oct - 6 Nov 2026, gate G2, 12 tickets, 39 build points.
+26 Oct - 6 Nov 2026, gate G2, 13 tickets, 44 build points.
 
 | Ticket | Title | Epic | Pts | Executor | Depends on |
 |---|---|---|---|---|---|
@@ -71,6 +72,7 @@ Conventions: branch `claude/<id>-<slug>` (or `codex/`), commit messages `feat(<i
 | [SEEN-035](SEEN-035-build-the-approval-inbox-with-approve-edit-and.md) | Build the approval inbox with approve, edit and reject | E4 | 5 | Claude Code | SEEN-033, SEEN-034 |
 | [SEEN-036](SEEN-036-create-the-eval-set-of-30-real-findings-with.md) | Create the eval set of 30 real findings with expected drafts | E4 | 3 | Claude Code | SEEN-034 |
 | [SEEN-037](SEEN-037-file-the-first-ten-claims-across-two.md) | File the first ten claims across two marketplaces from the inbox | E3 | 2 | human | SEEN-028, SEEN-029, SEEN-030, SEEN-035 |
+| [SEEN-007](SEEN-007-go-live-on-google-cloud-after-the-go-no-go.md) | Go live on Google Cloud after the go/no-go decision | E0 | 5 | Claude Code | SEEN-097, SEEN-014 |
 
 ## Sprint 3: Reconcile module, Stripe billing, statements, Shopify
 
@@ -159,7 +161,7 @@ Conventions: branch `claude/<id>-<slug>` (or `codex/`), commit messages `feat(<i
 
 | Epic | Name | Goal | Tickets |
 |---|---|---|---|
-| E0 | Foundations and registrations | Stand up the monorepo, the EU infrastructure and the trade-record schema, and file every day-0 registration so nothing waits on a marketplace later. | SEEN-001, SEEN-002, SEEN-003, SEEN-004, SEEN-005, SEEN-006, SEEN-007, SEEN-008 |
+| E0 | Foundations and registrations | Stand up the monorepo, the EU infrastructure and the trade-record schema, and file every day-0 registration so nothing waits on a marketplace later. | SEEN-001, SEEN-002, SEEN-003, SEEN-004, SEEN-005, SEEN-006, SEEN-094, SEEN-008, SEEN-007 |
 | E1 | Connectors and ingest | Ingest orders, shipments, returns, settlements and listings from Bol, Amazon, eBay, Kaufland, Otto and Shopify into one idempotent, tenant-isolated trade record. | SEEN-009, SEEN-010, SEEN-011, SEEN-012, SEEN-013, SEEN-014, SEEN-015, SEEN-038, SEEN-044, SEEN-048, SEEN-052, SEEN-053, SEEN-054, SEEN-058, SEEN-059, SEEN-060, SEEN-073 |
 | E2 | Reconciliation, findings and audit | Match every settlement line to an order line, detect fee errors, lost shipments and return shortfalls with tested code, and deliver the audit PDF with a measured recoverable pool. | SEEN-016, SEEN-017, SEEN-018, SEEN-019, SEEN-020, SEEN-021, SEEN-022, SEEN-023, SEEN-025 |
 | E3 | Claims rail and evidence | File claims by API where a marketplace allows it and as one-click case packs where it does not, track each to a credit in an ingested settlement line, and keep hashed evidence. | SEEN-026, SEEN-027, SEEN-028, SEEN-029, SEEN-030, SEEN-031, SEEN-037, SEEN-066 |
@@ -169,4 +171,4 @@ Conventions: branch `claude/<id>-<slug>` (or `codex/`), commit messages `feat(<i
 | E7 | Modules: Reconcile, Comply, Serve | Switch on continuous reconciliation, listing compliance fixes and buyer correspondence per tenant as scheduled tasks, tools and policy rows on the same record. | SEEN-042, SEEN-043, SEEN-045, SEEN-049, SEEN-050, SEEN-051, SEEN-055, SEEN-057, SEEN-061, SEEN-062, SEEN-063, SEEN-064 |
 | E8 | Price module | Snapshot competing offers, model net margin per marketplace and move prices inside bands through a governor, counting headroom captured from ingested orders. | SEEN-068, SEEN-069, SEEN-070, SEEN-071, SEEN-072, SEEN-074, SEEN-075, SEEN-076 |
 | E9 | Grow, retailer view, hardening and day-120 metrics | Read ad reports into margin, give retailers a scoped read-only view, pass load, security and restore drills, and produce the day-120 metrics pack. | SEEN-077, SEEN-078, SEEN-079, SEEN-080, SEEN-081, SEEN-082, SEEN-083, SEEN-084, SEEN-085 |
-| E10 | Development harness | Give every ticket one fast, evidence-recording procedure across Claude Code and Codex, with graphify for context, Jev for typed gate decisions, CI as the definition of done, security controls built into the stages, and a KPI record per ticket. | SEEN-086, SEEN-087, SEEN-088, SEEN-089, SEEN-090, SEEN-091, SEEN-092, SEEN-093 |
+| E10 | Development harness | Give every ticket one fast, evidence-recording procedure across Claude Code and Codex, with graphify for context, Jev for typed gate decisions, CI as the definition of done, security controls built into the stages, and a KPI record per ticket. | SEEN-086, SEEN-087, SEEN-093, SEEN-088, SEEN-089, SEEN-090, SEEN-091, SEEN-092 |

@@ -27,14 +27,14 @@ status: todo
 
 ## Description
 
-In packages/connectors define the Connector interface (listOrders, listShipments, listReturns, listSettlements, listSettlementLines, plus optional capabilities such as fileClaim, listMessages, updateListing and listCompetingOffers) with a typed capability matrix per marketplace that mirrors the routing table. Add a credential provider that reads each connection's secret from Secret Manager at job time and refreshes OAuth tokens (Amazon LWA refresh, eBay user token refresh, Bol client credentials) under a per-connection lock. Design decision: capabilities are data, not subclass checks, so the claims rail and the agent can ask whether a marketplace can do something at runtime.
+In packages/connectors define the Connector interface (listOrders, listShipments, listReturns, listSettlements, listSettlementLines, plus optional capabilities such as fileClaim, listMessages, updateListing and listCompetingOffers) with a typed capability matrix per marketplace that mirrors the routing table. Add a credential provider that reads each connection's secret from the secrets provider at job time (a .env.local-backed provider in development, Secret Manager after go-live, chosen by configuration) and refreshes OAuth tokens (Amazon LWA refresh, eBay user token refresh, Bol client credentials) under a per-connection lock. Design decision: capabilities are data, not subclass checks, so the claims rail and the agent can ask whether a marketplace can do something at runtime.
 
 ## Acceptance criteria
 
 - [ ] Connector interface and CapabilityMatrix type exported from packages/connectors with unit tests for the matrix lookup
 - [ ] Capability matrix for the six marketplaces matches every row of the routing table in architecture.md
 - [ ] Credential provider returns a fresh token for Amazon, eBay and Bol test connections and caches it until 60 seconds before expiry
-- [ ] No credential value appears in logs or in the database; connections store only the Secret Manager resource name
+- [ ] No credential value appears in logs or in the database; connections store only the secret reference, never the value, for both providers
 
 ## Depends on
 

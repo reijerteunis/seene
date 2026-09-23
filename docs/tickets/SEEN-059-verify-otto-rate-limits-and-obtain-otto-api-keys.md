@@ -31,7 +31,7 @@ Obtain Otto Market API credentials from a pilot, record the rate limits per endp
 
 ## Acceptance criteria
 
-- [ ] Otto credentials stored in Secret Manager for one pilot connection
+- [ ] Otto credentials stored in the secrets provider (.env.local in development, Secret Manager after go-live) for one pilot connection
 - [ ] Rate limits and token lifetime recorded in packages/connectors/otto/README.md
 - [ ] A test call to orders and receipts returns HTTP 200
 
