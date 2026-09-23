@@ -1,0 +1,87 @@
+{
+  "sequence": 4,
+  "ticket": "SEEN-092",
+  "timestamp": "2026-09-23T22:25:17.239995+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "1d9c678914fbaad5aa7b5140048d1a693fe3f7d1",
+  "prev_hash": "f17e6d0445583012ca25b0bf51ea3438ce64c8c11956d9e3bf081b1cd5d14610",
+  "data": {
+    "from_stage": "clarify",
+    "to_stage": "solution",
+    "evidence": {
+      "scope": "Write the one skill file both assistants read, generate their copies from it, make doctor refuse when a copy drifts, bring the workflow document and CLAUDE.md up to date with the harness as it was actually built, and leave this ticket's own journal as the worked example a new session can follow.",
+      "acceptance": [
+        "harness sync generates .claude/skills/seen-harness/SKILL.md and .agents/skills/seen-harness/SKILL.md from docs/harness/skill.md, and doctor fails when either is edited by hand: evidenced by tests and by doctor on this tree",
+        "The skill is where each assistant looks: .claude/skills/seen-harness/SKILL.md in the project for Claude Code, .agents/skills/seen-harness/SKILL.md in the project as the versioned copy, and ~/.codex/skills/seen-harness/SKILL.md when that directory exists, which is where Codex actually reads one: evidenced by the sync output and by the paths the two installed skills use",
+        "No Seene leftover remains: already true, because the project was removed in SEEN-086's first commit and the history was rebuilt from a fresh root, and the ticket records that rather than claiming work",
+        "CLAUDE.md links the workflow and lists the harness commands as they now are: evidenced by the file, which currently names sync, a command that does not exist, and omits coverage, lint, discard, reopen and verify-merge",
+        "This ticket's own journal is the reference example, with its kpi.json committed and the skill pointing a new session at it: evidenced by the journal itself",
+        "docs/harness/workflow.md describes the harness as built rather than as designed: the command table gains coverage, lint, discard, reopen, verify-merge and report and loses nothing that does not exist, the stage descriptions match the gates that were actually written, and the conventions the tickets established are in it. Evidenced by the document beside the commands the harness registers"
+      ],
+      "decisions": [
+        "The dry run is this ticket rather than an invented trivial one: a toy ticket leaves a journal about nothing and a fake entry in the backlog for ever. Eight tickets have already run the five stages for real, and this one is labelled as the example. Founder's convention, applied 24 September 2026",
+        "The generated copies carry a header saying they are generated and naming their source, so someone editing one sees why doctor will refuse it",
+        "sync writes the copies and doctor only reports drift: a self-check that repairs what it finds hides the drift a reviewer needs to see, which is the same stance doctor takes everywhere else",
+        "The skill is short and points at the workflow document for detail, because a skill a session must read before every ticket competes for the same context the ticket needs",
+        "A skill is a Markdown file with name and description in YAML frontmatter, because that is what both assistants read to decide whether it applies. Established from the two skills installed on this machine, recorded at record 3",
+        "Codex reads ~/.codex/skills/<name>/SKILL.md, outside any repository, so sync writes there too when the directory exists. doctor checks the drift of the committed copies only: a machine's own installation is that machine's business, and failing a self-check on someone else's laptop would be noise",
+        "The skill contains the five stages and the command for each, the three rules a session cannot infer (evidence is a file in .harness-drafts, the Outcome is written before review, one ticket one branch), and a pointer to this ticket's journal as the worked example. Everything else stays in the workflow document, because a skill read before every ticket competes for the context the ticket needs",
+        "The workflow document is corrected rather than left as the design it was on 23 September: ten tickets changed the harness, and a document describing a harness nobody built is worse than no document. The specific drifts are the command table, the delivered stage, reopen and the merge check, the coverage gate, the conventions about the Outcome and the drafts directory, and the calibration of solution_complete"
+      ],
+      "open_questions": [],
+      "changes_agent_action": false,
+      "graph_impact": [
+        "doctor gains one more check, beside the hook and the links",
+        "cli gains sync, the last command the workflow document names"
+      ]
+    },
+    "decisions": [
+      {
+        "question": "clarified",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.83,
+          "no": 0.17
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.8,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "question": "risk",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "low",
+        "probabilities": {
+          "low": 0.55,
+          "medium": 0.45,
+          "high": 0.0
+        },
+        "confidence": 0.32,
+        "score": 0.45,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

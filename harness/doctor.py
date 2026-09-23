@@ -11,7 +11,7 @@ import os
 import re
 import sys
 
-from . import journal, secrets
+from . import journal, secrets, skills
 from .errors import HarnessError
 from .paths import (DRAFTS, HISTORY, LOCK, NON_CODE_TEMPLATE, TEMPLATES, TEMPLATE_FOR_STAGE,
                     THRESHOLDS)
@@ -70,6 +70,11 @@ def rewritten_record_problems(repository):
     """
     return [f'{name} was committed as a modification or a deletion; a journal is append-only'
             for name in repository.rewritten_history_records()]
+
+
+def skill_problems(repository):
+    """The skill copies both assistants read, against the one file that makes them."""
+    return skills.drift(repository.root)
 
 
 def hook_problems(repository):
@@ -141,6 +146,7 @@ def report(repository, rules):
         'append_only': rewritten_record_problems(repository),
         'gitignore': gitignore_problems(repository),
         'hooks': hook_problems(repository),
+        'skill': skill_problems(repository),
         'marketplace_hosts': [f'{entry["path"]}:{entry["line"]} names {entry["host"]}'
                               for entry in secrets.marketplace_hosts(repository.root)],
         'links': link_problems(repository),

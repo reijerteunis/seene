@@ -136,6 +136,7 @@ def build_parser():
     report.add_argument('--sprint', type=int, help='Planned against delivered for one sprint')
     report.add_argument('--date', help='The date whose week to report, YYYY-MM-DD')
 
+    commands.add_parser('sync', help='Generate the skill copies from docs/harness/skill.md')
     commands.add_parser('lint', help='Refuse live marketplace hosts in test code')
     commands.add_parser('doctor', help='Check the harness files, the journals and the links')
     commands.add_parser('list', help='List every ticket with a journal and where it stands')
@@ -684,6 +685,9 @@ def execute(args):
         require(result['ok'],
                 'The harness self-check found problems:\n  ' + '\n  '.join(result['problems']))
         return result
+    if args.command == 'sync':
+        from . import skills
+        return skills.sync(repository.root)
     if args.command == 'report':
         return write_report(repository, args)
     if args.command == 'lint':

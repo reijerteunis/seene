@@ -1,0 +1,27 @@
+{
+  "sequence": 10,
+  "ticket": "SEEN-092",
+  "timestamp": "2026-09-23T22:35:19.055875+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "0c3d0dec696b35f6e5235576442bef35eb5ebccb",
+  "prev_hash": "25ab5edfa4b8ee882aa0c40be405e5a054549b5b94dd0b06d16fd7876298fc49",
+  "data": {
+    "command": [
+      "sh",
+      "-c",
+      "python3 -m unittest discover -s harness/tests && python3 harness/run.py lint && python3 harness/run.py doctor && pnpm turbo run lint typecheck test build --output-logs=errors-only"
+    ],
+    "phase": "regression",
+    "exit_code": 0,
+    "duration_ms": 69654,
+    "output": "..........................................................................................................................................................................................................................................................\n----------------------------------------------------------------------\nRan 250 tests in 68.157s\n\nOK\n{\n  \"ok\": true,\n  \"checked\": \"test code\",\n  \"hosts\": [\n    \"api.bol.com\",\n    \"sellingpartnerapi\",\n    \"api.ebay.com\",\n    \"sellerapi.kaufland.com\",\n    \"api.otto.market\"\n  ]\n}\n{\n  \"ok\": true,\n  \"checked\": [\n    \"python\",\n    \"thresholds\",\n    \"templates\",\n    \"journals\",\n    \"append_only\",\n    \"gitignore\",\n    \"hooks\",\n    \"skill\",\n    \"marketplace_hosts\",\n    \"links\"\n  ],\n  \"problems\": []\n}\n• turbo 2.11.3\n\n   • Packages in scope: @seen/agent, @seen/api, @seen/connectors, @seen/core, @seen/web, @seen/worker\n   • Running lint, typecheck, test, build in 6 packages\n   • Remote caching disabled\n\n\n Tasks:    21 successful, 21 total\nCached:    21 cached, 21 total\n  Time:    24ms >>> FULL TURBO\n\n",
+    "output_sha256": "db90b14b82d4d2e963ac63abe7b992410e5e1f5f253376c11e4493ab07261133",
+    "output_truncated": false,
+    "before": "452c30e457ad16caab490871db41549e8f79494a4ff8189cf1ff0d55adcf1795",
+    "after": "452c30e457ad16caab490871db41549e8f79494a4ff8189cf1ff0d55adcf1795"
+  }
+}

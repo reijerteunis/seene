@@ -1,0 +1,28 @@
+{
+  "sequence": 6,
+  "ticket": "SEEN-092",
+  "timestamp": "2026-09-23T22:25:52.243190+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "1d9c678914fbaad5aa7b5140048d1a693fe3f7d1",
+  "prev_hash": "84c7d05e1934d1e65f08060085af92f942ae0e4fea10c23414c4e1851aca45fb",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_skill"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "duration_ms": 40,
+    "output": "E\n======================================================================\nERROR: test_skill (unittest.loader._FailedTest.test_skill)\n----------------------------------------------------------------------\nImportError: Failed to import test module: test_skill\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/.local/share/mise/installs/python/3.14.5/lib/python3.14/unittest/loader.py\", line 137, in loadTestsFromName\n    module = __import__(module_name)\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_skill.py\", line 3, in <module>\n    from harness import skills\nImportError: cannot import name 'skills' from 'harness' (/Users/ruudvanengelenhoven/Development/seene/harness/__init__.py)\n\n\n----------------------------------------------------------------------\nRan 1 test in 0.000s\n\nFAILED (errors=1)\n",
+    "output_sha256": "f56d6c869e6303a5807bc3ddf3167f29d20c0a48b8f810846ad6771c38fb7973",
+    "output_truncated": false,
+    "before": "f4d95f37fef3cc4112e54da4db333f21b454444e2829af389110cdd4f8920732",
+    "after": "f4d95f37fef3cc4112e54da4db333f21b454444e2829af389110cdd4f8920732"
+  }
+}

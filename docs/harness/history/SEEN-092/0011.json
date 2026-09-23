@@ -1,0 +1,30 @@
+{
+  "sequence": 11,
+  "ticket": "SEEN-092",
+  "timestamp": "2026-09-23T22:35:19.133945+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "0c3d0dec696b35f6e5235576442bef35eb5ebccb",
+  "prev_hash": "9f47e5ad263d830c5f56d8ac1cfc51d20f532efbc1249578d76c864c9eab3110",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "behaviour": "One maintained skill file generates both committed copies with the frontmatter each assistant reads and a line naming its source, doctor reports drift without repairing it, and the copy Codex actually reads outside the repository is written when its directory already exists and never created",
+          "failure_reason": "ModuleNotFoundError: no module named harness.skills, and every test in the file errored",
+          "red": 6,
+          "green": 7
+        }
+      ],
+      "regression": 10,
+      "coverage_delta": null
+    },
+    "decisions": []
+  }
+}

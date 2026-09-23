@@ -1,0 +1,64 @@
+{
+  "sequence": 14,
+  "ticket": "SEEN-092",
+  "timestamp": "2026-09-23T22:40:37.408652+00:00",
+  "harness_version": "1",
+  "kind": "receipt",
+  "stage": "deliver",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "efc6813ec6ce1aad62b79579acaae235551ef300",
+  "prev_hash": "e3e559f8fa2225e2b1952eb606e498f7d0a95793a1157c6e47e8aef5977a2e9c",
+  "data": {
+    "from_stage": "deliver",
+    "to_stage": "delivered",
+    "commit": "efc6813ec6ce1aad62b79579acaae235551ef300",
+    "branch": "claude/SEEN-092-sync-the-harness-skill",
+    "remote": "origin",
+    "tree": "05c856189059da182c133af26c30c1d1ec6ffd9f26a9a863ba1e03d3c5dc10c5",
+    "pull_request": "https://github.com/reijerteunis/seene/pull/10",
+    "limits": [
+      "The copy Codex reads lives outside the repository, so doctor cannot see it drift; sync rewrites it whenever it runs",
+      "Two criteria were already satisfied before this ticket started, and say so rather than claiming work",
+      "The dry run is this ticket rather than a separate trivial one",
+      "Reviewed by the session that wrote it: self-review, not independent, as every ticket in this epic has been"
+    ],
+    "evidence": {
+      "remote": "origin",
+      "pull_request": "https://github.com/reijerteunis/seene/pull/10",
+      "limits": [
+        "The copy Codex reads lives outside the repository, so doctor cannot see it drift; sync rewrites it whenever it runs",
+        "Two criteria were already satisfied before this ticket started, and say so rather than claiming work",
+        "The dry run is this ticket rather than a separate trivial one",
+        "Reviewed by the session that wrote it: self-review, not independent, as every ticket in this epic has been"
+      ]
+    },
+    "checks": [
+      {
+        "name": "Harness tests (Python 3.12)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Knowledge graph",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Monorepo (Node 24)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Secrets and supply chain",
+        "conclusion": "success",
+        "runs": 1
+      }
+    ],
+    "coverage": {
+      "package": "@seen/core",
+      "lines": 100.0,
+      "delta": 0.0
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "sequence": 2,
+  "ticket": "SEEN-092",
+  "timestamp": "2026-09-23T22:24:09.987830+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "1d9c678914fbaad5aa7b5140048d1a693fe3f7d1",
+  "prev_hash": "cbe23e1f007e60942042de67663f43b302fdcc77067574220872a7fdf90abe5f",
+  "data": {
+    "text": "# What this ticket asks for, and what is already true\n\nThree of the five criteria are partly or wholly satisfied already, and saying so is cheaper than\nrediscovering it halfway through.\n\n**Already true.** No file under `.claude/skills/seene-harness`, `.agents/skills/seene-harness` or\n`.harness-drafts/SEENE-*` exists: the Seene project was removed in SEEN-086's first commit and the\nrepository's history was rebuilt from a fresh root, so those paths have never existed here. The\ncriterion is met and the ticket records why rather than pretending work was done.\n\n`.claude/settings.json` already carries the command allowlist, added by SEEN-090.\n\n`CLAUDE.md` already links `docs/harness/workflow.md` and lists the harness commands, though the list\nis out of date: it names `doctor | start | status | history | draft | note | check | advance | graph |\ndecide | return | verify-delivery | report | sync`, and the harness has since gained `coverage`,\n`lint`, `discard`, `reopen` and `verify-merge`, while `sync` does not exist yet.\n\n**Not true yet.** `docs/harness/skill.md` does not exist, so there is nothing to sync and no `sync`\ncommand. And no ticket has run through all five stages as a deliberate reference example: eight have\nrun through them for real, which is better evidence, but none is labelled as the example a new session\nshould read.\n\n**The dry run needs a subject.** A trivial ticket that exists only to be worked would leave a journal\nabout nothing. SEEN-092 itself is the better candidate: it goes through all five stages, it delivers,\nand its journal is the reference. The criterion is amended to say that, because inventing SEEN-093 as\na toy would put a fake ticket in the backlog for ever.\n"
+  }
+}
