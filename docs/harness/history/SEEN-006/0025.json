@@ -1,0 +1,28 @@
+{
+  "sequence": 25,
+  "ticket": "SEEN-006",
+  "timestamp": "2026-09-23T19:22:56.144012+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "head": "a61151dc29039a1553e4d51b109309726c7f8e3a",
+  "prev_hash": "d7228f3d3ac4bb1dbb5711cc61b199fa6ade1192a1787df78cfdd76a11fc0ce0",
+  "data": {
+    "command": [
+      "pnpm",
+      "--filter",
+      "@seen/worker",
+      "test"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "duration_ms": 597,
+    "output": "\n> @seen/worker@0.0.0 test /Users/ruudvanengelenhoven/Development/seene/apps/worker\n> vitest run\n\n\n RUN  v3.2.7 /Users/ruudvanengelenhoven/Development/seene/apps/worker\n\n ❯ src/hello.test.ts (2 tests | 2 failed) 8ms\n   × the hello job > is ready before anything is enqueued, so no completion can be missed 1ms\n     → worker.ready is not a function\n   × the hello job > is processed by the worker and returns what it greeted 0ms\n     → worker.ready is not a function\n\n⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯\n\n FAIL  src/hello.test.ts > the hello job > is ready before anything is enqueued, so no completion can be missed\nTypeError: worker.ready is not a function\n ❯ src/hello.test.ts:17:18\n     15| \n     16|   it('is ready before anything is enqueued, so no completion can be mi…\n     17|     await worker.ready();\n       |                  ^\n     18| \n     19|     expect(worker.isRunning()).toBe(true);\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯\n\n FAIL  src/hello.test.ts > the hello job > is processed by the worker and returns what it greeted\nTypeError: worker.ready is not a function\n ❯ src/hello.test.ts:23:18\n     21| \n     22|   it('is processed by the worker and returns what it greeted', async (…\n     23|     await worker.ready();\n       |                  ^\n     24| \n     25|     const job = await queue.add('hello', { name: 'Seen' });\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯\n\n\n Test Files  1 failed (1)\n      Tests  2 failed (2)\n   Start at  21:22:55\n   Duration  189ms (transform 14ms, setup 0ms, collect 52ms, tests 8ms, environment 0ms, prepare 29ms)\n\n/Users/ruudvanengelenhoven/Development/seene/apps/worker:\n ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @seen/worker@0.0.0 test: `vitest run`\nExit status 1\n",
+    "output_sha256": "fdf32be1bb3079def4e3ef30a2f35835ac4f0098a6c826e2d33ac2fa52e7f9da",
+    "output_truncated": false,
+    "before": "326a125a9d027aad52007a3c5f6061dd552f64fb8eccc5deaf0d28feaadb709e",
+    "after": "326a125a9d027aad52007a3c5f6061dd552f64fb8eccc5deaf0d28feaadb709e"
+  }
+}

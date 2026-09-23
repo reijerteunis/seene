@@ -1,0 +1,17 @@
+{
+  "sequence": 1,
+  "ticket": "SEEN-006",
+  "timestamp": "2026-09-23T19:07:47.301078+00:00",
+  "harness_version": "1",
+  "kind": "start",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "5983797f6c4ffd592df8777100308090b249cb9b",
+  "prev_hash": null,
+  "data": {
+    "ticket_file": "docs/tickets/SEEN-006-scaffold-the-pnpm-turborepo-monorepo-with-all.md",
+    "ticket_snapshot": "---\nid: SEEN-006\ntitle: \"Scaffold the pnpm turborepo monorepo with all six packages\"\nepic: E0\nepic_name: \"Foundations and registrations\"\nsprint: 0\nsprint_dates: \"24 Sep - 9 Oct 2026\"\ngate: G0\nestimate: 3\nexecutor: claude-code\nchanges_agent_action: false\nmarketplaces: []\ndepends_on: []\nstatus: doing\n---\n# SEEN-006: Scaffold the pnpm turborepo monorepo with all six packages\n\n| | |\n|---|---|\n| Epic | E0 Foundations and registrations |\n| Sprint | 0 (24 Sep - 9 Oct 2026), gate G0 |\n| Estimate | 3 points (one point is about two hours with Claude Code) |\n| Executor | Claude Code |\n| Changes an agent action | no |\n| Marketplaces | none |\n| Status | doing |\n\n## Description\n\nCreate the monorepo with pnpm workspaces and turborepo: apps/api (NestJS), apps/worker (NestJS with BullMQ), apps/web (Next.js App Router), packages/core, packages/connectors and packages/agent, with shared TypeScript config, ESLint, Vitest and a GitHub Actions pipeline that lints, tests and builds every package. Design decision: packages are plain TypeScript compiled by the consuming app with no publish step, so one change to the trade-record schema propagates in one commit.\n\n## Acceptance criteria\n\n- [ ] pnpm install and pnpm turbo build succeed from a clean clone in under 5 minutes\n- [ ] pnpm turbo test runs a passing placeholder test in each of the six packages\n- [ ] apps/api answers GET /health with HTTP 200 and apps/worker processes a hello job from a local Redis\n- [ ] GitHub Actions runs lint, test and build on every pull request and blocks merge on failure\n\n## Carried in from SEEN-087\n\nSEEN-087 graphed this repository before the monorepo existed, so two of its acceptance criteria were\nre-pointed at `harness/` and the stage gate. Re-verify both here once the packages exist: a commit\nchanging `packages/core` must update `graphify-out/graph.json` in the same commit, and a graph query\nfor a symbol in `packages/core` must return its callers.\n\n## Depends on\n\n- none\n\n## Blocks\n\n- [SEEN-089](SEEN-089-enforce-tdd-and-ci-quality-gates-in-the-harness.md): Enforce TDD and CI quality gates in the harness\n- [SEEN-007](SEEN-007-provision-gcp-europe-west4-and-supabase-eu-with.md): Provision GCP europe-west4 and Supabase EU with telemetry\n- [SEEN-008](SEEN-008-create-trade-record-schema-v1-with-tenant-id.md): Create trade-record schema v1 with tenant_id and RLS on every table\n- [SEEN-009](SEEN-009-define-connector-interface-capability-matrix.md): Define connector interface, capability matrix and credential access\n\n## Context\n\n- Product requirements: [docs/prd/prd.md](../prd/prd.md)\n- Architecture: [docs/architecture.md](../architecture.md)\n- Development plan and gates: [docs/development-plan.md](../development-plan.md)\n- Epic goal: Stand up the monorepo, the EU infrastructure and the trade-record schema, and file every day-0 registration so nothing waits on a marketplace later.\n",
+    "base_commit": "5983797f6c4ffd592df8777100308090b249cb9b"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "name": "@seen/worker",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Scheduled ingest, reconciliation and agent runs on BullMQ.",
+  "main": "./dist/apps/worker/src/main.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/apps/worker/src/main.js",
+    "test": "vitest run",
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@seen/core": "workspace:*",
+    "bullmq": "^5.0.0",
+    "ioredis": "^5.4.0"
+  }
+}

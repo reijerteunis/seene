@@ -1,0 +1,15 @@
+{
+  "sequence": 4,
+  "ticket": "SEEN-006",
+  "timestamp": "2026-09-23T19:11:31.724843+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "solution",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "5983797f6c4ffd592df8777100308090b249cb9b",
+  "prev_hash": "ec254cbad8477723ca7a20b11d61f9a8eaef9dd416eaaacab85d0570cca22bcd",
+  "data": {
+    "text": "# What the solution record left open, decided\n\nJev answered `solution_complete` no at 0.46. Re-reading the record, it named the packages and the\ntests but not the mechanism that makes the whole thing work, which is exactly the part a later\nsession cannot guess.\n\n**How an app consumes a package that has no build step.** Each library package declares\n`\"main\": \"./src/index.ts\"` and `\"types\": \"./src/index.ts\"` and is depended on as\n`\"@seen/core\": \"workspace:*\"`. `tsconfig.base.json` maps `@seen/*` to `packages/*/src`. apps/api and\napps/worker compile with `tsc` over a project whose `rootDir` is the repository root, so the packages'\nsources are compiled into the app's own `dist` and there is nothing to publish. apps/web sets\n`transpilePackages` so Next.js compiles the same sources itself. One change to the trade record then\nlands in one commit, which is the decision the ticket makes.\n\n**What each turbo task does.** `build` depends on `^build` and outputs `dist` and `.next`; `test`,\n`lint` and `typecheck` have no dependencies and no outputs, so they parallelise freely. The library\npackages have no `build` script at all, which is the point.\n\n**How tests run.** Vitest per package, node environment everywhere, no jsdom: the web test covers a\npure metadata module rather than a rendered component, as decided at clarify.\n\n**Versions.** `packageManager` pins pnpm 10.31.0, `.nvmrc` pins Node 24.15.0, and `engines` requires\nNode 24 or later. Dependency versions are whatever resolves at install time and are frozen in the\nlockfile, which CI installs with `--frozen-lockfile`.\n\n**How the api test binds.** The health test uses the Nest testing module and supertest against the\napp instance rather than a listening port, so nothing races for a port in CI.\n"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "sequence": 24,
+  "ticket": "SEEN-006",
+  "timestamp": "2026-09-23T19:22:55.438482+00:00",
+  "harness_version": "1",
+  "kind": "return",
+  "stage": "deliver",
+  "attempt": 1,
+  "actor": "claude:reviewer",
+  "head": "a61151dc29039a1553e4d51b109309726c7f8e3a",
+  "prev_hash": "33f40a2c349bea00dbf643ddc992d909ef5d793a92437f2f694c8918d8caf1ce",
+  "data": {
+    "from_stage": "deliver",
+    "to_stage": "tdd",
+    "to_attempt": 2,
+    "reason": "The worker test is racy: waitUntilFinished can miss the completion event when the events connection subscribes after the job has already finished. It passed locally and timed out in CI on the same commit, which is the definition of a flaky test."
+  }
+}

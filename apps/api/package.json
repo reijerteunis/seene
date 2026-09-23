@@ -1,0 +1,27 @@
+{
+  "name": "@seen/api",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The HTTP surface: connections, findings, claims and the approval inbox.",
+  "main": "./dist/apps/api/src/main.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/apps/api/src/main.js",
+    "test": "vitest run",
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/core": "^11.0.0",
+    "@nestjs/platform-express": "^11.0.0",
+    "@seen/core": "workspace:*",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1"
+  },
+  "devDependencies": {
+    "@nestjs/testing": "^11.0.0",
+    "@types/supertest": "^6.0.2",
+    "supertest": "^7.0.0"
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "sequence": 31,
+  "ticket": "SEEN-006",
+  "timestamp": "2026-09-23T19:26:34.041151+00:00",
+  "harness_version": "1",
+  "kind": "receipt",
+  "stage": "deliver",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "head": "0fb2c6bba2a440ca868476b8ea5556307c8b3650",
+  "prev_hash": "6d6e21726e77b958eb420c427fa6da054781409c68b3cebf59cde660e7d3c846",
+  "data": {
+    "from_stage": "deliver",
+    "to_stage": "delivered",
+    "commit": "0fb2c6bba2a440ca868476b8ea5556307c8b3650",
+    "branch": "claude/SEEN-006-scaffold-the-pnpm-turborepo-monorepo",
+    "remote": "origin",
+    "tree": "56794f54ab1203c6ff664e0318a1e0f190e1e297b16b67bb111335ce69a0c766",
+    "pull_request": "https://github.com/reijerteunis/seene/pull/5",
+    "limits": [
+      "Branch protection is not configured: the criterion was amended at clarify and SEEN-090 settles the plan",
+      "The three library packages carry placeholder tests; their behaviour belongs to the tickets that own it",
+      "apps/web is tested over a pure module, not a rendered component: rendering tests arrive with the first real screen",
+      "No database, no migrations and no Secret Manager: those are SEEN-007 and SEEN-008",
+      "Reviewed by the session that wrote it: self-review, not independent",
+      "Two harness changes were made inside this product ticket, recorded in the journal and the Outcome"
+    ],
+    "evidence": {
+      "remote": "origin",
+      "pull_request": "https://github.com/reijerteunis/seene/pull/5",
+      "limits": [
+        "Branch protection is not configured: the criterion was amended at clarify and SEEN-090 settles the plan",
+        "The three library packages carry placeholder tests; their behaviour belongs to the tickets that own it",
+        "apps/web is tested over a pure module, not a rendered component: rendering tests arrive with the first real screen",
+        "No database, no migrations and no Secret Manager: those are SEEN-007 and SEEN-008",
+        "Reviewed by the session that wrote it: self-review, not independent",
+        "Two harness changes were made inside this product ticket, recorded in the journal and the Outcome"
+      ]
+    }
+  }
+}

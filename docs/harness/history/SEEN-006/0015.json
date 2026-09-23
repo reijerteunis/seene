@@ -1,0 +1,28 @@
+{
+  "sequence": 15,
+  "ticket": "SEEN-006",
+  "timestamp": "2026-09-23T19:17:07.431693+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "5983797f6c4ffd592df8777100308090b249cb9b",
+  "prev_hash": "df7fb5c0489db48936c9ee945fef782b62c22b00c76100418f12e2981f08d282",
+  "data": {
+    "command": [
+      "pnpm",
+      "--filter",
+      "@seen/worker",
+      "test"
+    ],
+    "phase": "green",
+    "exit_code": 0,
+    "duration_ms": 562,
+    "output": "\n> @seen/worker@0.0.0 test /Users/ruudvanengelenhoven/Development/seene/apps/worker\n> vitest run\n\n\n RUN  v3.2.7 /Users/ruudvanengelenhoven/Development/seene/apps/worker\n\n ✓ src/hello.test.ts (1 test) 15ms\n\n Test Files  1 passed (1)\n      Tests  1 passed (1)\n   Start at  21:17:07\n   Duration  207ms (transform 14ms, setup 0ms, collect 53ms, tests 15ms, environment 0ms, prepare 28ms)\n\n",
+    "output_sha256": "8b4947b585d35cf62c78603b1284350134de888e76d041a3be3324b738d9452e",
+    "output_truncated": false,
+    "before": "560ce9668fc5c2b5b78f89742e1b8269d0fcc6cee87991641ad7a0be6d1bc2e7",
+    "after": "560ce9668fc5c2b5b78f89742e1b8269d0fcc6cee87991641ad7a0be6d1bc2e7"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "sequence": 7,
+  "ticket": "SEEN-006",
+  "timestamp": "2026-09-23T19:15:05.966729+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "solution",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "5983797f6c4ffd592df8777100308090b249cb9b",
+  "prev_hash": "3d4dd6a5af8e0f36ef3f5ccc38e9891501023faace2651fd7f6603845a5c34d8",
+  "data": {
+    "text": "# The documented override did not exist, and now does\n\nAsked to settle the solution gate with a recorded human answer, the command did the opposite:\n`harness decide --question solution_complete --answer yes --confidence 0.9 --actor human:implementer`\nput the question to Jev anyway and recorded `source: jev`, at record 6. With a credential present\nevery question went to the API and `--answer` was ignored, so the override the harness documents\ncould not be exercised at all. Record 6 is that bug in the journal.\n\nFixed here, with a test first: a question a human has already answered is not put to the model, the\nremaining questions in the same stage still are, and a transport failure now names itself in the\nrefusal so nobody has to guess whether the model disagreed or the network did.\n\nThis is the second harness change made inside SEEN-006, after the solution_complete criteria. Both\nare recorded rather than folded quietly into a later harness ticket. The tests run, but they cannot\nbe recorded as checks: this ticket is at the solution stage, and checks belong to tdd and review.\nThe evidence is `OverrideTest` in harness/tests/test_decisions.py and the full suite passing.\n"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "@seen/agent",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The agent runtime and its fixed tool set, behind the policy gate.",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "test": "vitest run",
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  }
+}

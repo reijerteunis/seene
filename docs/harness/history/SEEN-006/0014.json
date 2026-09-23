@@ -1,0 +1,28 @@
+{
+  "sequence": 14,
+  "ticket": "SEEN-006",
+  "timestamp": "2026-09-23T19:16:55.549507+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "5983797f6c4ffd592df8777100308090b249cb9b",
+  "prev_hash": "23328b7c51dd49eebdf2d855ec2bbccc77be5fec1899a548005736b5d94c1b08",
+  "data": {
+    "command": [
+      "pnpm",
+      "--filter",
+      "@seen/worker",
+      "test"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "duration_ms": 668,
+    "output": "\n> @seen/worker@0.0.0 test /Users/ruudvanengelenhoven/Development/seene/apps/worker\n> vitest run\n\n\n RUN  v3.2.7 /Users/ruudvanengelenhoven/Development/seene/apps/worker\n\n\n⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯\n\n FAIL  src/hello.test.ts [ src/hello.test.ts ]\nError: Cannot find module './hello' imported from '/Users/ruudvanengelenhoven/Development/seene/apps/worker/src/hello.test.ts'\n ❯ src/hello.test.ts:4:1\n      2| import { afterAll, describe, expect, it } from 'vitest';\n      3| \n      4| import { connection, HELLO_QUEUE, startHelloWorker } from './hello';\n       | ^\n      5| \n      6| describe('the hello job', () => {\n\nCaused by: Error: Failed to load url ./hello (resolved id: ./hello) in /Users/ruudvanengelenhoven/Development/seene/apps/worker/src/hello.test.ts. Does the file exist?\n ❯ loadAndTransform ../../node_modules/.pnpm/vite@7.3.6_@types+node@24.13.6/node_modules/vite/dist/node/chunks/config.js:22739:33\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯\n\n\n Test Files  1 failed (1)\n      Tests  no tests\n   Start at  21:16:55\n   Duration  251ms (transform 13ms, setup 0ms, collect 0ms, tests 0ms, environment 0ms, prepare 27ms)\n\n/Users/ruudvanengelenhoven/Development/seene/apps/worker:\n ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @seen/worker@0.0.0 test: `vitest run`\nExit status 1\n",
+    "output_sha256": "f61400cdab4a0a6bd7144db21e7663f750e9d272be1f667ebe7eddd73824d922",
+    "output_truncated": false,
+    "before": "7b8dfb2204872abbfa0d20dc05b5e0ca061374dc5ec710f83b225aa56689d033",
+    "after": "7b8dfb2204872abbfa0d20dc05b5e0ca061374dc5ec710f83b225aa56689d033"
+  }
+}

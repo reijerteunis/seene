@@ -1,0 +1,15 @@
+{
+  "sequence": 5,
+  "ticket": "SEEN-006",
+  "timestamp": "2026-09-23T19:12:46.179887+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "solution",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "5983797f6c4ffd592df8777100308090b249cb9b",
+  "prev_hash": "1a7ad3964d7f4955c2a6e63b074abddb35d0fe92decd8309893cba38df331eff",
+  "data": {
+    "text": "# The solution_complete question was miscalibrated, and is changed here\n\nThree attempts scored 0.46, then 0.52, against a threshold of 0.8, and the record was getting longer\nwithout getting better. The question asked whether the record \"names everything the change needs\",\nwhich on a thirty-file scaffold is a bar nobody clears: a careful reader can always find something\nunnamed.\n\nDecision by the founder, 23 September 2026: sharpen the question rather than lower the threshold or\noverride the answer. It now asks whether a competent implementer could build the change from the\nrecord without stopping to ask something the record should have answered, with criteria that\nexplicitly leave implementation detail to the implementer.\n\nThis is a harness change made inside a product ticket, which is scope this ticket does not own. It is\nhere because it blocks the ticket, it is one definition in harness/jev.py, and hiding it in a later\nharness ticket would be worse than recording it plainly. The threshold is untouched, which matters:\na threshold edited while blocked by that threshold is the pattern thresholds.toml exists to expose.\n"
+  }
+}

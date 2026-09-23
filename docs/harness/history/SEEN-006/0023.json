@@ -1,0 +1,123 @@
+{
+  "sequence": 23,
+  "ticket": "SEEN-006",
+  "timestamp": "2026-09-23T19:20:26.427682+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "review",
+  "attempt": 1,
+  "actor": "claude:reviewer",
+  "head": "f395f041bb721692ca1b7dc70b9ca5d86e5f3922",
+  "prev_hash": "7e5e42545b375c720dd52db12d6926263e76fe48847c895b3fe98144c9fa1aab",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "deliver",
+    "evidence": {
+      "reviewer": "claude:reviewer",
+      "independence": "self-review",
+      "acceptance_evidence": [
+        "AC1, a clean clone installs and builds in under five minutes: measured at 9 seconds from a fresh git clone with a frozen lockfile, and CI repeats it from a clean checkout every run",
+        "AC2, pnpm turbo test runs a passing test in each of the six packages: record 20 shows 21 tasks successful across lint, typecheck, test and build for all six",
+        "AC3, apps/api answers GET /health with 200 and apps/worker processes a hello job from Redis: records 13 and 15, both against real instances rather than mocks",
+        "AC4 as amended, CI runs lint, typecheck, test and build on every pull request: the node job with its Redis service, green on this ticket's pull request",
+        "Carried in from SEEN-087: a commit changing packages/core rebuilt the graph, and the query for sumCents() returned its importer at record 19"
+      ],
+      "findings": [
+        {
+          "id": "R-01",
+          "severity": "medium",
+          "file": "harness/jev.py",
+          "line": 60,
+          "claim": "The solution_complete question asked whether a record names everything the change needs, a bar no large scaffold clears",
+          "failure_scenario": "Every large ticket stalls at the solution gate while its record grows to please a model rather than a reader, and the obvious escape is to lower the threshold, which is the one thing thresholds.toml exists to make visible",
+          "status": "resolved",
+          "resolution": "The question now asks whether a competent implementer could build the change without stopping to ask something the record should have answered. Scores moved from 0.46 to 0.72 on the same record. Recorded in the note at record 5"
+        },
+        {
+          "id": "R-02",
+          "severity": "high",
+          "file": "harness/jev.py",
+          "line": 210,
+          "claim": "The documented human override did not exist: with a credential present, harness decide --answer still asked the model",
+          "failure_scenario": "A human disagreeing with a gate decision cannot record their judgement at all; the only ways past are to lower a threshold or to keep rewriting the record, and the harness quietly becomes a machine that cannot be overruled",
+          "status": "resolved",
+          "resolution": "A question a human has answered is no longer put to the model, while the other questions in the same stage still are. Test first: OverrideTest. Record 6 is the bug and record 8 is the override working"
+        },
+        {
+          "id": "R-03",
+          "severity": "low",
+          "claim": "Two harness changes were made inside a product ticket, which is scope this ticket does not own",
+          "failure_scenario": "Harness changes accumulate inside product tickets where nobody reviewing the harness will look for them",
+          "status": "resolved",
+          "resolution": "Both are recorded as notes in this journal, named in the Outcome and called out in the commits. They were blocking this ticket, and deferring them would have meant either overriding a gate or padding a record"
+        },
+        {
+          "id": "R-04",
+          "severity": "low",
+          "claim": "The api and worker compile every workspace package source into their own dist, so the same source is compiled more than once",
+          "failure_scenario": "Build times grow as the packages grow, and two apps can ship different compilations of the same source if their tsconfigs drift",
+          "status": "resolved",
+          "resolution": "Accepted deliberately: it is what the ticket's no-publish-step decision costs, both apps extend the same base config, and turbo caches the result. Named in the solution record's risks"
+        }
+      ],
+      "checks": [
+        22
+      ],
+      "security_checklist": [
+        "No secret in the diff: no credential, no token and no environment value in any file",
+        "New dependencies are named in the solution record and frozen in the lockfile, which CI installs with --frozen-lockfile",
+        "No live marketplace call in any test: the only network a test touches is a local Redis",
+        "No PII and no database: the trade-record schema is SEEN-008",
+        "No tool and no agent action: this ticket adds no policy-gate surface"
+      ],
+      "verdict": "pass",
+      "tree": "d8c90840e6121c80606e5c6797eb01b3ddde621d0547145c92511ebc4f53bd94"
+    },
+    "decisions": [
+      {
+        "question": "severity",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high",
+          "blocking"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "medium",
+        "probabilities": {
+          "low": 0.05,
+          "medium": 0.44,
+          "high": 0.37,
+          "blocking": 0.14
+        },
+        "confidence": 0.29,
+        "score": 1.6,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      },
+      {
+        "question": "must_fix",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.24,
+          "no": 0.76
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.7,
+        "passed": false,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

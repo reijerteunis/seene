@@ -1,0 +1,28 @@
+{
+  "sequence": 13,
+  "ticket": "SEEN-006",
+  "timestamp": "2026-09-23T19:16:34.481416+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "5983797f6c4ffd592df8777100308090b249cb9b",
+  "prev_hash": "f9eb9b26f2a9b876e1ac066e2cac5bc6f3219e18a54eb8a728741cc41629fb9e",
+  "data": {
+    "command": [
+      "pnpm",
+      "--filter",
+      "@seen/api",
+      "test"
+    ],
+    "phase": "green",
+    "exit_code": 0,
+    "duration_ms": 622,
+    "output": "\n> @seen/api@0.0.0 test /Users/ruudvanengelenhoven/Development/seene/apps/api\n> vitest run\n\n\n RUN  v3.2.7 /Users/ruudvanengelenhoven/Development/seene/apps/api\n\n ✓ src/health.test.ts (2 tests) 50ms\n\n Test Files  1 passed (1)\n      Tests  2 passed (2)\n   Start at  21:16:34\n   Duration  288ms (transform 17ms, setup 0ms, collect 104ms, tests 50ms, environment 0ms, prepare 27ms)\n\n",
+    "output_sha256": "1bd4c7cea8bd18bd7a771f2d7f5e19ca4766be00522b1b4cb3cff98333ccfc6f",
+    "output_truncated": false,
+    "before": "3dda94c876a2aadaf2b6cfd0869e42f97e824349da390b2bcafc516f0048a6f5",
+    "after": "3dda94c876a2aadaf2b6cfd0869e42f97e824349da390b2bcafc516f0048a6f5"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "sequence": 17,
+  "ticket": "SEEN-006",
+  "timestamp": "2026-09-23T19:17:37.751133+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "5983797f6c4ffd592df8777100308090b249cb9b",
+  "prev_hash": "0604e9f62d4585e773cb5f323679b448fb038666b56d900ae2974124d36c0582",
+  "data": {
+    "command": [
+      "pnpm",
+      "--filter",
+      "@seen/web",
+      "test"
+    ],
+    "phase": "green",
+    "exit_code": 0,
+    "duration_ms": 498,
+    "output": "\n> @seen/web@0.0.0 test /Users/ruudvanengelenhoven/Development/seene/apps/web\n> vitest run\n\n\n RUN  v3.2.7 /Users/ruudvanengelenhoven/Development/seene/apps/web\n\n ✓ src/site.test.ts (2 tests) 1ms\n\n Test Files  1 passed (1)\n      Tests  2 passed (2)\n   Start at  21:17:37\n   Duration  145ms (transform 13ms, setup 0ms, collect 11ms, tests 1ms, environment 0ms, prepare 28ms)\n\n",
+    "output_sha256": "d320bf563f60db75d38536133f68fb6c364735a5ad1cb92eefae3917e3199fb6",
+    "output_truncated": false,
+    "before": "ed0acfb4c63bf8d00fdba96ba2a64331192a36bd9e9d71fb117700b429465eb5",
+    "after": "ed0acfb4c63bf8d00fdba96ba2a64331192a36bd9e9d71fb117700b429465eb5"
+  }
+}

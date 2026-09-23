@@ -39,9 +39,16 @@ QUESTIONS = {
                   "seller's marketplace account"]),
     'solution_complete': dict(
         type='noul', options=NOUL, stage='solution',
-        ask='Does this solution record name everything the change needs?',
-        criteria={'true': 'Files, tests to write first, rollback and risks are all named concretely',
-                  'false': 'Something the implementer will need is missing or left vague'}),
+        # "Names everything" invites perfectionism: on a thirty-file change a
+        # reader can always find something unnamed. The bar that can actually be
+        # judged is whether someone could build it without stopping to ask.
+        ask='Could a competent implementer build this change from this record without stopping to '
+            'ask a question the record should have answered?',
+        criteria={'true': 'The approach, the files, the tests to write first, the rollback and the '
+                          'risks are concrete enough to act on, and implementation detail is left '
+                          'to the implementer',
+                  'false': 'They would have to stop and ask something material: an unnamed '
+                           'mechanism, an undecided interface, or a dependency nobody has chosen'}),
     'touches_billing_or_policy_gate': dict(
         type='noul', options=NOUL, stage='solution',
         ask='Does this change touch billing or the policy gate?',
@@ -190,8 +197,10 @@ def unavailable(name, question, reason):
 
 
 def _answer_from_human(question, name, answer, confidence, reason):
-    require(answer, f'This decision needs a human: pass --answer '
-                    f'({" or ".join(question["options"])}) and --confidence to record one')
+    require(answer,
+            (f'The model could not answer ({reason}). ' if reason else '')
+            + f'This decision needs a human: pass --answer '
+              f'({" or ".join(question["options"])}) and --confidence to record one')
     require(answer in question['options'],
             f'{answer!r} is not one of {", ".join(question["options"])}')
     probabilities = {option: (float(confidence) if option == answer else 0.0)
@@ -210,11 +219,16 @@ def ask_many(root, rules, names, state, answers=None, confidence=1.0):
     for name in names:
         require(name in QUESTIONS,
                 f'Unknown question: {name!r}; the harness asks {", ".join(sorted(QUESTIONS))}')
+    # A question a human has already answered is not put to the model: the
+    # override the harness documents would not otherwise exist, because a
+    # credential being present would send every question to the API.
+    given = {name: value for name, value in (answers or {}).items() if value}
+    outstanding = [name for name in names if name not in given]
     credential_value = credential(root)
     read, reason = {}, None
-    if credential_value:
+    if credential_value and outstanding:
         try:
-            read = _ask_api(rules, names, state, credential_value)
+            read = _ask_api(rules, outstanding, state, credential_value)
         except HarnessError:
             raise
         except Exception as error:                      # noqa: BLE001 - any transport failure

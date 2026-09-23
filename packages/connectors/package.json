@@ -1,0 +1,13 @@
+{
+  "name": "@seen/connectors",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Marketplace connectors behind one interface, each declaring what its API can do.",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "test": "vitest run",
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  }
+}
