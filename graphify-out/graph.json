@@ -10609,7 +10609,7 @@
       "node_kind": "heading",
       "norm_label": "blocks",
       "source_file": "docs/tickets/SEEN-006-scaffold-the-pnpm-turborepo-monorepo-with-all.md",
-      "source_location": "L82"
+      "source_location": "L88"
     },
     {
       "id": "docs_tickets_seen_006_scaffold_the_pnpm_turborepo_monorepo_with_all_carried_in_from_seen_087",
@@ -10633,7 +10633,7 @@
       "node_kind": "heading",
       "norm_label": "context",
       "source_file": "docs/tickets/SEEN-006-scaffold-the-pnpm-turborepo-monorepo-with-all.md",
-      "source_location": "L89"
+      "source_location": "L95"
     },
     {
       "id": "docs_tickets_seen_006_scaffold_the_pnpm_turborepo_monorepo_with_all_depends_on",
@@ -10645,7 +10645,7 @@
       "node_kind": "heading",
       "norm_label": "depends on",
       "source_file": "docs/tickets/SEEN-006-scaffold-the-pnpm-turborepo-monorepo-with-all.md",
-      "source_location": "L78"
+      "source_location": "L84"
     },
     {
       "id": "docs_tickets_seen_006_scaffold_the_pnpm_turborepo_monorepo_with_all_description",
@@ -30313,7 +30313,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/tickets/SEEN-006-scaffold-the-pnpm-turborepo-monorepo-with-all.md",
-      "source_location": "L78",
+      "source_location": "L84",
       "weight": 1.0
     },
     {
@@ -30324,7 +30324,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/tickets/SEEN-006-scaffold-the-pnpm-turborepo-monorepo-with-all.md",
-      "source_location": "L82",
+      "source_location": "L88",
       "weight": 1.0
     },
     {
@@ -30335,7 +30335,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/tickets/SEEN-006-scaffold-the-pnpm-turborepo-monorepo-with-all.md",
-      "source_location": "L89",
+      "source_location": "L95",
       "weight": 1.0
     },
     {
@@ -44712,7 +44712,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/tickets/SEEN-006-scaffold-the-pnpm-turborepo-monorepo-with-all.md",
-      "source_location": "L84",
+      "source_location": "L90",
       "weight": 1.0
     },
     {
@@ -44723,7 +44723,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/tickets/SEEN-006-scaffold-the-pnpm-turborepo-monorepo-with-all.md",
-      "source_location": "L85",
+      "source_location": "L91",
       "weight": 1.0
     },
     {
@@ -44734,7 +44734,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/tickets/SEEN-006-scaffold-the-pnpm-turborepo-monorepo-with-all.md",
-      "source_location": "L86",
+      "source_location": "L92",
       "weight": 1.0
     },
     {
@@ -44745,7 +44745,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/tickets/SEEN-006-scaffold-the-pnpm-turborepo-monorepo-with-all.md",
-      "source_location": "L87",
+      "source_location": "L93",
       "weight": 1.0
     },
     {
@@ -44756,7 +44756,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/tickets/SEEN-006-scaffold-the-pnpm-turborepo-monorepo-with-all.md",
-      "source_location": "L91",
+      "source_location": "L97",
       "weight": 1.0
     },
     {
@@ -44767,7 +44767,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/tickets/SEEN-006-scaffold-the-pnpm-turborepo-monorepo-with-all.md",
-      "source_location": "L92",
+      "source_location": "L98",
       "weight": 1.0
     },
     {
@@ -44778,7 +44778,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/tickets/SEEN-006-scaffold-the-pnpm-turborepo-monorepo-with-all.md",
-      "source_location": "L93",
+      "source_location": "L99",
       "weight": 1.0
     },
     {
@@ -50414,5 +50414,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "036e88c0de1878d212aacad0ffe0330f09f57b2e"
+  "built_at_commit": "637b20707754c641aa4d6ed8b909750027cdc714"
 }

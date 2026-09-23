@@ -1,7 +1,7 @@
 # Graph Report - seene  (2026-09-23)
 
 ## Corpus Check
-- 273 files · ~93,869 words
+- 274 files · ~94,059 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 4 file(s) not represented in the graph (top: (none) 3, .toml 1)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `036e88c0`
+- Built from commit: `637b2070`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -172,14 +172,14 @@
 10. `Seen: product requirements (MVP)` - 18 edges
 
 ## Surprising Connections (you probably didn't know these)
+- `Agent runtime and the policy gate` --references--> `read_evidence()`  [INFERRED]
+  docs/architecture.md → harness/cli.py
 - `Development harness` --references--> `advance()`  [INFERRED]
   CONTEXT.md → harness/cli.py
 - `Working a ticket` --references--> `main()`  [INFERRED]
   CLAUDE.md → harness/cli.py
 - `Security controls` --references--> `main()`  [INFERRED]
   docs/harness/workflow.md → harness/cli.py
-- `Agent runtime and the policy gate` --references--> `read_evidence()`  [INFERRED]
-  docs/architecture.md → harness/cli.py
 - `Consequences` --references--> `advance()`  [INFERRED]
   docs/adr/0002-the-receipt-attests-the-tree-minus-the-journal.md → harness/cli.py
 
@@ -733,7 +733,7 @@ Cohesion: 0.27
 Nodes (8): connection, HELLO_QUEUE, HelloPayload, HelloResult, HelloWorker, startHelloWorker(), worker, bullmq
 
 ## Knowledge Gaps
-- **706 isolated node(s):** `HelloPayload`, `HelloResult`, `HelloWorker`, `Acceptance criteria`, `Blocks` (+701 more)
+- **706 isolated node(s):** `Description`, `Acceptance criteria`, `Carried in from SEEN-087`, `Outcome`, `Depends on` (+701 more)
   These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 850 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
 - **8 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -741,16 +741,16 @@ Nodes (8): connection, HELLO_QUEUE, HelloPayload, HelloResult, HelloWorker, star
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `HarnessError` connect `HarnessError` to `require`, `.evaluate`, `Repository`, `RecordTest`, `cli.py`, `DeliveryTest`, `GraphTest`, `doctor.py`, `advance`, `jev.py`, `stub`, `journal.py`, `.start`?**
-  _High betweenness centrality (0.193) - this node is a cross-community bridge._
+  _High betweenness centrality (0.195) - this node is a cross-community bridge._
 - **Why does `Seen: MVP architecture` connect `Seen: MVP architecture` to `CLAUDE.md`?**
-  _High betweenness centrality (0.125) - this node is a cross-community bridge._
+  _High betweenness centrality (0.148) - this node is a cross-community bridge._
 - **Why does `read_evidence()` connect `require` to `cli.py`, `HarnessError`, `advance`, `Seen: MVP architecture`?**
-  _High betweenness centrality (0.124) - this node is a cross-community bridge._
+  _High betweenness centrality (0.141) - this node is a cross-community bridge._
 - **Are the 27 inferred relationships involving `HarnessError` (e.g. with `list_tickets()` and `main()`) actually correct?**
   _`HarnessError` has 27 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 6 inferred relationships involving `Repository` (e.g. with `HarnessError` and `DeliveryTest`) actually correct?**
   _`Repository` has 6 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 6 inferred relationships involving `execute()` (e.g. with `advance()` and `check()`) actually correct?**
   _`execute()` has 6 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `HelloPayload`, `HelloResult`, `HelloWorker` to the rest of the system?**
+- **What connects `Description`, `Acceptance criteria`, `Carried in from SEEN-087` to the rest of the system?**
   _706 weakly-connected nodes found - possible documentation gaps or missing edges._
