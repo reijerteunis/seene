@@ -1,0 +1,122 @@
+{
+  "sequence": 24,
+  "ticket": "SEEN-089",
+  "timestamp": "2026-09-23T19:54:36.824030+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "review",
+  "attempt": 1,
+  "actor": "claude:reviewer",
+  "head": "a2e8dda3978f53c44a34ad6017ce91b6c869c521",
+  "prev_hash": "54f01be3d8f51134e571af36ef71a44ba5ec8e52632a21f088fa0e258ccbd4c4",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "deliver",
+    "evidence": {
+      "reviewer": "claude:reviewer",
+      "independence": "self-review",
+      "acceptance_evidence": [
+        "AC1, a red that exits 0 is refused and still recorded: RedRuleTest covers the refusal and that the record is appended anyway",
+        "AC2, a timeout and a command that could not start are refused as RED evidence: two tests, one per exit code",
+        "AC3, a slice citing a red that passed is refused: CitedRedTest builds such a record directly and the gate rejects it",
+        "AC4, advance is refused without a coverage measurement and with a negative delta, and a first measurement passes with a null delta: four tests in CoverageTest, and record 17 is the real measurement on this tree at 100% of lines",
+        "AC5, a blocking decision that did not clear says so: RefusalMessageTest asserts both directions, since must_fix refuses when it clears",
+        "AC6, return appends a rework record: covered by the SEEN-086 lifecycle tests and exercised for real on this ticket at records 24 of SEEN-006 and 15 of SEEN-088"
+      ],
+      "findings": [
+        {
+          "id": "R-01",
+          "severity": "high",
+          "file": "harness/paths.py",
+          "line": 48,
+          "claim": "Writing the coverage baseline at delivery changed the tree the receipt had just attested",
+          "failure_scenario": "Every delivery from here on writes docs/harness/coverage.json after taking the fingerprint, so the receipt attests a tree that no longer exists by the time the command returns, and the next verify-delivery on the same branch refuses. It is the circularity ADR 0002 exists to resolve, reintroduced by a file nobody thought of as evidence",
+          "status": "resolved",
+          "resolution": "The baseline is bookkeeping and now sits outside the fingerprint beside the journal, the drafts and the graph, with a test asserting it. Caught by the regression check in this ticket's own tdd stage, which then refused the advance"
+        },
+        {
+          "id": "R-02",
+          "severity": "medium",
+          "claim": "Enforcing the RED rule invalidated fixtures written before it existed",
+          "failure_scenario": "Three older gate tests built synthetic red records with exit 0, so they would have passed a rule they were meant to exercise and hidden a regression in it",
+          "status": "resolved",
+          "resolution": "The fixture now fails a red by default. Correcting fixtures rather than the rule was the right way round: the tests encoded an assumption that a phase label alone made a red"
+        },
+        {
+          "id": "R-03",
+          "severity": "medium",
+          "claim": "The coverage gate applies to packages/core only, while five packages carry placeholder tests",
+          "failure_scenario": "A later ticket adds real code to packages/connectors or packages/agent with no tests, and nothing notices, because the floor covers one package",
+          "status": "resolved",
+          "resolution": "Deliberate and recorded in the solution: a floor under placeholder tests measures nothing while looking like a control. The gated set is one line in harness/coverage.py and should grow as each package gains real behaviour, which is a note for the tickets that add it"
+        },
+        {
+          "id": "R-04",
+          "severity": "low",
+          "claim": "The coverage baseline file can be edited to make a fall look like a rise",
+          "failure_scenario": "A session under time pressure edits docs/harness/coverage.json downward and the gate passes on a genuine regression",
+          "status": "resolved",
+          "resolution": "Accepted and named in the solution's risks: it is one small committed file, moved only by a delivery, and read in the same diff a reviewer sees. The harness makes it visible rather than impossible, which is the same stance it takes on waivers and overrides"
+        }
+      ],
+      "checks": [
+        23
+      ],
+      "security_checklist": [
+        "No secret in the diff",
+        "One new dependency, @vitest/coverage-v8, pinned to match the vitest already in the lockfile after the first install pulled a mismatched major",
+        "No live marketplace call in any test",
+        "No PII and no database",
+        "No agent action and no policy-gate surface"
+      ],
+      "verdict": "pass",
+      "tree": "ce09c4e9fb5da021bf685c7c09144b737678bb68e1ff1ca7f82cc984951b3914"
+    },
+    "decisions": [
+      {
+        "question": "severity",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high",
+          "blocking"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "blocking",
+        "probabilities": {
+          "low": 0.01,
+          "medium": 0.03,
+          "high": 0.08,
+          "blocking": 0.88
+        },
+        "confidence": 0.84,
+        "score": 2.84,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      },
+      {
+        "question": "must_fix",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.37,
+          "no": 0.63
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.7,
+        "passed": false,
+        "fallback_reason": null
+      }
+    ]
+  }
+}
