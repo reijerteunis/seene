@@ -48,11 +48,13 @@ jobs:
       - name: Extract the graph
         run: graphify extract . --code-only
 
+      # graphify writes node-link JSON, so the edges are under "links".
       - name: The graph must parse
         run: |
           python3 -c "import json; g = json.load(open('graphify-out/graph.json')); \
-            print(f\"{len(g['nodes'])} nodes, {len(g['edges'])} edges\"); \
-            assert g['nodes'] and g['edges'], 'the graph is empty'"
+            links = g.get('links', g.get('edges', [])); \
+            print(f\"{len(g['nodes'])} nodes, {len(links)} edges\"); \
+            assert g['nodes'] and links, 'the graph is empty'"
 
       - uses: actions/upload-artifact@v4
         with:
