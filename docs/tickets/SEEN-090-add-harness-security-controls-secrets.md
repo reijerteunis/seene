@@ -89,6 +89,11 @@ ordinary words: CI has `GITHUB_EVENT_NAME=pull_request`, and a delivery record l
 those words, so four delivery tests failed there and passed here. A variable now counts by name or by
 shape, and review returned the ticket for it.
 
+**And this delivery found a defect in the delivery check itself.** A commit can carry several runs of
+the same check, and `verify-delivery` judged all of them, so one superseded failure refused a delivery
+GitHub itself showed as green. Each check name is now judged on its latest run. Review returned the
+ticket a second time for it.
+
 **And I destroyed my own work.** Removing a test commit with `git reset --hard HEAD~1` also discarded
 every uncommitted edit to tracked files, while the new untracked files survived, so the commit that
 followed carried the tests and not the code they test. CI caught it. `git reset --soft` would have
