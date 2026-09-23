@@ -1,0 +1,66 @@
+{
+  "sequence": 18,
+  "ticket": "SEEN-095",
+  "timestamp": "2026-09-23T23:13:05.831502+00:00",
+  "harness_version": "1",
+  "kind": "receipt",
+  "stage": "deliver",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "head": "58d6896809bcbcf5e2aa16f180177083f1269081",
+  "prev_hash": "eac779b1faa08f98c9d3d3aa468588659018bb30729de8bebea02f97ada55397",
+  "data": {
+    "from_stage": "deliver",
+    "to_stage": "delivered",
+    "commit": "58d6896809bcbcf5e2aa16f180177083f1269081",
+    "branch": "claude/SEEN-095-check-ticket-status",
+    "remote": "origin",
+    "tree": "cfe7a8362e5e3131c0f907bf58139f3c31fab5ed550a0c53a4b700f4635d02a7",
+    "pull_request": "https://github.com/reijerteunis/seene/pull/11",
+    "limits": [
+      "The check reads four facts and makes no judgement: it cannot tell a ticket that is genuinely parked from one abandoned",
+      "It reports and repairs nothing, so a wrong status stays wrong until someone fixes it",
+      "Attempt 2 carries a plan reconciliation that is not this ticket's subject, done here because it landed in the tree mid-flight",
+      "Record 12 is a contrived check, disowned in the note at record 14",
+      "Reviewed by the session that wrote it: self-review, not independent"
+    ],
+    "evidence": {
+      "remote": "origin",
+      "pull_request": "https://github.com/reijerteunis/seene/pull/11",
+      "limits": [
+        "The check reads four facts and makes no judgement: it cannot tell a ticket that is genuinely parked from one abandoned",
+        "It reports and repairs nothing, so a wrong status stays wrong until someone fixes it",
+        "Attempt 2 carries a plan reconciliation that is not this ticket's subject, done here because it landed in the tree mid-flight",
+        "Record 12 is a contrived check, disowned in the note at record 14",
+        "Reviewed by the session that wrote it: self-review, not independent"
+      ]
+    },
+    "checks": [
+      {
+        "name": "Harness tests (Python 3.12)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Knowledge graph",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Monorepo (Node 24)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Secrets and supply chain",
+        "conclusion": "success",
+        "runs": 1
+      }
+    ],
+    "coverage": {
+      "package": "@seen/core",
+      "lines": 100.0,
+      "delta": 0.0
+    }
+  }
+}
