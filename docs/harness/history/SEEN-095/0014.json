@@ -1,0 +1,15 @@
+{
+  "sequence": 14,
+  "ticket": "SEEN-095",
+  "timestamp": "2026-09-23T23:09:11.553468+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "head": "a261add24f253bc3e80494cb3600cff1cdb08853",
+  "prev_hash": "a7d1da80cd4fc1e17d404d79b438deed739b299dd00094a9ad047c0649b073e5",
+  "data": {
+    "text": "# Record 12 is junk, and attempt 2 is documentation\n\nRecord 12 is a contrived command I ran out of habit while setting up attempt 2. It proves nothing, it\nis cited by nothing, and it stays where it is. This is the second time in this repository: record 8 of\nSEEN-088 is the other. Both are disowned rather than removed, because a journal that can be tidied is\nnot a journal, and two of them in eleven tickets is worth knowing about.\n\nAttempt 2 changes documentation only. The reconciliation renumbered the revision's two tickets to\nSEEN-096 and SEEN-097, restored three sentences and the command list to CLAUDE.md, and put back eight\nstatuses the revision had reset. No code changed: the check this ticket adds was written, tested and\ngreen in attempt 1, at records 4 and 5, and the regression at record 13 covers everything again.\n\nSo the tdd record takes the non-code path, with change_type policy: the harness's own conventions and\nthe backlog's numbering are what moved.\n\nThe reconciliation is also this ticket's best evidence. SEEN-095 was opened because two statuses went\nstale unnoticed; its check then found eight more that a plan revision had reset, each named with the\nreceipt commit proving it merged. It has now caught ten in an afternoon.\n"
+  }
+}
