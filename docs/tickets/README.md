@@ -6,7 +6,7 @@ Conventions: branch `claude/<id>-<slug>` (or `codex/`), commit messages `feat(<i
 
 ## Sprint 0: Harness first, then foundations, three read connectors, ingest, day-0 registrations
 
-24 Sep - 9 Oct 2026, sprint gate G0, 23 tickets, 73 build points.
+24 Sep - 9 Oct 2026, sprint gate G0, 23 tickets, 72 build points.
 
 | Ticket | Title | Epic | Pts | Executor | Depends on |
 |---|---|---|---|---|---|
@@ -20,7 +20,7 @@ Conventions: branch `claude/<id>-<slug>` (or `codex/`), commit messages `feat(<i
 | [SEEN-087](SEEN-087-install-graphify-build-the-repo-graph-and-wire.md) | Install graphify, build the repo graph and wire it into both assistants | E10 | 3 | Claude Code | SEEN-086 |
 | [SEEN-088](SEEN-088-integrate-jev-ai-typed-decisions-into-the.md) | Integrate Jev AI typed decisions into the harness gates | E10 | 3 | Claude Code | SEEN-086 |
 | [SEEN-089](SEEN-089-enforce-tdd-and-ci-quality-gates-in-the-harness.md) | Enforce the TDD gates in the harness | E10 | 3 | Claude Code | SEEN-006, SEEN-086 |
-| [SEEN-094](SEEN-094-verify-delivery-against-ci-and-the-merge.md) | Verify delivery against CI and verify the merge against the receipt | E10 | 3 | Claude Code | SEEN-086, SEEN-093 |
+| [SEEN-094](SEEN-094-verify-delivery-against-ci-and-the-merge.md) | Verify delivery against CI and verify the merge against the receipt | E10 | 2 | Claude Code | SEEN-086, SEEN-093 |
 | [SEEN-090](SEEN-090-add-harness-security-controls-secrets.md) | Add harness security controls: secrets, permissions, injection, supply chain | E10 | 3 | Claude Code | SEEN-086, SEEN-088 |
 | [SEEN-091](SEEN-091-collect-harness-kpis-per-ticket-and-produce.md) | Collect harness KPIs per ticket and produce weekly and sprint reports | E10 | 3 | Claude Code | SEEN-086, SEEN-089 |
 | [SEEN-093](SEEN-093-add-harness-reopen-to-void-a-receipt-before.md) | Add harness reopen to void a receipt before merge | E10 | 2 | Claude Code | SEEN-086 |

@@ -7,11 +7,27 @@ from harness.tests import helpers
 from harness.tests.test_lifecycle import CommandTest, clarify_evidence, solution_evidence
 
 
-class DeliveryTest(CommandTest):
+class DeliveryWalk(CommandTest):
+    """The walk to a delivered ticket, without the tests.
+
+    Separated so other files can reuse the walk without inheriting, and running,
+    every delivery test with it.
+    """
 
     def setUp(self):
         super().setUp()
         self.remote = helpers.add_remote(self.root)
+        self._stub_github()
+
+    def _stub_github(self):
+        """No test reaches GitHub. Green by default; a test that cares says otherwise."""
+        from harness import github
+        github.CHECKS = lambda repository, commit: [
+            dict(name='Harness tests (Python 3.12)', status='completed', conclusion='success')]
+        github.PULL_REQUEST = lambda repository: dict(
+            number=1, body='receipt pending', headRefName='claude/SEEN-001-a-ticket-to-work')
+        self.addCleanup(setattr, github, 'CHECKS', None)
+        self.addCleanup(setattr, github, 'PULL_REQUEST', None)
 
     def walk_to_deliver(self):
         """Take a ticket through every stage, with real recorded checks."""
@@ -63,6 +79,9 @@ class DeliveryTest(CommandTest):
         self.write(relative, json.dumps(self.deliver_evidence(**changes)))
         return self.run_harness('verify-delivery', self.ticket_id, '--file', relative,
                                 '--actor', 'claude:implementer')
+
+
+class DeliveryTest(DeliveryWalk):
 
     def test_a_delivered_ticket_has_a_receipt_and_a_terminal_stage(self):
         self.walk_to_deliver()

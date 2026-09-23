@@ -37,6 +37,14 @@ Install gitleaks in the pre-commit hook and CI, make the harness refuse to write
 - [ ] Branch protection on main requires the CI check and a pull request, verified with the GitHub API
 - [ ] Deleting a journal directory through the harness asks Jev is_destructive, then the human, and records both before acting
 
+## Carried in from SEEN-094
+
+gitleaks and `pnpm audit --audit-level high` in CI, and the proof that a seeded secret on a throwaway
+branch fails the pipeline, belong here rather than in the delivery ticket. The seeded key is a
+documented example value in a fixture, the failing run is kept as evidence, and the branch is deleted
+afterwards; gitleaks scans the working tree rather than full history, so one old commit cannot fail
+every future run.
+
 ## Carried in from SEEN-006 and SEEN-089
 
 Branch protection is not available on this plan: the repository is private on the free tier and the

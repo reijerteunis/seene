@@ -1,0 +1,86 @@
+{
+  "sequence": 5,
+  "ticket": "SEEN-094",
+  "timestamp": "2026-09-23T20:26:20.805077+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "49d5fbbb50b9ae0d674ee4d75339bb67f7b67a21",
+  "prev_hash": "20bdc89ecb040a7760c8c842851d61bd0a03335fb02ea36610390ae58094175d",
+  "data": {
+    "from_stage": "clarify",
+    "to_stage": "solution",
+    "evidence": {
+      "scope": "Close the gap two tickets fell through, and nothing else: a delivery is refused while the checks on the commit it attests are not green, and a merge is refused unless the receipt still describes what is about to merge.",
+      "acceptance": [
+        "verify-delivery refuses when any check on the delivered commit is not green, when a check has not concluded, and when there are no checks at all: evidenced by tests against a stubbed reader and by this ticket's own delivery",
+        "verify-delivery refuses when gh is missing or unauthenticated, naming what to install or authenticate: evidenced by a test that makes the reader raise",
+        "verify-merge refuses when a commit after the receipt touches anything but the journal, naming the file: evidenced by a test that commits code after the receipt",
+        "verify-merge refuses a pull request body without the receipt hash, and passes when the receipt is the last record and the tip is green: evidenced by tests against a stubbed pull request reader",
+        "The pull request template exists for a human opening one by hand, and the substance it carries is enforced where it cannot be bypassed: verify-merge requires the receipt hash in the body whatever created the pull request. Amended because every pull request here is opened by gh pr create --body-file, which bypasses the template"
+      ],
+      "decisions": [
+        "Green means every check run on the commit has status completed and a conclusion of success or skipped; a run still going refuses the delivery rather than passing it, and zero runs refuses too, because a commit nobody built is not a commit that passed. Established from the live API at record 2",
+        "CI state is read through gh rather than a token the harness holds, so authentication stays where it already is. A missing or unauthenticated gh refuses the delivery: a delivery that cannot be verified is not a delivery verified",
+        "The receipt-versus-tip comparison is a merge-time check with its own command, because the receipt attests HEAD before the receipt record is committed, so the tip is always one commit ahead by construction and comparing them at delivery would refuse every delivery",
+        "verify-merge allows commits after the receipt only when they touch the journal, the coverage baseline or the graph: those are the three things delivery itself writes",
+        "The RED rule, the coverage gate and the refusal message were SEEN-089's and are already delivered; this ticket is only delivery and merge",
+        "A skipped check counts as green: a job skipped by a path filter has nothing to say about the commit, and treating it as a failure would block every delivery that did not touch every path",
+        "verify-merge reads the pull request with gh pr view --json number,body,headRefName for the current branch, and refuses when there is none, because there is then no merge to verify",
+        "gitleaks, pnpm audit and the seeded-secret proof move to SEEN-090, whose subject is secrets and supply chain. They were put here when SEEN-089 was split and made this ticket two things at once. Founder's split, applied 23 September 2026"
+      ],
+      "open_questions": [],
+      "changes_agent_action": false,
+      "graph_impact": [
+        "harness/delivery.py holds verify and is where both checks attach",
+        "harness/cli.py registers the commands and their arguments"
+      ]
+    },
+    "decisions": [
+      {
+        "question": "clarified",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.8,
+          "no": 0.2
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.8,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "question": "risk",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "medium",
+        "probabilities": {
+          "low": 0.31,
+          "medium": 0.68,
+          "high": 0.01
+        },
+        "confidence": 0.52,
+        "score": 0.7,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

@@ -6,7 +6,7 @@ epic_name: "Development harness"
 sprint: 0
 sprint_dates: "24 Sep - 9 Oct 2026"
 gate: G0
-estimate: 3
+estimate: 2
 executor: claude-code
 changes_agent_action: false
 marketplaces: []
@@ -19,7 +19,7 @@ status: doing
 |---|---|
 | Epic | E10 Development harness |
 | Sprint | 0 (24 Sep - 9 Oct 2026), sprint gate G0 |
-| Estimate | 3 points (one point is about two hours with Claude Code) |
+| Estimate | 2 points (one point is about two hours with Claude Code) |
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
@@ -31,23 +31,33 @@ Close the gap two tickets have already fallen through. `verify-delivery` reads t
 reports for the commit the receipt attests and refuses unless every one has concluded green, refusing
 outright when `gh` cannot answer rather than passing silently. A new command, `harness verify-merge
 <ticket>`, runs before the merge button: the last record must be a receipt, its commit must be an
-ancestor of the branch tip, every commit between the two must touch only the journal, the pull
-request body must carry the receipt hash, and the tip's checks must be green. CI gains gitleaks and
-`pnpm audit --audit-level high`, and the repository gains a pull request template that carries the
-acceptance criteria, the red and green evidence, the review findings and the receipt hash.
+ancestor of the branch tip, every commit between the two must touch only what delivery itself writes,
+the pull request body must carry the receipt hash, and the tip's checks must be green.
 
 The decision that matters: the receipt attests HEAD before the receipt record is committed, so the
 tip is always one commit ahead by construction. Comparing them at delivery would refuse every
 delivery, which is why this is a merge-time check with its own command.
 
+Green means every check run on the commit has concluded with `success` or `skipped`. A run still in
+progress refuses the delivery, and a commit with no checks at all refuses too, because a commit
+nobody built is not a commit that passed.
+
+Scope, settled on 23 September 2026: this ticket is delivery and merge verification and nothing else.
+gitleaks, `pnpm audit --audit-level high` and the seeded-secret proof belong to
+[SEEN-090](SEEN-090-add-harness-security-controls-secrets.md), whose subject is secrets and supply
+chain. The repository gains a pull request template here, but the template itself is only applied by
+GitHub when a pull request is opened in the browser, and every pull request in this project is opened
+by `gh pr create --body-file`, which bypasses it. So the template is for a human opening one by hand,
+and `verify-merge` enforces the substance that matters, the receipt hash, whatever created the pull
+request.
+
 ## Acceptance criteria
 
-- [ ] verify-delivery refuses when any check on the delivered commit is not green, and when a check has not concluded
+- [ ] verify-delivery refuses when any check on the delivered commit is not green, when one has not concluded, and when there are none at all
 - [ ] verify-delivery refuses when gh is missing or unauthenticated, naming what to install or authenticate, rather than passing
-- [ ] verify-merge refuses when a commit after the receipt touches anything but the journal, naming the file
+- [ ] verify-merge refuses when a commit after the receipt touches anything but the journal, the coverage baseline and the graph, naming the file
 - [ ] verify-merge refuses a pull request body without the receipt hash, and passes when the receipt is the last record and the tip is green
-- [ ] ci.yml runs gitleaks and pnpm audit at high, and a seeded secret on a throwaway branch fails the pipeline
-- [ ] The pull request template is applied automatically to a new pull request
+- [ ] The pull request template exists and carries the acceptance criteria, the red and green evidence, the review findings and the receipt hash
 
 ## Depends on
 

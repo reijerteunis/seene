@@ -1,0 +1,30 @@
+{
+  "sequence": 11,
+  "ticket": "SEEN-094",
+  "timestamp": "2026-09-23T20:32:14.179668+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "49d5fbbb50b9ae0d674ee4d75339bb67f7b67a21",
+  "prev_hash": "676cf560daa32e334f1665df3a206c6d1e2853a1422d9789dd2396c14c869c6d",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "behaviour": "verify-delivery reads the checks GitHub reports for the commit the receipt attests and refuses unless every one concluded green, refusing a run still going, a commit with no runs, and a gh that cannot answer; and verify-merge checks that the receipt still describes what is about to merge, appending nothing so the receipt stays the last record",
+          "failure_reason": "ModuleNotFoundError: no module named harness.github, and every test in the file errored on it",
+          "red": 7,
+          "green": 8
+        }
+      ],
+      "regression": 9,
+      "coverage_delta": null
+    },
+    "decisions": []
+  }
+}

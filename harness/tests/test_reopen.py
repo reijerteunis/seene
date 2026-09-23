@@ -9,10 +9,10 @@ import json
 
 from harness.errors import HarnessError
 from harness.tests import helpers
-from harness.tests.test_delivery import DeliveryTest
+from harness.tests.test_delivery import DeliveryWalk
 
 
-class ReopenTest(DeliveryTest):
+class ReopenTest(DeliveryWalk):
 
     def deliver(self):
         self.walk_to_deliver()

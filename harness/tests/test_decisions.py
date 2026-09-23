@@ -307,3 +307,31 @@ class GateTest(QuestionTest):
         self.submit('solution', solution_evidence())
         draft = self.run_harness('draft', self.ticket_id, '--stage', 'review')
         self.assertIn('second_reviewer', json.loads((self.root / draft['draft']).read_text()))
+
+
+class StateTest(QuestionTest):
+    """What a decision is judged against.
+
+    The journal keeps the ticket as it was at start, because that is evidence.
+    The gates judge against the ticket as it stands now, because a ticket amended
+    during clarify is the ticket the work is being done to.
+    """
+
+    def test_the_state_carries_the_current_ticket_not_the_snapshot(self):
+        from harness import cli, journal
+        path = self.root / self.ticket_file
+        path.write_text(path.read_text().replace('Something observable happens',
+                                                 'The amended criterion'))
+        records = journal.read(self.root / 'docs' / 'harness' / 'history' / self.ticket_id)
+        state = cli.state_for(records, dict(stage='clarify', attempt=1), {}, self.root)
+
+        self.assertIn('The amended criterion', state['ticket_text'])
+        self.assertNotIn('Something observable happens', state['ticket_text'])
+
+    def test_it_falls_back_to_the_snapshot_when_the_ticket_is_gone(self):
+        from harness import cli, journal
+        (self.root / self.ticket_file).unlink()
+        records = journal.read(self.root / 'docs' / 'harness' / 'history' / self.ticket_id)
+        state = cli.state_for(records, dict(stage='clarify', attempt=1), {}, self.root)
+
+        self.assertIn('Something observable happens', state['ticket_text'])
