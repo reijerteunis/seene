@@ -1,0 +1,18 @@
+{
+  "sequence": 34,
+  "ticket": "SEEN-090",
+  "timestamp": "2026-09-23T21:42:33.828318+00:00",
+  "harness_version": "1",
+  "kind": "return",
+  "stage": "deliver",
+  "attempt": 3,
+  "actor": "claude:reviewer",
+  "head": "aa4bb59d3daf9c6a2bf0dcfa4592779ae85b6842",
+  "prev_hash": "77b7febf830d53ca1e034cd5e7925f5c77a25a6a7b14b15b6a9c191343bf8b06",
+  "data": {
+    "from_stage": "deliver",
+    "to_stage": "tdd",
+    "to_attempt": 4,
+    "reason": "The gitleaks action fails on pull_request events: it calls the pull request commits API and dies on the token's permissions. The scan itself never runs, so the job reports failure for a reason that has nothing to do with secrets."
+  }
+}
