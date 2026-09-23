@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-086]
-status: todo
+status: doing
 ---
 # SEEN-087: Install graphify, build the repo graph and wire it into both assistants
 
@@ -23,7 +23,7 @@ status: todo
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | todo |
+| Status | doing |
 
 ## Description
 
