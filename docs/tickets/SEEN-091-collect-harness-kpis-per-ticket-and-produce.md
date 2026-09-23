@@ -86,6 +86,11 @@ measure reads as though everything were measured.
 the graph and the coverage baseline. Counting them would let a report refuse a delivery: the same
 circularity ADR 0002 resolves, which the coverage baseline reintroduced once already.
 
+**And the merge check refused this ticket's own merge**, for regenerating the report so the week
+included the ticket that had just delivered. Reports now sit beside the journal, the coverage baseline
+and the graph as things delivery writes; anything else after a receipt is still refused. The receipt
+was voided and written again rather than the check overridden.
+
 ### What the first report says
 
 27 points delivered across eight tickets, median cycle time 18 minutes, rework 1.14 per ticket
