@@ -1,0 +1,37 @@
+{
+  "sequence": 3,
+  "ticket": "SEEN-087",
+  "timestamp": "2026-09-23T16:03:23.073725+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "acfef8a4760c3a7839393e98d0092f8ad2b1960e",
+  "prev_hash": "f461964d06721fea22c1b0d49d75ea88c604c4fb3110e34fc1567b09d3c2602d",
+  "data": {
+    "from_stage": "clarify",
+    "to_stage": "solution",
+    "evidence": {
+      "scope": "Register graphify for Claude Code and Codex, build and commit the graph of this repository, install the git hooks, run graphify extract --code-only in CI, and add harness graph as a thin wrapper that writes the answer into the journal.",
+      "acceptance": [
+        "graphify claude install and graphify install --platform codex both succeed, and a graphify query in a Claude Code session answers about this repository: evidenced by the recorded command output and the MCP server appearing in claude mcp list",
+        "graphify hook install is in place and a commit changing harness/ updates graphify-out/graph.json in the same commit: evidenced by a real commit whose diff carries both. Re-pointed from packages/core, which arrives with SEEN-006",
+        "The MCP server exposes query_graph, get_neighbors, shortest_path and get_pr_impact, and a query for the stage gate returns its callers: evidenced by the recorded tool listing and the query output. Re-pointed from the policy gate, which arrives with SEEN-033",
+        "CI runs graphify extract --code-only and fails when the graph does not parse, and GRAPH_REPORT.md is an artefact of the run: evidenced by a green run and the artefact",
+        "harness graph SEEN-087 impact writes the impact set into the journal as a note: evidenced by the record it appends"
+      ],
+      "decisions": [
+        "SEEN-087 runs before SEEN-006 rather than after it, against the tree that exists: 100 documents and the harness. AC2 and AC3 are re-pointed at harness/ and the stage gate, and SEEN-006 carries a line to re-verify both against packages/core once the monorepo exists. Founder, 23 September 2026",
+        "CI runs graphify extract --code-only: local, deterministic, no API key and no per-build token spend, which is what the ticket's own principle asks for. The semantic pass over documents runs locally when someone chooses to. Founder, 23 September 2026",
+        "graphify claude install writes its own section and PreToolUse hook into CLAUDE.md, and the prose it inserts is then edited into the file's voice: British spelling, no dashes. The wiring stays whatever the tool expects. Founder, 23 September 2026",
+        "The MCP server is the graphify-mcp executable, not python -m graphify.serve as the ticket says: a uv tool install isolates the package so the system python cannot import it. Established from uv tool list and recorded in the note at record 2",
+        "graphify 0.9.65 is already installed on this machine, so the install step of the ticket is verification rather than installation"
+      ],
+      "open_questions": [],
+      "changes_agent_action": false,
+      "graph_impact": []
+    },
+    "decisions": []
+  }
+}

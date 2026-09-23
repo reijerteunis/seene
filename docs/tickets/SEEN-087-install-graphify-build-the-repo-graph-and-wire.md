@@ -32,10 +32,19 @@ Install graphify (uv tool install graphifyy), register it for Claude Code and Co
 ## Acceptance criteria
 
 - [ ] graphify claude install and graphify install --platform codex both succeed and /graphify query works in a Claude Code session on this repository
-- [ ] graphify hook install is in place and a commit changing packages/core updates graphify-out/graph.json in the same commit
-- [ ] The MCP server exposes query_graph, get_neighbors, shortest_path and get_pr_impact to Claude Code and Codex and a query for the policy gate returns its callers
-- [ ] CI runs graphify extract and fails when the graph does not parse; GRAPH_REPORT.md is an artefact of the run
+- [ ] graphify hook install is in place and a commit changing harness/ updates graphify-out/graph.json in the same commit (re-pointed from packages/core, which arrives with SEEN-006; re-verified there)
+- [ ] The MCP server exposes query_graph, get_neighbors, shortest_path and get_pr_impact to Claude Code and Codex and a query for the stage gate returns its callers (re-pointed from the policy gate, which arrives with SEEN-033)
+- [ ] CI runs graphify extract --code-only and fails when the graph does not parse; GRAPH_REPORT.md is an artefact of the run
 - [ ] harness graph SEEN-087 impact writes the impact set into the journal as a note
+
+## Clarified
+
+Recorded in the journal on 23 September 2026, record 3. SEEN-087 runs before SEEN-006 rather than
+after it, so two acceptance criteria are re-pointed at code that exists: `harness/` in place of
+`packages/core`, and the stage gate in place of the policy gate. SEEN-006 re-verifies both. CI runs
+the deterministic code-only extraction, with no API key and no per-build token spend. The MCP server
+is the `graphify-mcp` executable rather than `python -m graphify.serve`, because a uv tool install
+isolates the package from the system python.
 
 ## Depends on
 
