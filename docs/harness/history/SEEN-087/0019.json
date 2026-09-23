@@ -1,0 +1,37 @@
+{
+  "sequence": 19,
+  "ticket": "SEEN-087",
+  "timestamp": "2026-09-23T16:11:32.125373+00:00",
+  "harness_version": "1",
+  "kind": "receipt",
+  "stage": "deliver",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "head": "0fe02dc4546ca3d62a3c450c0523d34dc63b0706",
+  "prev_hash": "5b4aabbffa34e0c393017c9bf6919411e6ceacea902be6bc3e865f1d07d0e5b5",
+  "data": {
+    "from_stage": "deliver",
+    "to_stage": "delivered",
+    "commit": "0fe02dc4546ca3d62a3c450c0523d34dc63b0706",
+    "branch": "claude/SEEN-087-install-graphify-build-the-repo-graph",
+    "remote": "origin",
+    "tree": "823d6e39f1727357e0f08667e8778e860fc868df8dee57422142f4307a1dad7d",
+    "pull_request": "https://github.com/reijerteunis/seene/pull/2",
+    "limits": [
+      "The graph covers the 36 code files only; the 103 documents need the semantic pass, which uses a model and was deliberately not run",
+      "Two acceptance criteria were re-pointed at harness/ and the stage gate, and are re-verified against packages/core in SEEN-006",
+      "Reviewed by the session that wrote it: self-review, not independent",
+      "CI green is not yet a delivery condition; SEEN-089 adds that check to verify-delivery"
+    ],
+    "evidence": {
+      "remote": "origin",
+      "pull_request": "https://github.com/reijerteunis/seene/pull/2",
+      "limits": [
+        "The graph covers the 36 code files only; the 103 documents need the semantic pass, which uses a model and was deliberately not run",
+        "Two acceptance criteria were re-pointed at harness/ and the stage gate, and are re-verified against packages/core in SEEN-006",
+        "Reviewed by the session that wrote it: self-review, not independent",
+        "CI green is not yet a delivery condition; SEEN-089 adds that check to verify-delivery"
+      ]
+    }
+  }
+}
