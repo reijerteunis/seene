@@ -1,0 +1,149 @@
+{
+  "sequence": 25,
+  "ticket": "SEEN-090",
+  "timestamp": "2026-09-23T21:33:07.914475+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "review",
+  "attempt": 2,
+  "actor": "claude:reviewer",
+  "head": "990016871ccf82735da01738818355eebb1006d7",
+  "prev_hash": "2e941fe3f0c480445173cdfc5613a0ce56589231dc2b60d8387771eef1e329a4",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "deliver",
+    "evidence": {
+      "reviewer": "claude:reviewer",
+      "independence": "self-review",
+      "acceptance_evidence": [
+        "AC1, a fake AWS key is blocked by the hook and, when forced through, fails CI: verified by hand against the hook, and by run 35922041819 which failed on a throwaway branch committed with --no-verify",
+        "AC2, no record can carry an environment value: nine tests now, including one proving the refusal never prints the secret, one proving a path-shaped variable does not refuse an ordinary record, and four covering the false positives CI found",
+        "AC3, the allowlist is in .claude/settings.json and .agents/settings.json, naming the harness commands, the test runners and git",
+        "AC4, no harness source runs a shell: a test walks harness/*.py and fails on shell=True, os.system, os.popen and the subprocess string helpers",
+        "AC5, CI runs gitleaks and pnpm audit at high, and the lint refuses the five marketplace hosts: four green jobs, and the audit caught two real high advisories on its first run",
+        "AC6, discard asks is_destructive, requires the ticket id typed out, refuses once a record is committed, and writes what it removed first: five tests",
+        "AC7, the branch-protection decision is recorded rather than left as a criterion the plan cannot meet"
+      ],
+      "findings": [
+        {
+          "id": "R-07",
+          "severity": "high",
+          "file": "harness/secrets.py",
+          "line": 20,
+          "claim": "The environment rule judged a credential by length alone, so it refused ordinary words",
+          "failure_scenario": "CI has GITHUB_EVENT_NAME=pull_request, twelve characters, and a delivery record legitimately contains those words. Four delivery tests failed in CI and passed locally, and in daily use the rule would have refused records for naming a branch or an event type. A control that refuses ordinary language is a control people turn off, and then the real one is gone too",
+          "status": "resolved",
+          "resolution": "Returned to tdd at record 18. A variable now counts by name (key, token, secret, password, credential, auth, private, session, with eight characters or more) or by shape (twenty or more with digits and both letter cases). Red at 19, green at 20. The JEV key in this shell is still covered and SHELL and LANG are not"
+        },
+        {
+          "id": "R-01",
+          "severity": "blocking",
+          "claim": "A hard reset taken to remove a test commit destroyed every uncommitted edit to tracked files, and the commit that followed carried the tests without the code they test",
+          "failure_scenario": "The ticket would have been delivered with a test suite that passes locally against code that is not in the repository. Anyone cloning would find harness lint and harness discard missing, the environment rule absent, and three tests failing for reasons that look like flakiness",
+          "status": "resolved",
+          "resolution": "CI caught it: invalid choice for discard, and three environment-value tests failing. Everything restored and green. Recorded at record 11 with the lesson: git reset --soft removes a commit and keeps the work"
+        },
+        {
+          "id": "R-02",
+          "severity": "high",
+          "file": "package.json",
+          "line": 20,
+          "claim": "Two high advisories in postcss, reached transitively through next: arbitrary file read, and path traversal in a previous source map",
+          "failure_scenario": "The web app ships with a dependency that can read arbitrary files through a crafted source map, and nobody notices because nothing was auditing",
+          "status": "resolved",
+          "resolution": "postcss pinned at 8.5.18 or above through a workspace override, which is the only way to reach a transitive dependency. Two moderates remain and the gate does not block on them. Found by the control on the day it was installed"
+        },
+        {
+          "id": "R-03",
+          "severity": "medium",
+          "claim": "The marketplace lint reported its own test file and the compiled bytecode beside it",
+          "failure_scenario": "The control fails on day one for reasons nobody can fix, so the first thing anyone does is disable it",
+          "status": "resolved",
+          "resolution": "Compiled files are skipped, and a line that names a host on purpose carries a visible marker rather than the lint keeping a hidden list of files it has stopped checking"
+        },
+        {
+          "id": "R-04",
+          "severity": "medium",
+          "claim": "The test fixture wired up a hook that runs gitleaks, which a CI runner does not have",
+          "failure_scenario": "Every test that builds a project fails in CI and passes locally, which is the most expensive kind of failure to diagnose",
+          "status": "resolved",
+          "resolution": "The fixture hook is a no-op stand-in: doctor checks the hook exists, is executable and is wired up, none of which needs gitleaks. The real hook is proven by hand and by CI"
+        },
+        {
+          "id": "R-05",
+          "severity": "low",
+          "claim": "doctor requires core.hooksPath, which a fresh checkout cannot have",
+          "failure_scenario": "CI fails the self-check on every run for a setting it does not need, and the fix people reach for is deleting the check",
+          "status": "resolved",
+          "resolution": "CI runs the same single command a person runs after cloning, and CLAUDE.md says so where someone cloning will read it. The check stays strict, which is what makes it worth having"
+        },
+        {
+          "id": "R-06",
+          "severity": "low",
+          "claim": "One slice, the lint refinement, has no recorded red of its own",
+          "failure_scenario": "A reader takes the tdd record as covering work it does not cover",
+          "status": "resolved",
+          "resolution": "The tdd record carries two slices rather than three, and record 14 accounts for the refinement plainly. Inventing a red after the fact is exactly what SEEN-089's rule exists to prevent"
+        }
+      ],
+      "checks": [
+        24
+      ],
+      "security_checklist": [
+        "No secret in the diff: gitleaks passed on the branch, and the seeded-secret proof was made on a throwaway branch that is now deleted",
+        "One dependency change, a postcss override, made to close two high advisories rather than to add a feature",
+        "No live marketplace host in any test file, enforced by the lint this ticket adds",
+        "No PII and no database",
+        "No agent action and no policy-gate surface; the is_destructive question is about the harness, not the product"
+      ],
+      "verdict": "pass",
+      "tree": "e498cc6647c7bf230b24eee3de344290c11e74c5475b3797892c23ee68f6ea93"
+    },
+    "decisions": [
+      {
+        "question": "severity",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high",
+          "blocking"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "blocking",
+        "probabilities": {
+          "low": 0.04,
+          "medium": 0.08,
+          "high": 0.09,
+          "blocking": 0.79
+        },
+        "confidence": 0.62,
+        "score": 2.62,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      },
+      {
+        "question": "must_fix",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.44,
+          "no": 0.56
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.7,
+        "passed": false,
+        "fallback_reason": null
+      }
+    ]
+  }
+}
