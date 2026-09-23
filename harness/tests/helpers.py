@@ -46,6 +46,17 @@ def make_project(ticket_id='SEEN-001', branch=None):
     shutil.copytree(HARNESS / 'templates', root / 'harness' / 'templates')
     shutil.copyfile(HARNESS / 'thresholds.toml', root / 'harness' / 'thresholds.toml')
     (root / '.gitignore').write_text('.harness-drafts/\n.harness.lock\n')
+    # The project under test carries the same controls the real one does, so
+    # doctor's checks are exercised rather than skipped.
+    hooks = root / '.githooks'
+    hooks.mkdir()
+    hook = hooks / 'pre-commit'
+    # A no-op stand-in: doctor checks that the hook exists, is executable and is
+    # wired up, and none of that needs gitleaks installed. The real hook is
+    # exercised by hand and by CI, not by every unit test.
+    hook.write_text('#!/bin/sh\n# stand-in for the real pre-commit hook\nexit 0\n')
+    hook.chmod(0o755)
+    git(root, 'config', 'core.hooksPath', '.githooks')
     tickets = root / 'docs' / 'tickets'
     tickets.mkdir(parents=True)
     ticket_file = tickets / f'{ticket_id}-a-ticket-to-work.md'

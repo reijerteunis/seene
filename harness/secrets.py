@@ -1,0 +1,140 @@
+"""What must never appear: credentials in a record, live marketplaces in a test.
+
+Two scans, kept together because both answer the same question in different
+places. Neither repairs anything: they report, and their callers refuse.
+"""
+
+import re
+
+# Two ways a variable counts as a credential, because neither alone works.
+#
+# By name: anything called a key, a token, a secret and so on, whatever its
+# value looks like. By shape: long, and mixed enough that it is not language.
+#
+# Length alone refuses ordinary words. CI taught this: GITHUB_EVENT_NAME is
+# "pull_request" on a pull request, twelve characters, and a delivery record
+# legitimately contains those words. A rule that refuses ordinary language is a
+# rule people turn off.
+SECRET_NAME = re.compile(r'(KEY|TOKEN|SECRET|PASSWORD|PASSWD|CREDENTIAL|AUTH|PRIVATE|SESSION)',
+                         re.IGNORECASE)
+MINIMUM_NAMED_LENGTH = 8
+MINIMUM_OPAQUE_LENGTH = 20
+
+# Variables whose value is a path or a terminal setting. A journal record
+# legitimately contains file paths, so these are skipped whatever their length.
+NOT_CREDENTIALS = frozenset({
+    'PATH', 'PWD', 'OLDPWD', 'SHLVL', 'TERM', 'TERM_PROGRAM', 'TERM_PROGRAM_VERSION',
+    'LANG', 'LC_ALL', 'LC_CTYPE', 'HOME', 'TMPDIR', 'SHELL', 'USER', 'LOGNAME',
+    'MANPATH', 'INFOPATH', 'XPC_SERVICE_NAME', 'COMMAND_MODE', '__CF_USER_TEXT_ENCODING',
+})
+
+# The hosts a test may never name. A connector's source must name its API; a
+# test that names it is a test that can call it.
+MARKETPLACE_HOSTS = (
+    'api.bol.com',
+    'sellingpartnerapi',
+    'api.ebay.com',
+    'sellerapi.kaufland.com',
+    'api.otto.market',
+)
+
+# A line that names a host on purpose says so, visibly, rather than the lint
+# carrying a list of files it has quietly stopped checking.
+ALLOW_MARKER = 'harness-allow-marketplace-host'
+
+TEST_FILE = re.compile(r'(\.test\.[tj]sx?|\.spec\.[tj]sx?|(^|/)test_[^/]+\.py)$')
+TESTS_DIRECTORY = re.compile(r'(^|/)(tests|__tests__)/')
+
+# A shell turns text into instructions, which is exactly what ticket text and
+# marketplace payloads must never become.
+SHELL_USE = (
+    re.compile(r'shell\s*=\s*True'),
+    re.compile(r'os\.system\s*\('),
+    re.compile(r'os\.popen\s*\('),
+    re.compile(r'subprocess\.(getoutput|getstatusoutput)\s*\('),
+)
+
+
+def _looks_opaque(value):
+    """Long, and carrying both digits and letters in both cases.
+
+    A generated credential looks like this; a path, a branch name and a sentence
+    do not. refs/pull/8/merge has digits and letters and is still language, so
+    the mixed-case requirement is what separates them.
+    """
+    if len(value) < MINIMUM_OPAQUE_LENGTH:
+        return False
+    return (any(character.isdigit() for character in value)
+            and any(character.islower() for character in value)
+            and any(character.isupper() for character in value))
+
+
+def credentials(environ):
+    """Environment values worth refusing a record over, by variable name."""
+    found = {}
+    for name, value in environ.items():
+        if name in NOT_CREDENTIALS or not isinstance(value, str):
+            continue
+        value = value.strip()
+        named = SECRET_NAME.search(name) and len(value) >= MINIMUM_NAMED_LENGTH
+        if named or _looks_opaque(value):
+            found[name] = value
+    return found
+
+
+def leaked(text, environ):
+    """The names of any environment variables whose value appears in the text.
+
+    Names only. A refusal that prints the secret has leaked it.
+    """
+    return sorted(name for name, value in credentials(environ).items() if value.strip() in text)
+
+
+def _files(root):
+    for path in root.rglob('*'):
+        if not path.is_file():
+            continue
+        relative = str(path.relative_to(root))
+        if relative.startswith(('.git/', 'node_modules/', 'graphify-out/', '.turbo/')):
+            continue
+        if '/node_modules/' in relative or '__pycache__/' in relative:
+            continue
+        # Compiled and packed files carry the same strings as their sources and
+        # would report every hit twice, in a file nobody can fix.
+        if path.suffix in ('.pyc', '.pyo', '.map', '.zst', '.lock'):
+            continue
+        yield relative, path
+
+
+def marketplace_hosts(root):
+    """Live marketplace hosts named in test code."""
+    found = []
+    for relative, path in _files(root):
+        if not (TEST_FILE.search(relative) or TESTS_DIRECTORY.search(relative)):
+            continue
+        try:
+            text = path.read_text(errors='replace')
+        except OSError:
+            continue
+        for number, line in enumerate(text.splitlines(), start=1):
+            if ALLOW_MARKER in line:
+                continue
+            for host in MARKETPLACE_HOSTS:
+                if host in line:
+                    found.append(dict(path=relative, line=number, host=host))
+    return found
+
+
+def shell_use(source_root):
+    """Places in the harness's own source where text could reach a shell."""
+    found = []
+    for path in sorted(source_root.rglob('*.py')):
+        if '/tests/' in str(path):
+            continue
+        for number, line in enumerate(path.read_text().splitlines(), start=1):
+            if line.lstrip().startswith('#'):
+                continue
+            for pattern in SHELL_USE:
+                if pattern.search(line):
+                    found.append(dict(path=str(path), line=number, text=line.strip()))
+    return found

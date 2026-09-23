@@ -7,10 +7,11 @@ offline: nothing here waits on a network, so nobody has a reason to skip it.
 """
 
 import json
+import os
 import re
 import sys
 
-from . import journal
+from . import journal, secrets
 from .errors import HarnessError
 from .paths import (DRAFTS, HISTORY, LOCK, NON_CODE_TEMPLATE, TEMPLATES, TEMPLATE_FOR_STAGE,
                     THRESHOLDS)
@@ -71,6 +72,28 @@ def rewritten_record_problems(repository):
             for name in repository.rewritten_history_records()]
 
 
+def hook_problems(repository):
+    """The pre-commit hook is the first place a credential is caught.
+
+    It lives in .githooks, committed, because a control only one machine has is
+    not a control. git has to be told to use it, and that setting is per clone.
+    """
+    hook = repository.root / '.githooks' / 'pre-commit'
+    if not hook.is_file():
+        return ['Missing .githooks/pre-commit, so nothing scans a commit for credentials']
+    problems = []
+    if not os.access(hook, os.X_OK):
+        problems.append('.githooks/pre-commit is not executable, so git will skip it')
+    try:
+        configured = repository.git('config', '--get', 'core.hooksPath')
+    except HarnessError:
+        configured = ''
+    if configured != '.githooks':
+        problems.append('core.hooksPath is not .githooks, so the pre-commit hook does not run. '
+                        'Run: git config core.hooksPath .githooks')
+    return problems
+
+
 def gitignore_problems(repository):
     path = repository.root / '.gitignore'
     if not path.is_file():
@@ -117,6 +140,9 @@ def report(repository, rules):
         'journals': journal_problems(repository),
         'append_only': rewritten_record_problems(repository),
         'gitignore': gitignore_problems(repository),
+        'hooks': hook_problems(repository),
+        'marketplace_hosts': [f'{entry["path"]}:{entry["line"]} names {entry["host"]}'
+                              for entry in secrets.marketplace_hosts(repository.root)],
         'links': link_problems(repository),
     }
     problems = [problem for found in sections.values() for problem in found]

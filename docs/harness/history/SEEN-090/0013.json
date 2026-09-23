@@ -1,0 +1,27 @@
+{
+  "sequence": 13,
+  "ticket": "SEEN-090",
+  "timestamp": "2026-09-23T21:20:19.741863+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "0e666f2eaa393a3d9709b237713a33c15aaa6097",
+  "prev_hash": "69e609249290aff1eb4502fd1cd697ebba0cbc6dc417d6e47ded4030bc2ad6a0",
+  "data": {
+    "command": [
+      "sh",
+      "-c",
+      "python3 -m unittest discover -s harness/tests && python3 harness/run.py lint && pnpm audit --audit-level high && pnpm turbo run lint typecheck test build --output-logs=errors-only"
+    ],
+    "phase": "regression",
+    "exit_code": 0,
+    "duration_ms": 48026,
+    "output": ".........................................................................................................................................................................................................\n----------------------------------------------------------------------\nRan 201 tests in 46.011s\n\nOK\n{\n  \"ok\": true,\n  \"checked\": \"test code\",\n  \"hosts\": [\n    \"api.bol.com\",\n    \"sellingpartnerapi\",\n    \"api.ebay.com\",\n    \"sellerapi.kaufland.com\",\n    \"api.otto.market\"\n  ]\n}\n2 vulnerabilities found\nSeverity: 2 moderate\n• turbo 2.11.3\n\n   • Packages in scope: @seen/agent, @seen/api, @seen/connectors, @seen/core, @seen/web, @seen/worker\n   • Running lint, typecheck, test, build in 6 packages\n   • Remote caching disabled\n\n\n Tasks:    21 successful, 21 total\nCached:    18 cached, 21 total\n  Time:    821ms \n\n",
+    "output_sha256": "89c1e571b9eafae7cf7c47b4dd2cc7e3b25af44197799c34f008b79b72a27b41",
+    "output_truncated": false,
+    "before": "586b295189eacf233c5a256e2bd07bc91940b40f7ca699e577520bef48dd5dc4",
+    "after": "586b295189eacf233c5a256e2bd07bc91940b40f7ca699e577520bef48dd5dc4"
+  }
+}

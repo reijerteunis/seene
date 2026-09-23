@@ -1,0 +1,15 @@
+#!/bin/sh
+# Catch a credential before it is in history, not after.
+#
+# Committed and versioned rather than living in .git, which is not in the
+# repository: a control only one machine has is not a control. CI runs gitleaks
+# again on the checkout, so bypassing this with --no-verify still fails.
+set -e
+
+if ! command -v gitleaks >/dev/null 2>&1; then
+  echo "pre-commit: gitleaks is not installed, so staged changes were not scanned." >&2
+  echo "            brew install gitleaks, or commit from a machine that has it." >&2
+  exit 1
+fi
+
+gitleaks protect --staged --redact --no-banner

@@ -1,0 +1,28 @@
+{
+  "sequence": 27,
+  "ticket": "SEEN-090",
+  "timestamp": "2026-09-23T21:35:31.603173+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "head": "ced9a3b7cbaa7adee4cc1d26e46b1ddac4076569",
+  "prev_hash": "b1d63853d44f9f11179dc8aeb5b83ecc943bc4f844921d85d2ff201cbc7643ef",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_merge.SupersededRunTest"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "duration_ms": 2182,
+    "output": "E..\n======================================================================\nERROR: test_a_superseded_failure_does_not_refuse_the_delivery (harness.tests.test_merge.SupersededRunTest.test_a_superseded_failure_does_not_refuse_the_delivery)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_merge.py\", line 139, in test_a_superseded_failure_does_not_refuse_the_delivery\n    self.assertEqual(len(self.verify()['receipt_sha256']), 64)\n                         ~~~~~~~~~~~^^\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_delivery.py\", line 80, in verify\n    return self.run_harness('verify-delivery', self.ticket_id, '--file', relative,\n           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                            '--actor', 'claude:implementer')\n                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_lifecycle.py\", line 21, in run_harness\n    return cli.execute(cli.parse(['--root', str(self.root), *args]))\n           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/cli.py\", line 642, in execute\n    return delivery.verify(repository, folder, records, args, current)\n           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/delivery.py\", line 38, in verify\n    github.require_green(repository, commit, 'delivery')\n    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/github.py\", line 79, in require_green\n    require(not failed, f'Checks on {commit[:8]} did not pass: {\", \".join(failed)}')\n    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/errors.py\", line 11, in require\n    raise HarnessError(message)\nharness.errors.HarnessError: Checks on bf59be59 did not pass: ci (failure)\n\n----------------------------------------------------------------------\nRan 3 tests in 2.109s\n\nFAILED (errors=1)\n",
+    "output_sha256": "91dfde04d704a0f8012f39784798cf33cacdb45988f0d84110580abf7269651b",
+    "output_truncated": false,
+    "before": "d11ecfcd968fc804bd6623c48137d8d638c795b1335d723e97706615d47a220c",
+    "after": "d11ecfcd968fc804bd6623c48137d8d638c795b1335d723e97706615d47a220c"
+  }
+}

@@ -23,8 +23,8 @@ from .repository import Repository
 
 DEFAULT_ROOT = Path(__file__).resolve().parents[1]
 TICKET_COMMANDS = ('start', 'status', 'history', 'draft', 'note', 'check', 'advance',
-                   'return', 'graph', 'decide', 'coverage', 'reopen', 'verify-delivery',
-                   'verify-merge')
+                   'return', 'graph', 'decide', 'coverage', 'reopen', 'discard',
+                   'verify-delivery', 'verify-merge')
 WRITING_COMMANDS = ('start', 'note', 'check', 'advance', 'return', 'graph', 'decide', 'coverage',
                     'reopen',
                     'verify-delivery')
@@ -118,12 +118,18 @@ def build_parser():
     reopen.add_argument('--reason', required=True)
     reopen.add_argument('--actor', required=True)
 
+    discard = ticket_command('discard', 'Remove an uncommitted journal, recording what was removed')
+    discard.add_argument('--reason', required=True)
+    discard.add_argument('--confirm', help='The ticket id, typed out, to confirm the removal')
+    discard.add_argument('--actor', required=True)
+
     ticket_command('verify-merge', 'Check the receipt still describes what is about to merge')
 
     deliver = ticket_command('verify-delivery', 'Confirm the delivery and write the receipt')
     deliver.add_argument('--file', required=True, help='Completed deliver evidence JSON')
     deliver.add_argument('--actor', required=True)
 
+    commands.add_parser('lint', help='Refuse live marketplace hosts in test code')
     commands.add_parser('doctor', help='Check the harness files, the journals and the links')
     commands.add_parser('list', help='List every ticket with a journal and where it stands')
     return parser
@@ -490,6 +496,50 @@ def go_back(repository, folder, records, args, current, rules):
                                     to_attempt=current['attempt'] + 1, reason=args.reason))
 
 
+DISCARDED = Path('docs/harness/discarded.jsonl')
+
+
+def discard_journal(repository, folder, records, args, rules):
+    """Remove a journal that should never have been started.
+
+    The only way the harness deletes evidence, and it refuses the cases where
+    deleting would be wrong: a record that is committed is history, and history
+    is not deleted. The confirmation is the ticket id typed out rather than a
+    prompt, because a prompt a session can answer is not a control on a session.
+    What was removed is written down first, hashes included, so a deletion is
+    itself evidence.
+    """
+    require(records, f'{args.ticket} has no journal to discard')
+    require(args.confirm == args.ticket,
+            'Discarding a journal removes evidence. Repeat the ticket id to confirm: '
+            f'--confirm {args.ticket}')
+    require(args.reason.strip(), 'A discard needs a recorded reason')
+    committed = [path.name for path in sorted(folder.glob('[0-9]*.json'))
+                 if repository.is_tracked(path.relative_to(repository.root))]
+    require(not committed,
+            f'{", ".join(committed)} are committed, so they are history and history is not '
+            'deleted. Use harness reopen if the work must change')
+
+    decision = jev.ask(repository.root, rules, 'is_destructive',
+                       dict(ticket=args.ticket, operation='discard the journal',
+                            reason=args.reason, records=len(records)),
+                       answer='yes', confidence=1.0)
+    removed = [dict(name=path.name, sha256=journal.digest(path))
+               for path in sorted(folder.glob('[0-9]*.json'))]
+    line = dict(ticket=args.ticket, timestamp=records[-1]['timestamp'], actor=args.actor,
+                reason=args.reason, decision=decision, records=removed, head=repository.head())
+    log = repository.root / DISCARDED
+    log.parent.mkdir(parents=True, exist_ok=True)
+    with log.open('a') as handle:
+        handle.write(json.dumps(line, ensure_ascii=False) + '\n')
+
+    for path in sorted(folder.iterdir()):
+        if path.is_file():
+            path.unlink()
+    folder.rmdir()
+    return dict(ticket=args.ticket, removed=len(removed), recorded_in=str(DISCARDED))
+
+
 def reopen(repository, folder, records, args, current):
     """Void a receipt while the work can still change.
 
@@ -547,6 +597,16 @@ def execute(args):
         require(result['ok'],
                 'The harness self-check found problems:\n  ' + '\n  '.join(result['problems']))
         return result
+    if args.command == 'lint':
+        from . import secrets
+        found = secrets.marketplace_hosts(repository.root)
+        require(not found,
+                'Live marketplace hosts in test code:\n  '
+                + '\n  '.join(f'{entry["path"]}:{entry["line"]} {entry["host"]}'
+                               for entry in found)
+                + '\nConnector tests run against recorded fixtures. If a line names a host on '
+                  'purpose, mark it with ' + secrets.ALLOW_MARKER)
+        return dict(ok=True, checked='test code', hosts=list(secrets.MARKETPLACE_HOSTS))
     if args.command == 'list':
         return list_tickets(repository)
 
@@ -568,6 +628,8 @@ def execute(args):
         if args.command == 'draft':
             return draft(repository, records, args)
 
+        if args.command == 'discard':
+            return discard_journal(repository, folder, records, args, rules)
         if args.command == 'verify-merge':
             from . import delivery
             return delivery.verify_merge(repository, folder, records)

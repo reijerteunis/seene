@@ -1,0 +1,36 @@
+{
+  "sequence": 15,
+  "ticket": "SEEN-090",
+  "timestamp": "2026-09-23T21:20:44.155240+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "0e666f2eaa393a3d9709b237713a33c15aaa6097",
+  "prev_hash": "4d9d86b377b06ea9eda83475e391aacd9b9cec4afc0901a2c60f19ded22d6dc8",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "behaviour": "No record can carry the value of an environment variable of twelve characters or more, with the refusal naming the variable rather than its value and path-shaped variables skipped; and live marketplace hosts in test code are found and refused",
+          "failure_reason": "The record was written happily and no exception was raised, and secrets.marketplace_hosts did not exist",
+          "red": 4,
+          "green": 5
+        },
+        {
+          "behaviour": "harness discard removes an uncommitted journal, refusing without the ticket id typed out and refusing once a record is committed, writing what it removed with hashes before removing anything",
+          "failure_reason": "argparse: invalid choice: 'discard', on all five tests",
+          "red": 7,
+          "green": 8
+        }
+      ],
+      "regression": 13,
+      "coverage_delta": null
+    },
+    "decisions": []
+  }
+}

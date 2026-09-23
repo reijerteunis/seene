@@ -113,3 +113,38 @@ class MergeTest(DeliveryWalk):
         other = 'SEEN-002'
         with self.assertRaisesRegex(HarnessError, 'receipt'):
             self.run_harness('verify-merge', other)
+
+
+class SupersededRunTest(DeliveryWalk):
+    """A commit can carry more than one run of the same check.
+
+    GitHub shows the latest per name; so does this. Found when a delivery was
+    refused by a failure from a run that had already been superseded by a green
+    one on the same commit.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.walk_to_deliver()
+        self.commit_and_push()
+
+    def with_runs(self, *entries):
+        github.CHECKS = lambda repository, commit: [
+            dict(id=identifier, name=name, status='completed', conclusion=conclusion)
+            for identifier, name, conclusion in entries]
+        self.addCleanup(setattr, github, 'CHECKS', None)
+
+    def test_a_superseded_failure_does_not_refuse_the_delivery(self):
+        self.with_runs((1, 'ci', 'failure'), (2, 'ci', 'success'))
+        self.assertEqual(len(self.verify()['receipt_sha256']), 64)
+
+    def test_a_superseded_success_does_not_rescue_a_failing_check(self):
+        self.with_runs((1, 'ci', 'success'), (2, 'ci', 'failure'))
+        with self.assertRaisesRegex(HarnessError, 'ci'):
+            self.verify()
+
+    def test_each_check_name_is_judged_on_its_own_latest_run(self):
+        self.with_runs((1, 'ci', 'failure'), (2, 'ci', 'success'),
+                       (3, 'lint', 'failure'))
+        with self.assertRaisesRegex(HarnessError, 'lint'):
+            self.verify()

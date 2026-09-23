@@ -1,0 +1,18 @@
+{
+  "sequence": 18,
+  "ticket": "SEEN-090",
+  "timestamp": "2026-09-23T21:28:53.331290+00:00",
+  "harness_version": "1",
+  "kind": "return",
+  "stage": "deliver",
+  "attempt": 1,
+  "actor": "claude:reviewer",
+  "head": "263662362084a3d43d0ed5ce64cca64d2a3ac7a4",
+  "prev_hash": "7bfd947167791dd4cdbd1edf42ea8f3c2bff1192b51fda7424d23df8af324d6c",
+  "data": {
+    "from_stage": "deliver",
+    "to_stage": "tdd",
+    "to_attempt": 2,
+    "reason": "The environment rule refuses ordinary words. CI has GITHUB_EVENT_NAME=pull_request, twelve characters, and a delivery record legitimately contains those words, so four delivery tests failed there and passed here. A rule that refuses ordinary language is a rule people turn off."
+  }
+}

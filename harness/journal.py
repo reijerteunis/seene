@@ -11,6 +11,9 @@ import hashlib
 import json
 import os
 
+import os
+
+from . import secrets
 from .errors import HarnessError, require
 from .paths import ALLOWED_BESIDE_RECORDS, HARNESS_VERSION, KINDS, RECORD_NAME
 
@@ -72,8 +75,16 @@ def append(folder, records, *, kind, stage, attempt, actor, head, ticket, data):
                   head=head,
                   prev_hash=digest(folder / f'{len(records):04d}.json') if records else None,
                   data=data)
+    payload = serialise(record)
+    # Every record passes through here, which is why the rule lives here: a
+    # control with six call sites has six ways to be forgotten. The refusal
+    # names the variable and never its value.
+    carried = secrets.leaked(payload.decode(), os.environ)
+    require(not carried,
+            f'This record carries the value of {", ".join(carried)} from the environment. '
+            'A journal is committed and read by people; credentials do not go in it')
     folder.mkdir(parents=True, exist_ok=True)
-    write_once(folder / f'{record["sequence"]:04d}.json', serialise(record))
+    write_once(folder / f'{record["sequence"]:04d}.json', payload)
     return record
 
 

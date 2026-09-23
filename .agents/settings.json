@@ -1,28 +1,4 @@
 {
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash|Grep",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "graphify hook-guard search",
-            "timeout": 10
-          }
-        ]
-      },
-      {
-        "matcher": "Read|Glob",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "graphify hook-guard read",
-            "timeout": 10
-          }
-        ]
-      }
-    ]
-  },
   "permissions": {
     "allow": [
       "Bash(python3 harness/run.py:*)",
@@ -48,7 +24,6 @@
       "Bash(gitleaks:*)",
       "Bash(shasum:*)"
     ],
-    "deny": [],
-    "defaultMode": "acceptEdits"
+    "deny": []
   }
 }

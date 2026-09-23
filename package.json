@@ -2,7 +2,9 @@
   "name": "seen",
   "private": true,
   "packageManager": "pnpm@10.31.0",
-  "engines": { "node": ">=24" },
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "build": "turbo run build",
     "test": "turbo run test",
@@ -17,5 +19,10 @@
     "typescript": "^5.6.0",
     "typescript-eslint": "^8.0.0",
     "vitest": "^3.0.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "postcss": ">=8.5.18"
+    }
   }
 }

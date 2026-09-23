@@ -1,0 +1,18 @@
+{
+  "sequence": 26,
+  "ticket": "SEEN-090",
+  "timestamp": "2026-09-23T21:35:29.308928+00:00",
+  "harness_version": "1",
+  "kind": "return",
+  "stage": "deliver",
+  "attempt": 2,
+  "actor": "claude:reviewer",
+  "head": "ced9a3b7cbaa7adee4cc1d26e46b1ddac4076569",
+  "prev_hash": "288172ba8d79947acefcfdf6d948bc12e16ee6d21460797381fe4552aeb4626b",
+  "data": {
+    "from_stage": "deliver",
+    "to_stage": "tdd",
+    "to_attempt": 3,
+    "reason": "verify-delivery reads every check run for a commit, including superseded ones. This commit has two runs of all four jobs and one stale failure among them, so the delivery is refused by a result GitHub itself no longer shows. The latest run per check name is what the checks on a commit means."
+  }
+}

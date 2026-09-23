@@ -1,0 +1,103 @@
+{
+  "sequence": 3,
+  "ticket": "SEEN-090",
+  "timestamp": "2026-09-23T20:55:35.755929+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "solution",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "6ff2e142a1ffbf655c14d234cb6ff6b1716391e6",
+  "prev_hash": "3d3c8c0e69bd37811c83024039f136d60000636c767ca6c341deefcd21c500ee",
+  "data": {
+    "from_stage": "solution",
+    "to_stage": "tdd",
+    "evidence": {
+      "approach": "Five controls, each at the one place it cannot be bypassed.\n\nSecrets: a committed .githooks/pre-commit runs gitleaks protect --staged, and core.hooksPath points at it, so the hook is versioned rather than living unversioned in .git. CI runs gitleaks on the checkout, so bypassing the hook with --no-verify still fails. Separately, journal.append refuses to write a record whose serialised bytes contain the value of any environment variable of twelve characters or more, checked at the single place every record passes through. Twelve is the floor because shorter values are words rather than credentials, and PATH, PWD, OLDPWD, SHLVL, TERM, LANG, LC_ALL, HOME and TMPDIR are skipped by name whatever their length, because a journal record legitimately contains file paths.\n\nPermissions: .claude/settings.json gains a permissions.allow list naming the harness commands, the test runners and git, with everything else prompting, and .agents/settings.json carries the same list for Codex. doctor already refuses when either file does not parse.\n\nInjection: a test walks harness/*.py and fails on shell=True, on os.system, and on any subprocess argument built by string formatting or concatenation. The rule the test encodes is that content is passed as a file or as an argv element, never as text a shell will read.\n\nSupply chain: CI runs pnpm audit --audit-level high, and a lint walks every file matching *.test.ts, *.spec.ts, test_*.py and any path under a tests directory, and fails on the five marketplace hosts, so the recorded-fixture rule in workflow.md is enforced rather than remembered. The lint is a harness command so it runs both in CI and as a qa check.\n\nDestructive operations: harness discard <ticket> is the only way the harness removes a journal. It refuses when any record is tracked by git, because committed history is not deleted; it asks Jev is_destructive; it requires --confirm to repeat the ticket id exactly; and it writes one JSON line to docs/harness/discarded.jsonl before removing anything, carrying the ticket, the timestamp, the actor, the reason, the Jev decision with its probabilities, and the sha256 of every record it is about to delete, so what was discarded stays provable even though the records are gone.",
+      "changes": [
+        ".githooks/pre-commit: new, gitleaks protect --staged --redact, with core.hooksPath set to .githooks and doctor reporting when it is not",
+        ".github/workflows/ci.yml: the gitleaks action on the checkout, and pnpm audit --audit-level high",
+        "harness/secrets.py: new, environment_values() with the twelve-character floor and the skip list, and marketplace_hosts() for the lint",
+        "harness/journal.py: append refuses a record carrying any environment value",
+        "harness/cli.py: the lint command and the discard command with --confirm and --reason",
+        "harness/doctor.py: core.hooksPath points at .githooks and the hook file exists and is executable",
+        ".claude/settings.json: permissions.allow naming python3 harness/run.py, pnpm, npx vitest, git status, git diff, git log, git add, git commit, git push, gh pr and gh run; everything else prompts",
+        ".agents/settings.json: the same list for Codex",
+        "docs/harness/discarded.jsonl: new and empty, the log of anything the harness removed",
+        "harness/tests/test_security.py: new, one test per control including the source scan"
+      ],
+      "migrations": [],
+      "tests_first": [
+        "A record carrying the value of an environment variable is refused by append, whatever kind it is: the RED must fail because append writes it happily",
+        "A short environment value such as TERM does not refuse a record that happens to contain the same text: the RED must fail because the first rule refuses everything",
+        "The marketplace-host lint fails on a test file naming api.bol.com and passes on one naming a fixture: the RED must fail because no lint exists",
+        "No harness source uses shell=True, os.system, or a subprocess argument built by formatting: the RED must fail if any does",
+        "discard refuses when a record is tracked by git, refuses without --confirm matching the ticket, and writes what it removed before removing it: the RED must fail because no such command exists",
+        "The environment scan skips PATH and the other path-shaped variables by name, so a record naming a directory is not refused: the RED must fail because the scan checks everything",
+        "discard writes the discarded line, with the hashes of what it removed, before the records are gone: the RED must fail because nothing is written"
+      ],
+      "alternatives": [
+        "Scrubbing secrets out of records instead of refusing them, rejected because a record that has been edited to look clean is worse than one that was never written",
+        "Checking every environment variable regardless of length, rejected because refusing a record containing the value of TERM or LANG makes the harness unusable while proving nothing",
+        "Keeping the pre-commit hook in .git, rejected because .git is not in the repository and a control nobody else gets is not a control",
+        "A prompt for destructive operations, rejected because a prompt a session can answer is not a control on a session; the confirmation is an argument a person has to type"
+      ],
+      "risks": [
+        "The environment scan runs on every record write, so it must stay cheap: it compares against values already in memory rather than reading anything",
+        "gitleaks in a pre-commit hook slows every commit slightly, which is the price of catching a credential before it is in history",
+        "discard makes deletion possible where it previously was not; mitigated by refusing tracked records, requiring the ticket id typed out, and writing the removal to a log that is committed"
+      ],
+      "rollback": "Revert the commit. The hook is uninstalled with git config --unset core.hooksPath, and journals already written stay valid.",
+      "new_dependencies": [
+        "gitleaks, called by the hook and by CI's official action, not a repository dependency"
+      ],
+      "tenant_tables": [
+        "none"
+      ],
+      "buyer_pii": "none",
+      "policy_gate_action": null
+    },
+    "decisions": [
+      {
+        "question": "solution_complete",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.66,
+          "no": 0.34
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "question": "touches_billing_or_policy_gate",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.18,
+          "no": 0.82
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

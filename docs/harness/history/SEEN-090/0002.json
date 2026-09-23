@@ -1,0 +1,92 @@
+{
+  "sequence": 2,
+  "ticket": "SEEN-090",
+  "timestamp": "2026-09-23T20:54:30.046187+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "6ff2e142a1ffbf655c14d234cb6ff6b1716391e6",
+  "prev_hash": "dacda4615255e10c285bf7970589689afba69c5fef369fb5371486f7798ddf34",
+  "data": {
+    "from_stage": "clarify",
+    "to_stage": "solution",
+    "evidence": {
+      "scope": "Put the harness's security controls where they cannot be skipped: secrets caught before they are committed and again in CI, no environment value able to reach a record, commands allowlisted rather than trusted, evidence passed through files rather than shell arguments, live marketplace hosts refused in test code, and destructive harness operations confirmed twice before they run.",
+      "acceptance": [
+        "A commit containing a fake AWS key is blocked by the pre-commit hook and, when forced through, fails CI: evidenced by a throwaway branch whose failing run is kept and whose branch is deleted",
+        "No journal record can contain the value of any variable in the environment at write time: evidenced by a test that sets a secret-shaped variable and asserts every record kind refuses to carry it",
+        "The test-code lint fails on api.bol.com, sellingpartnerapi, api.ebay.com, sellerapi.kaufland.com or api.otto.market appearing in a test file: evidenced by the lint and a fixture that trips it",
+        "The branch-protection decision is settled and recorded rather than left as a criterion that cannot be met: the free plan refuses it on a private repository, and the enforcement today is the harness refusing delivery and verify-merge refusing a stale receipt",
+        "Deleting or rewriting a journal through the harness asks Jev is_destructive, then the human, and records both before acting: evidenced by tests and by the refusal text",
+        "CI runs gitleaks and pnpm audit at high, carried in from SEEN-094: evidenced by a green run and by the seeded-secret run that fails",
+        "Permissions: .claude/settings.json allowlists the harness commands, the test runners and git, and everything else prompts; the Codex equivalent carries the same list: evidenced by the file and by doctor refusing when it does not parse",
+        "Injection: no harness subprocess call runs through a shell, and ticket text, payloads and fetched content are passed as files or as argv elements, never interpolated into a command line: evidenced by a test that scans harness/ for shell=True and for string formatting into subprocess arguments",
+        "The recorded-fixture rule is documented where sessions read it, docs/harness/workflow.md, and enforced by the lint rather than by memory: evidenced by the lint failing on a fixture that names a live host",
+        "The lint runs in CI and as a qa check, so it is not a thing someone remembers to run: evidenced by the workflow and by this ticket's own qa record"
+      ],
+      "decisions": [
+        "Branch protection is not bought and the repository stays private: the control is unavailable on this plan, the criterion is amended to say so, and the discipline today is the harness refusing delivery and verify-merge refusing a stale receipt, neither of which GitHub knows about. Founder, 23 September 2026",
+        "The environment-value rule is enforced at the one place every record passes through, journal.append, rather than at each caller, because a rule with six call sites has six ways to be forgotten",
+        "Only variables whose value is long enough to be a credential are checked, because refusing a record that happens to contain the value of TERM or LANG would make the harness unusable while proving nothing",
+        "Destructive operations are refused outright rather than confirmed, unless the confirmation is explicit on the command line: a prompt that a session can answer is not a control on a session",
+        "The pre-commit hook is installed by the harness rather than committed into .git, because .git is not in the repository; doctor reports when it is missing",
+        "The allowlist names commands rather than patterns that end in a wildcard, because an allowlist that ends in a wildcard is a denylist with extra steps",
+        "The injection rule is enforced by a test over the harness's own source rather than by review, because a rule nobody can run is a reminder",
+        "A pnpm audit advisory with no fix available refuses the build rather than being waived silently; waiving one is a decision recorded in the ticket that waives it, which is the same stance the harness takes on review findings",
+        "The seeded-secret proof uses a documented example AWS key on a throwaway branch, the failing run is kept as evidence and the branch deleted; gitleaks scans the working tree rather than full history, so one old commit cannot fail every future run"
+      ],
+      "open_questions": [],
+      "changes_agent_action": false,
+      "graph_impact": [
+        "journal.append is where every record is written, so the environment rule belongs there",
+        "delivery and cli hold the destructive paths that need confirming"
+      ]
+    },
+    "decisions": [
+      {
+        "question": "clarified",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.81,
+          "no": 0.19
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.8,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "question": "risk",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "medium",
+        "probabilities": {
+          "low": 0.04,
+          "medium": 0.62,
+          "high": 0.34
+        },
+        "confidence": 0.44,
+        "score": 1.3,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

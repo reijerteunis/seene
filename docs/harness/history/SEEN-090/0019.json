@@ -1,0 +1,28 @@
+{
+  "sequence": 19,
+  "ticket": "SEEN-090",
+  "timestamp": "2026-09-23T21:28:54.141258+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "head": "263662362084a3d43d0ed5ce64cca64d2a3ac7a4",
+  "prev_hash": "e19080c3cc8502fa5b7b0d24b9e0743d9dc4a3fbfa44b648f4301598d19fc43d",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_security.FalsePositiveTest"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "duration_ms": 722,
+    "output": "E..E\n======================================================================\nERROR: test_a_git_ref_in_the_environment_does_not_refuse_a_record (harness.tests.test_security.FalsePositiveTest.test_a_git_ref_in_the_environment_does_not_refuse_a_record)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_security.py\", line 207, in test_a_git_ref_in_the_environment_does_not_refuse_a_record\n    self.assertEqual(self.append('merged from refs/pull/8/merge')['kind'], 'note')\n                     ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_security.py\", line 195, in append\n    return journal.append(self.folder(), journal.read(self.folder()), kind='note',\n           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                          stage='clarify', attempt=1, actor='claude:implementer',\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                          head='0' * 40, ticket=self.ticket_id, data=dict(text=text))\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/journal.py\", line 83, in append\n    require(not carried,\n    ~~~~~~~^^^^^^^^^^^^^\n            f'This record carries the value of {\", \".join(carried)} from the environment. '\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n            'A journal is committed and read by people; credentials do not go in it')\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/errors.py\", line 11, in require\n    raise HarnessError(message)\nharness.errors.HarnessError: This record carries the value of GITHUB_REF from the environment. A journal is committed and read by people; credentials do not go in it\n\n======================================================================\nERROR: test_an_ordinary_word_in_the_environment_does_not_refuse_a_record (harness.tests.test_security.FalsePositiveTest.test_an_ordinary_word_in_the_environment_does_not_refuse_a_record)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_security.py\", line 202, in test_an_ordinary_word_in_the_environment_does_not_refuse_a_record\n    self.assertEqual(self.append('opened as a pull_request')['kind'], 'note')\n                     ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_security.py\", line 195, in append\n    return journal.append(self.folder(), journal.read(self.folder()), kind='note',\n           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                          stage='clarify', attempt=1, actor='claude:implementer',\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                          head='0' * 40, ticket=self.ticket_id, data=dict(text=text))\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/journal.py\", line 83, in append\n    require(not carried,\n    ~~~~~~~^^^^^^^^^^^^^\n            f'This record carries the value of {\", \".join(carried)} from the environment. '\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n            'A journal is committed and read by people; credentials do not go in it')\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/errors.py\", line 11, in require\n    raise HarnessError(message)\nharness.errors.HarnessError: This record carries the value of GITHUB_EVENT_NAME from the environment. A journal is committed and read by people; credentials do not go in it\n\n----------------------------------------------------------------------\nRan 4 tests in 0.680s\n\nFAILED (errors=2)\n",
+    "output_sha256": "acf88e6d051a4227aab86ff1fdc7123011e4623a6a7493692ca9fc9a17fc968d",
+    "output_truncated": false,
+    "before": "34efc0d40a38febcc11c7ce0611f3dbbbfa4d9cf7c0b96b86750b9760b8ddaa2",
+    "after": "34efc0d40a38febcc11c7ce0611f3dbbbfa4d9cf7c0b96b86750b9760b8ddaa2"
+  }
+}
