@@ -50,11 +50,50 @@ here would be invented.
 
 ## Acceptance criteria
 
-- [ ] verify-delivery writes kpi.json carrying cycle time total and per stage, first-pass CI, RED-before-GREEN compliance, tests added, coverage delta, findings by severity with fixed and waived counts, rework, cost and escaped defects
-- [ ] harness report --week writes the Markdown and the JSON for every ticket delivered that week, with median cycle time, first-pass CI rate, rework per ticket, findings by severity and points delivered
-- [ ] harness report --sprint 0 shows planned against delivered build points, and reports the eval pass rate as not yet measurable
-- [ ] A fix ticket naming an earlier ticket in its frontmatter increments escaped defects on that ticket in the next report
-- [ ] No report can contain a secret, token or environment value, by the same rule as the journal
+- [x] verify-delivery writes kpi.json carrying cycle time total and per stage, first-pass CI, RED-before-GREEN compliance, tests added, coverage delta, findings by severity with fixed and waived counts, rework, cost and escaped defects
+- [x] harness report --week writes the Markdown and the JSON for every ticket delivered that week, with median cycle time, first-pass CI rate, rework per ticket, findings by severity and points delivered
+- [x] harness report --sprint 0 shows planned against delivered build points, and reports the eval pass rate as not yet measurable
+- [x] A fix ticket naming an earlier ticket in its frontmatter increments escaped defects on that ticket in the next report
+- [x] No report can contain a secret, token or environment value, by the same rule as the journal
+
+## Outcome
+
+Delivered on 24 September 2026. Two slices, each with a red that failed for the reason the solution
+record predicted.
+
+**The first report covers what already happened.** Eight tickets had delivered before this one
+existed, none with a `kpi.json`, and SEEN-086 has no journal at all. A report reading only `kpi.json`
+files would have produced an empty first output while eight delivered tickets sat in the tree. So the
+journal is the source and `kpi.json` is a cache: a ticket delivered before this ticket is covered
+identically to one delivered after it, and SEEN-086 is listed with its points and a note rather than
+dropped. That gap is what the clarify gate refused three times until it was found.
+
+**Running it found two defects in itself.** SEEN-090 reported thirty findings, because four review
+records each listed the same nine; a finding is now counted once, by id, most recent record winning.
+And rework read `1.1428571428571428`, which is now two decimals.
+
+**Cost is real.** Claude Code keeps one JSONL per session carrying token counts and timestamps, so a
+ticket's tokens are the entries inside its window. Only those four numbers are read: a session log
+holds prompts and file contents, none of which belongs in a journal. Euros are not computed, because
+a price per token is stale the day it is written.
+
+**First-pass CI needed something the journal lacked**, so `verify-delivery` now records the checks it
+already fetches. It reads null for everything delivered before this ticket, and the report's last
+section names that alongside the eval pass rate and euros, because a report that omits what it cannot
+measure reads as though everything were measured.
+
+**Reports and `kpi.json` sit outside the reviewed-tree fingerprint**, beside the journal, the drafts,
+the graph and the coverage baseline. Counting them would let a report refuse a delivery: the same
+circularity ADR 0002 resolves, which the coverage baseline reintroduced once already.
+
+### What the first report says
+
+27 points delivered across eight tickets, median cycle time 18 minutes, rework 1.14 per ticket
+against a target of 0.5, and 45 review findings by severity: 5 blocking, 18 high, 23 medium, 17 low,
+all fixed, none waived. Sprint 0 stands at 27 of 77 planned points.
+
+The rework figure is the honest headline: three tickets took four attempts each, and every return was
+the harness refusing something it should have refused.
 
 ## Depends on
 
