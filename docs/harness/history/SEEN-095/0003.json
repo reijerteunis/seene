@@ -1,0 +1,88 @@
+{
+  "sequence": 3,
+  "ticket": "SEEN-095",
+  "timestamp": "2026-09-23T22:47:12.596905+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "solution",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "d585a543f8ffa26207038d35a7167afdc60dee6c",
+  "prev_hash": "5603f8979f7be2b1da91355ee4fd00c7d752e93f13680e10bfccd58f081c4087",
+  "data": {
+    "from_stage": "solution",
+    "to_stage": "tdd",
+    "evidence": {
+      "approach": "One function in harness/doctor.py, status_problems(repository), added to the sections report already collects. For every ticket file it reads the frontmatter id and status, reads that ticket's journal if there is one, and compares four facts: the status, the last record's kind, whether the receipt's commit is an ancestor of the default branch, and whether the ticket is SEEN-086. Merged is repository.is_in_default_branch, the same test reopen uses, so the two cannot disagree about what merged means. It reports the disagreement with both values and repairs nothing.",
+      "changes": [
+        "harness/doctor.py: status_problems, and its section in report()",
+        "harness/tests/test_status_check.py: new, one test per case including the two that prompted the ticket"
+      ],
+      "migrations": [],
+      "tests_first": [
+        "A journal ending in a merged receipt with a status of doing is reported, naming the ticket, the status and what the journal says: the RED must fail because doctor does not read a ticket's status",
+        "A journal at a working stage with a status of done is reported, and one with todo is too: the RED must fail for the same reason",
+        "A delivered ticket whose receipt is not merged and whose status is review passes, because that is the normal state between delivery and merge: the RED must fail because the check does not exist to pass",
+        "SEEN-086, done with no journal, passes; another ticket done with no journal is reported: the RED must fail for the same reason",
+        "doctor leaves the wrong status exactly where it found it: the RED must fail for the same reason"
+      ],
+      "alternatives": [
+        "Fixing the status automatically, rejected because a status corrected silently is a status nobody learns to keep right, and doctor repairs nothing anywhere else",
+        "Refusing the advance of a ticket whose status is wrong, rejected because the status is frontmatter a person edits and the harness should say so rather than block work over it",
+        "Deriving the status from the journal and dropping the frontmatter field, rejected because the backlog, the sprint report and every session read the frontmatter first, and 80 tickets have no journal at all"
+      ],
+      "risks": [
+        "The check reads every ticket file and every journal on each doctor run, which is 95 files and ten journals today; both are already walked for the link check and the chain check, so the cost is a few milliseconds"
+      ],
+      "rollback": "Revert the commit. doctor returns to the nine checks it had.",
+      "new_dependencies": [],
+      "tenant_tables": [
+        "none"
+      ],
+      "buyer_pii": "none",
+      "policy_gate_action": null
+    },
+    "decisions": [
+      {
+        "question": "solution_complete",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.79,
+          "no": 0.21
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "question": "touches_billing_or_policy_gate",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.06,
+          "no": 0.94
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

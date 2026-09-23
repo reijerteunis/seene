@@ -17,6 +17,13 @@ from .paths import (DRAFTS, HISTORY, LOCK, NON_CODE_TEMPLATE, TEMPLATES, TEMPLAT
                     THRESHOLDS)
 
 PYTHON_FLOOR = (3, 12)
+
+# The one ticket that is done with no journal, exempt by design and recorded in
+# CLAUDE.md: the harness did not exist while it was being built.
+BOOTSTRAP = 'SEEN-086'
+
+# Statuses that may sit against a journal still in a working stage.
+WORKING_STATUSES = ('doing', 'review', 'parked')
 # Markdown links, excluding image embeds.
 LINK = re.compile(r'(?<!\!)\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)')
 FENCE = re.compile(r'^\s*(```|~~~)')
@@ -70,6 +77,53 @@ def rewritten_record_problems(repository):
     """
     return [f'{name} was committed as a modification or a deletion; a journal is append-only'
             for name in repository.rewritten_history_records()]
+
+
+def status_problems(repository):
+    """A ticket's frontmatter against the journal beside it.
+
+    Four facts and no judgement: the status, the journal's last record, whether
+    the receipt's commit is merged, and the bootstrap exemption. SEEN-006 and
+    SEEN-089 sat at doing for hours after delivering and merging, because their
+    mark-done commits were lost in a rebase and nothing compared the two.
+
+    It reports and repairs nothing. A status corrected silently is a status
+    nobody learns to keep right.
+    """
+    from . import report as reporting
+    problems = []
+    for path in sorted((repository.root / 'docs' / 'tickets').glob('*.md')):
+        header = reporting.frontmatter(path)
+        identifier = reporting._field(header, 'id')
+        status = reporting._field(header, 'status')
+        if not identifier or not status:
+            continue
+        folder = repository.root / HISTORY / identifier
+        try:
+            records = journal.read(folder) if folder.is_dir() else []
+        except HarnessError:
+            continue                      # the journal check already reports this
+        if not records:
+            if status == 'done' and identifier != BOOTSTRAP:
+                problems.append(f'{identifier} says done but has no journal; only {BOOTSTRAP} is '
+                                'exempt, as the bootstrap')
+            continue
+        state = journal.state(records)
+        if state['stage'] != 'delivered':
+            if status not in WORKING_STATUSES:
+                problems.append(f'{identifier} says {status} but its journal is at '
+                                f'{state["stage"]}')
+            continue
+        receipt = records[-1]
+        commit = receipt['data'].get('commit', '')
+        if commit and repository.is_in_default_branch(commit):
+            if status != 'done':
+                problems.append(f'{identifier} says {status}, but its receipt attests '
+                                f'{commit[:8]} which is merged; it is done')
+        elif status not in ('review', 'done'):
+            problems.append(f'{identifier} says {status} but it has delivered and is waiting to '
+                            'merge; it is review')
+    return problems
 
 
 def skill_problems(repository):
@@ -147,6 +201,7 @@ def report(repository, rules):
         'gitignore': gitignore_problems(repository),
         'hooks': hook_problems(repository),
         'skill': skill_problems(repository),
+        'ticket_status': status_problems(repository),
         'marketplace_hosts': [f'{entry["path"]}:{entry["line"]} names {entry["host"]}'
                               for entry in secrets.marketplace_hosts(repository.root)],
         'links': link_problems(repository),

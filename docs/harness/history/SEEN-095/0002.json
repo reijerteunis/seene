@@ -1,0 +1,81 @@
+{
+  "sequence": 2,
+  "ticket": "SEEN-095",
+  "timestamp": "2026-09-23T22:46:56.093269+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "d585a543f8ffa26207038d35a7167afdc60dee6c",
+  "prev_hash": "04760f45af29733b2833cf8b9dc056566d7dbe576b61748d3b433809393616b9",
+  "data": {
+    "from_stage": "clarify",
+    "to_stage": "solution",
+    "evidence": {
+      "scope": "doctor gains one check: a ticket's frontmatter status must agree with its own journal, and where it does not, doctor says so and repairs nothing.",
+      "acceptance": [
+        "A ticket whose journal ends in a receipt whose commit is merged, but whose status is not done, is reported with both values: evidenced by a test and by the two real cases that prompted the ticket",
+        "A ticket at a working stage whose status says done or todo is reported: evidenced by a test for each",
+        "SEEN-086 passes: done, no journal, exempt as the bootstrap and recorded as such in CLAUDE.md: evidenced by doctor on this tree",
+        "A delivered ticket whose receipt is not yet merged and whose status is review passes: evidenced by a test, because that is the normal state between delivery and merge",
+        "doctor repairs nothing: evidenced by a test asserting the wrong status is still there afterwards"
+      ],
+      "decisions": [
+        "The check compares four things and nothing more: the frontmatter status, the journal's last record, whether the receipt's commit is merged, and the bootstrap exemption. Anything richer would need judgement, and doctor reports facts",
+        "Merged means the receipt's commit is an ancestor of the default branch, the same test reopen already uses, so the two cannot disagree about what merged means",
+        "A ticket with no journal and no receipt is only exempt when it is SEEN-086: the exemption is named rather than inferred from the absence of a journal, because every unstarted ticket also has no journal",
+        "An unstarted ticket, status todo with no journal, is not reported: that is the normal state of 80 tickets and a check that reports it would be noise"
+      ],
+      "open_questions": [],
+      "changes_agent_action": false,
+      "graph_impact": [
+        "doctor already walks every journal and every ticket file, so the check has both halves in hand"
+      ]
+    },
+    "decisions": [
+      {
+        "question": "clarified",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.83,
+          "no": 0.17
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.8,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "question": "risk",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "low",
+        "probabilities": {
+          "low": 0.99,
+          "medium": 0.01,
+          "high": 0.0
+        },
+        "confidence": 0.99,
+        "score": 0.01,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}
