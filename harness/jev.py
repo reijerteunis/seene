@@ -68,15 +68,28 @@ def credential(root):
     return None
 
 
-def post(endpoint, payload, credential_value, timeout):
-    """The live call. Unverified: no valid credential has yet reached this API."""
-    request = urllib.request.Request(
+# The service sits behind Cloudflare, which rejects Python's default user agent
+# with error 1010 before the API sees the request. Naming ourselves is both
+# politer and the difference between a decision and a 403.
+USER_AGENT = 'seen-harness/1.0 (+https://tryseen.com)'
+
+
+def build_request(endpoint, payload, credential_value):
+    """The request that goes over the wire. Separated so it can be read in a test."""
+    return urllib.request.Request(
         endpoint,
         data=json.dumps(payload).encode(),
         headers={'Content-Type': 'application/json',
+                 'Accept': 'application/json',
+                 'User-Agent': USER_AGENT,
                  'Authorization': f'Bearer {credential_value}'},
         method='POST')
-    with urllib.request.urlopen(request, timeout=timeout) as response:
+
+
+def post(endpoint, payload, credential_value, timeout):
+    """The live call. Unverified: no valid credential has yet reached this API."""
+    with urllib.request.urlopen(build_request(endpoint, payload, credential_value),
+                                timeout=timeout) as response:
         return json.loads(response.read().decode())
 
 

@@ -132,6 +132,28 @@ class FallbackTest(QuestionTest):
             self.decide('risk', '--answer', 'catastrophic', '--confidence', '1.0')
 
 
+class TransportTest(QuestionTest):
+    """The live transport, exercised without a network.
+
+    Nothing here calls the API. It builds the request the way post() does and
+    checks what would go over the wire.
+    """
+
+    def test_the_request_names_itself(self):
+        """Cloudflare rejects Python's default user agent with error 1010.
+
+        Without a user agent of our own, every decision fails at the edge before
+        the API sees it, and the harness reports a 403 that has nothing to do
+        with the credential.
+        """
+        request = jev.build_request('https://example.test/v1/systemone',
+                                    {'question': 'x'}, 'the-credential', )
+        self.assertIn('seen-harness', request.get_header('User-agent'))
+        self.assertEqual(request.get_header('Authorization'), 'Bearer the-credential')
+        self.assertEqual(request.get_header('Content-type'), 'application/json')
+        self.assertEqual(json.loads(request.data), {'question': 'x'})
+
+
 class SecrecyTest(QuestionTest):
 
     def test_no_decision_record_holds_the_credential_or_any_environment_value(self):

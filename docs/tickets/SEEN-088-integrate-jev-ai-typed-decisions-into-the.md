@@ -64,6 +64,23 @@ key, contradicting the ticket's own "records the fallback, and continues".
 it, and `verify-delivery` would not write a receipt over an unreviewed file. It was removed rather
 than the gate overridden; documenting the credential belongs to SEEN-090.
 
+### After the receipt: the transport could never have worked
+
+Found on 23 September 2026 while re-testing with a second credential. The service sits behind
+Cloudflare, which rejects Python's default user agent (`Python-urllib/3.x`) with error 1010 before
+the API sees the request. `curl` is allowed through, `urllib` is not, which is why record 22 fell
+back with `HTTPError: 403` rather than a 401 about the credential. Any user agent of our own fixes
+it, and the request now names itself and accepts JSON.
+
+The journal was already closed, and `harness check` refused to record the red and the green, which is
+the terminal stage behaving as designed. The evidence is `TransportTest.test_the_request_names_itself`
+and this paragraph. This is the second defect to escape a receipt, and both would have been caught by
+the check SEEN-089 carries: refuse a delivery whose checks are not green on the delivered commit, and
+compare the receipt's commit to the branch tip at merge.
+
+The credential remains rejected at the application layer (`401 Invalid API key`) with the request
+reaching the API, so the live path is still unverified.
+
 ## Depends on
 
 - [SEEN-086](SEEN-086-build-the-seen-harness-cli-with-staged-journal.md): Build the Seen harness CLI with staged journal and receipts
