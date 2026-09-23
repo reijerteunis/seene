@@ -29,6 +29,52 @@ jobs:
       - name: Harness self-check
         run: python3 harness/run.py doctor
 
+  node:
+    name: Monorepo (Node 24)
+    runs-on: ubuntu-latest
+
+    # The worker test talks to a real queue. Same test here as on a laptop: it
+    # reads host and port from the environment rather than assuming either.
+    services:
+      redis:
+        image: redis:8
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    env:
+      REDIS_HOST: 127.0.0.1
+      REDIS_PORT: 6379
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      # Frozen: a lockfile that drifts in CI is a lockfile that proves nothing.
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm turbo run lint
+
+      - name: Typecheck
+        run: pnpm turbo run typecheck
+
+      - name: Test
+        run: pnpm turbo run test
+
+      - name: Build
+        run: pnpm turbo run build
+
   graph:
     name: Knowledge graph
     runs-on: ubuntu-latest
