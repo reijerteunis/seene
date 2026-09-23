@@ -23,7 +23,8 @@ from .repository import Repository
 
 DEFAULT_ROOT = Path(__file__).resolve().parents[1]
 TICKET_COMMANDS = ('start', 'status', 'history', 'draft', 'note', 'check', 'advance',
-                   'return', 'graph', 'decide', 'coverage', 'reopen', 'verify-delivery')
+                   'return', 'graph', 'decide', 'coverage', 'reopen', 'verify-delivery',
+                   'verify-merge')
 WRITING_COMMANDS = ('start', 'note', 'check', 'advance', 'return', 'graph', 'decide', 'coverage',
                     'reopen',
                     'verify-delivery')
@@ -116,6 +117,8 @@ def build_parser():
     reopen = ticket_command('reopen', 'Void a receipt and return the ticket to tdd, before merge')
     reopen.add_argument('--reason', required=True)
     reopen.add_argument('--actor', required=True)
+
+    ticket_command('verify-merge', 'Check the receipt still describes what is about to merge')
 
     deliver = ticket_command('verify-delivery', 'Confirm the delivery and write the receipt')
     deliver.add_argument('--file', required=True, help='Completed deliver evidence JSON')
@@ -262,24 +265,36 @@ def coverage(repository, folder, records, args, current, rules):
 
 def decide(repository, folder, records, args, current, rules):
     """Ask one typed question about this ticket and keep the answer."""
-    answer = jev.ask(repository.root, rules, args.question, state_for(records, current),
+    answer = jev.ask(repository.root, rules, args.question,
+                     state_for(records, current, None, repository.root),
                      args.answer, args.confidence)
     return journal.append(folder, records, kind='decision', stage=current['stage'],
                           attempt=current['attempt'], actor=args.actor,
                           head=repository.head(), ticket=args.ticket, data=answer)
 
 
-def state_for(records, current, evidence=None):
+def state_for(records, current, evidence=None, root=None):
     """What Jev is given to judge: the ticket, the stage and the record at hand.
+
+    The ticket text is read from the file as it stands now, not from the snapshot
+    in record 1. Tickets are amended during clarify, routinely and deliberately,
+    and judging a record against the document it was written before is how a
+    resolved question keeps reading as an open one. The snapshot stays in the
+    journal, where it is evidence of what the work was asked to do.
 
     Internal working text only. No credential is in it, and nothing is read from
     the environment to build it.
     """
-    return dict(ticket=records[0]['data']['ticket_id'] if 'ticket_id' in records[0]['data']
-                else records[0]['ticket'],
+    snapshot = records[0]['data']['ticket_snapshot']
+    ticket_text = snapshot
+    if root is not None:
+        path = root / records[0]['data']['ticket_file']
+        if path.is_file():
+            ticket_text = path.read_text()
+    return dict(ticket=records[0]['data'].get('ticket_id', records[0]['ticket']),
                 stage=current['stage'],
                 attempt=current['attempt'],
-                ticket_text=records[0]['data']['ticket_snapshot'],
+                ticket_text=ticket_text,
                 record=evidence if evidence is not None else _latest_evidence(records))
 
 
@@ -402,7 +417,8 @@ def stage_decisions(repository, records, args, current, rules, evidence):
             # One request for the whole stage, which is what the API is shaped for.
             fresh = {answer['question']: answer
                      for answer in jev.ask_many(repository.root, rules, outstanding,
-                                                state_for(records, current, evidence))}
+                                                state_for(records, current, evidence,
+                                                          repository.root))}
         else:
             fresh = {name: jev.unavailable(
                 name, jev.QUESTIONS[name],
@@ -551,6 +567,10 @@ def execute(args):
             return describe(repository, args.ticket, records, folder)
         if args.command == 'draft':
             return draft(repository, records, args)
+
+        if args.command == 'verify-merge':
+            from . import delivery
+            return delivery.verify_merge(repository, folder, records)
 
         current = journal.state(records)
         if args.command == 'reopen':

@@ -1,0 +1,123 @@
+{
+  "sequence": 13,
+  "ticket": "SEEN-094",
+  "timestamp": "2026-09-23T20:33:41.711200+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "review",
+  "attempt": 1,
+  "actor": "claude:reviewer",
+  "head": "be05a8f2f21c6d81b18f337d528e36de33fe432f",
+  "prev_hash": "7d6c24b606eabaffe38b851299c9c8459fdf27e707a277cadeee101c510a9ae9",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "deliver",
+    "evidence": {
+      "reviewer": "claude:reviewer",
+      "independence": "self-review",
+      "acceptance_evidence": [
+        "AC1, a failed, unfinished or absent check refuses the delivery: three tests in DeliveryChecksTest, each naming what it refused on",
+        "AC2, gh that cannot answer refuses rather than passes: test_gh_that_cannot_answer_refuses_rather_than_passes, and the real refusal text names gh auth status",
+        "AC3, a source change after the receipt refuses the merge and names the file: test_a_source_change_after_the_receipt_refuses_the_merge",
+        "AC4, a pull request body without the receipt hash refuses, and a clean delivery is ready: two tests, plus one proving the command appends nothing",
+        "AC5, the pull request template exists and carries the criteria, evidence, findings, limits and the receipt hash: .github/pull_request_template.md"
+      ],
+      "findings": [
+        {
+          "id": "R-01",
+          "severity": "high",
+          "file": "harness/cli.py",
+          "line": 300,
+          "claim": "Every gate decision was judged against the ticket as it stood at start, not as it stands now",
+          "failure_scenario": "A ticket amended during clarify, which four have been, is judged against the document it was written before, so a criterion that was deliberately re-pointed or moved still reads as unresolved. Three attempts here scored 0.75 to two decimal places while the record changed substantially, and the same record with the current ticket scored 0.86",
+          "status": "resolved",
+          "resolution": "The gates read the ticket file as it stands and fall back to the snapshot only when the file is gone. The snapshot stays in the journal, where it answers a different question: what the work was originally asked to do. Two tests"
+        },
+        {
+          "id": "R-02",
+          "severity": "medium",
+          "file": "harness/tests/test_delivery.py",
+          "line": 20,
+          "claim": "Subclassing the delivery test to reuse its walk re-ran every delivery test under the subclass's setup",
+          "failure_scenario": "Twenty-three errors on the first run, all from a second harness start on a ticket that already had a journal. Left alone it would have made every future test file that reuses the walk slower and noisier, and the real failures harder to see",
+          "status": "resolved",
+          "resolution": "The walk is now a base class carrying no tests, and the tests sit in a subclass. test_reopen and test_merge both use the base"
+        },
+        {
+          "id": "R-03",
+          "severity": "medium",
+          "claim": "Delivery now depends on gh being installed and authenticated, and refuses without it",
+          "failure_scenario": "A machine or a CI job without gh cannot deliver at all, and the failure arrives at the last step of a ticket",
+          "status": "resolved",
+          "resolution": "Deliberate and stated in the ticket: a delivery that cannot be verified is not a delivery verified. The refusal names gh auth status and gh auth login rather than leaving someone to guess"
+        },
+        {
+          "id": "R-04",
+          "severity": "low",
+          "claim": "verify-merge is a check a person can skip by pressing the merge button",
+          "failure_scenario": "A ticket merges with a stale receipt because nobody ran the command",
+          "status": "resolved",
+          "resolution": "Accepted and named in the solution's risks: it is a check, not a lock, until branch protection exists in SEEN-090. The harness makes it possible to tell rather than impossible to do"
+        }
+      ],
+      "checks": [
+        12
+      ],
+      "security_checklist": [
+        "No secret in the diff, and no token held by the harness: gh keeps the authentication",
+        "No new dependency in the monorepo; gh is called, not depended on",
+        "No test reaches GitHub: both readers are module-level names the tests replace",
+        "No PII and no database",
+        "No agent action and no policy-gate surface"
+      ],
+      "verdict": "pass",
+      "tree": "4bee21c834ed2e21f3f2c56b0372450fbb8567cd0880d5ad45a8ad5fdbeab9ed"
+    },
+    "decisions": [
+      {
+        "question": "severity",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high",
+          "blocking"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "medium",
+        "probabilities": {
+          "low": 0.07,
+          "medium": 0.43,
+          "high": 0.29,
+          "blocking": 0.21
+        },
+        "confidence": 0.21,
+        "score": 1.65,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      },
+      {
+        "question": "must_fix",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.22,
+          "no": 0.78
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.7,
+        "passed": false,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "sequence": 2,
+  "ticket": "SEEN-094",
+  "timestamp": "2026-09-23T20:23:25.792928+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "49d5fbbb50b9ae0d674ee4d75339bb67f7b67a21",
+  "prev_hash": "4cbe355ee748a915c2c916b27dacc30e2b5b6c806cd6f7e61178d454927d6f0e",
+  "data": {
+    "text": "# How CI state is read, established rather than assumed\n\n`gh api repos/<owner>/<repo>/commits/<sha>/check-runs` answers with `total_count` and a `check_runs`\narray, each carrying `name`, `status` and `conclusion`. Checked against this repository on\n23 September 2026 while three runs were mid-flight:\n\n```\n{\"total\": 3, \"runs\": [\n  {\"name\": \"Harness tests (Python 3.12)\", \"status\": \"in_progress\", \"conclusion\": null},\n  {\"name\": \"Monorepo (Node 24)\",          \"status\": \"in_progress\", \"conclusion\": null},\n  {\"name\": \"Knowledge graph\",             \"status\": \"in_progress\", \"conclusion\": null}]}\n```\n\nThree things follow, and each is a decision this ticket needs.\n\n**A check that has not concluded has `conclusion: null`.** So \"green\" cannot mean \"nothing has failed\":\na delivery verified while three runs were still going would be verified against nothing. The rule is\nthat every run must have `status: completed`, and every conclusion must be `success` or `skipped`.\n\n**Zero check runs is not success.** A commit nobody has built yet answers `total_count: 0`, which\nwould otherwise pass an \"all conclusions are success\" test vacuously. It refuses.\n\n**gh holds the authentication, so the harness does not need a token.** The cost is that the harness\nnow depends on gh being installed and authenticated. It refuses when it is not, saying what to do,\nrather than passing a delivery it could not verify.\n"
+  }
+}

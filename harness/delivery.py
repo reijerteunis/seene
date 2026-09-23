@@ -9,7 +9,7 @@ rather than passes when it cannot be run.
 
 import subprocess
 
-from . import coverage, gates, journal
+from . import coverage, gates, github, journal
 from .errors import require
 from .paths import HISTORY, WORKING_STAGES
 
@@ -32,6 +32,10 @@ def verify(repository, folder, records, args, current):
     require(repository.tip_is_on_remote(data['remote'], branch, commit),
             f'{commit[:8]} is not the tip of {branch} on the {data["remote"]} remote; '
             'push the branch before verifying delivery')
+    # CI is the definition of done, and this is where the harness stops asserting
+    # it and starts verifying it. SEEN-087 and SEEN-088 both wrote receipts over
+    # red checks for want of these four lines.
+    github.require_green(repository, commit, 'delivery')
 
     _refresh_graph(repository)
 
@@ -101,3 +105,46 @@ def _require_committed(repository, folder):
                    if not repository.is_tracked(path.relative_to(repository.root))]
     require(not uncommitted,
             f'Commit and push the journal before verifying delivery: {", ".join(uncommitted)}')
+
+
+# What delivery itself writes after the receipt is taken, and therefore the only
+# paths a commit between the receipt and the tip may touch.
+DELIVERY_WRITES = ('docs/harness/history/', 'docs/harness/coverage.json', 'graphify-out/')
+
+
+def verify_merge(repository, folder, records):
+    """Whether the receipt still describes what is about to merge.
+
+    Read-only, and it appends nothing: its own first rule is that the receipt is
+    the last record, which a record of this check would break. See
+    docs/adr/0002-the-receipt-attests-the-tree-minus-the-journal.md for why the
+    receipt can never be the tip at delivery time.
+    """
+    require(records and records[-1]['kind'] == 'receipt',
+            'The last record is not a receipt, so there is no delivery to merge. '
+            'Run verify-delivery first, or harness reopen if the work changed')
+    receipt = records[-1]
+    commit = receipt['data']['commit']
+    require(repository.contains_commit(commit),
+            f'The receipt attests {commit[:8]}, which is not in this branch')
+
+    changed = repository.git('diff', '--name-only', f'{commit}..HEAD').splitlines()
+    unreviewed = [path for path in changed if not path.startswith(DELIVERY_WRITES)]
+    require(not unreviewed,
+            f'Changed after the receipt was written: {", ".join(unreviewed)}. '
+            'The receipt attests a tree that is not the one merging. Run harness reopen, '
+            'fix it under review, and deliver again')
+
+    hash_of_receipt = journal.digest(folder / f'{receipt["sequence"]:04d}.json')
+    request = github.pull_request(repository)
+    require(hash_of_receipt in (request.get('body') or ''),
+            f'The pull request body does not carry the receipt hash {hash_of_receipt[:12]}..., '
+            'so nobody reading it can tell which delivery it is merging')
+    github.require_green(repository, repository.head(), 'merge')
+    return dict(ready=True,
+                ticket=receipt['ticket'],
+                receipt_sha256=hash_of_receipt,
+                receipt_commit=commit,
+                tip=repository.head(),
+                pull_request=request.get('number'),
+                journal_only_commits=len(changed))

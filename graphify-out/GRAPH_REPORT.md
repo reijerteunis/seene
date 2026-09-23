@@ -1,17 +1,17 @@
 # Graph Report - seene  (2026-09-23)
 
 ## Corpus Check
-- 276 files · ~95,158 words
+- 322 files · ~110,153 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 4 file(s) not represented in the graph (top: (none) 3, .toml 1)
 
 ## Summary
-- 1501 nodes · 2778 edges · 144 communities (136 shown, 8 thin omitted)
-- Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 64 edges (avg confidence: 0.93)
+- 1624 nodes · 3038 edges · 145 communities (137 shown, 8 thin omitted)
+- Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 74 edges (avg confidence: 0.93)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `b3568d42`
+- Built from commit: `d4813a40`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -24,16 +24,16 @@
 - Seen: Claude Code entry point
 - RecordTest
 - cli.py
-- DeliveryTest
+- DeliveryWalk
 - GraphTest
 - graphify
 - HarnessError
 - SEEN-087: Install graphify, build the repo graph and wire it into both assistants
 - worker/package.json
-- graph.py
+- checks.py
 - Seen: product requirements (MVP)
 - doctor.py
-- advance
+- CoverageTest
 - stub
 - Seen: MVP architecture
 - Tickets
@@ -129,14 +129,14 @@
 - IsolationTest
 - compilerOptions
 - compilerOptions
-- CONTEXT.md
+- Seen
 - jev.py
 - Journal records are hashed as file bytes, and git is the notary
 - SEEN-088: Integrate Jev AI typed decisions into the harness gates
 - tasks
 - ProjectTest
 - app.module.ts
-- journal.py
+- coverage.py
 - agent/package.json
 - connectors/package.json
 - core/package.json
@@ -146,7 +146,7 @@
 - worker/tsconfig.json
 - core/src/index.ts
 - dependencies
-- SEEN-089: Enforce TDD and CI quality gates in the harness
+- SEEN-089: Enforce the TDD gates in the harness
 - SEEN-090: Add harness security controls: secrets, permissions, injection, supply chain
 - agent/tsconfig.json
 - connectors/tsconfig.json
@@ -158,43 +158,44 @@
 - devDependencies
 - next-env.d.ts
 - hello.ts
+- pull_request_template.md
 
 ## God Nodes (most connected - your core abstractions)
-1. `require()` - 54 edges
-2. `HarnessError` - 52 edges
-3. `Repository` - 40 edges
-4. `execute()` - 25 edges
-5. `CommandTest` - 22 edges
-6. `clarify_evidence()` - 21 edges
-7. `DeliveryTest` - 20 edges
-8. `DoctorTest` - 20 edges
-9. `RecordTest` - 19 edges
-10. `Seen: product requirements (MVP)` - 18 edges
+1. `HarnessError` - 65 edges
+2. `require()` - 63 edges
+3. `Repository` - 43 edges
+4. `CommandTest` - 29 edges
+5. `execute()` - 27 edges
+6. `clarify_evidence()` - 26 edges
+7. `DoctorTest` - 20 edges
+8. `RecordTest` - 19 edges
+9. `Seen: product requirements (MVP)` - 18 edges
+10. `append()` - 16 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `Agent runtime and the policy gate` --references--> `read_evidence()`  [INFERRED]
   docs/architecture.md → harness/cli.py
 - `Development harness` --references--> `advance()`  [INFERRED]
   CONTEXT.md → harness/cli.py
+- `Description` --references--> `advance()`  [INFERRED]
+  docs/tickets/SEEN-089-enforce-tdd-and-ci-quality-gates-in-the-harness.md → harness/cli.py
 - `Working a ticket` --references--> `main()`  [INFERRED]
   CLAUDE.md → harness/cli.py
 - `Security controls` --references--> `main()`  [INFERRED]
   docs/harness/workflow.md → harness/cli.py
-- `Design decisions` --references--> `check()`  [INFERRED]
-  docs/tickets/SEEN-086-build-the-seen-harness-cli-with-staged-journal.md → harness/cli.py
 
 ## Import Cycles
 - None detected.
 
-## Communities (144 total, 8 thin omitted)
+## Communities (145 total, 8 thin omitted)
 
 ### Community 0 - "require"
-Cohesion: 0.12
-Nodes (35): draft(), Read a stage evidence file, which must live where drafts live. Anywhere else it…, read_evidence(), _evidence(), Delivery: the deliver stage's own gate, and the receipt it writes. There is no…, Every record must already be in the history that was pushed. The receipt is the…, _require_committed(), verify() (+27 more)
+Cohesion: 0.10
+Nodes (39): draft(), Read a stage evidence file, which must live where drafts live. Anywhere else it…, read_evidence(), _evidence(), _latest_coverage(), Delivery: the deliver stage's own gate, and the receipt it writes. There is no…, Bring the committed graph up to date with the code being delivered. graphify's…, Every record must already be in the history that was pushed. The receipt is the… (+31 more)
 
 ### Community 1 - ".evaluate"
-Cohesion: 0.11
-Nodes (8): advance_record(), check_record(), GateTest, NonCodeGateTest, RequiredFieldTest, ReviewGateTest, SolutionGateTest, TddGateTest
+Cohesion: 0.10
+Nodes (12): advance_record(), check_record(), ClarifyGateTest, coverage_record(), GateTest, NonCodeGateTest, A recorded check. A red fails by default, because a red that passed is not one., A measurement of the gated package, which the tdd gate requires for the attempt. (+4 more)
 
 ### Community 2 - "web/package.json"
 Cohesion: 0.06
@@ -202,55 +203,55 @@ Nodes (28): metadata, config, dependencies, next, react, react-dom, @seen/core, 
 
 ### Community 3 - "Repository"
 Cohesion: 0.05
-Nodes (15): Every file in the project that git can see, ignored files excluded., Journal files git has seen change after the commit that created them. The hash…, The branch work merges into, asked of git rather than assumed., Whether a commit has already merged, locally or on the remote. Both are asked:…, The working copy a harness command operates on., Whether the remote already holds this commit as the tip of this branch., Refuse to operate from a subdirectory or from another repository., The branch, or None on a detached HEAD. Reporting commands use this, so… (+7 more)
+Nodes (17): Every file in the project that git can see, ignored files excluded., Journal files git has seen change after the commit that created them. The hash…, The branch work merges into, asked of git rather than assumed., Whether a commit has already merged, locally or on the remote. Both are asked:…, The working copy a harness command operates on., Whether the remote already holds this commit as the tip of this branch., Refuse to operate from a subdirectory or from another repository., The branch, or None on a detached HEAD. Reporting commands use this, so… (+9 more)
 
 ### Community 6 - "Seen: Claude Code entry point"
 Cohesion: 0.33
-Nodes (6): graphify, Ground rules, Index of docs/, Seen: Claude Code entry point, Tickets (93, 326 build points), Working a ticket
+Nodes (6): graphify, Ground rules, Index of docs/, Seen: Claude Code entry point, Tickets (94, 328 build points), Working a ticket
 
 ### Community 8 - "cli.py"
-Cohesion: 0.10
-Nodes (34): argparse, decide(), describe(), execute(), extra_review_fields(), go_back(), graph(), journal_folder() (+26 more)
+Cohesion: 0.05
+Nodes (57): argparse, Consequences, The delivery receipt attests the tree minus the journal, Consequences, SEEN-086 is the bootstrap ticket and has no journal, The five stages, advance(), build_parser() (+49 more)
 
-### Community 9 - "DeliveryTest"
-Cohesion: 0.19
-Nodes (3): DeliveryTest, Take a ticket through every stage, with real recorded checks., ReopenTest
+### Community 9 - "DeliveryWalk"
+Cohesion: 0.08
+Nodes (11): DeliveryTest, DeliveryWalk, The walk to a delivered ticket, without the tests. Separated so other files can…, No test reaches GitHub. Green by default; a test that cares says otherwise., Take a ticket through every stage, with real recorded checks., DeliveryChecksTest, broken(), MergeTest (+3 more)
 
 ### Community 10 - "GraphTest"
 Cohesion: 0.29
 Nodes (3): GraphTest, A graphify on PATH that reports what it was asked, and nothing else., The graph is derived from the tree, not evidence about it. The post-commit hook…
 
 ### Community 13 - "HarnessError"
-Cohesion: 0.10
-Nodes (31): Exception, harness, Running and recording a verification command. A check is a real subprocess in…, HarnessError, The one error type a harness command may fail with, and the check that raises…, A refusal a person can act on: what is wrong and, where possible, what to do., Git access, and the fingerprint that decides whether evidence is still current.…, harness_tests (+23 more)
+Cohesion: 0.08
+Nodes (40): datetime, Exception, harness, Whether the receipt still describes what is about to merge. Read-only, and it…, verify_merge(), HarnessError, The one error type a harness command may fail with, and the check that raises…, A refusal a person can act on: what is wrong and, where possible, what to do. (+32 more)
 
 ### Community 14 - "SEEN-087: Install graphify, build the repo graph and wire it into both assistants"
-Cohesion: 0.25
-Nodes (8): Acceptance criteria, Blocks, Clarified, Context, Depends on, Description, Outcome, SEEN-087: Install graphify, build the repo graph and wire it into both assistants
+Cohesion: 0.22
+Nodes (9): Acceptance criteria, Amended after delivery, Blocks, Clarified, Context, Depends on, Description, Outcome (+1 more)
 
 ### Community 15 - "worker/package.json"
 Cohesion: 0.11
 Nodes (17): dependencies, bullmq, ioredis, @seen/core, description, @seen/core, main, name (+9 more)
 
-### Community 16 - "graph.py"
-Cohesion: 0.50
-Nodes (4): ask(), build_command(), Asking graphify a question and keeping the answer in the journal. The harness…, Run one graphify verb in the project root and return what to record.
+### Community 16 - "checks.py"
+Cohesion: 0.16
+Nodes (13): Design decisions, demonstrates_failure(), phases_for(), Running and recording a verification command. A check is a real subprocess in…, Whether a run is evidence that a test failed. Exit zero is a passing command,…, Run one check and return the evidence to record., run(), check() (+5 more)
 
 ### Community 17 - "Seen: product requirements (MVP)"
 Cohesion: 0.11
 Nodes (18): 10. Pricing and metering, 11. Data, security and compliance, 12. Non-functional requirements, 13. Success metrics and gates, 14. Release plan, 15. Risks, 16. Open questions, 17. Glossary (+10 more)
 
 ### Community 18 - "doctor.py"
-Cohesion: 0.12
-Nodes (18): gitignore_problems(), journal_problems(), link_problems(), python_problems(), The self-check a session runs before it starts working. It reports problems…, Run every check and collect what is wrong., Journals whose chain, numbering or contents no longer verify., Records git has seen change after the commit that created them. The chain makes… (+10 more)
+Cohesion: 0.14
+Nodes (17): gitignore_problems(), journal_problems(), link_problems(), python_problems(), The self-check a session runs before it starts working. It reports problems…, Run every check and collect what is wrong., Journals whose chain, numbering or contents no longer verify., Records git has seen change after the commit that created them. The chain makes… (+9 more)
 
-### Community 19 - "advance"
-Cohesion: 0.10
-Nodes (20): Consequences, The delivery receipt attests the tree minus the journal, Consequences, SEEN-086 is the bootstrap ticket and has no journal, The five stages, Design decisions, phases_for(), Run one check and return the evidence to record. (+12 more)
+### Community 19 - "CoverageTest"
+Cohesion: 0.33
+Nodes (3): CoverageTest, Coverage on packages/core, measured by one fixed command and never allowed to…, The shape vitest's json-summary reporter writes.
 
 ### Community 20 - "stub"
-Cohesion: 0.06
-Nodes (28): Commands, KPIs, Principles, Repository layout, Security controls, Seen: development harness, Tickets, Tooling (+20 more)
+Cohesion: 0.05
+Nodes (30): Commands, KPIs, Principles, Repository layout, Security controls, Seen: development harness, Tickets, Tooling (+22 more)
 
 ### Community 21 - "Seen: MVP architecture"
 Cohesion: 0.20
@@ -277,8 +278,8 @@ Cohesion: 0.25
 Nodes (8): Acceptance criteria, Blocks, Carried in from SEEN-087, Context, Depends on, Description, Outcome, SEEN-006: Scaffold the pnpm turborepo monorepo with all six packages
 
 ### Community 27 - ".start"
-Cohesion: 0.11
-Nodes (11): AdvanceTest, BranchTest, clarify_evidence(), CommandTest, DraftTest, NoteAndCheckTest, Runs commands in process, which is how the tests stay fast and readable., ReturnTest (+3 more)
+Cohesion: 0.07
+Nodes (18): BaselineTest, CitedRedTest, The baseline moves only when a ticket delivers., A red recorded before the rule existed can still be cited, so the gate checks…, A refusal has to say what happened, not what the rule is called., RedRuleTest, RefusalMessageTest, AdvanceTest (+10 more)
 
 ### Community 28 - "SEEN-001: Register Amazon SP-API developer and file Ads API application"
 Cohesion: 0.33
@@ -624,8 +625,8 @@ Nodes (20): compilerOptions, baseUrl, declaration, emitDecoratorMetadata, esModu
 Cohesion: 0.13
 Nodes (14): compilerOptions, allowJs, baseUrl, incremental, isolatedModules, jsx, lib, module (+6 more)
 
-### Community 115 - "CONTEXT.md"
-Cohesion: 0.29
+### Community 115 - "Seen"
+Cohesion: 0.33
 Nodes (6): Development harness, Example dialogue, Flagged ambiguities, Language, Product, Seen
 
 ### Community 116 - "jev.py"
@@ -641,16 +642,16 @@ Cohesion: 0.17
 Nodes (11): dependsOn, outputs, dependsOn, $schema, tasks, build, lint, test (+3 more)
 
 ### Community 120 - "ProjectTest"
-Cohesion: 0.25
-Nodes (5): add_remote(), ProjectTest, Base class giving each test its own project and ticket., No test calls the decision API, and none inherits a shell credential. A test…, A bare repository to push to, so delivery can be verified without a network.
+Cohesion: 0.22
+Nodes (7): add_remote(), make_project(), ProjectTest, A git repository shaped like Seen: a ticket, the harness files, one commit., Base class giving each test its own project and ticket., No test calls the decision API, and none inherits a shell credential. A test…, A bare repository to push to, so delivery can be verified without a network.
 
 ### Community 121 - "app.module.ts"
 Cohesion: 0.23
 Nodes (8): AppModule, HealthController, Controller, Get, Module, @nestjs/common, @nestjs/testing, supertest
 
-### Community 122 - "journal.py"
-Cohesion: 0.29
-Nodes (6): datetime, The append-only journal: one directory of numbered records per ticket. Each…, The one byte representation of a record. Never re-run on a written file., Write bytes to a name that must not already exist, atomically. A direct…, serialise(), write_once()
+### Community 122 - "coverage.py"
+Cohesion: 0.24
+Nodes (9): baseline(), compare(), measured(), Line coverage on the packages the harness holds a floor under. One fixed…, The last delivered figure, or None when nothing has delivered yet., The line percentage vitest's json-summary reporter wrote., Attach the baseline and the delta to a finished measurement run., Move the baseline. Called at delivery and nowhere else. (+1 more)
 
 ### Community 123 - "agent/package.json"
 Cohesion: 0.18
@@ -661,15 +662,15 @@ Cohesion: 0.18
 Nodes (10): description, main, name, private, scripts, lint, test, typecheck (+2 more)
 
 ### Community 125 - "core/package.json"
-Cohesion: 0.18
-Nodes (10): description, main, name, private, scripts, lint, test, typecheck (+2 more)
+Cohesion: 0.14
+Nodes (13): description, devDependencies, @vitest/coverage-v8, main, name, private, scripts, lint (+5 more)
 
 ### Community 126 - "api/package.json"
 Cohesion: 0.15
 Nodes (11): description, @seen/core, main, name, private, version, @nestjs/core, @nestjs/platform-express (+3 more)
 
 ### Community 127 - "vitest"
-Cohesion: 0.24
+Cohesion: 0.22
 Nodes (3): packageName, packageName, vitest
 
 ### Community 128 - "api/tsconfig.json"
@@ -688,13 +689,13 @@ Nodes (3): LEDGER_CURRENCY, packageName, sumCents()
 Cohesion: 0.29
 Nodes (7): dependencies, @nestjs/common, @nestjs/core, @nestjs/platform-express, reflect-metadata, rxjs, @seen/core
 
-### Community 132 - "SEEN-089: Enforce TDD and CI quality gates in the harness"
-Cohesion: 0.29
-Nodes (7): Acceptance criteria, Blocks, Carried in from SEEN-087, Context, Depends on, Description, SEEN-089: Enforce TDD and CI quality gates in the harness
+### Community 132 - "SEEN-089: Enforce the TDD gates in the harness"
+Cohesion: 0.25
+Nodes (8): Acceptance criteria, Blocks, Context, Depends on, Description, Moved to SEEN-094, Outcome, SEEN-089: Enforce the TDD gates in the harness
 
 ### Community 133 - "SEEN-090: Add harness security controls: secrets, permissions, injection, supply chain"
-Cohesion: 0.29
-Nodes (7): Acceptance criteria, Blocks, Carried in from SEEN-006 and SEEN-089, Context, Depends on, Description, SEEN-090: Add harness security controls: secrets, permissions, injection, supply chain
+Cohesion: 0.25
+Nodes (8): Acceptance criteria, Blocks, Carried in from SEEN-006 and SEEN-089, Carried in from SEEN-094, Context, Depends on, Description, SEEN-090: Add harness security controls: secrets, permissions, injection, supply chain
 
 ### Community 134 - "agent/tsconfig.json"
 Cohesion: 0.29
@@ -721,8 +722,8 @@ Cohesion: 0.33
 Nodes (6): Acceptance criteria, Blocks, Context, Depends on, Description, SEEN-092: Sync the harness skill to Claude Code and Codex and retire the Seene leftovers
 
 ### Community 140 - "SEEN-093: Add harness reopen to void a receipt before merge"
-Cohesion: 0.33
-Nodes (6): Acceptance criteria, Blocks, Context, Depends on, Description, SEEN-093: Add harness reopen to void a receipt before merge
+Cohesion: 0.15
+Nodes (12): Acceptance criteria, Blocks, Context, Depends on, Description, SEEN-093: Add harness reopen to void a receipt before merge, Acceptance criteria, Blocks (+4 more)
 
 ### Community 141 - "devDependencies"
 Cohesion: 0.50
@@ -732,25 +733,29 @@ Nodes (4): devDependencies, @nestjs/testing, supertest, @types/supertest
 Cohesion: 0.27
 Nodes (8): connection, HELLO_QUEUE, HelloPayload, HelloResult, HelloWorker, startHelloWorker(), worker, bullmq
 
+### Community 144 - "pull_request_template.md"
+Cohesion: 0.29
+Nodes (6): Acceptance criteria, Evidence, Limits, Receipt, Review findings, Summary
+
 ## Knowledge Gaps
-- **706 isolated node(s):** `graphify-mcp`, `name`, `version`, `private`, `description` (+701 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 850 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **721 isolated node(s):** `graphify-mcp`, `name`, `version`, `private`, `description` (+716 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 903 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
 - **8 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `HarnessError` connect `HarnessError` to `require`, `.evaluate`, `Repository`, `RecordTest`, `cli.py`, `DeliveryTest`, `GraphTest`, `doctor.py`, `advance`, `jev.py`, `stub`, `journal.py`, `.start`?**
-  _High betweenness centrality (0.219) - this node is a cross-community bridge._
+- **Why does `HarnessError` connect `HarnessError` to `require`, `.evaluate`, `Repository`, `RecordTest`, `cli.py`, `DeliveryWalk`, `GraphTest`, `doctor.py`, `CoverageTest`, `jev.py`, `stub`, `.start`?**
+  _High betweenness centrality (0.234) - this node is a cross-community bridge._
 - **Why does `Seen: MVP architecture` connect `Seen: MVP architecture` to `CLAUDE.md`?**
-  _High betweenness centrality (0.134) - this node is a cross-community bridge._
-- **Why does `read_evidence()` connect `require` to `cli.py`, `HarnessError`, `advance`, `Seen: MVP architecture`?**
-  _High betweenness centrality (0.133) - this node is a cross-community bridge._
-- **Are the 27 inferred relationships involving `HarnessError` (e.g. with `list_tickets()` and `main()`) actually correct?**
-  _`HarnessError` has 27 INFERRED edges - model-reasoned connections that need verification._
-- **Are the 6 inferred relationships involving `Repository` (e.g. with `HarnessError` and `DeliveryTest`) actually correct?**
-  _`Repository` has 6 INFERRED edges - model-reasoned connections that need verification._
-- **Are the 6 inferred relationships involving `execute()` (e.g. with `advance()` and `check()`) actually correct?**
-  _`execute()` has 6 INFERRED edges - model-reasoned connections that need verification._
+  _High betweenness centrality (0.138) - this node is a cross-community bridge._
+- **Why does `read_evidence()` connect `require` to `cli.py`, `HarnessError`, `Seen: MVP architecture`?**
+  _High betweenness centrality (0.138) - this node is a cross-community bridge._
+- **Are the 33 inferred relationships involving `HarnessError` (e.g. with `list_tickets()` and `main()`) actually correct?**
+  _`HarnessError` has 33 INFERRED edges - model-reasoned connections that need verification._
+- **Are the 7 inferred relationships involving `Repository` (e.g. with `HarnessError` and `DeliveryTest`) actually correct?**
+  _`Repository` has 7 INFERRED edges - model-reasoned connections that need verification._
+- **Are the 7 inferred relationships involving `execute()` (e.g. with `advance()` and `check()`) actually correct?**
+  _`execute()` has 7 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `graphify-mcp`, `name`, `version` to the rest of the system?**
-  _706 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _721 weakly-connected nodes found - possible documentation gaps or missing edges._

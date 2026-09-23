@@ -1,0 +1,15 @@
+{
+  "sequence": 3,
+  "ticket": "SEEN-094",
+  "timestamp": "2026-09-23T20:23:50.118919+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "49d5fbbb50b9ae0d674ee4d75339bb67f7b67a21",
+  "prev_hash": "2b722b9b3517a3e53bfe73190e4d45b576e877a2e57f899a3b035aa498184675",
+  "data": {
+    "text": "# What the clarify record left open, decided\n\n1. **\"The template is applied automatically\" is only true for pull requests opened in the browser.**\n   Every pull request this project has opened came from `gh pr create --body-file`, which bypasses the\n   template entirely. Decision: the template exists for a human opening one by hand, and the substance\n   is enforced where it cannot be bypassed: `verify-merge` requires the receipt hash in the body\n   whatever created it. The criterion is amended to say that rather than claiming an automation that\n   does not apply to how this project works.\n\n2. **How a seeded secret is proven to fail the pipeline, safely.** Decision: a throwaway branch\n   carrying a fake AWS key in a fixture file, pushed, the failing run recorded as the evidence, then\n   the branch deleted. The key is a documented example value, never a real credential, and the run\n   stays visible in the Actions history as proof. gitleaks scans the working tree rather than the full\n   history, so an old commit cannot fail every future run.\n\n3. **What a skipped check means.** Decision: `conclusion: skipped` counts as green. A job skipped by a\n   path filter has nothing to say about the commit, and treating it as a failure would block every\n   delivery that did not touch every path.\n\n4. **Where verify-merge gets the pull request.** Decision: `gh pr view --json number,body,headRefName`\n   for the current branch. No pull request means no merge to verify, and the command refuses rather\n   than passing.\n"
+  }
+}

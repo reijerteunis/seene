@@ -196,9 +196,15 @@ class BaselineTest(CommandTest):
     """The baseline moves only when a ticket delivers."""
 
     def test_delivery_writes_the_measured_figure_as_the_new_baseline(self):
+        from harness import github
         from harness.tests import helpers
         import json as json_module
         helpers.add_remote(self.root)
+        # Delivery now asks GitHub about the commit; this test is about the
+        # baseline, so the answer is green and nothing reaches the network.
+        github.CHECKS = lambda repository, commit: [
+            dict(name='ci', status='completed', conclusion='success')]
+        self.addCleanup(setattr, github, 'CHECKS', None)
         self.start()
         self.submit('clarify', clarify_evidence())
         self.submit('solution', solution_evidence())

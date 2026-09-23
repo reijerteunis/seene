@@ -1,0 +1,96 @@
+{
+  "sequence": 6,
+  "ticket": "SEEN-094",
+  "timestamp": "2026-09-23T20:26:51.576041+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "solution",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "49d5fbbb50b9ae0d674ee4d75339bb67f7b67a21",
+  "prev_hash": "d92970afc4032c6f536866462b45a176ed9bbbdbf88c61a2e3d4fec97f4fa93f",
+  "data": {
+    "from_stage": "solution",
+    "to_stage": "tdd",
+    "evidence": {
+      "approach": "One new module and one new command. harness/github.py holds two readers and nothing else: CHECKS(repository, commit) shells out to gh api repos/<owner>/<repo>/commits/<sha>/check-runs, and PULL_REQUEST(repository) to gh pr view --json number,body,headRefName. Both are module-level names so a test replaces them wholesale, exactly as the Jev transport is replaced, and no test touches GitHub. delivery.verify calls the first after confirming the commit is on the remote, and refuses unless every run has concluded success or skipped, refusing a run still in progress, a commit with no runs, and a gh that cannot answer. verify_merge is read-only and appends nothing, because its own rule is that the receipt is the last record: it checks the receipt, that its commit is an ancestor of the tip, that every commit between them touches only what delivery writes, that the pull request body carries the receipt hash, and that the tip's checks are green.",
+      "changes": [
+        "harness/github.py: new, the two readers and the refusal when gh cannot answer",
+        "harness/delivery.py: the CI check in verify, and verify_merge",
+        "harness/cli.py: the verify-merge command, read-only and appending nothing",
+        ".github/pull_request_template.md: acceptance criteria, red and green evidence, findings, limits and the receipt hash",
+        "harness/tests/test_merge.py: new, both commands against replaced readers"
+      ],
+      "migrations": [],
+      "tests_first": [
+        "verify-delivery refuses when a check concluded failure, naming the check: the RED must fail because delivery never asks",
+        "verify-delivery refuses when a check has not concluded, and when the commit has no checks at all: the RED must fail for the same reason",
+        "verify-delivery refuses when gh cannot answer, naming what to authenticate: the RED must fail because there is nothing to raise",
+        "verify-merge refuses when a commit after the receipt touches a source file, naming it: the RED must fail because no such command exists",
+        "verify-merge accepts commits after the receipt that touch only the journal, the coverage baseline and the graph: the RED must fail for the same reason",
+        "verify-merge refuses a pull request body without the receipt hash: the RED must fail for the same reason",
+        "verify-merge appends nothing, so the receipt stays the last record: the RED must fail because the command does not exist to append or not append"
+      ],
+      "alternatives": [
+        "Holding a GitHub token in the harness, rejected because gh already holds the authentication and a harness that learns to keep a token is a harness that can leak one",
+        "Treating a missing gh as a warning, rejected outright: a delivery that cannot be verified is not a delivery verified",
+        "Appending a merge record, rejected because the receipt must be the last record for the check to mean anything"
+      ],
+      "risks": [
+        "verify-merge is a step a person can skip by pressing the merge button; it is a check, not a lock, until branch protection exists in SEEN-090",
+        "gh being unavailable now blocks delivery rather than warning, which is deliberate and stated in the refusal"
+      ],
+      "rollback": "Revert the commit. Delivery returns to the offline checks SEEN-086 shipped and journals already written stay valid.",
+      "new_dependencies": [
+        "gh, already installed and authenticated, called rather than depended on"
+      ],
+      "tenant_tables": [
+        "none"
+      ],
+      "buyer_pii": "none",
+      "policy_gate_action": null
+    },
+    "decisions": [
+      {
+        "question": "solution_complete",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.67,
+          "no": 0.33
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "question": "touches_billing_or_policy_gate",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.08,
+          "no": 0.92
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

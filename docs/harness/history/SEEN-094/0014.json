@@ -1,0 +1,42 @@
+{
+  "sequence": 14,
+  "ticket": "SEEN-094",
+  "timestamp": "2026-09-23T20:35:59.502451+00:00",
+  "harness_version": "1",
+  "kind": "receipt",
+  "stage": "deliver",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "d4813a402c44e817a1f10338331e7ce916ad5d73",
+  "prev_hash": "baef682adc38566982130b288a2b5e0ff0b1445bb74dbb9e1e1c08173be8f13f",
+  "data": {
+    "from_stage": "deliver",
+    "to_stage": "delivered",
+    "commit": "d4813a402c44e817a1f10338331e7ce916ad5d73",
+    "branch": "claude/SEEN-094-verify-delivery-against-ci",
+    "remote": "origin",
+    "tree": "4bee21c834ed2e21f3f2c56b0372450fbb8567cd0880d5ad45a8ad5fdbeab9ed",
+    "pull_request": "https://github.com/reijerteunis/seene/pull/7",
+    "limits": [
+      "verify-merge is a check, not a lock: nothing stops someone pressing the merge button without it until branch protection exists in SEEN-090",
+      "Delivery now requires gh installed and authenticated, and refuses without it",
+      "gitleaks, pnpm audit and the seeded-secret proof are SEEN-090's",
+      "Reviewed by the session that wrote it: self-review, not independent"
+    ],
+    "evidence": {
+      "remote": "origin",
+      "pull_request": "https://github.com/reijerteunis/seene/pull/7",
+      "limits": [
+        "verify-merge is a check, not a lock: nothing stops someone pressing the merge button without it until branch protection exists in SEEN-090",
+        "Delivery now requires gh installed and authenticated, and refuses without it",
+        "gitleaks, pnpm audit and the seeded-secret proof are SEEN-090's",
+        "Reviewed by the session that wrote it: self-review, not independent"
+      ]
+    },
+    "coverage": {
+      "package": "@seen/core",
+      "lines": 100.0,
+      "delta": 0.0
+    }
+  }
+}

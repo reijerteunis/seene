@@ -1,0 +1,27 @@
+{
+  "sequence": 12,
+  "ticket": "SEEN-094",
+  "timestamp": "2026-09-23T20:33:20.081220+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "review",
+  "attempt": 1,
+  "actor": "claude:reviewer",
+  "head": "7269348c02a540523fd73112d257ebf3a945195f",
+  "prev_hash": "7fdb02a241184d57087b974452b5bb392782e46ddeca34026c47eacf4c49733c",
+  "data": {
+    "command": [
+      "sh",
+      "-c",
+      "python3 -m unittest discover -s harness/tests && pnpm turbo run lint typecheck test build --output-logs=errors-only && python3 harness/run.py doctor"
+    ],
+    "phase": "qa",
+    "exit_code": 0,
+    "duration_ms": 35724,
+    "output": "........................................................................................................................................................................................\n----------------------------------------------------------------------\nRan 184 tests in 35.325s\n\nOK\n• turbo 2.11.3\n\n   • Packages in scope: @seen/agent, @seen/api, @seen/connectors, @seen/core, @seen/web, @seen/worker\n   • Running lint, typecheck, test, build in 6 packages\n   • Remote caching disabled\n\n\n Tasks:    21 successful, 21 total\nCached:    21 cached, 21 total\n  Time:    7ms >>> FULL TURBO\n\n{\n  \"ok\": true,\n  \"checked\": [\n    \"python\",\n    \"thresholds\",\n    \"templates\",\n    \"journals\",\n    \"append_only\",\n    \"gitignore\",\n    \"links\"\n  ],\n  \"problems\": []\n}\n",
+    "output_sha256": "8fb4dfd005ddc951aecc8cf685b38513eaeaff3bf24adf363f741cbb003e21f1",
+    "output_truncated": false,
+    "before": "52617f430f029202a1b2f00e9688118633af57eaaab29acfdef2bad2b0dd38af",
+    "after": "52617f430f029202a1b2f00e9688118633af57eaaab29acfdef2bad2b0dd38af"
+  }
+}

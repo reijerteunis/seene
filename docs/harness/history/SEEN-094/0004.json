@@ -1,0 +1,15 @@
+{
+  "sequence": 4,
+  "ticket": "SEEN-094",
+  "timestamp": "2026-09-23T20:25:52.919580+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "49d5fbbb50b9ae0d674ee4d75339bb67f7b67a21",
+  "prev_hash": "8888724048e6a00037de61ad4dbf808a10e7ff115d8be49d0c158fc58093954a",
+  "data": {
+    "text": "# Jev was judging against a ticket that no longer existed\n\nThree clarify attempts scored 0.75, to two decimal places, each time. Identical scores across\nsubstantive edits are not a judgement, they are a signal that the input is not what it appears to be.\n\nAsking the same record with a short ticket text scored 0.86. The state the harness sends carries\n`ticket_text` from record 1's snapshot, frozen at `harness start`. SEEN-094's snapshot still demanded\ngitleaks and `pnpm audit`, which moved to SEEN-090 earlier today, so the model was correctly reporting\nthat the record did not resolve everything the ticket asked. It was reading a ticket that no longer\nexists.\n\nTickets are amended during clarify in this project, routinely and deliberately: SEEN-087's two\ncriteria, SEEN-006's AC4, SEEN-089's AC3 and SEEN-094's own template criterion. Judging a record\nagainst the document it was written before is how a resolved question keeps reading as an open one,\nand it would have got worse with every ticket.\n\nFixed here with a test: the gates read the ticket file as it stands, and fall back to the snapshot\nonly when the file is gone. The snapshot stays in the journal, where it is evidence of what the work\nwas originally asked to do, which is a different question from what it is being judged against.\n\nThis is the third harness defect surfaced by working a product ticket, after the override that did\nnot exist and the coverage baseline breaking ADR 0002. All three were found by using the thing rather\nthan by reading it.\n"
+  }
+}
