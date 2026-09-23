@@ -222,19 +222,19 @@
     },
     {
       "ticket": "SEEN-091",
-      "delivered_at": "2026-09-23T22:03:08.759340+00:00",
+      "delivered_at": "2026-09-23T22:21:38.588273+00:00",
       "points": 3,
-      "cycle_time_seconds": 873,
+      "cycle_time_seconds": 1983,
       "stage_seconds": {
         "clarify": 80,
         "solution": 131,
-        "tdd": 412,
-        "review": 259,
-        "deliver": 149,
-        "delivered": 286
+        "tdd": 492,
+        "review": 409,
+        "deliver": 414,
+        "delivered": 455
       },
-      "attempts": 2,
-      "rework": 1,
+      "attempts": 3,
+      "rework": 2,
       "red_before_green": true,
       "coverage": {
         "package": "@seen/core",
@@ -243,19 +243,19 @@
       },
       "findings": {
         "by_severity": {
-          "high": 1,
+          "high": 2,
           "medium": 3,
           "low": 1
         },
-        "fixed": 5,
+        "fixed": 6,
         "waived": 0
       },
       "first_pass_ci": true,
       "tokens": {
-        "input_tokens": 104,
-        "output_tokens": 78424,
-        "cache_read_input_tokens": 42338902,
-        "cache_creation_input_tokens": 74831
+        "input_tokens": 154,
+        "output_tokens": 105894,
+        "cache_read_input_tokens": 63535226,
+        "cache_creation_input_tokens": 104856
       },
       "cost": null,
       "escaped_defects": [],
@@ -343,13 +343,13 @@
   "totals": {
     "tickets": 9,
     "points_delivered": 30,
-    "median_cycle_time_seconds": 999.5,
-    "rework_per_ticket": 1.12,
+    "median_cycle_time_seconds": 1554.5,
+    "rework_per_ticket": 1.25,
     "first_pass_ci_rate": 1.0,
     "first_pass_ci_unknown": 8,
     "findings_by_severity": {
       "medium": 19,
-      "high": 12,
+      "high": 13,
       "low": 10,
       "blocking": 2
     }
