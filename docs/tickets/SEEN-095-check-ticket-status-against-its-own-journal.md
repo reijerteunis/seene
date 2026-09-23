@@ -44,11 +44,39 @@ everywhere else. A status corrected silently is a status nobody learns to keep r
 
 ## Acceptance criteria
 
-- [ ] doctor reports a ticket whose journal ends in a merged receipt but whose status is not done, naming the ticket and both values
-- [ ] doctor reports a ticket at a working stage whose status says done or todo
-- [ ] doctor accepts SEEN-086, which is done with no journal, because the bootstrap exemption is recorded
-- [ ] doctor accepts a delivered ticket whose receipt is not yet merged and whose status is review
-- [ ] doctor repairs nothing, proven by a test that leaves a wrong status in place
+- [x] doctor reports a ticket whose journal ends in a merged receipt but whose status is not done, naming the ticket and both values
+- [x] doctor reports a ticket at a working stage whose status says done or todo
+- [x] doctor accepts SEEN-086, which is done with no journal, because the bootstrap exemption is recorded
+- [x] doctor accepts a delivered ticket whose receipt is not yet merged and whose status is review
+- [x] doctor repairs nothing, proven by a test that leaves a wrong status in place
+
+## Outcome
+
+Delivered on 24 September 2026, opened the same day after two tickets were found sitting at `doing`
+hours after they had delivered and merged.
+
+**One check, four facts, no judgement**: the frontmatter status, the journal's last record, whether the
+receipt's commit is an ancestor of the default branch, and the bootstrap exemption. Merged is the same
+test `reopen` uses, so the two cannot disagree about what merged means. A delivered ticket waiting to
+merge may say `review`, which is the normal state between a receipt and the button. An unstarted ticket
+is not reported: eighty are `todo` with no journal, and saying so every run is noise. It reports and
+repairs nothing.
+
+**It has caught ten stale statuses in an afternoon.** The two that prompted it, SEEN-006 and SEEN-089,
+whose mark-done commits were lost in a rebase conflict. Then eight more: a plan revision arrived in the
+working tree written against an earlier snapshot, and had reset every delivered harness ticket to
+`todo`. The check named each one with the receipt commit that proves it merged, which is the difference
+between a report someone acts on and a report someone argues with.
+
+**Attempt 2 is the reconciliation of that revision**, which is documentation and numbering rather than
+code: the revision's two new tickets renumbered to SEEN-096 and SEEN-097, because SEEN-093 and SEEN-094
+are merged and quoted by receipts that cannot be renumbered; three sentences restored to `CLAUDE.md`
+that the code enforces and the revision could not have known about; and the eight statuses put back.
+The review stage saw the tree that actually ships, which is why the ticket was returned rather than
+delivered over a fingerprint that no longer matched.
+
+**Record 12 is junk**, a contrived command run out of habit, disowned in the note at record 14 and cited
+by nothing. It is the second in eleven tickets, after record 8 of SEEN-088.
 
 ## Depends on
 
