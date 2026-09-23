@@ -1,0 +1,27 @@
+{
+  "sequence": 16,
+  "ticket": "SEEN-090",
+  "timestamp": "2026-09-23T21:25:02.231961+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "review",
+  "attempt": 1,
+  "actor": "claude:reviewer",
+  "head": "f4ecb3e02f79c439663ccf624e28533a6a8db614",
+  "prev_hash": "397240d012caf00278655dcffcd0320c13922588a377d23e5a49d5c17f6e60cf",
+  "data": {
+    "command": [
+      "sh",
+      "-c",
+      "python3 -m unittest discover -s harness/tests && python3 harness/run.py lint && python3 harness/run.py doctor && pnpm turbo run lint typecheck test build --output-logs=errors-only"
+    ],
+    "phase": "qa",
+    "exit_code": 0,
+    "duration_ms": 47415,
+    "output": ".........................................................................................................................................................................................................\n----------------------------------------------------------------------\nRan 201 tests in 46.193s\n\nOK\n{\n  \"ok\": true,\n  \"checked\": \"test code\",\n  \"hosts\": [\n    \"api.bol.com\",\n    \"sellingpartnerapi\",\n    \"api.ebay.com\",\n    \"sellerapi.kaufland.com\",\n    \"api.otto.market\"\n  ]\n}\n{\n  \"ok\": true,\n  \"checked\": [\n    \"python\",\n    \"thresholds\",\n    \"templates\",\n    \"journals\",\n    \"append_only\",\n    \"gitignore\",\n    \"hooks\",\n    \"marketplace_hosts\",\n    \"links\"\n  ],\n  \"problems\": []\n}\n• turbo 2.11.3\n\n   • Packages in scope: @seen/agent, @seen/api, @seen/connectors, @seen/core, @seen/web, @seen/worker\n   • Running lint, typecheck, test, build in 6 packages\n   • Remote caching disabled\n\n\n Tasks:    21 successful, 21 total\nCached:    21 cached, 21 total\n  Time:    5ms >>> FULL TURBO\n\n",
+    "output_sha256": "601c3d7054ae573a4469b42b540b60d069799775ac13cc5206d337a1b3594173",
+    "output_truncated": false,
+    "before": "586b295189eacf233c5a256e2bd07bc91940b40f7ca699e577520bef48dd5dc4",
+    "after": "586b295189eacf233c5a256e2bd07bc91940b40f7ca699e577520bef48dd5dc4"
+  }
+}
