@@ -1,0 +1,127 @@
+{
+  "sequence": 23,
+  "ticket": "SEEN-088",
+  "timestamp": "2026-09-23T18:37:20.866755+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "review",
+  "attempt": 2,
+  "actor": "claude:reviewer",
+  "head": "5eddb8ad83a17fbd97671f963df45ba15147d22d",
+  "prev_hash": "eee82d7f40d54687d61a80744d955b02d0d076007b9bcc2890fc22bd68d4bb47",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "deliver",
+    "evidence": {
+      "reviewer": "claude:reviewer",
+      "independence": "self-review",
+      "acceptance_evidence": [
+        "AC1, a decision record with model, question, probabilities, threshold and outcome: record 21 is one, written by the human path, and test_an_answer_becomes_a_decision_record proves the Jev path writes the same shape",
+        "AC2, advance from clarify refused below the threshold, naming what it judged on: test_advance_from_clarify_is_refused_below_the_threshold and test_the_refusal_quotes_the_probability_it_judged_on",
+        "AC3, a billing or policy-gate change adds the checklist and a second reviewer: test_a_billing_or_policy_gate_ticket_needs_a_second_reviewer covers the draft, and the review gate refuses without them",
+        "AC4, with no credential every decision point records the fallback and continues: this ticket's own journal is the evidence, records 11 and 19 carry unavailable decisions, and record 21 is a human answer",
+        "AC5, the credential is read from .env.local first and never reaches a record: test_the_credential_is_read_from_the_env_file_before_the_environment and test_no_decision_record_holds_the_credential_or_any_environment_value, the second against an API that echoes the whole environment back"
+      ],
+      "findings": [
+        {
+          "id": "R-01",
+          "severity": "high",
+          "file": "harness/cli.py",
+          "line": 60,
+          "claim": "Every blocking question was treated as one that must clear its threshold, which is backwards for must_fix",
+          "failure_scenario": "A review finds nothing to fix, answers must_fix no, scores 0.1 on yes, and the advance is refused; a review that finds a blocking defect answers yes, scores 0.92, and sails through. The gate would have been precisely inverted on the one question that guards delivery",
+          "status": "resolved",
+          "resolution": "Returned to tdd at record 15. Each blocking question now declares which way it reads, with a red at 16 and a green at 17. Record 21 is the same answer that exposed it, now passing through"
+        },
+        {
+          "id": "R-02",
+          "severity": "high",
+          "file": "harness/tests/helpers.py",
+          "line": 70,
+          "claim": "Every existing test would have called the live Jev API, because a credential sits in this shell and the default transport is the real one",
+          "failure_scenario": "CI or a laptop with a valid key runs the suite, 141 tests each post a stage record to a third party, the run costs money and gives different answers on different days",
+          "status": "resolved",
+          "resolution": "The test base strips both credential names from the environment and nulls the transport, with cleanup restoring them. Fixed after the green rather than before it, which the note at record 9 states plainly"
+        },
+        {
+          "id": "R-03",
+          "severity": "medium",
+          "claim": "Requiring a recorded judgement before every advance made the harness unusable without a Jev credential",
+          "failure_scenario": "Anyone without a key, which is everyone today, cannot advance any ticket, and the harness SEEN-086 delivered stops working the moment this ticket lands",
+          "status": "resolved",
+          "resolution": "A judgement that cannot be taken is recorded as source unavailable with no outcome and no probability, and the stage proceeds. It blocks nothing and SEEN-091 can count it"
+        },
+        {
+          "id": "R-04",
+          "severity": "low",
+          "claim": "Record 8 is a meaningless check, run to inspect the output format",
+          "failure_scenario": "A later reader treats it as evidence of a failing test for this ticket",
+          "status": "resolved",
+          "resolution": "Left in place and disowned in the note at record 9, because a journal that can be tidied is not a journal. Nothing cites it"
+        },
+        {
+          "id": "R-05",
+          "severity": "medium",
+          "claim": "The live API contract is unverified: the credential in this shell is rejected, so the response parser was written against a shape nobody has seen",
+          "failure_scenario": "A valid key arrives, the first real call returns a body shaped differently, and every decision falls back to the human path while appearing to be integrated",
+          "status": "resolved",
+          "resolution": "Accepted knowingly and recorded at clarify. The parser is one function behind a seam, the failure mode is the fallback rather than a crash, and the ticket's Outcome names the verification as outstanding"
+        }
+      ],
+      "checks": [
+        20
+      ],
+      "security_checklist": [
+        "No secret in the diff: .env.local is gitignored and the credential is read, never written to a record",
+        "A test proves an API echoing the whole environment back cannot get any of it into the journal",
+        "No new dependency: the transport is urllib from the standard library",
+        "No live marketplace call in a test, and now no live Jev call either: the test base seals both off",
+        "Jev decides nothing about the product: the questions are about the procedure, and the ticket says so in its first line"
+      ],
+      "verdict": "pass",
+      "tree": "64735be3bd761c73ca79f47ccb1b2604708f6f66b14ba3e4e4ef6592ec7cbea8"
+    },
+    "decisions": [
+      {
+        "question": "severity",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high",
+          "blocking"
+        ],
+        "source": "human",
+        "model": null,
+        "outcome": "high",
+        "probabilities": {
+          "low": 0.0,
+          "medium": 0.0,
+          "high": 0.85,
+          "blocking": 0.0
+        },
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": "HTTPError: HTTP Error 403: Forbidden"
+      },
+      {
+        "question": "must_fix",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "human",
+        "model": null,
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.0,
+          "no": 0.9
+        },
+        "threshold": 0.7,
+        "passed": false,
+        "fallback_reason": "HTTPError: HTTP Error 403: Forbidden"
+      }
+    ]
+  }
+}

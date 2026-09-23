@@ -21,7 +21,7 @@ Every ticket runs through the Seen harness (`docs/harness/workflow.md`): five st
 
 1. Read `docs/prd/prd.md`, `docs/architecture.md`, `docs/harness/workflow.md` and the ticket file. The ticket's acceptance criteria are the definition of done; do not widen the scope.
 2. Branch from `main` as `claude/<ticket-id>-<slug>` (Codex sessions use `codex/`). One ticket per branch.
-3. Set `status: doing` in the ticket's frontmatter in the first commit; set `status: review` when every acceptance criterion is checked; `done` after merge.
+3. Set `status: doing` in the ticket's frontmatter in the first commit; set `status: review` when every acceptance criterion is checked; `done` after merge. Write the ticket's `## Outcome` section **before** advancing out of the review stage: the reviewed-tree fingerprint covers the ticket file, so an outcome added afterwards makes `verify-delivery` refuse. The receipt hash is the one thing that cannot be written earlier, and it belongs in the pull request body.
 4. Tests first for anything in `packages/core` (detectors, matching, fee expectations, the policy gate). Integration tests mock the connectors; never call a live marketplace from a test.
 5. Commits: `feat(<id>): ...`, `fix(<id>): ...`, `docs(<id>): ...`, `test(<id>): ...`. Keep the ticket id in every commit.
 6. Human tickets (executor `human`) are registrations, verifications against a live account and real-data runs. Do them with Ruud, record the outcome in the ticket file under a `## Outcome` heading, and never invent API facts a verification ticket was meant to establish.

@@ -1,0 +1,15 @@
+{
+  "sequence": 3,
+  "ticket": "SEEN-088",
+  "timestamp": "2026-09-23T18:27:42.992190+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "3097b6ccd6fadf8a7c8d4f366746db9e27aba6d9",
+  "prev_hash": "71601b2d0599b57e2931bd1080a70c8013dd4dda752e13cac2d0b562219012b8",
+  "data": {
+    "text": "# The Jev API cannot be verified with the credential on this machine\n\nProbed on 23 September 2026 against POST https://thejevai.com/v1/systemone, one throwaway question\n(\"Is the sky blue?\") carrying no repository content.\n\n| Request | Response |\n|---|---|\n| `Authorization: Bearer <JEV_AI_API_KEY>` | 401 `{\"code\":-1,\"message\":\"Invalid API key.\"}` |\n| `Authorization: <JEV_AI_API_KEY>` | 401 `{\"code\":-1,\"message\":\"Invalid API key.\"}` |\n| `x-api-key: <JEV_AI_API_KEY>` | 401 `{\"code\":-1,\"message\":\"Please sign in to use the playground.\"}` |\n| `api-key: <JEV_AI_API_KEY>` | 401 `{\"code\":-1,\"message\":\"Please sign in to use the playground.\"}` |\n\nWhat this establishes: the endpoint exists, it authenticates through the Authorization header, and\nthe credential in this shell (`JEV_AI_API_KEY`, 60 characters, prefix `vck`) is not valid for it.\nThe two distinct 401 messages separate \"no credential at all\" from \"credential rejected\", so the\nheader form is confirmed even though the key is not.\n\nWhat it does not establish: the request body, the response body, how a `noul` answer carries its\nprobability, or how a `score` question returns per-option probabilities. Those are the contract the\nharness has to parse, and inventing them would be exactly the failure CLAUDE.md rule 6 names.\n\nDecision taken rather than left open: build the decision layer with a transport seam and the\nhuman-fallback path, both fully tested, and leave the live call unverified until a valid Jev\ncredential exists. The fallback path is not a stopgap; the ticket requires it in its own right, and\nit is what the harness uses whenever the API is unavailable.\n"
+  }
+}

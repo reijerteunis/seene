@@ -1,0 +1,40 @@
+{
+  "sequence": 4,
+  "ticket": "SEEN-088",
+  "timestamp": "2026-09-23T18:27:56.715142+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "3097b6ccd6fadf8a7c8d4f366746db9e27aba6d9",
+  "prev_hash": "b2d11da4c26bc1e599ffbbebfbcf74c4215608840b2778a3516de70e24e8fb4c",
+  "data": {
+    "from_stage": "clarify",
+    "to_stage": "solution",
+    "evidence": {
+      "scope": "Add the harness's decision layer: typed questions asked of Jev at the stage gates, recorded with their probabilities, with a human fallback whenever the API cannot answer, and thresholds in thresholds.toml rather than in any prompt.",
+      "acceptance": [
+        "harness decide SEEN-088 --question risk appends a decision record carrying the model, the question, the per-option probabilities, the threshold applied and the outcome: evidenced by the record and its test",
+        "advance from clarify is refused below the clarified threshold of 0.8 and the refusal names the open question from the record: evidenced by the test and the refusal message",
+        "advance from solution adds the security checklist and a second reviewer to the review template when touches_billing_or_policy_gate is yes: evidenced by the generated draft",
+        "With no key, every decision point asks the human and records fallback: human rather than failing: evidenced by the test and by this ticket's own journal, which will contain exactly such records",
+        "The key is read from .env.local first and the environment second, and a test proves no decision record can contain the key or any environment value: evidenced by that test"
+      ],
+      "decisions": [
+        "The credential in this shell is rejected by the API (record 3), so the live call is built behind a transport seam and left unverified until a valid Jev credential exists. The human-fallback path is delivered working, because the ticket requires it in its own right and the harness uses it whenever the API is unavailable. Founder, 23 September 2026",
+        "The whole stage record is sent as state, per the ticket: it is internal working text with no credentials and no customer data, and a redacted digest would have Jev judging a label rather than the work. Founder, 23 September 2026",
+        "The key is read from .env.local first and the environment second, and .env.local is written from the JEV_AI_API_KEY already present, so the ticket's intent holds without breaking what exists. Founder, 23 September 2026",
+        "Probing the API with a throwaway question carrying no repository content was authorised before the first call. Founder, 23 September 2026",
+        "The question named touches_billing_or_gate in the original ticket is touches_billing_or_policy_gate, renamed when CONTEXT.md retired bare 'gate'"
+      ],
+      "open_questions": [],
+      "changes_agent_action": false,
+      "graph_impact": [
+        "evaluate() in harness/gates.py is called by advance() and indirectly by execute(): the decision layer hangs off the stage gates, so both are touched",
+        "The templates are read by gates.load_template, which is where a second reviewer would be added to the review template"
+      ]
+    },
+    "decisions": []
+  }
+}

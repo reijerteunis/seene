@@ -1,0 +1,18 @@
+{
+  "sequence": 15,
+  "ticket": "SEEN-088",
+  "timestamp": "2026-09-23T18:35:49.269721+00:00",
+  "harness_version": "1",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 1,
+  "actor": "claude:reviewer",
+  "head": "5eddb8ad83a17fbd97671f963df45ba15147d22d",
+  "prev_hash": "83feb42ed63bceb56f59436a5c28f8d9172902b0defa7499b81fa3693455e9f0",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 2,
+    "reason": "The blocking rule assumed every question refuses when it fails to clear its threshold. That is right for clarified and solution_complete, and exactly backwards for must_fix: a review answering 'no, nothing must be fixed' scores 0.0 on yes and would have been refused, while a review answering 'yes, this must be fixed' would have sailed through. Record 14 is the answer that showed it."
+  }
+}

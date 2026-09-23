@@ -1,0 +1,30 @@
+{
+  "sequence": 30,
+  "ticket": "SEEN-088",
+  "timestamp": "2026-09-23T19:00:50.265994+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "head": "0b52211a3d19d802eae1438c05d32ab7276992db",
+  "prev_hash": "630bef089dcda5f555052aab7b47d3f6eb174e0a1677a02a3a0c77a033b457b9",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "harness/tests"
+    ],
+    "phase": "regression",
+    "exit_code": 0,
+    "duration_ms": 26626,
+    "output": "..........................................................................................................................................................................\n----------------------------------------------------------------------\nRan 170 tests in 26.575s\n\nOK\n",
+    "output_sha256": "b228aa1fd12aa49f80dc3c629b8a34e6728fc5b4d15e53d352adb165890bf9de",
+    "output_truncated": false,
+    "before": "3bd4f8a5ff753b2bb5393e1bd4e7237de093e1f0338427e9bb26cd5c4a209550",
+    "after": "3bd4f8a5ff753b2bb5393e1bd4e7237de093e1f0338427e9bb26cd5c4a209550"
+  }
+}

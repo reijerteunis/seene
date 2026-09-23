@@ -1,0 +1,34 @@
+{
+  "sequence": 22,
+  "ticket": "SEEN-088",
+  "timestamp": "2026-09-23T18:37:20.794444+00:00",
+  "harness_version": "1",
+  "kind": "decision",
+  "stage": "review",
+  "attempt": 2,
+  "actor": "claude:reviewer",
+  "head": "5eddb8ad83a17fbd97671f963df45ba15147d22d",
+  "prev_hash": "ee6fea371394101fb3ca430ff379a8f72ec294f35231ea21b1ec08403259d1f9",
+  "data": {
+    "question": "severity",
+    "type": "score",
+    "options": [
+      "low",
+      "medium",
+      "high",
+      "blocking"
+    ],
+    "source": "human",
+    "model": null,
+    "outcome": "high",
+    "probabilities": {
+      "low": 0.0,
+      "medium": 0.0,
+      "high": 0.85,
+      "blocking": 0.0
+    },
+    "threshold": null,
+    "passed": null,
+    "fallback_reason": "HTTPError: HTTP Error 403: Forbidden"
+  }
+}

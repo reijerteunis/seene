@@ -1,0 +1,18 @@
+{
+  "sequence": 35,
+  "ticket": "SEEN-088",
+  "timestamp": "2026-09-23T19:02:48.243078+00:00",
+  "harness_version": "1",
+  "kind": "return",
+  "stage": "deliver",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "head": "489847c142e826713e1d7d67dfa15a6616aac342",
+  "prev_hash": "f3a67deafd141feddec3f78e19d566c16e64a0e70d2551d3272655135e577ec2",
+  "data": {
+    "from_stage": "deliver",
+    "to_stage": "tdd",
+    "to_attempt": 4,
+    "reason": "The ticket's Outcome section was written after review attested the tree, so verify-delivery refused. Every ticket will hit this, because an outcome is written at the end. The convention becomes: the Outcome is written before the review stage, and only the receipt hash, which cannot exist earlier, goes in the pull request body."
+  }
+}

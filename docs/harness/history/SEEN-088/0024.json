@@ -1,0 +1,15 @@
+{
+  "sequence": 24,
+  "ticket": "SEEN-088",
+  "timestamp": "2026-09-23T18:39:00.345067+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "deliver",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "head": "426e5c1fad9327a19ead1feb7d5e5f7ddca2eccd",
+  "prev_hash": "b61b352d00cea0a9db2eaa40885718920c6febd32f46b3f707b2df86c9bcc574",
+  "data": {
+    "text": "# verify-delivery refused, and it was right\n\nAfter the review record was written at 23, I added `.env.example` to the tree and committed it. It is\nfour lines of documentation, it is harmless, and it was never reviewed. `verify-delivery` compared\nthe tree against the fingerprint review had attested, found the difference, and refused.\n\nThe file is removed rather than the gate overridden. Documentation of where a credential goes belongs\nto SEEN-090, which owns the security controls, and it will be reviewed there. What gets delivered\nhere is exactly what was reviewed, which is the only claim a receipt is able to make.\n"
+  }
+}

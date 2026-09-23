@@ -4,6 +4,7 @@ Tests never touch the repository they live in: a test that can append to the
 live journal is a test that can forge evidence.
 """
 
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -62,6 +63,21 @@ class ProjectTest(unittest.TestCase):
 
     def setUp(self):
         self.root, self.ticket_file = make_project(self.ticket_id)
+        self._isolate_from_jev()
+
+    def _isolate_from_jev(self):
+        """No test calls the decision API, and none inherits a shell credential.
+
+        A test that could reach Jev would be a test that spends money and gives
+        different answers on different days.
+        """
+        from harness import jev
+        for name in jev.CREDENTIAL_NAMES:
+            if name in os.environ:
+                value = os.environ.pop(name)
+                self.addCleanup(os.environ.__setitem__, name, value)
+        jev.TRANSPORT = None
+        self.addCleanup(setattr, jev, 'TRANSPORT', None)
 
     def git(self, *args):
         return git(self.root, *args)

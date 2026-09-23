@@ -1,0 +1,37 @@
+{
+  "sequence": 39,
+  "ticket": "SEEN-088",
+  "timestamp": "2026-09-23T19:03:38.731227+00:00",
+  "harness_version": "1",
+  "kind": "receipt",
+  "stage": "deliver",
+  "attempt": 4,
+  "actor": "claude:implementer",
+  "head": "bb373f9621db919a850882cb515a39c7dedecf28",
+  "prev_hash": "e5d26daa2c39f9511fb66566b85bb2496c54b7a03eb15ef398341ffff1ce0119",
+  "data": {
+    "from_stage": "deliver",
+    "to_stage": "delivered",
+    "commit": "bb373f9621db919a850882cb515a39c7dedecf28",
+    "branch": "claude/SEEN-088-integrate-jev-ai-typed-decisions",
+    "remote": "origin",
+    "tree": "164600b9a423e93a0100419598bb8ca2ae7828f554f5e4aacaee1d35fb075fa7",
+    "pull_request": "https://github.com/reijerteunis/seene/pull/3",
+    "limits": [
+      "The live Jev call has never succeeded: the credential on this machine is rejected, so the response parser is written against a shape nobody has seen and is verified only against a stub",
+      "Every judgement on this ticket was made by a human or recorded as unavailable, which is the fallback working rather than the integration working",
+      "Reviewed by the session that wrote it: self-review, not independent",
+      "Record 8 is a meaningless check, disowned in the note at record 9"
+    ],
+    "evidence": {
+      "remote": "origin",
+      "pull_request": "https://github.com/reijerteunis/seene/pull/3",
+      "limits": [
+        "The live Jev call has never succeeded: the credential on this machine is rejected, so the response parser is written against a shape nobody has seen and is verified only against a stub",
+        "Every judgement on this ticket was made by a human or recorded as unavailable, which is the fallback working rather than the integration working",
+        "Reviewed by the session that wrote it: self-review, not independent",
+        "Record 8 is a meaningless check, disowned in the note at record 9"
+      ]
+    }
+  }
+}

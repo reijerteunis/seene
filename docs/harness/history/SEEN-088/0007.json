@@ -1,0 +1,28 @@
+{
+  "sequence": 7,
+  "ticket": "SEEN-088",
+  "timestamp": "2026-09-23T18:31:53.290919+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "3097b6ccd6fadf8a7c8d4f366746db9e27aba6d9",
+  "prev_hash": "dd316b7666eb6edb4eb5822dd7fe1c4f0b339154ad9eb4c50d57fc7e263a1060",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_decisions"
+    ],
+    "phase": "green",
+    "exit_code": 0,
+    "duration_ms": 1747,
+    "output": "......./Users/ruudvanengelenhoven/.local/share/mise/installs/python/3.14.5/lib/python3.14/tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 403: 'Forbidden'>\n  _warnings.warn(self.warn_message, ResourceWarning)\n./Users/ruudvanengelenhoven/.local/share/mise/installs/python/3.14.5/lib/python3.14/tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 403: 'Forbidden'>\n  _warnings.warn(self.warn_message, ResourceWarning)\n./Users/ruudvanengelenhoven/.local/share/mise/installs/python/3.14.5/lib/python3.14/tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 403: 'Forbidden'>\n  _warnings.warn(self.warn_message, ResourceWarning)\n........\n----------------------------------------------------------------------\nRan 17 tests in 1.664s\n\nOK\n",
+    "output_sha256": "f5eb95e51b16ed112633e3d55d505774ae9a80ab9dccb1daffbcabfa37ee33c7",
+    "output_truncated": false,
+    "before": "5c9f67ee6b2809ceb9a84805e51f7b6c50ac289d8033393d8123a8cf435d0064",
+    "after": "5c9f67ee6b2809ceb9a84805e51f7b6c50ac289d8033393d8123a8cf435d0064"
+  }
+}

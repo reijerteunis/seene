@@ -1,0 +1,15 @@
+{
+  "sequence": 9,
+  "ticket": "SEEN-088",
+  "timestamp": "2026-09-23T18:34:37.340405+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "3097b6ccd6fadf8a7c8d4f366746db9e27aba6d9",
+  "prev_hash": "958a768301ab8586a9bd32bff6fca3a148c0f9b3a68ddbdb3e6476d7931ef030",
+  "data": {
+    "text": "# Two things about this ticket's evidence, stated rather than tidied away\n\n**Record 8 is junk.** I ran `harness check --phase red -- sh -c 'exit 1'` to look at the shape of\nthe history output, and the harness did exactly what it is built to do: it recorded the run. The\nrecord is meaningless as evidence, it is cited by nothing, and it stays where it is, because a\njournal that can be tidied is not a journal. Record 6 is the real red for this ticket's slice.\n\n**The correction after the green had no red of its own.** The green at record 7 covered the decision\nlayer against a stub. Running the full suite then showed 17 errors from two real defects: every\nexisting test would have reached the live API, because a credential sits in this shell and the\ndefault transport is the real one, and requiring a recorded judgement before every advance made the\nharness unusable without Jev, which contradicts the ticket's own \"records the fallback, and\ncontinues\". Both were fixed after the green rather than before it: a judgement that could not be\ntaken is now recorded as `source: unavailable` with no outcome and no probability, and the test base\nstrips the credential and the transport so no test can call the API or spend money.\n\nThat work has a regression behind it but no red of its own, and the tdd record says so rather than\npretending otherwise. SEEN-089 is the ticket that makes such a gap impossible to advance past.\n"
+  }
+}
