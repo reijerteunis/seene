@@ -1,0 +1,15 @@
+{
+  "sequence": 2,
+  "ticket": "SEEN-093",
+  "timestamp": "2026-09-23T18:52:05.918864+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "9272f85f6cb320a9c59e53652512b9483d5309e6",
+  "prev_hash": "21ff6342c403f2decce5e6f4d26552e690083e45f55ab328647dfa450a2da848",
+  "data": {
+    "text": "# Record 1 points at a commit that no longer exists\n\n`harness start` ran while this branch was accidentally based on SEEN-088's branch, because a checkout\nto main had failed: graphify's post-commit hook leaves `graphify-out` dirty, and git refuses to\nswitch branches over uncommitted changes. The branch was rebased onto main afterwards, which rewrote\nthe commit record 1 recorded as its head.\n\nSo record 1's `head` and `base_commit` name `a228b86`, which is not reachable any more. The chain is\nintact and nothing else is affected; the anchor is simply stale. Recorded here rather than by\nrewriting record 1, which is the one thing a journal must never do.\n\nThe underlying nuisance is worth naming: after every commit the graph rebuilds in the background, so\na branch switch immediately afterwards fails. Discarding `graphify-out` before switching is the\nworkaround, and a cleaner answer belongs with SEEN-089's delivery checks.\n"
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "sequence": 4,
+  "ticket": "SEEN-093",
+  "timestamp": "2026-09-23T18:52:56.838252+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "solution",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "9272f85f6cb320a9c59e53652512b9483d5309e6",
+  "prev_hash": "a2df06e06462e090b041b8f4382c807f3853c04cf15d463ef8d57cc8b56a0f0b",
+  "data": {
+    "from_stage": "solution",
+    "to_stage": "tdd",
+    "evidence": {
+      "approach": "One command and one record kind. reopen reads the journal, finds the receipt, hashes the receipt file to name what it is voiding, asks git whether that commit is already in the default branch, and appends a reopen record whose transition sends the ticket to tdd on the next attempt. journal.state already applies whatever transition the last record describes, so nothing in the reader changes. The receipt stays exactly where it is: voiding is a record that follows it, never an edit to it.",
+      "changes": [
+        "harness/paths.py: the reopen record kind",
+        "harness/journal.py: reopen joins the transitions state applies",
+        "harness/cli.py: the reopen subcommand, its refusals and its record",
+        "harness/repository.py: default_branch and is_in_default_branch, asking git rather than assuming main",
+        "harness/tests/test_reopen.py: new, the whole command including a merged ticket that may not be reopened"
+      ],
+      "migrations": [],
+      "tests_first": [
+        "reopen on a delivered ticket appends a reopen record carrying the voided receipt hash and the reason, and status shows tdd on the next attempt: the RED must fail on there being no reopen command",
+        "reopen on a ticket still at tdd is refused and names the stage it is in: the RED must fail because every stage is accepted",
+        "reopen after the delivered commit is merged into the default branch is refused and names the branch: the RED must fail because git is never asked",
+        "The chain still verifies across a reopen, and a second verify-delivery writes a second receipt: the RED must fail because the second delivery is refused as already delivered"
+      ],
+      "alternatives": [
+        "Deleting the receipt record, rejected outright: a journal that can be tidied is not evidence",
+        "Allowing reopen after merge, rejected because a merged receipt is history and the PR that merged it quotes the hash",
+        "Leaving delivered terminal and opening a correction ticket per defect, rejected because it inflates the backlog and hides rework in velocity, which is what happened twice in two tickets"
+      ],
+      "risks": [
+        "Reopening could become a habit that makes receipts meaningless; mitigated by every reopen being a record with a reason and an actor, and by SEEN-091 counting them as rework",
+        "The default branch is not always main; mitigated by asking git for origin/HEAD and falling back rather than assuming"
+      ],
+      "rollback": "Revert the commit. Journals that already carry a reopen record still read correctly, because state applies the transition the record describes rather than a hard-coded list.",
+      "new_dependencies": [],
+      "tenant_tables": [
+        "none"
+      ],
+      "buyer_pii": "none",
+      "policy_gate_action": null
+    },
+    "decisions": []
+  }
+}

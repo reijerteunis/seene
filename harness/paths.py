@@ -18,7 +18,7 @@ FINAL_WORKING_STAGE = 'deliver'
 # complete at SEEN-092, so the first six journals are not stamped six ways.
 HARNESS_VERSION = '1'
 
-KINDS = ('start', 'note', 'check', 'advance', 'return', 'receipt')
+KINDS = ('start', 'note', 'check', 'advance', 'return', 'receipt', 'reopen')
 
 # Committed run history: docs/harness/history/<TICKET>/0001.json and onwards.
 HISTORY = Path('docs/harness/history')

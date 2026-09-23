@@ -4,6 +4,19 @@
   "graph": {},
   "nodes": [
     {
+      "id": "harness_tests_test_stage_gates_clarifygatetest",
+      "label": "ClarifyGateTest",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": ".evaluate",
+      "file_type": "code",
+      "norm_label": "clarifygatetest",
+      "source_file": "harness/tests/test_stage_gates.py",
+      "source_location": "L93"
+    },
+    {
       "id": "harness_tests_test_stage_gates_gatetest",
       "label": "GateTest",
       "_callable": true,
@@ -95,19 +108,6 @@
       "source_location": "L22"
     },
     {
-      "id": "harness_tests_test_isolation_isolationtest",
-      "label": "IsolationTest",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 116,
-      "community_name": "IsolationTest",
-      "file_type": "code",
-      "norm_label": "isolationtest",
-      "source_file": "harness/tests/test_isolation.py",
-      "source_location": "L13"
-    },
-    {
       "id": "harness_errors_harnesserror",
       "label": "HarnessError",
       "_callable": true,
@@ -126,25 +126,38 @@
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
-      "community": 13,
-      "community_name": "HarnessError",
+      "community": 2,
+      "community_name": ".start",
       "file_type": "code",
       "norm_label": "projecttest",
       "source_file": "harness/tests/helpers.py",
       "source_location": "L58"
     },
     {
-      "id": "harness_tests_test_stage_gates_clarifygatetest",
-      "label": "ClarifyGateTest",
+      "id": "harness_tests_test_isolation_entrypointtest",
+      "label": "EntryPointTest",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
-      "community": 13,
-      "community_name": "HarnessError",
+      "community": 2,
+      "community_name": ".start",
       "file_type": "code",
-      "norm_label": "clarifygatetest",
-      "source_file": "harness/tests/test_stage_gates.py",
-      "source_location": "L93"
+      "norm_label": "entrypointtest",
+      "source_file": "harness/tests/test_isolation.py",
+      "source_location": "L31"
+    },
+    {
+      "id": "harness_tests_test_isolation_isolationtest",
+      "label": "IsolationTest",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": ".start",
+      "file_type": "code",
+      "norm_label": "isolationtest",
+      "source_file": "harness/tests/test_isolation.py",
+      "source_location": "L13"
     },
     {
       "id": "harness_tests_test_lifecycle_advancetest",
@@ -264,19 +277,6 @@
       "source_location": "L15"
     },
     {
-      "id": "harness_tests_test_doctor_doctortest",
-      "label": "DoctorTest",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "Repository",
-      "file_type": "code",
-      "norm_label": "doctortest",
-      "source_file": "harness/tests/test_doctor.py",
-      "source_location": "L11"
-    },
-    {
       "id": "harness_tests_test_repository_repositorytest",
       "label": "RepositoryTest",
       "_callable": true,
@@ -290,17 +290,17 @@
       "source_location": "L8"
     },
     {
-      "id": "harness_tests_test_isolation_entrypointtest",
-      "label": "EntryPointTest",
+      "id": "harness_tests_test_doctor_doctortest",
+      "label": "DoctorTest",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
       "community": 4,
-      "community_name": "EntryPointTest",
+      "community_name": "DoctorTest",
       "file_type": "code",
-      "norm_label": "entrypointtest",
-      "source_file": "harness/tests/test_isolation.py",
-      "source_location": "L31"
+      "norm_label": "doctortest",
+      "source_file": "harness/tests/test_doctor.py",
+      "source_location": "L11"
     },
     {
       "id": "harness_tests_test_journal_recordtest",
@@ -329,84 +329,12 @@
       "source_location": "L10"
     },
     {
-      "id": "harness_cli_draft",
-      "label": "draft()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 0,
-      "community_name": "require",
-      "file_type": "code",
-      "norm_label": "draft()",
-      "source_file": "harness/cli.py",
-      "source_location": "L195"
-    },
-    {
-      "id": "harness_cli_read_evidence",
-      "label": "read_evidence()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 0,
-      "community_name": "require",
-      "file_type": "code",
-      "norm_label": "read_evidence()",
-      "source_file": "harness/cli.py",
-      "source_location": "L257"
-    },
-    {
-      "id": "harness_delivery_evidence",
-      "label": "_evidence()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 0,
-      "community_name": "require",
-      "file_type": "code",
-      "norm_label": "_evidence()",
-      "source_file": "harness/delivery.py",
-      "source_location": "L49"
-    },
-    {
-      "id": "harness_delivery_require_committed",
-      "label": "_require_committed()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 0,
-      "community_name": "require",
-      "file_type": "code",
-      "norm_label": "_require_committed()",
-      "source_file": "harness/delivery.py",
-      "source_location": "L58"
-    },
-    {
-      "id": "harness_delivery_verify",
-      "label": "verify()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 0,
-      "community_name": "require",
-      "file_type": "code",
-      "norm_label": "verify()",
-      "source_file": "harness/delivery.py",
-      "source_location": "L15"
-    },
-    {
-      "id": "harness_errors_require",
-      "label": "require()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 0,
-      "community_name": "require",
-      "file_type": "code",
-      "norm_label": "require()",
-      "source_file": "harness/errors.py",
-      "source_location": "L8"
-    },
-    {
       "id": "harness_gates_cited_check",
       "label": "cited_check()",
       "_callable": true,
       "_origin": "ast",
       "community": 0,
-      "community_name": "require",
+      "community_name": "gates.py",
       "file_type": "code",
       "norm_label": "cited_check()",
       "source_file": "harness/gates.py",
@@ -418,7 +346,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 0,
-      "community_name": "require",
+      "community_name": "gates.py",
       "file_type": "code",
       "norm_label": "_clarify()",
       "source_file": "harness/gates.py",
@@ -430,7 +358,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 0,
-      "community_name": "require",
+      "community_name": "gates.py",
       "file_type": "code",
       "norm_label": "evaluate()",
       "source_file": "harness/gates.py",
@@ -442,7 +370,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 0,
-      "community_name": "require",
+      "community_name": "gates.py",
       "file_type": "code",
       "norm_label": "_filled()",
       "source_file": "harness/gates.py",
@@ -454,7 +382,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 0,
-      "community_name": "require",
+      "community_name": "gates.py",
       "file_type": "code",
       "norm_label": "latest_evidence()",
       "source_file": "harness/gates.py",
@@ -466,7 +394,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 0,
-      "community_name": "require",
+      "community_name": "gates.py",
       "file_type": "code",
       "norm_label": "load_template()",
       "source_file": "harness/gates.py",
@@ -478,7 +406,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 0,
-      "community_name": "require",
+      "community_name": "gates.py",
       "file_type": "code",
       "norm_label": "_non_code()",
       "source_file": "harness/gates.py",
@@ -490,7 +418,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 0,
-      "community_name": "require",
+      "community_name": "gates.py",
       "file_type": "code",
       "norm_label": "record_at()",
       "source_file": "harness/gates.py",
@@ -502,7 +430,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 0,
-      "community_name": "require",
+      "community_name": "gates.py",
       "file_type": "code",
       "norm_label": "reject_placeholders()",
       "source_file": "harness/gates.py",
@@ -514,7 +442,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 0,
-      "community_name": "require",
+      "community_name": "gates.py",
       "file_type": "code",
       "norm_label": "require_template_fields()",
       "source_file": "harness/gates.py",
@@ -526,7 +454,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 0,
-      "community_name": "require",
+      "community_name": "gates.py",
       "file_type": "code",
       "norm_label": "_review()",
       "source_file": "harness/gates.py",
@@ -538,7 +466,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 0,
-      "community_name": "require",
+      "community_name": "gates.py",
       "file_type": "code",
       "norm_label": "_solution()",
       "source_file": "harness/gates.py",
@@ -550,7 +478,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 0,
-      "community_name": "require",
+      "community_name": "gates.py",
       "file_type": "code",
       "norm_label": "_strings()",
       "source_file": "harness/gates.py",
@@ -562,23 +490,11 @@
       "_callable": true,
       "_origin": "ast",
       "community": 0,
-      "community_name": "require",
+      "community_name": "gates.py",
       "file_type": "code",
       "norm_label": "_tdd()",
       "source_file": "harness/gates.py",
       "source_location": "L144"
-    },
-    {
-      "id": "harness_gates_template_name",
-      "label": "template_name()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 0,
-      "community_name": "require",
-      "file_type": "code",
-      "norm_label": "template_name()",
-      "source_file": "harness/gates.py",
-      "source_location": "L20"
     },
     {
       "id": "harness_tests_test_stage_gates_advance_record",
@@ -1253,112 +1169,76 @@
       "source_location": "L54"
     },
     {
-      "id": "harness_tests_test_isolation_isolationtest_test_a_project_under_test_is_always_a_temporary_directory",
-      "label": ".test_a_project_under_test_is_always_a_temporary_directory()",
+      "id": "harness_cli_read_evidence",
+      "label": "read_evidence()",
       "_callable": true,
       "_origin": "ast",
       "community": 116,
-      "community_name": "IsolationTest",
+      "community_name": "delivery.py",
       "file_type": "code",
-      "norm_label": ".test_a_project_under_test_is_always_a_temporary_directory()",
-      "source_file": "harness/tests/test_isolation.py",
+      "norm_label": "read_evidence()",
+      "source_file": "harness/cli.py",
+      "source_location": "L257"
+    },
+    {
+      "id": "harness_delivery_evidence",
+      "label": "_evidence()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 116,
+      "community_name": "delivery.py",
+      "file_type": "code",
+      "norm_label": "_evidence()",
+      "source_file": "harness/delivery.py",
+      "source_location": "L49"
+    },
+    {
+      "id": "harness_delivery_require_committed",
+      "label": "_require_committed()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 116,
+      "community_name": "delivery.py",
+      "file_type": "code",
+      "norm_label": "_require_committed()",
+      "source_file": "harness/delivery.py",
+      "source_location": "L58"
+    },
+    {
+      "id": "harness_delivery_verify",
+      "label": "verify()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 116,
+      "community_name": "delivery.py",
+      "file_type": "code",
+      "norm_label": "verify()",
+      "source_file": "harness/delivery.py",
       "source_location": "L15"
     },
     {
-      "id": "harness_tests_test_isolation_isolationtest_test_no_test_writes_a_journal_into_this_repository",
-      "label": ".test_no_test_writes_a_journal_into_this_repository()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 116,
-      "community_name": "IsolationTest",
-      "file_type": "code",
-      "norm_label": ".test_no_test_writes_a_journal_into_this_repository()",
-      "source_file": "harness/tests/test_isolation.py",
-      "source_location": "L20"
-    },
-    {
-      "id": "harness_tests_test_isolation_isolationtest_test_the_harness_under_test_is_the_one_in_this_checkout",
-      "label": ".test_the_harness_under_test_is_the_one_in_this_checkout()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 116,
-      "community_name": "IsolationTest",
-      "file_type": "code",
-      "norm_label": ".test_the_harness_under_test_is_the_one_in_this_checkout()",
-      "source_file": "harness/tests/test_isolation.py",
-      "source_location": "L26"
-    },
-    {
-      "id": "harness_tests_helpers_add_remote",
-      "label": "add_remote()",
+      "id": "harness_cli_lock",
+      "label": "lock()",
       "_callable": true,
       "_origin": "ast",
       "community": 13,
       "community_name": "HarnessError",
       "file_type": "code",
-      "norm_label": "add_remote()",
-      "source_file": "harness/tests/helpers.py",
-      "source_location": "L76"
+      "norm_label": "lock()",
+      "source_file": "harness/cli.py",
+      "source_location": "L141"
     },
     {
-      "id": "harness_tests_helpers_git",
-      "label": "git()",
+      "id": "harness_thresholds_load",
+      "label": "load()",
       "_callable": true,
       "_origin": "ast",
       "community": 13,
       "community_name": "HarnessError",
       "file_type": "code",
-      "norm_label": "git()",
-      "source_file": "harness/tests/helpers.py",
-      "source_location": "L31"
-    },
-    {
-      "id": "harness_tests_helpers_make_project",
-      "label": "make_project()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "HarnessError",
-      "file_type": "code",
-      "norm_label": "make_project()",
-      "source_file": "harness/tests/helpers.py",
-      "source_location": "L37"
-    },
-    {
-      "id": "harness_tests_helpers_projecttest_git",
-      "label": ".git()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "HarnessError",
-      "file_type": "code",
-      "norm_label": ".git()",
-      "source_file": "harness/tests/helpers.py",
-      "source_location": "L66"
-    },
-    {
-      "id": "harness_tests_helpers_projecttest_setup",
-      "label": ".setUp()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "HarnessError",
-      "file_type": "code",
-      "norm_label": ".setup()",
-      "source_file": "harness/tests/helpers.py",
-      "source_location": "L63"
-    },
-    {
-      "id": "harness_tests_helpers_projecttest_write",
-      "label": ".write()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "HarnessError",
-      "file_type": "code",
-      "norm_label": ".write()",
-      "source_file": "harness/tests/helpers.py",
-      "source_location": "L69"
+      "norm_label": "load()",
+      "source_file": "harness/thresholds.py",
+      "source_location": "L23"
     },
     {
       "id": "harness_cli_build_parser",
@@ -1385,6 +1265,18 @@
       "source_location": "L49"
     },
     {
+      "id": "harness_cli_graph",
+      "label": "graph()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 16,
+      "community_name": "cli.py",
+      "file_type": "code",
+      "norm_label": "graph()",
+      "source_file": "harness/cli.py",
+      "source_location": "L220"
+    },
+    {
       "id": "harness_cli_parse",
       "label": "parse()",
       "_callable": true,
@@ -1397,28 +1289,28 @@
       "source_location": "L102"
     },
     {
-      "id": "harness_cli_require_branch",
-      "label": "require_branch()",
+      "id": "harness_graph_ask",
+      "label": "ask()",
       "_callable": true,
       "_origin": "ast",
       "community": 16,
       "community_name": "cli.py",
       "file_type": "code",
-      "norm_label": "require_branch()",
-      "source_file": "harness/cli.py",
-      "source_location": "L127"
+      "norm_label": "ask()",
+      "source_file": "harness/graph.py",
+      "source_location": "L41"
     },
     {
-      "id": "harness_thresholds_load",
-      "label": "load()",
+      "id": "harness_graph_build_command",
+      "label": "build_command()",
       "_callable": true,
       "_origin": "ast",
       "community": 16,
       "community_name": "cli.py",
       "file_type": "code",
-      "norm_label": "load()",
-      "source_file": "harness/thresholds.py",
-      "source_location": "L23"
+      "norm_label": "build_command()",
+      "source_file": "harness/graph.py",
+      "source_location": "L28"
     },
     {
       "id": "harness_doctor_gitignore_problems",
@@ -1517,6 +1409,18 @@
       "source_location": "L24"
     },
     {
+      "id": "harness_checks_run",
+      "label": "run()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 19,
+      "community_name": "advance",
+      "file_type": "code",
+      "norm_label": "run()",
+      "source_file": "harness/checks.py",
+      "source_location": "L28"
+    },
+    {
       "id": "harness_cli_advance",
       "label": "advance()",
       "_callable": true,
@@ -1563,6 +1467,138 @@
       "norm_label": "main()",
       "source_file": "harness/cli.py",
       "source_location": "L372"
+    },
+    {
+      "id": "harness_tests_helpers_add_remote",
+      "label": "add_remote()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": ".start",
+      "file_type": "code",
+      "norm_label": "add_remote()",
+      "source_file": "harness/tests/helpers.py",
+      "source_location": "L76"
+    },
+    {
+      "id": "harness_tests_helpers_git",
+      "label": "git()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": ".start",
+      "file_type": "code",
+      "norm_label": "git()",
+      "source_file": "harness/tests/helpers.py",
+      "source_location": "L31"
+    },
+    {
+      "id": "harness_tests_helpers_make_project",
+      "label": "make_project()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": ".start",
+      "file_type": "code",
+      "norm_label": "make_project()",
+      "source_file": "harness/tests/helpers.py",
+      "source_location": "L37"
+    },
+    {
+      "id": "harness_tests_helpers_projecttest_git",
+      "label": ".git()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": ".start",
+      "file_type": "code",
+      "norm_label": ".git()",
+      "source_file": "harness/tests/helpers.py",
+      "source_location": "L66"
+    },
+    {
+      "id": "harness_tests_helpers_projecttest_setup",
+      "label": ".setUp()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": ".start",
+      "file_type": "code",
+      "norm_label": ".setup()",
+      "source_file": "harness/tests/helpers.py",
+      "source_location": "L63"
+    },
+    {
+      "id": "harness_tests_helpers_projecttest_write",
+      "label": ".write()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": ".start",
+      "file_type": "code",
+      "norm_label": ".write()",
+      "source_file": "harness/tests/helpers.py",
+      "source_location": "L69"
+    },
+    {
+      "id": "harness_tests_test_isolation_entrypointtest_test_a_refusal_goes_to_stderr_with_a_non_zero_exit",
+      "label": ".test_a_refusal_goes_to_stderr_with_a_non_zero_exit()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": ".start",
+      "file_type": "code",
+      "norm_label": ".test_a_refusal_goes_to_stderr_with_a_non_zero_exit()",
+      "source_file": "harness/tests/test_isolation.py",
+      "source_location": "L45"
+    },
+    {
+      "id": "harness_tests_test_isolation_entrypointtest_test_the_script_runs_from_the_project_root",
+      "label": ".test_the_script_runs_from_the_project_root()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": ".start",
+      "file_type": "code",
+      "norm_label": ".test_the_script_runs_from_the_project_root()",
+      "source_file": "harness/tests/test_isolation.py",
+      "source_location": "L34"
+    },
+    {
+      "id": "harness_tests_test_isolation_isolationtest_test_a_project_under_test_is_always_a_temporary_directory",
+      "label": ".test_a_project_under_test_is_always_a_temporary_directory()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": ".start",
+      "file_type": "code",
+      "norm_label": ".test_a_project_under_test_is_always_a_temporary_directory()",
+      "source_file": "harness/tests/test_isolation.py",
+      "source_location": "L15"
+    },
+    {
+      "id": "harness_tests_test_isolation_isolationtest_test_no_test_writes_a_journal_into_this_repository",
+      "label": ".test_no_test_writes_a_journal_into_this_repository()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": ".start",
+      "file_type": "code",
+      "norm_label": ".test_no_test_writes_a_journal_into_this_repository()",
+      "source_file": "harness/tests/test_isolation.py",
+      "source_location": "L20"
+    },
+    {
+      "id": "harness_tests_test_isolation_isolationtest_test_the_harness_under_test_is_the_one_in_this_checkout",
+      "label": ".test_the_harness_under_test_is_the_one_in_this_checkout()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": ".start",
+      "file_type": "code",
+      "norm_label": ".test_the_harness_under_test_is_the_one_in_this_checkout()",
+      "source_file": "harness/tests/test_isolation.py",
+      "source_location": "L26"
     },
     {
       "id": "harness_tests_test_lifecycle_advancetest_test_a_refused_advance_leaves_no_record",
@@ -2033,40 +2069,28 @@
       "source_location": "L128"
     },
     {
-      "id": "harness_checks_run",
-      "label": "run()",
+      "id": "harness_journal_serialise",
+      "label": "serialise()",
       "_callable": true,
       "_origin": "ast",
       "community": 20,
-      "community_name": "checks.py",
+      "community_name": "journal.py",
       "file_type": "code",
-      "norm_label": "run()",
-      "source_file": "harness/checks.py",
-      "source_location": "L28"
+      "norm_label": "serialise()",
+      "source_file": "harness/journal.py",
+      "source_location": "L26"
     },
     {
-      "id": "harness_graph_ask",
-      "label": "ask()",
+      "id": "harness_journal_write_once",
+      "label": "write_once()",
       "_callable": true,
       "_origin": "ast",
       "community": 20,
-      "community_name": "checks.py",
+      "community_name": "journal.py",
       "file_type": "code",
-      "norm_label": "ask()",
-      "source_file": "harness/graph.py",
-      "source_location": "L41"
-    },
-    {
-      "id": "harness_graph_build_command",
-      "label": "build_command()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 20,
-      "community_name": "checks.py",
-      "file_type": "code",
-      "norm_label": "build_command()",
-      "source_file": "harness/graph.py",
-      "source_location": "L28"
+      "norm_label": "write_once()",
+      "source_file": "harness/journal.py",
+      "source_location": "L80"
     },
     {
       "id": "harness_repository_repository_blob_ids",
@@ -2273,198 +2297,6 @@
       "source_location": "L110"
     },
     {
-      "id": "harness_tests_test_doctor_doctortest_commit",
-      "label": ".commit()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "Repository",
-      "file_type": "code",
-      "norm_label": ".commit()",
-      "source_file": "harness/tests/test_doctor.py",
-      "source_location": "L17"
-    },
-    {
-      "id": "harness_tests_test_doctor_doctortest_report",
-      "label": ".report()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "Repository",
-      "file_type": "code",
-      "norm_label": ".report()",
-      "source_file": "harness/tests/test_doctor.py",
-      "source_location": "L13"
-    },
-    {
-      "id": "harness_tests_test_doctor_doctortest_test_a_healthy_project_passes",
-      "label": ".test_a_healthy_project_passes()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "Repository",
-      "file_type": "code",
-      "norm_label": ".test_a_healthy_project_passes()",
-      "source_file": "harness/tests/test_doctor.py",
-      "source_location": "L21"
-    },
-    {
-      "id": "harness_tests_test_doctor_doctortest_test_it_fails_on_a_markdown_link_that_does_not_resolve",
-      "label": ".test_it_fails_on_a_markdown_link_that_does_not_resolve()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "Repository",
-      "file_type": "code",
-      "norm_label": ".test_it_fails_on_a_markdown_link_that_does_not_resolve()",
-      "source_file": "harness/tests/test_doctor.py",
-      "source_location": "L70"
-    },
-    {
-      "id": "harness_tests_test_doctor_doctortest_test_it_fails_on_a_stray_file_beside_the_records",
-      "label": ".test_it_fails_on_a_stray_file_beside_the_records()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "Repository",
-      "file_type": "code",
-      "norm_label": ".test_it_fails_on_a_stray_file_beside_the_records()",
-      "source_file": "harness/tests/test_doctor.py",
-      "source_location": "L65"
-    },
-    {
-      "id": "harness_tests_test_doctor_doctortest_test_it_fails_on_a_template_that_is_not_readable",
-      "label": ".test_it_fails_on_a_template_that_is_not_readable()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "Repository",
-      "file_type": "code",
-      "norm_label": ".test_it_fails_on_a_template_that_is_not_readable()",
-      "source_file": "harness/tests/test_doctor.py",
-      "source_location": "L85"
-    },
-    {
-      "id": "harness_tests_test_doctor_doctortest_test_it_fails_when_a_record_was_committed_as_a_modification",
-      "label": ".test_it_fails_when_a_record_was_committed_as_a_modification()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "Repository",
-      "file_type": "code",
-      "norm_label": ".test_it_fails_when_a_record_was_committed_as_a_modification()",
-      "source_file": "harness/tests/test_doctor.py",
-      "source_location": "L36"
-    },
-    {
-      "id": "harness_tests_test_doctor_doctortest_test_it_fails_when_a_record_was_removed_from_a_live_journal",
-      "label": ".test_it_fails_when_a_record_was_removed_from_a_live_journal()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "Repository",
-      "file_type": "code",
-      "norm_label": ".test_it_fails_when_a_record_was_removed_from_a_live_journal()",
-      "source_file": "harness/tests/test_doctor.py",
-      "source_location": "L48"
-    },
-    {
-      "id": "harness_tests_test_doctor_doctortest_test_it_fails_when_the_drafts_directory_is_not_ignored",
-      "label": ".test_it_fails_when_the_drafts_directory_is_not_ignored()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "Repository",
-      "file_type": "code",
-      "norm_label": ".test_it_fails_when_the_drafts_directory_is_not_ignored()",
-      "source_file": "harness/tests/test_doctor.py",
-      "source_location": "L80"
-    },
-    {
-      "id": "harness_tests_test_doctor_doctortest_test_it_ignores_links_inside_code_fences_and_to_the_web",
-      "label": ".test_it_ignores_links_inside_code_fences_and_to_the_web()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "Repository",
-      "file_type": "code",
-      "norm_label": ".test_it_ignores_links_inside_code_fences_and_to_the_web()",
-      "source_file": "harness/tests/test_doctor.py",
-      "source_location": "L75"
-    },
-    {
-      "id": "harness_tests_test_doctor_doctortest_test_it_names_the_ticket_whose_chain_is_broken",
-      "label": ".test_it_names_the_ticket_whose_chain_is_broken()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "Repository",
-      "file_type": "code",
-      "norm_label": ".test_it_names_the_ticket_whose_chain_is_broken()",
-      "source_file": "harness/tests/test_doctor.py",
-      "source_location": "L26"
-    },
-    {
-      "id": "harness_tests_test_doctor_doctortest_test_it_refuses_a_python_below_the_floor",
-      "label": ".test_it_refuses_a_python_below_the_floor()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "Repository",
-      "file_type": "code",
-      "norm_label": ".test_it_refuses_a_python_below_the_floor()",
-      "source_file": "harness/tests/test_doctor.py",
-      "source_location": "L96"
-    },
-    {
-      "id": "harness_tests_test_doctor_doctortest_test_it_reports_every_problem_rather_than_the_first",
-      "label": ".test_it_reports_every_problem_rather_than_the_first()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "Repository",
-      "file_type": "code",
-      "norm_label": ".test_it_reports_every_problem_rather_than_the_first()",
-      "source_file": "harness/tests/test_doctor.py",
-      "source_location": "L90"
-    },
-    {
-      "id": "harness_tests_test_doctor_doctortest_test_retiring_a_whole_journal_is_not_a_rewrite",
-      "label": ".test_retiring_a_whole_journal_is_not_a_rewrite()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "Repository",
-      "file_type": "code",
-      "norm_label": ".test_retiring_a_whole_journal_is_not_a_rewrite()",
-      "source_file": "harness/tests/test_doctor.py",
-      "source_location": "L57"
-    },
-    {
-      "id": "harness_tests_test_doctor_doctortest_test_the_command_exits_non_zero_when_something_is_wrong",
-      "label": ".test_the_command_exits_non_zero_when_something_is_wrong()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "Repository",
-      "file_type": "code",
-      "norm_label": ".test_the_command_exits_non_zero_when_something_is_wrong()",
-      "source_file": "harness/tests/test_doctor.py",
-      "source_location": "L100"
-    },
-    {
-      "id": "harness_tests_test_doctor_doctortest_test_the_command_passes_on_a_healthy_project",
-      "label": ".test_the_command_passes_on_a_healthy_project()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "Repository",
-      "file_type": "code",
-      "norm_label": ".test_the_command_passes_on_a_healthy_project()",
-      "source_file": "harness/tests/test_doctor.py",
-      "source_location": "L105"
-    },
-    {
       "id": "harness_tests_test_repository_repositorytest_setup",
       "label": ".setUp()",
       "_callable": true,
@@ -2585,28 +2417,196 @@
       "source_location": "L30"
     },
     {
-      "id": "harness_tests_test_isolation_entrypointtest_test_a_refusal_goes_to_stderr_with_a_non_zero_exit",
-      "label": ".test_a_refusal_goes_to_stderr_with_a_non_zero_exit()",
+      "id": "harness_tests_test_doctor_doctortest_commit",
+      "label": ".commit()",
       "_callable": true,
       "_origin": "ast",
       "community": 4,
-      "community_name": "EntryPointTest",
+      "community_name": "DoctorTest",
       "file_type": "code",
-      "norm_label": ".test_a_refusal_goes_to_stderr_with_a_non_zero_exit()",
-      "source_file": "harness/tests/test_isolation.py",
-      "source_location": "L45"
+      "norm_label": ".commit()",
+      "source_file": "harness/tests/test_doctor.py",
+      "source_location": "L17"
     },
     {
-      "id": "harness_tests_test_isolation_entrypointtest_test_the_script_runs_from_the_project_root",
-      "label": ".test_the_script_runs_from_the_project_root()",
+      "id": "harness_tests_test_doctor_doctortest_report",
+      "label": ".report()",
       "_callable": true,
       "_origin": "ast",
       "community": 4,
-      "community_name": "EntryPointTest",
+      "community_name": "DoctorTest",
       "file_type": "code",
-      "norm_label": ".test_the_script_runs_from_the_project_root()",
-      "source_file": "harness/tests/test_isolation.py",
-      "source_location": "L34"
+      "norm_label": ".report()",
+      "source_file": "harness/tests/test_doctor.py",
+      "source_location": "L13"
+    },
+    {
+      "id": "harness_tests_test_doctor_doctortest_test_a_healthy_project_passes",
+      "label": ".test_a_healthy_project_passes()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "DoctorTest",
+      "file_type": "code",
+      "norm_label": ".test_a_healthy_project_passes()",
+      "source_file": "harness/tests/test_doctor.py",
+      "source_location": "L21"
+    },
+    {
+      "id": "harness_tests_test_doctor_doctortest_test_it_fails_on_a_markdown_link_that_does_not_resolve",
+      "label": ".test_it_fails_on_a_markdown_link_that_does_not_resolve()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "DoctorTest",
+      "file_type": "code",
+      "norm_label": ".test_it_fails_on_a_markdown_link_that_does_not_resolve()",
+      "source_file": "harness/tests/test_doctor.py",
+      "source_location": "L70"
+    },
+    {
+      "id": "harness_tests_test_doctor_doctortest_test_it_fails_on_a_stray_file_beside_the_records",
+      "label": ".test_it_fails_on_a_stray_file_beside_the_records()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "DoctorTest",
+      "file_type": "code",
+      "norm_label": ".test_it_fails_on_a_stray_file_beside_the_records()",
+      "source_file": "harness/tests/test_doctor.py",
+      "source_location": "L65"
+    },
+    {
+      "id": "harness_tests_test_doctor_doctortest_test_it_fails_on_a_template_that_is_not_readable",
+      "label": ".test_it_fails_on_a_template_that_is_not_readable()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "DoctorTest",
+      "file_type": "code",
+      "norm_label": ".test_it_fails_on_a_template_that_is_not_readable()",
+      "source_file": "harness/tests/test_doctor.py",
+      "source_location": "L85"
+    },
+    {
+      "id": "harness_tests_test_doctor_doctortest_test_it_fails_when_a_record_was_committed_as_a_modification",
+      "label": ".test_it_fails_when_a_record_was_committed_as_a_modification()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "DoctorTest",
+      "file_type": "code",
+      "norm_label": ".test_it_fails_when_a_record_was_committed_as_a_modification()",
+      "source_file": "harness/tests/test_doctor.py",
+      "source_location": "L36"
+    },
+    {
+      "id": "harness_tests_test_doctor_doctortest_test_it_fails_when_a_record_was_removed_from_a_live_journal",
+      "label": ".test_it_fails_when_a_record_was_removed_from_a_live_journal()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "DoctorTest",
+      "file_type": "code",
+      "norm_label": ".test_it_fails_when_a_record_was_removed_from_a_live_journal()",
+      "source_file": "harness/tests/test_doctor.py",
+      "source_location": "L48"
+    },
+    {
+      "id": "harness_tests_test_doctor_doctortest_test_it_fails_when_the_drafts_directory_is_not_ignored",
+      "label": ".test_it_fails_when_the_drafts_directory_is_not_ignored()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "DoctorTest",
+      "file_type": "code",
+      "norm_label": ".test_it_fails_when_the_drafts_directory_is_not_ignored()",
+      "source_file": "harness/tests/test_doctor.py",
+      "source_location": "L80"
+    },
+    {
+      "id": "harness_tests_test_doctor_doctortest_test_it_ignores_links_inside_code_fences_and_to_the_web",
+      "label": ".test_it_ignores_links_inside_code_fences_and_to_the_web()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "DoctorTest",
+      "file_type": "code",
+      "norm_label": ".test_it_ignores_links_inside_code_fences_and_to_the_web()",
+      "source_file": "harness/tests/test_doctor.py",
+      "source_location": "L75"
+    },
+    {
+      "id": "harness_tests_test_doctor_doctortest_test_it_names_the_ticket_whose_chain_is_broken",
+      "label": ".test_it_names_the_ticket_whose_chain_is_broken()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "DoctorTest",
+      "file_type": "code",
+      "norm_label": ".test_it_names_the_ticket_whose_chain_is_broken()",
+      "source_file": "harness/tests/test_doctor.py",
+      "source_location": "L26"
+    },
+    {
+      "id": "harness_tests_test_doctor_doctortest_test_it_refuses_a_python_below_the_floor",
+      "label": ".test_it_refuses_a_python_below_the_floor()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "DoctorTest",
+      "file_type": "code",
+      "norm_label": ".test_it_refuses_a_python_below_the_floor()",
+      "source_file": "harness/tests/test_doctor.py",
+      "source_location": "L96"
+    },
+    {
+      "id": "harness_tests_test_doctor_doctortest_test_it_reports_every_problem_rather_than_the_first",
+      "label": ".test_it_reports_every_problem_rather_than_the_first()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "DoctorTest",
+      "file_type": "code",
+      "norm_label": ".test_it_reports_every_problem_rather_than_the_first()",
+      "source_file": "harness/tests/test_doctor.py",
+      "source_location": "L90"
+    },
+    {
+      "id": "harness_tests_test_doctor_doctortest_test_retiring_a_whole_journal_is_not_a_rewrite",
+      "label": ".test_retiring_a_whole_journal_is_not_a_rewrite()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "DoctorTest",
+      "file_type": "code",
+      "norm_label": ".test_retiring_a_whole_journal_is_not_a_rewrite()",
+      "source_file": "harness/tests/test_doctor.py",
+      "source_location": "L57"
+    },
+    {
+      "id": "harness_tests_test_doctor_doctortest_test_the_command_exits_non_zero_when_something_is_wrong",
+      "label": ".test_the_command_exits_non_zero_when_something_is_wrong()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "DoctorTest",
+      "file_type": "code",
+      "norm_label": ".test_the_command_exits_non_zero_when_something_is_wrong()",
+      "source_file": "harness/tests/test_doctor.py",
+      "source_location": "L100"
+    },
+    {
+      "id": "harness_tests_test_doctor_doctortest_test_the_command_passes_on_a_healthy_project",
+      "label": ".test_the_command_passes_on_a_healthy_project()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "DoctorTest",
+      "file_type": "code",
+      "norm_label": ".test_the_command_passes_on_a_healthy_project()",
+      "source_file": "harness/tests/test_doctor.py",
+      "source_location": "L105"
     },
     {
       "id": "harness_tests_test_journal_digest",
@@ -2830,11 +2830,23 @@
       "_callable": true,
       "_origin": "ast",
       "community": 8,
-      "community_name": "execute",
+      "community_name": "require",
       "file_type": "code",
       "norm_label": "describe()",
       "source_file": "harness/cli.py",
       "source_location": "L174"
+    },
+    {
+      "id": "harness_cli_draft",
+      "label": "draft()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "require",
+      "file_type": "code",
+      "norm_label": "draft()",
+      "source_file": "harness/cli.py",
+      "source_location": "L195"
     },
     {
       "id": "harness_cli_execute",
@@ -2842,7 +2854,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 8,
-      "community_name": "execute",
+      "community_name": "require",
       "file_type": "code",
       "norm_label": "execute()",
       "source_file": "harness/cli.py",
@@ -2854,23 +2866,11 @@
       "_callable": true,
       "_origin": "ast",
       "community": 8,
-      "community_name": "execute",
+      "community_name": "require",
       "file_type": "code",
       "norm_label": "go_back()",
       "source_file": "harness/cli.py",
       "source_location": "L292"
-    },
-    {
-      "id": "harness_cli_graph",
-      "label": "graph()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "execute",
-      "file_type": "code",
-      "norm_label": "graph()",
-      "source_file": "harness/cli.py",
-      "source_location": "L220"
     },
     {
       "id": "harness_cli_journal_folder",
@@ -2878,7 +2878,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 8,
-      "community_name": "execute",
+      "community_name": "require",
       "file_type": "code",
       "norm_label": "journal_folder()",
       "source_file": "harness/cli.py",
@@ -2890,23 +2890,11 @@
       "_callable": true,
       "_origin": "ast",
       "community": 8,
-      "community_name": "execute",
+      "community_name": "require",
       "file_type": "code",
       "norm_label": "list_tickets()",
       "source_file": "harness/cli.py",
       "source_location": "L306"
-    },
-    {
-      "id": "harness_cli_lock",
-      "label": "lock()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "execute",
-      "file_type": "code",
-      "norm_label": "lock()",
-      "source_file": "harness/cli.py",
-      "source_location": "L141"
     },
     {
       "id": "harness_cli_note",
@@ -2914,7 +2902,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 8,
-      "community_name": "execute",
+      "community_name": "require",
       "file_type": "code",
       "norm_label": "note()",
       "source_file": "harness/cli.py",
@@ -2926,11 +2914,23 @@
       "_callable": true,
       "_origin": "ast",
       "community": 8,
-      "community_name": "execute",
+      "community_name": "require",
       "file_type": "code",
       "norm_label": "require_actor()",
       "source_file": "harness/cli.py",
       "source_location": "L119"
+    },
+    {
+      "id": "harness_cli_require_branch",
+      "label": "require_branch()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "require",
+      "file_type": "code",
+      "norm_label": "require_branch()",
+      "source_file": "harness/cli.py",
+      "source_location": "L127"
     },
     {
       "id": "harness_cli_require_ticket_id",
@@ -2938,7 +2938,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 8,
-      "community_name": "execute",
+      "community_name": "require",
       "file_type": "code",
       "norm_label": "require_ticket_id()",
       "source_file": "harness/cli.py",
@@ -2950,11 +2950,35 @@
       "_callable": true,
       "_origin": "ast",
       "community": 8,
-      "community_name": "execute",
+      "community_name": "require",
       "file_type": "code",
       "norm_label": "start()",
       "source_file": "harness/cli.py",
       "source_location": "L164"
+    },
+    {
+      "id": "harness_errors_require",
+      "label": "require()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "require",
+      "file_type": "code",
+      "norm_label": "require()",
+      "source_file": "harness/errors.py",
+      "source_location": "L8"
+    },
+    {
+      "id": "harness_gates_template_name",
+      "label": "template_name()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "require",
+      "file_type": "code",
+      "norm_label": "template_name()",
+      "source_file": "harness/gates.py",
+      "source_location": "L20"
     },
     {
       "id": "harness_journal_append",
@@ -2962,7 +2986,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 8,
-      "community_name": "execute",
+      "community_name": "require",
       "file_type": "code",
       "norm_label": "append()",
       "source_file": "harness/journal.py",
@@ -2974,7 +2998,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 8,
-      "community_name": "execute",
+      "community_name": "require",
       "file_type": "code",
       "norm_label": "digest()",
       "source_file": "harness/journal.py",
@@ -2986,23 +3010,11 @@
       "_callable": true,
       "_origin": "ast",
       "community": 8,
-      "community_name": "execute",
+      "community_name": "require",
       "file_type": "code",
       "norm_label": "read()",
       "source_file": "harness/journal.py",
       "source_location": "L31"
-    },
-    {
-      "id": "harness_journal_serialise",
-      "label": "serialise()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "execute",
-      "file_type": "code",
-      "norm_label": "serialise()",
-      "source_file": "harness/journal.py",
-      "source_location": "L26"
     },
     {
       "id": "harness_journal_state",
@@ -3010,23 +3022,11 @@
       "_callable": true,
       "_origin": "ast",
       "community": 8,
-      "community_name": "execute",
+      "community_name": "require",
       "file_type": "code",
       "norm_label": "state()",
       "source_file": "harness/journal.py",
       "source_location": "L101"
-    },
-    {
-      "id": "harness_journal_write_once",
-      "label": "write_once()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "execute",
-      "file_type": "code",
-      "norm_label": "write_once()",
-      "source_file": "harness/journal.py",
-      "source_location": "L80"
     },
     {
       "id": "harness_tests_test_delivery_deliverytest_commit_and_push",
@@ -3197,77 +3197,22 @@
       "source_location": "L16"
     },
     {
-      "id": "harness_delivery",
-      "label": "delivery.py",
-      "_origin": "ast",
-      "community": 0,
-      "community_name": "require",
-      "file_type": "code",
-      "norm_label": "delivery.py",
-      "source_file": "harness/delivery.py",
-      "source_location": "L1"
-    },
-    {
       "id": "harness_gates",
       "label": "gates.py",
       "_origin": "ast",
       "community": 0,
-      "community_name": "require",
+      "community_name": "gates.py",
       "file_type": "code",
       "norm_label": "gates.py",
       "source_file": "harness/gates.py",
       "source_location": "L1"
     },
     {
-      "id": "harness_cli_rationale_258",
-      "label": "Read a stage evidence file, which must live where drafts live. Anywhere else it\u2026",
-      "_origin": "ast",
-      "community": 0,
-      "community_name": "require",
-      "file_type": "rationale",
-      "norm_label": "read a stage evidence file, which must live where drafts live. anywhere else it...",
-      "source_file": "harness/cli.py",
-      "source_location": "L258"
-    },
-    {
-      "id": "harness_delivery_rationale_1",
-      "label": "Delivery: the deliver stage's own gate, and the receipt it writes. There is no\u2026",
-      "_origin": "ast",
-      "community": 0,
-      "community_name": "require",
-      "file_type": "rationale",
-      "norm_label": "delivery: the deliver stage's own gate, and the receipt it writes. there is no...",
-      "source_file": "harness/delivery.py",
-      "source_location": "L1"
-    },
-    {
-      "id": "harness_delivery_rationale_59",
-      "label": "Every record must already be in the history that was pushed. The receipt is the\u2026",
-      "_origin": "ast",
-      "community": 0,
-      "community_name": "require",
-      "file_type": "rationale",
-      "norm_label": "every record must already be in the history that was pushed. the receipt is the...",
-      "source_file": "harness/delivery.py",
-      "source_location": "L59"
-    },
-    {
-      "id": "harness_errors_rationale_9",
-      "label": "Refuse unless the condition holds. Never repairs, never warns and continues.",
-      "_origin": "ast",
-      "community": 0,
-      "community_name": "require",
-      "file_type": "rationale",
-      "norm_label": "refuse unless the condition holds. never repairs, never warns and continues.",
-      "source_file": "harness/errors.py",
-      "source_location": "L9"
-    },
-    {
       "id": "harness_gates_rationale_1",
       "label": "What each stage gate proves before a ticket may leave its stage. Three layers,\u2026",
       "_origin": "ast",
       "community": 0,
-      "community_name": "require",
+      "community_name": "gates.py",
       "file_type": "rationale",
       "norm_label": "what each stage gate proves before a ticket may leave its stage. three layers,...",
       "source_file": "harness/gates.py",
@@ -3278,7 +3223,7 @@
       "label": "A check a stage record points at, confirmed to be usable evidence here. A check\u2026",
       "_origin": "ast",
       "community": 0,
-      "community_name": "require",
+      "community_name": "gates.py",
       "file_type": "rationale",
       "norm_label": "a check a stage record points at, confirmed to be usable evidence here. a check...",
       "source_file": "harness/gates.py",
@@ -3289,7 +3234,7 @@
       "label": "The evidence of the most recent accepted advance out of a stage.",
       "_origin": "ast",
       "community": 0,
-      "community_name": "require",
+      "community_name": "gates.py",
       "file_type": "rationale",
       "norm_label": "the evidence of the most recent accepted advance out of a stage.",
       "source_file": "harness/gates.py",
@@ -3300,7 +3245,7 @@
       "label": "Run one stage gate and return the facts the harness adds to the record.",
       "_origin": "ast",
       "community": 0,
-      "community_name": "require",
+      "community_name": "gates.py",
       "file_type": "rationale",
       "norm_label": "run one stage gate and return the facts the harness adds to the record.",
       "source_file": "harness/gates.py",
@@ -3311,7 +3256,7 @@
       "label": "Every key the template carries must be answered. A key the template ships as an\u2026",
       "_origin": "ast",
       "community": 0,
-      "community_name": "require",
+      "community_name": "gates.py",
       "file_type": "rationale",
       "norm_label": "every key the template carries must be answered. a key the template ships as an...",
       "source_file": "harness/gates.py",
@@ -3322,7 +3267,7 @@
       "label": "Every free-text string in a document, skipping enumerated answers.",
       "_origin": "ast",
       "community": 0,
-      "community_name": "require",
+      "community_name": "gates.py",
       "file_type": "rationale",
       "norm_label": "every free-text string in a document, skipping enumerated answers.",
       "source_file": "harness/gates.py",
@@ -3333,7 +3278,7 @@
       "label": "Refuse evidence still carrying the template's example prose. Copying a template\u2026",
       "_origin": "ast",
       "community": 0,
-      "community_name": "require",
+      "community_name": "gates.py",
       "file_type": "rationale",
       "norm_label": "refuse evidence still carrying the template's example prose. copying a template...",
       "source_file": "harness/gates.py",
@@ -4525,6 +4470,72 @@
       "source_location": "L16"
     },
     {
+      "id": "harness_delivery",
+      "label": "delivery.py",
+      "_origin": "ast",
+      "community": 116,
+      "community_name": "delivery.py",
+      "file_type": "code",
+      "norm_label": "delivery.py",
+      "source_file": "harness/delivery.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "harness_init",
+      "label": "harness/__init__.py",
+      "_origin": "ast",
+      "community": 116,
+      "community_name": "delivery.py",
+      "file_type": "code",
+      "norm_label": "harness/__init__.py",
+      "source_file": "harness/__init__.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "harness_cli_rationale_258",
+      "label": "Read a stage evidence file, which must live where drafts live. Anywhere else it\u2026",
+      "_origin": "ast",
+      "community": 116,
+      "community_name": "delivery.py",
+      "file_type": "rationale",
+      "norm_label": "read a stage evidence file, which must live where drafts live. anywhere else it...",
+      "source_file": "harness/cli.py",
+      "source_location": "L258"
+    },
+    {
+      "id": "harness_delivery_rationale_1",
+      "label": "Delivery: the deliver stage's own gate, and the receipt it writes. There is no\u2026",
+      "_origin": "ast",
+      "community": 116,
+      "community_name": "delivery.py",
+      "file_type": "rationale",
+      "norm_label": "delivery: the deliver stage's own gate, and the receipt it writes. there is no...",
+      "source_file": "harness/delivery.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "harness_delivery_rationale_59",
+      "label": "Every record must already be in the history that was pushed. The receipt is the\u2026",
+      "_origin": "ast",
+      "community": 116,
+      "community_name": "delivery.py",
+      "file_type": "rationale",
+      "norm_label": "every record must already be in the history that was pushed. the receipt is the...",
+      "source_file": "harness/delivery.py",
+      "source_location": "L59"
+    },
+    {
+      "id": "harness_init_rationale_1",
+      "label": "The Seen development harness. One procedure per ticket, five stages, and an\u2026",
+      "_origin": "ast",
+      "community": 116,
+      "community_name": "delivery.py",
+      "file_type": "rationale",
+      "norm_label": "the seen development harness. one procedure per ticket, five stages, and an...",
+      "source_file": "harness/__init__.py",
+      "source_location": "L1"
+    },
+    {
       "id": "docs_adr_0001_journal_integrity_file_bytes_and_git_as_notary",
       "label": "0001-journal-integrity-file-bytes-and-git-as-notary.md",
       "_origin": "ast",
@@ -4559,6 +4570,78 @@
       "norm_label": "journal records are hashed as file bytes, and git is the notary",
       "source_file": "docs/adr/0001-journal-integrity-file-bytes-and-git-as-notary.md",
       "source_location": "L1"
+    },
+    {
+      "id": "docs_tickets_seen_093_add_harness_reopen_to_void_a_receipt_before_acceptance_criteria",
+      "label": "Acceptance criteria",
+      "_origin": "ast",
+      "community": 118,
+      "community_name": "SEEN-093: Add harness reopen to void a receipt before merge",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "acceptance criteria",
+      "source_file": "docs/tickets/SEEN-093-add-harness-reopen-to-void-a-receipt-before.md",
+      "source_location": "L43"
+    },
+    {
+      "id": "docs_tickets_seen_093_add_harness_reopen_to_void_a_receipt_before_blocks",
+      "label": "Blocks",
+      "_origin": "ast",
+      "community": 118,
+      "community_name": "SEEN-093: Add harness reopen to void a receipt before merge",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "blocks",
+      "source_file": "docs/tickets/SEEN-093-add-harness-reopen-to-void-a-receipt-before.md",
+      "source_location": "L55"
+    },
+    {
+      "id": "docs_tickets_seen_093_add_harness_reopen_to_void_a_receipt_before_context",
+      "label": "Context",
+      "_origin": "ast",
+      "community": 118,
+      "community_name": "SEEN-093: Add harness reopen to void a receipt before merge",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "context",
+      "source_file": "docs/tickets/SEEN-093-add-harness-reopen-to-void-a-receipt-before.md",
+      "source_location": "L59"
+    },
+    {
+      "id": "docs_tickets_seen_093_add_harness_reopen_to_void_a_receipt_before_depends_on",
+      "label": "Depends on",
+      "_origin": "ast",
+      "community": 118,
+      "community_name": "SEEN-093: Add harness reopen to void a receipt before merge",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "depends on",
+      "source_file": "docs/tickets/SEEN-093-add-harness-reopen-to-void-a-receipt-before.md",
+      "source_location": "L51"
+    },
+    {
+      "id": "docs_tickets_seen_093_add_harness_reopen_to_void_a_receipt_before_description",
+      "label": "Description",
+      "_origin": "ast",
+      "community": 118,
+      "community_name": "SEEN-093: Add harness reopen to void a receipt before merge",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "description",
+      "source_file": "docs/tickets/SEEN-093-add-harness-reopen-to-void-a-receipt-before.md",
+      "source_location": "L28"
+    },
+    {
+      "id": "docs_tickets_seen_093_add_harness_reopen_to_void_a_receipt_before_seen_093_add_harness_reopen_to_void_a_receipt_before_merge",
+      "label": "SEEN-093: Add harness reopen to void a receipt before merge",
+      "_origin": "ast",
+      "community": 118,
+      "community_name": "SEEN-093: Add harness reopen to void a receipt before merge",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "seen-093: add harness reopen to void a receipt before merge",
+      "source_file": "docs/tickets/SEEN-093-add-harness-reopen-to-void-a-receipt-before.md",
+      "source_location": "L16"
     },
     {
       "id": "mcp",
@@ -4625,39 +4708,6 @@
       "source_location": "L1"
     },
     {
-      "id": "harness_repository",
-      "label": "repository.py",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "HarnessError",
-      "file_type": "code",
-      "norm_label": "repository.py",
-      "source_file": "harness/repository.py",
-      "source_location": "L1"
-    },
-    {
-      "id": "harness_tests_helpers",
-      "label": "helpers.py",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "HarnessError",
-      "file_type": "code",
-      "norm_label": "helpers.py",
-      "source_file": "harness/tests/helpers.py",
-      "source_location": "L1"
-    },
-    {
-      "id": "harness_tests_test_delivery",
-      "label": "test_delivery.py",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "HarnessError",
-      "file_type": "code",
-      "norm_label": "test_delivery.py",
-      "source_file": "harness/tests/test_delivery.py",
-      "source_location": "L1"
-    },
-    {
       "id": "harness_tests_test_doctor",
       "label": "test_doctor.py",
       "_origin": "ast",
@@ -4677,39 +4727,6 @@
       "file_type": "code",
       "norm_label": "test_graph.py",
       "source_file": "harness/tests/test_graph.py",
-      "source_location": "L1"
-    },
-    {
-      "id": "harness_tests_test_isolation",
-      "label": "test_isolation.py",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "HarnessError",
-      "file_type": "code",
-      "norm_label": "test_isolation.py",
-      "source_file": "harness/tests/test_isolation.py",
-      "source_location": "L1"
-    },
-    {
-      "id": "harness_tests_test_journal",
-      "label": "test_journal.py",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "HarnessError",
-      "file_type": "code",
-      "norm_label": "test_journal.py",
-      "source_file": "harness/tests/test_journal.py",
-      "source_location": "L1"
-    },
-    {
-      "id": "harness_tests_test_lifecycle",
-      "label": "test_lifecycle.py",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "HarnessError",
-      "file_type": "code",
-      "norm_label": "test_lifecycle.py",
-      "source_file": "harness/tests/test_lifecycle.py",
       "source_location": "L1"
     },
     {
@@ -4735,6 +4752,28 @@
       "source_location": "L1"
     },
     {
+      "id": "harness_thresholds",
+      "label": "thresholds.py",
+      "_origin": "ast",
+      "community": 13,
+      "community_name": "HarnessError",
+      "file_type": "code",
+      "norm_label": "thresholds.py",
+      "source_file": "harness/thresholds.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "harness_cli_rationale_142",
+      "label": "An advisory lock, never broken automatically. Two sessions may share a\u2026",
+      "_origin": "ast",
+      "community": 13,
+      "community_name": "HarnessError",
+      "file_type": "rationale",
+      "norm_label": "an advisory lock, never broken automatically. two sessions may share a...",
+      "source_file": "harness/cli.py",
+      "source_location": "L142"
+    },
+    {
       "id": "harness_errors_rationale_1",
       "label": "The one error type a harness command may fail with, and the check that raises\u2026",
       "_origin": "ast",
@@ -4755,72 +4794,6 @@
       "norm_label": "a refusal a person can act on: what is wrong and, where possible, what to do.",
       "source_file": "harness/errors.py",
       "source_location": "L5"
-    },
-    {
-      "id": "harness_repository_rationale_1",
-      "label": "Git access, and the fingerprint that decides whether evidence is still current.\u2026",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "HarnessError",
-      "file_type": "rationale",
-      "norm_label": "git access, and the fingerprint that decides whether evidence is still current....",
-      "source_file": "harness/repository.py",
-      "source_location": "L1"
-    },
-    {
-      "id": "harness_tests_helpers_rationale_1",
-      "label": "A throwaway project to run harness commands against. Tests never touch the\u2026",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "HarnessError",
-      "file_type": "rationale",
-      "norm_label": "a throwaway project to run harness commands against. tests never touch the...",
-      "source_file": "harness/tests/helpers.py",
-      "source_location": "L1"
-    },
-    {
-      "id": "harness_tests_helpers_rationale_38",
-      "label": "A git repository shaped like Seen: a ticket, the harness files, one commit.",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "HarnessError",
-      "file_type": "rationale",
-      "norm_label": "a git repository shaped like seen: a ticket, the harness files, one commit.",
-      "source_file": "harness/tests/helpers.py",
-      "source_location": "L38"
-    },
-    {
-      "id": "harness_tests_helpers_rationale_59",
-      "label": "Base class giving each test its own project and ticket.",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "HarnessError",
-      "file_type": "rationale",
-      "norm_label": "base class giving each test its own project and ticket.",
-      "source_file": "harness/tests/helpers.py",
-      "source_location": "L59"
-    },
-    {
-      "id": "harness_tests_helpers_rationale_77",
-      "label": "A bare repository to push to, so delivery can be verified without a network.",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "HarnessError",
-      "file_type": "rationale",
-      "norm_label": "a bare repository to push to, so delivery can be verified without a network.",
-      "source_file": "harness/tests/helpers.py",
-      "source_location": "L77"
-    },
-    {
-      "id": "harness_tests_test_delivery_rationale_1",
-      "label": "Delivery: the stage gate that writes the receipt, and what it refuses.",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "HarnessError",
-      "file_type": "rationale",
-      "norm_label": "delivery: the stage gate that writes the receipt, and what it refuses.",
-      "source_file": "harness/tests/test_delivery.py",
-      "source_location": "L1"
     },
     {
       "id": "harness_tests_test_doctor_rationale_1",
@@ -4845,39 +4818,6 @@
       "source_location": "L1"
     },
     {
-      "id": "harness_tests_test_isolation_rationale_1",
-      "label": "Tests must never touch the journal of the repository they live in. A test suite\u2026",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "HarnessError",
-      "file_type": "rationale",
-      "norm_label": "tests must never touch the journal of the repository they live in. a test suite...",
-      "source_file": "harness/tests/test_isolation.py",
-      "source_location": "L1"
-    },
-    {
-      "id": "harness_tests_test_journal_rationale_1",
-      "label": "The journal: what a record is, and what makes a chain of them trustworthy.",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "HarnessError",
-      "file_type": "rationale",
-      "norm_label": "the journal: what a record is, and what makes a chain of them trustworthy.",
-      "source_file": "harness/tests/test_journal.py",
-      "source_location": "L1"
-    },
-    {
-      "id": "harness_tests_test_lifecycle_rationale_1",
-      "label": "One ticket from start to delivered, through the commands a session runs.",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "HarnessError",
-      "file_type": "rationale",
-      "norm_label": "one ticket from start to delivered, through the commands a session runs.",
-      "source_file": "harness/tests/test_lifecycle.py",
-      "source_location": "L1"
-    },
-    {
       "id": "harness_tests_test_repository_rationale_1",
       "label": "Git access, and the fingerprint that decides whether evidence is still current.",
       "_origin": "ast",
@@ -4897,6 +4837,17 @@
       "file_type": "rationale",
       "norm_label": "what each stage gate proves before a ticket may leave its stage. the three...",
       "source_file": "harness/tests/test_stage_gates.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "harness_thresholds_rationale_1",
+      "label": "The numbers and vocabularies the stage gates apply. Missing or malformed, this\u2026",
+      "_origin": "ast",
+      "community": 13,
+      "community_name": "HarnessError",
+      "file_type": "rationale",
+      "norm_label": "the numbers and vocabularies the stage gates apply. missing or malformed, this...",
+      "source_file": "harness/thresholds.py",
       "source_location": "L1"
     },
     {
@@ -5091,6 +5042,17 @@
       "source_location": "L1"
     },
     {
+      "id": "harness_graph",
+      "label": "graph.py",
+      "_origin": "ast",
+      "community": 16,
+      "community_name": "cli.py",
+      "file_type": "code",
+      "norm_label": "graph.py",
+      "source_file": "harness/graph.py",
+      "source_location": "L1"
+    },
+    {
       "id": "harness_paths",
       "label": "paths.py",
       "_origin": "ast",
@@ -5099,6 +5061,17 @@
       "file_type": "code",
       "norm_label": "paths.py",
       "source_file": "harness/paths.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "harness_repository",
+      "label": "repository.py",
+      "_origin": "ast",
+      "community": 16,
+      "community_name": "cli.py",
+      "file_type": "code",
+      "norm_label": "repository.py",
+      "source_file": "harness/repository.py",
       "source_location": "L1"
     },
     {
@@ -5113,17 +5086,6 @@
       "source_location": "L1"
     },
     {
-      "id": "harness_thresholds",
-      "label": "thresholds.py",
-      "_origin": "ast",
-      "community": 16,
-      "community_name": "cli.py",
-      "file_type": "code",
-      "norm_label": "thresholds.py",
-      "source_file": "harness/thresholds.py",
-      "source_location": "L1"
-    },
-    {
       "id": "harness_cli_rationale_1",
       "label": "The commands a session runs, and the order they may be run in. Two families:\u2026",
       "_origin": "ast",
@@ -5135,15 +5097,37 @@
       "source_location": "L1"
     },
     {
-      "id": "harness_cli_rationale_128",
-      "label": "One ticket, one branch, checked on every command that writes. The expensive\u2026",
+      "id": "harness_cli_rationale_221",
+      "label": "Ask the graph and keep the answer, as a note at the current stage. Recorded\u2026",
       "_origin": "ast",
       "community": 16,
       "community_name": "cli.py",
       "file_type": "rationale",
-      "norm_label": "one ticket, one branch, checked on every command that writes. the expensive...",
+      "norm_label": "ask the graph and keep the answer, as a note at the current stage. recorded...",
       "source_file": "harness/cli.py",
-      "source_location": "L128"
+      "source_location": "L221"
+    },
+    {
+      "id": "harness_graph_rationale_1",
+      "label": "Asking graphify a question and keeping the answer in the journal. The harness\u2026",
+      "_origin": "ast",
+      "community": 16,
+      "community_name": "cli.py",
+      "file_type": "rationale",
+      "norm_label": "asking graphify a question and keeping the answer in the journal. the harness...",
+      "source_file": "harness/graph.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "harness_graph_rationale_42",
+      "label": "Run one graphify verb in the project root and return what to record.",
+      "_origin": "ast",
+      "community": 16,
+      "community_name": "cli.py",
+      "file_type": "rationale",
+      "norm_label": "run one graphify verb in the project root and return what to record.",
+      "source_file": "harness/graph.py",
+      "source_location": "L42"
     },
     {
       "id": "harness_paths_rationale_1",
@@ -5157,6 +5141,17 @@
       "source_location": "L1"
     },
     {
+      "id": "harness_repository_rationale_1",
+      "label": "Git access, and the fingerprint that decides whether evidence is still current.\u2026",
+      "_origin": "ast",
+      "community": 16,
+      "community_name": "cli.py",
+      "file_type": "rationale",
+      "norm_label": "git access, and the fingerprint that decides whether evidence is still current....",
+      "source_file": "harness/repository.py",
+      "source_location": "L1"
+    },
+    {
       "id": "harness_run_rationale_2",
       "label": "Entry point: python3 harness/run.py <command>.",
       "_origin": "ast",
@@ -5166,17 +5161,6 @@
       "norm_label": "entry point: python3 harness/run.py <command>.",
       "source_file": "harness/run.py",
       "source_location": "L2"
-    },
-    {
-      "id": "harness_thresholds_rationale_1",
-      "label": "The numbers and vocabularies the stage gates apply. Missing or malformed, this\u2026",
-      "_origin": "ast",
-      "community": 16,
-      "community_name": "cli.py",
-      "file_type": "rationale",
-      "norm_label": "the numbers and vocabularies the stage gates apply. missing or malformed, this...",
-      "source_file": "harness/thresholds.py",
-      "source_location": "L1"
     },
     {
       "id": "docs_prd_prd_10_pricing_and_metering",
@@ -5406,17 +5390,6 @@
       "source_location": "L1"
     },
     {
-      "id": "harness_init",
-      "label": "harness/__init__.py",
-      "_origin": "ast",
-      "community": 18,
-      "community_name": "doctor.py",
-      "file_type": "code",
-      "norm_label": "harness/__init__.py",
-      "source_file": "harness/__init__.py",
-      "source_location": "L1"
-    },
-    {
       "id": "harness_doctor_rationale_1",
       "label": "The self-check a session runs before it starts working. It reports problems\u2026",
       "_origin": "ast",
@@ -5470,17 +5443,6 @@
       "norm_label": "relative markdown links that do not resolve. the docs are what this project...",
       "source_file": "harness/doctor.py",
       "source_location": "L84"
-    },
-    {
-      "id": "harness_init_rationale_1",
-      "label": "The Seen development harness. One procedure per ticket, five stages, and an\u2026",
-      "_origin": "ast",
-      "community": 18,
-      "community_name": "doctor.py",
-      "file_type": "rationale",
-      "norm_label": "the seen development harness. one procedure per ticket, five stages, and an...",
-      "source_file": "harness/__init__.py",
-      "source_location": "L1"
     },
     {
       "id": "docs_adr_0002_the_receipt_attests_the_tree_minus_the_journal",
@@ -5579,6 +5541,17 @@
       "source_location": "L34"
     },
     {
+      "id": "harness_checks_rationale_29",
+      "label": "Run one check and return the evidence to record.",
+      "_origin": "ast",
+      "community": 19,
+      "community_name": "advance",
+      "file_type": "rationale",
+      "norm_label": "run one check and return the evidence to record.",
+      "source_file": "harness/checks.py",
+      "source_location": "L29"
+    },
+    {
       "id": "harness_cli_rationale_288",
       "label": "Remove the draft the evidence came from; the journal now holds it.",
       "_origin": "ast",
@@ -5588,6 +5561,138 @@
       "norm_label": "remove the draft the evidence came from; the journal now holds it.",
       "source_file": "harness/cli.py",
       "source_location": "L288"
+    },
+    {
+      "id": "harness_tests_helpers",
+      "label": "helpers.py",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": ".start",
+      "file_type": "code",
+      "norm_label": "helpers.py",
+      "source_file": "harness/tests/helpers.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "harness_tests_test_delivery",
+      "label": "test_delivery.py",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": ".start",
+      "file_type": "code",
+      "norm_label": "test_delivery.py",
+      "source_file": "harness/tests/test_delivery.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "harness_tests_test_isolation",
+      "label": "test_isolation.py",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": ".start",
+      "file_type": "code",
+      "norm_label": "test_isolation.py",
+      "source_file": "harness/tests/test_isolation.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "harness_tests_test_lifecycle",
+      "label": "test_lifecycle.py",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": ".start",
+      "file_type": "code",
+      "norm_label": "test_lifecycle.py",
+      "source_file": "harness/tests/test_lifecycle.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "harness_tests_helpers_rationale_1",
+      "label": "A throwaway project to run harness commands against. Tests never touch the\u2026",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": ".start",
+      "file_type": "rationale",
+      "norm_label": "a throwaway project to run harness commands against. tests never touch the...",
+      "source_file": "harness/tests/helpers.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "harness_tests_helpers_rationale_38",
+      "label": "A git repository shaped like Seen: a ticket, the harness files, one commit.",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": ".start",
+      "file_type": "rationale",
+      "norm_label": "a git repository shaped like seen: a ticket, the harness files, one commit.",
+      "source_file": "harness/tests/helpers.py",
+      "source_location": "L38"
+    },
+    {
+      "id": "harness_tests_helpers_rationale_59",
+      "label": "Base class giving each test its own project and ticket.",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": ".start",
+      "file_type": "rationale",
+      "norm_label": "base class giving each test its own project and ticket.",
+      "source_file": "harness/tests/helpers.py",
+      "source_location": "L59"
+    },
+    {
+      "id": "harness_tests_helpers_rationale_77",
+      "label": "A bare repository to push to, so delivery can be verified without a network.",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": ".start",
+      "file_type": "rationale",
+      "norm_label": "a bare repository to push to, so delivery can be verified without a network.",
+      "source_file": "harness/tests/helpers.py",
+      "source_location": "L77"
+    },
+    {
+      "id": "harness_tests_test_delivery_rationale_1",
+      "label": "Delivery: the stage gate that writes the receipt, and what it refuses.",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": ".start",
+      "file_type": "rationale",
+      "norm_label": "delivery: the stage gate that writes the receipt, and what it refuses.",
+      "source_file": "harness/tests/test_delivery.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "harness_tests_test_isolation_rationale_1",
+      "label": "Tests must never touch the journal of the repository they live in. A test suite\u2026",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": ".start",
+      "file_type": "rationale",
+      "norm_label": "tests must never touch the journal of the repository they live in. a test suite...",
+      "source_file": "harness/tests/test_isolation.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "harness_tests_test_isolation_rationale_32",
+      "label": "run.py must work as a script, which is how every session calls it.",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": ".start",
+      "file_type": "rationale",
+      "norm_label": "run.py must work as a script, which is how every session calls it.",
+      "source_file": "harness/tests/test_isolation.py",
+      "source_location": "L32"
+    },
+    {
+      "id": "harness_tests_test_lifecycle_rationale_1",
+      "label": "One ticket from start to delivered, through the commands a session runs.",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": ".start",
+      "file_type": "rationale",
+      "norm_label": "one ticket from start to delivered, through the commands a session runs.",
+      "source_file": "harness/tests/test_lifecycle.py",
+      "source_location": "L1"
     },
     {
       "id": "harness_tests_test_lifecycle_rationale_18",
@@ -5605,21 +5710,32 @@
       "label": "checks.py",
       "_origin": "ast",
       "community": 20,
-      "community_name": "checks.py",
+      "community_name": "journal.py",
       "file_type": "code",
       "norm_label": "checks.py",
       "source_file": "harness/checks.py",
       "source_location": "L1"
     },
     {
-      "id": "harness_graph",
-      "label": "graph.py",
+      "id": "harness_journal",
+      "label": "journal.py",
       "_origin": "ast",
       "community": 20,
-      "community_name": "checks.py",
+      "community_name": "journal.py",
       "file_type": "code",
-      "norm_label": "graph.py",
-      "source_file": "harness/graph.py",
+      "norm_label": "journal.py",
+      "source_file": "harness/journal.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "harness_tests_test_journal",
+      "label": "test_journal.py",
+      "_origin": "ast",
+      "community": 20,
+      "community_name": "journal.py",
+      "file_type": "code",
+      "norm_label": "test_journal.py",
+      "source_file": "harness/tests/test_journal.py",
       "source_location": "L1"
     },
     {
@@ -5627,44 +5743,55 @@
       "label": "Running and recording a verification command. A check is a real subprocess in\u2026",
       "_origin": "ast",
       "community": 20,
-      "community_name": "checks.py",
+      "community_name": "journal.py",
       "file_type": "rationale",
       "norm_label": "running and recording a verification command. a check is a real subprocess in...",
       "source_file": "harness/checks.py",
       "source_location": "L1"
     },
     {
-      "id": "harness_checks_rationale_29",
-      "label": "Run one check and return the evidence to record.",
+      "id": "harness_journal_rationale_1",
+      "label": "The append-only journal: one directory of numbered records per ticket. Each\u2026",
       "_origin": "ast",
       "community": 20,
-      "community_name": "checks.py",
+      "community_name": "journal.py",
       "file_type": "rationale",
-      "norm_label": "run one check and return the evidence to record.",
-      "source_file": "harness/checks.py",
-      "source_location": "L29"
-    },
-    {
-      "id": "harness_graph_rationale_1",
-      "label": "Asking graphify a question and keeping the answer in the journal. The harness\u2026",
-      "_origin": "ast",
-      "community": 20,
-      "community_name": "checks.py",
-      "file_type": "rationale",
-      "norm_label": "asking graphify a question and keeping the answer in the journal. the harness...",
-      "source_file": "harness/graph.py",
+      "norm_label": "the append-only journal: one directory of numbered records per ticket. each...",
+      "source_file": "harness/journal.py",
       "source_location": "L1"
     },
     {
-      "id": "harness_graph_rationale_42",
-      "label": "Run one graphify verb in the project root and return what to record.",
+      "id": "harness_journal_rationale_27",
+      "label": "The one byte representation of a record. Never re-run on a written file.",
       "_origin": "ast",
       "community": 20,
-      "community_name": "checks.py",
+      "community_name": "journal.py",
       "file_type": "rationale",
-      "norm_label": "run one graphify verb in the project root and return what to record.",
-      "source_file": "harness/graph.py",
-      "source_location": "L42"
+      "norm_label": "the one byte representation of a record. never re-run on a written file.",
+      "source_file": "harness/journal.py",
+      "source_location": "L27"
+    },
+    {
+      "id": "harness_journal_rationale_81",
+      "label": "Write bytes to a name that must not already exist, atomically. A direct\u2026",
+      "_origin": "ast",
+      "community": 20,
+      "community_name": "journal.py",
+      "file_type": "rationale",
+      "norm_label": "write bytes to a name that must not already exist, atomically. a direct...",
+      "source_file": "harness/journal.py",
+      "source_location": "L81"
+    },
+    {
+      "id": "harness_tests_test_journal_rationale_1",
+      "label": "The journal: what a record is, and what makes a chain of them trustworthy.",
+      "_origin": "ast",
+      "community": 20,
+      "community_name": "journal.py",
+      "file_type": "rationale",
+      "norm_label": "the journal: what a record is, and what makes a chain of them trustworthy.",
+      "source_file": "harness/tests/test_journal.py",
+      "source_location": "L1"
     },
     {
       "id": "docs_architecture_agent_runtime_and_the_policy_gate",
@@ -5796,7 +5923,7 @@
       "node_kind": "heading",
       "norm_label": "epics",
       "source_file": "docs/tickets/README.md",
-      "source_location": "L155"
+      "source_location": "L156"
     },
     {
       "id": "docs_tickets_readme_sprint_0_harness_first_then_foundations_three_read_connectors_ingest_day_0_registrations",
@@ -5820,7 +5947,7 @@
       "node_kind": "heading",
       "norm_label": "sprint 1: reconciliation engine, fee expectations, findings, audit pdf",
       "source_file": "docs/tickets/README.md",
-      "source_location": "L35"
+      "source_location": "L36"
     },
     {
       "id": "docs_tickets_readme_sprint_2_claims_rail_evidence_approval_inbox_policy_gate_v1_audit_log_credit_matching",
@@ -5832,7 +5959,7 @@
       "node_kind": "heading",
       "norm_label": "sprint 2: claims rail, evidence, approval inbox, policy gate v1, audit log, credit matching",
       "source_file": "docs/tickets/README.md",
-      "source_location": "L53"
+      "source_location": "L54"
     },
     {
       "id": "docs_tickets_readme_sprint_3_reconcile_module_stripe_billing_statements_shopify",
@@ -5844,7 +5971,7 @@
       "node_kind": "heading",
       "norm_label": "sprint 3: reconcile module, stripe billing, statements, shopify",
       "source_file": "docs/tickets/README.md",
-      "source_location": "L72"
+      "source_location": "L73"
     },
     {
       "id": "docs_tickets_readme_sprint_4_comply_v1_kaufland_connector_listing_fixes_by_api",
@@ -5856,7 +5983,7 @@
       "node_kind": "heading",
       "norm_label": "sprint 4: comply v1, kaufland connector, listing fixes by api",
       "source_file": "docs/tickets/README.md",
-      "source_location": "L89"
+      "source_location": "L90"
     },
     {
       "id": "docs_tickets_readme_sprint_5_serve_v1_forwarded_mailbox_trust_ramp_otto_connector",
@@ -5868,7 +5995,7 @@
       "node_kind": "heading",
       "norm_label": "sprint 5: serve v1, forwarded mailbox, trust ramp, otto connector",
       "source_file": "docs/tickets/README.md",
-      "source_location": "L106"
+      "source_location": "L107"
     },
     {
       "id": "docs_tickets_readme_sprint_6_price_module_v1_competitor_snapshots_net_margin_model_governor_headroom_meter",
@@ -5880,7 +6007,7 @@
       "node_kind": "heading",
       "norm_label": "sprint 6: price module v1: competitor snapshots, net-margin model, governor, headroom meter",
       "source_file": "docs/tickets/README.md",
-      "source_location": "L123"
+      "source_location": "L124"
     },
     {
       "id": "docs_tickets_readme_sprint_7_grow_v1_retailer_read_only_view_hardening_day_120_metrics",
@@ -5892,7 +6019,7 @@
       "node_kind": "heading",
       "norm_label": "sprint 7: grow v1, retailer read-only view, hardening, day-120 metrics",
       "source_file": "docs/tickets/README.md",
-      "source_location": "L139"
+      "source_location": "L140"
     },
     {
       "id": "docs_tickets_readme_tickets",
@@ -7347,17 +7474,6 @@
       "norm_label": "seen-013: build amazon sp-api connector for orders, reports and finances",
       "source_file": "docs/tickets/SEEN-013-build-amazon-sp-api-connector-for-orders.md",
       "source_location": "L16"
-    },
-    {
-      "id": "harness_tests_test_isolation_rationale_32",
-      "label": "run.py must work as a script, which is how every session calls it.",
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "EntryPointTest",
-      "file_type": "rationale",
-      "norm_label": "run.py must work as a script, which is how every session calls it.",
-      "source_file": "harness/tests/test_isolation.py",
-      "source_location": "L32"
     },
     {
       "id": "docs_tickets_seen_014_run_ingest_workers_with_idempotent_upserts_raw_acceptance_criteria",
@@ -10078,6 +10194,33 @@
       "source_location": "L1"
     },
     {
+      "id": "docs_tickets_seen_093_add_harness_reopen_to_void_a_receipt_before",
+      "label": "SEEN-093-add-harness-reopen-to-void-a-receipt-before.md",
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "CLAUDE.md",
+      "file_type": "document",
+      "frontmatter": {
+        "id": "SEEN-093",
+        "title": "Add harness reopen to void a receipt before merge",
+        "epic": "E10",
+        "epic_name": "Development harness",
+        "sprint": "0",
+        "sprint_dates": "24 Sep - 9 Oct 2026",
+        "gate": "G0",
+        "estimate": "2",
+        "executor": "claude-code",
+        "changes_agent_action": "false",
+        "marketplaces": "[]",
+        "depends_on": "[SEEN-086]",
+        "status": "doing"
+      },
+      "node_kind": "page",
+      "norm_label": "seen-093-add-harness-reopen-to-void-a-receipt-before.md",
+      "source_file": "docs/tickets/SEEN-093-add-harness-reopen-to-void-a-receipt-before.md",
+      "source_location": "L1"
+    },
+    {
       "id": "docs_tickets_seen_087_install_graphify_build_the_repo_graph_and_wire",
       "label": "SEEN-087-install-graphify-build-the-repo-graph-and-wire.md",
       "_origin": "ast",
@@ -11377,7 +11520,7 @@
       "node_kind": "heading",
       "norm_label": "graphify",
       "source_file": "CLAUDE.md",
-      "source_location": "L149"
+      "source_location": "L150"
     },
     {
       "id": "claude_ground_rules",
@@ -11416,14 +11559,14 @@
       "source_location": "L1"
     },
     {
-      "id": "claude_tickets_92_324_build_points",
-      "label": "Tickets (92, 324 build points)",
+      "id": "claude_tickets_93_326_build_points",
+      "label": "Tickets (93, 326 build points)",
       "_origin": "ast",
       "community": 6,
       "community_name": "Seen: Claude Code entry point",
       "file_type": "document",
       "node_kind": "heading",
-      "norm_label": "tickets (92, 324 build points)",
+      "norm_label": "tickets (93, 326 build points)",
       "source_file": "CLAUDE.md",
       "source_location": "L44"
     },
@@ -12880,66 +13023,44 @@
       "source_location": "L16"
     },
     {
-      "id": "harness_journal",
-      "label": "journal.py",
+      "id": "harness_cli_rationale_128",
+      "label": "One ticket, one branch, checked on every command that writes. The expensive\u2026",
       "_origin": "ast",
       "community": 8,
-      "community_name": "execute",
-      "file_type": "code",
-      "norm_label": "journal.py",
-      "source_file": "harness/journal.py",
-      "source_location": "L1"
-    },
-    {
-      "id": "harness_cli_rationale_142",
-      "label": "An advisory lock, never broken automatically. Two sessions may share a\u2026",
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "execute",
+      "community_name": "require",
       "file_type": "rationale",
-      "norm_label": "an advisory lock, never broken automatically. two sessions may share a...",
+      "norm_label": "one ticket, one branch, checked on every command that writes. the expensive...",
       "source_file": "harness/cli.py",
-      "source_location": "L142"
+      "source_location": "L128"
     },
     {
       "id": "harness_cli_rationale_175",
       "label": "Everything a resuming session needs before it touches the project. Deliberately\u2026",
       "_origin": "ast",
       "community": 8,
-      "community_name": "execute",
+      "community_name": "require",
       "file_type": "rationale",
       "norm_label": "everything a resuming session needs before it touches the project. deliberately...",
       "source_file": "harness/cli.py",
       "source_location": "L175"
     },
     {
-      "id": "harness_cli_rationale_221",
-      "label": "Ask the graph and keep the answer, as a note at the current stage. Recorded\u2026",
+      "id": "harness_errors_rationale_9",
+      "label": "Refuse unless the condition holds. Never repairs, never warns and continues.",
       "_origin": "ast",
       "community": 8,
-      "community_name": "execute",
+      "community_name": "require",
       "file_type": "rationale",
-      "norm_label": "ask the graph and keep the answer, as a note at the current stage. recorded...",
-      "source_file": "harness/cli.py",
-      "source_location": "L221"
-    },
-    {
-      "id": "harness_journal_rationale_1",
-      "label": "The append-only journal: one directory of numbered records per ticket. Each\u2026",
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "execute",
-      "file_type": "rationale",
-      "norm_label": "the append-only journal: one directory of numbered records per ticket. each...",
-      "source_file": "harness/journal.py",
-      "source_location": "L1"
+      "norm_label": "refuse unless the condition holds. never repairs, never warns and continues.",
+      "source_file": "harness/errors.py",
+      "source_location": "L9"
     },
     {
       "id": "harness_journal_rationale_102",
       "label": "Where a ticket stands now. A record's envelope says where the ticket was when\u2026",
       "_origin": "ast",
       "community": 8,
-      "community_name": "execute",
+      "community_name": "require",
       "file_type": "rationale",
       "norm_label": "where a ticket stands now. a record's envelope says where the ticket was when...",
       "source_file": "harness/journal.py",
@@ -12950,29 +13071,18 @@
       "label": "The sha256 of a record file, over its bytes and nothing else.",
       "_origin": "ast",
       "community": 8,
-      "community_name": "execute",
+      "community_name": "require",
       "file_type": "rationale",
       "norm_label": "the sha256 of a record file, over its bytes and nothing else.",
       "source_file": "harness/journal.py",
       "source_location": "L22"
     },
     {
-      "id": "harness_journal_rationale_27",
-      "label": "The one byte representation of a record. Never re-run on a written file.",
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "execute",
-      "file_type": "rationale",
-      "norm_label": "the one byte representation of a record. never re-run on a written file.",
-      "source_file": "harness/journal.py",
-      "source_location": "L27"
-    },
-    {
       "id": "harness_journal_rationale_32",
       "label": "Read one ticket's records in order, verifying the chain as it goes. Refuses a\u2026",
       "_origin": "ast",
       "community": 8,
-      "community_name": "execute",
+      "community_name": "require",
       "file_type": "rationale",
       "norm_label": "read one ticket's records in order, verifying the chain as it goes. refuses a...",
       "source_file": "harness/journal.py",
@@ -12983,22 +13093,11 @@
       "label": "Write the next record. Exclusive and atomic, so a crash cannot truncate one.",
       "_origin": "ast",
       "community": 8,
-      "community_name": "execute",
+      "community_name": "require",
       "file_type": "rationale",
       "norm_label": "write the next record. exclusive and atomic, so a crash cannot truncate one.",
       "source_file": "harness/journal.py",
       "source_location": "L62"
-    },
-    {
-      "id": "harness_journal_rationale_81",
-      "label": "Write bytes to a name that must not already exist, atomically. A direct\u2026",
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "execute",
-      "file_type": "rationale",
-      "norm_label": "write bytes to a name that must not already exist, atomically. a direct...",
-      "source_file": "harness/journal.py",
-      "source_location": "L81"
     },
     {
       "id": "docs_tickets_seen_054_build_the_kaufland_connector_with_tickets_as_acceptance_criteria",
@@ -14464,18 +14563,6 @@
       "type": "external"
     },
     {
-      "id": "harness_tests",
-      "label": "harness_tests",
-      "_origin": "semantic",
-      "community": 13,
-      "community_name": "HarnessError",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "harness_tests",
-      "source_file": "",
-      "type": "external"
-    },
-    {
       "id": "json",
       "label": "json",
       "_origin": "semantic",
@@ -14488,14 +14575,14 @@
       "type": "external"
     },
     {
-      "id": "shutil",
-      "label": "shutil",
+      "id": "os",
+      "label": "os",
       "_origin": "semantic",
       "community": 13,
       "community_name": "HarnessError",
       "external": true,
       "file_type": "concept",
-      "norm_label": "shutil",
+      "norm_label": "os",
       "source_file": "",
       "type": "external"
     },
@@ -14512,26 +14599,14 @@
       "type": "external"
     },
     {
-      "id": "tempfile",
-      "label": "tempfile",
+      "id": "tomllib",
+      "label": "tomllib",
       "_origin": "semantic",
       "community": 13,
       "community_name": "HarnessError",
       "external": true,
       "file_type": "concept",
-      "norm_label": "tempfile",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "unittest",
-      "label": "unittest",
-      "_origin": "semantic",
-      "community": 13,
-      "community_name": "HarnessError",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "unittest",
+      "norm_label": "tomllib",
       "source_file": "",
       "type": "external"
     },
@@ -14572,6 +14647,18 @@
       "type": "external"
     },
     {
+      "id": "subprocess",
+      "label": "subprocess",
+      "_origin": "semantic",
+      "community": 16,
+      "community_name": "cli.py",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "subprocess",
+      "source_file": "",
+      "type": "external"
+    },
+    {
       "id": "sys",
       "label": "sys",
       "_origin": "semantic",
@@ -14584,14 +14671,50 @@
       "type": "external"
     },
     {
-      "id": "tomllib",
-      "label": "tomllib",
+      "id": "harness_tests",
+      "label": "harness_tests",
       "_origin": "semantic",
-      "community": 16,
-      "community_name": "cli.py",
+      "community": 2,
+      "community_name": ".start",
       "external": true,
       "file_type": "concept",
-      "norm_label": "tomllib",
+      "norm_label": "harness_tests",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "shutil",
+      "label": "shutil",
+      "_origin": "semantic",
+      "community": 2,
+      "community_name": ".start",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "shutil",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "unittest",
+      "label": "unittest",
+      "_origin": "semantic",
+      "community": 2,
+      "community_name": ".start",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "unittest",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "datetime",
+      "label": "datetime",
+      "_origin": "semantic",
+      "community": 20,
+      "community_name": "journal.py",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "datetime",
       "source_file": "",
       "type": "external"
     },
@@ -14600,7 +14723,7 @@
       "label": "hashlib",
       "_origin": "semantic",
       "community": 20,
-      "community_name": "checks.py",
+      "community_name": "journal.py",
       "external": true,
       "file_type": "concept",
       "norm_label": "hashlib",
@@ -14608,14 +14731,14 @@
       "type": "external"
     },
     {
-      "id": "subprocess",
-      "label": "subprocess",
+      "id": "tempfile",
+      "label": "tempfile",
       "_origin": "semantic",
       "community": 20,
-      "community_name": "checks.py",
+      "community_name": "journal.py",
       "external": true,
       "file_type": "concept",
-      "norm_label": "subprocess",
+      "norm_label": "tempfile",
       "source_file": "",
       "type": "external"
     },
@@ -14624,34 +14747,10 @@
       "label": "time",
       "_origin": "semantic",
       "community": 20,
-      "community_name": "checks.py",
+      "community_name": "journal.py",
       "external": true,
       "file_type": "concept",
       "norm_label": "time",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "datetime",
-      "label": "datetime",
-      "_origin": "semantic",
-      "community": 8,
-      "community_name": "execute",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "datetime",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "os",
-      "label": "os",
-      "_origin": "semantic",
-      "community": 8,
-      "community_name": "execute",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "os",
       "source_file": "",
       "type": "external"
     }
@@ -21210,7 +21309,7 @@
     },
     {
       "source": "claude_index_of_docs",
-      "target": "claude_tickets_92_324_build_points",
+      "target": "claude_tickets_93_326_build_points",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -21227,7 +21326,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "CLAUDE.md",
-      "source_location": "L149",
+      "source_location": "L150",
       "weight": 1.0
     },
     {
@@ -21920,7 +22019,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/tickets/README.md",
-      "source_location": "L106",
+      "source_location": "L107",
       "weight": 1.0
     },
     {
@@ -21931,7 +22030,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/tickets/README.md",
-      "source_location": "L123",
+      "source_location": "L124",
       "weight": 1.0
     },
     {
@@ -21942,7 +22041,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/tickets/README.md",
-      "source_location": "L139",
+      "source_location": "L140",
       "weight": 1.0
     },
     {
@@ -21953,7 +22052,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/tickets/README.md",
-      "source_location": "L155",
+      "source_location": "L156",
       "weight": 1.0
     },
     {
@@ -21964,7 +22063,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/tickets/README.md",
-      "source_location": "L35",
+      "source_location": "L36",
       "weight": 1.0
     },
     {
@@ -21975,7 +22074,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/tickets/README.md",
-      "source_location": "L53",
+      "source_location": "L54",
       "weight": 1.0
     },
     {
@@ -21997,7 +22096,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/tickets/README.md",
-      "source_location": "L72",
+      "source_location": "L73",
       "weight": 1.0
     },
     {
@@ -22008,7 +22107,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/tickets/README.md",
-      "source_location": "L89",
+      "source_location": "L90",
       "weight": 1.0
     },
     {
@@ -28172,6 +28271,72 @@
       "weight": 1.0
     },
     {
+      "source": "docs_tickets_seen_093_add_harness_reopen_to_void_a_receipt_before",
+      "target": "docs_tickets_seen_093_add_harness_reopen_to_void_a_receipt_before_seen_093_add_harness_reopen_to_void_a_receipt_before_merge",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/tickets/SEEN-093-add-harness-reopen-to-void-a-receipt-before.md",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "docs_tickets_seen_093_add_harness_reopen_to_void_a_receipt_before_seen_093_add_harness_reopen_to_void_a_receipt_before_merge",
+      "target": "docs_tickets_seen_093_add_harness_reopen_to_void_a_receipt_before_description",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/tickets/SEEN-093-add-harness-reopen-to-void-a-receipt-before.md",
+      "source_location": "L28",
+      "weight": 1.0
+    },
+    {
+      "source": "docs_tickets_seen_093_add_harness_reopen_to_void_a_receipt_before_seen_093_add_harness_reopen_to_void_a_receipt_before_merge",
+      "target": "docs_tickets_seen_093_add_harness_reopen_to_void_a_receipt_before_acceptance_criteria",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/tickets/SEEN-093-add-harness-reopen-to-void-a-receipt-before.md",
+      "source_location": "L43",
+      "weight": 1.0
+    },
+    {
+      "source": "docs_tickets_seen_093_add_harness_reopen_to_void_a_receipt_before_seen_093_add_harness_reopen_to_void_a_receipt_before_merge",
+      "target": "docs_tickets_seen_093_add_harness_reopen_to_void_a_receipt_before_depends_on",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/tickets/SEEN-093-add-harness-reopen-to-void-a-receipt-before.md",
+      "source_location": "L51",
+      "weight": 1.0
+    },
+    {
+      "source": "docs_tickets_seen_093_add_harness_reopen_to_void_a_receipt_before_seen_093_add_harness_reopen_to_void_a_receipt_before_merge",
+      "target": "docs_tickets_seen_093_add_harness_reopen_to_void_a_receipt_before_blocks",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/tickets/SEEN-093-add-harness-reopen-to-void-a-receipt-before.md",
+      "source_location": "L55",
+      "weight": 1.0
+    },
+    {
+      "source": "docs_tickets_seen_093_add_harness_reopen_to_void_a_receipt_before_seen_093_add_harness_reopen_to_void_a_receipt_before_merge",
+      "target": "docs_tickets_seen_093_add_harness_reopen_to_void_a_receipt_before_context",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/tickets/SEEN-093-add-harness-reopen-to-void-a-receipt-before.md",
+      "source_location": "L59",
+      "weight": 1.0
+    },
+    {
       "source": "harness_checks",
       "target": "harness_checks_phases_for",
       "relation": "contains",
@@ -31979,7 +32144,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_042_ship_the_reconcile_module_with_margin_and_fee",
+      "target": "docs_tickets_seen_041_generate_and_send_the_monthly_statement_pdf",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -31990,7 +32155,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_043_export_finance_csv_of_settlements_and_matched",
+      "target": "docs_tickets_seen_042_ship_the_reconcile_module_with_margin_and_fee",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32001,7 +32166,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_044_build_the_shopify_admin_graphql_connector_as",
+      "target": "docs_tickets_seen_043_export_finance_csv_of_settlements_and_matched",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32012,7 +32177,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_045_add_module_switches_per_tenant_with_scheduling",
+      "target": "docs_tickets_seen_044_build_the_shopify_admin_graphql_connector_as",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32023,7 +32188,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_046_build_customer_facing_findings_and_claims_views",
+      "target": "docs_tickets_seen_045_add_module_switches_per_tenant_with_scheduling",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32034,7 +32199,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_047_issue_the_first_invoice_and_send_the_signed",
+      "target": "docs_tickets_seen_046_build_customer_facing_findings_and_claims_views",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32045,18 +32210,18 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_048_verify_kaufland_settlement_and_ticket_endpoints",
+      "target": "docs_tickets_seen_047_issue_the_first_invoice_and_send_the_signed",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "CLAUDE.md",
-      "source_location": "L107",
+      "source_location": "L106",
       "weight": 1.0
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_049_encode_listing_spec_rules_per_marketplace_in",
+      "target": "docs_tickets_seen_048_verify_kaufland_settlement_and_ticket_endpoints",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32067,7 +32232,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_050_ingest_listings_with_content_hash_and_drift",
+      "target": "docs_tickets_seen_049_encode_listing_spec_rules_per_marketplace_in",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32078,7 +32243,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_051_add_propose_listing_fix_and_apply_listing_fix",
+      "target": "docs_tickets_seen_050_ingest_listings_with_content_hash_and_drift",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32089,7 +32254,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_052_write_listing_content_through_bol_and_ebay_apis",
+      "target": "docs_tickets_seen_051_add_propose_listing_fix_and_apply_listing_fix",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32100,7 +32265,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_053_write_listing_content_through_amazon_listings",
+      "target": "docs_tickets_seen_052_write_listing_content_through_bol_and_ebay_apis",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32111,7 +32276,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_054_build_the_kaufland_connector_with_tickets_as",
+      "target": "docs_tickets_seen_053_write_listing_content_through_amazon_listings",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32122,7 +32287,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_055_monitor_unauthorised_sellers_from_competing",
+      "target": "docs_tickets_seen_054_build_the_kaufland_connector_with_tickets_as",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32133,7 +32298,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_056_show_comply_defects_and_fix_diffs_in_the_inbox",
+      "target": "docs_tickets_seen_055_monitor_unauthorised_sellers_from_competing",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32144,7 +32309,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_057_verify_listing_fixes_on_three_marketplaces_and",
+      "target": "docs_tickets_seen_056_show_comply_defects_and_fix_diffs_in_the_inbox",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32155,18 +32320,18 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_058_verify_ebay_messaging_deprecation_and_choose",
+      "target": "docs_tickets_seen_057_verify_listing_fixes_on_three_marketplaces_and",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "CLAUDE.md",
-      "source_location": "L118",
+      "source_location": "L117",
       "weight": 1.0
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_059_verify_otto_rate_limits_and_obtain_otto_api_keys",
+      "target": "docs_tickets_seen_058_verify_ebay_messaging_deprecation_and_choose",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32177,7 +32342,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_060_build_the_otto_connector_for_orders_returns",
+      "target": "docs_tickets_seen_059_verify_otto_rate_limits_and_obtain_otto_api_keys",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32188,7 +32353,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_061_ingest_message_threads_from_amazon_ebay",
+      "target": "docs_tickets_seen_060_build_the_otto_connector_for_orders_returns",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32199,7 +32364,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_062_parse_the_forwarded_mailbox_via_postmark",
+      "target": "docs_tickets_seen_061_ingest_message_threads_from_amazon_ebay",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32210,7 +32375,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_063_add_reply_message_tool_bound_to_tenant_service",
+      "target": "docs_tickets_seen_062_parse_the_forwarded_mailbox_via_postmark",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32221,7 +32386,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_064_apply_return_and_cancellation_decisions_through",
+      "target": "docs_tickets_seen_063_add_reply_message_tool_bound_to_tenant_service",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32232,7 +32397,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_065_implement_the_trust_ramp_with_autonomy_per",
+      "target": "docs_tickets_seen_064_apply_return_and_cancellation_decisions_through",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32243,7 +32408,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_066_track_claim_and_dispute_deadlines_with_alerts",
+      "target": "docs_tickets_seen_065_implement_the_trust_ramp_with_autonomy_per",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32254,7 +32419,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_067_show_serve_threads_and_drafts_in_the_inbox",
+      "target": "docs_tickets_seen_066_track_claim_and_dispute_deadlines_with_alerts",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32265,18 +32430,18 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_068_verify_the_kaufland_virtual_buy_box_endpoint",
+      "target": "docs_tickets_seen_067_show_serve_threads_and_drafts_in_the_inbox",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "CLAUDE.md",
-      "source_location": "L129",
+      "source_location": "L128",
       "weight": 1.0
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_069_snapshot_competing_offers_from_bol_by_ean_and",
+      "target": "docs_tickets_seen_068_verify_the_kaufland_virtual_buy_box_endpoint",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32287,7 +32452,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_070_snapshot_amazon_pricing_on_a_tiered_clock",
+      "target": "docs_tickets_seen_069_snapshot_competing_offers_from_bol_by_ean_and",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32298,7 +32463,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_071_model_net_margin_per_marketplace_from_cost",
+      "target": "docs_tickets_seen_070_snapshot_amazon_pricing_on_a_tiered_clock",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32309,7 +32474,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_072_implement_the_price_governor_with_bands",
+      "target": "docs_tickets_seen_071_model_net_margin_per_marketplace_from_cost",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32320,7 +32485,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_073_write_prices_through_bol_offers_and_ebay",
+      "target": "docs_tickets_seen_072_implement_the_price_governor_with_bands",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32331,7 +32496,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_074_add_propose_price_and_apply_price_tools_with",
+      "target": "docs_tickets_seen_073_write_prices_through_bol_offers_and_ebay",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32342,7 +32507,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_075_meter_headroom_entries_and_show_the_price_view",
+      "target": "docs_tickets_seen_074_add_propose_price_and_apply_price_tools_with",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32353,7 +32518,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_076_run_the_daily_bol_buy_box_feedback_loop",
+      "target": "docs_tickets_seen_075_meter_headroom_entries_and_show_the_price_view",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32364,18 +32529,18 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_077_read_ad_reports_from_amazon_ads_bol_advertising",
+      "target": "docs_tickets_seen_076_run_the_daily_bol_buy_box_feedback_loop",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "CLAUDE.md",
-      "source_location": "L139",
+      "source_location": "L138",
       "weight": 1.0
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_078_attribute_ad_cost_into_margin_and_publish_the",
+      "target": "docs_tickets_seen_077_read_ad_reports_from_amazon_ads_bol_advertising",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32386,7 +32551,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_079_propose_campaign_budgets_through_the_gate_no",
+      "target": "docs_tickets_seen_078_attribute_ad_cost_into_margin_and_publish_the",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32397,7 +32562,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_080_build_the_retailer_read_only_view_via_a_scoped",
+      "target": "docs_tickets_seen_079_propose_campaign_budgets_through_the_gate_no",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32408,7 +32573,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_081_load_test_ingest_on_50_tenants_and_run_rate",
+      "target": "docs_tickets_seen_080_build_the_retailer_read_only_view_via_a_scoped",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32419,7 +32584,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_082_run_rls_penetration_tests_and_the_restore_drill",
+      "target": "docs_tickets_seen_081_load_test_ingest_on_50_tenants_and_run_rate",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32430,7 +32595,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_083_expire_amazon_pii_after_30_days_and_delete",
+      "target": "docs_tickets_seen_082_run_rls_penetration_tests_and_the_restore_drill",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32441,7 +32606,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_084_build_the_day_120_metrics_dashboard_and_csv",
+      "target": "docs_tickets_seen_083_expire_amazon_pii_after_30_days_and_delete",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32452,13 +32617,24 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_085_run_restore_drill_close_pen_test_findings_sign",
+      "target": "docs_tickets_seen_084_build_the_day_120_metrics_dashboard_and_csv",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "CLAUDE.md",
       "source_location": "L147",
+      "weight": 1.0
+    },
+    {
+      "source": "claude",
+      "target": "docs_tickets_seen_085_run_restore_drill_close_pen_test_findings_sign",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLAUDE.md",
+      "source_location": "L148",
       "weight": 1.0
     },
     {
@@ -32661,7 +32837,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_092_sync_the_harness_skill_to_claude_code_and_codex",
+      "target": "docs_tickets_seen_093_add_harness_reopen_to_void_a_receipt_before",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32672,7 +32848,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_007_provision_gcp_europe_west4_and_supabase_eu_with",
+      "target": "docs_tickets_seen_092_sync_the_harness_skill_to_claude_code_and_codex",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32683,7 +32859,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_008_create_trade_record_schema_v1_with_tenant_id",
+      "target": "docs_tickets_seen_007_provision_gcp_europe_west4_and_supabase_eu_with",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32694,7 +32870,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_009_define_connector_interface_capability_matrix",
+      "target": "docs_tickets_seen_008_create_trade_record_schema_v1_with_tenant_id",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32705,7 +32881,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_010_add_per_marketplace_rate_limiting_with_header",
+      "target": "docs_tickets_seen_009_define_connector_interface_capability_matrix",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32716,7 +32892,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_011_build_bol_retailer_api_v10_connector_for_orders",
+      "target": "docs_tickets_seen_010_add_per_marketplace_rate_limiting_with_header",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32727,7 +32903,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_012_build_ebay_connector_for_orders_returns",
+      "target": "docs_tickets_seen_011_build_bol_retailer_api_v10_connector_for_orders",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32738,7 +32914,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_013_build_amazon_sp_api_connector_for_orders",
+      "target": "docs_tickets_seen_012_build_ebay_connector_for_orders_returns",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32749,7 +32925,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_014_run_ingest_workers_with_idempotent_upserts_raw",
+      "target": "docs_tickets_seen_013_build_amazon_sp_api_connector_for_orders",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32760,18 +32936,18 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_015_verify_amazon_report_names_and_finances",
+      "target": "docs_tickets_seen_014_run_ingest_workers_with_idempotent_upserts_raw",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "CLAUDE.md",
-      "source_location": "L71",
+      "source_location": "L70",
       "weight": 1.0
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_016_encode_fee_schedules_per_marketplace_and",
+      "target": "docs_tickets_seen_015_verify_amazon_report_names_and_finances",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32782,7 +32958,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_017_compute_fee_expectations_per_order_line_from",
+      "target": "docs_tickets_seen_016_encode_fee_schedules_per_marketplace_and",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32793,7 +32969,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_018_match_settlement_lines_to_order_lines",
+      "target": "docs_tickets_seen_017_compute_fee_expectations_per_order_line_from",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32804,7 +32980,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_019_implement_fee_detectors_as_pure_tested_functions",
+      "target": "docs_tickets_seen_018_match_settlement_lines_to_order_lines",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32815,7 +32991,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_020_implement_shipment_return_and_inventory",
+      "target": "docs_tickets_seen_019_implement_fee_detectors_as_pure_tested_functions",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32826,7 +33002,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_021_persist_findings_with_rule_confidence_evidence",
+      "target": "docs_tickets_seen_020_implement_shipment_return_and_inventory",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32837,7 +33013,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_022_generate_the_audit_pdf_with_scorecard_and_line",
+      "target": "docs_tickets_seen_021_persist_findings_with_rule_confidence_evidence",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32848,7 +33024,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_023_measure_the_recoverable_pool_per_marketplace",
+      "target": "docs_tickets_seen_022_generate_the_audit_pdf_with_scorecard_and_line",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32859,7 +33035,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_024_ship_ops_console_v1_for_tenants_connections_and",
+      "target": "docs_tickets_seen_023_measure_the_recoverable_pool_per_marketplace",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32870,7 +33046,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_025_run_three_real_90_day_audits_and_deliver_the",
+      "target": "docs_tickets_seen_024_ship_ops_console_v1_for_tenants_connections_and",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32881,18 +33057,18 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_026_verify_bol_compensation_request_form_structure",
+      "target": "docs_tickets_seen_025_run_three_real_90_day_audits_and_deliver_the",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "CLAUDE.md",
-      "source_location": "L83",
+      "source_location": "L82",
       "weight": 1.0
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_027_build_the_claims_rail_with_api_assisted_and",
+      "target": "docs_tickets_seen_026_verify_bol_compensation_request_form_structure",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32903,7 +33079,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_028_contest_ebay_payment_disputes_and_cases_by_api",
+      "target": "docs_tickets_seen_027_build_the_claims_rail_with_api_assisted_and",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32914,7 +33090,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_029_build_the_bol_assisted_case_pack_with_tracking",
+      "target": "docs_tickets_seen_028_contest_ebay_payment_disputes_and_cases_by_api",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32925,7 +33101,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_030_build_the_amazon_assisted_case_pack_with_report",
+      "target": "docs_tickets_seen_029_build_the_bol_assisted_case_pack_with_tracking",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32936,7 +33112,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_031_match_credits_to_claims_as_the_only_billable",
+      "target": "docs_tickets_seen_030_build_the_amazon_assisted_case_pack_with_report",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32947,7 +33123,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_032_write_append_only_audit_events_before_every",
+      "target": "docs_tickets_seen_031_match_credits_to_claims_as_the_only_billable",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32958,7 +33134,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_033_implement_policy_gate_v1_with_caps_and",
+      "target": "docs_tickets_seen_032_write_append_only_audit_events_before_every",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32969,7 +33145,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_034_build_agent_runtime_v1_with_the_fixed_tool_set",
+      "target": "docs_tickets_seen_033_implement_policy_gate_v1_with_caps_and",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32980,7 +33156,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_035_build_the_approval_inbox_with_approve_edit_and",
+      "target": "docs_tickets_seen_034_build_agent_runtime_v1_with_the_fixed_tool_set",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32991,7 +33167,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_036_create_the_eval_set_of_30_real_findings_with",
+      "target": "docs_tickets_seen_035_build_the_approval_inbox_with_approve_edit_and",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33002,7 +33178,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_037_file_the_first_ten_claims_across_two",
+      "target": "docs_tickets_seen_036_create_the_eval_set_of_30_real_findings_with",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33013,18 +33189,18 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_038_verify_shopify_payments_payout_scopes_and",
+      "target": "docs_tickets_seen_037_file_the_first_ten_claims_across_two",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "CLAUDE.md",
-      "source_location": "L96",
+      "source_location": "L95",
       "weight": 1.0
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_039_create_stripe_customers_with_sepa_and_card_and",
+      "target": "docs_tickets_seen_038_verify_shopify_payments_payout_scopes_and",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33035,7 +33211,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_040_issue_invoices_with_recovery_share_lines_from",
+      "target": "docs_tickets_seen_039_create_stripe_customers_with_sepa_and_card_and",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33046,7 +33222,7 @@
     },
     {
       "source": "claude",
-      "target": "docs_tickets_seen_041_generate_and_send_the_monthly_statement_pdf",
+      "target": "docs_tickets_seen_040_issue_invoices_with_recovery_share_lines_from",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33090,7 +33266,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_053_write_listing_content_through_amazon_listings",
+      "target": "docs_tickets_seen_052_write_listing_content_through_bol_and_ebay_apis",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33101,7 +33277,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_054_build_the_kaufland_connector_with_tickets_as",
+      "target": "docs_tickets_seen_053_write_listing_content_through_amazon_listings",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33112,7 +33288,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_055_monitor_unauthorised_sellers_from_competing",
+      "target": "docs_tickets_seen_054_build_the_kaufland_connector_with_tickets_as",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33123,7 +33299,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_056_show_comply_defects_and_fix_diffs_in_the_inbox",
+      "target": "docs_tickets_seen_055_monitor_unauthorised_sellers_from_competing",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33134,7 +33310,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_057_verify_listing_fixes_on_three_marketplaces_and",
+      "target": "docs_tickets_seen_056_show_comply_defects_and_fix_diffs_in_the_inbox",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33145,18 +33321,18 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_058_verify_ebay_messaging_deprecation_and_choose",
+      "target": "docs_tickets_seen_057_verify_listing_fixes_on_three_marketplaces_and",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/tickets/README.md",
-      "source_location": "L112",
+      "source_location": "L105",
       "weight": 1.0
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_059_verify_otto_rate_limits_and_obtain_otto_api_keys",
+      "target": "docs_tickets_seen_058_verify_ebay_messaging_deprecation_and_choose",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33167,7 +33343,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_060_build_the_otto_connector_for_orders_returns",
+      "target": "docs_tickets_seen_059_verify_otto_rate_limits_and_obtain_otto_api_keys",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33178,7 +33354,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_061_ingest_message_threads_from_amazon_ebay",
+      "target": "docs_tickets_seen_060_build_the_otto_connector_for_orders_returns",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33189,7 +33365,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_062_parse_the_forwarded_mailbox_via_postmark",
+      "target": "docs_tickets_seen_061_ingest_message_threads_from_amazon_ebay",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33200,7 +33376,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_063_add_reply_message_tool_bound_to_tenant_service",
+      "target": "docs_tickets_seen_062_parse_the_forwarded_mailbox_via_postmark",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33211,7 +33387,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_064_apply_return_and_cancellation_decisions_through",
+      "target": "docs_tickets_seen_063_add_reply_message_tool_bound_to_tenant_service",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33222,7 +33398,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_065_implement_the_trust_ramp_with_autonomy_per",
+      "target": "docs_tickets_seen_064_apply_return_and_cancellation_decisions_through",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33233,7 +33409,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_066_track_claim_and_dispute_deadlines_with_alerts",
+      "target": "docs_tickets_seen_065_implement_the_trust_ramp_with_autonomy_per",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33244,7 +33420,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_067_show_serve_threads_and_drafts_in_the_inbox",
+      "target": "docs_tickets_seen_066_track_claim_and_dispute_deadlines_with_alerts",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33255,13 +33431,13 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_068_verify_the_kaufland_virtual_buy_box_endpoint",
+      "target": "docs_tickets_seen_067_show_serve_threads_and_drafts_in_the_inbox",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/tickets/README.md",
-      "source_location": "L129",
+      "source_location": "L122",
       "weight": 1.0
     },
     {
@@ -33277,7 +33453,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_069_snapshot_competing_offers_from_bol_by_ean_and",
+      "target": "docs_tickets_seen_068_verify_the_kaufland_virtual_buy_box_endpoint",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33288,7 +33464,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_070_snapshot_amazon_pricing_on_a_tiered_clock",
+      "target": "docs_tickets_seen_069_snapshot_competing_offers_from_bol_by_ean_and",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33299,7 +33475,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_071_model_net_margin_per_marketplace_from_cost",
+      "target": "docs_tickets_seen_070_snapshot_amazon_pricing_on_a_tiered_clock",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33310,7 +33486,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_072_implement_the_price_governor_with_bands",
+      "target": "docs_tickets_seen_071_model_net_margin_per_marketplace_from_cost",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33321,7 +33497,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_073_write_prices_through_bol_offers_and_ebay",
+      "target": "docs_tickets_seen_072_implement_the_price_governor_with_bands",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33332,7 +33508,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_074_add_propose_price_and_apply_price_tools_with",
+      "target": "docs_tickets_seen_073_write_prices_through_bol_offers_and_ebay",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33343,7 +33519,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_075_meter_headroom_entries_and_show_the_price_view",
+      "target": "docs_tickets_seen_074_add_propose_price_and_apply_price_tools_with",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33354,13 +33530,24 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_076_run_the_daily_bol_buy_box_feedback_loop",
+      "target": "docs_tickets_seen_075_meter_headroom_entries_and_show_the_price_view",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/tickets/README.md",
       "source_location": "L137",
+      "weight": 1.0
+    },
+    {
+      "source": "docs_tickets_readme",
+      "target": "docs_tickets_seen_076_run_the_daily_bol_buy_box_feedback_loop",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/tickets/README.md",
+      "source_location": "L138",
       "weight": 1.0
     },
     {
@@ -33382,7 +33569,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/tickets/README.md",
-      "source_location": "L145",
+      "source_location": "L146",
       "weight": 1.0
     },
     {
@@ -33393,7 +33580,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/tickets/README.md",
-      "source_location": "L146",
+      "source_location": "L147",
       "weight": 1.0
     },
     {
@@ -33404,23 +33591,12 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/tickets/README.md",
-      "source_location": "L147",
-      "weight": 1.0
-    },
-    {
-      "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_080_build_the_retailer_read_only_view_via_a_scoped",
-      "relation": "references",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/tickets/README.md",
       "source_location": "L148",
       "weight": 1.0
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_081_load_test_ingest_on_50_tenants_and_run_rate",
+      "target": "docs_tickets_seen_080_build_the_retailer_read_only_view_via_a_scoped",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33442,7 +33618,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_082_run_rls_penetration_tests_and_the_restore_drill",
+      "target": "docs_tickets_seen_081_load_test_ingest_on_50_tenants_and_run_rate",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33453,7 +33629,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_083_expire_amazon_pii_after_30_days_and_delete",
+      "target": "docs_tickets_seen_082_run_rls_penetration_tests_and_the_restore_drill",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33464,7 +33640,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_084_build_the_day_120_metrics_dashboard_and_csv",
+      "target": "docs_tickets_seen_083_expire_amazon_pii_after_30_days_and_delete",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33475,13 +33651,24 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_085_run_restore_drill_close_pen_test_findings_sign",
+      "target": "docs_tickets_seen_084_build_the_day_120_metrics_dashboard_and_csv",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/tickets/README.md",
       "source_location": "L153",
+      "weight": 1.0
+    },
+    {
+      "source": "docs_tickets_readme",
+      "target": "docs_tickets_seen_085_run_restore_drill_close_pen_test_findings_sign",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/tickets/README.md",
+      "source_location": "L154",
       "weight": 1.0
     },
     {
@@ -33585,7 +33772,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_092_sync_the_harness_skill_to_claude_code_and_codex",
+      "target": "docs_tickets_seen_093_add_harness_reopen_to_void_a_receipt_before",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33596,7 +33783,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_007_provision_gcp_europe_west4_and_supabase_eu_with",
+      "target": "docs_tickets_seen_092_sync_the_harness_skill_to_claude_code_and_codex",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33607,7 +33794,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_008_create_trade_record_schema_v1_with_tenant_id",
+      "target": "docs_tickets_seen_007_provision_gcp_europe_west4_and_supabase_eu_with",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33618,7 +33805,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_009_define_connector_interface_capability_matrix",
+      "target": "docs_tickets_seen_008_create_trade_record_schema_v1_with_tenant_id",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33629,7 +33816,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_010_add_per_marketplace_rate_limiting_with_header",
+      "target": "docs_tickets_seen_009_define_connector_interface_capability_matrix",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33640,7 +33827,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_011_build_bol_retailer_api_v10_connector_for_orders",
+      "target": "docs_tickets_seen_010_add_per_marketplace_rate_limiting_with_header",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33651,7 +33838,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_012_build_ebay_connector_for_orders_returns",
+      "target": "docs_tickets_seen_011_build_bol_retailer_api_v10_connector_for_orders",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33662,7 +33849,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_013_build_amazon_sp_api_connector_for_orders",
+      "target": "docs_tickets_seen_012_build_ebay_connector_for_orders_returns",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33673,7 +33860,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_014_run_ingest_workers_with_idempotent_upserts_raw",
+      "target": "docs_tickets_seen_013_build_amazon_sp_api_connector_for_orders",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33684,18 +33871,18 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_015_verify_amazon_report_names_and_finances",
+      "target": "docs_tickets_seen_014_run_ingest_workers_with_idempotent_upserts_raw",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/tickets/README.md",
-      "source_location": "L41",
+      "source_location": "L34",
       "weight": 1.0
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_016_encode_fee_schedules_per_marketplace_and",
+      "target": "docs_tickets_seen_015_verify_amazon_report_names_and_finances",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33706,7 +33893,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_017_compute_fee_expectations_per_order_line_from",
+      "target": "docs_tickets_seen_016_encode_fee_schedules_per_marketplace_and",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33717,7 +33904,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_018_match_settlement_lines_to_order_lines",
+      "target": "docs_tickets_seen_017_compute_fee_expectations_per_order_line_from",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33728,7 +33915,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_019_implement_fee_detectors_as_pure_tested_functions",
+      "target": "docs_tickets_seen_018_match_settlement_lines_to_order_lines",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33739,7 +33926,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_020_implement_shipment_return_and_inventory",
+      "target": "docs_tickets_seen_019_implement_fee_detectors_as_pure_tested_functions",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33750,7 +33937,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_021_persist_findings_with_rule_confidence_evidence",
+      "target": "docs_tickets_seen_020_implement_shipment_return_and_inventory",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33761,7 +33948,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_022_generate_the_audit_pdf_with_scorecard_and_line",
+      "target": "docs_tickets_seen_021_persist_findings_with_rule_confidence_evidence",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33772,7 +33959,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_023_measure_the_recoverable_pool_per_marketplace",
+      "target": "docs_tickets_seen_022_generate_the_audit_pdf_with_scorecard_and_line",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33783,7 +33970,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_024_ship_ops_console_v1_for_tenants_connections_and",
+      "target": "docs_tickets_seen_023_measure_the_recoverable_pool_per_marketplace",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33794,7 +33981,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_025_run_three_real_90_day_audits_and_deliver_the",
+      "target": "docs_tickets_seen_024_ship_ops_console_v1_for_tenants_connections_and",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33805,18 +33992,18 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_026_verify_bol_compensation_request_form_structure",
+      "target": "docs_tickets_seen_025_run_three_real_90_day_audits_and_deliver_the",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/tickets/README.md",
-      "source_location": "L59",
+      "source_location": "L52",
       "weight": 1.0
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_027_build_the_claims_rail_with_api_assisted_and",
+      "target": "docs_tickets_seen_026_verify_bol_compensation_request_form_structure",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33827,7 +34014,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_028_contest_ebay_payment_disputes_and_cases_by_api",
+      "target": "docs_tickets_seen_027_build_the_claims_rail_with_api_assisted_and",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33838,7 +34025,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_029_build_the_bol_assisted_case_pack_with_tracking",
+      "target": "docs_tickets_seen_028_contest_ebay_payment_disputes_and_cases_by_api",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33849,7 +34036,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_030_build_the_amazon_assisted_case_pack_with_report",
+      "target": "docs_tickets_seen_029_build_the_bol_assisted_case_pack_with_tracking",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33860,7 +34047,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_031_match_credits_to_claims_as_the_only_billable",
+      "target": "docs_tickets_seen_030_build_the_amazon_assisted_case_pack_with_report",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33871,7 +34058,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_032_write_append_only_audit_events_before_every",
+      "target": "docs_tickets_seen_031_match_credits_to_claims_as_the_only_billable",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33882,7 +34069,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_033_implement_policy_gate_v1_with_caps_and",
+      "target": "docs_tickets_seen_032_write_append_only_audit_events_before_every",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33893,7 +34080,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_034_build_agent_runtime_v1_with_the_fixed_tool_set",
+      "target": "docs_tickets_seen_033_implement_policy_gate_v1_with_caps_and",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33904,7 +34091,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_035_build_the_approval_inbox_with_approve_edit_and",
+      "target": "docs_tickets_seen_034_build_agent_runtime_v1_with_the_fixed_tool_set",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33915,7 +34102,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_036_create_the_eval_set_of_30_real_findings_with",
+      "target": "docs_tickets_seen_035_build_the_approval_inbox_with_approve_edit_and",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33926,7 +34113,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_037_file_the_first_ten_claims_across_two",
+      "target": "docs_tickets_seen_036_create_the_eval_set_of_30_real_findings_with",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33937,18 +34124,18 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_038_verify_shopify_payments_payout_scopes_and",
+      "target": "docs_tickets_seen_037_file_the_first_ten_claims_across_two",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/tickets/README.md",
-      "source_location": "L78",
+      "source_location": "L71",
       "weight": 1.0
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_039_create_stripe_customers_with_sepa_and_card_and",
+      "target": "docs_tickets_seen_038_verify_shopify_payments_payout_scopes_and",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33959,7 +34146,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_040_issue_invoices_with_recovery_share_lines_from",
+      "target": "docs_tickets_seen_039_create_stripe_customers_with_sepa_and_card_and",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33970,7 +34157,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_041_generate_and_send_the_monthly_statement_pdf",
+      "target": "docs_tickets_seen_040_issue_invoices_with_recovery_share_lines_from",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33981,7 +34168,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_042_ship_the_reconcile_module_with_margin_and_fee",
+      "target": "docs_tickets_seen_041_generate_and_send_the_monthly_statement_pdf",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -33992,7 +34179,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_043_export_finance_csv_of_settlements_and_matched",
+      "target": "docs_tickets_seen_042_ship_the_reconcile_module_with_margin_and_fee",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -34003,7 +34190,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_044_build_the_shopify_admin_graphql_connector_as",
+      "target": "docs_tickets_seen_043_export_finance_csv_of_settlements_and_matched",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -34014,7 +34201,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_045_add_module_switches_per_tenant_with_scheduling",
+      "target": "docs_tickets_seen_044_build_the_shopify_admin_graphql_connector_as",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -34025,7 +34212,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_046_build_customer_facing_findings_and_claims_views",
+      "target": "docs_tickets_seen_045_add_module_switches_per_tenant_with_scheduling",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -34036,7 +34223,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_047_issue_the_first_invoice_and_send_the_signed",
+      "target": "docs_tickets_seen_046_build_customer_facing_findings_and_claims_views",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -34047,18 +34234,18 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_048_verify_kaufland_settlement_and_ticket_endpoints",
+      "target": "docs_tickets_seen_047_issue_the_first_invoice_and_send_the_signed",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/tickets/README.md",
-      "source_location": "L95",
+      "source_location": "L88",
       "weight": 1.0
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_049_encode_listing_spec_rules_per_marketplace_in",
+      "target": "docs_tickets_seen_048_verify_kaufland_settlement_and_ticket_endpoints",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -34069,7 +34256,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_050_ingest_listings_with_content_hash_and_drift",
+      "target": "docs_tickets_seen_049_encode_listing_spec_rules_per_marketplace_in",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -34080,7 +34267,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_051_add_propose_listing_fix_and_apply_listing_fix",
+      "target": "docs_tickets_seen_050_ingest_listings_with_content_hash_and_drift",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -34091,7 +34278,7 @@
     },
     {
       "source": "docs_tickets_readme",
-      "target": "docs_tickets_seen_052_write_listing_content_through_bol_and_ebay_apis",
+      "target": "docs_tickets_seen_051_add_propose_listing_fix_and_apply_listing_fix",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -39282,6 +39469,61 @@
       "weight": 1.0
     },
     {
+      "source": "docs_tickets_seen_093_add_harness_reopen_to_void_a_receipt_before",
+      "target": "docs_tickets_seen_086_build_the_seen_harness_cli_with_staged_journal",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/tickets/SEEN-093-add-harness-reopen-to-void-a-receipt-before.md",
+      "source_location": "L53",
+      "weight": 1.0
+    },
+    {
+      "source": "docs_tickets_seen_093_add_harness_reopen_to_void_a_receipt_before",
+      "target": "docs_tickets_seen_089_enforce_tdd_and_ci_quality_gates_in_the_harness",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/tickets/SEEN-093-add-harness-reopen-to-void-a-receipt-before.md",
+      "source_location": "L57",
+      "weight": 1.0
+    },
+    {
+      "source": "docs_tickets_seen_093_add_harness_reopen_to_void_a_receipt_before",
+      "target": "context",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/tickets/SEEN-093-add-harness-reopen-to-void-a-receipt-before.md",
+      "source_location": "L61",
+      "weight": 1.0
+    },
+    {
+      "source": "docs_tickets_seen_093_add_harness_reopen_to_void_a_receipt_before",
+      "target": "docs_harness_workflow",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/tickets/SEEN-093-add-harness-reopen-to-void-a-receipt-before.md",
+      "source_location": "L62",
+      "weight": 1.0
+    },
+    {
+      "source": "docs_tickets_seen_093_add_harness_reopen_to_void_a_receipt_before",
+      "target": "docs_adr_0002_the_receipt_attests_the_tree_minus_the_journal",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/tickets/SEEN-093-add-harness-reopen-to-void-a-receipt-before.md",
+      "source_location": "L63",
+      "weight": 1.0
+    },
+    {
       "source": "harness_cli_execute",
       "target": "harness_cli_advance",
       "relation": "indirect_call",
@@ -39880,5 +40122,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "1bcdbd8cda2c60aa7849e4b10aac4b66f7943165"
+  "built_at_commit": "9272f85f6cb320a9c59e53652512b9483d5309e6"
 }

@@ -95,7 +95,7 @@ def write_once(path, payload):
         temporary.unlink(missing_ok=True)
 
 
-TRANSITIONS = ('advance', 'return', 'receipt')
+TRANSITIONS = ('advance', 'return', 'receipt', 'reopen')
 
 
 def state(records):

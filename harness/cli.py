@@ -23,8 +23,9 @@ from .repository import Repository
 
 DEFAULT_ROOT = Path(__file__).resolve().parents[1]
 TICKET_COMMANDS = ('start', 'status', 'history', 'draft', 'note', 'check', 'advance',
-                   'return', 'graph', 'verify-delivery')
-WRITING_COMMANDS = ('start', 'note', 'check', 'advance', 'return', 'graph', 'verify-delivery')
+                   'return', 'graph', 'reopen', 'verify-delivery')
+WRITING_COMMANDS = ('start', 'note', 'check', 'advance', 'return', 'graph', 'reopen',
+                    'verify-delivery')
 BRANCH = re.compile(r'^(claude|codex)/(?P<ticket>[A-Z]+-\d+)-')
 
 NEXT_COMMAND = {
@@ -89,6 +90,10 @@ def build_parser():
     graph.add_argument('--from', dest='source', help='Start node, for path')
     graph.add_argument('--to', dest='target', help='End node, for path')
     graph.add_argument('--actor', required=True)
+
+    reopen = ticket_command('reopen', 'Void a receipt and return the ticket to tdd, before merge')
+    reopen.add_argument('--reason', required=True)
+    reopen.add_argument('--actor', required=True)
 
     deliver = ticket_command('verify-delivery', 'Confirm the delivery and write the receipt')
     deliver.add_argument('--file', required=True, help='Completed deliver evidence JSON')
@@ -303,6 +308,35 @@ def go_back(repository, folder, records, args, current, rules):
                                     to_attempt=current['attempt'] + 1, reason=args.reason))
 
 
+def reopen(repository, folder, records, args, current):
+    """Void a receipt while the work can still change.
+
+    A receipt is final when the work is merged, not when it is written. Until
+    then a defect found after delivery is rework, and the journal should say so
+    rather than have the receipt quietly attest a commit that is not the one
+    that merges. The receipt is never edited: this record follows it.
+    """
+    require(current['stage'] == 'delivered',
+            f'Only a delivered ticket can be reopened; this one is at {current["stage"]}')
+    require(args.reason.strip(), 'A reopen needs a recorded reason')
+    receipt = next((record for record in reversed(records) if record['kind'] == 'receipt'), None)
+    require(receipt, 'This ticket has no receipt to void')
+    commit = receipt['data']['commit']
+    merged = repository.is_in_default_branch(commit)
+    require(not merged,
+            f'{commit[:8]} is already merged into {merged}, so its receipt is history. '
+            'Open a follow-up ticket instead')
+    path = folder / f'{receipt["sequence"]:04d}.json'
+    return journal.append(folder, records, kind='reopen', stage='delivered',
+                          attempt=current['attempt'], actor=args.actor,
+                          head=repository.head(), ticket=args.ticket,
+                          data=dict(from_stage='delivered', to_stage='tdd',
+                                    to_attempt=current['attempt'] + 1,
+                                    voided_receipt=journal.digest(path),
+                                    voided_commit=commit,
+                                    reason=args.reason))
+
+
 def list_tickets(repository):
     history = repository.root / HISTORY
     tickets = []
@@ -353,6 +387,8 @@ def execute(args):
             return draft(repository, records, args)
 
         current = journal.state(records)
+        if args.command == 'reopen':
+            return reopen(repository, folder, records, args, current)
         if args.command == 'verify-delivery':
             from . import delivery
             return delivery.verify(repository, folder, records, args, current)

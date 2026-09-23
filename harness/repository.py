@@ -138,6 +138,30 @@ class Repository:
                 rewritten.append(name)
         return sorted(set(rewritten))
 
+    def default_branch(self):
+        """The branch work merges into, asked of git rather than assumed."""
+        for reference in ('refs/remotes/origin/HEAD',):
+            try:
+                return self.git('symbolic-ref', '--short', reference).split('/')[-1]
+            except HarnessError:
+                continue
+        return 'main'
+
+    def is_in_default_branch(self, commit):
+        """Whether a commit has already merged, locally or on the remote.
+
+        Both are asked: a delivery merged on the remote but not yet fetched is
+        still merged, and a receipt for it is history.
+        """
+        branch = self.default_branch()
+        for reference in (f'origin/{branch}', branch):
+            result = subprocess.run(['git', '-C', str(self.root), 'merge-base',
+                                     '--is-ancestor', commit, reference],
+                                    capture_output=True, text=True, timeout=60)
+            if result.returncode == 0:
+                return reference
+        return None
+
     def contains_commit(self, commit):
         try:
             return self.git('merge-base', '--is-ancestor', commit, 'HEAD') == ''

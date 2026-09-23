@@ -1,0 +1,30 @@
+{
+  "sequence": 8,
+  "ticket": "SEEN-093",
+  "timestamp": "2026-09-23T18:54:24.157405+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "9272f85f6cb320a9c59e53652512b9483d5309e6",
+  "prev_hash": "3d5215982b89820371ce5818c5b7140221f74e7bda32ab605aed129029e7c101",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "behaviour": "reopen voids a receipt with a recorded reason and returns the ticket to tdd on the next attempt, refuses a ticket that is not delivered, refuses one whose commit is already in the default branch, and leaves the receipt file untouched so the chain still verifies",
+          "failure_reason": "invalid choice: 'reopen' from argparse, and seven tests errored on the command not existing",
+          "red": 5,
+          "green": 6
+        }
+      ],
+      "regression": 7,
+      "coverage_delta": null
+    },
+    "decisions": []
+  }
+}
