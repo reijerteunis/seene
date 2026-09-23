@@ -1,0 +1,57 @@
+{
+  "sequence": 4,
+  "ticket": "SEEN-087",
+  "timestamp": "2026-09-23T16:04:12.271825+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "solution",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "5d799d93b885b72f0092e0a9c620032ac271ee38",
+  "prev_hash": "91f3515df5bd2621026a1e52b780273915aafe9c989abf3875e5f15c843f69b7",
+  "data": {
+    "from_stage": "solution",
+    "to_stage": "tdd",
+    "evidence": {
+      "approach": "Use graphify's own installers rather than reimplementing any of them: claude install and install --platform codex for the assistants, hook install for the post-commit and post-checkout rebuild, and graphify-mcp registered as a project-scoped MCP server so both assistants query the same graph. Build the graph with the deterministic code pass, commit graphify-out/ so a fresh clone has context before its first build, and add one thin harness command, graph, that runs a graphify verb and appends its answer to the journal as a note carrying the hash of the graph that answered.",
+      "changes": [
+        "harness/graph.py: new, maps the four modes (impact, path, explain, prs) to graphify verbs, runs one subprocess and returns the answer with the graph hash",
+        "harness/cli.py: the graph subcommand, its arguments and its dispatch",
+        "harness/paths.py: the graph output directory and the graph file location",
+        "harness/tests/test_graph.py: new, covers the wrapper against a stub graphify on PATH",
+        ".github/workflows/ci.yml: a graphify extract --code-only step that fails when the graph does not parse and uploads GRAPH_REPORT.md",
+        "CLAUDE.md: the graphify section the tool writes, edited into the file's voice",
+        ".mcp.json: the project-scoped graphify-mcp server both assistants read",
+        "graphify-out/: the committed graph, report and labels",
+        ".gitignore: keep graphify's local caches out while keeping graph.json in"
+      ],
+      "migrations": [],
+      "tests_first": [
+        "harness graph SEEN-087 impact --about 'stage gate' appends a note record whose data carries the mode, the command, the exit code and the graph hash: harness/tests/test_graph.py, and the RED must fail on there being no graph module to import",
+        "harness graph refuses a mode outside impact, path, explain and prs and names the ones it accepts: the RED must fail because every mode is accepted",
+        "harness graph refuses when graphify-out/graph.json is absent, rather than recording an empty answer: the RED must fail because a missing graph records a note anyway",
+        "harness graph records the answer even when graphify exits non-zero, because a failed query is a fact about the work: the RED must fail because the non-zero exit raises instead of recording"
+      ],
+      "alternatives": [
+        "Call the graphify MCP server from the harness rather than the CLI, rejected because the harness is a procedure that launches no model and the MCP server is for the assistant's own queries, not for a shell command",
+        "Reimplement impact traversal over graph.json inside the harness, rejected because it duplicates graphify and would drift from it silently",
+        "Leave graphify-out/ out of the repository, rejected by the ticket: a fresh clone must have context before its first build"
+      ],
+      "risks": [
+        "The committed graph is a large JSON file that changes on most commits and will collide on merges; mitigated by graphify's own union merge driver, which hook install configures",
+        "graphify is a third-party tool at version 0.9.65 with a moving CLI; mitigated by the wrapper being thin, by recording the exact command in the journal, and by the version being pinned in the solution record rather than assumed",
+        "The PreToolUse hook graphify installs runs on every tool call; mitigated by reviewing what it writes into CLAUDE.md and settings before committing it"
+      ],
+      "rollback": "graphify uninstall removes the assistant wiring and the hooks, and reverting the commit removes the harness command and the CI step. Nothing in the product depends on the graph.",
+      "new_dependencies": [
+        "graphifyy 0.9.65, installed as a uv tool outside the repository, not a package dependency of the monorepo"
+      ],
+      "tenant_tables": [
+        "none"
+      ],
+      "buyer_pii": "none",
+      "policy_gate_action": null
+    },
+    "decisions": []
+  }
+}

@@ -145,3 +145,19 @@ Harness commands, once SEEN-086 has landed: `python3 harness/run.py doctor | sta
 | [SEEN-083](docs/tickets/SEEN-083-expire-amazon-pii-after-30-days-and-delete.md) | Expire Amazon PII after 30 days and delete tenants on request | E9 | 3 pt |
 | [SEEN-084](docs/tickets/SEEN-084-build-the-day-120-metrics-dashboard-and-csv.md) | Build the day-120 metrics dashboard and CSV export | E9 | 5 pt |
 | [SEEN-085](docs/tickets/SEEN-085-run-restore-drill-close-pen-test-findings-sign.md) | Run restore drill, close pen-test findings, sign metrics pack | E9 | human |
+
+## graphify
+
+The repository's knowledge graph lives in `graphify-out/` and is committed, so a fresh clone has
+context before its first build. Ask it before reading files.
+
+- `graphify query "<question>"` for a scoped subgraph, `graphify path "<A>" "<B>"` for how two things
+  connect, `graphify explain "<concept>"` for one concept, `graphify affected "<symbol>"` for what a
+  change touches. The same graph is available as MCP tools (`query_graph`, `get_neighbors`,
+  `shortest_path`, `get_pr_impact`) in Claude Code and Codex.
+- `graphify-out/GRAPH_REPORT.md` is for broad architecture review, not for answering a specific
+  question. Reach for it after query, path and explain have not surfaced enough.
+- The post-commit hook runs `graphify update .`, so the graph follows the code without an API call.
+  A commit that changes code carries the updated graph with it.
+- `harness graph <ticket> <impact|path|explain|prs>` asks the same graph and writes the answer into
+  the ticket's journal, with the hash of the graph that answered.

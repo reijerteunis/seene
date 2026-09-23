@@ -15,7 +15,7 @@ import shutil
 import subprocess
 import sys
 
-from . import checks, doctor, gates, journal, thresholds
+from . import checks, doctor, gates, graph as graph_module, journal, thresholds
 from .errors import HarnessError, require
 from .paths import (DRAFTS, HISTORY, KINDS, LOCK, NON_CODE_TEMPLATE, STAGES, TEMPLATES,
                     TEMPLATE_FOR_STAGE, WORKING_STAGES)
@@ -23,8 +23,8 @@ from .repository import Repository
 
 DEFAULT_ROOT = Path(__file__).resolve().parents[1]
 TICKET_COMMANDS = ('start', 'status', 'history', 'draft', 'note', 'check', 'advance',
-                   'return', 'verify-delivery')
-WRITING_COMMANDS = ('start', 'note', 'check', 'advance', 'return', 'verify-delivery')
+                   'return', 'graph', 'verify-delivery')
+WRITING_COMMANDS = ('start', 'note', 'check', 'advance', 'return', 'graph', 'verify-delivery')
 BRANCH = re.compile(r'^(claude|codex)/(?P<ticket>[A-Z]+-\d+)-')
 
 NEXT_COMMAND = {
@@ -82,6 +82,13 @@ def build_parser():
     back.add_argument('--to', required=True)
     back.add_argument('--reason', required=True)
     back.add_argument('--actor', required=True)
+
+    graph = ticket_command('graph', 'Ask the knowledge graph and record the answer')
+    graph.add_argument('mode', help='impact, path, explain or prs')
+    graph.add_argument('--about', help='The node or question, for impact and explain')
+    graph.add_argument('--from', dest='source', help='Start node, for path')
+    graph.add_argument('--to', dest='target', help='End node, for path')
+    graph.add_argument('--actor', required=True)
 
     deliver = ticket_command('verify-delivery', 'Confirm the delivery and write the receipt')
     deliver.add_argument('--file', required=True, help='Completed deliver evidence JSON')
@@ -208,6 +215,18 @@ def draft(repository, records, args):
                 checks_in_this_attempt=available,
                 reminder='Replace every example value with real evidence, then pass this file '
                          'to advance. Unchanged template text counts as a missing answer.')
+
+
+def graph(repository, folder, records, args, current, rules):
+    """Ask the graph and keep the answer, as a note at the current stage.
+
+    Recorded rather than printed, so the context a decision was taken on is in
+    the journal beside the decision.
+    """
+    evidence = graph_module.ask(repository, args.mode, args.about, args.source, args.target)
+    return journal.append(folder, records, kind='note', stage=current['stage'],
+                          attempt=current['attempt'], actor=args.actor,
+                          head=repository.head(), ticket=args.ticket, data=evidence)
 
 
 def note(repository, folder, records, args, current):
@@ -339,7 +358,7 @@ def execute(args):
             return delivery.verify(repository, folder, records, args, current)
         require(current['stage'] in WORKING_STAGES,
                 f'{args.ticket} is {current["stage"]}; open a follow-up ticket for further work')
-        handlers = dict(note=note, check=check, advance=advance)
+        handlers = dict(note=note, check=check, advance=advance, graph=graph)
         handlers['return'] = go_back
         handler = handlers[args.command]
         if handler is note:

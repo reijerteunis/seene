@@ -18,3 +18,9 @@ coverage/
 .env
 .env.local
 .DS_Store
+
+# graphify: the graph and its report are committed, the machine-local state is not
+graphify-out/cache/
+graphify-out/manifest.json
+graphify-out/graph.html
+graphify-out/.graphify_root

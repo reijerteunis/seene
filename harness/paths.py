@@ -26,6 +26,10 @@ HISTORY = Path('docs/harness/history')
 TEMPLATES = Path('harness/templates')
 # Thresholds and vocabularies. Fatal when missing: never silently defaulted.
 THRESHOLDS = Path('harness/thresholds.toml')
+# The committed knowledge graph: context before a session reads any file.
+GRAPH_DIRECTORY = Path('graphify-out')
+GRAPH_FILE = GRAPH_DIRECTORY / 'graph.json'
+
 # Working copies of templates. Gitignored; only the journal is evidence.
 DRAFTS = Path('.harness-drafts')
 # Advisory lock so two sessions never interleave writes to one journal.
