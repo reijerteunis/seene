@@ -57,6 +57,17 @@ def make_project(ticket_id='SEEN-001', branch=None):
     hook.write_text('#!/bin/sh\n# stand-in for the real pre-commit hook\nexit 0\n')
     hook.chmod(0o755)
     git(root, 'config', 'core.hooksPath', '.githooks')
+    # The skill the drift check compares against, generated the same way sync
+    # generates it, so doctor's check is exercised rather than skipped.
+    from harness import skills
+    source = root / skills.SOURCE
+    source.parent.mkdir(parents=True, exist_ok=True)
+    source.write_text('# The Seen harness\n\nWork the five stages.\n')
+    for relative in skills.COMMITTED:
+        copy = root / relative
+        copy.parent.mkdir(parents=True, exist_ok=True)
+        copy.write_text(skills.render(source.read_text()))
+
     tickets = root / 'docs' / 'tickets'
     tickets.mkdir(parents=True)
     ticket_file = tickets / f'{ticket_id}-a-ticket-to-work.md'
