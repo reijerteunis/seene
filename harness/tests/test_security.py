@@ -175,3 +175,45 @@ class DiscardTest(CommandTest):
         self.assertEqual(entry['decision']['question'], 'is_destructive')
         self.assertIn(entry['decision']['source'], ('jev', 'human', 'unavailable'))
         self.assertEqual(result['ticket'], self.ticket_id)
+
+
+class FalsePositiveTest(CommandTest):
+    """A rule that refuses ordinary words is a rule people turn off.
+
+    CI found this one: GITHUB_EVENT_NAME is pull_request on a pull request, and
+    a delivery record legitimately contains those words.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.start()
+
+    def folder(self):
+        return self.root / 'docs' / 'harness' / 'history' / self.ticket_id
+
+    def append(self, text):
+        return journal.append(self.folder(), journal.read(self.folder()), kind='note',
+                              stage='clarify', attempt=1, actor='claude:implementer',
+                              head='0' * 40, ticket=self.ticket_id, data=dict(text=text))
+
+    def test_an_ordinary_word_in_the_environment_does_not_refuse_a_record(self):
+        os.environ['GITHUB_EVENT_NAME'] = 'pull_request'
+        self.addCleanup(os.environ.pop, 'GITHUB_EVENT_NAME', None)
+        self.assertEqual(self.append('opened as a pull_request')['kind'], 'note')
+
+    def test_a_git_ref_in_the_environment_does_not_refuse_a_record(self):
+        os.environ['GITHUB_REF'] = 'refs/pull/8/merge'
+        self.addCleanup(os.environ.pop, 'GITHUB_REF', None)
+        self.assertEqual(self.append('merged from refs/pull/8/merge')['kind'], 'note')
+
+    def test_a_variable_named_like_a_credential_is_still_caught_however_short(self):
+        os.environ['SOME_API_TOKEN'] = 'abc123def456'
+        self.addCleanup(os.environ.pop, 'SOME_API_TOKEN', None)
+        with self.assertRaisesRegex(HarnessError, 'SOME_API_TOKEN'):
+            self.append('the token is abc123def456')
+
+    def test_a_long_mixed_value_is_caught_whatever_it_is_called(self):
+        os.environ['SEEN_TEST_OPAQUE'] = 'Xk29fJq8Lm4zPw7bTn5cRv3y'
+        self.addCleanup(os.environ.pop, 'SEEN_TEST_OPAQUE', None)
+        with self.assertRaisesRegex(HarnessError, 'SEEN_TEST_OPAQUE'):
+            self.append('it was Xk29fJq8Lm4zPw7bTn5cRv3y')

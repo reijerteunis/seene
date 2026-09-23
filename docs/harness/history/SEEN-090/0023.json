@@ -1,0 +1,30 @@
+{
+  "sequence": 23,
+  "ticket": "SEEN-090",
+  "timestamp": "2026-09-23T21:30:21.939917+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "head": "263662362084a3d43d0ed5ce64cca64d2a3ac7a4",
+  "prev_hash": "e780435873e76735065292155c52ae937efa65cd4abbfb90d97a36694bc65ce9",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "behaviour": "A variable counts as a credential by name or by shape, so ordinary words in the environment no longer refuse a record while a real token still does",
+          "failure_reason": "HarnessError: This record carries the value of GITHUB_EVENT_NAME from the environment, on a record that merely contained the words pull_request",
+          "red": 19,
+          "green": 20
+        }
+      ],
+      "regression": 22,
+      "coverage_delta": null
+    },
+    "decisions": []
+  }
+}

@@ -6,9 +6,19 @@ places. Neither repairs anything: they report, and their callers refuse.
 
 import re
 
-# Shorter than this and a value is a word rather than a credential. Longer, and
-# a coincidence is unlikely enough that refusing the record is the right call.
-MINIMUM_CREDENTIAL_LENGTH = 12
+# Two ways a variable counts as a credential, because neither alone works.
+#
+# By name: anything called a key, a token, a secret and so on, whatever its
+# value looks like. By shape: long, and mixed enough that it is not language.
+#
+# Length alone refuses ordinary words. CI taught this: GITHUB_EVENT_NAME is
+# "pull_request" on a pull request, twelve characters, and a delivery record
+# legitimately contains those words. A rule that refuses ordinary language is a
+# rule people turn off.
+SECRET_NAME = re.compile(r'(KEY|TOKEN|SECRET|PASSWORD|PASSWD|CREDENTIAL|AUTH|PRIVATE|SESSION)',
+                         re.IGNORECASE)
+MINIMUM_NAMED_LENGTH = 8
+MINIMUM_OPAQUE_LENGTH = 20
 
 # Variables whose value is a path or a terminal setting. A journal record
 # legitimately contains file paths, so these are skipped whatever their length.
@@ -45,12 +55,31 @@ SHELL_USE = (
 )
 
 
+def _looks_opaque(value):
+    """Long, and carrying both digits and letters in both cases.
+
+    A generated credential looks like this; a path, a branch name and a sentence
+    do not. refs/pull/8/merge has digits and letters and is still language, so
+    the mixed-case requirement is what separates them.
+    """
+    if len(value) < MINIMUM_OPAQUE_LENGTH:
+        return False
+    return (any(character.isdigit() for character in value)
+            and any(character.islower() for character in value)
+            and any(character.isupper() for character in value))
+
+
 def credentials(environ):
     """Environment values worth refusing a record over, by variable name."""
-    return {name: value for name, value in environ.items()
-            if name not in NOT_CREDENTIALS
-            and isinstance(value, str)
-            and len(value.strip()) >= MINIMUM_CREDENTIAL_LENGTH}
+    found = {}
+    for name, value in environ.items():
+        if name in NOT_CREDENTIALS or not isinstance(value, str):
+            continue
+        value = value.strip()
+        named = SECRET_NAME.search(name) and len(value) >= MINIMUM_NAMED_LENGTH
+        if named or _looks_opaque(value):
+            found[name] = value
+    return found
 
 
 def leaked(text, environ):
