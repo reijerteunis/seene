@@ -41,7 +41,7 @@ def check_runs(repository, commit):
     if CHECKS is not None:
         return CHECKS(repository, commit)
     output = _gh(repository, 'api', f'repos/{{owner}}/{{repo}}/commits/{commit}/check-runs',
-                 '--jq', '[.check_runs[] | {name, status, conclusion}]')
+                 '--jq', '[.check_runs[] | {id, name, status, conclusion}]')
     try:
         return json.loads(output or '[]')
     except json.JSONDecodeError as error:
@@ -59,6 +59,23 @@ def pull_request(repository):
         raise HarnessError(f'gh answered with something that is not JSON: {error}')
 
 
+def latest_per_name(runs):
+    """One run per check name, the most recent.
+
+    A commit can carry several runs of the same check: a re-run, or a workflow
+    triggered by both a push and a pull request. GitHub shows the latest per
+    name, and so does this. Judging on all of them lets a superseded failure
+    refuse a delivery that is green, which is a refusal nobody can act on.
+    """
+    latest = {}
+    for position, run in enumerate(runs):
+        identifier = run.get('id', position)
+        current = latest.get(run['name'])
+        if current is None or identifier >= current.get('id', -1):
+            latest[run['name']] = dict(run, id=identifier)
+    return [latest[name] for name in sorted(latest)]
+
+
 def require_green(repository, commit, what):
     """Refuse unless every check on this commit has concluded green.
 
@@ -66,7 +83,7 @@ def require_green(repository, commit, what):
     verified against nothing. No runs at all refuses too, because a commit
     nobody built is not a commit that passed.
     """
-    runs = check_runs(repository, commit)
+    runs = latest_per_name(check_runs(repository, commit))
     require(runs,
             f'{commit[:8]} has no checks at all, so there is nothing green about it. '
             f'Push the branch and let CI run before verifying the {what}')

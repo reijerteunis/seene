@@ -1,0 +1,30 @@
+{
+  "sequence": 31,
+  "ticket": "SEEN-090",
+  "timestamp": "2026-09-23T21:37:01.600813+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "head": "ced9a3b7cbaa7adee4cc1d26e46b1ddac4076569",
+  "prev_hash": "0765fd644e27a9e39e1362fdc9b94bddf9dd8075c469ffa14d5ad48a2db4d576",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "behaviour": "verify-delivery judges each check name on its latest run, so a superseded failure no longer refuses a delivery GitHub itself shows as green, while a real failure in the latest run still does",
+          "failure_reason": "ModuleNotFoundError on latest_per_name, and the delivery refused on a failure from a run that had already been superseded",
+          "red": 27,
+          "green": 28
+        }
+      ],
+      "regression": 30,
+      "coverage_delta": null
+    },
+    "decisions": []
+  }
+}
