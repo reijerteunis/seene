@@ -1,0 +1,30 @@
+{
+  "sequence": 12,
+  "ticket": "SEEN-088",
+  "timestamp": "2026-09-23T18:35:26.323806+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "review",
+  "attempt": 1,
+  "actor": "claude:reviewer",
+  "head": "5eddb8ad83a17fbd97671f963df45ba15147d22d",
+  "prev_hash": "bf93758f8fcf7702f58e4d7d49dff70f81edf3ff0ce789ba472a9c6ed32b1fa1",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "harness/tests"
+    ],
+    "phase": "qa",
+    "exit_code": 0,
+    "duration_ms": 14143,
+    "output": ".............................................................................................................................................\n----------------------------------------------------------------------\nRan 141 tests in 14.082s\n\nOK\n",
+    "output_sha256": "7fefbeaefea9692a2007b1d0c0684672d8f9ef325c50524e864af496e6acf7df",
+    "output_truncated": false,
+    "before": "f8f833a29f2ab737bcf6e1e6916792bed9c091636c829217d31580c1f34621f3",
+    "after": "f8f833a29f2ab737bcf6e1e6916792bed9c091636c829217d31580c1f34621f3"
+  }
+}

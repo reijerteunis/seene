@@ -1,0 +1,30 @@
+{
+  "sequence": 19,
+  "ticket": "SEEN-088",
+  "timestamp": "2026-09-23T18:36:30.098020+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "head": "5eddb8ad83a17fbd97671f963df45ba15147d22d",
+  "prev_hash": "6ff2c66a822e495b25d480eed16ca5c89880c14781170af516bbab00e1a5769f",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "behaviour": "A blocking question reads in the direction it means: clarified and solution_complete must clear their bar, must_fix refuses when it clears one, and a decision that could not be taken blocks nothing",
+          "failure_reason": "HarnessError: The must_fix question did not clear its threshold: 0.1 against 0.7, on a review that had found nothing to fix",
+          "red": 16,
+          "green": 17
+        }
+      ],
+      "regression": 18,
+      "coverage_delta": null
+    },
+    "decisions": []
+  }
+}

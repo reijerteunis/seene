@@ -7,7 +7,7 @@ here runs against a stub transport: no test calls the API.
 import json
 import os
 
-from harness import jev
+from harness import cli, jev
 from harness.errors import HarnessError
 from harness.tests.test_lifecycle import CommandTest, clarify_evidence, solution_evidence
 
@@ -189,6 +189,31 @@ class GateTest(QuestionTest):
         questions = [decision['question'] for decision in record['data']['decisions']]
         self.assertIn('clarified', questions)
         self.assertIn('risk', questions)
+
+    def test_a_review_finding_nothing_to_fix_is_not_blocked(self):
+        """must_fix is the one question that refuses when it passes.
+
+        clarified and solution_complete must clear their bar to advance. must_fix
+        is the opposite: a confident yes means something must be fixed, and that
+        is what stops the ticket.
+        """
+        from harness import jev
+        answer = dict(question='must_fix', type='noul', options=['yes', 'no'], source='human',
+                      model=None, outcome='no', probabilities={'yes': 0.1, 'no': 0.9},
+                      threshold=0.7, passed=False, fallback_reason=None)
+        cli.require_decisions_pass('review', [answer])          # nothing to fix: proceed
+
+        blocking = dict(answer, outcome='yes', probabilities={'yes': 0.92, 'no': 0.08},
+                        passed=True)
+        with self.assertRaisesRegex(HarnessError, 'must_fix'):
+            cli.require_decisions_pass('review', [blocking])
+
+    def test_a_clarify_question_refuses_the_other_way_round(self):
+        answer = dict(question='clarified', type='noul', options=['yes', 'no'], source='jev',
+                      model='typesafe/jev-1.13', outcome='no', probabilities={'yes': 0.3, 'no': 0.7},
+                      threshold=0.8, passed=False, fallback_reason=None)
+        with self.assertRaisesRegex(HarnessError, 'clarified'):
+            cli.require_decisions_pass('clarify', [answer])
 
     def test_a_billing_or_policy_gate_ticket_needs_a_second_reviewer(self):
         jev.TRANSPORT = stub(NOUL)

@@ -28,9 +28,15 @@ WRITING_COMMANDS = ('start', 'note', 'check', 'advance', 'return', 'graph', 'dec
                     'verify-delivery')
 BRANCH = re.compile(r'^(claude|codex)/(?P<ticket>[A-Z]+-\d+)-')
 
-# The questions that can refuse an advance. The others inform rather than block.
-BLOCKING = {'clarify': ('clarified',), 'solution': ('solution_complete',),
-            'tdd': (), 'review': ('must_fix',), 'deliver': ()}
+# The questions that can refuse an advance, and which way round each one reads.
+# clarified and solution_complete must clear their bar; must_fix is the
+# opposite, because a confident yes means something is still broken. A score
+# question routes rather than blocks, so none appears here.
+BLOCKING = {'clarify': {'clarified': 'clears'},
+            'solution': {'solution_complete': 'clears'},
+            'tdd': {},
+            'review': {'must_fix': 'does not clear'},
+            'deliver': {}}
 
 NEXT_COMMAND = {
     'clarify': 'harness draft <ticket>, fill in the scope and the acceptance checks, '
@@ -380,16 +386,26 @@ def stage_decisions(repository, records, args, current, rules, evidence):
 
 
 def require_decisions_pass(stage, answers):
-    """Refuse an advance a decision did not clear, naming what it judged on."""
+    """Refuse an advance the stage's blocking questions did not allow.
+
+    Each blocking question says which way it reads. A decision that could not be
+    taken at all blocks nothing: it is recorded as unavailable and counted later,
+    rather than standing in for a judgement.
+    """
+    rules = BLOCKING.get(stage, {})
     for answer in answers:
-        if answer['passed'] is False and answer['question'] in BLOCKING.get(stage, ()):
-            probability = answer['probabilities'].get(
-                'yes', answer['probabilities'].get(answer['outcome'], 0.0))
-            raise HarnessError(
-                f'The {answer["question"]} question did not clear its threshold: '
-                f'{probability} against {answer["threshold"]}, answered {answer["outcome"]!r} '
-                f'by {answer["source"]}. Resolve what is still open, record a note saying how, '
-                f'then advance again')
+        sense = rules.get(answer['question'])
+        if sense is None or answer['passed'] is None:
+            continue
+        refused = (answer['passed'] is False) if sense == 'clears' else answer['passed']
+        if not refused:
+            continue
+        probability = answer['probabilities'].get(
+            'yes', answer['probabilities'].get(answer['outcome'], 0.0))
+        raise HarnessError(
+            f'The {answer["question"]} question {sense} its threshold: {probability} against '
+            f'{answer["threshold"]}, answered {answer["outcome"]!r} by {answer["source"]}. '
+            f'Resolve what is still open, record a note saying how, then advance again')
 
 
 def advance(repository, folder, records, args, current, rules):
