@@ -1,0 +1,28 @@
+{
+  "sequence": 18,
+  "ticket": "SEEN-089",
+  "timestamp": "2026-09-23T19:49:32.506375+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "4046a1f6e02fc71a345f879b53bbf3ddd7805532",
+  "prev_hash": "42dda1c7420069f8c95d93d995030382e9d428bfb85e57c08de1495f8000a742",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_enforcement.BaselineTest"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "duration_ms": 672,
+    "output": "E\n======================================================================\nERROR: test_delivery_writes_the_measured_figure_as_the_new_baseline (harness.tests.test_enforcement.BaselineTest.test_delivery_writes_the_measured_figure_as_the_new_baseline)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_enforcement.py\", line 236, in test_delivery_writes_the_measured_figure_as_the_new_baseline\n    stored = json_module.loads((self.root / 'docs' / 'harness' / 'coverage.json').read_text())\n                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^\n  File \"/Users/ruudvanengelenhoven/.local/share/mise/installs/python/3.14.5/lib/python3.14/pathlib/__init__.py\", line 787, in read_text\n    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:\n         ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/ruudvanengelenhoven/.local/share/mise/installs/python/3.14.5/lib/python3.14/pathlib/__init__.py\", line 771, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/var/folders/7j/zkvx86bd4ns6ppww3ddpynj00000gn/T/tmp_897j5m4/docs/harness/coverage.json'\n\n----------------------------------------------------------------------\nRan 1 test in 0.596s\n\nFAILED (errors=1)\n",
+    "output_sha256": "9795940a371c71c90bc36bc0497c3f1b32ae14afab08344cf5640333efe578ef",
+    "output_truncated": false,
+    "before": "df7f10f0303142776d3c431161444dcc6e60198c789e24146a11dc3947044382",
+    "after": "df7f10f0303142776d3c431161444dcc6e60198c789e24146a11dc3947044382"
+  }
+}

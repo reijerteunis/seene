@@ -16,13 +16,24 @@ import time
 
 from .errors import require
 
-PHASES_FOR_STAGE = {'tdd': ('red', 'green', 'regression'), 'review': ('qa',)}
+PHASES_FOR_STAGE = {'tdd': ('red', 'green', 'regression', 'coverage'), 'review': ('qa',)}
 TIMEOUT_EXIT = 124         # The timeout(1) convention.
 LAUNCH_FAILURE_EXIT = 127  # The command could not be started at all.
 
 
 def phases_for(stage):
     return PHASES_FOR_STAGE.get(stage, ())
+
+
+def demonstrates_failure(evidence):
+    """Whether a run is evidence that a test failed.
+
+    Exit zero is a passing command, so it claims the opposite. A timeout and a
+    command that could not start say nothing about the behaviour under test:
+    they are facts about the runner. Only a real non-zero exit from a command
+    that ran is a RED.
+    """
+    return 0 < evidence['exit_code'] < TIMEOUT_EXIT
 
 
 def run(repository, command, phase, timeout, limit):

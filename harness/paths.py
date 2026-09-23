@@ -26,6 +26,11 @@ HISTORY = Path('docs/harness/history')
 TEMPLATES = Path('harness/templates')
 # Thresholds and vocabularies. Fatal when missing: never silently defaulted.
 THRESHOLDS = Path('harness/thresholds.toml')
+# Where the last delivered coverage figure is kept, so a delta has something to
+# compare against. Written by delivery, so it sits outside the fingerprint for
+# the same reason the journal does.
+COVERAGE_BASELINE = Path('docs/harness/coverage.json')
+
 # The committed knowledge graph: context before a session reads any file.
 GRAPH_DIRECTORY = Path('graphify-out')
 GRAPH_FILE = GRAPH_DIRECTORY / 'graph.json'
@@ -48,7 +53,7 @@ ALLOWED_BESIDE_RECORDS = ('kpi.json', 'attachments')
 # so counting it would make delivery refuse a ticket for a change no person
 # made. See docs/adr/0002-the-receipt-attests-the-tree-minus-the-journal.md.
 FINGERPRINT_EXCLUDED = (str(HISTORY) + '/', str(DRAFTS) + '/', str(GRAPH_DIRECTORY) + '/',
-                        str(LOCK))
+                        str(COVERAGE_BASELINE), str(LOCK))
 
 TEMPLATE_FOR_STAGE = {
     'clarify': 'clarify.json',

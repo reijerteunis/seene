@@ -1,0 +1,42 @@
+{
+  "sequence": 22,
+  "ticket": "SEEN-089",
+  "timestamp": "2026-09-23T19:53:19.353242+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "4046a1f6e02fc71a345f879b53bbf3ddd7805532",
+  "prev_hash": "ca388908629e7f876652e61d54d2b2915301a620e64ba8693b4ff7a58ac9ff56",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "behaviour": "A RED that did not fail is refused while the run itself stays in the journal, and a cited red must demonstrate a failure rather than merely carry the label",
+          "failure_reason": "Five failures: harness check --phase red on true succeeded quietly, a timeout and a missing command were accepted as RED evidence, and the tdd gate accepted a slice citing a red that exited 0",
+          "red": 11,
+          "green": 12
+        },
+        {
+          "behaviour": "A blocking decision that did not clear its threshold says so, instead of printing the rule's own word and claiming the opposite",
+          "failure_reason": "AssertionError: 'did not clear' not found in \"The clarified question clears its threshold: 0.41 against 0.8\"",
+          "red": 13,
+          "green": 14
+        },
+        {
+          "behaviour": "Coverage on packages/core is measured by one fixed command, compared with the last delivered figure, and the tdd stage cannot advance without a measurement or with a negative delta; delivery moves the baseline, and the baseline sits outside the reviewed-tree fingerprint because delivery is what writes it",
+          "failure_reason": "Four errors on the coverage command not existing, and a FileNotFoundError on docs/harness/coverage.json after delivery",
+          "red": 18,
+          "green": 19
+        }
+      ],
+      "regression": 21,
+      "coverage_delta": null
+    },
+    "decisions": []
+  }
+}

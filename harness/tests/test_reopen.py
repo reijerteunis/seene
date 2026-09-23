@@ -80,8 +80,11 @@ class ReopenTest(DeliveryTest):
                          'claude:implementer', '--', 'true')
         self.run_harness('check', self.ticket_id, '--phase', 'regression', '--actor',
                          'claude:implementer', '--', 'true')
+        self.write('packages/core/coverage/coverage-summary.json',
+                   '{"total": {"lines": {"total": 10, "covered": 9, "skipped": 0, "pct": 90.0}}}')
+        self.run_harness('coverage', self.ticket_id, '--actor', 'claude:implementer', '--', 'true')
         records = self.run_harness('history', self.ticket_id)
-        red, green, regression = [r['sequence'] for r in records[-3:]]
+        red, green, regression = [r['sequence'] for r in records[-4:-1]]
         self.submit('tdd', dict(mode='code',
                                 slices=[dict(behaviour='The correction',
                                              failure_reason='still wrong', red=red, green=green)],

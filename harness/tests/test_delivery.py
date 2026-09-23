@@ -24,11 +24,17 @@ class DeliveryTest(CommandTest):
                          'claude:implementer', '--', 'true')
         self.run_harness('check', self.ticket_id, '--phase', 'regression', '--actor',
                          'claude:implementer', '--', 'true')
+        # The coverage gate wants a measurement for the attempt; the summary is a
+        # fixture here, because what is under test is delivery, not vitest.
+        self.write('packages/core/coverage/coverage-summary.json',
+                   '{"total": {"lines": {"total": 10, "covered": 9, "skipped": 0, "pct": 90.0}}}')
+        self.run_harness('coverage', self.ticket_id, '--actor', 'claude:implementer', '--', 'true')
+        red, green, regression = 4, 5, 6
         self.submit('tdd', dict(mode='code',
                                 slices=[dict(behaviour='The harness records a delivery',
                                              failure_reason='expected 1, got 0',
-                                             red=4, green=5)],
-                                regression=6,
+                                             red=red, green=green)],
+                                regression=regression,
                                 coverage_delta=None))
         self.run_harness('check', self.ticket_id, '--phase', 'qa', '--actor',
                          'codex:reviewer', '--', 'true')
@@ -36,7 +42,7 @@ class DeliveryTest(CommandTest):
                                    independence='independent',
                                    acceptance_evidence=['The journal holds every stage'],
                                    findings=[],
-                                   checks=[8],
+                                   checks=[9],
                                    security_checklist=['No secret in the diff'],
                                    verdict='pass'),
                     actor='codex:reviewer')
@@ -129,4 +135,4 @@ class DeliveryTest(CommandTest):
         self.verify()
         kinds = [record['kind'] for record in self.run_harness('history', self.ticket_id)]
         self.assertEqual(kinds, ['start', 'advance', 'advance', 'check', 'check', 'check',
-                                 'advance', 'check', 'advance', 'receipt'])
+                                 'check', 'advance', 'check', 'advance', 'receipt'])

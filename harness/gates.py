@@ -9,6 +9,7 @@ that a conclusion is correct, and it does not pretend to.
 
 import json
 
+from . import checks
 from .errors import HarnessError, require
 from .paths import ENUMERATED_KEYS, NON_CODE_TEMPLATE, TEMPLATE_FOR_STAGE, TEMPLATES
 
@@ -111,6 +112,13 @@ def cited_check(records, number, phase, current):
             f'Check {number} belongs to another stage or attempt; run it again')
     require(record['data']['phase'] == phase,
             f'Expected a {phase} check at record {number}, found {record["data"]["phase"]}')
+    if phase == 'red':
+        require(checks.demonstrates_failure(record['data']),
+                f'Check {number} is cited as a RED but did not fail: it exited '
+                f'{record["data"]["exit_code"]}')
+    else:
+        require(record['data']['exit_code'] == 0,
+                f'Check {number} is cited as a {phase} but exited {record["data"]["exit_code"]}')
     return record
 
 
@@ -148,6 +156,7 @@ def _tdd(data, records, current, repository, thresholds):
         return _non_code(data, thresholds)
     slices = data['slices']
     require(slices, 'Code changes need at least one slice in slices')
+    _require_coverage(records, current)
     regression = cited_check(records, data['regression'], 'regression', current)
     previous_green = 0
     for position, slice_ in enumerate(slices, start=1):
@@ -161,6 +170,27 @@ def _tdd(data, records, current, repository, thresholds):
                 'must not overlap, and the regression must be the last check')
         previous_green = green['sequence']
     return {}
+
+
+def _require_coverage(records, current):
+    """A code change measures the gated package, and may not let it fall.
+
+    A first measurement has no baseline and is not a regression; anything after
+    that has a number to be compared with.
+    """
+    measurements = [record for record in records
+                    if record['kind'] == 'check' and record['stage'] == 'tdd'
+                    and record['attempt'] == current['attempt']
+                    and record['data'].get('phase') == 'coverage']
+    require(measurements,
+            'No coverage measurement for this attempt: run harness coverage <ticket> '
+            '--actor <actor> before advancing')
+    latest = measurements[-1]['data']
+    delta = latest.get('delta')
+    require(delta is None or delta >= 0,
+            f'Coverage on {latest.get("package")} fell by {delta}: '
+            f'{latest.get("baseline")} to {latest.get("lines")}. Cover what the change added, '
+            'or say in a note why the fall is right and raise the baseline deliberately')
 
 
 def _non_code(data, thresholds):
