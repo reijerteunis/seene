@@ -243,14 +243,39 @@ def _fingerprint_check(repository, records, attempt, now):
                   'are not the tests for this tree')
 
 
+def generated_paths():
+    """Every file `sync` writes from a source, which a record names by its source.
+
+    A generated copy has no review surface of its own: `doctor` refuses one that
+    does not match what its source would generate, so naming the source is naming
+    the copy. Counting them as unplanned is the mistake the ticket file already
+    taught, one layer out, and it was found by running this triage on SEEN-107's
+    own branch: the four copies were flagged while both their sources were named,
+    which would have forced full depth on every harness ticket that runs sync.
+
+    The Codex home copy is not here, because it lives outside the repository and
+    can never be in a diff.
+    """
+    from . import agents, skills
+    paths = {str(relative) for relative in skills.COMMITTED}
+    for agent in agents.AGENTS:
+        paths.add(str(agents.claude_copy(agent)))
+        paths.add(str(agents.codex_copy(agent)))
+    return paths
+
+
 def _slice_files_check(files, named, procedure):
-    """Every changed file is one the solution record planned, bar the procedure's own.
+    """Every changed file is one the solution record planned, bar what it cannot plan.
 
     The ticket file is excluded because the procedure writes it and no solution
     record plans it: `status: doing` goes in with the first commit and the
     `## Outcome` section before review is left. A check that failed on the harness's
-    own writing would fail on every ticket and mean nothing.
+    own writing would fail on every ticket and mean nothing. Generated copies are
+    excluded for the reason `generated_paths` gives. Neither is excluded from the
+    diff, only from this check: they changed, and the reviewer can still be sent
+    to them.
     """
+    procedure = set(procedure) | generated_paths()
     outside = sorted(path for path in files if path not in named and path not in procedure)
     if not outside:
         return _entry('slice_files', PASS,

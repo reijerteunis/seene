@@ -56,8 +56,19 @@ The review is the most expensive read in the procedure: a model reads the whole 
 
 ## Outcome
 
-Delivered on 24 September 2026 in one attempt, three slices, one session by the
-digest: `253bf8e84e82`. The solution gate refused twice at 0.58 against 0.6 and
+Delivered on 24 September 2026 in two attempts, three slices and one rework
+slice, one session by the digest: `253bf8e84e82`. The return was the triage's
+own doing: run on this branch at record 19 it flagged the four files `sync`
+generates as changed but named by no slice, while the solution record named both
+their sources. A generated copy has no review surface of its own, because
+`doctor` refuses one that does not match what its source would generate, so
+naming the source is naming the copy; left in place it would have forced full
+depth on every harness ticket that runs `sync`, which is most of them, and left
+SEEN-109 nothing to calibrate. `triage.generated_paths` is the fix. The nine
+other paths the same check flagged were a true positive and stand: adding one
+required field to the review template really did change six test fixtures the
+solution record never named, so this ticket reviews at full depth on its own
+evidence. The solution gate refused twice at 0.58 against 0.6 and
 cleared at 0.65 once the record named the interfaces the clarify decisions had
 settled, which is the gap the question was right about: Jev is shown the solution
 record and not the clarify one, so a mechanism decided at clarify and never
@@ -102,9 +113,12 @@ resolves towards reading more: a tie on `review_depth`, an unavailable answer an
 any failed check are all full depth, and a spot focus set is never empty. The
 ticket file is excluded from the slice-plan check, because the procedure writes it
 and no solution record plans it, so the check would otherwise have failed on every
-ticket including this one. The `## Outcome` section is written before the
-regression rather than after it, because the fingerprint check compares the tree
-against the tree the tests last ran on and the ticket file is in it.
+ticket including this one, and generated copies are excluded for the same reason
+one layer out. Neither is excluded from the diff, only from the check: they
+changed, and a reviewer can still be sent to them. The `## Outcome` section is
+written before the regression rather than after it, because the fingerprint check
+compares the tree against the tree the tests last ran on and the ticket file is
+in it.
 
 **What is unsettled.** No subagent has ever been logged on this repository: every
 `isSidechain` field in the session logs reads false, so the reviewer's token figure

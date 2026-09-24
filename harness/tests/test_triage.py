@@ -757,5 +757,58 @@ class SidechainTokensTest(unittest.TestCase):
         self.assertEqual(totals['output_tokens'], 9500)
 
 
+class GeneratedCopiesTest(TriageTest):
+    """Files sync writes are named by naming their source.
+
+    Found by running the triage on SEEN-107's own branch: the four copies sync
+    generates were flagged as changed but named by no slice, while the solution
+    record named both sources. A copy has no review surface of its own, because
+    doctor refuses one that does not match what its source would generate, so
+    counting it as unplanned forces full depth on every harness ticket that runs
+    sync and leaves SEEN-109 nothing to calibrate.
+    """
+
+    def touch_the_copies(self):
+        from harness import agents, skills
+        written = []
+        for relative in list(skills.COMMITTED) + [agents.claude_copy(agents.REVIEWER),
+                                                  agents.codex_copy(agents.REVIEWER)]:
+            path = self.root / relative
+            path.write_text(path.read_text() + '\n')
+            written.append(str(relative))
+        return written
+
+    def test_a_generated_copy_does_not_fail_the_slice_check(self):
+        self.reach_review()
+        self.touch_the_copies()
+        record = self.triage()
+
+        ran = {check['name']: check for check in record['data']['deterministic']}
+        self.assertEqual(ran['slice_files']['outcome'], 'pass')
+        # Not `rules == []`: writing the copies moved the tree after the tests
+        # ran, which the fingerprint check is right to catch. What must not be
+        # in the rules is this check.
+        self.assertNotIn('slice_files', ' '.join(record['data']['rules']))
+
+    def test_a_generated_copy_is_still_a_changed_file_the_reviewer_can_be_sent_to(self):
+        """Excluded from the check, not from the diff: it did change."""
+        self.reach_review()
+        written = self.touch_the_copies()
+        paths = {entry['path'] for entry in self.triage()['data']['files']}
+
+        for relative in written:
+            self.assertIn(relative, paths)
+
+    def test_a_file_nothing_generates_still_fails(self):
+        self.reach_review()
+        self.touch_the_copies()
+        self.write('harness/unplanned.py', 'def unplanned():\n    return 2\n')
+        ran = {check['name']: check
+               for check in self.triage()['data']['deterministic']}
+
+        self.assertEqual(ran['slice_files']['outcome'], 'fail')
+        self.assertIn('harness/unplanned.py', ran['slice_files']['detail'])
+
+
 if __name__ == '__main__':
     unittest.main()
