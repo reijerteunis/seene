@@ -1,0 +1,113 @@
+{
+  "sequence": 14,
+  "ticket": "SEEN-103",
+  "timestamp": "2026-09-24T07:24:38.160922+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "review",
+  "attempt": 1,
+  "actor": "claude:reviewer",
+  "head": "debdee44a026404b5c054505282e0130246b8970",
+  "prev_hash": "2cf0bb5abfc2b249de02a37088ef90e98d05473c1fa984cf4bdcb1f2ddee85ac",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "deliver",
+    "evidence": {
+      "reviewer": "claude:reviewer",
+      "independence": "self-review",
+      "acceptance_evidence": [
+        "The solution template carries mode and the gate rejects anything else: harness/templates/solution.json ships mode as code, gates.evaluate checks it against MODES for solution as well as tdd, and test_a_mode_that_is_neither_is_refused_naming_both asserts the refusal carries both valid values.",
+        "A non-code solution record advances with tests_first empty: test_a_non_code_solution_advances_with_no_tests_first submits one and asserts it reaches tdd, which is the exact refusal SEEN-102 hit at record 5 of its journal.",
+        "A code solution record still refuses without tests_first: test_a_code_solution_still_refuses_without_tests_first holds the guard that stops this being a way round the gate.",
+        "A disagreeing tdd mode is refused naming both: test_a_tdd_mode_that_disagrees_with_the_solution_is_refused and its mirror assert both directions, with a well-formed slice so it is the disagreement that refuses rather than the shape check.",
+        "Records already written stay valid: mode_of reads an absent field as code, asserted directly, and the nine solution records in this repository are untouched. doctor verifies every journal and reports no problems."
+      ],
+      "findings": [
+        {
+          "id": "F1",
+          "severity": "high",
+          "claim": "An absent solution record was read as a solution record saying code",
+          "failure_scenario": "latest_evidence returns None when no solution advance exists, and the agreement check turned that into a mode of code with 'or {}'. Any tdd gate evaluated without a solution record refused every non-code ticket, with a message naming a plan nobody had made. Four gate tests caught it; a session whose journal was being read partially would have hit the same thing.",
+          "status": "resolved",
+          "resolution": "The check runs only when a solution record exists, with the comment saying why absent is not a claim. A test asserts latest_evidence returns None for a journal with no solution advance."
+        },
+        {
+          "id": "F2",
+          "severity": "medium",
+          "claim": "The backwards-compatibility criterion was tested as though a new record could omit mode",
+          "failure_scenario": "The test submitted a fresh solution record with no mode and expected it to advance. Satisfying it would have meant removing mode from the template's required fields, so every future solution record could silently omit the declaration and the tdd agreement check would compare against a default nobody chose.",
+          "status": "resolved",
+          "resolution": "Split in two: a new record must carry mode, because the template asks for it, and mode_of reads an absent field as code for the nine records written before it existed. Both are asserted."
+        },
+        {
+          "id": "F3",
+          "severity": "low",
+          "claim": "A non-code coverage test was sharing a setUp that declares code",
+          "failure_scenario": "CoverageTest.setUp advances through a code solution record, and one of its tests then submitted a non-code tdd. After the agreement check that is a contradiction, and patching it in place would have meant a second solution advance from a ticket already past that stage.",
+          "status": "resolved",
+          "resolution": "NonCodeCoverageTest has its own setUp declaring non-code at solution, with a docstring saying why it is separate."
+        }
+      ],
+      "checks": [
+        6,
+        9,
+        11,
+        12
+      ],
+      "security_checklist": [
+        "No credential is in the change or in any record.",
+        "The change loosens one gate for one declared mode and tightens another by adding a refusal; the code path that drops tests_first drops exactly one named key for exactly one stage and mode, and the guard test asserts a code ticket is still refused without it.",
+        "No test writes into this repository's own journal.",
+        "The change touches no money, no tenant data and no policy-gate action."
+      ],
+      "verdict": "pass",
+      "tree": "dfc885a94d1bd27183930f892c415283bf166f391b5454b09589671ebf933247"
+    },
+    "decisions": [
+      {
+        "question": "severity",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high",
+          "blocking"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "high",
+        "probabilities": {
+          "low": 0.02,
+          "medium": 0.06,
+          "high": 0.85,
+          "blocking": 0.07
+        },
+        "confidence": 0.84,
+        "score": 1.98,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      },
+      {
+        "question": "must_fix",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.63,
+          "no": 0.37
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.7,
+        "passed": false,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

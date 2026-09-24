@@ -1,0 +1,30 @@
+{
+  "sequence": 13,
+  "ticket": "SEEN-103",
+  "timestamp": "2026-09-24T07:24:06.666729+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "debdee44a026404b5c054505282e0130246b8970",
+  "prev_hash": "b5d93d91d2ea18ae64b3fe0f5d87cdb613439a10d8a3c7b2d1735a16316d2281",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "behaviour": "The solution template carries mode, the solution gate rejects anything but code or non-code, and requires tests_first only in code mode; a tdd record whose mode disagrees with the solution record's is refused naming both, while no solution record at all is not a claim about mode; a record written before the field existed reads as code.",
+          "failure_reason": "Harness: Field tests_first must not be empty, which is the refusal SEEN-102 hit, and AssertionError: 'non-code' not found in the tdd gate's output",
+          "red": 6,
+          "green": 9
+        }
+      ],
+      "regression": 12,
+      "coverage_delta": 0.0
+    },
+    "decisions": []
+  }
+}

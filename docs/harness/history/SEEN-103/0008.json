@@ -1,0 +1,30 @@
+{
+  "sequence": 8,
+  "ticket": "SEEN-103",
+  "timestamp": "2026-09-24T07:17:48.549810+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "debdee44a026404b5c054505282e0130246b8970",
+  "prev_hash": "31c06142b4066badabdd28b386a18e3b68fcac05642f26cac42133deb7695ba0",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "harness/tests"
+    ],
+    "phase": "green",
+    "exit_code": 1,
+    "duration_ms": 80053,
+    "output": "......................................................................................E..............................................................................................................................................................................................................................................................\n======================================================================\nERROR: test_a_non_code_ticket_needs_no_coverage (test_enforcement.CoverageTest.test_a_non_code_ticket_needs_no_coverage)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_enforcement.py\", line 190, in test_a_non_code_ticket_needs_no_coverage\n    self.submit('tdd', dict(mode='non-code', change_type='documentation',\n    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                            reason='Prose only.', sources=[], checks=[]))\n                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_lifecycle.py\", line 36, in submit\n    return self.run_harness('advance', self.ticket_id, '--file', relative, '--actor', actor)\n           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_lifecycle.py\", line 21, in run_harness\n    return cli.execute(cli.parse(['--root', str(self.root), *args]))\n           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/cli.py\", line 805, in execute\n    return handler(repository, folder, records, args, current, rules)\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/cli.py\", line 510, in advance\n    data.update(gates.evaluate(stage, data, records, current, repository, rules))\n                ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/gates.py\", line 293, in evaluate\n    return gate(data, records, current, repository, thresholds)\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/gates.py\", line 182, in _tdd\n    require(mode == planned,\n    ~~~~~~~^^^^^^^^^^^^^^^^^\n            f'The solution record planned {planned} and this tdd record says {mode}. A '\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n            'ticket that changes its mind about having behaviour to prove says so in a note '\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n            'and returns to solution, rather than changing it between stages')\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/errors.py\", line 11, in require\n    raise HarnessError(message)\nharness.errors.HarnessError: The solution record planned code and this tdd record says non-code. A ticket that changes its mind about having behaviour to prove says so in a note and returns to solution, rather than changing it between stages\n\n----------------------------------------------------------------------\nRan 341 tests in 79.955s\n\nFAILED (errors=1)\n",
+    "output_sha256": "c66cb69015c5a7c37eefbfc5cbcc6a6957c3452a3d4120eaa1aab49192e420a0",
+    "output_truncated": false,
+    "before": "73658fa261139c7a2eca43e0b32399e6455899e4b876e5843dbc5e9d4dfceccc",
+    "after": "73658fa261139c7a2eca43e0b32399e6455899e4b876e5843dbc5e9d4dfceccc"
+  }
+}

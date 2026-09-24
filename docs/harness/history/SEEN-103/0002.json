@@ -1,0 +1,82 @@
+{
+  "sequence": 2,
+  "ticket": "SEEN-103",
+  "timestamp": "2026-09-24T07:10:32.761360+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "debdee44a026404b5c054505282e0130246b8970",
+  "prev_hash": "b7361e6ac463f45e5a7cdbd00431f1fa655f13a1461d7a863eabd596166b1423",
+  "data": {
+    "from_stage": "clarify",
+    "to_stage": "solution",
+    "evidence": {
+      "scope": "Move the non-code declaration from the tdd stage to the solution stage so a ticket with no executable behaviour can say so before it is asked for tests; the edge is that nothing else about either stage changes and no journal already written becomes invalid.",
+      "acceptance": [
+        "The solution template carries mode and the gate rejects anything but code or non-code: a unit test advances with mode 'sideways' and asserts the refusal names both valid values.",
+        "A non-code solution record advances with tests_first empty: a unit test submits one and asserts the advance, because that is the whole hole this ticket closes.",
+        "A code solution record still refuses without tests_first, naming the field: a unit test asserts the existing refusal survives, which is what stops this from becoming a way round the gate.",
+        "A tdd record whose mode differs from the solution record's is refused naming both: a unit test declares non-code at solution then code at tdd and asserts the refusal carries both words.",
+        "Every solution record already written stays valid: a unit test builds a solution record with no mode key at all and asserts it is read as code."
+      ],
+      "decisions": [
+        "mode moves to solution and stays at tdd rather than moving outright, because the tdd record is where the reason and the change type are recorded and a reader of that record should not have to fetch the stage before it to learn what kind of ticket it is. The two must agree, which is the new refusal. Taken by the implementer, 24 September 2026.",
+        "The template ships mode as 'code', so the common case is the default and a non-code ticket is the one that has to say something. Taken by the implementer.",
+        "An absent mode reads as code rather than refusing, because nine solution records are already written without it and a gate that invalidates history to gain a field is a worse trade than a default. Taken by the implementer.",
+        "The non-code tdd template is not changed. It already carries change_type, reason and sources, and this ticket is about when the declaration happens rather than what it says.",
+        "Whether any other stage has the same shape, a field required before the ticket can say the field does not apply, is not known. Reading the four templates against the four gates settles it, and the answer goes in this journal before review; if there is another, it is recorded rather than fixed here, because one gate at a time is how the last three of these went."
+      ],
+      "open_questions": [],
+      "changes_agent_action": false,
+      "graph_impact": [
+        "harness/gates.py _solution and _tdd, harness/templates/solution.json"
+      ]
+    },
+    "decisions": [
+      {
+        "question": "clarified",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.83,
+          "no": 0.17
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.8,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "question": "risk",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "low",
+        "probabilities": {
+          "low": 0.61,
+          "medium": 0.39,
+          "high": 0.0
+        },
+        "confidence": 0.42,
+        "score": 0.39,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}
