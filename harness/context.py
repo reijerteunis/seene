@@ -17,6 +17,19 @@ def _per_point(tickets, field):
     return round(sum(ticket[field] for ticket in tickets) / points, 1)
 
 
+def _per_slice(tickets, field='output_tokens'):
+    """The same division by slices proved, for the tickets that have any.
+
+    Null rather than zero where no ticket carries a slice count: every ticket
+    delivered before SEEN-104 was planned in no slices at all, and dividing by
+    the tickets that were would compare two different things.
+    """
+    counted = sum((ticket.get('slices') or {}).get('proven') or 0 for ticket in tickets)
+    if not counted:
+        return None
+    return round(sum(ticket[field] for ticket in tickets) / counted, 1)
+
+
 def qualifying(tickets, since):
     """Tickets started after both tools existed, with figures to compare.
 
@@ -37,6 +50,7 @@ def compare(tickets, baseline, minimum, since=''):
     section = dict(tickets=len(counted),
                    minimum=minimum,
                    output_tokens_per_point=_per_point(counted, 'output_tokens'),
+                   output_tokens_per_slice=_per_slice(counted),
                    tool_calls_per_point=_per_point(counted, 'tool_calls'),
                    baseline_output_tokens_per_point=totals['output_tokens_per_point'],
                    baseline_tool_calls_per_point=totals['tool_calls_per_point'],

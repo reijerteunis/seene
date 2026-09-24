@@ -7,8 +7,10 @@ told about its own spending.
 """
 
 import hashlib
-
+import json
 import os
+from pathlib import Path
+import tempfile
 import unittest
 
 from harness.errors import HarnessError
@@ -278,6 +280,91 @@ class StatusBriefTest(AtTddTest):
         before = len(self.records())
         self.brief()
         self.assertEqual(len(self.records()), before)
+
+
+class BudgetTest(SessionEnvironment):
+    """What a session can be told about its own spending, and when it cannot."""
+
+    def setUp(self):
+        super().setUp()
+        self.start()
+        from harness import cost
+        self.logs = Path(tempfile.mkdtemp())
+        self.addCleanup(setattr, cost, 'LOGS', cost.LOGS)
+        cost.LOGS = self.logs
+
+    def write_log(self, output_tokens, tool_calls=0):
+        """A session log of the shape the assistant writes, and nothing else."""
+        from harness import cost
+        directory = cost.log_directory(self.root)
+        directory.mkdir(parents=True, exist_ok=True)
+        entry = dict(timestamp='2026-09-24T10:00:00Z',
+                     message=dict(usage=dict(output_tokens=output_tokens),
+                                  content=[dict(type='tool_use')] * tool_calls))
+        (directory / f'{SESSION_ID}.jsonl').write_text(json.dumps(entry) + '\n')
+
+    def budget(self):
+        return self.run_harness('budget', self.ticket_id)
+
+    def test_a_session_under_budget_says_what_is_left(self):
+        self.write_log(1000, tool_calls=3)
+        answer = self.budget()
+        self.assertEqual(answer['output_tokens'], 1000)
+        self.assertEqual(answer['tool_calls'], 3)
+        self.assertFalse(answer['over'])
+        self.assertEqual(answer['remaining'], 59000)
+
+    def test_a_session_over_budget_names_the_slice_boundary(self):
+        self.write_log(70000)
+        answer = self.budget()
+        self.assertTrue(answer['over'])
+        self.assertIn('handoff', answer['next_stop'])
+
+    def test_a_session_under_budget_is_told_no_next_stop(self):
+        self.write_log(100)
+        self.assertIsNone(self.budget()['next_stop'])
+
+    def test_no_log_for_this_session_is_null_rather_than_zero(self):
+        answer = self.budget()
+        self.assertIsNone(answer['output_tokens'])
+        self.assertIsNone(answer['tool_calls'])
+        self.assertIsNone(answer['over'])
+        self.assertIn('null is not zero', answer['unavailable'])
+
+    def test_budget_writes_no_record(self):
+        self.write_log(10)
+        before = len(self.records())
+        self.budget()
+        self.assertEqual(len(self.records()), before)
+
+    def test_budget_carries_the_budget_it_judged_against(self):
+        self.write_log(10)
+        self.assertEqual(self.budget()['budget'], 60000)
+
+
+class TheSkillSaysSoTest(unittest.TestCase):
+    """The rule a session actually reads, in the one file both assistants get."""
+
+    def source(self):
+        from harness.tests.helpers import PROJECT
+        return (PROJECT / 'docs' / 'harness' / 'skill.md').read_text()
+
+    def test_it_says_one_slice_per_session(self):
+        self.assertIn('one slice per session', self.source().lower())
+
+    def test_it_names_the_pack_a_later_session_starts_from(self):
+        text = self.source()
+        self.assertIn('harness handoff', text)
+        # The skill writes the command with the ticket in it, so the flag is what
+        # a substring can honestly look for.
+        self.assertIn('harness status', text)
+        self.assertIn('--brief', text)
+
+    def test_it_names_the_command_that_reads_the_budget(self):
+        self.assertIn('harness budget', self.source())
+
+    def test_it_says_the_prd_and_the_architecture_are_read_once(self):
+        self.assertIn('once, at clarify', self.source())
 
 
 class SessionDigestTest(unittest.TestCase):

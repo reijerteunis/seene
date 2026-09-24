@@ -13,10 +13,45 @@ def at(minute):
     return f'2026-09-23T{hour:02d}:{minute:02d}:00+00:00'
 
 
-def record(sequence, kind, stage, attempt=1, minute=0, actor='claude:implementer', **data):
+def record(sequence, kind, stage, attempt=1, minute=0, actor='claude:implementer',
+           session=None, **data):
     return dict(sequence=sequence, ticket='SEEN-001', timestamp=at(minute), harness_version='1',
-                kind=kind, stage=stage, attempt=attempt, actor=actor, head='0' * 40,
-                prev_hash=None, data=data)
+                kind=kind, stage=stage, attempt=attempt, actor=actor, session=session,
+                head='0' * 40, prev_hash=None, data=data)
+
+
+def journal_worked_in_two_sessions():
+    """Two slices planned, two proved, and two sessions that wrote the records."""
+    first, second = 'aaaaaaaaaaaa', 'bbbbbbbbbbbb'
+    return [
+        record(1, 'start', 'clarify', minute=0, session=first, ticket_file='docs/tickets/x.md',
+               ticket_snapshot='# x', base_commit='a' * 40),
+        record(2, 'advance', 'clarify', minute=5, session=first, from_stage='clarify',
+               to_stage='solution', evidence={}, decisions=[]),
+        record(3, 'advance', 'solution', minute=10, session=first, from_stage='solution',
+               to_stage='tdd', decisions=[],
+               evidence=dict(mode='code', slices=[dict(name='One', points=1, files=['a'], red='x'),
+                                                  dict(name='Two', points=1, files=['b'], red='y')])),
+        record(4, 'check', 'tdd', minute=12, session=first, phase='red', exit_code=1, command=['t']),
+        record(5, 'check', 'tdd', minute=14, session=first, phase='green', exit_code=0,
+               command=['t']),
+        record(6, 'handoff', 'tdd', minute=20, session=first, pack='.harness-drafts/x.md',
+               sha256='d' * 64, estimated_tokens=900,
+               figures=dict(session=first, output_tokens=41000, tool_calls=30)),
+        record(7, 'check', 'tdd', minute=30, session=second, phase='red', exit_code=1,
+               command=['t']),
+        record(8, 'check', 'tdd', minute=32, session=second, phase='green', exit_code=0,
+               command=['t']),
+        record(9, 'check', 'tdd', minute=33, session=second, phase='coverage', exit_code=0,
+               command=['c'], package='@seen/core', lines=91.0, baseline=90.0, delta=1.0),
+        record(10, 'advance', 'tdd', minute=40, session=second, from_stage='tdd',
+               to_stage='review', decisions=[],
+               evidence=dict(mode='code', slices=[dict(red=4, green=5), dict(red=7, green=8)])),
+        record(11, 'advance', 'review', minute=50, session=second, actor='codex:reviewer',
+               from_stage='review', to_stage='deliver', decisions=[], evidence=dict(findings=[])),
+        record(12, 'receipt', 'deliver', minute=60, session=second, from_stage='deliver',
+               to_stage='delivered', commit='b' * 40, tree='c' * 64),
+    ]
 
 
 def journal_with_a_return():
@@ -49,6 +84,35 @@ def journal_with_a_return():
         record(13, 'receipt', 'deliver', attempt=2, minute=60, from_stage='deliver',
                to_stage='delivered', commit='b' * 40, tree='c' * 64),
     ]
+
+
+class SliceFiguresTest(DeliveryWalk):
+    """Slices, sessions and what a slice cost, from the journal and nothing else."""
+
+    def measure(self, records=None, **changes):
+        arguments = dict(points=3, tokens=dict(output_tokens=90000))
+        arguments.update(changes)
+        return kpi.measure(records or journal_worked_in_two_sessions(), 'SEEN-001', **arguments)
+
+    def test_it_counts_the_slices_planned_and_the_slices_proved(self):
+        self.assertEqual(self.measure()['slices'], dict(planned=2, proven=2))
+
+    def test_it_counts_the_sessions_that_wrote_the_journal(self):
+        self.assertEqual(self.measure()['sessions'], 2)
+
+    def test_output_tokens_per_slice_divides_by_the_slices_proved(self):
+        self.assertEqual(self.measure()['output_tokens_per_slice'], 45000.0)
+
+    def test_tokens_nobody_knows_give_a_figure_nobody_knows(self):
+        self.assertIsNone(self.measure(tokens=None)['output_tokens_per_slice'])
+
+    def test_a_journal_written_before_the_field_existed_counts_no_sessions(self):
+        """Null, not one: a record without a session cannot say it was the same one."""
+        self.assertIsNone(self.measure(journal_with_a_return())['sessions'])
+
+    def test_a_ticket_with_no_slices_reports_none_rather_than_zero(self):
+        figures = self.measure(journal_with_a_return())
+        self.assertEqual(figures['slices'], dict(planned=0, proven=1))
 
 
 class TicketFiguresTest(DeliveryWalk):

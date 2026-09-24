@@ -126,6 +126,33 @@ class ComparisonTest(unittest.TestCase):
 
         self.assertIn('graphify', section['conclusion'].lower())
 
+    def test_it_carries_output_tokens_per_slice_beside_per_point(self):
+        tickets = [dict(ticket=f'SEEN-{200 + n}', points=2, output_tokens=60000, tool_calls=20,
+                        slices=dict(planned=2, proven=2), started='2026-09-25T09:00:00Z')
+                   for n in range(5)]
+
+        section = context.compare(tickets, BASELINE, minimum=5)
+
+        self.assertEqual(section['output_tokens_per_slice'], 30000.0)
+
+    def test_a_report_of_tickets_with_no_slices_says_so_rather_than_dividing(self):
+        section = context.compare(self.qualifying(5), BASELINE, minimum=5)
+
+        self.assertIsNone(section['output_tokens_per_slice'])
+
+    def test_the_rendered_table_shows_the_slice_row_beside_the_point_row(self):
+        from harness import report, thresholds
+        from harness.tests.helpers import PROJECT
+        tickets = [dict(ticket='SEEN-200', points=2, output_tokens=60000, tool_calls=20,
+                        slices=dict(planned=2, proven=2), started='2026-09-25T09:00:00Z')] * 5
+
+        section = context.compare(tickets, BASELINE, minimum=5)
+        lines = report.render_context(section, thresholds.load(PROJECT)['context'])
+
+        table = '\n'.join(lines)
+        self.assertIn('Output tokens per point', table)
+        self.assertIn('Output tokens per slice', table)
+
     def test_too_few_tickets_concludes_nothing_and_says_so(self):
         """Two numbers divided is not evidence when there are two tickets."""
         section = context.compare(self.qualifying(2), BASELINE, minimum=5)

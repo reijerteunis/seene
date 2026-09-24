@@ -26,8 +26,8 @@ from .repository import Repository
 
 DEFAULT_ROOT = Path(__file__).resolve().parents[1]
 TICKET_COMMANDS = ('start', 'status', 'history', 'draft', 'note', 'check', 'advance',
-                   'return', 'graph', 'decide', 'coverage', 'handoff', 'reopen', 'discard',
-                   'verify-delivery', 'verify-merge')
+                   'return', 'graph', 'decide', 'coverage', 'handoff', 'budget', 'reopen',
+                   'discard', 'verify-delivery', 'verify-merge')
 # handoff writes a record, so it is bound to the ticket's own branch like every
 # other writing command. status --brief is not here and neither is budget: a
 # command a session runs to see where it stands must not make the journal longer
@@ -125,6 +125,8 @@ def build_parser():
 
     pack = ticket_command('handoff', 'Write the pack a fresh session starts from at a slice boundary')
     pack.add_argument('--actor', required=True)
+
+    ticket_command('budget', "This session's tokens and tool calls against the session budget")
 
     reopen = ticket_command('reopen', 'Void a receipt and return the ticket to tdd, before merge')
     reopen.add_argument('--reason', required=True)
@@ -319,6 +321,19 @@ def brief(repository, ticket, records, current, rules):
                 recorded_at=recorded['sequence'] if recorded else None,
                 pack_matches_record=matches,
                 next_command=NEXT_COMMAND[current['stage']])
+
+
+def budget(repository, ticket, rules):
+    """Where this session stands against the budget for one slice.
+
+    It reads the session's own log and the journal not at all, so it can be run
+    at any moment and as often as a session likes without making the journal
+    longer. What is recorded instead is the figure at a boundary, which the
+    handoff record carries.
+    """
+    limits = rules['session']
+    spent = sessions.figures(repository.root)
+    return dict(ticket=ticket, **sessions.against_budget(spent, limits['output_token_budget']))
 
 
 def draft(repository, records, args):
@@ -860,6 +875,8 @@ def execute(args):
             return start(repository, folder, records, args, rules)
         if args.command == 'history':
             return [record for record in records if not args.kind or record['kind'] == args.kind]
+        if args.command == 'budget':
+            return budget(repository, args.ticket, rules)
         if args.command == 'status':
             if getattr(args, 'brief', False):
                 return brief(repository, args.ticket, records, journal.state(records), rules)

@@ -96,3 +96,23 @@ def figures(root, identity=None):
             calls += sum(1 for block in content
                          if isinstance(block, dict) and block.get('type') == 'tool_use')
     return dict(answer, output_tokens=output, tool_calls=calls)
+
+
+def against_budget(spent, limit):
+    """This session's spending set beside the budget for one slice.
+
+    It reports and refuses nothing. Only the person at the keyboard can end a
+    session, so the honest thing a command can do is say where the session
+    stands and name the stop, which is the slice boundary and not the ticket.
+    """
+    answer = dict(spent, budget=limit, over=None, remaining=None, next_stop=None)
+    if spent.get('output_tokens') is None:
+        return answer
+    over = spent['output_tokens'] > limit
+    return dict(answer,
+                over=over,
+                remaining=max(limit - spent['output_tokens'], 0),
+                next_stop=('Over budget: the next stop is the slice boundary. Finish the slice '
+                           'in hand, run harness handoff <ticket> and start a fresh session from '
+                           'the pack. A fresh context is cheaper than a compacted one.')
+                if over else None)
