@@ -23,7 +23,7 @@ status: parked
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | parked (waiting for SEEN-100) |
+| Status | parked (waiting for SEEN-101) |
 
 ## Description
 
@@ -49,6 +49,7 @@ clone has context before its first build.
 
 - [SEEN-086](SEEN-086-build-the-seen-harness-cli-with-staged-journal.md): Build the Seen harness CLI with staged journal and receipts
 - [SEEN-087](SEEN-087-install-graphify-build-the-repo-graph-and-wire.md): Install graphify, build the repo graph and wire it into both assistants
+- [SEEN-101](SEEN-101-let-a-journal-survive-its-ticket-being-renamed.md): Let a journal survive its ticket being renamed
 
 ## Blocks
 
