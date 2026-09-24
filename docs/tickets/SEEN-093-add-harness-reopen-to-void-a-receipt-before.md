@@ -54,7 +54,7 @@ the journal reads receipt, void, rework, second receipt, and rework is counted w
 
 ## Blocks
 
-- [SEEN-089](SEEN-089-enforce-tdd-and-ci-quality-gates-in-the-harness.md): Enforce TDD and CI quality gates in the harness
+- [SEEN-094](SEEN-094-verify-delivery-against-ci-and-the-merge.md): Verify delivery against CI and verify the merge against the receipt
 
 ## Context
 

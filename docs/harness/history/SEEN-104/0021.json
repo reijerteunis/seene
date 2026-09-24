@@ -1,0 +1,43 @@
+{
+  "sequence": 21,
+  "ticket": "SEEN-104",
+  "timestamp": "2026-09-24T11:00:32.993439+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "7c81cdfdd5e9",
+  "head": "c00b493b7f1c34c3dbad3be0d84fcc23db1911a4",
+  "prev_hash": "66863f45c66b544520d26401d3e8fc2ec4917f94a00f6f2c7fdf440610868466",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "behaviour": "The solution gate requires a slice plan in code mode and refuses a slice over 2 points or a plan over 4, naming the slice; a non-code record is exempt; every record's envelope says which session wrote it, as a digest and never the id.",
+          "failure_reason": "6 failures and 8 errors: 'HarnessError not raised' on each of the four refusals, 'KeyError: session' where a record should have carried one, and 'ModuleNotFoundError: harness.sessions' with 'KeyError: session' on the thresholds section that did not exist.",
+          "red": 11,
+          "green": 12
+        },
+        {
+          "behaviour": "harness handoff writes the pack from the journal, refuses one carrying an environment value before writing the file, and appends a handoff record with the pack's sha256, its token estimate and this session's figures; status --brief renders the pack and says whether the file still matches the record.",
+          "failure_reason": "15 errors: 'HarnessError: Unrecognised arguments: --brief' from cli.parse, and 'SystemExit: 2' from argparse on 'handoff', which was not a command.",
+          "red": 14,
+          "green": 15
+        },
+        {
+          "behaviour": "harness budget reports this session's output tokens and tool calls against the budget, names the slice boundary as the next stop when over and reports null rather than zero with no log; kpi.json carries slices, sessions and output tokens per slice; the sprint report carries tokens per slice beside tokens per point; the skill says one slice per session.",
+          "failure_reason": "5 failures and 14 errors: 'SystemExit: 2' on the budget command, 'KeyError: slices' and 'KeyError: sessions' from kpi.measure, 'KeyError: output_tokens_per_slice' from context.compare, and four assertions that the skill source does not contain 'one slice per session', 'harness budget', '--brief' or 'once, at clarify'.",
+          "red": 17,
+          "green": 18
+        }
+      ],
+      "regression": 20,
+      "coverage_delta": 0.0
+    },
+    "decisions": []
+  }
+}

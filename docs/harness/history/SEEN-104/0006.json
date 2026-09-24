@@ -1,0 +1,15 @@
+{
+  "sequence": 6,
+  "ticket": "SEEN-104",
+  "timestamp": "2026-09-24T10:25:18.367177+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "be6cdde9688e1d0399688e8d0482d11b63d946a9",
+  "prev_hash": "a9d59cd90cea0059b67e4ec23f4573cf1da19b63717884cd822b470d2d9b3b51",
+  "data": {
+    "text": "# Four readings of the same clarify record\n\n`clarified` has been asked four times on this record, through the same `cli.state_for`\npayload the stage gate sends. The record grew substantially between readings and the score\ndid not move outside noise.\n\n| Reading | What the record carried | Score |\n|---|---|---|\n| 1 | Scope, five acceptance checks, ten decisions, graph impact from codegraph and repowise | 0.77 |\n| 2 | Plus four decisions answering what happens to the nineteen journals and nine solution records written before these fields existed, the pack's current slice before a plan exists, and a session with no id | 0.76 |\n| 3 | Plus the premise named as a premise with the KPI that settles it, the cap named as measured rather than enforced, and the plan's points deliberately not tied to the estimate | 0.77 |\n| 4 | Plus budget declared read-only and the session's figures moved onto the handoff record, which is where a boundary writes down what it cost | 0.77 |\n\nReading 2 is the useful one: adding four resolutions lowered the score by 0.01. That is the\nsignature SEEN-100 measured and named, a longer record reading as a less certain one, and\nit is why the criteria in force widen what counts as resolved rather than asking the model\nto be more careful. The remaining 0.03 is not a question this record can answer by growing.\n\nTwo precedents in this epic, both recorded:\n\n- SEEN-100's own clarify record scored 0.77 on the sixth reading of the same problem and\n  cleared by human override with the reason written down.\n- SEEN-089 scored 0.49 at solution covering seven enforcements and 0.67 covering one, and\n  was split. SEEN-096 was split three ways for the same signature.\n\nThis ticket carries nine mechanisms behind five criteria: a thresholds section, a session\nidentity in the envelope, a slice plan the solution gate enforces, the handoff pack, the\nhandoff record, `status --brief`, `budget`, two KPI figures with the sprint report row, and\nthe skill. The question of whether that is one ticket or three belongs to Ruud, not to this\nsession, and both answers are recorded rather than assumed: an override in his name with\nhis reason, or a split that leaves SEEN-104 its id and opens the rest as new tickets.\n\nWritten at the clarify stage, attempt 1, before either was chosen.\n"
+  }
+}

@@ -115,9 +115,12 @@ def render_context(section, rules):
     lines += [f'- {rule}' for rule in rules['rules']]
     per_point = section['output_tokens_per_point']
     calls = section['tool_calls_per_point']
+    per_slice = section.get('output_tokens_per_slice')
     lines += ['', '| Measure | This report | Baseline |', '|---|---|---|',
               f'| Output tokens per point | {per_point if per_point is not None else "not measured"} '
               f'| {section["baseline_output_tokens_per_point"]} |',
+              f'| Output tokens per slice | {per_slice if per_slice is not None else "not measured"} '
+              '| none: the baseline predates slices |',
               f'| Tool calls per point | {calls if calls is not None else "not measured"} '
               f'| {section["baseline_tool_calls_per_point"]} |',
               f'| Qualifying tickets | {section["tickets"]} | {section["baseline_points"]} points '

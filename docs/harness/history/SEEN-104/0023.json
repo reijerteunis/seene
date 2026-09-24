@@ -1,0 +1,16 @@
+{
+  "sequence": 23,
+  "ticket": "SEEN-104",
+  "timestamp": "2026-09-24T11:01:50.795045+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "review",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "7c81cdfdd5e9",
+  "head": "ef5ad657012e6287c4fae27e3f29336f54de324d",
+  "prev_hash": "35803517fd1cd5dca405acd912374e6a3b9aa35e93db9642af192080403cf573",
+  "data": {
+    "text": "# One thing I know is wrong, recorded before the review reads it\n\n`handoff.pack` renders the complete-plan branch as \"What is left is the regression, the coverage\nmeasurement and the advance to review\". At the tdd stage that is right. At the review stage, where\nrecord 22 was written, all three are already done, so the sentence tells a reviewer to do work the\njournal shows finished. The next command line beside it is correct, because it comes from\n`NEXT_COMMAND` for the stage.\n\nThe cause: `current_slice` counts greens in the current attempt and knows nothing about which stage\nthe pack is being written at, so the branch that reports a complete plan describes what follows a\ncomplete plan at tdd and nowhere else.\n\nIt is not fixed in this attempt. Fixing code after the tdd stage means `harness return --to tdd`,\nwhich is rework and is counted, and the defect is one sentence in a derived document whose next\ncommand is right. The review decides: a finding that returns the ticket, or a waiver with this note\nas the reason. Either way the reviewer should not have to find it.\n\nFound by reading the output of record 22, which is the first pack written at the review stage.\n"
+  }
+}

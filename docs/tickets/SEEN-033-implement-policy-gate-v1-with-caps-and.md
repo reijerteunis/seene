@@ -36,6 +36,14 @@ Implement the policy gate in packages/core/policy: it reads the tenant's policie
 - [ ] Any action on the never list returns refuse regardless of the policies row
 - [ ] Gate decision is written to agent_actions.decision and an audit event before the tool executes
 
+## Slices
+
+The starting slice plan, one session each; the solution stage adopts or amends it (SEEN-104). A slice is at most 2 points and a ticket has at most four.
+
+1. Policy lookup per action type and the never list (2 pt). RED: an action on the never list returns refuse whatever the policies row says
+2. Caps per claim and per day with reasons (2 pt). RED: the sixth EUR 1,000 claim in a day returns refuse with cap_per_day
+3. Decision written to agent_actions and audit_events before execution, defaults for a new tenant (1 pt). RED: the audit event exists before the tool runs, and a new tenant defaults to approval
+
 ## Depends on
 
 - [SEEN-032](SEEN-032-write-append-only-audit-events-before-every.md): Write append-only audit_events before every side effect

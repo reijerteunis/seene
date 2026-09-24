@@ -36,6 +36,14 @@ Build the audit report in apps/api with a headless renderer: a cover with the 90
 - [ ] Annex lists every open finding with rule, amount, external ids and deadline
 - [ ] PDF stored in the evidence bucket with its sha256 recorded on the audit row
 
+## Slices
+
+The starting slice plan, one session each; the solution stage adopts or amends it (SEEN-104). A slice is at most 2 points and a ticket has at most four.
+
+1. Report data: the findings view and settlement totals as the only sources (2 pt). RED: the scorecard totals equal the SQL view totals to the cent
+2. Cover, scorecard per marketplace and the line annex rendered headless (2 pt). RED: a fixture with 10,000 lines renders in under 60 seconds
+3. Storage in the evidence bucket with sha256 on the audit row (1 pt). RED: the stored object's hash equals the hash recorded on the audit row
+
 ## Depends on
 
 - [SEEN-021](SEEN-021-persist-findings-with-rule-confidence-evidence.md): Persist findings with rule, confidence, evidence refs and deadline

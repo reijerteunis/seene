@@ -36,6 +36,14 @@ Add a reconcile-stage worker in apps/worker that writes one fee_expectations row
 - [ ] Each fee_expectations row records source (commissions_api, fee_report or schedule) and the schedule version
 - [ ] Re-running the worker changes zero existing rows when inputs are unchanged
 
+## Slices
+
+The starting slice plan, one session each; the solution stage adopts or amends it (SEEN-104). A slice is at most 2 points and a ticket has at most four.
+
+1. Fee expectation model and schedule lookup as pure functions (2 pt). RED: an order line with a known category yields the schedule's commission and fixed fee
+2. Bol Commissions API and Amazon fee preview as preferred sources, with the source recorded (2 pt). RED: a Bol line takes the Commissions API value over the schedule and records commissions_api
+3. The reconcile-stage worker: one row per order line, idempotent re-runs (1 pt). RED: a second run changes zero rows when inputs are unchanged
+
 ## Depends on
 
 - [SEEN-011](SEEN-011-build-bol-retailer-api-v10-connector-for-orders.md): Build Bol Retailer API v10 connector for orders to commissions

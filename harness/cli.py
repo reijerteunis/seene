@@ -17,19 +17,23 @@ import subprocess
 import sys
 
 from . import (checks, cost as cost_module, coverage as coverage_module, doctor, gates,
-               context, graph as graph_module, jev, journal, kpi,
-               report as report_module, risk, thresholds)
+               context, graph as graph_module, handoff as handoff_module, jev, journal, kpi,
+               report as report_module, risk, sessions, thresholds)
 from .errors import HarnessError, require
-from .paths import (DRAFTS, HISTORY, KINDS, LOCK, NON_CODE_TEMPLATE, STAGES, TEMPLATES,
-                    TEMPLATE_FOR_STAGE, TICKETS, WORKING_STAGES)
+from .paths import (DRAFTS, HANDOFF_PACK, HISTORY, KINDS, LOCK, NON_CODE_TEMPLATE, STAGES,
+                    TEMPLATES, TEMPLATE_FOR_STAGE, TICKETS, WORKING_STAGES)
 from .repository import Repository
 
 DEFAULT_ROOT = Path(__file__).resolve().parents[1]
 TICKET_COMMANDS = ('start', 'status', 'history', 'draft', 'note', 'check', 'advance',
-                   'return', 'graph', 'decide', 'coverage', 'reopen', 'discard',
-                   'verify-delivery', 'verify-merge')
+                   'return', 'graph', 'decide', 'coverage', 'handoff', 'budget', 'reopen',
+                   'discard', 'verify-delivery', 'verify-merge')
+# handoff writes a record, so it is bound to the ticket's own branch like every
+# other writing command. status --brief is not here and neither is budget: a
+# command a session runs to see where it stands must not make the journal longer
+# every time it is run.
 WRITING_COMMANDS = ('start', 'note', 'check', 'advance', 'return', 'graph', 'decide', 'coverage',
-                    'reopen',
+                    'handoff', 'reopen',
                     'verify-delivery')
 BRANCH = re.compile(r'^(claude|codex)/(?P<ticket>[A-Z]+-\d+)-')
 
@@ -72,7 +76,9 @@ def build_parser():
                        help='Project-relative path to the ticket file')
     start.add_argument('--actor', required=True, help='tool:role, for example claude:implementer')
 
-    ticket_command('status', 'Report the stage, the branch and the next command')
+    status = ticket_command('status', 'Report the stage, the branch and the next command')
+    status.add_argument('--brief', action='store_true',
+                        help='Print the handoff pack a fresh session starts from')
     history = ticket_command('history', 'Print the verified journal')
     history.add_argument('--kind', choices=KINDS, help='Show only records of one kind')
 
@@ -116,6 +122,11 @@ def build_parser():
     graph.add_argument('--from', dest='source', help='Start node, for path')
     graph.add_argument('--to', dest='target', help='End node, for path')
     graph.add_argument('--actor', required=True)
+
+    pack = ticket_command('handoff', 'Write the pack a fresh session starts from at a slice boundary')
+    pack.add_argument('--actor', required=True)
+
+    ticket_command('budget', "This session's tokens and tool calls against the session budget")
 
     reopen = ticket_command('reopen', 'Void a receipt and return the ticket to tdd, before merge')
     reopen.add_argument('--reason', required=True)
@@ -236,6 +247,96 @@ def describe(repository, ticket, records, folder):
                 head=repository.head(),
                 chain_head=journal.digest(folder / f'{len(records):04d}.json'),
                 next_command=NEXT_COMMAND[current['stage']])
+
+
+def build_pack(repository, records, current, rules):
+    """The pack, rendered from the journal and nothing else."""
+    return handoff_module.pack(records, current, rules,
+                               branch=repository.branch_or_none(),
+                               next_command=NEXT_COMMAND[current['stage']])
+
+
+def pack_path(repository, ticket):
+    return repository.root / DRAFTS / HANDOFF_PACK.format(ticket=ticket)
+
+
+def handoff(repository, folder, records, args, current, rules):
+    """Write the pack at a slice boundary and record what was handed over.
+
+    The pack is derived, so the file is replaceable and the journal holds its
+    hash. The figures are the session's own spending at the moment it stopped,
+    which is the one place a session's cost is written down.
+    """
+    built = build_pack(repository, records, current, rules)
+    text = built['markdown']
+    carried = secrets_module().leaked(text, os.environ)
+    require(not carried,
+            f'This pack carries the value of {", ".join(carried)} from the environment. A pack '
+            'is read by the next session and by people; credentials do not go in one')
+    require(built['estimated_tokens'] <= built['token_limit'],
+            f'This pack is about {built["estimated_tokens"]} tokens against a limit of '
+            f'{built["token_limit"]}. The pack is built from bounded sections, so a pack over '
+            'the limit is a bug in harness/handoff.py rather than a journal to shorten')
+    path = pack_path(repository, args.ticket)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    # Explicit, because the bytes on disk are compared against the hash this
+    # record carries, and a ticket title is not guaranteed to be ASCII.
+    path.write_text(text, encoding='utf-8')
+    return journal.append(folder, records, kind='handoff', stage=current['stage'],
+                          attempt=current['attempt'], actor=args.actor,
+                          head=repository.head(), ticket=args.ticket,
+                          data=dict(pack=str(path.relative_to(repository.root)),
+                                    sha256=handoff_module.digest(text),
+                                    estimated_tokens=built['estimated_tokens'],
+                                    token_limit=built['token_limit'],
+                                    slice=built['slice'],
+                                    figures=sessions.figures(repository.root)))
+
+
+def secrets_module():
+    from . import secrets
+    return secrets
+
+
+def brief(repository, ticket, records, current, rules):
+    """What a fresh session reads before it does anything else.
+
+    Built from the journal rather than printed from the file, because the drafts
+    directory is gitignored: a session in another checkout has the records and
+    not the pack, and a --brief that is empty exactly when it is needed is worse
+    than one that rebuilds it. The last recorded hash is compared against the
+    file so drift is visible rather than silent.
+    """
+    built = build_pack(repository, records, current, rules)
+    recorded = next((record for record in reversed(records) if record['kind'] == 'handoff'), None)
+    path = pack_path(repository, ticket)
+    matches = None
+    if recorded is not None and path.is_file():
+        matches = (handoff_module.digest(path.read_text(encoding='utf-8'))
+                   == recorded['data']['sha256'])
+    return dict(ticket=ticket,
+                stage=current['stage'],
+                attempt=current['attempt'],
+                records=len(records),
+                pack=built['markdown'],
+                estimated_tokens=built['estimated_tokens'],
+                pack_file=str(path.relative_to(repository.root)),
+                recorded_at=recorded['sequence'] if recorded else None,
+                pack_matches_record=matches,
+                next_command=NEXT_COMMAND[current['stage']])
+
+
+def budget(repository, ticket, rules):
+    """Where this session stands against the budget for one slice.
+
+    It reads the session's own log and the journal not at all, so it can be run
+    at any moment and as often as a session likes without making the journal
+    longer. What is recorded instead is the figure at a boundary, which the
+    handoff record carries.
+    """
+    limits = rules['session']
+    spent = sessions.figures(repository.root)
+    return dict(ticket=ticket, **sessions.against_budget(spent, limits['output_token_budget']))
 
 
 def draft(repository, records, args):
@@ -777,7 +878,11 @@ def execute(args):
             return start(repository, folder, records, args, rules)
         if args.command == 'history':
             return [record for record in records if not args.kind or record['kind'] == args.kind]
+        if args.command == 'budget':
+            return budget(repository, args.ticket, rules)
         if args.command == 'status':
+            if getattr(args, 'brief', False):
+                return brief(repository, args.ticket, records, journal.state(records), rules)
             return describe(repository, args.ticket, records, folder)
         if args.command == 'draft':
             return draft(repository, records, args)
@@ -797,7 +902,7 @@ def execute(args):
         require(current['stage'] in WORKING_STAGES,
                 f'{args.ticket} is {current["stage"]}; open a follow-up ticket for further work')
         handlers = dict(note=note, check=check, advance=advance, graph=graph, decide=decide,
-                        coverage=coverage)
+                        coverage=coverage, handoff=handoff)
         handlers['return'] = go_back
         handler = handlers[args.command]
         if handler is note:

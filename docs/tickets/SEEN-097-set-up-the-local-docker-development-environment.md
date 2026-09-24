@@ -156,8 +156,6 @@ creates.
 
 ## Blocks
 
-- [SEEN-089](SEEN-089-enforce-tdd-and-ci-quality-gates-in-the-harness.md): Enforce TDD and CI quality gates in the harness
-- [SEEN-008](SEEN-008-create-trade-record-schema-v1-with-tenant-id.md): Create trade-record schema v1 with tenant_id and RLS on every table
 - [SEEN-007](SEEN-007-go-live-on-google-cloud-after-the-go-no-go.md): Go live on Google Cloud after the go/no-go decision
 
 ## Context

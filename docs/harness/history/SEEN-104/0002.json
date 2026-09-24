@@ -1,0 +1,25 @@
+{
+  "sequence": 2,
+  "ticket": "SEEN-104",
+  "timestamp": "2026-09-24T10:17:35.420136+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "2c791949683ce7d95470fee88f25faf527e0c405",
+  "prev_hash": "bc004de41e55dcabb7f52e554ee7a5fb938aa2547f26bb77abe81a95e43c0e76",
+  "data": {
+    "source": "repowise",
+    "mode": "why",
+    "command": [
+      "repowise",
+      "why",
+      "harness/cost.py"
+    ],
+    "exit_code": 0,
+    "duration_ms": 446,
+    "answer": "\nAlignment none — No architectural decisions govern harness/cost.py. This file is ungoverned — it may be an outlier or simply undocumented.\n\nOrigin 2 commits over 0 days, mostly Ruud (62%)\n  0939bcb1 2026-09-24 SEEN-099: Set the context budget and measure what the tools changed (#16)\n  75ce7ebc 2026-09-23 feat(SEEN-091): derive KPIs from the journals and report on them\n\nGit archaeology No architectural decisions found for harness/cost.py, but git archaeology recovered 2 direct commit(s), 0 cross-reference(s), and 5 git log result(s). Review these to understand the intent behind this code.\n  this file: 0939bcb1 2026-09-24 SEEN-099: Set the context budget and measure what the tools changed (#16)\n  this file: 75ce7ebc 2026-09-23 feat(SEEN-091): derive KPIs from the journals and report on them\n  git log: 0939bcb1 2026-09-24 SEEN-099: Set the context budget and measure what the tools changed (#16)\n  git log: 75ce7ebc 2026-09-23 feat(SEEN-091): derive KPIs from the journals and report on them\n  git log: 0a79fed4 2026-09-24 SEEN-102: Decide on the repowise PR bot for a private repository (#18)\n  git log: ec82d574 2026-09-24 docs(SEEN-102): declined, with the evidence and two conditions to reopen\n  git log: fa4e9c82 2026-09-24 docs(SEEN-095): mark the ticket done, and record that I merged over a red check\n\nRationale comments in the code\n  harness/cost.py:22\n    How many tool calls a ticket's window contains. Counted from the same logs and the same window as the tokens, because the baseline in SEEN-099 was counted that way and a comparison against a differently counted number is not a comparison. Null rather than zero on a machine with no logs, for the same reason tokens are.\n  harness/cost.py:52\n    Token counts from entries falling inside a ticket's window. Null rather than zero when there are no logs: zero is a claim that nothing was spent, and the honest answer on a machine without logs is that nobody knows.\n",
+    "answer_truncated": false
+  }
+}

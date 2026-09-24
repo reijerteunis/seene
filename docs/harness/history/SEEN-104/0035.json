@@ -1,0 +1,21 @@
+{
+  "sequence": 35,
+  "ticket": "SEEN-104",
+  "timestamp": "2026-09-24T11:17:19.976240+00:00",
+  "harness_version": "2",
+  "kind": "reopen",
+  "stage": "delivered",
+  "attempt": 2,
+  "actor": "claude:reviewer",
+  "session": "7c81cdfdd5e9",
+  "head": "aa8568389dac7e8d4be46b942f0cdc88d0a25676",
+  "prev_hash": "1d8ac94ff720dd32f88f9a94081b603c7fb6f1e73b4da8252d0ec930f621ed20",
+  "data": {
+    "from_stage": "delivered",
+    "to_stage": "tdd",
+    "to_attempt": 3,
+    "voided_receipt": "1d8ac94ff720dd32f88f9a94081b603c7fb6f1e73b4da8252d0ec930f621ed20",
+    "voided_commit": "4d6f30bc5c07bfbd45a5b3391e03ac4a0d02f193",
+    "reason": "kpi.slices reads only the most recent tdd advance, so a ticket that was returned understates the slices it proved: this ticket's own record says 1 proven of 3 planned when attempt 1 proved all three and attempt 2 proved the rework slice. The figure is the divisor for output tokens per slice, so it also makes the cost per slice four times too large. Found by reading the kpi.json this delivery wrote, before the pull request was merged."
+  }
+}

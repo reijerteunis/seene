@@ -36,6 +36,14 @@ In packages/connectors define the Connector interface (listOrders, listShipments
 - [ ] Credential provider returns a fresh token for Amazon, eBay and Bol test connections and caches it until 60 seconds before expiry
 - [ ] No credential value appears in logs or in the database; connections store only the secret reference, never the value, for both providers
 
+## Slices
+
+The starting slice plan, one session each; the solution stage adopts or amends it (SEEN-104). A slice is at most 2 points and a ticket has at most four.
+
+1. Connector interface and capability matrix types (2 pt). RED: a matrix that contradicts a routing-table row fails the unit test
+2. Credential provider with the .env.local and Secret Manager implementations (2 pt). RED: a token is refreshed after expiry and never appears in a log line
+3. Connection records hold only the secret reference (1 pt). RED: a connection written with a raw credential is rejected
+
 ## Depends on
 
 - [SEEN-006](SEEN-006-scaffold-the-pnpm-turborepo-monorepo-with-all.md): Scaffold the pnpm turborepo monorepo with all six packages

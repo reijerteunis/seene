@@ -1,0 +1,31 @@
+{
+  "sequence": 30,
+  "ticket": "SEEN-104",
+  "timestamp": "2026-09-24T11:08:27.102965+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "7c81cdfdd5e9",
+  "head": "e72ff9060d62a75ae6093832d1807f653e6c151b",
+  "prev_hash": "f69b3f60e4211ca0f43952fe86a9856d2a8ade5d833d5c71d094a8ee61150cd8",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "behaviour": "The pack describes a complete plan by the stage it is read at, a section that does not fit charges nothing so a later section still fits, and the pack is written and read back as UTF-8 because its bytes are compared against a recorded hash.",
+          "failure_reason": "4 failures: 'What is left is the regression' still in a pack rendered at the review stage; '_section returned -56 against a remaining of 10' with the discarded block charged; '- fits' absent from a section offered 40 characters after one that took none; and \"write_text(text, encoding='utf-8') not found in cli.py\".",
+          "red": 26,
+          "green": 27
+        }
+      ],
+      "regression": 29,
+      "coverage_delta": 0.0
+    },
+    "decisions": []
+  }
+}

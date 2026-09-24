@@ -1,0 +1,69 @@
+{
+  "sequence": 43,
+  "ticket": "SEEN-104",
+  "timestamp": "2026-09-24T11:25:04.456061+00:00",
+  "harness_version": "2",
+  "kind": "receipt",
+  "stage": "deliver",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "session": "7c81cdfdd5e9",
+  "head": "911afbf8c6d1c90853405df01180ca20737838c4",
+  "prev_hash": "35ef23279df903cc0a455d56bd4f9d36953fe3560216361de62b80152d7a8411",
+  "data": {
+    "from_stage": "deliver",
+    "to_stage": "delivered",
+    "commit": "911afbf8c6d1c90853405df01180ca20737838c4",
+    "branch": "claude/SEEN-104-cap-a-session-at-one-slice",
+    "remote": "origin",
+    "tree": "a9b619c9a49c65fb5d82e75cfe0653da6664baea04edca247190a0270270a304",
+    "pull_request": "https://github.com/reijerteunis/seene/pull/20",
+    "limits": [
+      "Nothing enforces one slice per session. The solution gate refuses a plan that breaks the caps and that is the only wall; budget reports, the skill asks, and the hooks that would act on either are SEEN-106.",
+      "Output tokens per slice is a division by the slices proved, not an attribution per session. Two slices worked in one session cannot be told apart that way, which is what this ticket itself did three times. The handoff records carry each session's own figures from here on so a later ticket can refine the measure.",
+      "The review was a self-review, declared as one. One tool wrote every record on this ticket; the reviewer subagent that would give review its own context is SEEN-105, and a Codex review stays required for tickets that change an agent action or touch billing.",
+      "The session id is read from CLAUDE_CODE_SESSION_ID only. Which variable a Codex session exposes its own id in is not known from this machine, so null is recorded until one of the listed variables is set.",
+      "The clarify gate was cleared by recorded human override at 0.77 against 0.8, not by a record that reached the bar.",
+      "The first receipt on this ticket, over commit 4d6f30bc, was voided with harness reopen at record 35 because the kpi.json it wrote misreported the slices proved. This delivery replaces it; the voided receipt and the reason stay in the journal."
+    ],
+    "evidence": {
+      "remote": "origin",
+      "pull_request": "https://github.com/reijerteunis/seene/pull/20",
+      "limits": [
+        "Nothing enforces one slice per session. The solution gate refuses a plan that breaks the caps and that is the only wall; budget reports, the skill asks, and the hooks that would act on either are SEEN-106.",
+        "Output tokens per slice is a division by the slices proved, not an attribution per session. Two slices worked in one session cannot be told apart that way, which is what this ticket itself did three times. The handoff records carry each session's own figures from here on so a later ticket can refine the measure.",
+        "The review was a self-review, declared as one. One tool wrote every record on this ticket; the reviewer subagent that would give review its own context is SEEN-105, and a Codex review stays required for tickets that change an agent action or touch billing.",
+        "The session id is read from CLAUDE_CODE_SESSION_ID only. Which variable a Codex session exposes its own id in is not known from this machine, so null is recorded until one of the listed variables is set.",
+        "The clarify gate was cleared by recorded human override at 0.77 against 0.8, not by a record that reached the bar.",
+        "The first receipt on this ticket, over commit 4d6f30bc, was voided with harness reopen at record 35 because the kpi.json it wrote misreported the slices proved. This delivery replaces it; the voided receipt and the reason stay in the journal."
+      ]
+    },
+    "checks": [
+      {
+        "name": "Harness tests (Python 3.12)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Knowledge graph",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Monorepo (Node 24)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Secrets and supply chain",
+        "conclusion": "success",
+        "runs": 1
+      }
+    ],
+    "coverage": {
+      "package": "@seen/core",
+      "lines": 100.0,
+      "delta": 0.0
+    }
+  }
+}

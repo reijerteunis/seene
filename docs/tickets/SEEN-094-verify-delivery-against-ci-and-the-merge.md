@@ -66,7 +66,8 @@ request.
 
 ## Blocks
 
-- [SEEN-092](SEEN-092-sync-the-harness-skill-to-claude-code-and-codex.md): Sync the harness skill to Claude Code and Codex and retire the Seene leftovers
+- [SEEN-095](SEEN-095-check-ticket-status-against-its-own-journal.md): Check a ticket's status against its own journal
+- [SEEN-008](SEEN-008-create-trade-record-schema-v1-with-tenant-id.md): Create trade-record schema v1 with tenant_id and RLS on every table
 
 ## Context
 

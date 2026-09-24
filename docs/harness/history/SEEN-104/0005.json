@@ -1,0 +1,15 @@
+{
+  "sequence": 5,
+  "ticket": "SEEN-104",
+  "timestamp": "2026-09-24T10:22:37.130626+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "be6cdde9688e1d0399688e8d0482d11b63d946a9",
+  "prev_hash": "385a4315c5a3b0598c6fbaea8d24264acc1d3ad0375cddd3623115289c0039bc",
+  "data": {
+    "text": "# What the clarify record left open, answered\n\nJev held `clarified` at 0.77 against 0.8 on the first reading. Four things the record\ndecided how to build without saying what happens to what is already there.\n\n## Journals written before a record carried a session\n\nNineteen journals exist and not one record in them carries a session, so sessions per\nticket cannot be counted for them. It reports null, not 1 and not 0: null is the absence\nof a count, 1 would be a claim that each of those tickets was worked in a single session,\nand that is exactly the claim this ticket was opened because nobody can make. The figure\nbecomes real for tickets started after this change, SEEN-104 itself first, whose own\njournal begins under the old envelope and continues under the new one. Its count is\ntherefore a lower bound, and the KPI record says so rather than rounding it up.\n\n## Solution records already advanced\n\nThe slice plan binds advances from the moment it lands. The nine solution records already\nin journals are not revisited and no gate reads them for slices: `gates._tdd` reads a\nsolution record only for its `mode`, and `latest_evidence` is never asked for a plan. No\nticket is sitting at the solution stage today, so nothing in flight has to be redrafted.\n\nAdding a required key to `harness/templates/solution.json` will fail every test fixture\nthat builds a solution record, the way `mode` failed fifty-five of them in SEEN-103. That\nis the field doing its job. The shared fixture gains a one-slice plan; the non-code tests\nkeep none, because a non-code record is exempt from the plan exactly as it is exempt from\n`tests_first`.\n\n## What the pack calls the current slice\n\nBefore the solution record has advanced there is no plan, and the pack says the stage and\nthat no slice has been accepted yet. After it, the current slice is the first slice in the\nplan with no accepted GREEN cited against it in this attempt; when every slice has one,\nthe pack says the plan is complete and names the review stage as the next stop. The pack\nnever invents a slice that is not in the plan.\n\n## When the session cannot be identified\n\n`budget` finds this session's log by the session id, so with no id there is no log and\nevery figure is null, with the reason given. It is the same rule `cost.py` already applies\nto a machine with no logs at all: zero is a claim that nothing was spent, and the honest\nanswer is that nobody knows.\n"
+  }
+}

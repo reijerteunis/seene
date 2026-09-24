@@ -14,6 +14,7 @@ from .errors import HarnessError, require
 from .paths import ENUMERATED_KEYS, NON_CODE_TEMPLATE, TEMPLATE_FOR_STAGE, TEMPLATES
 
 MODES = ('code', 'non-code')
+SLICE_KEYS = ('name', 'points', 'files', 'red')
 POLICY_GATE_ACTION_KEYS = ('reversibility', 'action_type', 'euro_impact_estimator')
 FINDING_KEYS = ('id', 'severity', 'claim', 'failure_scenario', 'status', 'resolution')
 
@@ -52,7 +53,8 @@ def for_mode(template, stage, mode):
     not justify a second one here.
     """
     if stage == 'solution' and mode == 'non-code':
-        return {key: value for key, value in template.items() if key != 'tests_first'}
+        return {key: value for key, value in template.items()
+                if key not in ('tests_first', 'slices')}
     return template
 
 
@@ -159,6 +161,37 @@ def _clarify(data, records, current, repository, thresholds):
     return {}
 
 
+def _slice_plan(data, thresholds):
+    """The slices a code-mode ticket plans, and the two caps they may not break.
+
+    The caps are about what one context can hold, which is why they are counted
+    per slice and per plan and not against the ticket's estimate. A plan whose
+    points disagree with the forecast is reported and allowed: a gate that made
+    the two equal would turn every re-estimate into a returned record.
+    """
+    limits = thresholds['session']
+    slices = data['slices']
+    require(len(slices) <= limits['max_slices_per_ticket'],
+            f'This plan has {len(slices)} slices and a ticket may plan at most '
+            f'{limits["max_slices_per_ticket"]}. A plan that needs more is a ticket that is too '
+            'big, and it is split the way SEEN-089 and SEEN-096 were')
+    total = 0
+    for position, entry in enumerate(slices, start=1):
+        require(isinstance(entry, dict), f'Slice {position} must be an object')
+        for key in SLICE_KEYS:
+            require(_filled(entry.get(key)), f'Slice {position} is missing {key}')
+        points = entry['points']
+        require(isinstance(points, int) and not isinstance(points, bool) and points > 0,
+                f'Slice {position} must carry its points as a whole number above zero, '
+                f'not {points!r}')
+        require(points <= limits['max_points_per_slice'],
+                f'{entry["name"]} carries {points} points, over the '
+                f'{limits["max_points_per_slice"]} points one slice may carry. A slice is what '
+                'one session can hold start to finish; split it, or split the ticket')
+        total += points
+    return total
+
+
 def _solution(data, records, current, repository, thresholds):
     clarified = latest_evidence(records, 'clarify') or {}
     if clarified.get('changes_agent_action'):
@@ -168,7 +201,9 @@ def _solution(data, records, current, repository, thresholds):
                 'reversibility, action_type and euro_impact_estimator')
         for key in POLICY_GATE_ACTION_KEYS:
             require(_filled(declaration.get(key)), f'policy_gate_action is missing {key}')
-    return {}
+    if mode_of(data) == 'non-code':
+        return {}
+    return dict(slice_points=_slice_plan(data, thresholds))
 
 
 def _tdd(data, records, current, repository, thresholds):

@@ -8,6 +8,16 @@
   "tests_first": [
     "Behaviour, the exact test command, and what the RED must demonstrate."
   ],
+  "slices": [
+    {
+      "name": "What this slice delivers, in a few words.",
+      "points": 1,
+      "files": [
+        "Path this slice changes."
+      ],
+      "red": "What this slice's RED must demonstrate before any of it is written."
+    }
+  ],
   "alternatives": [
     "Alternative considered, and the reason it was rejected."
   ],

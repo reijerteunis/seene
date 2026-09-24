@@ -13,14 +13,14 @@ run next.
 |---|---|---|
 | clarify | The scope, the acceptance criteria restated as checks, and every material question answered | `draft`, fill it in, `advance` |
 | solution | The mode, the files, the tests to write first, the rollback, the risks | `draft`, fill it in, `advance` |
-| tdd | A red that failed for the stated reason, a green, a regression, coverage | `check --phase red\|green\|regression`, `coverage`, `advance` |
+| tdd | A red that failed for the stated reason, a green, a regression, coverage | `check --phase red\|green\|regression`, `coverage`, `handoff` at each slice boundary, `advance` |
 | review | The diff read against the criteria, findings with a failure scenario each | `check --phase qa`, `advance` or `return` |
 | deliver | The branch pushed, CI green on that commit, the receipt written | `verify-delivery`, then `verify-merge` before merging |
 
 `return` sends a ticket back to an earlier stage and counts as rework. `reopen` voids a receipt before
 the work is merged, when a defect is found after delivery. Both are recorded with a reason.
 
-## Five rules you cannot infer
+## Six rules you cannot infer
 
 **Evidence lives in `.harness-drafts/`.** `draft` puts it there and `advance` reads it from there.
 Anywhere else it is an untracked file in the tree, so submitting it changes the fingerprint review
@@ -40,6 +40,17 @@ advance: it is the list of what is still open, not the list of what is known to 
 documentation, research, verification or policy and a reason. The two stages must agree, so changing
 your mind means a note and a `return`, not a different word at the next gate. Registrations,
 verifications against a live account and policy decisions are all non-code.
+
+**One slice per session.** The ticket is still the unit of delivery, one branch and one receipt, but
+the slice is the unit of context. The solution record plans the slices (name, points, files, the RED
+each must demonstrate); a slice is at most 2 points and a ticket at most 4, and a plan that needs
+more is a ticket to split rather than a session to stretch. Work one slice, then `harness handoff
+<ticket>` and stop. The PRD and the architecture are read once, at clarify; every session after that
+starts from the pack, which `harness status <ticket> --brief` prints and which carries the stage, the
+slice in front of you, the criteria as checks, the decisions taken, the graph answers already
+recorded and the next command. `harness budget <ticket>` says where the session stands against its
+token budget; nothing refuses on it, because only you can end a session. A fresh context is cheaper
+than a compacted one, and compaction is where evidence quietly becomes summary.
 
 **One ticket, one branch.** Every writing command refuses unless the branch is `claude/<ticket>-…` or
 `codex/<ticket>-…`, and refuses on `main`. Drifting onto another branch mid-ticket records evidence
@@ -92,14 +103,20 @@ Which tool answers when:
 | review | repowise | What this change touches that has broken before, and which tests guard it |
 | across code and documents | graphify | How two ends connect, and what the open pull requests touch |
 
+The budget is 60,000 output tokens a session and 2,000 tokens of handoff pack, both in
+`harness/thresholds.toml`. Read the ticket file and the pack, and the records the pack names; a
+session that opens a module the slice does not touch has already spent what the cap was protecting.
+
 Whether they pay for the context they occupy is measured, not assumed: `harness report --sprint <n>`
-carries output tokens and tool calls per point against the baseline captured before any of them
-existed, with the rule for reading it written in `harness/thresholds.toml` before the numbers arrived.
+carries output tokens and tool calls per point, and output tokens per slice beside them, against the
+baseline captured before any of them existed, with the rule for reading it written in
+`harness/thresholds.toml` before the numbers arrived.
 
 ## What the harness will refuse
 
-A RED that did not fail. A slice citing a check from another attempt. Coverage that fell. A record
-carrying the value of an environment variable. A delivery whose checks are not green on the commit it
+A RED that did not fail. A slice citing a check from another attempt. A solution record with no slice
+plan, a slice over 2 points or a plan over 4. Coverage that fell. A record or a handoff pack carrying
+the value of an environment variable. A delivery whose checks are not green on the commit it
 attests. A merge where anything but the journal, the reports, the coverage baseline or the graph
 changed after the receipt. Each refusal says what to do next.
 

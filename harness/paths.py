@@ -14,11 +14,18 @@ STAGES = ('clarify', 'solution', 'tdd', 'review', 'deliver', 'delivered')
 WORKING_STAGES = STAGES[:-1]
 FINAL_WORKING_STAGE = 'deliver'
 
-# Bumped when record semantics change, and held at 1 until the harness is
-# complete at SEEN-092, so the first six journals are not stamped six ways.
-HARNESS_VERSION = '1'
+# Bumped when record semantics change. Held at 1 until the harness was complete
+# at SEEN-092, so the first six journals were not stamped six ways; 2 from
+# SEEN-104, where the envelope gained the session that wrote the record. A
+# version that stands still while the envelope changes tells a reader nothing,
+# which is the one thing it exists to do.
+HARNESS_VERSION = '2'
 
-KINDS = ('start', 'note', 'check', 'advance', 'return', 'receipt', 'reopen', 'decision')
+# handoff is its own kind rather than a note, because the KPI and status must
+# find a slice boundary without parsing prose. It is not in journal.TRANSITIONS:
+# writing a pack says where the work stands and never moves it.
+KINDS = ('start', 'note', 'check', 'advance', 'return', 'receipt', 'reopen', 'decision',
+         'handoff')
 
 # Committed run history: docs/harness/history/<TICKET>/0001.json and onwards.
 HISTORY = Path('docs/harness/history')
@@ -52,6 +59,10 @@ GRAPH_FILE = GRAPH_DIRECTORY / 'graph.json'
 
 # Working copies of templates. Gitignored; only the journal is evidence.
 DRAFTS = Path('.harness-drafts')
+# The handoff pack, beside the drafts, for the same reason: it is written about
+# the tree and must not change it. The journal holds its hash, which is what
+# makes the file replaceable.
+HANDOFF_PACK = '{ticket}-handoff.md'
 # Advisory lock so two sessions never interleave writes to one journal.
 LOCK = Path('.harness.lock')
 

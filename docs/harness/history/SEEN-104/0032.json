@@ -1,0 +1,28 @@
+{
+  "sequence": 32,
+  "ticket": "SEEN-104",
+  "timestamp": "2026-09-24T11:08:55.907819+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "review",
+  "attempt": 2,
+  "actor": "claude:reviewer",
+  "session": "7c81cdfdd5e9",
+  "head": "8e5053f3608a490ec9ca8e7cba5dfb5e4e2e680b",
+  "prev_hash": "2e53746e8f7ed594b9e17301985631ea65e507d2ea52744ad59fdc8ae3e7fb15",
+  "data": {
+    "command": [
+      "python3",
+      "harness/run.py",
+      "doctor"
+    ],
+    "phase": "qa",
+    "exit_code": 0,
+    "duration_ms": 1034,
+    "output": "{\n  \"ok\": true,\n  \"checked\": [\n    \"python\",\n    \"thresholds\",\n    \"templates\",\n    \"journals\",\n    \"append_only\",\n    \"gitignore\",\n    \"hooks\",\n    \"skill\",\n    \"ticket_status\",\n    \"marketplace_hosts\",\n    \"links\"\n  ],\n  \"problems\": []\n}\n",
+    "output_sha256": "9d29c9bebe6f3d7073ac39860a85c21a442e4003f24c7b6b1e77459cd342c271",
+    "output_truncated": false,
+    "before": "6a5150ff063e5970b8b3a7b8cf9185c9a909ccf915be3983569182a484111358",
+    "after": "6a5150ff063e5970b8b3a7b8cf9185c9a909ccf915be3983569182a484111358"
+  }
+}

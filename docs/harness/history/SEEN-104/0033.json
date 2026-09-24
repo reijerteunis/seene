@@ -1,0 +1,116 @@
+{
+  "sequence": 33,
+  "ticket": "SEEN-104",
+  "timestamp": "2026-09-24T11:09:43.336756+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "review",
+  "attempt": 2,
+  "actor": "claude:reviewer",
+  "session": "7c81cdfdd5e9",
+  "head": "8e5053f3608a490ec9ca8e7cba5dfb5e4e2e680b",
+  "prev_hash": "6d96239f763bb905a985a5c90c3e59f5fd37552a5e5dd2a1584eafca3570b833",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "deliver",
+    "evidence": {
+      "reviewer": "claude:reviewer",
+      "independence": "self-review",
+      "acceptance_evidence": [
+        "advance from solution refuses a slice over max_points_per_slice and a plan over max_slices_per_ticket, naming the slice, and refuses a code-mode record without a plan: gates._slice_plan, with SlicePlanTest and NonCodeSlicePlanTest in harness/tests/test_session_cap.py; RED at record 11 showed all four advancing, GREEN at record 12. The non-code exemption is in gates.for_mode beside the one SEEN-103 wrote for tests_first.",
+        "harness handoff writes the pack under handoff_token_limit, appends a handoff record carrying the pack's sha256 and this session's figures, and status --brief prints it: harness/handoff.py and cli.handoff, HandoffPackTest and StatusBriefTest; RED at record 14, GREEN at record 15. The environment-value refusal is proved by a variable named like a credential whose value really appears in the pack, and the test also asserts no file was written. On this journal the packs came out at 993, 1,057 and 951 estimated tokens against a limit of 2,000.",
+        "harness budget reports this session's output tokens and tool calls against the budget, null rather than zero where no log exists, names the slice boundary when over and records nothing: sessions.figures and sessions.against_budget with cli.budget, BudgetTest against a fixture log directory; RED at record 17, GREEN at record 18. Run against this session it reported 214,671 output tokens and 114 tool calls against 60,000, over, naming the boundary.",
+        "kpi.json carries slices, sessions and output tokens per slice, and harness report --sprint shows tokens per slice beside tokens per point: kpi.slices, kpi.sessions, kpi.output_tokens_per_slice, context._per_slice and the row in report.render_context, with SliceFiguresTest in test_kpi.py and three tests in test_context_budget.py; RED at record 17, GREEN at record 18. Sessions reads null for the journals written before the envelope carried the field, which a test pins.",
+        "docs/harness/skill.md says one slice per session and that later sessions start from the handoff pack, and sync regenerates both copies: the sixth rule in the skill source, TheSkillSaysSoTest reading the real file, and doctor's drift check green at qa record 32 after sync wrote both committed copies."
+      ],
+      "findings": [
+        {
+          "id": "SR-01",
+          "severity": "low",
+          "claim": "handoff.pack described a complete plan as though it were always being read at the tdd stage, so the first pack written at the review stage told its reader to run the regression and the coverage.",
+          "failure_scenario": "A reviewer opens the pack written at record 22, reads 'What is left is the regression, the coverage measurement and the advance to review', and runs a regression the journal already recorded three records earlier at 20. Worse, a reviewer who trusts it thinks the tdd stage is unfinished and returns a ticket that is complete.",
+          "status": "resolved",
+          "resolution": "pack() now appends the regression clause only when the stage is tdd, and two tests pin both readings: one asserts the tdd wording is there, the other that the review rendering does not send the reader back. Recorded at record 23 before the review ran, returned at record 24, fixed with RED 26 and GREEN 27."
+        },
+        {
+          "id": "SR-02",
+          "severity": "medium",
+          "claim": "_section charged the character budget for an 'and N more' line it discarded when no entry fitted, so remaining went negative and every later section was dropped even where a short line would have fitted.",
+          "failure_scenario": "A journal with long decisions fills the budget at the decisions section; the graph answers section is then offered a negative remaining, writes nothing, and the pack silently loses the record of what has already been asked of the graphs. The next session asks codegraph and repowise the same questions again, which is the exact cost the context budget exists to stop, and nothing in the pack says a section was dropped.",
+          "status": "resolved",
+          "resolution": "_section accumulates into a local spend, returns the budget unchanged when nothing was written, and subtracts only what it actually wrote. Two tests: one that a section which does not fit charges nothing, one that a later short section still fits after it. RED 26, GREEN 27."
+        },
+        {
+          "id": "SR-03",
+          "severity": "low",
+          "claim": "The pack was written with Path.write_text(text) and read back with read_text(), both using the locale's preferred encoding, while its bytes are compared against the sha256 the handoff record carries.",
+          "failure_scenario": "On a machine or CI runner whose locale is not UTF-8, a ticket title or decision carrying a non-ASCII character makes handoff raise UnicodeEncodeError at the moment a session is trying to hand off, or writes bytes that status --brief then reads back differently and reports as drift from the recorded hash when nothing drifted. The skill source in this repository already contains non-ASCII characters, so the input is not hypothetical.",
+          "status": "resolved",
+          "resolution": "Both calls name encoding='utf-8' explicitly, with the reason in a comment beside the write. A test reads cli.py and asserts both spellings are present, because the failure only reproduces under a locale a unit test must not change for the whole process. RED 26, GREEN 27."
+        }
+      ],
+      "checks": [
+        "Record 29: python3 -m unittest discover -s harness/tests, 399 tests, exit 0, the regression for attempt 2.",
+        "Record 28: coverage on @seen/core, 100.0 lines, delta 0.0 against the delivered baseline.",
+        "Record 31: python3 harness/run.py lint, exit 0, no live marketplace host in test code.",
+        "Record 32: python3 harness/run.py doctor, exit 0, including the journal chain, the append-only history, the ticket status and both skill copies against their source."
+      ],
+      "security_checklist": [
+        "No secret in the diff: gitleaks ran in the pre-commit hook on all seven commits and found none. The change adds a control rather than relaxing one: sessions.digest exists precisely because journal.append refuses a record carrying the value of CLAUDE_CODE_SESSION_ID, and a test asserts the raw id appears in no record.",
+        "No new dependency: nothing added to any lockfile, and harness/sessions.py and harness/handoff.py import only hashlib, json and os from the standard library.",
+        "No live marketplace call in a test: lint green at record 31; the new tests touch a temporary git repository, a temporary log directory and nothing on a network.",
+        "No PII field and no table: this ticket touches no schema and persists no buyer data. The session log is read for two integers, output tokens and tool calls, and nothing from it enters a record.",
+        "No tool without a policy-gate declaration: this ticket changes no agent action, which the clarify record declares and the solution record leaves null.",
+        "One new refusal path reads the environment: cli.handoff runs secrets.leaked over the pack before writing it, so the pack is held to the same rule as a journal record, and the refusal names the variable and not its value, which a test asserts."
+      ],
+      "verdict": "pass",
+      "tree": "6a5150ff063e5970b8b3a7b8cf9185c9a909ccf915be3983569182a484111358"
+    },
+    "decisions": [
+      {
+        "question": "severity",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high",
+          "blocking"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "high",
+        "probabilities": {
+          "low": 0.01,
+          "medium": 0.18,
+          "high": 0.6,
+          "blocking": 0.21
+        },
+        "confidence": 0.58,
+        "score": 2.0,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      },
+      {
+        "question": "must_fix",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.5,
+          "no": 0.5
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.7,
+        "passed": false,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

@@ -13,12 +13,12 @@ import os
 
 import os
 
-from . import secrets
+from . import secrets, sessions
 from .errors import HarnessError, require
 from .paths import ALLOWED_BESIDE_RECORDS, HARNESS_VERSION, KINDS, RECORD_NAME
 
 ENVELOPE = ('sequence', 'ticket', 'timestamp', 'harness_version', 'kind', 'stage',
-            'attempt', 'actor', 'head', 'prev_hash', 'data')
+            'attempt', 'actor', 'session', 'head', 'prev_hash', 'data')
 
 
 def digest(path):
@@ -72,6 +72,9 @@ def append(folder, records, *, kind, stage, attempt, actor, head, ticket, data):
                   stage=stage,
                   attempt=attempt,
                   actor=actor,
+                  # Beside the actor, because it says which context that actor
+                  # was working in. A digest, never the id: see sessions.py.
+                  session=sessions.current(),
                   head=head,
                   prev_hash=digest(folder / f'{len(records):04d}.json') if records else None,
                   data=data)

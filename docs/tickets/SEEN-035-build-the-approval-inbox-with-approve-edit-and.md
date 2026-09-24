@@ -36,6 +36,14 @@ Build the customer inbox in apps/web: a queue of pending approvals per tenant sh
 - [ ] Edit stores the diff between draft and submitted text on the approvals row
 - [ ] Reject with a reason sets the action outcome to rejected and no marketplace call is made
 
+## Slices
+
+The starting slice plan, one session each; the solution stage adopts or amends it (SEEN-104). A slice is at most 2 points and a ticket has at most four.
+
+1. Pending approvals queue scoped by RLS, with finding, draft, evidence and euro impact (2 pt). RED: a user of tenant A never sees tenant B's approvals and 200 items load under 2 seconds
+2. Approve and one-click confirm resuming the run (2 pt). RED: approve resumes the run and the claim is submitted or the case pack confirmed
+3. Edit with a stored diff and reject with a reason (1 pt). RED: an edit stores the diff and a reject makes no marketplace call
+
 ## Depends on
 
 - [SEEN-033](SEEN-033-implement-policy-gate-v1-with-caps-and.md): Implement policy gate v1 with caps and reversibility

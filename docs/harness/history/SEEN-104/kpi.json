@@ -1,0 +1,42 @@
+{
+  "ticket": "SEEN-104",
+  "delivered_at": "2026-09-24T11:25:04.456061+00:00",
+  "points": null,
+  "cycle_time_seconds": 4142,
+  "stage_seconds": {
+    "clarify": 628,
+    "solution": 72,
+    "tdd": 2328,
+    "review": 389,
+    "deliver": 607,
+    "delivered": 116
+  },
+  "attempts": 3,
+  "rework": 2,
+  "red_before_green": true,
+  "coverage": {
+    "package": "@seen/core",
+    "lines": 100.0,
+    "delta": 0.0
+  },
+  "findings": {
+    "by_severity": {
+      "low": 2,
+      "medium": 2
+    },
+    "fixed": 4,
+    "waived": 0
+  },
+  "first_pass_ci": true,
+  "tokens": null,
+  "cost": null,
+  "escaped_defects": [],
+  "slices": {
+    "planned": 3,
+    "proven": 5
+  },
+  "sessions": 1,
+  "output_tokens_per_slice": null,
+  "harness_version": "2",
+  "note": null
+}

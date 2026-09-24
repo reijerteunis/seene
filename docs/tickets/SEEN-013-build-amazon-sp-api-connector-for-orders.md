@@ -36,6 +36,14 @@ Implement the Amazon adapter in packages/connectors/amazon: Orders API, the Repo
 - [ ] Report request, polling and download run as one BullMQ job that resumes after a worker restart
 - [ ] Sandbox run for orders and one report completes end to end without an unhandled error
 
+## Slices
+
+The starting slice plan, one session each; the solution stage adopts or amends it (SEEN-104). A slice is at most 2 points and a ticket has at most four.
+
+1. Orders API on the sandbox and the client with LWA refresh (2 pt). RED: an orders page maps to orders and order_lines and a stale token is refreshed once
+2. Reports API: request, poll, download and gzip decode as one resumable BullMQ job (2 pt). RED: a worker restart mid-poll resumes the same report request
+3. Settlement, reimbursement, returns and fee preview rows to trade-record types, report names as configuration (1 pt). RED: a settlement flat-file row maps to a settlement_line with the settlement id as external id
+
 ## Depends on
 
 - [SEEN-001](SEEN-001-register-amazon-sp-api-developer-and-file-ads.md): Register Amazon SP-API developer and file Ads API application

@@ -68,3 +68,24 @@ baseline = "docs/harness/reports/context-tools-baseline.json"
 tools_available_from = "2026-09-24T06:15:10.769645+00:00"
 minimum_tickets = 5
 decision_rule = "Below the baseline, the tools paid for the context they occupy and stay. Above it, one is removed, graphify first, because codegraph and repowise can partly answer its questions. A rise removes them immediately rather than after five tickets. The call is the founder's."
+
+# The session cap, from SEEN-104. The slice is the unit of context and the
+# ticket stays the unit of delivery: one branch, one pull request, one receipt.
+# The baseline in docs/harness/reports/context-tools-baseline.json says 40,600
+# output tokens per point, so a three-point ticket worked in one session
+# compacts its context at least once, and compaction is where evidence quietly
+# becomes summary.
+[session]
+# A slice is what one context can hold start to finish. Two points is about
+# four hours with Claude Code, which is the length a session stays sharp.
+max_points_per_slice = 2
+# A plan that needs more is a ticket that is too big, and it is split the way
+# SEEN-089 and SEEN-096 were rather than worked in five sessions.
+max_slices_per_ticket = 4
+# Two thirds of what a three-point ticket cost in one session at the baseline.
+# budget reports against it; nothing refuses on it, because only the person at
+# the keyboard can end a session.
+output_token_budget = 60000
+# The handoff pack is the only thing that crosses a slice boundary, so it is
+# small enough to be read in full by the session that receives it.
+handoff_token_limit = 2000

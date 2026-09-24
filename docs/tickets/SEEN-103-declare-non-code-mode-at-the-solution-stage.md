@@ -55,7 +55,7 @@ without saying so.
 
 ## Blocks
 
-- [SEEN-102](SEEN-102-decide-on-the-repowise-pr-bot.md): Decide on the repowise PR bot for a private repository
+- [SEEN-104](SEEN-104-cap-a-session-at-one-slice-the-slice-plan-the.md): Cap a session at one slice: the slice plan, the budget and the handoff pack
 
 ## Context
 

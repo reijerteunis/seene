@@ -1,0 +1,19 @@
+{
+  "sequence": 24,
+  "ticket": "SEEN-104",
+  "timestamp": "2026-09-24T11:04:49.144421+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 1,
+  "actor": "claude:reviewer",
+  "session": "7c81cdfdd5e9",
+  "head": "e72ff9060d62a75ae6093832d1807f653e6c151b",
+  "prev_hash": "406c8530cdd9adf829ad4a8d0d1433c95dfd63b640e50f30ec06ad5649fa4925",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 2,
+    "reason": "Self-review found three defects in harness/handoff.py and cli.handoff: the complete-plan sentence describes what follows a complete plan at tdd and is wrong at review, where the first such pack was written; _section charges the budget for an 'and N more' line it discards when no entry fitted, so remaining goes negative and every later section is dropped even when it would fit; and the pack is written and read back with the locale's encoding while its bytes are compared against a recorded hash, so a non-ASCII ticket title is a UnicodeEncodeError waiting on a machine whose locale is not UTF-8. The no-plan branch has no test at all."
+  }
+}

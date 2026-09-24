@@ -63,6 +63,64 @@ def red_before_green(records):
     return True
 
 
+def _evidence(records, stage):
+    """The evidence of the most recent accepted advance out of a stage."""
+    for record in reversed(records):
+        if record['kind'] == 'advance' and record['data'].get('from_stage') == stage:
+            return record['data'].get('evidence', {})
+    return {}
+
+
+def slices(records):
+    """Slices planned at solution against slices proved at tdd.
+
+    Proved counts every accepted tdd record and not just the latest, because a
+    ticket that was returned proved slices in each attempt and paid tokens for
+    each of them; `red_before_green` reads them the same way. A re-proved slice
+    counts again for the same reason, so proven above planned is rework showing
+    up rather than an error. Reading only the latest record said SEEN-104 proved
+    one slice of the three it planned, and made its cost per slice three times
+    too large.
+
+    Null rather than zero for a ticket that plans none and proves none, which is
+    every non-code ticket: zero slices would read as a ticket that was cut badly
+    rather than one with no behaviour to cut.
+    """
+    planned = _evidence(records, 'solution').get('slices') or []
+    proven = sum(len(record['data'].get('evidence', {}).get('slices') or [])
+                 for record in records
+                 if record['kind'] == 'advance' and record['data'].get('from_stage') == 'tdd')
+    if not planned and not proven:
+        return None
+    return dict(planned=len(planned), proven=proven)
+
+
+def sessions(records):
+    """How many sessions wrote this journal, or that nobody can tell.
+
+    Null rather than 1 for the nineteen journals written before the envelope
+    carried a session: a record that cannot say which session wrote it cannot
+    say it was the same one. A journal that gained the field halfway, as
+    SEEN-104's own did, counts the sessions that can be seen, which is a lower
+    bound and is recorded as one.
+    """
+    seen = {record.get('session') for record in records if record.get('session')}
+    return len(seen) or None
+
+
+def output_tokens_per_slice(tokens, counted):
+    """What one slice cost, by the only division the journal supports.
+
+    Two slices worked in one session cannot be told apart by division; the
+    handoff records carry each session's own figures so a later ticket can
+    refine this without re-deriving the data.
+    """
+    if not tokens or not counted:
+        return None
+    output = tokens.get('output_tokens')
+    return None if output is None else round(output / counted, 1)
+
+
 def coverage(records):
     for record in reversed(records):
         if record['kind'] == 'check' and record['data'].get('phase') == 'coverage':
@@ -118,10 +176,12 @@ def measure(records, ticket, points=None, delivered_at=None, tokens=None, cost=N
                     red_before_green=None, coverage=None,
                     findings=dict(by_severity={}, fixed=0, waived=0),
                     first_pass_ci=None, tokens=tokens, cost=cost, escaped_defects=[],
+                    slices=None, sessions=None, output_tokens_per_slice=None,
                     harness_version=None,
                     note='Measured from the ticket file: this ticket has no journal')
     receipt = _receipt(records)
     rework = sum(1 for record in records if record['kind'] in ('return', 'reopen'))
+    cut = slices(records)
     return dict(ticket=ticket,
                 delivered_at=receipt['timestamp'] if receipt else delivered_at,
                 points=points,
@@ -137,5 +197,9 @@ def measure(records, ticket, points=None, delivered_at=None, tokens=None, cost=N
                 tokens=tokens,
                 cost=cost,
                 escaped_defects=[],
+                slices=cut,
+                sessions=sessions(records),
+                output_tokens_per_slice=output_tokens_per_slice(
+                    tokens, (cut or {}).get('proven') or (cut or {}).get('planned')),
                 harness_version=records[-1].get('harness_version'),
                 note=None)

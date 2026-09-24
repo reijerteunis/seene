@@ -66,7 +66,7 @@ the rule is being fixed here rather than in a ticket of its own.
 
 ## Blocks
 
-- [SEEN-096](SEEN-096-add-codegraph-and-route-the-graph-command.md): Add codegraph and route the graph command to it
+- none
 
 ## Context
 

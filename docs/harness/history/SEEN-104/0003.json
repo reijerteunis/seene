@@ -1,0 +1,30 @@
+{
+  "sequence": 3,
+  "ticket": "SEEN-104",
+  "timestamp": "2026-09-24T10:20:37.975220+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "2c791949683ce7d95470fee88f25faf527e0c405",
+  "prev_hash": "ea7bed126b701dbf0c812eabbcab431cc7076189acbcf3d183d9af56cb13e65e",
+  "data": {
+    "source": "codegraph",
+    "mode": "impact",
+    "command": [
+      "codegraph",
+      "impact",
+      "journal.append"
+    ],
+    "synced": true,
+    "index": {
+      "nodes": 1254,
+      "edges": 3359
+    },
+    "exit_code": 0,
+    "duration_ms": 250,
+    "answer": "ℹ Symbol \"journal.append\" not found\n",
+    "answer_truncated": false
+  }
+}

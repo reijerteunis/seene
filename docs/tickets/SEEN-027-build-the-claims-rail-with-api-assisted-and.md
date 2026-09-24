@@ -36,6 +36,14 @@ Implement the claims rail in packages/core/claims and apps/worker: the claims an
 - [ ] Evidence upload stores the object, records sha256 and source, and rejects a second upload with a different hash for the same path
 - [ ] A finding moves to claimed when its claim is submitted and back to open if submission fails
 
+## Slices
+
+The starting slice plan, one session each; the solution stage adopts or amends it (SEEN-104). A slice is at most 2 points and a ticket has at most four.
+
+1. ClaimRail interface, mode from the capability matrix, claims and claim_events in use (2 pt). RED: eBay resolves to api and Bol to assisted, and every state change writes a claim_events row
+2. Evidence table and store with sha256 on write (1 pt). RED: a second upload of the same bytes is refused
+3. Finding state: claimed on submission, back to open on failure, and the track mode watcher (2 pt). RED: a failed submission returns the finding to open with the failure recorded
+
 ## Depends on
 
 - [SEEN-021](SEEN-021-persist-findings-with-rule-confidence-evidence.md): Persist findings with rule, confidence, evidence refs and deadline

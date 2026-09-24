@@ -36,6 +36,14 @@ Add four more pure detectors to packages/core/detectors: lost shipment without c
 - [ ] FBA detector reads the inventory adjustment and reimbursement report names verified in SEEN-015
 - [ ] Each detector has unit tests with at least 5 true positives and 5 true negatives
 
+## Slices
+
+The starting slice plan, one session each; the solution stage adopts or amends it (SEEN-104). A slice is at most 2 points and a ticket has at most four.
+
+1. Lost shipment without compensation, with the carrier windows (2 pt). RED: a shipment past the window with no compensation line raises, one inside the window does not
+2. Return compensation shortfall with the Bol 25% rule (1 pt). RED: a damaged return credited below 25% of the item price raises the shortfall
+3. FBA lost or damaged inventory and refund without return received (2 pt). RED: an inventory adjustment with no reimbursement row within 30 days raises
+
 ## Depends on
 
 - [SEEN-015](SEEN-015-verify-amazon-report-names-and-finances.md): Verify Amazon report names and Finances transactions version
