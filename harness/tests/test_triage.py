@@ -96,7 +96,7 @@ class TriageTest(CommandTest):
                                 '--actor', 'claude:implementer', '--',
                                 'sh', '-c', f'exit {exit_code}')
 
-    def record_coverage(self, delta):
+    def record_coverage(self, delta, attempt=1):
         """A coverage check, written straight into the journal.
 
         The real command runs vitest, which no harness test has. What a triage
@@ -106,7 +106,7 @@ class TriageTest(CommandTest):
         from harness import journal
         folder = self.root / 'docs' / 'harness' / 'history' / self.ticket_id
         records = journal.read(folder)
-        return journal.append(folder, records, kind='check', stage='tdd', attempt=1,
+        return journal.append(folder, records, kind='check', stage='tdd', attempt=attempt,
                               actor='claude:implementer', head=self.git('rev-parse', 'HEAD'),
                               ticket=self.ticket_id,
                               data=dict(command=['pnpm', 'test'], phase='coverage', exit_code=0,
@@ -690,14 +690,12 @@ class TriageFiguresTest(unittest.TestCase):
         self.assertIsNone(kpi.measure(records, 'SEEN-001')['review_triage'])
 
     def test_the_window_runs_from_the_triage_to_the_review_advance(self):
-        opened, closed = kpi.review_window(self.journal())
-
-        self.assertEqual(opened, '2026-09-23T10:20:00+00:00')
-        self.assertEqual(closed, '2026-09-23T10:40:00+00:00')
+        self.assertEqual(kpi.review_windows(self.journal()),
+                         [('2026-09-23T10:20:00+00:00', '2026-09-23T10:40:00+00:00')])
 
     def test_there_is_no_window_without_a_triage(self):
         records = [entry for entry in self.journal() if entry['kind'] != 'triage']
-        self.assertIsNone(kpi.review_window(records))
+        self.assertEqual(kpi.review_windows(records), [])
 
 
 class SidechainTokensTest(unittest.TestCase):
@@ -917,17 +915,229 @@ class StaleTriageTest(FocusSetTest):
 
 
 class DeliveredFiguresTest(unittest.TestCase):
-    """F3: criterion 5 names kpi.json, which delivery is the only writer of."""
+    """F3 of the second review: criterion 5 names kpi.json, and delivery writes it.
 
-    def test_delivery_passes_the_reviewer_tokens_it_can_read(self):
-        import inspect
-        from harness import delivery
+    G2 of the third review: this used to assert that two words appeared in the
+    source of delivery.verify, and the comment above the call carries both, so it
+    passed with the behaviour removed. It walks a ticket to delivered now, through
+    a real triage, with a subagent entry in the log inside the review window and
+    an implementer entry outside it, and reads the figure out of the file.
+    """
 
-        source = inspect.getsource(delivery.verify)
-        self.assertIn('reviewer_tokens', source,
-                      'kpi.json is written here and nowhere else, so a figure not passed here '
-                      'can never reach it')
-        self.assertIn('review_window', source)
+    def test_the_delivered_kpi_file_carries_the_reviewer_s_own_tokens(self):
+        from harness import journal
+        from harness.tests.test_delivery import DeliveryWalk
+
+        class Walk(DeliveryWalk):
+            """The same walk, with the triage the procedure now runs before a review."""
+
+            def runTest(self):                              # pragma: no cover - never run
+                pass
+
+            def walk_to_review(self):
+                self.start()
+                self.submit('clarify', clarify_evidence())
+                self.submit('solution', solution_evidence())
+                self.run_harness('check', self.ticket_id, '--phase', 'red', '--actor',
+                                 'claude:implementer', '--', 'sh', '-c',
+                                 'echo expected 1, got 0; exit 1')
+                self.run_harness('check', self.ticket_id, '--phase', 'green', '--actor',
+                                 'claude:implementer', '--', 'true')
+                self.run_harness('check', self.ticket_id, '--phase', 'regression', '--actor',
+                                 'claude:implementer', '--', 'true')
+                self.write('packages/core/coverage/coverage-summary.json',
+                           '{"total": {"lines": {"total": 10, "covered": 9, "skipped": 0, '
+                           '"pct": 90.0}}}')
+                self.run_harness('coverage', self.ticket_id, '--actor', 'claude:implementer',
+                                 '--', 'true')
+                self.submit('tdd', dict(mode='code',
+                                        slices=[dict(behaviour='The harness records a delivery',
+                                                     failure_reason='expected 1, got 0',
+                                                     red=4, green=5)],
+                                        regression=6,
+                                        coverage_delta=None))
+
+        walk = Walk()
+        walk.setUp()
+        try:
+            walk.walk_to_review()
+            triaged = walk.run_harness('review', 'triage', walk.ticket_id,
+                                       '--actor', 'claude:implementer')
+            self.write_log(walk.root, triaged['timestamp'])
+            walk.run_harness('check', walk.ticket_id, '--phase', 'qa', '--actor',
+                             'codex:reviewer', '--', 'true')
+            walk.submit('review', dict(reviewer='codex:reviewer',
+                                       independence='independent',
+                                       read=list(triaged['data']['focus']),
+                                       acceptance_evidence=['The journal holds every stage'],
+                                       findings=[], checks=[], security_checklist=[],
+                                       verdict='pass'),
+                        actor='codex:reviewer')
+            walk.commit_and_push()
+            walk.verify()
+            folder = walk.root / 'docs' / 'harness' / 'history' / walk.ticket_id
+            figures = json.loads((folder / 'kpi.json').read_text())
+            windows = kpi.review_windows(journal.read(folder))
+        finally:
+            walk.doCleanups()
+
+        self.assertEqual(len(windows), 1)
+        self.assertEqual(figures['review_triage']['reviewer_output_tokens'], 4321,
+                         'The subagent entry inside the review window is the reviewer, and '
+                         'the one before the triage is not')
+
+    def write_log(self, root, opened):
+        """One subagent entry inside the window, and one before it that is not."""
+        from harness import cost
+        directory = cost.log_directory(root)
+        directory.mkdir(parents=True, exist_ok=True)
+        self.addCleanup(shutil.rmtree, directory, True)
+        (directory / 'session.jsonl').write_text(
+            json.dumps(self.entry('2000-01-01T00:00:00+00:00', 99999, True)) + '\n'
+            + json.dumps(self.entry(opened, 4321, True)) + '\n'
+            + json.dumps(self.entry(opened, 88888, False)) + '\n')
+
+    def entry(self, stamp, output, sidechain):
+        return dict(timestamp=stamp, isSidechain=sidechain,
+                    message=dict(usage=dict(input_tokens=1, output_tokens=output,
+                                            cache_read_input_tokens=0,
+                                            cache_creation_input_tokens=0)))
+
+
+class ReviewWindowsTest(unittest.TestCase):
+    """G3: the window is the reviewer's, and the rework between two is not."""
+
+    def journal(self):
+        """Two review rounds, with a whole tdd attempt between them."""
+        from harness.tests.test_kpi import record
+        return [record(1, 'start', 'clarify', minute=0, ticket_file='docs/tickets/x.md',
+                       ticket_snapshot='# x'),
+                record(2, 'advance', 'tdd', minute=10, from_stage='tdd', to_stage='review',
+                       evidence={}, decisions=[]),
+                record(3, 'triage', 'review', minute=20, review_depth='full', focus=['a'],
+                       would_exclude=[], excluded_share=0.0, files=[], shadow=True, jev={}),
+                record(4, 'return', 'review', minute=30, from_stage='review', to_stage='tdd',
+                       to_attempt=2, reason='a finding'),
+                record(5, 'check', 'tdd', attempt=2, minute=40, phase='green', exit_code=0,
+                       command=['t']),
+                record(6, 'advance', 'tdd', attempt=2, minute=50, from_stage='tdd',
+                       to_stage='review', evidence={}, decisions=[]),
+                record(7, 'triage', 'review', attempt=2, minute=60, review_depth='full',
+                       focus=['a'], would_exclude=[], excluded_share=0.0, files=[],
+                       shadow=True, jev={}),
+                record(8, 'advance', 'review', attempt=2, minute=70, from_stage='review',
+                       to_stage='deliver', evidence={}, decisions=[])]
+
+    def test_each_review_round_is_its_own_window(self):
+        windows = kpi.review_windows(self.journal())
+
+        self.assertEqual(windows, [('2026-09-23T10:20:00+00:00', '2026-09-23T10:30:00+00:00'),
+                                   ('2026-09-23T11:00:00+00:00', '2026-09-23T11:10:00+00:00')])
+
+    def test_the_rework_between_two_rounds_is_in_neither(self):
+        """Where the scout runs, and from SEEN-108 the implementer subagent."""
+        rework = '2026-09-23T10:40:00+00:00'
+        for opened, closed in kpi.review_windows(self.journal()):
+            self.assertFalse(opened <= rework <= closed,
+                             'A tdd attempt is not the reviewer reading')
+
+    def test_a_second_triage_in_one_round_closes_the_first_window(self):
+        from harness.tests.test_kpi import record
+        records = self.journal()[:3] + [
+            record(4, 'triage', 'review', minute=35, review_depth='full', focus=['a'],
+                   would_exclude=[], excluded_share=0.0, files=[], shadow=True, jev={}),
+            record(5, 'advance', 'review', minute=45, from_stage='review', to_stage='deliver',
+                   evidence={}, decisions=[])]
+
+        self.assertEqual(len(kpi.review_windows(records)), 2,
+                         'Two triages in one round are two reviewers, and both cost tokens')
+
+    def test_a_journal_with_no_triage_has_no_window(self):
+        records = [entry for entry in self.journal() if entry['kind'] != 'triage']
+        self.assertEqual(kpi.review_windows(records), [])
+
+    def test_a_round_still_open_runs_to_the_last_record(self):
+        records = self.journal()[:3]
+        self.assertEqual(kpi.review_windows(records),
+                         [('2026-09-23T10:20:00+00:00', '2026-09-23T10:20:00+00:00')])
+
+
+class UnreadableFileTest(FocusSetTest):
+    """G1: a judgement nobody made must not take a file out of a review."""
+
+    def stub_without(self, path):
+        base = triage_stub(depth=(0.9, 0.1))
+
+        def transport(endpoint, payload, credential, timeout):
+            body = base(endpoint, payload, credential, timeout)
+            for key in list(body['answers']):
+                if key.startswith('reviewer_must_read#'):
+                    body['answers'][key] = noul(0.95 if key.endswith('harness/thing.py') else 0.05)
+            body['answers'].pop(f'reviewer_must_read#{path}', None)
+            return body
+
+        transport.sent = base.sent
+        return transport
+
+    def test_a_file_the_model_did_not_answer_for_stays_in_the_focus_set(self):
+        self.set_shadow(False)
+        jev.TRANSPORT = self.stub_without('harness/tests/test_thing.py')
+        self.reach_review()
+        record = self.triage()
+
+        self.assertEqual(record['data']['review_depth'], 'spot')
+        self.assertIn('harness/tests/test_thing.py', record['data']['focus'],
+                      'An unanswered file is a doubt, and doubt resolves towards reading more')
+        self.assertNotIn('harness/tests/test_thing.py', record['data']['would_exclude'])
+
+    def test_a_file_the_model_answered_low_for_is_still_dropped(self):
+        self.set_shadow(False)
+        jev.TRANSPORT = self.stub_without('harness/tests/test_thing.py')
+        self.reach_review()
+        record = self.triage()
+
+        self.assertIn(self.ticket_file, record['data']['would_exclude'],
+                      'A file answered at 0.05 is a judgement, and it stands')
+
+
+class TriageAcrossAttemptsTest(FocusSetTest):
+    """G4: a ticket triaged once must not review a later attempt untriaged."""
+
+    def advance_review(self, read):
+        return self.submit('review', review_evidence(read), actor='codex:reviewer')
+
+    def return_and_reach_review_again(self):
+        self.run_harness('return', self.ticket_id, '--to', 'tdd', '--reason',
+                         'A finding', '--actor', 'codex:reviewer')
+        red = self.run_check('red', exit_code=1)
+        green = self.run_check('green')
+        regression = self.run_check('regression')
+        self.record_coverage(0.0, attempt=2)
+        self.submit('tdd', dict(mode='code', regression=regression['sequence'],
+                                coverage_delta=0.0,
+                                slices=[dict(behaviour='The correction',
+                                             failure_reason='It was wrong',
+                                             red=red['sequence'], green=green['sequence'])]))
+
+    def test_a_review_after_a_return_is_refused_until_the_triage_is_run_again(self):
+        self.reach_review()
+        record = self.triage()
+        self.return_and_reach_review_again()
+
+        with self.assertRaisesRegex(HarnessError, 'triage'):
+            self.advance_review(record['data']['focus'])
+
+    def test_running_the_triage_again_clears_it(self):
+        self.reach_review()
+        self.triage()
+        self.return_and_reach_review_again()
+        fresh = self.triage()
+
+        self.advance_review(fresh['data']['focus'])
+
+    def test_a_ticket_that_never_triaged_is_still_unaffected(self):
+        self.reach_review()
+        self.advance_review(['harness/thing.py'])
 
 
 if __name__ == '__main__':

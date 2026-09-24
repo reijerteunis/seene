@@ -56,7 +56,7 @@ The review is the most expensive read in the procedure: a model reads the whole 
 
 ## Outcome
 
-Delivered on 24 September 2026 in three attempts, three slices and two rework
+Delivered on 24 September 2026 in four attempts, three slices and three rework
 slices, one session by the digest: `253bf8e84e82`. The return was the triage's
 own doing: run on this branch at record 19 it flagged the four files `sync`
 generates as changed but named by no slice, while the solution record named both
@@ -76,7 +76,22 @@ have accepted any read list at all. Nothing re-checked the diff between the tria
 and the review advance, so a file added in between was read by nobody and refused
 by nothing. And `kpi.json` could never have carried the reviewer's tokens that
 criterion 5 names, because delivery is its only writer and called `kpi.measure`
-without them. The solution gate refused twice at 0.58 against 0.6 and
+without them.
+
+The third return came from the review of those fixes, and three of its five
+findings were the fixes themselves being half right. The F1 fix made an elided
+answer key cheap instead of fatal, and then `focus_set` scored that absence zero
+and dropped the file from a spot review, which is the exact inversion of the rule
+the module states twice elsewhere: a judgement nobody made resolves towards
+reading more. `review_window` opened at the first triage of the ticket rather than
+the last, so on this ticket it spanned records 19 to 33, two returns and two whole
+tdd attempts, and would have charged every scout and, from SEEN-108, every
+implementer subagent to the reviewer. And the only guard on the F3 fix asserted
+that two words appeared in the source of `delivery.verify`, while the comment
+above the call carried both, so it passed with the behaviour removed. That one is
+now a walk to delivered through a real triage, with a subagent entry inside the
+review window and an implementer entry outside it, reading the figure out of the
+delivered file. The solution gate refused twice at 0.58 against 0.6 and
 cleared at 0.65 once the record named the interfaces the clarify decisions had
 settled, which is the gap the question was right about: Jev is shown the solution
 record and not the clarify one, so a mechanism decided at clarify and never
@@ -141,4 +156,8 @@ record: the accepted tdd evidence for slice 3 states a failure reason that check
 12 does not show, because the fixture was corrected between that RED and its
 GREEN, and the triage's own fingerprint check fires on the ticket file whenever a
 triage is re-run after the procedure has written it, which is bounded to forcing
-full depth and is SEEN-109's to carry.
+full depth and is SEEN-109's to carry. Three findings across the three reviews
+were about a check that fires on the harness's own writing, and the answer each
+time was to name what the procedure writes rather than to weaken the check:
+`triage.procedure_paths` is that list, and it is left out of the slice check and
+of the fingerprint the review gate compares, and of nothing else.

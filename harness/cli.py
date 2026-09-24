@@ -785,16 +785,12 @@ def ticket_figures(repository):
         delivered_at = None
         if not records:
             delivered_at = repository.git('log', '-1', '--format=%cI', '--', str(path)) or None
-        # The reviewer's own cost, over the window only the reviewer runs in.
-        # Null on a machine with no logs and on a ticket with no triage, which
-        # is the rule every other figure read from the logs already follows.
-        window = kpi.review_window(records) if records else None
         measured = kpi.measure(records, identifier,
                                points=int(points) if points and points.isdigit() else None,
                                delivered_at=delivered_at,
-                               reviewer_tokens=cost_module.tokens_between(
-                                   repository.root, *window, sidechain=True)
-                               if window else None)
+                               # The same call delivery makes, so the report and
+                               # the delivered file cannot disagree about it.
+                               reviewer_tokens=kpi.reviewer_tokens(repository.root, records))
         if records and measured['delivered_at']:
             measured['tokens'] = cost_module.tokens_between(
                 repository.root, records[0]['timestamp'], measured['delivered_at'])

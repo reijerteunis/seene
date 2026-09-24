@@ -524,11 +524,21 @@ def focus_set(facts, by_key, depth, rules):
     if depth == 'full':
         return list(paths)
     bar = rules['review']['focus_probability']
-    scored = {path: (by_key.get(file_key(path)) or {}).get('probabilities', {}).get('yes', 0.0)
-              for path in paths}
-    kept = [path for path in paths if scored[path] >= bar]
+    scored = {}
+    for path in paths:
+        answer = by_key.get(file_key(path))
+        # An answer nobody could give is a doubt, and doubt resolves towards
+        # reading more: the rule depth_from follows for the depth and the return
+        # follows for an unevidenced criterion. Scoring an absence zero did the
+        # opposite and took the file out of the review, which is G1 of this
+        # ticket's third review and the one way the F1 fix could have made things
+        # worse: an elided key used to cost the whole triage, and would have cost
+        # one file its reading instead.
+        scored[path] = (None if answer is None or answer['outcome'] is None
+                        else answer['probabilities'].get('yes', 0.0))
+    kept = [path for path in paths if scored[path] is None or scored[path] >= bar]
     if not kept and paths:
-        kept = [max(paths, key=lambda path: scored[path])]
+        kept = [max(paths, key=lambda path: scored[path] or 0.0)]
     return kept
 
 

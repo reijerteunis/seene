@@ -10,7 +10,7 @@ rather than passes when it cannot be run.
 import json
 import subprocess
 
-from . import cost, coverage, gates, github, journal, kpi
+from . import coverage, gates, github, journal, kpi
 from .errors import require
 from .paths import HISTORY, WORKING_STAGES
 
@@ -71,10 +71,8 @@ def verify(repository, folder, records, args, current):
     # names kpi.json and this is its only writer. Null where there are no logs,
     # so the file still reads the same everywhere; it simply carries more where
     # it can. F3 of that ticket's review.
-    window = kpi.review_window(written)
     figures = kpi.measure(written, record['ticket'],
-                          reviewer_tokens=cost.tokens_between(repository.root, *window,
-                                                              sidechain=True) if window else None)
+                          reviewer_tokens=kpi.reviewer_tokens(repository.root, written))
     (folder / 'kpi.json').write_text(json.dumps(figures, indent=2, ensure_ascii=False) + '\n')
 
     path = folder / f'{record["sequence"]:04d}.json'

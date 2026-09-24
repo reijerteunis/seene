@@ -86,3 +86,20 @@ def tokens_between(root, opened, closed, sidechain=None):
                 for field in FIELDS:
                     totals[field] += usage.get(field, 0) or 0
     return totals if seen else None
+
+
+def tokens_over(root, windows, sidechain=None):
+    """Totals across several windows, or null when none of them carried anything.
+
+    Null rather than zero for the reason every figure here is: on a machine with
+    no logs nobody knows what was spent, and zero is a claim that nothing was.
+    """
+    totals, seen = dict.fromkeys(FIELDS, 0), False
+    for opened, closed in windows:
+        part = tokens_between(root, opened, closed, sidechain=sidechain)
+        if part is None:
+            continue
+        seen = True
+        for field in FIELDS:
+            totals[field] += part[field]
+    return totals if seen else None

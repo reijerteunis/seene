@@ -1,0 +1,19 @@
+{
+  "sequence": 36,
+  "ticket": "SEEN-107",
+  "timestamp": "2026-09-24T19:49:45.685407+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "session": "253bf8e84e82",
+  "head": "36b382acda6e06c0aff2da8d68f8b78fe877627c",
+  "prev_hash": "e8738a5184d4dd915346768a14a54b69aef578d8e60d9b2a062126066cf2a12f",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 4,
+    "reason": "Third review, five findings. G1: an unavailable reviewer_must_read answer scores 0.0 in focus_set and so drops its file from a spot review, which is the exact inversion of the rule the module states and applies to review_depth and criterion_evidenced, that a judgement nobody made resolves towards reading more. G2: the only guard on the F3 fix asserts two words appear in the source of delivery.verify, and the comment above the call contains both, so the test passes with the behaviour removed. G3: review_window opens at the first triage of the ticket rather than the last, so on this ticket it spans records 19 to 33 across two returns and two whole tdd attempts, charging every scout and, from SEEN-108, every implementer subagent to the reviewer. G4: both new gate checks are scoped to the current attempt and pass silently when it has none, so a review submitted after a return without re-triaging is unchecked. G5: the comment on reviewer_output_tokens says delivery cannot supply it, which both callers now contradict."
+  }
+}

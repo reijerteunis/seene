@@ -157,22 +157,44 @@ def _latest_triage(records):
     return None
 
 
-def review_window(records):
-    """From the first triage to the review advance that followed it, or nothing.
+def review_windows(records):
+    """Every span a reviewer ran in: a triage, and the record that closed it.
 
-    The reviewer runs inside that window and nothing else does, which is what
-    makes a sidechain total over it the reviewer's own cost rather than the
-    session's. A ticket still at review has no closing advance, so the window
-    runs to the last record: an open window is a lower bound and reads as one.
+    One span per review round, because a ticket reviewed twice ran a reviewer
+    twice and paid for both, and a second triage inside one round closes the
+    first for the same reason. What must not be inside a span is the rework
+    between two of them: that is where the scout runs and, from SEEN-108, the
+    implementer subagent, and they write the same sidechain entries.
+
+    G3 of SEEN-107's third review, which found one window opening at the first
+    triage of the ticket and closing at the last review advance, spanning two
+    returns and two whole tdd attempts on this ticket alone. A round still open
+    runs to the last record, which is a lower bound and reads as one.
     """
-    opened = None
+    spans, opened = [], None
     for record in records:
-        if record['kind'] == 'triage' and opened is None:
+        leaves_review = (record['kind'] in ('advance', 'return')
+                         and record['data'].get('from_stage') == 'review')
+        if opened is not None and (record['kind'] == 'triage' or leaves_review):
+            spans.append((opened, record['timestamp']))
+            opened = None
+        if record['kind'] == 'triage':
             opened = record['timestamp']
-        if (opened and record['kind'] == 'advance'
-                and record['data'].get('from_stage') == 'review'):
-            return opened, record['timestamp']
-    return (opened, records[-1]['timestamp']) if opened else None
+    if opened is not None:
+        spans.append((opened, records[-1]['timestamp']))
+    return spans
+
+
+def reviewer_tokens(root, records):
+    """The reviewer's own cost on this ticket, read from the log over its windows.
+
+    The one place the log and the journal meet, so there is one thing for a test
+    to hold: G2 of the third review found the only guard on this asserting that
+    two words appeared in delivery's source, which passed with the behaviour gone.
+    """
+    from . import cost
+    windows = review_windows(records)
+    return cost.tokens_over(root, windows, sidechain=True) if windows else None
 
 
 def review_triage(records, reviewer_tokens=None):
@@ -200,8 +222,12 @@ def review_triage(records, reviewer_tokens=None):
                 focus=len(data.get('focus') or []),
                 excluded=len(data.get('would_exclude') or []),
                 excluded_share=data.get('excluded_share'),
-                # Null until harness report reads the session logs, for the same
-                # reason points and tokens are: delivery reads no machine.
+                # Read from the log by `reviewer_tokens` above, which both
+                # delivery and the report call. Null on a machine with no logs
+                # and on a ticket whose reviewer never ran as a subagent, which
+                # on this repository is still every ticket. G5 of the third
+                # review: this used to say delivery could not supply it, which
+                # both callers contradict.
                 reviewer_output_tokens=(reviewer_tokens or {}).get('output_tokens'),
                 reviewer_tokens=reviewer_tokens)
 

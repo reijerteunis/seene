@@ -297,6 +297,23 @@ def latest_triage(records, current):
     return None
 
 
+def _require_a_current_triage(records, current):
+    """A ticket triaged once is triaged again after a return.
+
+    G4 of SEEN-107's third review: both checks below are scoped to the attempt and
+    pass silently when it has none, so every attempt after a return started with
+    the gate disarmed and a review naming any file at all was accepted. A ticket
+    that has never been triaged is unaffected, which is every journal written
+    before this ticket and every review run without the command.
+    """
+    ever = any(record['kind'] == 'triage' for record in records)
+    require(not ever or latest_triage(records, current) is not None,
+            f'This ticket was triaged in an earlier attempt and not in attempt '
+            f'{current["attempt"]}. The focus set that stands was chosen for work that has '
+            'changed since, so it holds the reviewer to the wrong list; run harness review '
+            'triage again')
+
+
 def _require_focus_was_read(data, records, current):
     """A review reads what the triage said to read, or it reviewed something smaller.
 
@@ -341,6 +358,7 @@ def _require_the_diff_has_not_moved(records, current, repository):
 
 def _review(data, records, current, repository, thresholds):
     require(latest_evidence(records, 'tdd') is not None, 'Complete the TDD stage before review')
+    _require_a_current_triage(records, current)
     _require_focus_was_read(data, records, current)
     _require_the_diff_has_not_moved(records, current, repository)
     require(data['verdict'] == 'pass',
