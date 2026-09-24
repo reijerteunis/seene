@@ -1,0 +1,28 @@
+{
+  "sequence": 15,
+  "ticket": "SEEN-096",
+  "timestamp": "2026-09-24T05:52:03.463959+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "03320345cde387fe250c4a128632431c57c03ebd",
+  "prev_hash": "f07ee5173d94ed2ea10c5b640b455b7dd117db34bde0dfd27caca30be483cb05",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_graph"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "duration_ms": 5129,
+    "output": ".........E..F....FF....E.\n======================================================================\nERROR: test_a_codegraph_query_syncs_first_and_records_that_it_did (harness.tests.test_graph.RoutingTest.test_a_codegraph_query_syncs_first_and_records_that_it_did)\nWithout the MCP server running, the index is as old as the last sync.\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_graph.py\", line 172, in test_a_codegraph_query_syncs_first_and_records_that_it_did\n    self.assertTrue(record['data']['synced'])\n                    ~~~~~~~~~~~~~~^^^^^^^^^^\nKeyError: 'synced'\n\n======================================================================\nERROR: test_the_record_fingerprints_the_index_that_answered (harness.tests.test_graph.RoutingTest.test_the_record_fingerprints_the_index_that_answered)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_graph.py\", line 178, in test_the_record_fingerprints_the_index_that_answered\n    self.assertEqual(record['data']['index'], {'nodes': 962, 'edges': 2583})\n                     ~~~~~~~~~~~~~~^^^^^^^^^\nKeyError: 'index'\n\n======================================================================\nFAIL: test_a_missing_index_is_refused_rather_than_answered_from_nothing (harness.tests.test_graph.RoutingTest.test_a_missing_index_is_refused_rather_than_answered_from_nothing)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_graph.py\", line 188, in test_a_missing_index_is_refused_rather_than_answered_from_nothing\n    with self.assertRaisesRegex(HarnessError, 'codegraph'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: HarnessError not raised\n\n======================================================================\nFAIL: test_explain_asks_codegraph (harness.tests.test_graph.RoutingTest.test_explain_asks_codegraph)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_graph.py\", line 156, in test_explain_asks_codegraph\n    self.assertEqual(record['data']['source'], 'codegraph')\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 'graphify' != 'codegraph'\n- graphify\n+ codegraph\n\n\n======================================================================\nFAIL: test_impact_asks_codegraph (harness.tests.test_graph.RoutingTest.test_impact_asks_codegraph)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_graph.py\", line 148, in test_impact_asks_codegraph\n    self.assertEqual(record['data']['source'], 'codegraph')\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 'graphify' != 'codegraph'\n- graphify\n+ codegraph\n\n\n----------------------------------------------------------------------\nRan 25 tests in 5.059s\n\nFAILED (failures=3, errors=2)\n",
+    "output_sha256": "38912987a08027f478d6e370e80c281516e5d458a6bcd8a597fba84b65cd6c4b",
+    "output_truncated": false,
+    "before": "58cd69c998e40c6be894d632a53a8f2093c6435a9e10000dc2f7b516dddafbb4",
+    "after": "58cd69c998e40c6be894d632a53a8f2093c6435a9e10000dc2f7b516dddafbb4"
+  }
+}
