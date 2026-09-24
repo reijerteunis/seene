@@ -1,0 +1,31 @@
+{
+  "sequence": 97,
+  "ticket": "SEEN-107",
+  "timestamp": "2026-09-24T22:17:46.399142+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 11,
+  "actor": "claude:implementer",
+  "session": "253bf8e84e82",
+  "head": "97728953c0d5f87e6f63d9e65fbf45750dd619dc",
+  "prev_hash": "9cb8285606a77e8ead8a00c2f90188693623e7b7d5bc11ea207e95953feceba1",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "behaviour": "The kpi review_triage row carries the depth the model chose beside the one the rules enforced, guarded by a test that fails when the field is absent",
+          "failure_reason": "KeyError: 'model_depth', twice. The RED was produced by removing the field the test guards, because the field was written at attempt 10 with no failing test in front of it, which is what the eighth review found by the same mutation, and a guard that has never failed is not a guard",
+          "red": 93,
+          "green": 94
+        }
+      ],
+      "regression": 95,
+      "coverage_delta": 0.0
+    },
+    "decisions": []
+  }
+}

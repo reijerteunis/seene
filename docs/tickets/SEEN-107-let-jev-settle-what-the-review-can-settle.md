@@ -56,8 +56,8 @@ The review is the most expensive read in the procedure: a model reads the whole 
 
 ## Outcome
 
-Delivered on 25 September 2026 in eleven attempts, three planned slices and nine
-rework slices, one session by the digest: `253bf8e84e82`. The return was the triage's
+Delivered on 25 September 2026 in eleven attempts, thirteen proved slices against
+three planned, one session by the digest: `253bf8e84e82`. The return was the triage's
 own doing: run on this branch at record 19 it flagged the four files `sync`
 generates as changed but named by no slice, while the solution record named both
 their sources. A generated copy has no review surface of its own, because
@@ -209,8 +209,11 @@ named rather than listed as settled: `red_before_green`, `acceptance_entries` an
 the one resolver `_ticket_text` already used, rather than by a second reading of
 record 1.
 
-**What the reviews cost, and what they were worth.** Eight reviews and nine
-returns, and every return was earned. Three of them found a previous attempt's fix
+**What the reviews cost, and what they were worth.** Seven reviews and ten
+returns, and every return was earned. The counts in this paragraph were wrong when
+first written and were corrected against the journal, which is the only place they
+are derivable from: `harness report` reads them from the records rather than from
+here. Three of them found a previous attempt's fix
 to be half right, which is the pattern worth recording: making an elided Jev answer
 cheap instead of fatal left `focus_set` scoring that absence zero and dropping the
 file from a spot review; separating the enforced depth from the model's own left
