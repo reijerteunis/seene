@@ -1428,5 +1428,64 @@ class PartlySettledIsDocumentedTest(unittest.TestCase):
                           'describes the harness does not say so')
 
 
+class EveryAttemptsEvidenceTest(ThreeCriteriaTest):
+    """L1: a returned ticket proved slices in each attempt, and Jev sees them all.
+
+    Found by the triage firing on its own ticket at record 75. SEEN-107 proved its
+    three planned slices in attempt 1 and one rework slice in each attempt after,
+    and the state carried only the latest accepted tdd record, so two criteria came
+    back unevidenced because the evidence for them was in a record Jev was never
+    shown. The return was right about the state it was given, and the state was
+    wrong. `kpi.slices` had already learned this: reading only the latest record
+    said SEEN-104 proved one slice of the three it planned.
+    """
+
+    def prove_another_slice(self):
+        """A return, then one more slice proved, the way rework goes."""
+        self.run_harness('return', self.ticket_id, '--to', 'tdd', '--reason',
+                         'A finding', '--actor', 'codex:reviewer')
+        red = self.run_check('red', exit_code=1)
+        green = self.run_check('green')
+        regression = self.run_check('regression')
+        self.record_coverage(0.0, attempt=2)
+        self.submit('tdd', dict(mode='code', regression=regression['sequence'],
+                                coverage_delta=0.0,
+                                slices=[dict(behaviour='The correction',
+                                             failure_reason='It was wrong',
+                                             red=red['sequence'], green=green['sequence'])]))
+
+    def test_the_state_carries_every_accepted_attempt_s_slices(self):
+        self.reach_review()
+        self.triage()
+        self.prove_another_slice()
+        self.triage()
+
+        slices = jev.TRANSPORT.sent[-1]['payload']['state']['journal']['slices']
+        behaviours = [entry['behaviour'] for entry in slices]
+        self.assertIn('The behaviour', behaviours,
+                      'The slice proved in attempt 1 is still what evidences its criterion')
+        self.assertIn('The correction', behaviours)
+
+    def test_each_slice_says_which_attempt_proved_it(self):
+        self.reach_review()
+        self.triage()
+        self.prove_another_slice()
+        self.triage()
+
+        slices = jev.TRANSPORT.sent[-1]['payload']['state']['journal']['slices']
+        self.assertEqual([entry['attempt'] for entry in slices], [1, 2])
+
+    def test_a_ticket_with_no_rework_is_unchanged(self):
+        self.reach_review()
+        self.triage()
+
+        slices = jev.TRANSPORT.sent[-1]['payload']['state']['journal']['slices']
+        self.assertEqual(len(slices), 1)
+        self.assertEqual(slices[0]['behaviour'], 'The behaviour')
+
+    def test_the_excerpt_is_capped_so_a_long_ticket_cannot_blow_up_the_request(self):
+        self.assertEqual(triage.MAX_SLICES_IN_STATE, 12)
+
+
 if __name__ == '__main__':
     unittest.main()

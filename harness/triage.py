@@ -66,6 +66,11 @@ GITLEAKS_FOUND = 1
 # puts it; the whole log would be the repository-wide read this ticket exists to
 # avoid, paid for at the API instead of in the session.
 EXCERPT_CHARACTERS = 800
+# How many proved slices the state carries, most recent last. A ticket reworked
+# eight times has a slice per attempt on top of its plan, and every one of them is
+# evidence for some criterion; a cap keeps one request from growing with the
+# rework rather than with the work. L1 of SEEN-107's own triage.
+MAX_SLICES_IN_STATE = 12
 
 
 def _entry(name, outcome, detail):
@@ -490,16 +495,28 @@ def journal_excerpts(records):
     evidence. What is here is what was recorded: the criteria as checks, the
     decisions taken, and each slice's behaviour beside the RED that failed for it
     and the GREEN that followed.
+
+    Every accepted tdd record, not only the latest. A returned ticket proved
+    slices in each attempt and each of them still evidences the criterion it was
+    written for; reading only the last record is how SEEN-107's own triage came to
+    answer two of its criteria unevidenced at record 75, when what proved them was
+    in attempt 1. `kpi.slices` had already learned this, and for the same reason.
     """
     clarified = gates.latest_evidence(records, 'clarify') or {}
-    proved = gates.latest_evidence(records, 'tdd') or {}
+    proved = []
+    for record in records:
+        if record['kind'] != 'advance' or record['data'].get('from_stage') != 'tdd':
+            continue
+        for entry in record['data'].get('evidence', {}).get('slices') or []:
+            proved.append(dict(attempt=record['attempt'],
+                               behaviour=entry.get('behaviour'),
+                               failure_reason=entry.get('failure_reason'),
+                               red=_check_excerpt(_record_at(records, entry.get('red'))),
+                               green=_check_excerpt(_record_at(records, entry.get('green')))))
     return dict(acceptance=clarified.get('acceptance') or [],
                 decisions=clarified.get('decisions') or [],
-                slices=[dict(behaviour=entry.get('behaviour'),
-                             failure_reason=entry.get('failure_reason'),
-                             red=_check_excerpt(_record_at(records, entry.get('red'))),
-                             green=_check_excerpt(_record_at(records, entry.get('green'))))
-                        for entry in proved.get('slices') or []])
+                slices_proved=len(proved),
+                slices=proved[-MAX_SLICES_IN_STATE:])
 
 
 def file_subject(entry):

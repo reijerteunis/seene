@@ -1,0 +1,31 @@
+{
+  "sequence": 74,
+  "ticket": "SEEN-107",
+  "timestamp": "2026-09-24T21:22:41.650523+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 8,
+  "actor": "claude:implementer",
+  "session": "253bf8e84e82",
+  "head": "39b6b48144002c87b443a3400bef21889f8d7663",
+  "prev_hash": "f94cdf53588902a9c730c5f76ae98a8686e7137bc6df6469cc849ed30fa6098d",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "behaviour": "doctor wants review at the deliver stage, which is the rule CLAUDE.md states and nothing enforced, so a ticket cannot pass the review gate with a ticket file the fingerprint will then lock at doing",
+          "failure_reason": "AssertionError: False is not true. A ticket walked to deliver with status doing produced no problems at all, because any working status passed until the receipt moved it to delivered",
+          "red": 70,
+          "green": 71
+        }
+      ],
+      "regression": 72,
+      "coverage_delta": 0.0
+    },
+    "decisions": []
+  }
+}
