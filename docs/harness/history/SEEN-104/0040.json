@@ -1,0 +1,31 @@
+{
+  "sequence": 40,
+  "ticket": "SEEN-104",
+  "timestamp": "2026-09-24T11:19:40.582998+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "session": "7c81cdfdd5e9",
+  "head": "aa8568389dac7e8d4be46b942f0cdc88d0a25676",
+  "prev_hash": "406453e4f548dbf89ae4077bdc0c833b8bdd8a5a2f8f84a8257516b3f29db43d",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "behaviour": "kpi.slices counts the slices proved across every accepted tdd record rather than the latest, so a returned ticket neither understates the slices it worked nor inflates its cost per slice.",
+          "failure_reason": "2 failures on the journal fixture that carries a return: 'AssertionError: 1 != 2' on the slices proved across two attempts, and 'AssertionError: 90000.0 != 45000.0' on output tokens per slice, which is the cost inflated by the same reading.",
+          "red": 36,
+          "green": 37
+        }
+      ],
+      "regression": 39,
+      "coverage_delta": 0.0
+    },
+    "decisions": []
+  }
+}

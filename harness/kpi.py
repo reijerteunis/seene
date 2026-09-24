@@ -74,15 +74,25 @@ def _evidence(records, stage):
 def slices(records):
     """Slices planned at solution against slices proved at tdd.
 
+    Proved counts every accepted tdd record and not just the latest, because a
+    ticket that was returned proved slices in each attempt and paid tokens for
+    each of them; `red_before_green` reads them the same way. A re-proved slice
+    counts again for the same reason, so proven above planned is rework showing
+    up rather than an error. Reading only the latest record said SEEN-104 proved
+    one slice of the three it planned, and made its cost per slice three times
+    too large.
+
     Null rather than zero for a ticket that plans none and proves none, which is
     every non-code ticket: zero slices would read as a ticket that was cut badly
     rather than one with no behaviour to cut.
     """
     planned = _evidence(records, 'solution').get('slices') or []
-    proven = _evidence(records, 'tdd').get('slices') or []
+    proven = sum(len(record['data'].get('evidence', {}).get('slices') or [])
+                 for record in records
+                 if record['kind'] == 'advance' and record['data'].get('from_stage') == 'tdd')
     if not planned and not proven:
         return None
-    return dict(planned=len(planned), proven=len(proven))
+    return dict(planned=len(planned), proven=proven)
 
 
 def sessions(records):

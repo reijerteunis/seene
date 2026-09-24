@@ -110,9 +110,29 @@ class SliceFiguresTest(DeliveryWalk):
         """Null, not one: a record without a session cannot say it was the same one."""
         self.assertIsNone(self.measure(journal_with_a_return())['sessions'])
 
-    def test_a_ticket_with_no_slices_reports_none_rather_than_zero(self):
+    def test_a_ticket_with_no_plan_reports_no_planned_slices(self):
         figures = self.measure(journal_with_a_return())
-        self.assertEqual(figures['slices'], dict(planned=0, proven=1))
+        self.assertEqual(figures['slices']['planned'], 0)
+
+    def test_slices_proved_are_counted_across_every_attempt(self):
+        """A returned ticket proved slices in each attempt, and paid for each.
+
+        Reading only the latest tdd record said this ticket proved one slice of
+        the three it planned, and made the cost per slice three times too large.
+        """
+        figures = self.measure(journal_with_a_return())
+        self.assertEqual(figures['slices']['proven'], 2)
+
+    def test_the_cost_per_slice_divides_by_every_slice_worked(self):
+        figures = self.measure(journal_with_a_return(), tokens=dict(output_tokens=90000))
+        self.assertEqual(figures['output_tokens_per_slice'], 45000.0)
+
+    def test_a_non_code_ticket_has_no_slices_at_all(self):
+        """Null rather than zero: nothing was cut badly, there was nothing to cut."""
+        records = [record for record in journal_with_a_return()
+                   if not (record['kind'] == 'advance'
+                           and record['data'].get('from_stage') == 'tdd')]
+        self.assertIsNone(self.measure(records)['slices'])
 
 
 class TicketFiguresTest(DeliveryWalk):

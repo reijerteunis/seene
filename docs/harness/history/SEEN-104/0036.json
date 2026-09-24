@@ -1,0 +1,29 @@
+{
+  "sequence": 36,
+  "ticket": "SEEN-104",
+  "timestamp": "2026-09-24T11:17:33.967461+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "session": "7c81cdfdd5e9",
+  "head": "aa8568389dac7e8d4be46b942f0cdc88d0a25676",
+  "prev_hash": "79094728eab0a3ae77bb876edf239c7ae6f8c63a19bc03e9008b38fe84acecb5",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_kpi"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "duration_ms": 3473,
+    "output": ".............FF.........\n======================================================================\nFAIL: test_slices_proved_are_counted_across_every_attempt (harness.tests.test_kpi.SliceFiguresTest.test_slices_proved_are_counted_across_every_attempt)\nA returned ticket proved slices in each attempt, and paid for each.\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_kpi.py\", line 124, in test_slices_proved_are_counted_across_every_attempt\n    self.assertEqual(figures['slices']['proven'], 2)\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 1 != 2\n\n======================================================================\nFAIL: test_the_cost_per_slice_divides_by_every_slice_worked (harness.tests.test_kpi.SliceFiguresTest.test_the_cost_per_slice_divides_by_every_slice_worked)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_kpi.py\", line 128, in test_the_cost_per_slice_divides_by_every_slice_worked\n    self.assertEqual(figures['output_tokens_per_slice'], 45000.0)\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 90000.0 != 45000.0\n\n----------------------------------------------------------------------\nRan 24 tests in 3.393s\n\nFAILED (failures=2)\n",
+    "output_sha256": "9f885bcb388d5463b5d31c427c4b207be3cc5f3143c87de1cb7ea23522b3b6cb",
+    "output_truncated": false,
+    "before": "184f7a5dd483791efc454e3eaf8b5c57ac28e02c233b775adcf3f77ef6050b1c",
+    "after": "184f7a5dd483791efc454e3eaf8b5c57ac28e02c233b775adcf3f77ef6050b1c"
+  }
+}

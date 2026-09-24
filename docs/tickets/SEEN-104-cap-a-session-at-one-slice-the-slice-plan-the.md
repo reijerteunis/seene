@@ -112,6 +112,25 @@ Attempt 2 is one slice: red 26, green 27, coverage 28, regression 29 over 399 te
 ticket is 1, and it is the self-review's own, which is the argument for the reviewer subagent
 SEEN-105 builds rather than against reviewing at all.
 
+**The KPI misreported this ticket, and the receipt was voided before the merge.** The first
+delivery wrote `slices: {planned: 3, proven: 1}` into its own `kpi.json`. Three slices were planned
+and all three were proved in attempt 1; the 1 was attempt 2's rework slice, because `kpi.slices` read
+only the most recent tdd record while `red_before_green` beside it reads every one. The same figure is
+the divisor for output tokens per slice, so the cost per slice came out three times too large. Found
+by reading the `kpi.json` the delivery had just written, with the pull request open and unmerged.
+
+`harness reopen` voided the receipt at record 35, which is what SEEN-093 built it for: a receipt is
+final when the work is merged, not when it is written. Attempt 3 is one slice, red 36 (1 != 2, and
+90,000 against 45,000 on the cost) and green 37, coverage 38, regression 39 over 402 tests. Proved now
+counts every accepted tdd record, a re-proved slice included, because each one was worked and each one
+cost tokens; proven above planned is rework showing up rather than an error, and the docstring says
+so. Rework on this ticket is 2, both of them the self-review's own.
+
+The three tickets before this one in the epic each found a gate that was wrong rather than a record.
+This one found two figures that were wrong rather than a gate, and both were found by reading what the
+new commands actually printed rather than by reading the diff. That is the argument for a harness that
+writes its own evidence: the pack and the KPI record were readable the moment they existed.
+
 ### Known and deliberately left
 
 Nothing enforces one slice per session. The solution gate refuses a plan that breaks the caps, and
