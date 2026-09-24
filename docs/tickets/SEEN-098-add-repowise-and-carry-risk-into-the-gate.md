@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-086, SEEN-088]
-status: review
+status: done
 ---
 # SEEN-098: Add repowise and carry its risk answer into the gate
 
@@ -23,7 +23,7 @@ status: review
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | review |
+| Status | done |
 
 ## Description
 
