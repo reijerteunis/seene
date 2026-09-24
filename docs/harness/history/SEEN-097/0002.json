@@ -1,0 +1,30 @@
+{
+  "sequence": 2,
+  "ticket": "SEEN-097",
+  "timestamp": "2026-09-24T08:02:18.661911+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "191adcb25625ad8b116f9a3164d2f4c1aef12192",
+  "prev_hash": "9bceb7aeacc0f6ac72b34f1b923f338944e26462eb40c6c6b6dd3bd7f80fb61c",
+  "data": {
+    "source": "codegraph",
+    "mode": "impact",
+    "command": [
+      "codegraph",
+      "impact",
+      "AppModule"
+    ],
+    "synced": true,
+    "index": {
+      "nodes": 1093,
+      "edges": 2925
+    },
+    "exit_code": 0,
+    "duration_ms": 283,
+    "answer": "\nImpact of changing \"AppModule\" — 3 affected symbols:\n\napps/api/src/app.module.ts\n  class       AppModule:6\n\napps/api/src/health.test.ts\n  file        health.test.ts:1\n\napps/api/src/main.ts\n  file        main.ts:1\n\n",
+    "answer_truncated": false
+  }
+}
