@@ -135,3 +135,17 @@ ticket rather than starting the argument again.
 This was the first non-code ticket the harness has seen, and it parked at the solution gate, which
 required `tests_first` of every ticket while non-code mode was declared a stage later. SEEN-103 moved
 the declaration, and this ticket's solution record at record 6 is the first to use it.
+
+It was then returned from deliver by its own CI. `AGENTS.md` at the repository root linked to a ticket
+file that does not exist. Nobody on this ticket wrote it: it is repowise's managed Codex entry point,
+`CLAUDE.md` with "Claude Code" substituted for "Codex" throughout by a tool with no idea what the
+strings were, which broke a filename inside a link, made a ticket title read "Sync the harness skill to
+Codex and Codex", and rewrote the branch rule to a prefix every writing command in this harness
+refuses. `repowise init` was run with `--no-agents` in SEEN-098 for exactly that reason; `agents add`
+generates it anyway.
+
+It sat untracked until `git add -A` in this ticket's park commit swept it in. That is a file committed
+without being read, by the assistant, in a session that had the rule in front of it all day. It is
+removed and gitignored, and the note at record 11 says so plainly, because the useful part of the
+story is the flag rather than the file. Codex reads `.agents/skills/seen-harness/SKILL.md`, which
+`sync` generates and `doctor` checks for drift.

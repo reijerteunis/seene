@@ -44,3 +44,8 @@ coverage/
 .vscode/mcp.json
 .vscode/extensions.json
 .codex/
+# repowise's managed Codex entry point, from SEEN-102. It is CLAUDE.md with
+# Codex substituted for Claude Code throughout, which breaks a filename inside
+# a link and rewrites the branch rule to a prefix the harness refuses. Codex
+# reads .agents/skills/seen-harness/SKILL.md, which sync generates.
+AGENTS.md

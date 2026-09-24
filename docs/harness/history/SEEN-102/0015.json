@@ -1,0 +1,120 @@
+{
+  "sequence": 15,
+  "ticket": "SEEN-102",
+  "timestamp": "2026-09-24T07:37:38.441842+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "review",
+  "attempt": 2,
+  "actor": "claude:reviewer",
+  "head": "ec82d574b97a39c22ebddf2cae518428b5adfed6",
+  "prev_hash": "69991997a81f1e4c5072a6f43a1587d23b5a5dd3e360330a834a69ce165bf842",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "deliver",
+    "evidence": {
+      "reviewer": "claude:reviewer",
+      "independence": "self-review",
+      "acceptance_evidence": [
+        "What the per-PR page shows is established by looking at one and recorded: record 2 carries the contents of the live example read without signing in, and the Outcome repeats it. The private-repository half is recorded as unresolved in three places with what would settle it, because establishing it requires the installation this ticket declines.",
+        "A decision is recorded under ## Outcome: declined, quoted from the founder's own words at record 3, with the grounds and the two conditions that reopen it.",
+        "The install-and-verify criterion is marked not applicable rather than ticked: nothing was installed, so there is no bot comment, and the checks in the non-code record say how to confirm that.",
+        "SEEN-098's fourth criterion now reads declined on 24 September with the grounds and a link here, so reading SEEN-098 alone tells the truth about what happened to its PR bot criterion.",
+        "The tree is sound: doctor passes, including the link check that returned this ticket from deliver, recorded at record 14."
+      ],
+      "findings": [
+        {
+          "id": "F1",
+          "severity": "high",
+          "claim": "A file nobody wrote or read was committed by git add -A",
+          "failure_scenario": "AGENTS.md sat untracked from SEEN-098 until this ticket's park commit swept it in under a message about declining a PR bot. It is CLAUDE.md with Claude Code substituted for Codex by string replacement, so it links to a ticket file that does not exist and tells a Codex session to branch with a prefix every writing command in this harness refuses. A Codex session reading it as the entry point would have been stopped by the harness on its first write, with an error about a branch its own instructions told it to use.",
+          "status": "resolved",
+          "resolution": "Removed and gitignored, with the reasoning at record 11. The ticket was returned from deliver to tdd to do it, so the tree being attested is the tree that ships. Codex reads .agents/skills/seen-harness/SKILL.md, which sync generates and doctor checks for drift."
+        },
+        {
+          "id": "F2",
+          "severity": "medium",
+          "claim": "The first acceptance criterion asked for something the decision itself makes impossible",
+          "failure_scenario": "It asked for what a private repository's per-PR page shows, established by looking at one. Looking at one requires installing the bot on a private repository, which is the decision being made. A session under pressure to tick the box would have looked at the public example, called it established, and recorded a conclusion about private repositories drawn from a public one.",
+          "status": "resolved",
+          "resolution": "The criterion is rewritten to say what was established, the public example, and what was not, the private case, with what would settle it. Recorded at record 2 and repeated in the Outcome."
+        },
+        {
+          "id": "F3",
+          "severity": "medium",
+          "claim": "Two sources contradict each other about whether the repository is cloned",
+          "failure_scenario": "The bot page says no clone; the pricing page says the repository is cloned onto an ephemeral indexing container. Reporting only the first would have told the founder his private tree never leaves GitHub, the opposite of what the vendor's own pricing page says, and it was the single most material fact in the decision.",
+          "status": "resolved",
+          "resolution": "Both are quoted at record 2 and in the Outcome, with the reading that reconciles them and the material fact stated plainly: repowise's servers would clone this private repository."
+        },
+        {
+          "id": "F4",
+          "severity": "low",
+          "claim": "A decision with no expiry becomes folklore",
+          "failure_scenario": "Recorded as a flat no, someone re-argues it in six months with no idea what would change the answer, or it stands unexamined after the repository goes public and the exposure it was refusing no longer exists.",
+          "status": "resolved",
+          "resolution": "Two named reopening conditions in the Outcome, not only in the journal: the repository becoming public, or repowise stating the page is access-controlled for private repositories."
+        }
+      ],
+      "checks": [
+        13,
+        14
+      ],
+      "security_checklist": [
+        "Nothing was installed, authorised or paid for. No third party gained access to this repository.",
+        "No credential is in any record. The sources are public URLs and one gh query for the repository's visibility.",
+        "A generated file that would have misdirected a Codex session was found and removed, and the flag that let it into a commit is named rather than the file alone.",
+        "The decision itself is a security decision, recorded with its grounds so it can be re-examined rather than re-argued.",
+        "The change touches no money, no tenant data and no policy-gate action."
+      ],
+      "verdict": "pass",
+      "tree": "38fa2b0f3f91f2c583800720299188aa8f92aa2e5d15bb04b261c723e3377337"
+    },
+    "decisions": [
+      {
+        "question": "severity",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high",
+          "blocking"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "blocking",
+        "probabilities": {
+          "low": 0.02,
+          "medium": 0.35,
+          "high": 0.16,
+          "blocking": 0.47
+        },
+        "confidence": 0.08,
+        "score": 2.08,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      },
+      {
+        "question": "must_fix",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.49,
+          "no": 0.51
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.7,
+        "passed": false,
+        "fallback_reason": null
+      }
+    ]
+  }
+}
