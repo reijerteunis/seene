@@ -30,6 +30,16 @@ def _per_slice(tickets, field='output_tokens'):
     return round(sum(ticket[field] for ticket in tickets) / counted, 1)
 
 
+def worked_with_agents(tickets):
+    """Tickets whose journal says both agents were used.
+
+    The fifth criterion of SEEN-105 compares the main session's cost on those
+    against the baseline, so they are divided on their own rather than mixed into
+    a figure that cannot say which tickets paid for what.
+    """
+    return [ticket for ticket in tickets if (ticket.get('subagents') or {}).get('both')]
+
+
 def qualifying(tickets, since):
     """Tickets started after both tools existed, with figures to compare.
 
@@ -46,8 +56,11 @@ def qualifying(tickets, since):
 def compare(tickets, baseline, minimum, since=''):
     """The two rows, the baseline beside them, and what the rule points to."""
     counted = qualifying(tickets, since)
+    with_agents = worked_with_agents(counted)
     totals = baseline['totals']
     section = dict(tickets=len(counted),
+                   tickets_with_agents=len(with_agents),
+                   output_tokens_per_point_with_agents=_per_point(with_agents, 'output_tokens'),
                    minimum=minimum,
                    output_tokens_per_point=_per_point(counted, 'output_tokens'),
                    output_tokens_per_slice=_per_slice(counted),

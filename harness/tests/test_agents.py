@@ -9,11 +9,15 @@ anywhere and a test is the only thing that will catch it.
 """
 
 import tomllib
+import unittest
+from pathlib import Path
 
 from harness import doctor as doctoring
 from harness.errors import HarnessError
 from harness.repository import Repository
 from harness.tests.test_lifecycle import CommandTest
+
+PROJECT = Path(__file__).resolve().parents[2]
 
 CLAUDE_COPIES = ('.claude/agents/seen-scout.md', '.claude/agents/seen-reviewer.md')
 CODEX_COPIES = ('.codex/agents/seen-scout.toml', '.codex/agents/seen-reviewer.toml')
@@ -203,3 +207,25 @@ class ScoutBriefTest(CommandTest):
         from harness.paths import KINDS
         self.assertNotIn('brief', KINDS)
         self.assertEqual(self.brief(10)['kind'], 'note')
+
+
+class TheSkillSaysSoTest(unittest.TestCase):
+    """The one maintained skill, on the two agents a session may send work to."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.text = (PROJECT / 'docs' / 'harness' / 'skill.md').read_text()
+
+    def test_it_names_both_agents(self):
+        self.assertIn('seen-scout', self.text)
+        self.assertIn('seen-reviewer', self.text)
+
+    def test_it_says_codex_spawns_one_only_when_told_to(self):
+        self.assertIn('Codex', self.text)
+        self.assertRegex(self.text, r'(?i)codex[^.]*only when')
+
+    def test_it_says_a_subagent_is_a_context_boundary_and_not_independence(self):
+        self.assertRegex(self.text, r'(?i)context boundary')
+
+    def test_it_names_the_word_cap_on_a_brief(self):
+        self.assertIn('400', self.text)

@@ -1,6 +1,7 @@
 """Figures derived from what was recorded, never from what anyone remembers."""
 
 import json
+import unittest
 
 from harness import kpi, report
 from harness.errors import HarnessError
@@ -249,3 +250,63 @@ class RepeatedReviewTest(DeliveryWalk):
                                  dict(ticket='b', points=1, rework=0, cycle_time_seconds=1),
                                  dict(ticket='c', points=1, rework=1, cycle_time_seconds=1)])
         self.assertEqual(figures['rework_per_ticket'], 0.67)
+
+
+class SubagentAttributionTest(unittest.TestCase):
+    """Whether a ticket was worked with the scout and the reviewer, from its journal.
+
+    The fifth criterion of SEEN-105 compares the main session's cost on tickets
+    worked that way against the SEEN-099 baseline, so the report has to be able to
+    tell them apart, and the journal is the only place that knows.
+    """
+
+    def journal(self, briefs=1, independence='subagent'):
+        records = [record(1, 'start', 'clarify', minute=0, session='aaaaaaaaaaaa',
+                          ticket_file='docs/tickets/x.md', ticket_snapshot='# x',
+                          base_commit='a' * 40)]
+        for number in range(briefs):
+            records.append(record(2 + number, 'note', 'clarify', minute=2 + number,
+                                  session='aaaaaaaaaaaa', text='a brief', agent='seen-scout',
+                                  words=120))
+        if independence is not None:
+            records.append(record(2 + briefs, 'advance', 'review', minute=30,
+                                  session='aaaaaaaaaaaa', from_stage='review', to_stage='deliver',
+                                  decisions=[],
+                                  evidence=dict(independence=independence,
+                                                reviewer='claude:reviewer', findings=[],
+                                                verdict='pass')))
+        return records
+
+    def test_a_brief_and_a_subagent_review_are_both_recorded(self):
+        answer = kpi.subagents(self.journal())
+
+        self.assertEqual(answer['briefs'], 1)
+        self.assertEqual(answer['agents'], ['seen-scout'])
+        self.assertEqual(answer['review'], 'subagent')
+        self.assertTrue(answer['both'])
+
+    def test_a_cross_tool_review_is_recorded_as_what_it_was(self):
+        answer = kpi.subagents(self.journal(independence='independent'))
+
+        self.assertEqual(answer['review'], 'independent')
+        self.assertFalse(answer['both'])
+
+    def test_a_review_with_no_brief_behind_it_is_not_both(self):
+        answer = kpi.subagents(self.journal(briefs=0))
+
+        self.assertEqual(answer['briefs'], 0)
+        self.assertFalse(answer['both'])
+
+    def test_a_journal_that_knows_neither_says_so_rather_than_false(self):
+        """Nineteen journals were written before either agent existed."""
+        self.assertIsNone(kpi.subagents(self.journal(briefs=0, independence=None)))
+
+    def test_measure_carries_it_beside_the_other_figures(self):
+        measured = kpi.measure(self.journal(), 'SEEN-001', points=3)
+
+        self.assertTrue(measured['subagents']['both'])
+
+    def test_a_ticket_with_no_journal_carries_the_absence(self):
+        measured = kpi.measure([], 'SEEN-001', points=3)
+
+        self.assertIsNone(measured['subagents'])

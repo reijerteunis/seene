@@ -90,6 +90,40 @@ percentile against this repository's own commits, the tests that may break, the 
 repowise is not installed the decision still happens, with the absence recorded as an absence rather
 than as a low score.
 
+## The two agents
+
+Two readers fill a session: the research at clarify and solution, and the review,
+which has to hold the diff, the journal and the criteria at once. Both have a
+context of their own.
+
+| Agent | What it is for | What comes back |
+|---|---|---|
+| `seen-scout` | One scoped question, answered from the graphs. Read-only, no Bash | A brief of at most 400 words: what it could not answer, then the answer with its paths, then what it did not check |
+| `seen-reviewer` | The diff against the ticket's criteria and its journal, in a context that did not write the code | Findings in the review record's shape, with a failure scenario each |
+
+`harness/agents.py` holds what each agent may do and `harness/agents/<name>.md`
+holds what each is told. `sync` generates `.claude/agents/<name>.md` and
+`.codex/agents/<name>.toml` from them, and `doctor` reports a copy edited by hand,
+exactly as it does for this skill. Claude Code invokes one by name, as
+`@agent-seen-scout` or through the Agent tool. Codex spawns a subagent only when
+it is told to, so the session says so explicitly; `max_depth` is 1 on both sides,
+which means a subagent may not spawn another.
+
+Record a brief with `harness note <ticket> --file <brief> --from seen-scout`. It
+refuses a brief over the cap and names the count, and it records the agent, the
+word count and the session that wrote the record. The scout cannot write a file,
+so the session writes the brief down: what is in the journal is the agent's
+content, transcribed.
+
+**A subagent is a context boundary, not independence by itself.** A review from one
+is disclosed as `subagent` and names the `reviewer_session` it came from, and the
+gate refuses a session that worked this attempt's own records. It cannot refuse a
+value typed to pass, because a Claude Code subagent inherits its parent's session
+id, so the declaration is a disclosure and not a proof. Where a missed defect costs
+money, the review still comes from the other assistant: a ticket whose solution
+record answered `touches_billing_or_policy_gate` yes needs a reviewer or a second
+reviewer from the tool that did not write it.
+
 ## The context budget
 
 Three knowledge tools put three sets of tool schemas into every session before a ticket is read, so

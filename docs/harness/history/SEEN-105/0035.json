@@ -1,0 +1,32 @@
+{
+  "sequence": 35,
+  "ticket": "SEEN-105",
+  "timestamp": "2026-09-24T12:53:13.480172+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "2377cfb62f89",
+  "head": "1457f6031b8fea852a82fc526451a6c551247ba6",
+  "prev_hash": "5c9eee18b9c8617f1ab5bd6e00f9c497fee8f8baaa24a8092c8e9b69a49a5a69",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_kpi",
+      "harness.tests.test_context_budget",
+      "harness.tests.test_agents",
+      "harness.tests.test_skill"
+    ],
+    "phase": "green",
+    "exit_code": 0,
+    "duration_ms": 9675,
+    "output": "........................................................................................\n----------------------------------------------------------------------\nRan 88 tests in 9.609s\n\nOK\n",
+    "output_sha256": "be06e3756125eb7e708dc91f2246a85aa77c748fd95e114ec39ea38d903261f8",
+    "output_truncated": false,
+    "before": "3cdfe5964711e40cd8649cc6eef722f91469a3af1023ecdb9490d0e25c9e0feb",
+    "after": "3cdfe5964711e40cd8649cc6eef722f91469a3af1023ecdb9490d0e25c9e0feb"
+  }
+}

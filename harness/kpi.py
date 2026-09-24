@@ -121,6 +121,30 @@ def output_tokens_per_slice(tokens, counted):
     return None if output is None else round(output / counted, 1)
 
 
+def subagents(records):
+    """How this ticket was worked: briefs from the scout, and the review's own kind.
+
+    Null rather than false when the journal holds neither a brief nor an accepted
+    review. Nineteen journals were written before either agent existed, and a
+    record that cannot say whether an agent was used cannot say one was not; the
+    same rule `sessions` already applies to the session field.
+
+    `both` is the figure the sprint report divides on: a brief recorded from an
+    agent and a review disclosed as coming from a subagent. One without the other
+    is a ticket that used one of the two, which is not what the fifth criterion of
+    SEEN-105 asks the report to compare.
+    """
+    briefs = [record for record in records
+              if record['kind'] == 'note' and record['data'].get('agent')]
+    review = _evidence(records, 'review').get('independence')
+    if not briefs and review is None:
+        return None
+    return dict(briefs=len(briefs),
+                agents=sorted({record['data']['agent'] for record in briefs}),
+                review=review,
+                both=bool(briefs) and review == 'subagent')
+
+
 def coverage(records):
     for record in reversed(records):
         if record['kind'] == 'check' and record['data'].get('phase') == 'coverage':
@@ -177,7 +201,7 @@ def measure(records, ticket, points=None, delivered_at=None, tokens=None, cost=N
                     findings=dict(by_severity={}, fixed=0, waived=0),
                     first_pass_ci=None, tokens=tokens, cost=cost, escaped_defects=[],
                     slices=None, sessions=None, output_tokens_per_slice=None,
-                    harness_version=None,
+                    subagents=None, harness_version=None,
                     note='Measured from the ticket file: this ticket has no journal')
     receipt = _receipt(records)
     rework = sum(1 for record in records if record['kind'] in ('return', 'reopen'))
@@ -199,6 +223,7 @@ def measure(records, ticket, points=None, delivered_at=None, tokens=None, cost=N
                 escaped_defects=[],
                 slices=cut,
                 sessions=sessions(records),
+                subagents=subagents(records),
                 output_tokens_per_slice=output_tokens_per_slice(
                     tokens, (cut or {}).get('proven') or (cut or {}).get('planned')),
                 harness_version=records[-1].get('harness_version'),
