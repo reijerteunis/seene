@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-104, SEEN-092, SEEN-098]
-status: todo
+status: doing
 ---
 # SEEN-105: Give the scout and the reviewer their own context as subagents in both assistants
 
@@ -23,7 +23,7 @@ status: todo
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | todo |
+| Status | doing |
 
 ## Description
 
