@@ -1,0 +1,15 @@
+{
+  "sequence": 36,
+  "ticket": "SEEN-097",
+  "timestamp": "2026-09-24T08:54:53.072604+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "deliver",
+  "attempt": 3,
+  "actor": "claude:reviewer",
+  "head": "2e83ca56a08464118962aa54a7808dc5a293f380",
+  "prev_hash": "d4b03acecf595df18ca0b6b3a4e16a32b72dbf7c404968914c091ebc8b29d72f",
+  "data": {
+    "text": "# The scripts themselves, run\n\nEverything before this had been verified by running the services by hand. The\nacceptance criterion names the commands, so the commands are what had to be run.\n\n    pnpm dev:down     2.0s, every container gone\n    rm -rf supabase/snippets       (to make dev:up face a fresh clone)\n    pnpm dev:up       29.9s, ten containers healthy, snippets recreated\n    pnpm db:reset     reset and the evidence-bucket migration replayed\n    pnpm test         45 tests across 7 packages, green against what dev:up started\n\ndev:up recreated `supabase/snippets` before starting Supabase, which is the thing\nStudio refuses to start without, so the fresh-clone path is covered by the script\nrather than by a person remembering.\n\nThis was the last gap: the review gate had passed on evidence from services started by\nhand, and a script that has never been run is not evidence of anything. It works.\n\nOn Jev: `must_fix` came back yes at 0.6 on this third pass, against a 0.7 threshold, so\nit clears nothing either way. On the first two passes it was pointing at something real\nand it was right both times. This time the findings list carries three resolved\nfindings labelled blocking, and severity is scored from that list, so the signal is\nreading its own record rather than a residual risk. I went looking anyway, found the one\npath never exercised, and ran it. That is the honest answer to a gate that will not\nsettle: check the thing it might be pointing at, and say what you found.\n"
+  }
+}
