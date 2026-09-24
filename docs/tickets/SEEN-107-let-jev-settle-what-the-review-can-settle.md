@@ -56,7 +56,7 @@ The review is the most expensive read in the procedure: a model reads the whole 
 
 ## Outcome
 
-Delivered on 24 September 2026 in six attempts, three slices and five rework
+Delivered on 24 September 2026 in seven attempts, three slices and six rework
 slices, one session by the digest: `253bf8e84e82`. The return was the triage's
 own doing: run on this branch at record 19 it flagged the four files `sync`
 generates as changed but named by no slice, while the solution record named both
@@ -123,7 +123,12 @@ those triages recorded `excluded_share: 0.0`, which in `kpi.json` cannot be told
 apart from a narrowing that would have saved nothing, and that is the figure
 SEEN-109 divides on. The record now carries two depths, what the rules enforced
 and what the model would have chosen, and measures the narrowing against the
-second, so a narrowing that never ran still has a number. The solution gate refused twice at 0.58 against 0.6 and
+second, so a narrowing that never ran still has a number. The sixth review passed
+and found two low things worth code rather than a note: the record said a request
+had been made when there was no credential to make one with, which is the same
+overclaim in the one field SEEN-109 counts to find the triages it can calibrate
+on, and the workflow document still named two partly settled checks after
+`tests_added` became the third. The solution gate refused twice at 0.58 against 0.6 and
 cleared at 0.65 once the record named the interfaces the clarify decisions had
 settled, which is the gap the question was right about: Jev is shown the solution
 record and not the clarify one, so a mechanism decided at clarify and never

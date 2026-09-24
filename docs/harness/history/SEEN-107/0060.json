@@ -1,0 +1,19 @@
+{
+  "sequence": 60,
+  "ticket": "SEEN-107",
+  "timestamp": "2026-09-24T20:58:42.931147+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 6,
+  "actor": "claude:implementer",
+  "session": "253bf8e84e82",
+  "head": "b4d171b7dd1d6cc6c806065979a5ba4336153f81",
+  "prev_hash": "6349d7685df7a785f2bcd0e2bdbde3199ccb5c9ff006bc18973b8feab40ed1ab",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 7,
+    "reason": "Sixth review, verdict pass, two low findings, both worth code rather than a note. K1: on a checkout with no credential ask_batch returns every answer unavailable without calling the transport, and the record is written with jev.asked true and the reason that a request was made and nothing readable came back, so kpi.json counts that ticket among the triages where pass two ran and SEEN-109 calibrates on it. That is the same class of overclaim the fourth and fifth reviews raised, in the field those reviews were about. K2: docs/harness/workflow.md says two checks are partly settled and names them, while PARTLY_SETTLED holds three since tests_added joined it, so the canonical document tells a reader the opposite of what J2 was raised to fix."
+  }
+}

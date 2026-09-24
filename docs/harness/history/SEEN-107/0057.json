@@ -1,0 +1,31 @@
+{
+  "sequence": 57,
+  "ticket": "SEEN-107",
+  "timestamp": "2026-09-24T20:46:47.143867+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 6,
+  "actor": "claude:implementer",
+  "session": "253bf8e84e82",
+  "head": "b4d171b7dd1d6cc6c806065979a5ba4336153f81",
+  "prev_hash": "ff009182826c5a613c4c782c7e21d527869ef06511d9c929504fe95ca85abbac",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "behaviour": "A failed deterministic check forces full depth and still asks, so the criteria are answered and an unevidenced one still returns the ticket, and the record carries what the model would have chosen beside what the rules enforced; tests_added is partly settled; a renamed ticket file is followed by its id",
+          "failure_reason": "jev.asked was False and criteria_answers was empty with a failed check, so no HarnessError was raised for the unevidenced criterion and would_exclude was []; 'tests_added' was not in the partly settled list; and the renamed ticket file was flagged as named by no slice while always_read still pointed at the old path",
+          "red": 53,
+          "green": 54
+        }
+      ],
+      "regression": 55,
+      "coverage_delta": 0.0
+    },
+    "decisions": []
+  }
+}

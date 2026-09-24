@@ -1362,5 +1362,71 @@ class RenamedTicketTest(FocusSetTest):
         self.assertTrue((self.root / renamed).is_file())
 
 
+class AskedHonestlyTest(ThreeCriteriaTest):
+    """K1: `asked` says whether pass two ran, and the reason says why not.
+
+    Three cases reach the same empty answers: no credential, a transport that
+    failed, and a reply nothing could be read from. The record said the same thing
+    about all three, and SEEN-109 counts `asked` to find the triages pass two ran
+    on.
+    """
+
+    def test_no_credential_is_recorded_as_no_request(self):
+        (self.root / '.env.local').unlink()
+        self.reach_review()
+        asked = self.triage()['data']['jev']
+
+        self.assertFalse(asked['asked'])
+        self.assertIn('no request was made', asked['reason'])
+        self.assertEqual(jev.TRANSPORT.sent, [])
+
+    def test_a_transport_that_failed_says_the_request_was_made(self):
+        self.reach_review()
+
+        def broken(endpoint, payload, credential, timeout):
+            raise OSError('the API is unreachable')
+
+        broken.sent = jev.TRANSPORT.sent
+        jev.TRANSPORT = broken
+        asked = self.triage()['data']['jev']
+
+        self.assertFalse(asked['asked'])
+        self.assertIn('did not answer', asked['reason'])
+
+    def test_a_request_that_answered_says_so_and_names_the_model(self):
+        self.reach_review()
+        asked = self.triage()['data']['jev']
+
+        self.assertTrue(asked['asked'])
+        self.assertIsNone(asked['reason'])
+        self.assertEqual(asked['model'], 'jev-1.13.0')
+
+    def test_a_rule_that_silenced_the_request_still_says_so_its_own_way(self):
+        self.reach_review(solution=solution_evidence(
+            migrations=['0003_add_triage.sql: a column'],
+            changes=['harness/thing.py: the behaviour',
+                     'harness/thresholds.toml: the settings these tests vary'],
+            slices=[dict(name='The behaviour', points=1,
+                         files=['harness/thing.py', 'harness/tests/test_thing.py'],
+                         red='The behaviour is absent')]))
+        asked = self.triage()['data']['jev']
+
+        self.assertFalse(asked['asked'])
+        self.assertIn('settled by rule', asked['reason'])
+
+
+class PartlySettledIsDocumentedTest(unittest.TestCase):
+    """K2: the canonical document and the code must name the same checks."""
+
+    def test_the_workflow_names_every_partly_settled_check(self):
+        from harness.tests.helpers import PROJECT
+
+        paragraph = (PROJECT / 'docs' / 'harness' / 'workflow.md').read_text()
+        for name in triage.PARTLY_SETTLED:
+            self.assertIn(name, paragraph,
+                          f'{name} passes on less than its name suggests and the document that '
+                          'describes the harness does not say so')
+
+
 if __name__ == '__main__':
     unittest.main()

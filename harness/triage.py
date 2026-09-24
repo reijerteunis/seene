@@ -645,6 +645,19 @@ def reviewer_task(ticket, sequence, depth, focus, results, shadow, always):
     return '\n'.join(lines)
 
 
+def _why_not(answered, credential_value, answers):
+    """Why pass two produced nothing, or nothing when it produced something."""
+    if answered is not None:
+        return None
+    if not credential_value:
+        return ('No Jev credential on this machine, so no request was made and every answer is '
+                'recorded as an absence')
+    reasons = sorted({answer['fallback_reason'] for answer in answers
+                      if answer['fallback_reason']})
+    said = 'The request was made and Jev did not answer'
+    return f'{said}: {"; ".join(reasons)}' if reasons else said
+
+
 def run(repository, records, current, rules, ticket, sequence):
     """The whole triage, as the data a `triage` record carries."""
     require(current['stage'] == 'review',
@@ -693,10 +706,15 @@ def run(repository, records, current, rules, ticket, sequence):
                      journal=journal_excerpts(records))
         answers = jev.ask_batch(repository.root, rules, asked, state, must_answer=False)
         answered = next((answer for answer in answers if answer['source'] == 'jev'), None)
-        requested = dict(asked=True,
+        # `asked` is whether pass two ran, which is what SEEN-109 counts to find
+        # the triages it can calibrate on, and three different things reach the
+        # same empty answers: no credential, a transport that failed, and a reply
+        # nothing could be read from. Saying a request was made when none left the
+        # machine is the overclaim K1 of the sixth review found, in the one field
+        # those earlier findings were about.
+        requested = dict(asked=answered is not None,
                          model=(answered or {}).get('model'),
-                         reason=None if answered else
-                                'The request was made and nothing came back that could be read',
+                         reason=_why_not(answered, jev.credential(repository.root), answers),
                          answers=answers)
 
     by_key = {answer['key']: answer for answer in answers}
