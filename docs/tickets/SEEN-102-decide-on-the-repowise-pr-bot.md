@@ -11,7 +11,7 @@ executor: human
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-098]
-status: review
+status: done
 ---
 # SEEN-102: Decide on the repowise PR bot for a private repository
 
@@ -23,7 +23,7 @@ status: review
 | Executor | human (Ruud) |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | review |
+| Status | done |
 
 ## Description
 
