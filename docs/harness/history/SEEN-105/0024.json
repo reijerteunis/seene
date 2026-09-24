@@ -1,0 +1,41 @@
+{
+  "sequence": 24,
+  "ticket": "SEEN-105",
+  "timestamp": "2026-09-24T12:23:54.480477+00:00",
+  "harness_version": "2",
+  "kind": "handoff",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "2377cfb62f89",
+  "head": "b4514baed7f52e528d1cb2f869d3660baaa8af6f",
+  "prev_hash": "63c5002dcb6b03424d3cc07a64baa6468b8a8f5225e74f6d03f782ebdc2a94bc",
+  "data": {
+    "pack": ".harness-drafts/SEEN-105-handoff.md",
+    "sha256": "fe5d1253c22201fa2cf44ee60e82f85a0ca776e9cb8c2766bfb0005d6c0729fc",
+    "estimated_tokens": 1041,
+    "token_limit": 2000,
+    "slice": {
+      "position": 2,
+      "total": 4,
+      "done": 1,
+      "declared": true,
+      "entry": {
+        "name": "The scout brief under a word cap",
+        "points": 1,
+        "files": [
+          "harness/cli.py",
+          "harness/thresholds.toml",
+          "harness/tests/test_agents.py"
+        ],
+        "red": "A 401-word brief passed to harness note is recorded as an ordinary note instead of being refused with the count and the cap, and a 400-word brief produces a record with no agent and no word count"
+      }
+    },
+    "figures": {
+      "session": "2377cfb62f89",
+      "output_tokens": 178462,
+      "tool_calls": 84,
+      "unavailable": null
+    }
+  }
+}
