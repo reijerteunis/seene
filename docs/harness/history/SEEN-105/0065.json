@@ -1,0 +1,71 @@
+{
+  "sequence": 65,
+  "ticket": "SEEN-105",
+  "timestamp": "2026-09-24T17:56:53.112826+00:00",
+  "harness_version": "2",
+  "kind": "receipt",
+  "stage": "deliver",
+  "attempt": 5,
+  "actor": "claude:implementer",
+  "session": "2377cfb62f89",
+  "head": "83df15b78eaeabeb17c5250999ba736a9b40bc3a",
+  "prev_hash": "65bc73eb4fd82b76f428fd942d4da1d0b72622035a8945f0c3c0a5d87f6a9a0b",
+  "data": {
+    "from_stage": "deliver",
+    "to_stage": "delivered",
+    "commit": "83df15b78eaeabeb17c5250999ba736a9b40bc3a",
+    "branch": "claude/SEEN-105-give-the-scout-and-the-reviewer-their-own",
+    "remote": "origin",
+    "tree": "9caf1ef6bc99bbfd63ba16ca9562a1c38127c2ff46482e53ab165aab94073767",
+    "pull_request": "https://github.com/reijerteunis/seene/pull/21",
+    "limits": [
+      "The Codex side is generated, not verified. The keys name, description, developer_instructions, sandbox_mode and model come from this ticket's own text and have never been read by a Codex release, because no Codex session has run on this repository. doctor checks that a copy matches its source, not that Codex accepts it, and the first Codex session settles it.",
+      "[agents] max_depth = 1 lives in .codex/config.toml, which this repository deliberately does not track, so nothing here can check that a Codex subagent may not spawn another. The skill tells a session to set it on its own machine.",
+      "The reviewer holds Bash, because it cannot read a diff without it, and Claude Code has no read-only Bash. On that side the reviewer is held to reading by its instructions and by holding no Edit and no Write, and nothing refuses a write it makes through a shell. Do not read this delivery as proof that a reviewer subagent cannot change the tree it reviews; that is SEEN-106.",
+      "reviewer_session is a declaration, not a proof. A Claude Code subagent inherits its parent's session id, so the gate refuses the case it can see, a session that wrote a record on this ticket, and cannot detect a value typed to pass. The control that stands where that matters is the cross-assistant review, which this ticket does not require of itself.",
+      "Criterion 5 is amended, not met as written. The measurement, the attribution and the report row are delivered and tested; no figure below the SEEN-099 baseline exists yet, and [context] agents_available_from keeps this ticket out of the row that will carry it. SEEN-106 produces the figure.",
+      "The fixes made after the third review were read by no reviewer. The review record attests the fixed tree, and its checks say so.",
+      "Nothing is deployed. This branch touches the harness, its documents and its generated copies only: no database table, no credential, no marketplace call, no TypeScript, and coverage on @seen/core unchanged at every attempt."
+    ],
+    "evidence": {
+      "remote": "origin",
+      "pull_request": "https://github.com/reijerteunis/seene/pull/21",
+      "limits": [
+        "The Codex side is generated, not verified. The keys name, description, developer_instructions, sandbox_mode and model come from this ticket's own text and have never been read by a Codex release, because no Codex session has run on this repository. doctor checks that a copy matches its source, not that Codex accepts it, and the first Codex session settles it.",
+        "[agents] max_depth = 1 lives in .codex/config.toml, which this repository deliberately does not track, so nothing here can check that a Codex subagent may not spawn another. The skill tells a session to set it on its own machine.",
+        "The reviewer holds Bash, because it cannot read a diff without it, and Claude Code has no read-only Bash. On that side the reviewer is held to reading by its instructions and by holding no Edit and no Write, and nothing refuses a write it makes through a shell. Do not read this delivery as proof that a reviewer subagent cannot change the tree it reviews; that is SEEN-106.",
+        "reviewer_session is a declaration, not a proof. A Claude Code subagent inherits its parent's session id, so the gate refuses the case it can see, a session that wrote a record on this ticket, and cannot detect a value typed to pass. The control that stands where that matters is the cross-assistant review, which this ticket does not require of itself.",
+        "Criterion 5 is amended, not met as written. The measurement, the attribution and the report row are delivered and tested; no figure below the SEEN-099 baseline exists yet, and [context] agents_available_from keeps this ticket out of the row that will carry it. SEEN-106 produces the figure.",
+        "The fixes made after the third review were read by no reviewer. The review record attests the fixed tree, and its checks say so.",
+        "Nothing is deployed. This branch touches the harness, its documents and its generated copies only: no database table, no credential, no marketplace call, no TypeScript, and coverage on @seen/core unchanged at every attempt."
+      ]
+    },
+    "checks": [
+      {
+        "name": "Harness tests (Python 3.12)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Knowledge graph",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Monorepo (Node 24)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Secrets and supply chain",
+        "conclusion": "success",
+        "runs": 1
+      }
+    ],
+    "coverage": {
+      "package": "@seen/core",
+      "lines": 100.0,
+      "delta": 0.0
+    }
+  }
+}
