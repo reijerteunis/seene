@@ -1,0 +1,16 @@
+{
+  "sequence": 13,
+  "ticket": "SEEN-104",
+  "timestamp": "2026-09-24T10:35:56.688364+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "7c81cdfdd5e9",
+  "head": "af8d61e87ad6497800ff3baeee1ed28fa0b9bf20",
+  "prev_hash": "cf9950a2484e470099bc484c2db558ec572e8bae46d6832f012cb99cb32fd1ec",
+  "data": {
+    "text": "# Slice boundary 1 of 3, kept by hand\n\n`harness handoff` is slice 2 of this ticket, so the first boundary is written as a note,\nwhich is the decision recorded in the clarify record at record 9. This is the pack, in the\nshape the command will produce.\n\n## Where the work stands\n\nStage tdd, attempt 1, records 1 to 12. Branch `claude/SEEN-104-cap-a-session-at-one-slice`,\nslice 1 green and committed at af8d61e. The full suite is 358 tests, OK, in 81 seconds.\n\nSlice 1, session identity and the slice-plan gate, is done: `[session]` in\n`harness/thresholds.toml`, `harness/sessions.py`, the session in the record envelope with\n`HARNESS_VERSION` at 2, `gates._slice_plan` with its two caps and the non-code exemption,\n`slices` in `harness/templates/solution.json`, and `harness/tests/test_session_cap.py`.\nRED at record 11 (6 failures, 8 errors), GREEN at record 12.\n\nRecords 13 onwards belong to slice 2, the handoff pack, its record and `status --brief`,\nthen slice 3, `budget`, the KPI figures, the sprint report row and the skill. Both are\nplanned in the solution record at record 10, with the files each touches.\n\n## What this session cost\n\n124,639 output tokens and 83 tool calls, against the 60,000 token budget this slice wrote\ninto `thresholds.toml`. Twice over, on the session that wrote the number.\n\nWhere it went: the clarify stage read eleven harness modules to answer what the ticket\ntouches, and `clarified` was read four times at 0.76 to 0.77 before Ruud recorded the\noverride at record 8. That is what a session pays to start a ticket cold, and it is the\ncase for the pack: the next session needs the ticket file, the solution record at record 10\nand this note, and nothing else. It should not read `cli.py`, `kpi.py` or `report.py` until\nslice 3 asks it to.\n\nThe figure is evidence for the budget rather than against it. The budget is what one\nsession should spend on one slice; this session spent it on a clarify stage, a solution\nstage and a slice, which is what the cap exists to stop.\n\n## The next command\n\n`python3 harness/run.py status SEEN-104`, then slice 2: write the RED for the pack in\n`harness/tests/test_session_cap.py`, `harness/run.py check SEEN-104 --phase red`, then\n`harness/handoff.py` and the `handoff` command with `handoff` added to `paths.KINDS`.\n"
+  }
+}
