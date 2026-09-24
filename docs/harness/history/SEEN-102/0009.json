@@ -1,0 +1,109 @@
+{
+  "sequence": 9,
+  "ticket": "SEEN-102",
+  "timestamp": "2026-09-24T07:31:39.708587+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "review",
+  "attempt": 1,
+  "actor": "claude:reviewer",
+  "head": "5554a005ecc5a05d693c0e9042058f9ad77717d3",
+  "prev_hash": "3e040243d1ca044170eb1f6c8582672c761089cb585c46fc01f4e89648c89506",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "deliver",
+    "evidence": {
+      "reviewer": "claude:reviewer",
+      "independence": "self-review",
+      "acceptance_evidence": [
+        "What the per-PR page shows is established by looking at one and recorded: record 2 carries the contents of the live example read without signing in, and the Outcome repeats it. The private-repository half is recorded as unresolved in three places with what would settle it, because establishing it requires the installation this ticket declines.",
+        "A decision is recorded under ## Outcome: declined, quoted from the founder's own words at record 3, with the grounds and the two conditions that reopen it.",
+        "The install-and-verify criterion is marked not applicable rather than ticked: nothing was installed, so there is no bot comment, and the checks in the non-code record say how to confirm that.",
+        "SEEN-098's fourth criterion now reads declined on 24 September with the grounds and a link here, so reading SEEN-098 alone tells the truth about what happened to its PR bot criterion."
+      ],
+      "findings": [
+        {
+          "id": "F1",
+          "severity": "medium",
+          "claim": "The first acceptance criterion asked for something the decision itself makes impossible",
+          "failure_scenario": "It asked for what a private repository's per-PR page shows, established by looking at one. Looking at one requires installing the bot on a private repository, which is the decision being made. A session under pressure to tick the box would have looked at the public example, called it established, and recorded a conclusion about private repositories drawn from a public one.",
+          "status": "resolved",
+          "resolution": "The criterion is rewritten to say what was established, the public example, and what was not, the private case, with what would settle it: repowise saying so, or an installation on a throwaway private repository. Recorded at record 2 and repeated in the Outcome."
+        },
+        {
+          "id": "F2",
+          "severity": "medium",
+          "claim": "Two sources contradict each other about whether the repository is cloned",
+          "failure_scenario": "The bot page says no clone; the pricing page says the repository is cloned onto an ephemeral indexing container. Reporting only the first would have told the founder his private tree never leaves GitHub, which is the opposite of what the vendor's own pricing page says, and it was the single most material fact in the decision.",
+          "status": "resolved",
+          "resolution": "Both are quoted at record 2 and in the Outcome, with the reading that reconciles them, the bot reading an index an indexer cloned to build, and the material fact stated plainly: repowise's servers would clone this private repository."
+        },
+        {
+          "id": "F3",
+          "severity": "low",
+          "claim": "A decision with no expiry becomes folklore",
+          "failure_scenario": "Recorded as a flat no, someone re-argues it in six months with no idea what would change the answer, or it stands unexamined after the repository goes public and the exposure it was refusing no longer exists.",
+          "status": "resolved",
+          "resolution": "Two named reopening conditions in the Outcome, not only in the journal: the repository becoming public, or repowise stating the page is access-controlled for private repositories."
+        }
+      ],
+      "checks": [
+        8
+      ],
+      "security_checklist": [
+        "Nothing was installed, authorised or paid for. No third party gained access to this repository.",
+        "No credential is in any record. The sources are public URLs and one gh query for the repository's visibility.",
+        "The decision itself is a security decision, recorded with its grounds so it can be re-examined rather than re-argued.",
+        "The change touches no money, no tenant data and no policy-gate action."
+      ],
+      "verdict": "pass",
+      "tree": "0e57be552a2a28226194cb7169eae2d68a4916604812e86bd1562be8a19f288e"
+    },
+    "decisions": [
+      {
+        "question": "severity",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high",
+          "blocking"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "medium",
+        "probabilities": {
+          "low": 0.1,
+          "medium": 0.48,
+          "high": 0.06,
+          "blocking": 0.36
+        },
+        "confidence": 0.12,
+        "score": 1.68,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      },
+      {
+        "question": "must_fix",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.17,
+          "no": 0.83
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.7,
+        "passed": false,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

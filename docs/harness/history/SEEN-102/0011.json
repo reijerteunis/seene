@@ -1,0 +1,15 @@
+{
+  "sequence": 11,
+  "ticket": "SEEN-102",
+  "timestamp": "2026-09-24T07:35:14.076069+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "head": "ec82d574b97a39c22ebddf2cae518428b5adfed6",
+  "prev_hash": "bbeb7e08e0f01e1f7ece2d00696961b43c7c4e0bcd4da8014b58bbf2e499c84e",
+  "data": {
+    "text": "# A file nobody wrote, committed by a flag nobody thought about\n\nCI refused this delivery because `AGENTS.md:74` links to\n`docs/tickets/SEEN-092-sync-the-harness-skill-to-Codex-and-codex.md`, which does not exist. The real\nfile is `...-to-claude-code-and-codex.md`.\n\nThe file is repowise's managed Codex entry point, written by `repowise agents add --target=codex`\nduring SEEN-098. It is `CLAUDE.md` with \"Claude Code\" replaced by \"Codex\" everywhere, by string\nsubstitution with no idea what the strings are. So the title became \"Seen: Codex entry point\", which is\nfine; a ticket's filename inside a link became `...-to-Codex-and-codex.md`, which is broken; its title\nbecame \"Sync the harness skill to Codex and Codex\", which is nonsense; and the branch rule became\n`Codex/<ticket-id>-…`, which is worse than nonsense, because a Codex session following it would branch\nwith a prefix every writing command in this harness refuses.\n\n`repowise init` was run with `--no-agents` in SEEN-098 for exactly this reason. `agents add` generates\nit anyway.\n\n**How it got committed is the part worth keeping.** It sat untracked in the tree from 24 September\nuntil `git add -A` in this ticket's park commit swept it in. Nobody read it. The rule it breaks is one\nthis session has had in front of it all day: before overwriting or committing, look at the target.\n`git add -A` is convenient and it is how an unread file gets a commit message that says something else.\n\nIt is removed and gitignored. Codex reads `.agents/skills/seen-harness/SKILL.md`, which `sync`\ngenerates from `docs/harness/skill.md` and `doctor` checks for drift, and that is the file that should\nbe telling a Codex session how to work.\n\nThe link checker caught it. That check exists because SEEN-086 decided a broken link in a document the\nassistants read is a defect, and this is the first time it has earned its place.\n"
+  }
+}

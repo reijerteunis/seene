@@ -1,0 +1,15 @@
+{
+  "sequence": 5,
+  "ticket": "SEEN-102",
+  "timestamp": "2026-09-24T07:09:53.193110+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "solution",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "debdee44a026404b5c054505282e0130246b8970",
+  "prev_hash": "010d1f42498a77441165401835b2eb113a957808628fdecc5de315317367d712",
+  "data": {
+    "text": "# Parked at solution: the first non-code ticket cannot reach non-code mode\n\nThe solution template carries `tests_first` as a non-empty list, so the solution gate requires it of\nevery ticket. Non-code mode is declared at tdd, which comes after. A ticket with no executable\nbehaviour therefore has to write tests it will never run in order to reach the stage where it says it\nhas no tests, and the only ways through are to invent them or to write a sentence explaining their\nabsence in a field that asks for a test command. Both are the placeholder the gate exists to refuse.\n\nThis is the first time it could show. SEEN-086 was exempt as the bootstrap, and every ticket since has\nbeen code. SEEN-102 is the first policy ticket to run the harness, and it found the hole on its second\ngate.\n\nThe decision this ticket exists to record is already made and already in the journal at record 3. What\nis blocked is the paperwork around it, which is the right thing to be blocked on and the wrong thing to\nwork around.\n\nSo it parks, SEEN-103 moves the mode declaration to the solution stage, and this ticket advances after,\nthe same way SEEN-096 parked twice for SEEN-100 and SEEN-101. Three tickets now, each one a gate that\nwas wrong rather than a record that was.\n"
+  }
+}

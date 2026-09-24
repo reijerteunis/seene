@@ -1,0 +1,78 @@
+{
+  "sequence": 4,
+  "ticket": "SEEN-102",
+  "timestamp": "2026-09-24T07:08:51.209813+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "debdee44a026404b5c054505282e0130246b8970",
+  "prev_hash": "b8516a8cf753ca000da6a030cc86a7768cc99dbabd95f365897c218166683963",
+  "data": {
+    "from_stage": "clarify",
+    "to_stage": "solution",
+    "evidence": {
+      "scope": "A recorded decision on whether to install the repowise PR bot on this private repository, with the evidence it was taken on; the edge is that nothing is installed, nothing is paid for, and no code changes.",
+      "acceptance": [
+        "What the per-PR page shows is established by looking at one and recorded: record 2 carries the contents of repowise.dev/pr/repowise-dev/repowise/1204, seen without signing in. What a private repository's page shows is recorded as unresolved, because establishing it requires installing the bot on a private repository, which is the decision itself.",
+        "A decision is recorded under ## Outcome: declined, in the founder's words at record 3, with the two conditions that would reopen it.",
+        "The install-and-verify criterion does not apply: nothing was installed, so there is no bot comment to record, and saying so is the evidence.",
+        "SEEN-098's fourth criterion is marked as decided rather than left open: its ticket file and its Blocks section now say declined and point here."
+      ],
+      "decisions": [
+        "Declined. Authority: Ruud, 24 September 2026, recorded verbatim at record 3. The grounds are Contents: Read over the whole private tree, repowise's servers cloning the repository to index it, an unresolved question about whether a private repository's per-PR page is public, 15 USD per month before the bot says anything on a private repository, and nothing in the harness depending on it.",
+        "Whether a private repository's analysis page is publicly readable is not established and is recorded as not established. Their README lists a public per-PR page with no sign-in as a feature with no carve-out for private repositories, and their /privacy and /security pages both return 404. What would settle it is repowise saying so, or an installation on a throwaway private repository; neither was done, because a decline needs neither.",
+        "This ticket is not being reopened by a future maintainer's opinion. Two named conditions reopen it: the repository becoming public, or repowise stating that a private repository's page is access-controlled. Taken by the implementer so that the decision has an expiry rather than becoming folklore.",
+        "The ticket is worked in non-code mode with change type policy. It produces a decision and two documentation edits and no executable behaviour, so there is nothing to prove with a test and inventing one would be theatre."
+      ],
+      "open_questions": [],
+      "changes_agent_action": false,
+      "graph_impact": []
+    },
+    "decisions": [
+      {
+        "question": "clarified",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.82,
+          "no": 0.18
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.8,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "question": "risk",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "low",
+        "probabilities": {
+          "low": 0.97,
+          "medium": 0.01,
+          "high": 0.02
+        },
+        "confidence": 0.92,
+        "score": 0.05,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

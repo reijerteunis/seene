@@ -1,0 +1,27 @@
+{
+  "sequence": 14,
+  "ticket": "SEEN-102",
+  "timestamp": "2026-09-24T07:37:37.393214+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "review",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "head": "ec82d574b97a39c22ebddf2cae518428b5adfed6",
+  "prev_hash": "2222218e00f7413c12ab524c0596e161238fe43c32faff964fda43e1c2647009",
+  "data": {
+    "command": [
+      "python3",
+      "harness/run.py",
+      "doctor"
+    ],
+    "phase": "qa",
+    "exit_code": 0,
+    "duration_ms": 892,
+    "output": "{\n  \"ok\": true,\n  \"checked\": [\n    \"python\",\n    \"thresholds\",\n    \"templates\",\n    \"journals\",\n    \"append_only\",\n    \"gitignore\",\n    \"hooks\",\n    \"skill\",\n    \"ticket_status\",\n    \"marketplace_hosts\",\n    \"links\"\n  ],\n  \"problems\": []\n}\n",
+    "output_sha256": "9d29c9bebe6f3d7073ac39860a85c21a442e4003f24c7b6b1e77459cd342c271",
+    "output_truncated": false,
+    "before": "38fa2b0f3f91f2c583800720299188aa8f92aa2e5d15bb04b261c723e3377337",
+    "after": "38fa2b0f3f91f2c583800720299188aa8f92aa2e5d15bb04b261c723e3377337"
+  }
+}
