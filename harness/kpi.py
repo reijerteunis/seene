@@ -219,7 +219,7 @@ def review_triage(records, reviewer_tokens=None):
                 # at the one the rules enforced, so the row carries both: a
                 # calibration that averages the share without knowing which is
                 # which counts a saving on tickets where nothing could have been
-                # saved. M3 of the seventh review.
+                # saved. M3 of the seventh review, guarded from the eighth.
                 model_depth=data.get('model_depth'),
                 shadow=data.get('shadow'),
                 asked=(data.get('jev') or {}).get('asked'),

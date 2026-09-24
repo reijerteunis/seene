@@ -1,0 +1,19 @@
+{
+  "sequence": 92,
+  "ticket": "SEEN-107",
+  "timestamp": "2026-09-24T22:09:26.333597+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 10,
+  "actor": "claude:implementer",
+  "session": "253bf8e84e82",
+  "head": "637eb0c8ab5eab835722bb222e5f067bbf9787d2",
+  "prev_hash": "ce292257e3345fedfba0592c7e93c2fd7552665ca67c649a3dfe7b34f29ab914",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 11,
+    "reason": "Eighth review, two findings, both mine. N1: the model_depth field added to kpi.review_triage in attempt 10 has no test at all. The reviewer proved it by mutation, deleting the line and finding 208 tests still green, and the cited RED at record 85 failed only on the slice-cap assertions, so a third of the behaviour record 89 states was written with no failing test in front of it. That is precisely what red_before_green cannot see and why it is partly settled. N2: the Outcome section is stale, and worse than the review says. Three separate amendments to it silently did nothing, because the scripts used str.replace without asserting the match, so the ticket file still says seven attempts and six rework slices against a journal holding ten attempts and nine returns, and the two paragraphs describing the largest defect found on this ticket, the cap that dropped the oldest slices, were never written at all."
+  }
+}

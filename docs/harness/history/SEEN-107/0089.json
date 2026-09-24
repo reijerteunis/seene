@@ -1,0 +1,31 @@
+{
+  "sequence": 89,
+  "ticket": "SEEN-107",
+  "timestamp": "2026-09-24T21:53:32.733757+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 10,
+  "actor": "claude:implementer",
+  "session": "253bf8e84e82",
+  "head": "637eb0c8ab5eab835722bb222e5f067bbf9787d2",
+  "prev_hash": "3453cd559045ffb9f6ca6e3ffe21d22b3ce6b9dcd4b0db890d114993893462a2",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "behaviour": "No proved slice is ever dropped from the Jev state; what the cap trims is the runner output of the older slices, and the kpi row says which depth its excluded share was measured at",
+          "failure_reason": "AssertionError: lists differ, the state began at 'slice 8' with twenty proved, so the first eight were gone; 'slice 8' != 'slice 0' for the oldest; and AttributeError: no MAX_SLICE_OUTPUTS",
+          "red": 85,
+          "green": 86
+        }
+      ],
+      "regression": 87,
+      "coverage_delta": 0.0
+    },
+    "decisions": []
+  }
+}

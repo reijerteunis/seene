@@ -658,7 +658,7 @@ class TriageFiguresTest(unittest.TestCase):
 
     def journal(self, **changes):
         from harness.tests.test_kpi import record
-        data = dict(review_depth='spot', shadow=True, excluded_share=0.42,
+        data = dict(review_depth='full', model_depth='spot', shadow=True, excluded_share=0.42,
                     files=[dict(path='a'), dict(path='b'), dict(path='c')],
                     focus=['a', 'b', 'c'], would_exclude=['b', 'c'],
                     jev=dict(asked=True, model='jev-1.13.0', answers=[]))
@@ -674,13 +674,35 @@ class TriageFiguresTest(unittest.TestCase):
     def test_the_figures_carry_the_depth_the_counts_and_the_excluded_share(self):
         figures = kpi.measure(self.journal(), 'SEEN-001')['review_triage']
 
-        self.assertEqual(figures['depth'], 'spot')
+        self.assertEqual(figures['depth'], 'full')
         self.assertTrue(figures['shadow'])
         self.assertEqual(figures['files'], 3)
         self.assertEqual(figures['focus'], 3)
         self.assertEqual(figures['excluded'], 2)
         self.assertEqual(figures['excluded_share'], 0.42)
         self.assertEqual(figures['record'], 3)
+
+    def test_the_row_says_which_depth_its_excluded_share_was_measured_at(self):
+        """N1: the field went in at attempt 10 with no test, found by mutation.
+
+        The share is measured at the depth the model chose and the focus set is
+        the one the rules enforced, so a row carrying only one of the two cannot
+        say whether the saving it reports was ever available. SEEN-109 divides on
+        this row and reshapes it, and nothing failed when the field was deleted.
+        """
+        figures = kpi.measure(self.journal(), 'SEEN-001')['review_triage']
+
+        self.assertEqual(figures['model_depth'], 'spot')
+        self.assertNotEqual(figures['model_depth'], figures['depth'],
+                            'A rule forced full depth here, so the share is what spot would '
+                            'have dropped and not what this review saved')
+
+    def test_a_row_whose_two_depths_agree_reports_a_saving_that_was_available(self):
+        figures = kpi.measure(self.journal(review_depth='spot'),
+                              'SEEN-001')['review_triage']
+
+        self.assertEqual(figures['depth'], 'spot')
+        self.assertEqual(figures['model_depth'], 'spot')
 
     def test_the_reviewer_s_output_tokens_are_carried_when_they_are_known(self):
         figures = kpi.measure(self.journal(), 'SEEN-001',

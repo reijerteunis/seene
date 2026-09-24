@@ -56,8 +56,8 @@ The review is the most expensive read in the procedure: a model reads the whole 
 
 ## Outcome
 
-Delivered on 24 September 2026 in seven attempts, three slices and six rework
-slices, one session by the digest: `253bf8e84e82`. The return was the triage's
+Delivered on 25 September 2026 in eleven attempts, three planned slices and nine
+rework slices, one session by the digest: `253bf8e84e82`. The return was the triage's
 own doing: run on this branch at record 19 it flagged the four files `sync`
 generates as changed but named by no slice, while the solution record named both
 their sources. A generated copy has no review surface of its own, because
@@ -208,3 +208,35 @@ named rather than listed as settled: `red_before_green`, `acceptance_entries` an
 `tests_added`. A ticket renamed after it started is followed by `cli.ticket_file`,
 the one resolver `_ticket_text` already used, rather than by a second reading of
 record 1.
+
+**What the reviews cost, and what they were worth.** Eight reviews and nine
+returns, and every return was earned. Three of them found a previous attempt's fix
+to be half right, which is the pattern worth recording: making an elided Jev answer
+cheap instead of fatal left `focus_set` scoring that absence zero and dropping the
+file from a spot review; separating the enforced depth from the model's own left
+the slice cap keeping the newest twelve slices and dropping the oldest, which is
+the rework kept and the planned work dropped, so past the bound the slices that
+evidence most criteria would have vanished and the false unevidenced answers would
+have come back; and the guard on that cap asserted only that the constant equalled
+twelve, so it passed with the capping removed, reversed or pointed at either end.
+No slice is dropped now: what is capped is the runner output, and the guard builds
+twenty slices and asserts which end keeps what.
+
+Two findings were failures of procedure rather than of code, and both are worth
+more than the code they cost. The ticket file was left at `status: doing` through
+a review advance, which the reviewed-tree fingerprint then locked, and `doctor`
+would have refused the ticket only after the receipt had moved it past repair, so
+it would have delivered and been unable to merge; `doctor` now wants `review` at
+the deliver stage, which is the rule CLAUDE.md already stated and nothing enforced.
+And `model_depth` went into the KPI row with no test at all: the eighth review
+proved it by deleting the line and finding the suite still green, and the cited RED
+for that slice had failed only on the other two thirds of what the record claimed.
+That is exactly what `red_before_green` cannot see, which is why it is one of the
+three checks handed to the reviewer with its remainder named rather than listed as
+settled.
+
+Three amendments to this section silently did nothing before the eighth review
+caught it, because the scripts that wrote them called `str.replace` without
+asserting the match. The record a later reader consults is this file, not the
+ninety-odd journal records behind it, so an edit to it that quietly fails is an
+evidence defect and not a typo.
