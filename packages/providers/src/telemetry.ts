@@ -169,6 +169,10 @@ export function otlpTelemetryProvider(env: Environment): TelemetryProvider {
     },
 
     async flush() {
+      // The batch is taken before the send, so a failed export drops it rather
+      // than retrying it forever behind everything queued after it. Telemetry is
+      // not the thing to hold a process up, and locally the collector is either
+      // running or it is not.
       const batch = pending.splice(0, pending.length);
       await send(batch);
     },

@@ -1,0 +1,24 @@
+{
+  "sequence": 15,
+  "ticket": "SEEN-097",
+  "timestamp": "2026-09-24T08:25:42.675784+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "review",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "b292bc5fc817ee822cc5dbe429fb6f277bca8bf6",
+  "prev_hash": "784edf0dbdee22afd04f84094efea12054fc626e53b7c48d1996530692b4a856",
+  "data": {
+    "source": "repowise",
+    "mode": "risk",
+    "command": [
+      "repowise",
+      "risk"
+    ],
+    "exit_code": 0,
+    "duration_ms": 1110,
+    "answer": "Sampling up to 200 recent commits…\n\nBenchmarked review priority: Elevated · 78th percentile of recent commits by size and spread\n  Larger or more dispersed than most commits in this repo.\n\nChange risk for HEAD: touches files that have broken before · 46th percentile of this repo's recent commits\n  feat(SEEN-097): run the whole stack on a laptop, with the cloud as a switch\n  +3731 / -24 lines · 57 files · 16 dirs · 15 subsystems · entropy 4.67 · author exp 131\n┏━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━┓\n┃ File                     ┃ Lines ┃ Prior fixes ┃\n┡━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━╇━━━━━━━━━━━━━┩\n│ .github/workflows/ci.yml │    43 │         4.0 │\n│ package.json             │     6 │         1.0 │\n│ pnpm-lock.yaml           │   878 │         1.0 │\n│ .env.example             │    43 │         1.0 │\n└──────────────────────────┴───────┴─────────────┘\n  Prior fixes are recency-weighted against this change's own date — one from a year earlier counts a half.\n  Diff-size score: 9.7/10 — how big and spread out the change is, not where it lands. Corpus-anchored to a single commit.\n Diff shape (each driver vs. the model's baseline commit)  \n┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━┓\n┃ Driver                                ┃   Value ┃  Push ┃\n┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━┩\n│ more lines added than baseline        │    3731 │ +4.60 │\n│ more scattered than baseline          │ 4.67357 │ +0.79 │\n│ more experienced author than baseline │     131 │ -0.06 │\n│ more lines deleted than baseline      │      24 │ +0.02 │\n└───────────────────────────────────────┴─────────┴───────┘\n",
+    "answer_truncated": false
+  }
+}

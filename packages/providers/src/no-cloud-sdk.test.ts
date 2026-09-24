@@ -53,6 +53,24 @@ describe('the cloud SDK boundary', () => {
     ]);
   });
 
+  it('gives the line of an import broken over several lines', () => {
+    const root = mkdtempSync(join(tmpdir(), 'seen-boundary-'));
+    mkdirSync(join(root, 'apps', 'api', 'src'), { recursive: true });
+
+    writeFileSync(
+      join(root, 'apps', 'api', 'src', 'wrapped.ts'),
+      ['// a comment', 'const x = 1;', 'import {', '  Storage,', "} from '@google-cloud/storage';", ''].join(
+        '\n',
+      ),
+    );
+
+    // Line 3, where the statement starts. Searching the file for the matched text
+    // finds nothing when the match spans lines, and reported 0.
+    expect(findCloudSdkImports(root)).toEqual([
+      { file: 'apps/api/src/wrapped.ts', line: 3, specifier: '@google-cloud/storage' },
+    ]);
+  });
+
   it('names every SDK the rule is about, so adding one is a deliberate edit', () => {
     expect(CLOUD_SDK_PREFIXES).toContain('@google-cloud/');
     expect(CLOUD_SDK_PREFIXES).toContain('@aws-sdk/');

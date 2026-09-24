@@ -98,14 +98,19 @@ export function findCloudSdkImports(root: string): CloudSdkImport[] {
       if (EXEMPT.some((exempt) => file.startsWith(`${exempt}/`))) continue;
 
       const text = readFileSync(path, 'utf8');
-      const lines = text.split('\n');
 
       for (const pattern of SPECIFIER_PATTERNS) {
         for (const match of text.matchAll(pattern)) {
           const specifier = match[1];
           if (specifier === undefined || !isCloudSdk(specifier)) continue;
 
-          const line = lines.findIndex((candidate) => candidate.includes(match[0].trim())) + 1;
+          // Counted from the offset rather than by searching for the matched text:
+          // an import broken over several lines is not on any single one. The
+          // patterns open with (^|\s), which on a match mid-file is the newline
+          // ending the line before, so the leading whitespace is stepped over
+          // first or every finding is reported one line early.
+          const start = match.index + (match[0].length - match[0].trimStart().length);
+          const line = text.slice(0, start).split('\n').length;
           found.push({ file, line, specifier });
         }
       }
