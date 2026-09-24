@@ -14,6 +14,11 @@ from .errors import HarnessError, require
 from .paths import ENUMERATED_KEYS, NON_CODE_TEMPLATE, TEMPLATE_FOR_STAGE, TEMPLATES
 
 MODES = ('code', 'non-code')
+# How a review discloses whose context it came from. A subagent is a context
+# boundary and not independence by itself, so it is its own word rather than a
+# second meaning of independent: the escaped-defect figures are read per kind
+# later, and a word covering both could not answer which kind caught what.
+INDEPENDENCE = ('independent', 'subagent', 'self-review')
 SLICE_KEYS = ('name', 'points', 'files', 'red')
 POLICY_GATE_ACTION_KEYS = ('reversibility', 'action_type', 'euro_impact_estimator')
 FINDING_KEYS = ('id', 'severity', 'claim', 'failure_scenario', 'status', 'resolution')
@@ -44,7 +49,7 @@ def mode_of(data):
     return data.get('mode', 'code')
 
 
-def for_mode(template, stage, mode):
+def for_mode(template, stage, mode, data=None):
     """The fields a stage requires of this kind of ticket.
 
     A non-code ticket has no tests to write first, and until SEEN-103 it had to
@@ -55,6 +60,12 @@ def for_mode(template, stage, mode):
     if stage == 'solution' and mode == 'non-code':
         return {key: value for key, value in template.items()
                 if key not in ('tests_first', 'slices')}
+    # A review names the reviewer's session only when it discloses a subagent,
+    # which is the one disclosure the gate checks the value against. A review by
+    # the other assistant has a context of its own by construction, and on a
+    # self-review the value would only restate the implementer's own session.
+    if stage == 'review' and (data or {}).get('independence') != 'subagent':
+        return {key: value for key, value in template.items() if key != 'reviewer_session'}
     return template
 
 
@@ -290,14 +301,63 @@ def _review(data, records, current, repository, thresholds):
                 'This change touches billing or the policy gate, so the review needs a '
                 'second_reviewer and a security checklist')
         require(data.get('security_checklist'), 'The security checklist must be answered')
-    require(data['independence'] in ('independent', 'self-review'),
-            'Disclose independence as independent or self-review')
+    require(data['independence'] in INDEPENDENCE,
+            f'Disclose independence as {", ".join(INDEPENDENCE)}')
+    worked_by = _tools_of(records)
     if data['independence'] == 'independent':
-        tools = {record['actor'].split(':')[0] for record in records}
+        tools = set(worked_by)
         tools.add(str(data['reviewer']).split(':')[0])
         require(len(tools) > 1,
                 'A review is not independent when one tool wrote every record on this ticket')
+    if data['independence'] == 'subagent':
+        _require_another_context(data, records, current)
+    if _needs_two_reviewers(records):
+        named = {str(data.get('reviewer') or '').split(':')[0],
+                 str(data.get('second_reviewer') or '').split(':')[0]}
+        require(named - worked_by,
+                'This change touches billing or the policy gate, so the review comes from the '
+                f'other assistant: {", ".join(sorted(worked_by))} wrote this ticket and '
+                f'{", ".join(sorted(name for name in named if name))} reviewed it. A subagent is '
+                'a context boundary, not independence by itself, and a declared session cannot '
+                'stand in for it where a missed defect costs money')
     return dict(tree=repository.fingerprint())
+
+
+def _tools_of(records):
+    """The tools that wrote this ticket's records, read from the actor on each."""
+    return {record['actor'].split(':')[0] for record in records if record.get('actor')}
+
+
+def _sessions_of(records, attempt):
+    """Sessions that wrote this attempt's own records, which a reviewer's cannot be."""
+    return {record.get('session') for record in records
+            if record.get('attempt') == attempt and record.get('session')}
+
+
+def _require_another_context(data, records, current):
+    """A subagent review names a session, and not one the implementer worked in.
+
+    A Claude Code subagent inherits its parent's session id, observed and recorded
+    in SEEN-105's journal at record 7, so the harness cannot derive this and the
+    record declares it. The gate refuses what it can see: a value that is one of
+    the sessions which wrote this attempt's records, or the session running the
+    advance. A value typed to pass is not detectable and the gate does not pretend
+    to detect it; what stands where that matters is the cross-tool review.
+    """
+    from . import sessions
+    declared = str(data.get('reviewer_session') or '').strip()
+    require(declared,
+            'A subagent review must name the reviewer_session it came from. The harness cannot '
+            'read it, because a subagent inherits its parent session id, so the session that '
+            'spawned the reviewer records the identifier it gave it')
+    own = _sessions_of(records, current['attempt'])
+    running = sessions.current()
+    if running:
+        own.add(running)
+    require(declared not in own,
+            f'{declared} is a session that worked this ticket, so a review from it is a '
+            'self-review however it is disclosed. Disclose it as self-review, or have the review '
+            'done in a context that did not write the code')
 
 
 GATES = {'clarify': _clarify, 'solution': _solution, 'tdd': _tdd, 'review': _review}
@@ -323,6 +383,11 @@ def evaluate(stage, data, records, current, repository, thresholds):
         require(mode_of(data) in MODES,
                 f'Unknown mode: {data.get("mode")!r}; use {" or ".join(MODES)}')
     template = load_template(repository.root, stage, data.get('mode'))
-    require_template_fields(for_mode(template, stage, mode_of(data)), data)
-    reject_placeholders(template, data)
+    # Both checks read the same shape. A field this kind of record does not carry
+    # is not required and its example is not placeholder text either: a non-code
+    # solution record that left the tests_first example in place would otherwise
+    # be refused for prose the gate had just decided not to ask for.
+    shaped = for_mode(template, stage, mode_of(data), data)
+    require_template_fields(shaped, data)
+    reject_placeholders(shaped, data)
     return gate(data, records, current, repository, thresholds)

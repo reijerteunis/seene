@@ -6,6 +6,7 @@ thresholds.toml.
 """
 
 import json
+import os
 
 from harness import gates, thresholds
 from harness.errors import HarnessError
@@ -304,6 +305,126 @@ class ReviewGateTest(GateTest):
         records = self.tdd_done(actors=('claude:implementer', 'claude:implementer'))
         self.evaluate('review', self.review(independence='independent', reviewer='codex:reviewer'),
                       records=records)
+
+
+
+class SubagentReviewTest(ReviewGateTest):
+    """A review from a context of its own, and the one case the gate can detect.
+
+    A Claude Code subagent inherits its parent's session id, observed and recorded
+    in SEEN-105's journal at record 7, so the harness cannot derive a reviewer's
+    context and the record declares it. What the gate refuses is the case it can
+    see: a review that names a session which wrote this attempt's own records.
+    """
+
+    def in_session(self, session='aaaaaaaaaaaa', actors=('claude:implementer',)):
+        records = self.tdd_done(actors=actors)
+        for record in records:
+            record['session'] = session
+        return records
+
+    def test_an_unknown_disclosure_is_refused(self):
+        with self.assertRaisesRegex(HarnessError, 'independence'):
+            self.evaluate('review', self.review(independence='another-context'),
+                          records=self.in_session())
+
+    def test_a_subagent_review_must_name_the_session_it_came_from(self):
+        with self.assertRaisesRegex(HarnessError, 'reviewer_session'):
+            self.evaluate('review', self.review(independence='subagent', reviewer_session=''),
+                          records=self.in_session())
+
+    def test_a_subagent_review_from_the_implementers_own_session_is_refused(self):
+        with self.assertRaisesRegex(HarnessError, 'aaaaaaaaaaaa'):
+            self.evaluate('review',
+                          self.review(independence='subagent', reviewer_session='aaaaaaaaaaaa'),
+                          records=self.in_session())
+
+    def test_a_subagent_review_from_another_session_passes(self):
+        self.evaluate('review',
+                      self.review(independence='subagent', reviewer_session='bbbbbbbbbbbb'),
+                      records=self.in_session())
+
+    def test_the_session_running_the_advance_cannot_be_the_reviewer(self):
+        from harness import sessions
+        os.environ['CLAUDE_CODE_SESSION_ID'] = 'the-session-running-advance'
+        self.addCleanup(os.environ.pop, 'CLAUDE_CODE_SESSION_ID', None)
+        mine = sessions.digest('the-session-running-advance')
+        with self.assertRaisesRegex(HarnessError, mine):
+            self.evaluate('review', self.review(independence='subagent', reviewer_session=mine),
+                          records=self.in_session())
+
+    def test_a_review_by_the_other_assistant_names_no_session(self):
+        """It has a context of its own by construction, so the field is not asked for."""
+        data = self.review(independence='independent', reviewer='codex:reviewer')
+        data.pop('reviewer_session', None)
+        self.evaluate('review', data, records=self.in_session())
+
+    def test_a_self_review_names_no_session_either(self):
+        data = self.review()
+        data.pop('reviewer_session', None)
+        self.evaluate('review', data, records=self.in_session())
+
+
+class TwoReviewerTest(ReviewGateTest):
+    """What a ticket that touches billing or the policy gate still owes.
+
+    A subagent is a context boundary and not independence by itself. Where a
+    missed defect costs money, the review comes from the other assistant, and a
+    declared session that cannot be verified is not allowed to stand in for it.
+    """
+
+    CHECKLIST = ['No secret in the diff', 'No live marketplace call in a test']
+
+    def billing_journal(self, actors=('claude:implementer',)):
+        records = [dict(sequence=1, kind='start', stage='clarify', attempt=1,
+                        actor=actors[0], session='aaaaaaaaaaaa', data={}),
+                   dict(sequence=2, kind='advance', stage='solution', attempt=1,
+                        actor=actors[0], session='aaaaaaaaaaaa',
+                        data=dict(from_stage='solution', to_stage='tdd', evidence={},
+                                  decisions=[dict(question='touches_billing_or_policy_gate',
+                                                  outcome='yes')])),
+                   dict(sequence=3, kind='advance', stage='tdd', attempt=1, actor=actors[-1],
+                        session='aaaaaaaaaaaa',
+                        data=dict(from_stage='tdd', to_stage='review',
+                                  evidence=dict(regression=0), decisions=[]))]
+        return records
+
+    def test_it_still_needs_a_second_reviewer(self):
+        with self.assertRaisesRegex(HarnessError, 'second_reviewer'):
+            self.evaluate('review', self.review(independence='independent',
+                                                reviewer='codex:reviewer'),
+                          records=self.billing_journal())
+
+    def test_it_still_needs_the_security_checklist(self):
+        with self.assertRaisesRegex(HarnessError, 'checklist'):
+            self.evaluate('review', self.review(independence='independent',
+                                                reviewer='codex:reviewer',
+                                                second_reviewer='codex:reviewer',
+                                                security_checklist=[]),
+                          records=self.billing_journal())
+
+    def test_a_subagent_of_the_implementers_own_tool_is_not_enough(self):
+        with self.assertRaisesRegex(HarnessError, 'other assistant'):
+            self.evaluate('review', self.review(independence='subagent',
+                                                reviewer='claude:reviewer',
+                                                reviewer_session='bbbbbbbbbbbb',
+                                                second_reviewer='claude:reviewer',
+                                                security_checklist=self.CHECKLIST),
+                          records=self.billing_journal())
+
+    def test_the_other_assistant_as_the_second_reviewer_is_enough(self):
+        self.evaluate('review', self.review(independence='subagent',
+                                            reviewer='claude:reviewer',
+                                            reviewer_session='bbbbbbbbbbbb',
+                                            second_reviewer='codex:reviewer',
+                                            security_checklist=self.CHECKLIST),
+                      records=self.billing_journal())
+
+    def test_an_ordinary_ticket_needs_neither(self):
+        self.evaluate('review',
+                      self.review(independence='subagent', reviewer_session='bbbbbbbbbbbb'),
+                      records=self.in_session() if hasattr(self, 'in_session')
+                      else self.tdd_done())
 
 
 if __name__ == '__main__':
