@@ -128,3 +128,70 @@ class AppendOnlyScopeTest(DoctorTest):
 
         problems = self.report()['problems']
         self.assertTrue(any('0001.json' in problem for problem in problems), problems)
+
+
+class DeliverStatusTest(DoctorTest):
+    """The rule CLAUDE.md states and nothing enforced until SEEN-107.
+
+    The reviewed-tree fingerprint covers the ticket file, so `status: review` has
+    to be in the tree before the review advance, exactly as the `## Outcome`
+    section does. Nothing refused it: any working status passed while the journal
+    sat at deliver, and the mismatch was reported only once the receipt had moved
+    the ticket to delivered, by which point `verify_merge` will not let the ticket
+    file change either. A ticket could deliver and then be unable to merge, which
+    is what happened to SEEN-107 itself.
+    """
+
+    def reach_deliver(self):
+        from harness.tests.test_lifecycle import clarify_evidence, solution_evidence
+        self.run_harness('start', self.ticket_id, '--ticket', self.ticket_file,
+                         '--actor', 'claude:implementer')
+        self.submit('clarify', clarify_evidence())
+        self.submit('solution', solution_evidence())
+        red = self.run_harness('check', self.ticket_id, '--phase', 'red', '--actor',
+                               'claude:implementer', '--', 'sh', '-c', 'exit 1')
+        green = self.run_harness('check', self.ticket_id, '--phase', 'green', '--actor',
+                                 'claude:implementer', '--', 'true')
+        regression = self.run_harness('check', self.ticket_id, '--phase', 'regression',
+                                      '--actor', 'claude:implementer', '--', 'true')
+        self.write('packages/core/coverage/coverage-summary.json',
+                   '{"total": {"lines": {"total": 10, "covered": 9, "skipped": 0, "pct": 90.0}}}')
+        self.run_harness('coverage', self.ticket_id, '--actor', 'claude:implementer', '--', 'true')
+        self.submit('tdd', dict(mode='code', regression=regression['sequence'],
+                                coverage_delta=None,
+                                slices=[dict(behaviour='The thing', failure_reason='It was absent',
+                                             red=red['sequence'], green=green['sequence'])]))
+        self.submit('review', dict(reviewer='codex:reviewer', independence='independent',
+                                   read=['harness/journal.py'],
+                                   acceptance_evidence=['Covered'], findings=[], checks=[],
+                                   security_checklist=[], verdict='pass'),
+                    actor='codex:reviewer')
+
+    def set_status(self, status):
+        path = self.root / self.ticket_file
+        path.write_text(path.read_text().replace('status: doing', f'status: {status}'))
+
+    def test_a_ticket_at_deliver_still_saying_doing_is_reported(self):
+        self.reach_deliver()
+        problems = doctor.report(Repository(self.root), thresholds.load(self.root))['problems']
+
+        self.assertTrue(any('doing' in problem and self.ticket_id in problem
+                            for problem in problems),
+                        'It has passed review, so the ticket file has to say so before the '
+                        'fingerprint locks: ' + '; '.join(problems))
+
+    def test_review_is_what_the_deliver_stage_wants(self):
+        self.reach_deliver()
+        self.set_status('review')
+
+        self.assertEqual(doctor.report(Repository(self.root),
+                                       thresholds.load(self.root))['problems'], [])
+
+    def test_doing_is_still_fine_before_the_review_gate(self):
+        from harness.tests.test_lifecycle import clarify_evidence
+        self.run_harness('start', self.ticket_id, '--ticket', self.ticket_file,
+                         '--actor', 'claude:implementer')
+        self.submit('clarify', clarify_evidence())
+
+        self.assertEqual(doctor.report(Repository(self.root),
+                                       thresholds.load(self.root))['problems'], [])

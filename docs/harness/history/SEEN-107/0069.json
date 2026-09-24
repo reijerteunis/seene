@@ -1,0 +1,19 @@
+{
+  "sequence": 69,
+  "ticket": "SEEN-107",
+  "timestamp": "2026-09-24T21:15:46.049072+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "deliver",
+  "attempt": 7,
+  "actor": "claude:implementer",
+  "session": "253bf8e84e82",
+  "head": "ddc8b5c88f225e9108a7e56e018584047984cca1",
+  "prev_hash": "78728a8a1a75f244e77c5b4638044c2f36b014e381d56c51eb1e47c905a54027",
+  "data": {
+    "from_stage": "deliver",
+    "to_stage": "tdd",
+    "to_attempt": 8,
+    "reason": "A procedural miss of my own, caught by reading delivery rather than by any check. CLAUDE.md says to set status: review when every acceptance criterion is checked, and the reviewed-tree fingerprint covers the ticket file, so that edit has to be in the tree before the review advance exactly as the Outcome does. I wrote the Outcome and left the status at doing. Nothing refuses it: doctor allows any working status while the journal is at deliver, and only reports it once the receipt has moved the ticket to delivered, by which point verify_merge will not let the ticket file change either, because it is not in DELIVERY_WRITES. CI runs doctor, so the ticket would deliver and then be unable to merge. Returning to set the status, and tightening doctor so the deliver stage requires review rather than any working status, which is the rule CLAUDE.md already states and nothing enforced."
+  }
+}

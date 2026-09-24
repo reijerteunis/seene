@@ -1,0 +1,285 @@
+{
+  "sequence": 68,
+  "ticket": "SEEN-107",
+  "timestamp": "2026-09-24T21:13:25.729014+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "review",
+  "attempt": 7,
+  "actor": "claude:implementer",
+  "session": "253bf8e84e82",
+  "head": "ddc8b5c88f225e9108a7e56e018584047984cca1",
+  "prev_hash": "5ca362be983052b729d3ac868d1a7a0eeb5fe2ff602b7e039728bedda709c7fd",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "deliver",
+    "evidence": {
+      "reviewer": "claude:reviewer",
+      "independence": "self-review",
+      "read": [
+        ".agents/skills/seen-harness/SKILL.md",
+        ".claude/agents/seen-reviewer.md",
+        ".claude/skills/seen-harness/SKILL.md",
+        ".codex/agents/seen-reviewer.toml",
+        "docs/harness/skill.md",
+        "docs/harness/workflow.md",
+        "docs/tickets/SEEN-107-let-jev-settle-what-the-review-can-settle.md",
+        "harness/agents/seen-reviewer.md",
+        "harness/cli.py",
+        "harness/cost.py",
+        "harness/delivery.py",
+        "harness/gates.py",
+        "harness/jev.py",
+        "harness/kpi.py",
+        "harness/paths.py",
+        "harness/repository.py",
+        "harness/templates/review.json",
+        "harness/tests/helpers.py",
+        "harness/tests/test_context_budget.py",
+        "harness/tests/test_delivery.py",
+        "harness/tests/test_enforcement.py",
+        "harness/tests/test_question_criteria.py",
+        "harness/tests/test_reopen.py",
+        "harness/tests/test_stage_gates.py",
+        "harness/tests/test_triage.py",
+        "harness/thresholds.toml",
+        "harness/triage.py",
+        "docs/harness/history/SEEN-107/"
+      ],
+      "acceptance_evidence": [
+        "Criterion 1: harness review triage runs pass one and one Jev request and writes a triage record carrying the per-criterion answers, diff_matches_solution, reviewer_must_read per file, review_depth and the focus set, each with its probability. Red 6 to green 7 and red 9 to green 10 at record 18; DeterministicPassTest, OneRequestTest and AnswersTest; and triage record 66 is such a record, with jev.asked true, five criteria answered 0.78 to 0.92 against a threshold of 0.6, diff_matches_solution answered no at 0.65 and one reviewer_must_read answer per changed file.",
+        "Criterion 2: a criterion answered below the threshold returns the ticket to tdd naming it before the reviewer subagent is spawned, proven with a fixture. Red 9 to green 10 at record 18; UnevidencedCriterionTest answers criterion 2 at 0.1 and asserts the journal ends triage then return, at tdd, attempt 2, with the reason naming that criterion and not the others; FailedCheckStillAsksTest proves the same when a deterministic check has failed.",
+        "Criterion 3: a ticket that changes an agent action, touches billing or the policy gate, or carries a migration gets full depth by rule with Jev not asked, proven with a fixture. Red 6 to green 7 at record 18; DepthByRuleTest is three fixtures, one per rule, each asserting review_depth full, the rule named, jev.asked false and jev.TRANSPORT.sent empty, so no request left the harness; gates.full_depth_rules is the single predicate needs_two_reviewers also reads.",
+        "Criterion 4: the reviewer task carries only the focus set at the chosen depth, and the review gate refuses a review record whose read list is smaller than it. Red 12 to green 13 at record 18, red 28 to green 29 at record 32, red 45 to green 46 at record 49; ReviewerTaskTest, FocusSetGateTest, StaleTriageTest and TriageAcrossAttemptsTest. The task also names the ticket file and the journal above the focus set, which no focus set can hold, and the Outcome records that widening.",
+        "Criterion 5: in shadow mode the reviewer still reads everything and the record stores what would have been excluded, and kpi.json carries the reviewer output tokens and the excluded share. thresholds.toml ships triage_shadow true; record 66 has shadow true, a focus set of all 27 changed files, would_exclude of 19 and excluded_share 0.5757 measured against model_depth spot; DeliveredFiguresTest walks a ticket to delivered through a real triage and reads the figure out of the written kpi.json, counting the sidechain entry inside the window and excluding the one before it."
+      ],
+      "findings": [
+        {
+          "id": "J1",
+          "severity": "high",
+          "file": "harness/triage.py",
+          "claim": "A failed deterministic check silenced the whole Jev request, so criterion_evidenced was never asked on the tickets pass one had already found something wrong with.",
+          "failure_scenario": "A ticket reaches review with one criterion nothing evidences and one failed pass-one check. run() takes the no-request branch, writes criteria_answers empty, unevidenced() finds nothing, no return is appended and the reviewer is spawned with the unevidenced criterion still in the diff. All five triages on this branch carried jev.asked false for this reason, so pass two never ran once while the ticket that builds it was worked, and every one recorded excluded_share 0.0, which in kpi.json cannot be told from a narrowing that would have saved nothing.",
+          "status": "resolved",
+          "resolution": "Fixed in attempt 6. Only gates.full_depth_rules silences the request; a failed check forces full depth and the request is still made. The same fix separated the enforced depth from model_depth and measures would_exclude against the second, so a narrowing that never ran still has a figure. Proven by FailedCheckStillAsksTest, red 53 to green 54. Triage record 66 is the first with jev.asked true and a real excluded_share."
+        },
+        {
+          "id": "F1",
+          "severity": "medium",
+          "file": "harness/jev.py",
+          "claim": "A well-formed Jev reply missing one answer key was treated as a transport failure, so the whole triage was lost rather than that one answer.",
+          "failure_scenario": "Jev returns every key but reviewer_must_read for one file. _ask_api refused, ask_batch re-raised, triage.append never wrote a record, so gates.latest_triage found nothing and the review advanced with any read list at all.",
+          "status": "resolved",
+          "resolution": "Fixed in attempt 3. _ask_api skips a missing key and ask_batch decides on must_answer: a stage gate refuses, the triage records the absence. Proven by PartialAnswerTest, red 28 to green 29."
+        },
+        {
+          "id": "G1",
+          "severity": "medium",
+          "file": "harness/triage.py",
+          "claim": "The F1 fix left focus_set scoring an unavailable reviewer_must_read answer 0.0, so an unanswered file was dropped from a spot review.",
+          "failure_scenario": "With shadow off, Jev answers spot and omits reviewer_must_read for one file. That file scores 0.0 against focus_probability 0.5, is dropped, and the task names every changed file except it. A defect there reaches merge with nobody having read it, on a record that says the review went to plan.",
+          "status": "resolved",
+          "resolution": "Fixed in attempt 4. An absent or unavailable answer scores None and the file is kept, which is the rule depth_from and the unevidenced-criterion return already follow. Proven by UnreadableFileTest, red 37 to green 38."
+        },
+        {
+          "id": "G2",
+          "severity": "medium",
+          "file": "harness/tests/test_triage.py",
+          "claim": "The only guard on the kpi.json figure asserted two words appeared in the source of delivery.verify, and the comment above the call carried both, so it passed with the behaviour removed.",
+          "failure_scenario": "Remove the reviewer_tokens argument and keep the comment: review_triage.reviewer_output_tokens is null on every delivered ticket forever, and the test, the regression and criterion 5 all still read green.",
+          "status": "resolved",
+          "resolution": "Fixed in attempt 4. DeliveredFiguresTest walks a ticket to delivered through a real triage, with a subagent entry inside the review window and one outside it, and reads the figure out of the written file. kpi.reviewer_tokens is the one place the log and the journal meet."
+        },
+        {
+          "id": "G3",
+          "severity": "medium",
+          "file": "harness/kpi.py",
+          "claim": "review_window opened at the first triage of the ticket rather than the last, so every subagent run during rework was counted as the reviewer.",
+          "failure_scenario": "On this ticket the window ran from record 19 to record 33, across two returns and two whole tdd attempts. Any scout, and from SEEN-108 any implementer subagent, writes sidechain entries inside it, so SEEN-109 would divide a reviewer cost that includes an implementer on the tickets with the most rework.",
+          "status": "resolved",
+          "resolution": "Fixed in attempt 4. review_windows is one span per review round, closed by the next triage or by any advance or return leaving review, so the rework between two is in neither. Proven by ReviewWindowsTest."
+        },
+        {
+          "id": "H1",
+          "severity": "medium",
+          "file": "harness/triage.py",
+          "claim": "The task said to read the focus set and no others, while the journal can never be in a focus set and the ticket file can be dropped from one.",
+          "failure_scenario": "With shadow off and a spot depth, the task names one code file. The journal is never a candidate, because changed_files drops everything the fingerprint excludes, and the ticket file scored low. The reviewer is told not to read the criteria or the evidence, writes acceptance_evidence for criteria it never opened, and the gate accepts because read covers focus.",
+          "status": "resolved",
+          "resolution": "Fixed in attempt 5. always_read names the ticket file and the journal above the focus set, whatever the depth, and no others is scoped to the diff. Proven by AlwaysReadTest, red 45 to green 46."
+        },
+        {
+          "id": "H2",
+          "severity": "medium",
+          "file": "harness/triage.py",
+          "claim": "red_before_green was listed as settled while it proves only that the cited check exited non-zero, never that it failed for the reason the slice states.",
+          "failure_scenario": "A slice states a failure reason the cited check does not show, because the fixture changed between red and green. kpi.red_before_green passes on the exit code, the triage records it as settled, and the task tells the reviewer not to spend a read confirming it, so the one check that reads the reason is performed by nobody. This ticket had that failure at check 12.",
+          "status": "resolved",
+          "resolution": "Fixed in attempt 5. PARTLY_SETTLED hands it to the reviewer with the remainder named, and its detail claims only what it proves. Proven by PartlySettledTest."
+        },
+        {
+          "id": "H3",
+          "severity": "low",
+          "file": "harness/triage.py",
+          "claim": "acceptance_entries passes on a count while its detail read as one check per criterion.",
+          "failure_scenario": "A five-criterion ticket whose clarify record carries two checks for one criterion and none for another passes, and on a ticket where a rule forces full depth Jev is never asked either, so the missing criterion reaches merge with nothing between it and a false claim of evidence.",
+          "status": "resolved",
+          "resolution": "Fixed in attempt 5. It joined PARTLY_SETTLED and its detail says it counts rather than maps. The reviewer of attempt 6 checked the mapping by hand and found all five criteria matched one to one and in order."
+        },
+        {
+          "id": "J2",
+          "severity": "low",
+          "file": "harness/triage.py",
+          "claim": "tests_added was listed as settled while it proves only that a path matching the test regex is in the diff.",
+          "failure_scenario": "A slice adds behaviour in one file and the only test-path change is a one-line fixture edit, as happened on this branch with harness/tests/helpers.py. The behaviour reaches merge with a green suite that never exercised it, and the reviewer was told the question was closed.",
+          "status": "resolved",
+          "resolution": "Fixed in attempt 6. It is the third member of PARTLY_SETTLED, and its detail says whether the behaviour has a test of its own is not something a path can say. Proven by TestsAddedTest."
+        },
+        {
+          "id": "K1",
+          "severity": "low",
+          "file": "harness/triage.py",
+          "claim": "The record said a Jev request had been made and come back unreadable when no credential existed to make one with.",
+          "failure_scenario": "On a checkout with no .env.local and no JEV_API_KEY, ask_batch records every answer unavailable without calling the transport, and the record read jev.asked true. kpi.json then counts that ticket among the triages where pass two ran, and SEEN-109 calibrates on it.",
+          "status": "resolved",
+          "resolution": "Fixed in attempt 7. asked is whether pass two ran, and _why_not names which of the three cases it was: no credential, a transport that failed, or a rule that silenced it. Proven by AskedHonestlyTest, red 61 to green 62."
+        },
+        {
+          "id": "F3",
+          "severity": "low",
+          "file": "harness/delivery.py",
+          "claim": "kpi.json could never carry the reviewer output tokens criterion 5 names, because delivery is its only writer and passed none.",
+          "failure_scenario": "A ticket runs the reviewer as a subagent, its entries land in the log inside the review window, and verify-delivery writes kpi.json from kpi.measure with no reviewer_tokens argument, so the field reads null on the delivered artefact forever.",
+          "status": "resolved",
+          "resolution": "Fixed in attempt 3 and completed in attempt 4. Delivery passes kpi.reviewer_tokens, the same call the report makes, so the two cannot disagree. Null where there are no logs, so the file still reads the same on a machine that has none."
+        },
+        {
+          "id": "F4",
+          "severity": "low",
+          "file": "harness/gates.py",
+          "claim": "Nothing re-checked the diff between the triage and the review advance, so a file added in between was read by nobody and refused by nothing.",
+          "failure_scenario": "A session triages, the reviewer reads the focus set, the session then commits a new file before advancing. focus minus read is empty, the gate passes, the tree fingerprint recorded at review includes the new file, and verify-delivery is satisfied. A file reaches merge triaged by nobody.",
+          "status": "resolved",
+          "resolution": "Fixed in attempt 3. The triage records a code_fingerprint and _require_the_diff_has_not_moved compares it, leaving out the ticket file and the generated copies, which the procedure writes in between on every ticket. Proven by StaleTriageTest."
+        },
+        {
+          "id": "G4",
+          "severity": "low",
+          "file": "harness/gates.py",
+          "claim": "Both review-gate checks were scoped to the current attempt and passed silently when it had none, so every attempt after a return started with the gate disarmed.",
+          "failure_scenario": "A ticket is returned from review, fixed, and re-advanced without running the triage again. latest_triage finds nothing for the new attempt, both checks return, and a review naming any file at all is accepted.",
+          "status": "resolved",
+          "resolution": "Fixed in attempt 4. _require_a_current_triage refuses a ticket triaged in an earlier attempt and not this one; a ticket that never triaged is unaffected. Proven by TriageAcrossAttemptsTest."
+        },
+        {
+          "id": "J3",
+          "severity": "low",
+          "file": "harness/triage.py",
+          "claim": "procedure_paths and always_read read the ticket file from record 1, which SEEN-101 allows to go stale on a rename.",
+          "failure_scenario": "A ticket renamed after start, which is the case SEEN-101 exists for and which happened to SEEN-096. slice_files flags the renamed file as unplanned, code_fingerprint counts it so writing the Outcome refuses the advance, and always_read hands the reviewer a path that does not exist.",
+          "status": "resolved",
+          "resolution": "Fixed in attempt 7. Both ask cli.ticket_file, the one resolver _ticket_text already used. Proven by RenamedTicketTest."
+        },
+        {
+          "id": "K2",
+          "severity": "low",
+          "file": "docs/harness/workflow.md",
+          "claim": "The workflow document named two partly settled checks after tests_added became the third.",
+          "failure_scenario": "A reader of the harness description, or SEEN-109 deciding which checks the reviewer still owns, concludes tests_added is among what the reviewer must not confirm, which is the inversion J2 was raised to fix.",
+          "status": "resolved",
+          "resolution": "Fixed in attempt 7. PartlySettledIsDocumentedTest holds the document and PARTLY_SETTLED to the same list, so the two cannot drift again."
+        },
+        {
+          "id": "F2",
+          "severity": "medium",
+          "file": "docs/harness/history/SEEN-107/0018.json",
+          "claim": "The accepted tdd evidence for slice 3 states a failure reason check 12 does not show.",
+          "failure_scenario": "Its third clause says an advance with a short read list was accepted; check 12 shows that test failing on an unrelated must_fix refusal, because the stub was corrected between that RED and its GREEN. A reader auditing whether the behaviour was ever absent gets a reason the recorded output disproves.",
+          "status": "resolved",
+          "resolution": "Resolved without code and recorded here, because the journal is append-only and a record is not rewritten. The other two clauses of that reason are real and check 12 shows them, the GREEN at 13 does guard the behaviour with assertRaisesRegex naming the missing file, and every later slice states its failure reason from the recorded output. The reviewer of attempt 6 re-checked every slice against its cited RED and found this the only exception."
+        },
+        {
+          "id": "F5",
+          "severity": "low",
+          "file": "harness/triage.py",
+          "claim": "The triage fingerprint check fires on the ticket file whenever a triage is re-run after the procedure has written it.",
+          "failure_scenario": "A session writes the Outcome or ticks the criteria, re-triages, and the check compares against the tree the tests last ran on, reports a fail and forces full depth. The escapes are re-running the whole suite for a documentation edit or carrying a permanently failed check.",
+          "status": "resolved",
+          "resolution": "Resolved by ordering rather than code, and recorded in the ticket Outcome. The Outcome is written before the regression, which is what this ticket does and what the skill says. Its consequence is bounded to forcing full depth, and since J1 that no longer silences the Jev request, so the criteria are still checked and the narrowing still measured. The clean fix needs every check record to carry a second fingerprint, which is a change to the check shape and outside this ticket."
+        },
+        {
+          "id": "H4",
+          "severity": "low",
+          "file": "harness/kpi.py",
+          "claim": "reviewer_output_tokens counts every sidechain entry in the review window rather than the reviewer alone.",
+          "failure_scenario": "A scout spawned between the triage and the review advance to answer a question a finding raised writes sidechain entries in the same window, and cost.tokens_over cannot tell one subagent from another, so its tokens are billed to the reviewer and SEEN-109 compares against an inflated baseline.",
+          "status": "resolved",
+          "resolution": "Resolved by recording rather than renaming, in the ticket Outcome and in the docstring. The window is right and the log carries nothing that distinguishes two subagents; criterion 5 names the figure and SEEN-109 is the ticket that divides on it, so it is told what the number contains."
+        },
+        {
+          "id": "G5",
+          "severity": "low",
+          "file": "harness/kpi.py",
+          "claim": "The comment on reviewer_output_tokens said delivery could not supply the figure, which both callers contradict.",
+          "failure_scenario": "A maintainer reading it to find where the figure comes from is told delivery cannot, looks for a filler in report.py that does not exist, and removes the delivery call as the dead path the comment describes.",
+          "status": "resolved",
+          "resolution": "Fixed in attempt 4. The comment describes what both callers do."
+        }
+      ],
+      "checks": [
+        67
+      ],
+      "security_checklist": [],
+      "verdict": "pass",
+      "tree": "40e413fd018042b72e929dd0838801a8f285812a4925414c82f7813d73bc6ec0"
+    },
+    "decisions": [
+      {
+        "key": "severity",
+        "question": "severity",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high",
+          "blocking"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "blocking",
+        "probabilities": {
+          "low": 0.06,
+          "medium": 0.14,
+          "high": 0.27,
+          "blocking": 0.53
+        },
+        "confidence": 0.27,
+        "score": 2.27,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      },
+      {
+        "key": "must_fix",
+        "question": "must_fix",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.3,
+          "no": 0.7
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.7,
+        "passed": false,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

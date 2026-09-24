@@ -1,0 +1,31 @@
+{
+  "sequence": 65,
+  "ticket": "SEEN-107",
+  "timestamp": "2026-09-24T21:07:36.967530+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 7,
+  "actor": "claude:implementer",
+  "session": "253bf8e84e82",
+  "head": "ddc8b5c88f225e9108a7e56e018584047984cca1",
+  "prev_hash": "8e9d6d32e5e1c3a0e88cca92716ca88204bbc67c04c79babc5ae8456a008f732",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "behaviour": "The record says whether pass two ran and, when it did not, which of the three reasons it was: no credential, a transport that failed, or a rule that silenced it; and the workflow document names every partly settled check",
+          "failure_reason": "AssertionError: True is not false, twice, because jev.asked read true both with no credential and with a transport that raised; and 'tests_added' not found in docs/harness/workflow.md",
+          "red": 61,
+          "green": 62
+        }
+      ],
+      "regression": 63,
+      "coverage_delta": 0.0
+    },
+    "decisions": []
+  }
+}
