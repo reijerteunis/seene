@@ -1,0 +1,30 @@
+{
+  "sequence": 4,
+  "ticket": "SEEN-104",
+  "timestamp": "2026-09-24T10:20:44.805384+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "2c791949683ce7d95470fee88f25faf527e0c405",
+  "prev_hash": "a3e296b5a62c8bf1b0cab0899100002aa98acd271b220ddf9d81d720ddba0a08",
+  "data": {
+    "source": "codegraph",
+    "mode": "impact",
+    "command": [
+      "codegraph",
+      "impact",
+      "append"
+    ],
+    "synced": true,
+    "index": {
+      "nodes": 1254,
+      "edges": 3359
+    },
+    "exit_code": 0,
+    "duration_ms": 222,
+    "answer": "\nImpact of changing \"append\" — 25 affected symbols:\n\napps/api/src/mail/threads.ts\n  method      append:67\n\napps/api/src/webhooks/postmark.controller.ts\n  method      inbound:22\n  route       POST /webhooks/postmark/inbound:18\n\napps/api/src/webhooks/postmark.test.ts\n  file        postmark.test.ts:1\n\nharness/journal.py\n  function    append:64\n\nharness/tests/test_security.py\n  method      append:194\n  method      test_an_ordinary_word_in_the_environment_does_not_refuse_a_record:199\n  method      test_a_git_ref_in_the_environment_does_not_refuse_a_record:204\n  method      test_a_variable_named_like_a_credential_is_still_caught_however_short:209\n  method      test_a_long_mixed_value_is_caught_whatever_it_is_called:215\n\nharness/tests/test_journal.py\n  method      append:22\n  method      test_first_record_is_numbered_one_and_chains_to_nothing:28\n  method      test_record_carries_the_full_envelope:34\n  method      test_prev_hash_is_the_sha256_of_the_previous_file_as_it_sits_on_disk:41\n  method      test_a_record_file_ends_with_one_newline_and_is_indented:46\n  method      test_reading_returns_every_record_in_order:53\n  method      test_an_edited_record_breaks_the_chain:62\n  method      test_reformatting_a_record_breaks_the_chain:72\n  method      test_a_removed_record_is_detected_as_a_gap:80\n  method      test_a_stray_file_beside_the_records_is_refused:88\n  method      test_the_kpi_file_and_attachments_are_allowed_beside_the_records:94\n  method      test_an_existing_record_is_never_overwritten:101\n  method      test_an_unknown_kind_is_refused:109\n  method      test_state_applies_the_transition_the_last_record_describes:113\n  method      test_a_return_raises_the_attempt:120\n\n",
+    "answer_truncated": false
+  }
+}

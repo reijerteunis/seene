@@ -14,9 +14,12 @@ STAGES = ('clarify', 'solution', 'tdd', 'review', 'deliver', 'delivered')
 WORKING_STAGES = STAGES[:-1]
 FINAL_WORKING_STAGE = 'deliver'
 
-# Bumped when record semantics change, and held at 1 until the harness is
-# complete at SEEN-092, so the first six journals are not stamped six ways.
-HARNESS_VERSION = '1'
+# Bumped when record semantics change. Held at 1 until the harness was complete
+# at SEEN-092, so the first six journals were not stamped six ways; 2 from
+# SEEN-104, where the envelope gained the session that wrote the record. A
+# version that stands still while the envelope changes tells a reader nothing,
+# which is the one thing it exists to do.
+HARNESS_VERSION = '2'
 
 KINDS = ('start', 'note', 'check', 'advance', 'return', 'receipt', 'reopen', 'decision')
 

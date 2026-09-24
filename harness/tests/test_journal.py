@@ -34,7 +34,7 @@ class RecordTest(unittest.TestCase):
     def test_record_carries_the_full_envelope(self):
         record = self.append(kind='start', data={'ticket_file': 'docs/tickets/x.md'})
         self.assertEqual(list(record), ['sequence', 'ticket', 'timestamp', 'harness_version',
-                                        'kind', 'stage', 'attempt', 'actor', 'head',
+                                        'kind', 'stage', 'attempt', 'actor', 'session', 'head',
                                         'prev_hash', 'data'])
         self.assertEqual(record['harness_version'], journal.HARNESS_VERSION)
 

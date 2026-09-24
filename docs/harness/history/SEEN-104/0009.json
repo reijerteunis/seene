@@ -1,0 +1,101 @@
+{
+  "sequence": 9,
+  "ticket": "SEEN-104",
+  "timestamp": "2026-09-24T10:26:30.531198+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "be6cdde9688e1d0399688e8d0482d11b63d946a9",
+  "prev_hash": "b46acfd6283108fce53442a971063acf8f119e6fb8cddcb2fcf35e991b739497",
+  "data": {
+    "from_stage": "clarify",
+    "to_stage": "solution",
+    "evidence": {
+      "scope": "Make the slice the unit of context while the ticket stays the unit of delivery: a [session] section in thresholds.toml, a slice plan the solution gate enforces, a handoff pack a fresh session starts from, a budget command that reads this session's own output tokens, session and slice figures in the KPI and the sprint report, and a skill that says one slice per session. The edge: the only thing this ticket refuses is a solution record whose plan breaks the caps. Nothing here blocks a session from working two slices, nothing ends a session, and no stage, no receipt and no template field other than the solution record's slices changes.",
+      "acceptance": [
+        "advance from solution refuses a slice over max_points_per_slice and a plan over max_slices_per_ticket, naming the slice, and refuses a code-mode record without a plan: four unit tests against gates._solution, one per refusal, plus a non-code record that advances with no slices at all, because that is the same exemption SEEN-103 gave tests_first.",
+        "harness handoff writes the pack under handoff_token_limit, appends a handoff record carrying its sha256 and this session's figures, and status --brief prints it: unit tests that the pack file appears in .harness-drafts, that the record's sha256 equals the digest of the file on disk, that a journal padded with long decisions and graph answers still produces a pack under the limit, that status --brief prints the pack and says whether the file still matches the recorded hash, and that a pack whose text would carry the value of an environment variable named like a credential is refused, naming the variable and not its value.",
+        "harness budget reports this session's output tokens and tool calls against output_token_budget and records nothing: unit tests against a fixture log directory that a session under budget reports what is left, that one over budget reports over: true and names the slice boundary as the next stop, that a machine with no log for this session reports null rather than zero the way cost.py already does, and that running it leaves the journal the length it was.",
+        "kpi.json carries slices, sessions and output tokens per slice, and harness report --sprint shows tokens per slice beside tokens per point: unit tests that kpi.measure over a journal with two proven slices and records from two sessions returns slices, sessions 2 and output_tokens_per_slice, that the figure is null when the tokens are, and that the rendered sprint report carries a tokens per slice row.",
+        "docs/harness/skill.md says one slice per session and that later sessions start from the handoff pack: a unit test that the source names the slice cap, the handoff pack, status --brief and budget, and doctor's existing drift check green after sync, which is what proves both copies were regenerated."
+      ],
+      "decisions": [
+        "A session is identified in a record by the first twelve hex characters of the sha256 of CLAUDE_CODE_SESSION_ID, never by its value. secrets.SECRET_NAME matches SESSION, so journal.append already refuses any record carrying that value, and it is right to: the KPI needs to tell one session from another, which a digest does, and not to name it. Twelve characters because sixty-four of noise in every record buys nothing at this scale. Taken by the implementer, 24 September 2026.",
+        "The session goes in the record envelope rather than only on a check, so sessions per ticket counts every session that wrote anything instead of only the ones that ran a test, and so there is one place it can be forgotten instead of six. codegraph names the one test that pins the envelope, harness/tests/test_journal.py test_record_carries_the_full_envelope, and it is updated with the field rather than around it.",
+        "HARNESS_VERSION goes from 1 to 2 in the same change. The comment on it says it is bumped when record semantics change and was held at 1 until the harness was complete at SEEN-092, which has delivered; an envelope that gains a field while the version stands still makes the version uninformative, which is the thing it exists to prevent. Nothing compares it to a literal.",
+        "handoff is a new record kind rather than a note, because kpi and status must find the boundary without parsing prose, and it is not in journal.TRANSITIONS, so writing a pack never moves a ticket to another stage.",
+        "The pack is measured in estimated tokens at four characters each. The harness is standard library only and has no tokeniser, so handoff_token_limit is read as that estimate, the estimate is recorded in the handoff record beside the sha256, and it is built from bounded sections so it is under the limit by construction rather than by trimming after the fact.",
+        "status --brief renders the pack from the journal rather than printing the file, and then says whether the file on disk still matches the last handoff record's sha256. The drafts directory is gitignored, so a Codex session in another checkout has the journal and not the file, and a --brief that only prints a file is a --brief that is empty exactly when it is needed.",
+        "The solution record's slices is a plan (name, points, files, the RED each must demonstrate) and the tdd record's slices stays the proof (behaviour, failure_reason, red, green). Two shapes under one name is a real risk, so both are pinned by tests and the plan is never read where the proof is expected. The ticket names the field slices and it keeps that name.",
+        "Output tokens per slice divides the ticket's output tokens by the slices the tdd record proved, falling back to the planned count when there is no tdd record, and null when the tokens are null. A non-code ticket has no slices and reports null rather than zero.",
+        "This ticket cannot use the boundary it builds for its own first slice, because handoff does not exist until the second. The boundary is kept by hand for slice one, with a note at the end of the session saying where the work stood, and by harness handoff from slice two onwards. That is the observation that settles whether the pack is enough to resume from: the session that picks up slice three either needs the ticket file and the journal as well, or it does not, and the journal will say which.",
+        "Which variable a Codex session exposes its session id in is not known from this machine and cannot be read here. harness/sessions.py therefore reads an ordered list of candidate variables, records null when none is set, and the first Codex session on this repository settles it; null is an absence, not a claim that there was one session.",
+        "Sessions per ticket is null for every journal written before the envelope carried a session, not 1 and not 0: nineteen journals exist and none of their records can say how many sessions worked them. SEEN-104's own count is a lower bound, because its journal starts under the old envelope, and the KPI record says so rather than rounding it up.",
+        "The slice plan binds advances from the moment it lands and no gate reads an existing solution record for one: gates._tdd reads a solution record only for its mode. No ticket sits at the solution stage today. Adding a required key to solution.json will fail every fixture that builds a solution record, the way mode failed fifty-five of them in SEEN-103; the shared fixture gains a one-slice plan and the non-code fixtures keep none.",
+        "The pack's current slice is the first slice in the plan with no accepted GREEN cited against it in this attempt; before the solution record has advanced there is no plan and the pack says so; when every slice has a GREEN it names the review stage as the next stop. The pack never invents a slice that is not in the plan.",
+        "With no session id there is no log to read, so every budget figure is null with the reason given, which is the rule cost.py already applies to a machine with no logs: zero is a claim that nothing was spent.",
+        "That a fresh context per slice is cheaper than a compacted one is this ticket's premise, not a measured fact, and nothing in it proves the premise. What settles it is the context-efficiency KPI this ticket extends: output tokens per point and per slice, and sessions per ticket, in the sprint report against SEEN-099's baseline of 40,600 output tokens and 18.5 tool calls per point. The figures are built here and read at the Sprint 0 gate; if tokens per point rise, the cap is wrong and the report says so under a rule written before the numbers.",
+        "The cap is measured and asked for, not enforced. Nothing in this ticket refuses a second slice in one session: budget reports, the skill asks, and the UserPromptSubmit and PreCompact hooks that act on it are SEEN-106. The one refusal this ticket adds is at the solution gate, against the plan. A ticket that claimed to cap a session and shipped no wall would be worse than one that says which.",
+        "A plan whose points do not sum to the ticket's estimate is not refused. The caps are per slice and per plan, because they are about what one context can hold; the estimate is a forecast the plan may legitimately disagree with, and a gate that made them equal would turn every re-estimate into a returned record. The sum is reported in the advance so a reader can see the disagreement.",
+        "budget writes nothing. It is a read-only command like status: no actor, no branch check, no record, because a command a session runs repeatedly to see where it stands must not make the journal longer every time it is run. What is recorded instead is the figure at the boundary: the handoff record carries this session's output tokens and tool calls beside the pack's sha256, so a boundary is the one place a session's cost is written down.",
+        "Output tokens per slice is therefore derived by division in this ticket, from the ticket's total and the slices proven, and the per-session figures on the handoff records are recorded beside it rather than used instead of it. Two slices worked in one session cannot be told apart by division and can be by the boundaries, but only once there are boundaries to read; the figures are written from this ticket onwards so a later one can refine the measure without re-deriving the data."
+      ],
+      "open_questions": [],
+      "changes_agent_action": false,
+      "graph_impact": [
+        "harness/paths.py: KINDS gains handoff, HARNESS_VERSION to 2; harness/thresholds.toml gains [session]",
+        "harness/journal.py append and ENVELOPE, and the one test that pins the envelope (test_journal.py:34, from codegraph's impact answer on append, which listed 25 affected symbols of which the harness's are journal.append and its own tests)",
+        "harness/sessions.py (new): the session digest and this session's figures from the logs, beside harness/cost.py, which repowise reports is governed by no architectural decision and was written by SEEN-091 and SEEN-099",
+        "harness/gates.py _solution and for_mode, harness/templates/solution.json",
+        "harness/cli.py: handoff and budget commands, describe for --brief, TICKET_COMMANDS and WRITING_COMMANDS",
+        "harness/kpi.py measure, harness/report.py totals and render, docs/harness/skill.md and its two generated copies"
+      ]
+    },
+    "decisions": [
+      {
+        "question": "clarified",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "human",
+        "model": null,
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.9,
+          "no": 0.0
+        },
+        "confidence": 0.9,
+        "score": null,
+        "threshold": 0.8,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "question": "risk",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "medium",
+        "probabilities": {
+          "low": 0.06,
+          "medium": 0.94,
+          "high": 0.0
+        },
+        "confidence": 0.9,
+        "score": 0.94,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

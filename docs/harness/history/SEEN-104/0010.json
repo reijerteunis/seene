@@ -1,0 +1,153 @@
+{
+  "sequence": 10,
+  "ticket": "SEEN-104",
+  "timestamp": "2026-09-24T10:27:42.876909+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "solution",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "be6cdde9688e1d0399688e8d0482d11b63d946a9",
+  "prev_hash": "80c9a44bef6b3ce5d0c88ef42687ac32ac1aa146f5f31be2d5d54c333f4d4d09",
+  "data": {
+    "from_stage": "solution",
+    "to_stage": "tdd",
+    "evidence": {
+      "mode": "code",
+      "approach": "Four small modules and one new field, each in the layer that already owns the question. thresholds.toml gains [session] with the four numbers, because they are exactly the kind of value a person may tune without a code change. A new harness/sessions.py holds three functions and no state: current() returns the first twelve hex characters of the sha256 of the session id read from an ordered list of candidate environment variables, or None; figures(root, session) returns this session's output tokens and tool calls from its own log file by the same reading cost.py does; against_budget(figures, limit) turns them into the answer budget prints. journal.append stamps current() into the envelope after the actor, so every record says which session wrote it and there is one place it can be forgotten rather than six. gates._solution requires a slice plan in code mode and applies the two caps, and for_mode exempts non-code the way it already exempts tests_first. A new harness/handoff.py builds the pack from the journal in bounded sections and returns the markdown plus its estimate; cli.handoff writes it under .harness-drafts, refuses a pack carrying an environment value, and appends the handoff record with the sha256 and this session's figures; cli.describe gains the pack and the comparison against the last recorded hash when --brief is passed. kpi.measure gains slices, sessions and output_tokens_per_slice; report.totals and report.render carry tokens per slice beside tokens per point. The skill source gains the paragraph and sync regenerates both copies.",
+      "changes": [
+        "harness/thresholds.toml: a [session] section with max_points_per_slice 2, max_slices_per_ticket 4, output_token_budget 60000 and handoff_token_limit 2000, each with the comment saying what it is for.",
+        "harness/paths.py: KINDS gains handoff, HARNESS_VERSION goes to 2, and a HANDOFF_PACK name for the pack file under DRAFTS.",
+        "harness/sessions.py (new): SESSION_VARIABLES, current(), figures(root, session) and against_budget(figures, limit).",
+        "harness/journal.py: ENVELOPE and append() gain session, stamped from sessions.current() after actor.",
+        "harness/gates.py: _solution requires and checks the slice plan, for_mode exempts non-code from slices, and a _slice_plan helper carries the two refusals and the reported points sum.",
+        "harness/templates/solution.json: a slices list whose one example entry carries name, points, files and red.",
+        "harness/handoff.py (new): pack(records, root, thresholds) returning the markdown, its estimated tokens and the current slice, built from bounded sections.",
+        "harness/cli.py: handoff and budget subcommands, status --brief, handoff in TICKET_COMMANDS and WRITING_COMMANDS, budget in neither, and NEXT_COMMAND unchanged.",
+        "harness/kpi.py: slices, sessions and output_tokens_per_slice in measure(), read from the journal and the tokens already passed in.",
+        "harness/report.py: totals() gains output_tokens_per_slice and slices, render() a tokens per slice row beside tokens per point.",
+        "docs/harness/skill.md: one slice per session, the handoff pack, status --brief and budget, then sync regenerates .claude/skills/seen-harness/SKILL.md and .agents/skills/seen-harness/SKILL.md.",
+        "harness/tests/test_session_cap.py (new): the slice plan gate, the pack, budget and the KPI figures.",
+        "harness/tests/test_journal.py, test_kpi.py, test_stage_gates.py, test_non_code_mode.py and any other fixture building a solution record: the envelope key and the slice plan."
+      ],
+      "migrations": [],
+      "tests_first": [
+        "A solution record whose plan carries a three-point slice is refused, naming the slice: python3 -m unittest harness.tests.test_session_cap -v. The RED must fail on the advance being accepted, because gates._solution reads no plan yet, and the message must name the slice rather than the cap alone.",
+        "A plan of five slices is refused and a code-mode record with no plan is refused naming slices, while a non-code record advances with no slices at all: same command. The RED must show the first two advancing and the third already passing, which is what proves the non-code exemption is the same one SEEN-103 wrote rather than a new path.",
+        "Every record's envelope carries a session key holding twelve hex characters or null: python3 -m unittest harness.tests.test_journal -v. The RED must fail on the key being absent, and the existing test_record_carries_the_full_envelope must fail with it, which is the deliberate change to the envelope showing up where it should.",
+        "harness handoff writes the pack, the record carries its sha256 and this session's figures, a padded journal still produces a pack under handoff_token_limit, and a pack that would carry an environment value is refused naming the variable and not its value: python3 -m unittest harness.tests.test_session_cap -v. The RED must fail with no handoff command at all.",
+        "harness budget reports output tokens and tool calls against the budget, names the slice boundary as the next stop when over, reports null rather than zero with no log, and appends no record: same command. The RED must fail with no budget command at all.",
+        "kpi.measure returns slices, sessions and output_tokens_per_slice, null where the tokens are null, and harness report --sprint renders a tokens per slice row: python3 -m unittest harness.tests.test_kpi harness.tests.test_session_cap -v. The RED must fail on the three keys being absent from the measured record.",
+        "The skill source names one slice per session, the handoff pack, status --brief and budget, and doctor reports no drift after sync: python3 -m unittest harness.tests.test_skill harness.tests.test_doctor -v. The RED must fail on the source not carrying the words, before either copy is regenerated."
+      ],
+      "slices": [
+        {
+          "name": "Session identity and the slice-plan gate",
+          "points": 1,
+          "files": [
+            "harness/thresholds.toml",
+            "harness/paths.py",
+            "harness/sessions.py",
+            "harness/journal.py",
+            "harness/gates.py",
+            "harness/templates/solution.json",
+            "harness/tests/test_session_cap.py",
+            "harness/tests/test_journal.py"
+          ],
+          "red": "A solution record with a three-point slice, a five-slice plan and no plan at all are all accepted by advance, and no record's envelope carries a session."
+        },
+        {
+          "name": "The handoff pack, its record and status --brief",
+          "points": 1,
+          "files": [
+            "harness/handoff.py",
+            "harness/paths.py",
+            "harness/cli.py",
+            "harness/tests/test_session_cap.py"
+          ],
+          "red": "harness handoff is not a command, so there is no pack, no handoff record and nothing for status --brief to print."
+        },
+        {
+          "name": "budget, the KPI figures, the sprint report row and the skill",
+          "points": 1,
+          "files": [
+            "harness/sessions.py",
+            "harness/cli.py",
+            "harness/kpi.py",
+            "harness/report.py",
+            "docs/harness/skill.md",
+            ".claude/skills/seen-harness/SKILL.md",
+            ".agents/skills/seen-harness/SKILL.md",
+            "harness/tests/test_session_cap.py",
+            "harness/tests/test_kpi.py",
+            "harness/tests/test_skill.py"
+          ],
+          "red": "harness budget is not a command, kpi.measure returns no slices, sessions or tokens per slice, the sprint report has no tokens per slice row, and the skill says nothing about slices."
+        }
+      ],
+      "alternatives": [
+        "Recording the session only on a check record, which is what the ticket's fourth sentence literally asks for. Rejected because sessions per ticket would then count only sessions that ran a test: a session that clarified, or one that handed off without reaching tdd, would be invisible, and the KPI would report fewer sessions than there were. The envelope costs one field and cannot be forgotten at a call site.",
+        "Recording the raw session id rather than a digest. Rejected because secrets.SECRET_NAME matches SESSION and journal.append already refuses a record carrying that value, correctly: the KPI needs to tell one session from another, not to name it.",
+        "A second template for a solution record with a plan, the way tdd has a non-code variant. Rejected for the reason SEEN-103 gave when it moved mode instead of adding one: one field out of thirteen does not justify a second template to keep in step.",
+        "Counting the pack's tokens with a tokeniser. Rejected because the harness is standard library only, and four characters per token is close enough for a 2,000 token limit built from bounded sections. The estimate is recorded so a real count can be compared against it later.",
+        "status --brief printing the pack file. Rejected because .harness-drafts is gitignored, so a session in another checkout has the journal and not the file, and a --brief that prints nothing exactly when the pack is needed is worse than one that rebuilds it."
+      ],
+      "risks": [
+        "Adding a required key to solution.json fails every existing fixture that builds a solution record, as mode did to fifty-five tests in SEEN-103. Mitigated by fixing the shared fixtures first and reading the failures as the field doing its job rather than as breakage.",
+        "Two shapes under one name: the solution record's slices is a plan and the tdd record's slices is the proof. Mitigated by tests pinning both, by gates._tdd continuing to read a solution record only for its mode, and by the plan never being read where the proof is expected.",
+        "Changing the envelope changes every record written from now on. Mitigated by the field being additive, by every reader using .get, by HARNESS_VERSION going to 2 so a reader can tell which shape to expect, and by journal.read verifying bytes rather than keys, so no existing journal is invalidated.",
+        "A pack built from a long journal could exceed its limit and the command would refuse at exactly the moment a session needs to hand off. Mitigated by building from bounded sections with a cap per section, so the limit holds by construction, and by a test that pads a journal with long decisions and graph answers.",
+        "The session id is read from the environment, so a bug could put its value in a record. Mitigated by the digest never being reversible, by journal.append's existing refusal standing as the backstop, and by a test that asserts the raw value appears in no record."
+      ],
+      "rollback": "Nothing here touches product code, a database or a marketplace: the change is the harness's own Python, its thresholds, its templates and its skill. Reverting the commits restores the previous behaviour completely, and journals written under the new envelope stay readable because journal.read verifies the hash chain over bytes and never the set of keys. The one thing a revert does not undo is a solution record already written with a plan, which stays in its journal as an extra key no gate reads.",
+      "new_dependencies": [],
+      "tenant_tables": [
+        "none: this ticket touches no table"
+      ],
+      "buyer_pii": "none",
+      "policy_gate_action": null
+    },
+    "decisions": [
+      {
+        "question": "solution_complete",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.76,
+          "no": 0.24
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "question": "touches_billing_or_policy_gate",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.12,
+          "no": 0.88
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

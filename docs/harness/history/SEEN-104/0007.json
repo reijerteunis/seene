@@ -1,0 +1,15 @@
+{
+  "sequence": 7,
+  "ticket": "SEEN-104",
+  "timestamp": "2026-09-24T10:26:20.008996+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "human:implementer",
+  "head": "be6cdde9688e1d0399688e8d0482d11b63d946a9",
+  "prev_hash": "901aa6e52159fde93371b73d662bd0031d66bc98150bef42e8ed3b54cfb87f39",
+  "data": {
+    "text": "# The clarified gate, cleared by human override\n\nRuud's decision, taken on 24 September 2026 after reading the four readings recorded at\nrecord 6 of this journal, and recorded here because a gate cleared by hand says why.\n\nThe reason: the record is complete on the evidence in front of it. Four readings moved the\nscore by 0.01 while the record gained nine decisions, including every question about what\nhappens to the journals and solution records written before these fields existed, the\npremise named as a premise with the KPI that settles it, and the cap named as measured\nrather than enforced. Reading 2 lowered the score by adding four resolutions, which is the\nsignature SEEN-100 measured and calibrated the criteria against; the remaining 0.03 is not\na question this record can answer by growing.\n\nThe alternative considered and rejected: splitting the ticket into three, the SEEN-089 and\nSEEN-096 precedent. Rejected because those two were five-point tickets refused at\n`solution_complete`, where the score tracked the number of enforcements in one record.\nThis is a three-point ticket whose three slices are already separable in the plan, and a\nsplit would buy three journals and three receipts for work one branch delivers.\n\nThe override is recorded as a human answer at 0.9 rather than 1.0, because the reading\nbelow the bar is evidence about the record and not noise to be dismissed.\n\nAnswered by: human:implementer. Typed by this session at Ruud's instruction, which is what\nthe actor claims.\n"
+  }
+}
