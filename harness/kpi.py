@@ -139,10 +139,15 @@ def subagents(records):
     review = _evidence(records, 'review').get('independence')
     if not briefs and review is None:
         return None
+    from . import agents as roster
+    named = sorted({record['data']['agent'] for record in briefs})
+    # F4 in SEEN-105's first review: any note carrying any agent name counted as a
+    # brief, so a note from the reviewer made `both` true and the report
+    # attributed a saving to a ticket the scout never ran on.
     return dict(briefs=len(briefs),
-                agents=sorted({record['data']['agent'] for record in briefs}),
+                agents=named,
                 review=review,
-                both=bool(briefs) and review == 'subagent')
+                both=roster.SCOUT['name'] in named and review == 'subagent')
 
 
 def coverage(records):

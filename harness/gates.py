@@ -310,16 +310,21 @@ def _review(data, records, current, repository, thresholds):
         require(len(tools) > 1,
                 'A review is not independent when one tool wrote every record on this ticket')
     if data['independence'] == 'subagent':
-        _require_another_context(data, records, current)
+        _require_another_context(data, records)
     if _needs_two_reviewers(records):
-        named = {str(data.get('reviewer') or '').split(':')[0],
-                 str(data.get('second_reviewer') or '').split(':')[0]}
-        require(named - worked_by,
+        known = set(thresholds['actors']['tools'])
+        # F6: a prefix that is not a tool this repository knows is a typo, not the
+        # other assistant, and it satisfied the one control that stands where a
+        # declared session cannot be verified.
+        named = {str(data.get(key) or '').partition(':')[0]
+                 for key in ('reviewer', 'second_reviewer')} & known
+        require(named - _implementer_tools(records),
                 'This change touches billing or the policy gate, so the review comes from the '
-                f'other assistant: {", ".join(sorted(worked_by))} wrote this ticket and '
-                f'{", ".join(sorted(name for name in named if name))} reviewed it. A subagent is '
-                'a context boundary, not independence by itself, and a declared session cannot '
-                'stand in for it where a missed defect costs money')
+                f'other assistant: {", ".join(sorted(_implementer_tools(records)))} wrote this '
+                f'ticket and {", ".join(sorted(named)) or "no tool this repository knows"} '
+                'reviewed it. A subagent is a context boundary, not independence by itself, and a '
+                'declared session cannot stand in for it where a missed defect costs money. Name '
+                f'the reviewer as one of {", ".join(sorted(known))} and a role')
     return dict(tree=repository.fingerprint())
 
 
@@ -328,13 +333,34 @@ def _tools_of(records):
     return {record['actor'].split(':')[0] for record in records if record.get('actor')}
 
 
-def _sessions_of(records, attempt):
-    """Sessions that wrote this attempt's own records, which a reviewer's cannot be."""
-    return {record.get('session') for record in records
-            if record.get('attempt') == attempt and record.get('session')}
+def _implementer_tools(records):
+    """The tools that wrote the work, which is not the tools that wrote a record.
+
+    F2 in SEEN-105's first review: the other assistant records a `return` when it
+    sends work back, which is the documented path, and reading that as authorship
+    made the gate refuse the very review it demands. A reviewer's own records are
+    therefore not authorship.
+    """
+    tools = set()
+    for record in records:
+        tool, _, role = (record.get('actor') or '').partition(':')
+        if tool and role != 'reviewer':
+            tools.add(tool)
+    return tools
 
 
-def _require_another_context(data, records, current):
+def _sessions_of(records):
+    """Every session that wrote a record on this ticket.
+
+    F5 in SEEN-105's first review: this was scoped to the current attempt, so the
+    session that worked attempt 1 passed as the reviewer's context in attempt 2.
+    Criterion 3 says the implementer's session, and a session that wrote any
+    record on this ticket is one.
+    """
+    return {record.get('session') for record in records if record.get('session')}
+
+
+def _require_another_context(data, records):
     """A subagent review names a session, and not one the implementer worked in.
 
     A Claude Code subagent inherits its parent's session id, observed and recorded
@@ -350,7 +376,7 @@ def _require_another_context(data, records, current):
             'A subagent review must name the reviewer_session it came from. The harness cannot '
             'read it, because a subagent inherits its parent session id, so the session that '
             'spawned the reviewer records the identifier it gave it')
-    own = _sessions_of(records, current['attempt'])
+    own = _sessions_of(records)
     running = sessions.current()
     if running:
         own.add(running)
@@ -389,5 +415,8 @@ def evaluate(stage, data, records, current, repository, thresholds):
     # be refused for prose the gate had just decided not to ask for.
     shaped = for_mode(template, stage, mode_of(data), data)
     require_template_fields(shaped, data)
-    reject_placeholders(shaped, data)
+    # F8 in SEEN-105's first review: the examples come from the whole template, so
+    # prose from a field this record does not carry is still placeholder text
+    # wherever it was pasted. Only the dropped field's own value is left out.
+    reject_placeholders(template, {key: value for key, value in data.items() if key in shaped})
     return gate(data, records, current, repository, thresholds)

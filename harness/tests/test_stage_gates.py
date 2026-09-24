@@ -100,6 +100,23 @@ class RequiredFieldTest(GateTest):
                              change_type='documentation')
 
 
+class PlaceholderShapeTest(GateTest):
+    """F8: shaping the template must not stop guarding the fields it kept."""
+
+    def test_prose_from_a_dropped_field_pasted_into_a_kept_one_is_refused(self):
+        template = self.template('solution')
+        record = self.template('solution', mode='non-code',
+                               approach=template['tests_first'][0],
+                               changes=['harness/x.py, the thing'],
+                               migrations=[], alternatives=['B, because it needs a service'],
+                               risks=['It breaks, so there is a test'],
+                               rollback='git revert', new_dependencies=[],
+                               tenant_tables=['none'], buyer_pii='none',
+                               policy_gate_action=None)
+        with self.assertRaisesRegex(HarnessError, 'Replace the template text'):
+            self.evaluate('solution', record)
+
+
 class ClarifyGateTest(GateTest):
 
     def test_an_open_question_blocks_the_stage(self):
@@ -359,6 +376,13 @@ class SubagentReviewTest(ReviewGateTest):
         data.pop('reviewer_session', None)
         self.evaluate('review', data, records=self.in_session())
 
+    def test_a_session_from_an_earlier_attempt_is_still_the_implementers(self):
+        """F5: criterion 3 says the implementer's session, not this attempt's."""
+        with self.assertRaisesRegex(HarnessError, 'aaaaaaaaaaaa'):
+            self.evaluate('review',
+                          self.review(independence='subagent', reviewer_session='aaaaaaaaaaaa'),
+                          records=self.in_session(), attempt=2)
+
     def test_a_self_review_names_no_session_either(self):
         data = self.review()
         data.pop('reviewer_session', None)
@@ -419,6 +443,30 @@ class TwoReviewerTest(ReviewGateTest):
                                             second_reviewer='codex:reviewer',
                                             security_checklist=self.CHECKLIST),
                       records=self.billing_journal())
+
+    def test_a_return_by_the_other_assistant_does_not_disqualify_its_own_review(self):
+        """F2: a codex return is the documented path, not a claim that codex wrote it."""
+        records = self.billing_journal()
+        records.append(dict(sequence=4, kind='return', stage='review', attempt=1,
+                            actor='codex:reviewer', session='cccccccccccc',
+                            data=dict(from_stage='review', to_stage='tdd', reason='a finding')))
+
+        self.evaluate('review', self.review(independence='independent',
+                                            reviewer='codex:reviewer',
+                                            second_reviewer='codex:reviewer',
+                                            security_checklist=self.CHECKLIST),
+                      records=records)
+
+    def test_a_tool_that_is_not_an_assistant_is_not_the_other_assistant(self):
+        """F6: a typo satisfied the one control that stands where a session cannot."""
+        for named in ('codexx:reviewer', 'Ruud'):
+            with self.subTest(named=named):
+                with self.assertRaisesRegex(HarnessError, 'other assistant'):
+                    self.evaluate('review', self.review(independence='independent',
+                                                        reviewer=named,
+                                                        second_reviewer=named,
+                                                        security_checklist=self.CHECKLIST),
+                                  records=self.billing_journal())
 
     def test_an_ordinary_ticket_needs_neither(self):
         self.evaluate('review',

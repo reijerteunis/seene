@@ -119,6 +119,22 @@ class AgentSyncTest(CommandTest):
         self.assertTrue([problem for problem in self.problems() if 'seen-scout' in problem],
                         self.problems())
 
+    def test_an_agent_file_nobody_generates_is_reported(self):
+        """F10: a file with no source under harness/agents/ has had no review."""
+        self.run_harness('sync')
+        stray = self.root / '.claude' / 'agents' / 'seen-implementer.md'
+        stray.write_text('---\nname: seen-implementer\ntools: Edit, Write, Bash\n---\n')
+
+        found = [problem for problem in self.problems() if 'seen-implementer' in problem]
+        self.assertTrue(found, self.problems())
+
+    def test_a_stray_codex_agent_file_is_reported_too(self):
+        self.run_harness('sync')
+        (self.root / '.codex' / 'agents' / 'seen-implementer.toml').write_text('name = "x"\n')
+
+        self.assertTrue([problem for problem in self.problems() if 'seen-implementer' in problem],
+                        self.problems())
+
     def test_doctor_repairs_nothing(self):
         self.run_harness('sync')
         edited = self.root / CLAUDE_COPIES[0]
@@ -226,6 +242,16 @@ class TheSkillSaysSoTest(unittest.TestCase):
 
     def test_it_says_a_subagent_is_a_context_boundary_and_not_independence(self):
         self.assertRegex(self.text, r'(?i)context boundary')
+
+    def test_it_tells_a_session_to_set_the_codex_depth_rather_than_asserting_it(self):
+        """F11: the setting lives in a file this repository does not track."""
+        self.assertIn('.codex/config.toml', self.text)
+        self.assertNotRegex(self.text, r'(?i)max_depth. is 1 on both sides')
+
+    def test_it_discloses_that_the_reviewer_holds_bash(self):
+        """F9: Claude Code has no read-only Bash, so the hole is named, not implied."""
+        self.assertIn('Bash', self.text)
+        self.assertIn('SEEN-106', self.text)
 
     def test_it_names_the_word_cap_on_a_brief(self):
         self.assertIn('400', self.text)

@@ -260,13 +260,13 @@ class SubagentAttributionTest(unittest.TestCase):
     tell them apart, and the journal is the only place that knows.
     """
 
-    def journal(self, briefs=1, independence='subagent'):
+    def journal(self, briefs=1, independence='subagent', agent='seen-scout'):
         records = [record(1, 'start', 'clarify', minute=0, session='aaaaaaaaaaaa',
                           ticket_file='docs/tickets/x.md', ticket_snapshot='# x',
                           base_commit='a' * 40)]
         for number in range(briefs):
             records.append(record(2 + number, 'note', 'clarify', minute=2 + number,
-                                  session='aaaaaaaaaaaa', text='a brief', agent='seen-scout',
+                                  session='aaaaaaaaaaaa', text='a brief', agent=agent,
                                   words=120))
         if independence is not None:
             records.append(record(2 + briefs, 'advance', 'review', minute=30,
@@ -276,6 +276,13 @@ class SubagentAttributionTest(unittest.TestCase):
                                                 reviewer='claude:reviewer', findings=[],
                                                 verdict='pass')))
         return records
+
+    def test_a_brief_from_the_reviewer_is_not_a_brief_from_the_scout(self):
+        """F4: the report row is about the scout and the reviewer, not either one."""
+        answer = kpi.subagents(self.journal(agent='seen-reviewer'))
+
+        self.assertEqual(answer['agents'], ['seen-reviewer'])
+        self.assertFalse(answer['both'])
 
     def test_a_brief_and_a_subagent_review_are_both_recorded(self):
         answer = kpi.subagents(self.journal())

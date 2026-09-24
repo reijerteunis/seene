@@ -303,6 +303,29 @@ class DeclaredSliceTest(AtTddTest):
         with self.assertRaises(HarnessError):
             self.handoff_declaring(-1)
 
+    def test_status_brief_honours_the_count_a_handoff_declared(self):
+        """F1: the rendered pack is what a resuming session actually reads."""
+        self.red()
+        self.green()
+        self.green()
+        self.handoff_declaring(1)
+
+        self.assertIn('Slice 2', self.brief()['pack'])
+
+    def test_a_green_recorded_after_the_last_declaration_still_counts(self):
+        self.handoff_declaring(1)
+        self.green()
+
+        self.assertIn('Slice 3', self.brief()['pack'])
+
+    def test_the_record_carries_the_count_the_journal_would_have_inferred(self):
+        """F7: a declaration the journal contradicts is visible, not prevented."""
+        self.green()
+        record = self.handoff_declaring(3)
+
+        self.assertEqual(record['data']['slice']['done'], 3)
+        self.assertEqual(record['data']['slice']['inferred'], 1)
+
     def test_two_greens_for_one_slice_are_miscounted_without_a_declaration(self):
         """The limit the flag exists for, pinned so nobody is surprised by it."""
         self.green()

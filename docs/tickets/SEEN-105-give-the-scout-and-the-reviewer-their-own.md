@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-104, SEEN-092, SEEN-098]
-status: doing
+status: review
 ---
 # SEEN-105: Give the scout and the reviewer their own context as subagents in both assistants
 
@@ -23,7 +23,7 @@ status: doing
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | doing |
+| Status | review |
 
 ## Description
 
@@ -31,11 +31,23 @@ Two readers fill a session: the research at clarify and solution (graph answers,
 
 ## Acceptance criteria
 
-- [ ] harness sync writes .claude/agents/seen-scout.md, seen-reviewer.md and .codex/agents/seen-scout.toml, seen-reviewer.toml from harness/agents/, and doctor reports a copy edited by hand
-- [ ] The scout returns a brief of at most 400 words for a Sprint 0 ticket and harness note records it with the session id it came from; a brief over the limit is refused with the count
-- [ ] The review gate refuses a review record whose reviewer session id equals the implementer's, and accepts one from a subagent or from the other assistant
-- [ ] Tickets that change an agent action or touch billing still require a review from the other assistant, enforced at the review gate and proven with a fixture
-- [ ] One ticket worked with the scout and the reviewer shows the main session's output tokens per point below the SEEN-099 baseline, recorded in the sprint report
+- [x] harness sync writes .claude/agents/seen-scout.md, seen-reviewer.md and .codex/agents/seen-scout.toml, seen-reviewer.toml from harness/agents/, and doctor reports a copy edited by hand
+- [x] The scout returns a brief of at most 400 words for a Sprint 0 ticket and harness note records it with the session id it came from; a brief over the limit is refused with the count
+- [x] The review gate refuses a review record whose reviewer session id equals the implementer's, and accepts one from a subagent or from the other assistant
+- [x] Tickets that change an agent action or touch billing still require a review from the other assistant, enforced at the review gate and proven with a fixture
+- [x] (as amended) One ticket worked with the scout and the reviewer shows the main session's output tokens per point below the SEEN-099 baseline, recorded in the sprint report
+
+## Amendments
+
+- **24 September 2026, Ruud: criterion 5 is amended.** SEEN-105 delivers the
+  measurement, the attribution and the report row; the figure itself is read from
+  the sprint 0 report once the first ticket worked with both agents from its first
+  session has delivered, which is SEEN-106. The reason is in the journal at records
+  8 and 15 and was raised as F3 by the review at note 39: this ticket's own first
+  session was spent before either agent existed, so no figure it could produce
+  would be the figure the criterion asks for. The measurement, not the number, is
+  what this ticket owed.
+
 
 ## Depends on
 
@@ -53,3 +65,66 @@ Two readers fill a session: the research at clarify and solution (graph answers,
 - Architecture: [docs/architecture.md](../architecture.md)
 - Development plan and gates: [docs/development-plan.md](../development-plan.md)
 - Epic goal: Give every ticket one fast, evidence-recording procedure across Claude Code and Codex, with graphify for context, Jev for typed gate decisions, CI as the definition of done, security controls built into the stages, and a KPI record per ticket.
+
+## Outcome
+
+Delivered on 24 September 2026 in five proven slices across three attempts, with
+two returns counted as rework.
+
+**What was built.** `harness/agents.py` holds what each agent may do and
+`harness/agents/<name>.md` holds what each is told; `sync` renders
+`.claude/agents/<name>.md` with the camel-case frontmatter Claude Code reads and
+`.codex/agents/<name>.toml` with the keys Codex reads, and `doctor` reports a copy
+edited by hand, a missing copy, a missing source and an agent file no source
+generates. `harness note --from <agent>` records a brief with its agent and word
+count and refuses one over the 400-word cap in `[agents]` with both numbers. The
+review gate takes a third disclosure, `subagent`, with `reviewer_session` beside
+it, and refuses a session that wrote any record on the ticket or the session
+running the advance; where a ticket touches billing or the policy gate the review
+still comes from the other assistant, named as one of the tools in `[actors]`.
+`kpi.measure` carries `subagents` and the sprint report divides those tickets'
+output tokens per point on their own beside the SEEN-099 baseline.
+
+**What the work settled that the ticket had assumed.** A Claude Code subagent
+inherits its parent's `CLAUDE_CODE_SESSION_ID`, observed at record 7 with the
+digest identical in both and `AI_AGENT` set in both. The harness therefore cannot
+derive a reviewer's context, and every place this ticket says session id means a
+declared value. The gate refuses what it can see and says in its own code that it
+cannot detect a value typed to pass; the control that stands there is the
+cross-tool review.
+
+**Evidence.** Record 26 is a real 381-word brief from `seen-scout` against
+SEEN-009, and note 39 is a real review by `seen-reviewer` in a context of its own,
+which returned the ticket with eleven findings, three of them high. F2 would have
+shipped a gate that refuses the review it demands, because the other assistant
+records a `return` when it sends work back and the rule read that as authorship.
+F1 would have sent every resuming session to the wrong slice. Both were found by
+the reviewer this ticket built, on this ticket, which is the strongest evidence it
+has that the agents pay for themselves.
+
+**What is unverified, and by whom.** The Codex keys (`name`, `description`,
+`developer_instructions`, `sandbox_mode`, `model`) come from this ticket's own text
+and have never been read by a Codex release: no Codex session has run on this
+repository. `doctor` checks that a copy matches its source, not that Codex accepts
+it, and the first Codex session settles it. `[agents] max_depth = 1` lives in
+`.codex/config.toml`, which this repository deliberately does not track, so the
+skill tells a session to set it rather than asserting it is set.
+
+**The limitation this ticket does not close.** The reviewer holds Bash, because it
+cannot read a diff without it, and Claude Code has no read-only Bash. On that side
+the reviewer is held to reading by its instructions and by holding no Edit and no
+Write, and nothing refuses a write it makes through a shell; `sandbox_mode` closes
+that on the Codex side only. It is F9 of the first review, accepted rather than
+fixed, and it belongs to SEEN-106, which puts hooks in front of both assistants.
+
+**Two things found while working, fixed here.** `handoff` counted slices from
+accepted greens, so slice 1's second green after a correction sent the pack to
+slice 3 with slice 2 unworked: `--slice-done` lets the session that worked the
+slice say so, the record carries the inference beside the declaration, and
+`status --brief` reads the declaration back. And `reject_placeholders` compared a
+record against examples for fields `for_mode` had dropped, which would have refused
+a non-code record for leaving `tests_first` alone.
+
+**Criterion 5** is amended above, on Ruud's authority. The measurement and the
+attribution are delivered and tested; the figure is read from the sprint 0 report
+when SEEN-106 delivers.

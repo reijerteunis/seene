@@ -96,9 +96,11 @@ context of their own.
 holds what each is told. `sync` generates `.claude/agents/<name>.md` and
 `.codex/agents/<name>.toml` from them, and `doctor` reports a copy edited by hand,
 exactly as it does for this skill. Claude Code invokes one by name, as
-`@agent-seen-scout` or through the Agent tool. Codex spawns a subagent only when
-it is told to, so the session says so explicitly; `max_depth` is 1 on both sides,
-which means a subagent may not spawn another.
+`@agent-seen-scout` or through the Agent tool. Codex spawns a subagent only when it
+is told to, so the session says so explicitly. A subagent may not spawn another,
+which is `[agents] max_depth = 1` in your own `.codex/config.toml`: this repository
+does not track that file, so `doctor` cannot check the setting and the session sets
+it on its own machine.
 
 Record a brief with `harness note <ticket> --file <brief> --from seen-scout`. It
 refuses a brief over the cap and names the count, and it records the agent, the
@@ -113,7 +115,16 @@ value typed to pass, because a Claude Code subagent inherits its parent's sessio
 id, so the declaration is a disclosure and not a proof. Where a missed defect costs
 money, the review still comes from the other assistant: a ticket whose solution
 record answered `touches_billing_or_policy_gate` yes needs a reviewer or a second
-reviewer from the tool that did not write it.
+reviewer from the tool that did not write it, named as one of the tools in
+`[actors]` rather than as any string.
+
+The reviewer holds Bash, because it cannot read a diff without it, and Claude Code
+has no read-only Bash. On that side it is held to reading by its instructions and
+by holding no Edit and no Write, and nothing refuses a write it makes through a
+shell; `sandbox_mode` closes that on the Codex side only. Enforcing it on both is
+SEEN-106, which puts hooks in front of both assistants. Until then, a review that
+changed the tree is a review to throw away: the gate records the fingerprint it
+attested, and delivery refuses a tree that moved after it.
 
 ## The context budget
 

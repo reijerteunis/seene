@@ -62,6 +62,20 @@ def accepted_greens(records, attempt):
             and record['data'].get('exit_code') == 0]
 
 
+def last_declaration(records, attempt):
+    """The count the most recent handoff in this attempt declared, and where.
+
+    F1 in SEEN-105's first review: --slice-done wrote the right number into the
+    record and `status --brief` rebuilt the pack without it, so the session that
+    resumed read the inference anyway and was sent past a slice nobody worked.
+    """
+    for record in reversed(records):
+        if (record['kind'] == 'handoff' and record['attempt'] == attempt
+                and (record['data'].get('slice') or {}).get('declared')):
+            return record['data']['slice']['done'], record['sequence']
+    return 0, 0
+
+
 def current_slice(records, state, declared=None):
     """The slice a fresh session picks up, declared or counted from the greens.
 
@@ -83,8 +97,14 @@ def current_slice(records, state, declared=None):
     slices = plan_of(records)
     if not slices:
         return None
+    # The last declaration stands, and greens recorded after it still count: a
+    # session that declared at its boundary and then worked on is where both
+    # numbers are needed.
+    at_boundary, since = last_declaration(records, state['attempt'])
+    inferred = min(at_boundary + len([record for record in accepted_greens(
+        records, state['attempt']) if record['sequence'] > since]), len(slices))
     if declared is None:
-        done = min(len(accepted_greens(records, state['attempt'])), len(slices))
+        done = inferred
     else:
         require(0 <= declared <= len(slices),
                 f'--slice-done {declared} is not a count this plan can carry: it has '
@@ -96,6 +116,11 @@ def current_slice(records, state, declared=None):
                 total=len(slices),
                 done=done,
                 declared=declared is not None,
+                # Recorded beside the declaration so a count the journal does not
+                # support is visible later. It is not refused: only the session
+                # that worked the slice knows, and a gate that guessed would be
+                # the miscount this flag exists to answer.
+                inferred=inferred,
                 entry=entry)
 
 

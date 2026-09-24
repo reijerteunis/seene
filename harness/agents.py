@@ -16,8 +16,14 @@ own frontmatter would need a hand-rolled parser for five keys; keeping structure
 in code is what avoids it.
 
 Neither agent holds Edit or Write. The scout has no Bash at all, because
-everything it needs is a graph query; the reviewer has it for `git diff`, and its
-instructions and Codex's read-only sandbox are what keep it to reading.
+everything it needs is a graph query. The reviewer holds Bash, because it cannot
+read a diff without it, and that is a real hole rather than a closed one: Claude
+Code has no read-only Bash, so on that side the reviewer is held to reading by its
+instructions and by holding no Edit and no Write, and nothing refuses a write it
+makes through a shell. `sandbox_mode` closes it on the Codex side only. Enforcing
+it on both is SEEN-106, which puts hooks in front of both assistants. Recorded
+here rather than implied, because F9 of this ticket's first review found this
+module claiming the sandbox covered it.
 """
 
 from pathlib import Path
@@ -157,6 +163,29 @@ def sync(root):
     return written
 
 
+def strays(root):
+    """Agent files in the directories sync owns that no source generates.
+
+    F10 in SEEN-105's first review: drift walked the two agents rather than the
+    directories, so a .claude/agents/seen-implementer.md holding Edit and Write
+    was invisible to doctor and, since .codex/agents/ is no longer ignored,
+    committable. An agent with no source under harness/agents/ has had no review.
+    """
+    generated = {claude_copy(agent) for agent in AGENTS} | {codex_copy(agent) for agent in AGENTS}
+    found = []
+    for directory, suffix in ((CLAUDE_DIRECTORY, '.md'), (CODEX_DIRECTORY, '.toml')):
+        path = root / directory
+        if not path.is_dir():
+            continue
+        for entry in sorted(path.glob(f'*{suffix}')):
+            relative = directory / entry.name
+            if relative not in generated:
+                found.append(f'{relative} is not generated from {SOURCES}/, so nothing reviews '
+                             'what it tells an agent to do; remove it, or add its source and run '
+                             'python3 harness/run.py sync')
+    return found
+
+
 def drift(root):
     """Copies that do not match what their source would generate."""
     problems = []
@@ -175,4 +204,4 @@ def drift(root):
             elif path.read_text() != rendered:
                 problems.append(f'{relative} differs from {source_of(agent)}; it is generated, so '
                                 'edit the source and run python3 harness/run.py sync')
-    return problems
+    return problems + strays(root)
