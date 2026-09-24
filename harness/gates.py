@@ -303,24 +303,31 @@ def _review(data, records, current, repository, thresholds):
         require(data.get('security_checklist'), 'The security checklist must be answered')
     require(data['independence'] in INDEPENDENCE,
             f'Disclose independence as {", ".join(INDEPENDENCE)}')
-    worked_by = _tools_of(records)
+    worked_by = _implementer_tools(records)
     if data['independence'] == 'independent':
-        tools = set(worked_by)
-        tools.add(str(data['reviewer']).split(':')[0])
-        require(len(tools) > 1,
-                'A review is not independent when one tool wrote every record on this ticket')
+        # G2: len(tools) > 1 asked whether a second tool had recorded anything,
+        # which a reviewer's own return satisfies, so the implementer's session
+        # could review its own code by choosing a different word for it.
+        reviewer_tool = str(data['reviewer']).partition(':')[0]
+        require(reviewer_tool and reviewer_tool not in worked_by,
+                'A review is not independent when the tool that reviewed it is a tool that wrote '
+                f'the work: {", ".join(sorted(worked_by)) or "nobody"} wrote this ticket and '
+                f'{reviewer_tool or "nobody"} reviewed it. Disclose a review in a context of its '
+                'own as subagent, and a review by the session that wrote the code as self-review')
     if data['independence'] == 'subagent':
         _require_another_context(data, records)
     if _needs_two_reviewers(records):
-        known = set(thresholds['actors']['tools'])
+        # G6: [actors] tools carries human, and a person reviewing alone is not the
+        # other assistant. The assistants are their own vocabulary.
+        known = set(thresholds['actors']['assistants'])
         # F6: a prefix that is not a tool this repository knows is a typo, not the
         # other assistant, and it satisfied the one control that stands where a
         # declared session cannot be verified.
         named = {str(data.get(key) or '').partition(':')[0]
                  for key in ('reviewer', 'second_reviewer')} & known
-        require(named - _implementer_tools(records),
+        require(named - worked_by,
                 'This change touches billing or the policy gate, so the review comes from the '
-                f'other assistant: {", ".join(sorted(_implementer_tools(records)))} wrote this '
+                f'other assistant: {", ".join(sorted(worked_by))} wrote this '
                 f'ticket and {", ".join(sorted(named)) or "no tool this repository knows"} '
                 'reviewed it. A subagent is a context boundary, not independence by itself, and a '
                 'declared session cannot stand in for it where a missed defect costs money. Name '
@@ -334,19 +341,18 @@ def _tools_of(records):
 
 
 def _implementer_tools(records):
-    """The tools that wrote the work, which is not the tools that wrote a record.
+    """The tools that wrote the work, read from the stage each record was written at.
 
     F2 in SEEN-105's first review: the other assistant records a `return` when it
-    sends work back, which is the documented path, and reading that as authorship
-    made the gate refuse the very review it demands. A reviewer's own records are
-    therefore not authorship.
+    sends work back, which is the documented path, and reading every record as
+    authorship made the gate refuse the very review it demands. G1 in its second
+    review: reading the actor's role instead left a ticket recorded entirely as
+    `:reviewer` with no author at all, which is worse, because a role is a word the
+    session chooses and a stage is where the work happened. Clarify, solution and
+    tdd are the work; a review stage record is the review.
     """
-    tools = set()
-    for record in records:
-        tool, _, role = (record.get('actor') or '').partition(':')
-        if tool and role != 'reviewer':
-            tools.add(tool)
-    return tools
+    return {(record.get('actor') or '').partition(':')[0] for record in records
+            if record.get('actor') and record.get('stage') != 'review'}
 
 
 def _sessions_of(records):
@@ -390,6 +396,15 @@ GATES = {'clarify': _clarify, 'solution': _solution, 'tdd': _tdd, 'review': _rev
 
 
 def _needs_two_reviewers(records):
+    """Whether this review needs a second reviewer, the checklist and another tool.
+
+    Criterion 4 of SEEN-105 says an agent action or billing. G3 in its second
+    review found only the billing half enforced: the solution question can be
+    answered no, as it was on SEEN-105 itself at record 14, while the clarify record
+    says in its own field that the ticket changes an agent action.
+    """
+    if (latest_evidence(records, 'clarify') or {}).get('changes_agent_action'):
+        return True
     for record in reversed(records):
         if record['kind'] == 'advance' and record['data'].get('from_stage') == 'solution':
             return any(decision['question'] == 'touches_billing_or_policy_gate'

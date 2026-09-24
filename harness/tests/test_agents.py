@@ -135,6 +135,13 @@ class AgentSyncTest(CommandTest):
         self.assertTrue([problem for problem in self.problems() if 'seen-implementer' in problem],
                         self.problems())
 
+    def test_a_project_agent_of_ones_own_is_left_alone(self):
+        """G7: .claude/agents/ belongs to the person; only the seen- names are ours."""
+        self.run_harness('sync')
+        (self.root / '.claude' / 'agents' / 'my-debugger.md').write_text('---\nname: x\n---\n')
+
+        self.assertEqual(self.problems(), [])
+
     def test_doctor_repairs_nothing(self):
         self.run_harness('sync')
         edited = self.root / CLAUDE_COPIES[0]

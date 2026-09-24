@@ -68,8 +68,12 @@ Two readers fill a session: the research at clarify and solution (graph answers,
 
 ## Outcome
 
-Delivered on 24 September 2026 in five proven slices across three attempts, with
-two returns counted as rework.
+Delivered on 24 September 2026 across four attempts. The four planned slices and
+the handoff defect found while working slice 1 were proved in attempt 2, and one
+rework slice in each of attempts 3 and 4 after the two review rounds, which
+`kpi.slices` counts as seven proven against four planned, with three returns
+counted as rework. Two sessions, both of them the same one by the digest: the
+clarify session that opened the ticket and the session that worked it.
 
 **What was built.** `harness/agents.py` holds what each agent may do and
 `harness/agents/<name>.md` holds what each is told; `sync` renders
@@ -94,13 +98,26 @@ cannot detect a value typed to pass; the control that stands there is the
 cross-tool review.
 
 **Evidence.** Record 26 is a real 381-word brief from `seen-scout` against
-SEEN-009, and note 39 is a real review by `seen-reviewer` in a context of its own,
-which returned the ticket with eleven findings, three of them high. F2 would have
+SEEN-009. Notes 39 and 47 are two real reviews by `seen-reviewer`, each in a
+context of its own, and both returned the ticket: eleven findings the first time,
+three of them high, and eight the second, four of them medium. F2 would have
 shipped a gate that refuses the review it demands, because the other assistant
 records a `return` when it sends work back and the rule read that as authorship.
-F1 would have sent every resuming session to the wrong slice. Both were found by
-the reviewer this ticket built, on this ticket, which is the strongest evidence it
-has that the agents pay for themselves.
+F1 would have sent every resuming session to the wrong slice. G1 and G2 were
+introduced by the fix to F2 and caught by the second pass: reading authorship from
+the actor's role turned an over-refusal into an under-refusal, and the mirror image
+had been left standing at the `independent` rule, where a second tool merely having
+recorded anything counted as independence. Authorship is now read from the stage a
+record was written at, which is where the work happened rather than what the actor
+called itself.
+
+That the reviewer this ticket built found, on this ticket, two holes in the control
+the ticket exists to strengthen, and then found the holes the first round's fixes
+opened, is the strongest evidence the ticket has that the agents pay for
+themselves. It is also the reason the review of a ticket that changes an agent
+action or touches billing still goes to the other assistant: both rounds were the
+same model reading the same repository, and neither round would have caught a
+mistake both rounds share.
 
 **What is unverified, and by whom.** The Codex keys (`name`, `description`,
 `developer_instructions`, `sandbox_mode`, `model`) come from this ticket's own text
@@ -125,6 +142,9 @@ slice say so, the record carries the inference beside the declaration, and
 record against examples for fields `for_mode` had dropped, which would have refused
 a non-code record for leaving `tests_first` alone.
 
-**Criterion 5** is amended above, on Ruud's authority. The measurement and the
-attribution are delivered and tested; the figure is read from the sprint 0 report
-when SEEN-106 delivers.
+**Criterion 5** is amended above, on Ruud's authority, recorded in the journal at
+note 50 with the option he chose and the two he did not. The measurement and the
+attribution are delivered and tested, and `[context] agents_available_from` keeps
+this ticket out of the row its own amendment points at, because a ticket that
+installed a tool was not worked with it. The figure is read from the sprint 0
+report when SEEN-106 delivers.

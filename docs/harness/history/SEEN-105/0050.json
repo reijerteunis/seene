@@ -1,0 +1,16 @@
+{
+  "sequence": 50,
+  "ticket": "SEEN-105",
+  "timestamp": "2026-09-24T14:28:01.396101+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 4,
+  "actor": "human:implementer",
+  "session": "2377cfb62f89",
+  "head": "0cfe616892199728138f45ef6654d02563cc0301",
+  "prev_hash": "1cd3f7d831b23ecf6dc2c67f1903bcf2cd800aeda4233440062dcec1faf132cf",
+  "data": {
+    "text": "# Ruud amends criterion 5\n\nRecorded on 24 September 2026 on Ruud's instruction, in answer to F3 of the first\nreview (note 39) and G5 of the second (note 47), which found the amendment stated\nin the ticket file with no record behind it.\n\nHe was given three options and chose the first:\n\n1. **Amend criterion 5 on his authority**, so that SEEN-105 delivers the\n   measurement, the attribution and the report row, and the figure is read from the\n   sprint 0 report once the first ticket worked with both agents from its first\n   session has delivered, which is SEEN-106.\n2. Deliver with criterion 5 unchecked.\n3. Hold the ticket at review until SEEN-106 has delivered.\n\nHis words, as the option he selected states them: \"criterion 5 is amended. SEEN-105\ndelivers the measurement and the attribution; the figure is read from the sprint 0\nreport when SEEN-106 delivers, being the first ticket worked with both agents from\nits first session.\"\n\nThe reason the criterion cannot be met as written inside this ticket: its own first\ntwo sessions were spent before either agent existed, so its figures are not the\nfigures the criterion asks about. G4 of the second review then found that the row\nwould have counted this ticket anyway; `[context] agents_available_from` now holds\nthe timestamp of the commit that generated the two agents, so a ticket that\ninstalled them is not counted as worked with them, which is the rule SEEN-098 wrote\nfor its own tool.\n\nThe record is written by the session at his instruction rather than typed by him,\nwhich is why the actor is `human:implementer` and this paragraph says so. The\nticket's `## Amendments` section carries the same decision where a reader of the\nticket will find it.\n"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "sequence": 48,
+  "ticket": "SEEN-105",
+  "timestamp": "2026-09-24T14:23:36.219468+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "session": "2377cfb62f89",
+  "head": "0cfe616892199728138f45ef6654d02563cc0301",
+  "prev_hash": "0380ec12c2e2d8e2bf98f586186b544d64bacda96bb7262e0859b1bfe69b83db",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 4,
+    "reason": "The second review by seen-reviewer in context 094322e7e865 closed all eleven findings of the first round and returned eight new ones, recorded at note 47. G1 is the serious one and it is mine: the F2 fix read authorship from the actor's role, so a ticket recorded entirely as claude:reviewer has no implementer tool and the billing rule accepts a review by the tool that wrote the code, which turned an over-refusal into an under-refusal on the one control that stands where a declared session cannot be verified. G2 is its mirror image left standing at the independent rule, G3 leaves the changes_agent_action half of criterion 4 unenforced, G4 would average this ticket into the row its own amendment exists to exclude, and G5 leaves Ruud's amendment with no record in the journal. Returning to tdd to fix all eight."
+  }
+}

@@ -318,6 +318,18 @@ class ReviewGateTest(GateTest):
                                                 reviewer='claude:reviewer'),
                           records=self.tdd_done())
 
+    def test_an_independent_review_by_the_tool_that_wrote_the_code_is_refused(self):
+        """G2: a second tool having recorded anything is not independence."""
+        records = self.tdd_done()
+        records.append(dict(sequence=3, kind='return', stage='review', attempt=1,
+                            actor='codex:reviewer', session='cccccccccccc',
+                            data=dict(from_stage='review', to_stage='tdd', reason='a finding')))
+
+        with self.assertRaisesRegex(HarnessError, 'independent'):
+            self.evaluate('review', self.review(independence='independent',
+                                                reviewer='claude:reviewer'),
+                          records=records)
+
     def test_independence_passes_when_another_tool_worked_the_ticket(self):
         records = self.tdd_done(actors=('claude:implementer', 'claude:implementer'))
         self.evaluate('review', self.review(independence='independent', reviewer='codex:reviewer'),
@@ -467,6 +479,45 @@ class TwoReviewerTest(ReviewGateTest):
                                                         second_reviewer=named,
                                                         security_checklist=self.CHECKLIST),
                                   records=self.billing_journal())
+
+    def test_a_ticket_recorded_entirely_as_reviewer_still_has_an_author(self):
+        """G1: the F2 fix read authorship from the role, which is self-reported."""
+        records = [dict(record, actor='claude:reviewer') for record in self.billing_journal()]
+
+        with self.assertRaisesRegex(HarnessError, 'other assistant'):
+            self.evaluate('review', self.review(independence='subagent',
+                                                reviewer='claude:reviewer',
+                                                reviewer_session='bbbbbbbbbbbb',
+                                                second_reviewer='claude:reviewer',
+                                                security_checklist=self.CHECKLIST),
+                          records=records)
+
+    def test_a_human_reviewer_is_not_the_other_assistant(self):
+        """G6: [actors] tools carries human, and a person is not an assistant."""
+        with self.assertRaisesRegex(HarnessError, 'other assistant'):
+            self.evaluate('review', self.review(independence='independent',
+                                                reviewer='human:reviewer',
+                                                second_reviewer='human:reviewer',
+                                                security_checklist=self.CHECKLIST),
+                          records=self.billing_journal())
+
+    def test_a_ticket_that_changes_an_agent_action_needs_the_other_assistant_too(self):
+        """G3: criterion 4 says an agent action or billing, not one of the two."""
+        records = self.billing_journal()
+        records[1]['data']['decisions'] = [dict(question='touches_billing_or_policy_gate',
+                                                outcome='no')]
+        records.insert(1, dict(sequence=2, kind='advance', stage='clarify', attempt=1,
+                               actor='claude:implementer', session='aaaaaaaaaaaa',
+                               data=dict(from_stage='clarify', to_stage='solution', decisions=[],
+                                         evidence=dict(changes_agent_action=True))))
+
+        with self.assertRaisesRegex(HarnessError, 'other assistant'):
+            self.evaluate('review', self.review(independence='subagent',
+                                                reviewer='claude:reviewer',
+                                                reviewer_session='bbbbbbbbbbbb',
+                                                second_reviewer='claude:reviewer',
+                                                security_checklist=self.CHECKLIST),
+                          records=records)
 
     def test_an_ordinary_ticket_needs_neither(self):
         self.evaluate('review',

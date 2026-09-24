@@ -30,14 +30,21 @@ def _per_slice(tickets, field='output_tokens'):
     return round(sum(ticket[field] for ticket in tickets) / counted, 1)
 
 
-def worked_with_agents(tickets):
-    """Tickets whose journal says both agents were used.
+def worked_with_agents(tickets, since=''):
+    """Tickets whose journal says both agents were used, after they existed.
 
     The fifth criterion of SEEN-105 compares the main session's cost on those
-    against the baseline, so they are divided on their own rather than mixed into
-    a figure that cannot say which tickets paid for what.
+    against the baseline, so they are divided on their own rather than mixed into a
+    figure that cannot say which tickets paid for what.
+
+    The date is the rule SEEN-098 wrote for its own tool: a ticket that installed
+    one was not worked with it. G4 of SEEN-105's second review found the ticket that
+    built the agents counting itself, which would have made the row the mean of the
+    first ticket worked with them and the one that could not have been.
     """
-    return [ticket for ticket in tickets if (ticket.get('subagents') or {}).get('both')]
+    return [ticket for ticket in tickets
+            if (ticket.get('subagents') or {}).get('both')
+            and (ticket.get('started') or '') >= since]
 
 
 def qualifying(tickets, since):
@@ -53,13 +60,14 @@ def qualifying(tickets, since):
             and ticket.get('points')]
 
 
-def compare(tickets, baseline, minimum, since=''):
+def compare(tickets, baseline, minimum, since='', agents_from=''):
     """The two rows, the baseline beside them, and what the rule points to."""
     counted = qualifying(tickets, since)
-    with_agents = worked_with_agents(counted)
+    with_agents = worked_with_agents(counted, agents_from)
     totals = baseline['totals']
     section = dict(tickets=len(counted),
                    tickets_with_agents=len(with_agents),
+                   tickets_named_with_agents=[ticket['ticket'] for ticket in with_agents],
                    output_tokens_per_point_with_agents=_per_point(with_agents, 'output_tokens'),
                    minimum=minimum,
                    output_tokens_per_point=_per_point(counted, 'output_tokens'),

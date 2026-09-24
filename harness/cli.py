@@ -827,7 +827,8 @@ def write_report(repository, args):
     section = None
     if baseline_path.is_file():
         section = context.compare(covered, json.loads(baseline_path.read_text()),
-                                  budget['minimum_tickets'], budget['tools_available_from'])
+                                  budget['minimum_tickets'], budget['tools_available_from'],
+                                  agents_from=budget['agents_available_from'])
         section['overlaps'] = context.overlaps(_graph_records(repository.root, covered))
     payload = dict(name=name, generated_for=name, tickets=covered, totals=totals,
                    unmeasurable=UNMEASURABLE, context=section)

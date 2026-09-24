@@ -172,6 +172,10 @@ def strays(root):
     committable. An agent with no source under harness/agents/ has had no review.
     """
     generated = {claude_copy(agent) for agent in AGENTS} | {codex_copy(agent) for agent in AGENTS}
+    # Only a file claiming to be one of ours. .claude/agents/ is where a person
+    # keeps their own agents, and G7 of SEEN-105's second review found this failing
+    # doctor and CI on every ticket for a debugger somebody saved there.
+    ours = 'seen-'
     found = []
     for directory, suffix in ((CLAUDE_DIRECTORY, '.md'), (CODEX_DIRECTORY, '.toml')):
         path = root / directory
@@ -179,8 +183,9 @@ def strays(root):
             continue
         for entry in sorted(path.glob(f'*{suffix}')):
             relative = directory / entry.name
-            if relative not in generated:
-                found.append(f'{relative} is not generated from {SOURCES}/, so nothing reviews '
+            if relative not in generated and entry.stem.startswith(ours):
+                found.append(f'{relative} is named like one of this harness\'s agents and is not '
+                             f'generated from {SOURCES}/, so nothing reviews '
                              'what it tells an agent to do; remove it, or add its source and run '
                              'python3 harness/run.py sync')
     return found
