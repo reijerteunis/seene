@@ -66,11 +66,18 @@ GITLEAKS_FOUND = 1
 # puts it; the whole log would be the repository-wide read this ticket exists to
 # avoid, paid for at the API instead of in the session.
 EXCERPT_CHARACTERS = 800
-# How many proved slices the state carries, most recent last. A ticket reworked
-# eight times has a slice per attempt on top of its plan, and every one of them is
-# evidence for some criterion; a cap keeps one request from growing with the
-# rework rather than with the work. L1 of SEEN-107's own triage.
-MAX_SLICES_IN_STATE = 12
+# Every proved slice goes into the state, because each evidences the criterion it
+# was written for. What is capped is the runner output, which is where the size
+# is: the most recent slices carry their failure tail and the older ones keep
+# their behaviour, their stated reason, the command and the exit code. So a long
+# ticket costs more words and never loses a slice.
+#
+# The first cap kept the newest twelve slices and dropped the oldest, which is the
+# rework kept and the planned work dropped, the opposite of what it claimed. Past
+# the bound the slices that evidence most criteria would have vanished, which is
+# the input that produced the false unevidenced answers at record 75. M1 of this
+# ticket's seventh review, and M2 was that the only guard asserted the constant.
+MAX_SLICE_OUTPUTS = 8
 
 
 def _entry(name, outcome, detail):
@@ -477,13 +484,14 @@ def _record_at(records, sequence):
     return None
 
 
-def _check_excerpt(record):
+def _check_excerpt(record, with_output=True):
+    """One cited check, with its runner output only where the cap allows it."""
     if record is None:
         return None
     return dict(record=record['sequence'],
                 command=record['data'].get('command'),
                 exit_code=record['data'].get('exit_code'),
-                output=_tail(record['data'].get('output')))
+                output=_tail(record['data'].get('output')) if with_output else None)
 
 
 def journal_excerpts(records):
@@ -503,20 +511,29 @@ def journal_excerpts(records):
     in attempt 1. `kpi.slices` had already learned this, and for the same reason.
     """
     clarified = gates.latest_evidence(records, 'clarify') or {}
-    proved = []
+    cited = []
     for record in records:
         if record['kind'] != 'advance' or record['data'].get('from_stage') != 'tdd':
             continue
         for entry in record['data'].get('evidence', {}).get('slices') or []:
-            proved.append(dict(attempt=record['attempt'],
-                               behaviour=entry.get('behaviour'),
-                               failure_reason=entry.get('failure_reason'),
-                               red=_check_excerpt(_record_at(records, entry.get('red'))),
-                               green=_check_excerpt(_record_at(records, entry.get('green')))))
+            cited.append((record['attempt'], entry))
+    proved = []
+    for position, (attempt, entry) in enumerate(cited):
+        # The tail of the runner's output is what answers whether a RED failed for
+        # the reason the slice states, and it is wanted most where the reader is
+        # least likely to remember: the recent slices. The older ones keep
+        # everything but the log.
+        with_output = position >= len(cited) - MAX_SLICE_OUTPUTS
+        proved.append(dict(attempt=attempt,
+                           behaviour=entry.get('behaviour'),
+                           failure_reason=entry.get('failure_reason'),
+                           red=_check_excerpt(_record_at(records, entry.get('red')), with_output),
+                           green=_check_excerpt(_record_at(records, entry.get('green')),
+                                                with_output)))
     return dict(acceptance=clarified.get('acceptance') or [],
                 decisions=clarified.get('decisions') or [],
                 slices_proved=len(proved),
-                slices=proved[-MAX_SLICES_IN_STATE:])
+                slices=proved)
 
 
 def file_subject(entry):

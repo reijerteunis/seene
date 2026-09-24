@@ -1484,7 +1484,73 @@ class EveryAttemptsEvidenceTest(ThreeCriteriaTest):
         self.assertEqual(slices[0]['behaviour'], 'The behaviour')
 
     def test_the_excerpt_is_capped_so_a_long_ticket_cannot_blow_up_the_request(self):
-        self.assertEqual(triage.MAX_SLICES_IN_STATE, 12)
+        self.assertEqual(triage.MAX_SLICE_OUTPUTS, 8)
+
+
+class SliceCapTest(unittest.TestCase):
+    """M1 and M2: what a long ticket loses, and what it must not.
+
+    The first cap kept the newest slices and dropped the oldest, which is the
+    rework kept and the planned work dropped: past the bound the slices that
+    evidence most criteria would have vanished, which is the input that produced
+    the false unevidenced answers at record 75. Nothing caught it, because the
+    only guard asserted the constant and no test built enough slices to reach the
+    bound. These do.
+    """
+
+    def journal(self, slices):
+        """One accepted tdd record per slice, each citing a red and a green."""
+        from harness.tests.test_kpi import record
+        records = [record(1, 'start', 'clarify', minute=0, ticket_file='docs/tickets/x.md',
+                          ticket_snapshot='# x'),
+                   record(2, 'advance', 'clarify', minute=1, from_stage='clarify',
+                          to_stage='solution', evidence=dict(acceptance=['AC1']), decisions=[])]
+        sequence = 3
+        for position in range(slices):
+            red, green = sequence, sequence + 1
+            records.append(record(red, 'check', 'tdd', attempt=position + 1, minute=position * 10,
+                                  phase='red', exit_code=1, command=['t'],
+                                  output=f'failure {position}'))
+            records.append(record(green, 'check', 'tdd', attempt=position + 1,
+                                  minute=position * 10 + 1, phase='green', exit_code=0,
+                                  command=['t'], output='ok'))
+            records.append(record(green + 1, 'advance', 'tdd', attempt=position + 1,
+                                  minute=position * 10 + 2, from_stage='tdd', to_stage='review',
+                                  decisions=[],
+                                  evidence=dict(slices=[dict(behaviour=f'slice {position}',
+                                                             failure_reason=f'reason {position}',
+                                                             red=red, green=green)])))
+            sequence += 3
+        return records
+
+    def test_every_proved_slice_is_in_the_state_however_many_there_are(self):
+        excerpts = triage.journal_excerpts(self.journal(20))
+
+        self.assertEqual(excerpts['slices_proved'], 20)
+        self.assertEqual([entry['behaviour'] for entry in excerpts['slices']],
+                         [f'slice {position}' for position in range(20)],
+                         'A slice that evidences a criterion cannot be dropped for being old')
+
+    def test_the_oldest_slice_keeps_its_behaviour_and_the_reason_it_failed(self):
+        oldest = triage.journal_excerpts(self.journal(20))['slices'][0]
+
+        self.assertEqual(oldest['behaviour'], 'slice 0')
+        self.assertEqual(oldest['failure_reason'], 'reason 0')
+        self.assertEqual(oldest['red']['exit_code'], 1)
+        self.assertEqual(oldest['red']['command'], ['t'])
+
+    def test_what_the_cap_drops_is_the_runner_output_of_the_older_slices(self):
+        excerpts = triage.journal_excerpts(self.journal(20))
+        outputs = [entry['red']['output'] for entry in excerpts['slices']]
+
+        self.assertEqual(outputs.count(None), 20 - triage.MAX_SLICE_OUTPUTS)
+        self.assertIsNone(outputs[0], 'The oldest keeps its shape and loses its log')
+        self.assertEqual(outputs[-1], 'failure 19', 'The newest keeps the log a reader needs')
+
+    def test_a_ticket_inside_the_bound_keeps_every_output(self):
+        excerpts = triage.journal_excerpts(self.journal(triage.MAX_SLICE_OUTPUTS))
+
+        self.assertTrue(all(entry['red']['output'] for entry in excerpts['slices']))
 
 
 if __name__ == '__main__':

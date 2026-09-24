@@ -1,0 +1,31 @@
+{
+  "sequence": 81,
+  "ticket": "SEEN-107",
+  "timestamp": "2026-09-24T21:32:01.537114+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 9,
+  "actor": "claude:implementer",
+  "session": "253bf8e84e82",
+  "head": "c7f98513dab7b4849dff580896501d4f6ab3af0e",
+  "prev_hash": "52456ae9e250db3a6a9e382fcd757db4de4032082dbfcccd0e545127e7eb6b7d",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "behaviour": "The Jev state carries every accepted attempt's proved slices, each naming the attempt that proved it, capped so one request grows with the work rather than with the rework",
+          "failure_reason": "AssertionError: 'The behaviour' not found in ['The correction'], because the state carried only the latest accepted tdd record; plus KeyError: 'attempt' and AttributeError: no MAX_SLICES_IN_STATE",
+          "red": 77,
+          "green": 78
+        }
+      ],
+      "regression": 79,
+      "coverage_delta": 0.0
+    },
+    "decisions": []
+  }
+}

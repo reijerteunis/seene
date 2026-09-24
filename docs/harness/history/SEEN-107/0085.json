@@ -1,0 +1,30 @@
+{
+  "sequence": 85,
+  "ticket": "SEEN-107",
+  "timestamp": "2026-09-24T21:44:10.948957+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 10,
+  "actor": "claude:implementer",
+  "session": "253bf8e84e82",
+  "head": "c7f98513dab7b4849dff580896501d4f6ab3af0e",
+  "prev_hash": "50afdd3e6cb96755f5ef9f593bdb649e0f5de7a68667612c302bfb961e2ca851",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_triage.SliceCapTest",
+      "harness.tests.test_triage.EveryAttemptsEvidenceTest"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "duration_ms": 2704,
+    "output": "EFFE..E.\n======================================================================\nERROR: test_a_ticket_inside_the_bound_keeps_every_output (harness.tests.test_triage.SliceCapTest.test_a_ticket_inside_the_bound_keeps_every_output)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_triage.py\", line 1551, in test_a_ticket_inside_the_bound_keeps_every_output\n    excerpts = triage.journal_excerpts(self.journal(triage.MAX_SLICE_OUTPUTS))\n                                                    ^^^^^^^^^^^^^^^^^^^^^^^^\nAttributeError: module 'harness.triage' has no attribute 'MAX_SLICE_OUTPUTS'\n\n======================================================================\nERROR: test_what_the_cap_drops_is_the_runner_output_of_the_older_slices (harness.tests.test_triage.SliceCapTest.test_what_the_cap_drops_is_the_runner_output_of_the_older_slices)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_triage.py\", line 1546, in test_what_the_cap_drops_is_the_runner_output_of_the_older_slices\n    self.assertEqual(outputs.count(None), 20 - triage.MAX_SLICE_OUTPUTS)\n                                               ^^^^^^^^^^^^^^^^^^^^^^^^\nAttributeError: module 'harness.triage' has no attribute 'MAX_SLICE_OUTPUTS'\n\n======================================================================\nERROR: test_the_excerpt_is_capped_so_a_long_ticket_cannot_blow_up_the_request (harness.tests.test_triage.EveryAttemptsEvidenceTest.test_the_excerpt_is_capped_so_a_long_ticket_cannot_blow_up_the_request)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_triage.py\", line 1487, in test_the_excerpt_is_capped_so_a_long_ticket_cannot_blow_up_the_request\n    self.assertEqual(triage.MAX_SLICE_OUTPUTS, 8)\n                     ^^^^^^^^^^^^^^^^^^^^^^^^\nAttributeError: module 'harness.triage' has no attribute 'MAX_SLICE_OUTPUTS'\n\n======================================================================\nFAIL: test_every_proved_slice_is_in_the_state_however_many_there_are (harness.tests.test_triage.SliceCapTest.test_every_proved_slice_is_in_the_state_however_many_there_are)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_triage.py\", line 1530, in test_every_proved_slice_is_in_the_state_however_many_there_are\n    self.assertEqual([entry['behaviour'] for entry in excerpts['slices']],\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                     [f'slice {position}' for position in range(20)],\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                     'A slice that evidences a criterion cannot be dropped for being old')\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: Lists differ: ['slice 8', 'slice 9', 'slice 10', 'slice 11', 's[88 chars] 19'] != ['slice 0', 'slice 1', 'slice 2', 'slice 3', 'sli[176 chars] 19']\n\nFirst differing element 0:\n'slice 8'\n'slice 0'\n\nSecond list contains 8 additional elements.\nFirst extra element 12:\n'slice 12'\n\n- ['slice 8',\n?         ^\n\n+ ['slice 0',\n?         ^\n\n+  'slice 1',\n+  'slice 2',\n+  'slice 3',\n+  'slice 4',\n+  'slice 5',\n+  'slice 6',\n+  'slice 7',\n+  'slice 8',\n   'slice 9',\n   'slice 10',\n   'slice 11',\n   'slice 12',\n   'slice 13',\n   'slice 14',\n   'slice 15',\n   'slice 16',\n   'slice 17',\n   'slice 18',\n   'slice 19'] : A slice that evidences a criterion cannot be dropped for being old\n\n======================================================================\nFAIL: test_the_oldest_slice_keeps_its_behaviour_and_the_reason_it_failed (harness.tests.test_triage.SliceCapTest.test_the_oldest_slice_keeps_its_behaviour_and_the_reason_it_failed)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_triage.py\", line 1537, in test_the_oldest_slice_keeps_its_behaviour_and_the_reason_it_failed\n    self.assertEqual(oldest['behaviour'], 'slice 0')\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 'slice 8' != 'slice 0'\n- slice 8\n?       ^\n+ slice 0\n?       ^\n\n\n----------------------------------------------------------------------\nRan 8 tests in 2.600s\n\nFAILED (failures=2, errors=3)\n",
+    "output_sha256": "2167c762c2d3fd07922fddf7064a952e5885153dc264ffd9052013f1fa005de8",
+    "output_truncated": false,
+    "before": "61432b38410881ce527a3074a1144e25041e64e704c42cf0820a25821df5b845",
+    "after": "61432b38410881ce527a3074a1144e25041e64e704c42cf0820a25821df5b845"
+  }
+}

@@ -215,6 +215,12 @@ def review_triage(records, reviewer_tokens=None):
     data = latest['data']
     return dict(record=latest['sequence'],
                 depth=data.get('review_depth'),
+                # The share below is measured at the depth the model chose, not
+                # at the one the rules enforced, so the row carries both: a
+                # calibration that averages the share without knowing which is
+                # which counts a saving on tickets where nothing could have been
+                # saved. M3 of the seventh review.
+                model_depth=data.get('model_depth'),
                 shadow=data.get('shadow'),
                 asked=(data.get('jev') or {}).get('asked'),
                 rules=list(data.get('rules') or []),
