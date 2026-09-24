@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { loadLocalEnvironment, repositoryRoot } from './environment.ts';
+import { findRepositoryRoot, loadLocalEnvironment, repositoryRoot } from './environment.ts';
 import { createSecretsProvider } from './secrets.ts';
 
 /**
@@ -73,6 +73,18 @@ describe('loading .env.local', () => {
 
   it('does nothing at all when there is no file, because after go-live there will not be one', () => {
     expect(loadLocalEnvironment(mkdtempSync(join(tmpdir(), 'seen-env-')))).toBeNull();
+  });
+
+  it('does nothing where there is no repository at all, which is every deployed container', () => {
+    // Cloud Run gets a built image with no pnpm-workspace.yaml anywhere above it.
+    // This is called from a bootstrap module imported first by both apps, so a
+    // throw here is both services failing to start, and the whole point of the
+    // provider abstraction is that go-live changes configuration and not code.
+    const outsideAnyRepository = mkdtempSync(join(tmpdir(), 'seen-no-repo-'));
+
+    expect(() => loadLocalEnvironment()).not.toThrow();
+    expect(findRepositoryRoot(outsideAnyRepository)).toBeNull();
+    expect(() => repositoryRoot(outsideAnyRepository)).toThrow(/pnpm-workspace\.yaml/);
   });
 
   it('gives the secrets provider the credential the README told you to put there', async () => {

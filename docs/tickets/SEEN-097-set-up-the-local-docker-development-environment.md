@@ -121,6 +121,19 @@ Each of the three was found by starting the thing and watching it fail, not by a
 Proof for the last: with `PORT=8081` in `.env.local` the api answered on 8081 and 8080
 was dead; with the line removed it is back on 8080.
 
+A fourth surfaced on the second pass through review, and it was the worst of them
+because it was on the cloud path this ticket exists to protect. `loadLocalEnvironment`
+walked up for `pnpm-workspace.yaml` and threw when it reached the filesystem root. A
+built image has no workspace file, and the function is imported first by both apps, so
+after SEEN-007 `apps/api` and `apps/worker` would have failed to start on Cloud Run
+with `No pnpm-workspace.yaml above /app`. The lookup now splits: `findRepositoryRoot`
+returns null and the loader treats that as no file, while `repositoryRoot` still throws
+for the boundary walker, which only ever runs inside the repository. Verified from a
+directory outside any repository, where it returns null and starts nothing on fire.
+
+Jev put `must_fix` at yes on both passes through the review gate and neither reading
+cleared the 0.7 threshold. Both times there was something.
+
 ### Known and deliberately left
 
 A forwarded mail carrying no mailbox hash names no tenant, and the endpoint answers 400,

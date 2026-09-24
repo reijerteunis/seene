@@ -1,0 +1,30 @@
+{
+  "sequence": 33,
+  "ticket": "SEEN-097",
+  "timestamp": "2026-09-24T08:48:52.839847+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "head": "f02d209b0178e989215e8ffccd9d05131eb13ac4",
+  "prev_hash": "217354c7720185214ae0c8eb9bc5622e5b92730f1b37db2ab90a771adbded8c9",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "behaviour": "loadLocalEnvironment does nothing where there is no repository at all, rather than throwing. A built image has no pnpm-workspace.yaml anywhere above it, and the function is imported first by both apps through a bootstrap module, so the walk up for the repository root has to be able to come back empty-handed. findRepositoryRoot returns null there; repositoryRoot still throws, for the boundary walker, which only ever runs inside the repository and for which no root is a broken assumption rather than a deployment.",
+          "failure_reason": "TypeError: (0 , findRepositoryRoot) is not a function. Before that the behaviour under test was an unguarded throw: running loadLocalEnvironment from a directory outside any repository raised 'No pnpm-workspace.yaml above /private/tmp/.../nocloud, so there is no repository root.'",
+          "red": 29,
+          "green": 30
+        }
+      ],
+      "regression": 31,
+      "coverage_delta": 0.0
+    },
+    "decisions": []
+  }
+}

@@ -14,8 +14,16 @@ import { dirname, join } from 'node:path';
  *
  * Returns the path it read, or null when there was nothing to read.
  */
-export function loadLocalEnvironment(directory: string = repositoryRoot()): string | null {
-  const path = join(directory, '.env.local');
+export function loadLocalEnvironment(directory?: string): string | null {
+  // No repository means no .env.local, which is the normal case in a built image:
+  // after go-live (SEEN-007) Cloud Run has no pnpm-workspace.yaml anywhere above it.
+  // This is called from a bootstrap module imported first by both apps, so throwing
+  // here would be both services failing to start on the one path this whole package
+  // exists to make uneventful.
+  const root = directory ?? findRepositoryRoot();
+  if (root === null) return null;
+
+  const path = join(root, '.env.local');
   if (!existsSync(path)) return null;
 
   // Node's own parser, so the file behaves the same as `node --env-file` does and
@@ -31,27 +39,39 @@ export function loadLocalEnvironment(directory: string = repositoryRoot()): stri
 }
 
 /**
- * The repository root: the directory up the tree holding pnpm-workspace.yaml.
+ * The repository root: the directory up the tree holding pnpm-workspace.yaml, or
+ * null when there is no repository, as in a built image.
  *
- * The default for loadLocalEnvironment, and it has to be, because the working
- * directory is not the root for most of the ways this code is started. `nest start`
- * runs from apps/api, `pnpm --filter` runs from the package, and both would look
- * for a .env.local that is not there and find nothing, silently.
- *
- * Walking up rather than counting '..' from this file: this module compiles to
- * CommonJS in the apps and runs as ESM under vitest, and neither __dirname nor
+ * Walking up rather than counting '..' from this file, because this module compiles
+ * to CommonJS in the apps and runs as ESM under vitest, and neither __dirname nor
  * import.meta.url is available in both.
+ *
+ * It is what loadLocalEnvironment looks from, and it has to be: the working
+ * directory is not the root for any of the ways this code is started. `nest start`
+ * runs from apps/api and `pnpm --filter` runs from the package, and both would look
+ * for a .env.local that is not there and find nothing, silently.
  */
-export function repositoryRoot(from: string = process.cwd()): string {
+export function findRepositoryRoot(from: string = process.cwd()): string | null {
   let directory = from;
 
   for (;;) {
     if (existsSync(join(directory, 'pnpm-workspace.yaml'))) return directory;
 
     const parent = dirname(directory);
-    if (parent === directory) {
-      throw new Error(`No pnpm-workspace.yaml above '${from}', so there is no repository root.`);
-    }
+    if (parent === directory) return null;
     directory = parent;
   }
+}
+
+/**
+ * The repository root, or an error naming where it looked. For callers that only
+ * ever run inside the repository, such as the cloud-SDK boundary test, where no
+ * root is a broken assumption rather than a deployment.
+ */
+export function repositoryRoot(from: string = process.cwd()): string {
+  const root = findRepositoryRoot(from);
+  if (root === null) {
+    throw new Error(`No pnpm-workspace.yaml above '${from}', so there is no repository root.`);
+  }
+  return root;
 }

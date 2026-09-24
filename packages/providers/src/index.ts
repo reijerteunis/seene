@@ -5,7 +5,7 @@
  * of environment variables rather than a change of code.
  */
 
-export { loadLocalEnvironment, repositoryRoot } from './environment.ts';
+export { findRepositoryRoot, loadLocalEnvironment, repositoryRoot } from './environment.ts';
 
 export {
   type Environment,
