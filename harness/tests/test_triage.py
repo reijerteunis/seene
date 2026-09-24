@@ -299,5 +299,263 @@ class RecordTest(TriageTest):
             self.triage()
 
 
+class ThreeCriteriaTest(TriageTest):
+    """A ticket with more than one criterion, so per-criterion means something."""
+
+    criteria = ['The first observable thing happens',
+                'The second observable thing happens',
+                'The third observable thing happens']
+
+    def setUp(self):
+        super().setUp()
+        path = self.root / self.ticket_file
+        body = path.read_text().split('## Acceptance criteria')[0]
+        path.write_text(body + '## Acceptance criteria\n\n'
+                        + ''.join(f'- [ ] {text}\n' for text in self.criteria))
+
+    def reach_review(self, solution=None, coverage_delta=0.0):
+        """The clarify record restates all three, so pass one has nothing to say.
+
+        The solution record names thresholds.toml because the tests below vary it,
+        and a file a ticket changes without naming fails slice_files and forces
+        full depth, which is the behaviour under test in another class and noise
+        in this one.
+        """
+        self.submit('clarify', clarify_evidence(acceptance=list(self.criteria)))
+        self.submit('solution', solution if solution is not None else solution_evidence(
+            changes=['harness/thing.py: the behaviour',
+                     'harness/thresholds.toml: the settings these tests vary'],
+            slices=[dict(name='The behaviour', points=1,
+                         files=['harness/thing.py', 'harness/tests/test_thing.py'],
+                         red='The behaviour is absent')]))
+        self.write('harness/thing.py', 'def thing():\n    return 1\n')
+        self.write('harness/tests/test_thing.py', 'def test_thing():\n    assert True\n')
+        red = self.run_check('red', exit_code=1)
+        green = self.run_check('green')
+        regression = self.run_check('regression')
+        self.record_coverage(coverage_delta)
+        self.submit('tdd', dict(mode='code', regression=regression['sequence'],
+                                coverage_delta=coverage_delta,
+                                slices=[dict(behaviour='The behaviour',
+                                             failure_reason='It was absent',
+                                             red=red['sequence'], green=green['sequence'])]))
+
+
+class OneRequestTest(ThreeCriteriaTest):
+    """Pass two is one request, and it carries every question the triage asks."""
+
+    def test_the_triage_asks_exactly_one_request(self):
+        self.reach_review()
+        self.triage()
+        self.assertEqual(len(jev.TRANSPORT.sent), 1,
+                         'Pass two is one request; a second is a question that was not asked '
+                         'properly the first time')
+
+    def test_the_request_carries_one_question_per_criterion_and_one_per_file(self):
+        self.reach_review()
+        record = self.triage()
+
+        asked = set(jev.TRANSPORT.sent[0]['payload']['questions'])
+        paths = [entry['path'] for entry in record['data']['files']]
+        expected = ({f'criterion_evidenced#{position}'
+                     for position in range(1, len(self.criteria) + 1)}
+                    | {f'reviewer_must_read#{path}' for path in paths}
+                    | {'diff_matches_solution', 'review_depth'})
+        self.assertEqual(asked, expected)
+
+    def test_each_question_carries_the_subject_it_is_asked_about(self):
+        self.reach_review()
+        self.triage()
+        questions = jev.TRANSPORT.sent[0]['payload']['questions']
+
+        self.assertIn(self.criteria[1], questions['criterion_evidenced#2']['instructions'])
+        self.assertIn('harness/thing.py',
+                      questions['reviewer_must_read#harness/thing.py']['instructions'])
+
+    def test_the_state_carries_the_journal_and_the_diff_rather_than_the_tree(self):
+        self.reach_review()
+        self.triage()
+        state = jev.TRANSPORT.sent[0]['payload']['state']
+
+        self.assertEqual(state['criteria'], self.criteria)
+        self.assertEqual([entry['name'] for entry in state['deterministic']],
+                         list(triage.DETERMINISTIC))
+        self.assertTrue(state['solution']['slices'])
+        self.assertTrue(state['journal'])
+
+
+class AnswersTest(ThreeCriteriaTest):
+    """What the record keeps of pass two."""
+
+    def test_every_criterion_gets_an_answer_with_its_probability(self):
+        self.reach_review()
+        answers = self.triage()['data']['criteria_answers']
+
+        self.assertEqual([answer['criterion'] for answer in answers], self.criteria)
+        for answer in answers:
+            self.assertEqual(answer['question'], 'criterion_evidenced')
+            self.assertEqual(answer['outcome'], 'yes')
+            self.assertEqual(answer['probabilities']['yes'], 0.95)
+            self.assertEqual(answer['threshold'], 0.6)
+            self.assertIs(answer['passed'], True)
+
+    def test_diff_matches_solution_and_review_depth_are_kept_with_their_probabilities(self):
+        self.reach_review()
+        answers = self.triage()['data']['jev']['answers']
+        by_key = {answer['key']: answer for answer in answers}
+
+        self.assertEqual(by_key['diff_matches_solution']['probabilities']['yes'], 0.9)
+        self.assertEqual(by_key['review_depth']['outcome'], 'full')
+        self.assertEqual(by_key['review_depth']['options'], ['spot', 'full'])
+
+    def test_every_changed_file_gets_a_reviewer_must_read_answer(self):
+        self.reach_review()
+        record = self.triage()
+        by_key = {answer['key']: answer for answer in record['data']['jev']['answers']}
+
+        for entry in record['data']['files']:
+            answer = by_key[f'reviewer_must_read#{entry["path"]}']
+            self.assertEqual(answer['probabilities']['yes'], 0.9)
+
+    def test_the_record_says_the_model_was_asked(self):
+        self.reach_review()
+        asked = self.triage()['data']['jev']
+        self.assertTrue(asked['asked'])
+        self.assertEqual(asked['model'], 'jev-1.13.0')
+
+
+class UnevidencedCriterionTest(ThreeCriteriaTest):
+    """The one answer that sends a ticket back before any model reads the diff."""
+
+    def low_on_the_second(self):
+        """A stub answering the second criterion below its threshold and no other."""
+        base = triage_stub()
+
+        def transport(endpoint, payload, credential, timeout):
+            body = base(endpoint, payload, credential, timeout)
+            if 'criterion_evidenced#2' in body['answers']:
+                body['answers']['criterion_evidenced#2'] = noul(0.1)
+            return body
+
+        transport.sent = base.sent
+        return transport
+
+    def test_an_unevidenced_criterion_returns_the_ticket_to_tdd_naming_it(self):
+        self.reach_review()
+        jev.TRANSPORT = self.low_on_the_second()
+        with self.assertRaisesRegex(HarnessError, self.criteria[1]):
+            self.triage()
+
+        self.assertEqual(self.run_harness('status', self.ticket_id)['stage'], 'tdd')
+        kinds = [record['kind'] for record in self.records()]
+        self.assertEqual(kinds[-2:], ['triage', 'return'],
+                         'The triage is recorded because it happened, and the return follows it')
+
+    def test_the_return_names_the_criterion_and_the_attempt_it_opens(self):
+        self.reach_review()
+        jev.TRANSPORT = self.low_on_the_second()
+        with self.assertRaises(HarnessError):
+            self.triage()
+
+        returned = self.records()[-1]['data']
+        self.assertEqual(returned['from_stage'], 'review')
+        self.assertEqual(returned['to_stage'], 'tdd')
+        self.assertEqual(returned['to_attempt'], 2)
+        self.assertIn(self.criteria[1], returned['reason'])
+        self.assertNotIn(self.criteria[0], returned['reason'])
+
+    def test_a_criterion_nobody_could_answer_does_not_return_the_ticket(self):
+        self.reach_review()
+
+        def broken(endpoint, payload, credential, timeout):
+            raise OSError('the API is unreachable')
+
+        broken.sent = jev.TRANSPORT.sent
+        jev.TRANSPORT = broken
+        record = self.triage()
+
+        self.assertEqual(self.run_harness('status', self.ticket_id)['stage'], 'review')
+        for answer in record['data']['criteria_answers']:
+            self.assertEqual(answer['source'], 'unavailable')
+            self.assertIsNone(answer['passed'])
+        self.assertEqual(record['data']['review_depth'], 'full',
+                         'A judgement nobody made never narrows a review')
+
+
+class FocusSetTest(ThreeCriteriaTest):
+    """What the reviewer is asked to read, and what shadow mode does to it."""
+
+    def set_shadow(self, on):
+        path = self.root / 'harness' / 'thresholds.toml'
+        path.write_text(path.read_text().replace(
+            'triage_shadow = true', f'triage_shadow = {"true" if on else "false"}'))
+
+    def test_full_depth_puts_every_changed_file_in_focus(self):
+        self.reach_review()
+        record = self.triage()
+
+        self.assertEqual(record['data']['review_depth'], 'full')
+        self.assertEqual(sorted(record['data']['focus']),
+                         sorted(entry['path'] for entry in record['data']['files']))
+        self.assertEqual(record['data']['would_exclude'], [])
+
+    def test_spot_depth_drops_the_files_the_model_would_not_read(self):
+        self.set_shadow(False)
+        jev.TRANSPORT = self.only_thing_is_worth_reading()
+        self.reach_review()
+        record = self.triage()
+
+        self.assertEqual(record['data']['review_depth'], 'spot')
+        self.assertEqual(record['data']['focus'], ['harness/thing.py'])
+        self.assertIn('harness/tests/test_thing.py', record['data']['would_exclude'])
+        self.assertGreater(record['data']['excluded_share'], 0.0)
+
+    def test_shadow_keeps_every_file_in_focus_and_records_what_it_would_have_dropped(self):
+        self.set_shadow(True)
+        jev.TRANSPORT = self.only_thing_is_worth_reading()
+        self.reach_review()
+        record = self.triage()
+
+        self.assertTrue(record['data']['shadow'])
+        self.assertEqual(record['data']['review_depth'], 'spot')
+        self.assertEqual(sorted(record['data']['focus']),
+                         sorted(entry['path'] for entry in record['data']['files']))
+        self.assertIn('harness/tests/test_thing.py', record['data']['would_exclude'])
+        self.assertGreater(record['data']['excluded_share'], 0.0)
+
+    def test_a_focus_set_is_never_empty(self):
+        self.set_shadow(False)
+        jev.TRANSPORT = triage_stub(depth=(0.9, 0.1), must_read=0.01)
+        self.reach_review()
+        record = self.triage()
+
+        self.assertEqual(record['data']['review_depth'], 'spot')
+        self.assertEqual(len(record['data']['focus']), 1,
+                         'A review that reads nothing is not a review, so the file the model '
+                         'was least unsure about stays')
+
+    def test_a_depth_the_model_is_undecided_about_is_full(self):
+        self.set_shadow(False)
+        jev.TRANSPORT = triage_stub(depth=(0.5, 0.5))
+        self.reach_review()
+
+        self.assertEqual(self.triage()['data']['review_depth'], 'full')
+
+    def only_thing_is_worth_reading(self):
+        """A stub asking for a spot review of one file out of the three."""
+        base = triage_stub(depth=(0.9, 0.1))
+
+        def transport(endpoint, payload, credential, timeout):
+            body = base(endpoint, payload, credential, timeout)
+            for key in body['answers']:
+                if key.startswith('reviewer_must_read#'):
+                    body['answers'][key] = noul(
+                        0.95 if key.endswith('harness/thing.py') else 0.05)
+            return body
+
+        transport.sent = base.sent
+        return transport
+
+
 if __name__ == '__main__':
     unittest.main()

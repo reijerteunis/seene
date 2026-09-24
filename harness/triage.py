@@ -25,7 +25,7 @@ policy gate, and a migration. Any of them is full depth with no request made.
 
 import re
 
-from . import gates, journal, kpi, risk, secrets
+from . import gates, jev, journal, kpi, risk, secrets
 from .errors import HarnessError, require
 from .paths import FINGERPRINT_EXCLUDED
 
@@ -44,6 +44,11 @@ CRITERION = re.compile(r'^\s*-\s*\[[ xX]\]\s*(?P<text>.+?)\s*$')
 # `diff --git a/<path> b/<path>`, whose second half survives a rename.
 DIFF_HEADER = re.compile(r'^diff --git a/(?P<old>.+?) b/(?P<new>.+)$')
 GITLEAKS_FOUND = 1
+# How much of a check's output goes into the state. The RED's own failure is the
+# evidence criterion_evidenced is answered from, and its tail is where a runner
+# puts it; the whole log would be the repository-wide read this ticket exists to
+# avoid, paid for at the API instead of in the session.
+EXCERPT_CHARACTERS = 800
 
 
 def _entry(name, outcome, detail):
@@ -238,11 +243,19 @@ def _fingerprint_check(repository, records, attempt, now):
                   'are not the tests for this tree')
 
 
-def _slice_files_check(files, named):
-    outside = sorted(path for path in files if path not in named)
+def _slice_files_check(files, named, procedure):
+    """Every changed file is one the solution record planned, bar the procedure's own.
+
+    The ticket file is excluded because the procedure writes it and no solution
+    record plans it: `status: doing` goes in with the first commit and the
+    `## Outcome` section before review is left. A check that failed on the harness's
+    own writing would fail on every ticket and mean nothing.
+    """
+    outside = sorted(path for path in files if path not in named and path not in procedure)
     if not outside:
         return _entry('slice_files', PASS,
-                      f'All {len(files)} changed files are named by the accepted slice plan')
+                      f'All {len(files)} changed files are named by the accepted slice plan, '
+                      'or are the ticket file the procedure itself writes')
     return _entry('slice_files', FAIL,
                   'Changed but named by no slice and no changes entry: '
                   + ', '.join(outside))
@@ -314,11 +327,12 @@ def _pull_request_check(repository, ticket):
 def deterministic(repository, records, current, files, named, criteria, ticket, fingerprint):
     """Pass one, in the order DETERMINISTIC lists it."""
     attempt = current['attempt']
+    procedure = {records[0]['data'].get('ticket_file')} - {None}
     return [_coverage_check(records, attempt),
             _lint_check(repository.root),
             _gitleaks_check(repository),
             _fingerprint_check(repository, records, attempt, fingerprint),
-            _slice_files_check(files, named),
+            _slice_files_check(files, named, procedure),
             _red_check(records),
             _tests_check(files),
             _acceptance_check(records, criteria),
@@ -373,12 +387,126 @@ def file_facts(repository, files, named, records, attempt):
     return facts
 
 
-def run(repository, records, current, rules, ticket):
-    """The whole triage, as the data a `triage` record carries.
+def criterion_key(position):
+    return f'criterion_evidenced#{position}'
 
-    Pass two is added by the next slice. Until then every triage is full depth,
-    which is the safe half of the trade: the reviewer reads what it reads today.
+
+def file_key(path):
+    return f'reviewer_must_read#{path}'
+
+
+def _tail(text):
+    text = text or ''
+    return text if len(text) <= EXCERPT_CHARACTERS else '[...] ' + text[-EXCERPT_CHARACTERS:]
+
+
+def _record_at(records, sequence):
+    for record in records:
+        if record['sequence'] == sequence:
+            return record
+    return None
+
+
+def _check_excerpt(record):
+    if record is None:
+        return None
+    return dict(record=record['sequence'],
+                command=record['data'].get('command'),
+                exit_code=record['data'].get('exit_code'),
+                output=_tail(record['data'].get('output')))
+
+
+def journal_excerpts(records):
+    """What the journal already holds, bounded, as pass two's evidence.
+
+    Excerpts rather than the tree, because Jev can neither run a test nor read a
+    file: every answer it gives is only as good as the state put in front of it,
+    and a summary of a tree it cannot see would be an impression rather than
+    evidence. What is here is what was recorded: the criteria as checks, the
+    decisions taken, and each slice's behaviour beside the RED that failed for it
+    and the GREEN that followed.
     """
+    clarified = gates.latest_evidence(records, 'clarify') or {}
+    proved = gates.latest_evidence(records, 'tdd') or {}
+    return dict(acceptance=clarified.get('acceptance') or [],
+                decisions=clarified.get('decisions') or [],
+                slices=[dict(behaviour=entry.get('behaviour'),
+                             failure_reason=entry.get('failure_reason'),
+                             red=_check_excerpt(_record_at(records, entry.get('red'))),
+                             green=_check_excerpt(_record_at(records, entry.get('green'))))
+                        for entry in proved.get('slices') or []])
+
+
+def file_subject(entry):
+    """What the reviewer_must_read question about one file is answered from."""
+    return (f'File: {entry["path"]}\n'
+            f'Package: {entry["package"]}\n'
+            f'{entry["hunks"]} hunk(s), {entry["added"]} lines added and '
+            f'{entry["removed"]} removed\n'
+            f'Named by the solution record: {"yes" if entry["named_in_solution"] else "no"}\n'
+            f'repowise change-risk percentile for this change: {entry["risk_percentile"]}\n'
+            f'Coverage delta on the gated package: {entry["coverage_delta"]}')
+
+
+def questions(criteria, facts):
+    """Every question one triage request carries, keyed so none collides."""
+    asked = [(criterion_key(position), 'criterion_evidenced', f'Criterion: {text}')
+             for position, text in enumerate(criteria, start=1)]
+    asked.append(('diff_matches_solution', 'diff_matches_solution', None))
+    asked += [(file_key(entry['path']), 'reviewer_must_read', file_subject(entry))
+              for entry in facts]
+    asked.append(('review_depth', 'review_depth', None))
+    return asked
+
+
+def depth_from(answer):
+    """The depth an answer settles, with every doubt resolved towards reading more.
+
+    Spot only when the model is surer of spot than of full and clears the bar. An
+    answer nobody could give, and a tie, are both full: narrowing a review is the
+    thing this ticket has to earn, and neither of those is evidence for it.
+    """
+    if answer is None or answer['outcome'] is None:
+        return 'full'
+    spot = answer['probabilities'].get('spot', 0.0)
+    full = answer['probabilities'].get('full', 0.0)
+    return 'spot' if spot >= (answer['threshold'] or 0.0) and spot > full else 'full'
+
+
+def focus_set(facts, by_key, depth, rules):
+    """The files the reviewer is asked to read.
+
+    At full depth, every one. At spot depth, the files the model is at least
+    half sure carry something the tests would not have caught, and never none:
+    a review that reads nothing is not a review, so the file it was least unsure
+    about stays. A failed deterministic check needs no clause of its own here,
+    because a failure has already forced full depth by the time this is reached.
+    """
+    paths = [entry['path'] for entry in facts]
+    if depth == 'full':
+        return list(paths)
+    bar = rules['review']['focus_probability']
+    scored = {path: (by_key.get(file_key(path)) or {}).get('probabilities', {}).get('yes', 0.0)
+              for path in paths}
+    kept = [path for path in paths if scored[path] >= bar]
+    if not kept and paths:
+        kept = [max(paths, key=lambda path: scored[path])]
+    return kept
+
+
+def excluded_share(facts, narrowed):
+    """The share of the diff's lines the focus set leaves out, by line count."""
+    inside = set(narrowed)
+    total = sum(entry['added'] + entry['removed'] for entry in facts)
+    if not total:
+        return 0.0
+    dropped = sum(entry['added'] + entry['removed'] for entry in facts
+                  if entry['path'] not in inside)
+    return round(dropped / total, 4)
+
+
+def run(repository, records, current, rules, ticket):
+    """The whole triage, as the data a `triage` record carries."""
     require(current['stage'] == 'review',
             f'A triage is run at the review stage; this ticket is at {current["stage"]}. '
             'The triage decides what the reviewer reads, so it comes after the tdd gate '
@@ -390,24 +518,66 @@ def run(repository, records, current, rules, ticket):
     criteria = ticket_criteria(_ticket_text(repository, records))
     results = deterministic(repository, records, current, files, named, criteria, ticket,
                             fingerprint)
-    tripped = gates.full_depth_rules(records, repository.root, solution)
-    reasons = [gates.FULL_DEPTH_RULES[name] for name in tripped]
+    facts = file_facts(repository, files, named, records, current['attempt'])
+
+    reasons = [gates.FULL_DEPTH_RULES[name]
+               for name in gates.full_depth_rules(records, repository.root, solution)]
     reasons += [f'{check["name"]} did not pass, so the reviewer reads everything: '
                 f'{check["detail"]}' for check in failed(results)]
+
+    if reasons:
+        # Nothing is put to the model, because nothing it could answer would
+        # change the answer. That is the whole point of a rule.
+        asked, answers = [], []
+        requested = dict(asked=False, model=None,
+                         reason='Full depth is settled by rule, so no request was made: '
+                                + reasons[0],
+                         answers=[])
+    else:
+        asked = questions(criteria, facts)
+        state = dict(ticket=ticket,
+                     stage='review',
+                     attempt=current['attempt'],
+                     criteria=criteria,
+                     solution=dict(mode=gates.mode_of(solution),
+                                   approach=solution.get('approach'),
+                                   changes=solution.get('changes') or [],
+                                   migrations=solution.get('migrations') or [],
+                                   slices=solution.get('slices') or []),
+                     deterministic=results,
+                     files=facts,
+                     journal=journal_excerpts(records))
+        answers = jev.ask_batch(repository.root, rules, asked, state, must_answer=False)
+        answered = next((answer for answer in answers if answer['source'] == 'jev'), None)
+        requested = dict(asked=True,
+                         model=(answered or {}).get('model'),
+                         reason=None if answered else
+                                'The request was made and nothing came back that could be read',
+                         answers=answers)
+
+    by_key = {answer['key']: answer for answer in answers}
+    criteria_answers = [dict(by_key[criterion_key(position)], criterion=text)
+                        for position, text in enumerate(criteria, start=1)
+                        if criterion_key(position) in by_key]
+    depth = 'full' if reasons else depth_from(by_key.get('review_depth'))
+    narrowed = focus_set(facts, by_key, depth, rules)
+    shadow = bool(rules['review']['triage_shadow'])
     return dict(fingerprint=fingerprint,
-                files=file_facts(repository, files, named, records, current['attempt']),
+                files=facts,
                 criteria=criteria,
                 deterministic=results,
                 rules=reasons,
-                jev=dict(asked=False,
-                         reason='Full depth is already settled, so nothing is put to the model'
-                                if reasons else 'Pass two is not built yet',
-                         answers=[]),
-                review_depth='full',
-                focus=list(files),
-                shadow=bool(rules['review']['triage_shadow']),
-                would_exclude=[],
-                excluded_share=0.0)
+                jev=requested,
+                criteria_answers=criteria_answers,
+                review_depth=depth,
+                # In shadow the reviewer still reads everything, and what the
+                # narrowing would have dropped is stored rather than acted on.
+                # That is the figure SEEN-109 decides on, measured before
+                # anything is decided by it.
+                focus=[entry['path'] for entry in facts] if shadow else list(narrowed),
+                shadow=shadow,
+                would_exclude=sorted({entry['path'] for entry in facts} - set(narrowed)),
+                excluded_share=excluded_share(facts, narrowed))
 
 
 def _ticket_text(repository, records):
@@ -418,9 +588,42 @@ def _ticket_text(repository, records):
     return text
 
 
+def unevidenced(data):
+    """The criteria the model could see no evidence for.
+
+    `passed` is False only for an answer that was actually given and did not clear
+    its bar. An unavailable answer leaves it None and sends nothing back: a
+    judgement nobody made is not a judgement, which is the rule the stage gates
+    already apply.
+    """
+    return [answer['criterion'] for answer in data['criteria_answers']
+            if answer['passed'] is False]
+
+
 def append(repository, folder, records, current, args, rules):
-    """Run the triage and keep it, as a record of its own at the review stage."""
+    """Run the triage, keep it, and send the ticket back if a criterion has no evidence.
+
+    The triage is recorded either way, because it happened; what is refused is
+    going on to a reviewer. That ordering is the one `check` already uses for a
+    RED that did not fail, and it is what puts the return before any model reads
+    the diff.
+    """
     data = run(repository, records, current, rules, args.ticket)
-    return journal.append(folder, records, kind='triage', stage='review',
-                          attempt=current['attempt'], actor=args.actor,
-                          head=repository.head(), ticket=args.ticket, data=data)
+    record = journal.append(folder, records, kind='triage', stage='review',
+                            attempt=current['attempt'], actor=args.actor,
+                            head=repository.head(), ticket=args.ticket, data=data)
+    missing = unevidenced(data)
+    if not missing:
+        return record
+    reason = ('The triage could see no evidence for: ' + '; '.join(missing)
+              + '. A criterion with nothing behind it is answered at the tdd stage, by writing '
+                'the test or the check that proves it, rather than by a reviewer reading a diff '
+                'that does not contain it')
+    journal.append(folder, records + [record], kind='return', stage='review',
+                   attempt=current['attempt'], actor=args.actor, head=repository.head(),
+                   ticket=args.ticket,
+                   data=dict(from_stage='review', to_stage='tdd',
+                             to_attempt=current['attempt'] + 1, reason=reason))
+    raise HarnessError(
+        f'{reason}. Recorded as triage {record["sequence"]} and returned to tdd; no reviewer '
+        'was spawned, so nothing has read the diff yet')
