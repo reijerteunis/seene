@@ -1,0 +1,64 @@
+{
+  "sequence": 16,
+  "ticket": "SEEN-102",
+  "timestamp": "2026-09-24T07:39:52.734410+00:00",
+  "harness_version": "1",
+  "kind": "receipt",
+  "stage": "deliver",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "head": "9651dc2599537af8cda09142bf5e1be63b39f24b",
+  "prev_hash": "c124a3768a362ba5604305ac767cad4cbe74c7f59eda0c7a94120f9d82aca5c0",
+  "data": {
+    "from_stage": "deliver",
+    "to_stage": "delivered",
+    "commit": "9651dc2599537af8cda09142bf5e1be63b39f24b",
+    "branch": "claude/SEEN-102-decide-on-the-repowise-pr-bot",
+    "remote": "origin",
+    "tree": "38fa2b0f3f91f2c583800720299188aa8f92aa2e5d15bb04b261c723e3377337",
+    "pull_request": "https://github.com/reijerteunis/seene/pull/18",
+    "limits": [
+      "Whether a private repository's per-PR analysis page is publicly readable is not established and this ticket does not establish it. The decline does not rest on it being public; it rests on nobody being able to say it is not.",
+      "Everything about the bot's behaviour comes from repowise's own documentation, read on 24 September 2026. None of it was verified against a running installation, because verifying it is the thing being declined.",
+      "The two pages that would normally carry the data-handling answers, /privacy and /security, both returned 404. The decision was taken without them, and if they appear later they may change the picture.",
+      "must_fix came back no at 0.51 against its 0.7 threshold on the second review, a coin flip. Four findings were raised and resolved, one of them a file committed without being read; a reader should not take 0.51 as agreement.",
+      "SEEN-098's criterion is now marked declined. Nothing re-examined whether the rest of SEEN-098's delivery assumed the bot would arrive; nothing appears to, because the bot is a hosted surface and everything the harness uses is local.",
+      "The review was a self-review, like every ticket in this epic. An independent pass over the harness is still owed."
+    ],
+    "evidence": {
+      "remote": "origin",
+      "pull_request": "https://github.com/reijerteunis/seene/pull/18",
+      "limits": [
+        "Whether a private repository's per-PR analysis page is publicly readable is not established and this ticket does not establish it. The decline does not rest on it being public; it rests on nobody being able to say it is not.",
+        "Everything about the bot's behaviour comes from repowise's own documentation, read on 24 September 2026. None of it was verified against a running installation, because verifying it is the thing being declined.",
+        "The two pages that would normally carry the data-handling answers, /privacy and /security, both returned 404. The decision was taken without them, and if they appear later they may change the picture.",
+        "must_fix came back no at 0.51 against its 0.7 threshold on the second review, a coin flip. Four findings were raised and resolved, one of them a file committed without being read; a reader should not take 0.51 as agreement.",
+        "SEEN-098's criterion is now marked declined. Nothing re-examined whether the rest of SEEN-098's delivery assumed the bot would arrive; nothing appears to, because the bot is a hosted surface and everything the harness uses is local.",
+        "The review was a self-review, like every ticket in this epic. An independent pass over the harness is still owed."
+      ]
+    },
+    "checks": [
+      {
+        "name": "Harness tests (Python 3.12)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Knowledge graph",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Monorepo (Node 24)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Secrets and supply chain",
+        "conclusion": "success",
+        "runs": 1
+      }
+    ],
+    "coverage": null
+  }
+}

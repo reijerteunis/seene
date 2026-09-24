@@ -1,0 +1,32 @@
+{
+  "ticket": "SEEN-102",
+  "delivered_at": "2026-09-24T07:39:52.734410+00:00",
+  "points": null,
+  "cycle_time_seconds": 3141,
+  "stage_seconds": {
+    "clarify": 1279,
+    "solution": 1230,
+    "tdd": 53,
+    "review": 247,
+    "deliver": 328
+  },
+  "attempts": 2,
+  "rework": 1,
+  "red_before_green": null,
+  "coverage": null,
+  "findings": {
+    "by_severity": {
+      "high": 1,
+      "medium": 2,
+      "low": 1
+    },
+    "fixed": 4,
+    "waived": 0
+  },
+  "first_pass_ci": true,
+  "tokens": null,
+  "cost": null,
+  "escaped_defects": [],
+  "harness_version": "1",
+  "note": null
+}
