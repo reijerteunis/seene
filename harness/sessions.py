@@ -9,7 +9,10 @@ module is how a session is counted without breaking that refusal.
 """
 
 import hashlib
+import json
 import os
+
+from . import cost
 
 # Most specific first. Claude Code sets the first one. Which variable a Codex
 # session exposes its id in is not known from this machine and cannot be read
@@ -47,3 +50,49 @@ def identifier(environ=None):
 def current(environ=None):
     """The session this command is running in, as a digest or an absence."""
     return digest(identifier(environ))
+
+
+def log(root, identity=None):
+    """This session's own log file, by the naming Claude Code uses.
+
+    One file rather than the whole directory: the cost KPI reads every session in
+    a ticket's window, and this reads the session asking the question.
+    """
+    identity = identifier() if identity is None else identity
+    if not identity:
+        return None
+    path = cost.log_directory(root) / f'{identity}.jsonl'
+    return path if path.is_file() else None
+
+
+def figures(root, identity=None):
+    """Output tokens and tool calls this session has spent, or that nobody knows.
+
+    Null rather than zero when there is no log, which is the rule cost.py already
+    applies: zero is a claim that nothing was spent, and the honest answer on a
+    machine whose logs are elsewhere is that nobody knows. Only two numbers are
+    read; a session log holds prompts and file contents, none of which belongs in
+    a journal.
+    """
+    identity = identifier() if identity is None else identity
+    path = log(root, identity)
+    answer = dict(session=digest(identity), output_tokens=None, tool_calls=None,
+                  unavailable=None)
+    if path is None:
+        answer['unavailable'] = ('No session log for this session, so its spending cannot be '
+                                 'read; null is not zero')
+        return answer
+    output, calls = 0, 0
+    for line in path.read_text(errors='replace').splitlines():
+        try:
+            entry = json.loads(line)
+        except (json.JSONDecodeError, ValueError):
+            continue
+        message = entry.get('message') or {}
+        usage = message.get('usage') or {}
+        output += usage.get('output_tokens', 0) or 0
+        content = message.get('content')
+        if isinstance(content, list):
+            calls += sum(1 for block in content
+                         if isinstance(block, dict) and block.get('type') == 'tool_use')
+    return dict(answer, output_tokens=output, tool_calls=calls)

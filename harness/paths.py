@@ -21,7 +21,11 @@ FINAL_WORKING_STAGE = 'deliver'
 # which is the one thing it exists to do.
 HARNESS_VERSION = '2'
 
-KINDS = ('start', 'note', 'check', 'advance', 'return', 'receipt', 'reopen', 'decision')
+# handoff is its own kind rather than a note, because the KPI and status must
+# find a slice boundary without parsing prose. It is not in journal.TRANSITIONS:
+# writing a pack says where the work stands and never moves it.
+KINDS = ('start', 'note', 'check', 'advance', 'return', 'receipt', 'reopen', 'decision',
+         'handoff')
 
 # Committed run history: docs/harness/history/<TICKET>/0001.json and onwards.
 HISTORY = Path('docs/harness/history')
@@ -55,6 +59,10 @@ GRAPH_FILE = GRAPH_DIRECTORY / 'graph.json'
 
 # Working copies of templates. Gitignored; only the journal is evidence.
 DRAFTS = Path('.harness-drafts')
+# The handoff pack, beside the drafts, for the same reason: it is written about
+# the tree and must not change it. The journal holds its hash, which is what
+# makes the file replaceable.
+HANDOFF_PACK = '{ticket}-handoff.md'
 # Advisory lock so two sessions never interleave writes to one journal.
 LOCK = Path('.harness.lock')
 

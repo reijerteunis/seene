@@ -1,0 +1,30 @@
+{
+  "sequence": 15,
+  "ticket": "SEEN-104",
+  "timestamp": "2026-09-24T10:42:11.061874+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "7c81cdfdd5e9",
+  "head": "d77bb68a94f8d3dd572bc58ba2ada222d80cb925",
+  "prev_hash": "1ed8e91304b0db0c89881376020bf9d63af789d6b9a706a379df3a72b2031085",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_session_cap",
+      "-v"
+    ],
+    "phase": "green",
+    "exit_code": 0,
+    "duration_ms": 6235,
+    "output": "test_a_green_moves_the_pack_on_to_the_next_slice (harness.tests.test_session_cap.HandoffPackTest.test_a_green_moves_the_pack_on_to_the_next_slice) ... ok\ntest_a_pack_that_would_carry_an_environment_value_is_refused (harness.tests.test_session_cap.HandoffPackTest.test_a_pack_that_would_carry_an_environment_value_is_refused) ... ok\ntest_the_pack_carries_the_criteria_and_the_next_command (harness.tests.test_session_cap.HandoffPackTest.test_the_pack_carries_the_criteria_and_the_next_command) ... ok\ntest_the_pack_is_written_where_the_drafts_live (harness.tests.test_session_cap.HandoffPackTest.test_the_pack_is_written_where_the_drafts_live) ... ok\ntest_the_pack_names_the_first_slice_before_any_green (harness.tests.test_session_cap.HandoffPackTest.test_the_pack_names_the_first_slice_before_any_green) ... ok\ntest_the_pack_stays_under_the_limit_however_long_the_journal (harness.tests.test_session_cap.HandoffPackTest.test_the_pack_stays_under_the_limit_however_long_the_journal) ... ok\ntest_the_record_carries_the_sha256_of_the_pack_on_disk (harness.tests.test_session_cap.HandoffPackTest.test_the_record_carries_the_sha256_of_the_pack_on_disk) ... ok\ntest_the_record_carries_this_sessions_figures (harness.tests.test_session_cap.HandoffPackTest.test_the_record_carries_this_sessions_figures) ... ok\ntest_the_record_is_a_handoff_and_leaves_the_stage_alone (harness.tests.test_session_cap.HandoffPackTest.test_the_record_is_a_handoff_and_leaves_the_stage_alone) ... ok\ntest_the_refusal_names_the_variable_and_not_its_value (harness.tests.test_session_cap.HandoffPackTest.test_the_refusal_names_the_variable_and_not_its_value) ... ok\ntest_a_non_code_record_advances_with_no_plan_at_all (harness.tests.test_session_cap.NonCodeSlicePlanTest.test_a_non_code_record_advances_with_no_plan_at_all) ... ok\ntest_an_unset_session_digests_to_nothing (harness.tests.test_session_cap.SessionDigestTest.test_an_unset_session_digests_to_nothing) ... ok\ntest_the_digest_is_twelve_hex_characters_of_the_sha256 (harness.tests.test_session_cap.SessionDigestTest.test_the_digest_is_twelve_hex_characters_of_the_sha256) ... ok\ntest_the_harness_reads_the_variable_this_assistant_sets (harness.tests.test_session_cap.SessionDigestTest.test_the_harness_reads_the_variable_this_assistant_sets) ... ok\ntest_a_record_says_which_session_wrote_it (harness.tests.test_session_cap.SessionOnEveryRecordTest.test_a_record_says_which_session_wrote_it) ... ok\ntest_every_later_record_carries_it_too (harness.tests.test_session_cap.SessionOnEveryRecordTest.test_every_later_record_carries_it_too) ... ok\ntest_the_session_id_itself_is_in_no_record (harness.tests.test_session_cap.SessionOnEveryRecordTest.test_the_session_id_itself_is_in_no_record) ... ok\ntest_the_session_section_carries_the_four_numbers (harness.tests.test_session_cap.SessionThresholdTest.test_the_session_section_carries_the_four_numbers) ... ok\ntest_a_record_carries_null_rather_than_a_guess (harness.tests.test_session_cap.SessionUnknownTest.test_a_record_carries_null_rather_than_a_guess) ... ok\ntest_a_code_mode_record_without_a_plan_is_refused_naming_slices (harness.tests.test_session_cap.SlicePlanTest.test_a_code_mode_record_without_a_plan_is_refused_naming_slices) ... ok\ntest_a_plan_inside_both_caps_advances (harness.tests.test_session_cap.SlicePlanTest.test_a_plan_inside_both_caps_advances) ... ok\ntest_a_plan_over_the_slice_cap_is_refused (harness.tests.test_session_cap.SlicePlanTest.test_a_plan_over_the_slice_cap_is_refused) ... ok\ntest_a_slice_missing_its_red_is_refused (harness.tests.test_session_cap.SlicePlanTest.test_a_slice_missing_its_red_is_refused) ... ok\ntest_a_slice_over_the_cap_is_refused_and_named (harness.tests.test_session_cap.SlicePlanTest.test_a_slice_over_the_cap_is_refused_and_named) ... ok\ntest_a_slice_whose_points_are_not_a_number_is_refused (harness.tests.test_session_cap.SlicePlanTest.test_a_slice_whose_points_are_not_a_number_is_refused) ... ok\ntest_the_points_sum_is_reported_rather_than_refused (harness.tests.test_session_cap.SlicePlanTest.test_the_points_sum_is_reported_rather_than_refused)\nA plan may disagree with the estimate; the gate says so and proceeds. ... ok\ntest_the_refusal_names_the_cap_it_broke (harness.tests.test_session_cap.SlicePlanTest.test_the_refusal_names_the_cap_it_broke) ... ok\ntest_brief_does_not_write_a_record (harness.tests.test_session_cap.StatusBriefTest.test_brief_does_not_write_a_record) ... ok\ntest_brief_prints_a_pack_built_from_the_journal (harness.tests.test_session_cap.StatusBriefTest.test_brief_prints_a_pack_built_from_the_journal) ... ok\ntest_brief_says_the_file_still_matches_what_was_recorded (harness.tests.test_session_cap.StatusBriefTest.test_brief_says_the_file_still_matches_what_was_recorded) ... ok\ntest_brief_says_when_the_file_has_drifted_from_the_record (harness.tests.test_session_cap.StatusBriefTest.test_brief_says_when_the_file_has_drifted_from_the_record) ... ok\ntest_brief_works_before_any_handoff_has_been_written (harness.tests.test_session_cap.StatusBriefTest.test_brief_works_before_any_handoff_has_been_written) ... ok\n\n----------------------------------------------------------------------\nRan 32 tests in 6.151s\n\nOK\n",
+    "output_sha256": "620418ad4bf14f4036e12d79a9944a6e94be435b22d39336637fd91584ed57a0",
+    "output_truncated": false,
+    "before": "9492a399d5b6dc9011fe478ed5b985a304f0d385a53577e649fdb4a00d0773ea",
+    "after": "9492a399d5b6dc9011fe478ed5b985a304f0d385a53577e649fdb4a00d0773ea"
+  }
+}

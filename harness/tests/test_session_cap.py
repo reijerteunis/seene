@@ -151,6 +151,135 @@ class SessionUnknownTest(SessionEnvironment):
         self.assertIsNone(record['session'])
 
 
+class AtTddTest(SessionEnvironment):
+    """A journal standing where a slice boundary happens: tdd, with a plan."""
+
+    slices = 3
+
+    def setUp(self):
+        super().setUp()
+        self.start()
+        self.submit('clarify', clarify_evidence())
+        self.submit('solution', solution_evidence(slices=plan(self.slices)))
+
+    def handoff(self, actor='claude:implementer'):
+        return self.run_harness('handoff', self.ticket_id, '--actor', actor)
+
+    def brief(self):
+        return self.run_harness('status', self.ticket_id, '--brief')
+
+    def pack_file(self):
+        return self.root / '.harness-drafts' / f'{self.ticket_id}-handoff.md'
+
+    def green(self, sequence=None):
+        """A green check, recorded the way a slice ends."""
+        script = self.root / 'passes.sh'
+        script.write_text('#!/bin/sh\nexit 0\n')
+        script.chmod(0o755)
+        return self.run_harness('check', self.ticket_id, '--phase', 'green',
+                                '--actor', 'claude:implementer', '--', str(script))
+
+
+class HandoffPackTest(AtTddTest):
+    """The only thing that crosses a slice boundary."""
+
+    def test_the_pack_is_written_where_the_drafts_live(self):
+        self.handoff()
+        self.assertTrue(self.pack_file().is_file())
+
+    def test_the_record_carries_the_sha256_of_the_pack_on_disk(self):
+        record = self.handoff()
+        written = hashlib.sha256(self.pack_file().read_bytes()).hexdigest()
+        self.assertEqual(record['data']['sha256'], written)
+
+    def test_the_record_is_a_handoff_and_leaves_the_stage_alone(self):
+        record = self.handoff()
+        self.assertEqual(record['kind'], 'handoff')
+        self.assertEqual(self.run_harness('status', self.ticket_id)['stage'], 'tdd')
+
+    def test_the_record_carries_this_sessions_figures(self):
+        record = self.handoff()
+        figures = record['data']['figures']
+        self.assertEqual(figures['session'], DIGEST)
+        self.assertIsNone(figures['output_tokens'])
+        self.assertIsNone(figures['tool_calls'])
+
+    def test_the_pack_names_the_first_slice_before_any_green(self):
+        self.handoff()
+        self.assertIn('Slice 1', self.pack_file().read_text())
+
+    def test_a_green_moves_the_pack_on_to_the_next_slice(self):
+        self.green()
+        self.handoff()
+        text = self.pack_file().read_text()
+        self.assertIn('Slice 2', text)
+        self.assertIn('1 of 3', text)
+
+    def test_the_pack_carries_the_criteria_and_the_next_command(self):
+        self.handoff()
+        text = self.pack_file().read_text()
+        self.assertIn('The journal holds one record per stage', text)
+        self.assertIn('harness check', text)
+
+    def test_the_pack_stays_under_the_limit_however_long_the_journal(self):
+        for number in range(12):
+            note = self.root / '.harness-drafts' / f'note-{number}.md'
+            note.parent.mkdir(parents=True, exist_ok=True)
+            note.write_text(f'Decision {number}. ' + ('why this and not that, at length. ' * 60))
+            self.run_harness('note', self.ticket_id, '--file',
+                             f'.harness-drafts/note-{number}.md',
+                             '--actor', 'claude:implementer')
+        record = self.handoff()
+        self.assertLessEqual(record['data']['estimated_tokens'], 2000)
+
+    def test_a_pack_that_would_carry_an_environment_value_is_refused(self):
+        # A value that really does appear in the pack: the pack names the ticket
+        # file, and a variable named like a credential is one whatever it holds.
+        os.environ['SEEN_TEST_API_KEY'] = f'{self.ticket_id}-a-ticket-to-work'
+        self.addCleanup(os.environ.pop, 'SEEN_TEST_API_KEY', None)
+        with self.assertRaisesRegex(HarnessError, 'SEEN_TEST_API_KEY'):
+            self.handoff()
+
+    def test_the_refusal_names_the_variable_and_not_its_value(self):
+        secret = f'{self.ticket_id}-a-ticket-to-work'
+        os.environ['SEEN_TEST_API_KEY'] = secret
+        self.addCleanup(os.environ.pop, 'SEEN_TEST_API_KEY', None)
+        with self.assertRaises(HarnessError) as caught:
+            self.handoff()
+        self.assertNotIn(secret, str(caught.exception))
+        self.assertFalse(self.pack_file().exists())
+
+
+class StatusBriefTest(AtTddTest):
+    """What a fresh session reads before it does anything else."""
+
+    def test_brief_prints_a_pack_built_from_the_journal(self):
+        answer = self.brief()
+        self.assertIn('Slice 1', answer['pack'])
+        self.assertEqual(answer['stage'], 'tdd')
+
+    def test_brief_works_before_any_handoff_has_been_written(self):
+        answer = self.brief()
+        self.assertIsNone(answer['recorded_at'])
+        self.assertIsNone(answer['pack_matches_record'])
+
+    def test_brief_says_the_file_still_matches_what_was_recorded(self):
+        record = self.handoff()
+        answer = self.brief()
+        self.assertEqual(answer['recorded_at'], record['sequence'])
+        self.assertTrue(answer['pack_matches_record'])
+
+    def test_brief_says_when_the_file_has_drifted_from_the_record(self):
+        self.handoff()
+        self.pack_file().write_text('# Edited by hand\n')
+        self.assertFalse(self.brief()['pack_matches_record'])
+
+    def test_brief_does_not_write_a_record(self):
+        before = len(self.records())
+        self.brief()
+        self.assertEqual(len(self.records()), before)
+
+
 class SessionDigestTest(unittest.TestCase):
 
     def test_the_digest_is_twelve_hex_characters_of_the_sha256(self):
