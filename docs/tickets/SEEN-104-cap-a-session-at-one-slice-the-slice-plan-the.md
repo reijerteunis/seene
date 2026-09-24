@@ -92,6 +92,26 @@ That is the shared fixture earning its keep one ticket after it was written.
 `sessions.figures` landed in slice two rather than slice three, because the handoff record needs this
 session's figures and the record is slice two's. The commit says so and the journal shows it.
 
+**The self-review returned the ticket, and the pack found its own defects.** Three, all in the code
+written for slice two, all found by reading what the command actually produced rather than by reading
+the diff. The first pack written at the review stage told its reader to go and run the regression and
+the coverage, which the journal three records above it already showed done: `current_slice` counts
+greens and knew nothing about the stage the pack was being read at. `_section` charged the character
+budget for an "and N more" line it then discarded when no entry fitted, so `remaining` went negative
+and every later section was dropped even where one short line would have fitted, which is how the
+graph answers would have vanished from a full pack. And the pack was written with
+`Path.write_text(text)` and read back with `read_text()`, both locale-dependent, while its bytes are
+compared against the sha256 the journal carries.
+
+The first RED for the fixes passed vacuously, at record 25: it rendered a pack from a journal with no
+greens, so the complete-plan branch it meant to test was never reached. Record 26 is the RED that
+failed for the stated reason, after the test recorded a green per planned slice first. Both are in the
+journal, which is what an append-only record is for.
+
+Attempt 2 is one slice: red 26, green 27, coverage 28, regression 29 over 399 tests. Rework on this
+ticket is 1, and it is the self-review's own, which is the argument for the reviewer subagent
+SEEN-105 builds rather than against reviewing at all.
+
 ### Known and deliberately left
 
 Nothing enforces one slice per session. The solution gate refuses a plan that breaks the caps, and

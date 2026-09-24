@@ -279,7 +279,9 @@ def handoff(repository, folder, records, args, current, rules):
             'the limit is a bug in harness/handoff.py rather than a journal to shorten')
     path = pack_path(repository, args.ticket)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(text)
+    # Explicit, because the bytes on disk are compared against the hash this
+    # record carries, and a ticket title is not guaranteed to be ASCII.
+    path.write_text(text, encoding='utf-8')
     return journal.append(folder, records, kind='handoff', stage=current['stage'],
                           attempt=current['attempt'], actor=args.actor,
                           head=repository.head(), ticket=args.ticket,
@@ -310,7 +312,8 @@ def brief(repository, ticket, records, current, rules):
     path = pack_path(repository, ticket)
     matches = None
     if recorded is not None and path.is_file():
-        matches = handoff_module.digest(path.read_text()) == recorded['data']['sha256']
+        matches = (handoff_module.digest(path.read_text(encoding='utf-8'))
+                   == recorded['data']['sha256'])
     return dict(ticket=ticket,
                 stage=current['stage'],
                 attempt=current['attempt'],

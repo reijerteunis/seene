@@ -252,6 +252,68 @@ class HandoffPackTest(AtTddTest):
         self.assertFalse(self.pack_file().exists())
 
 
+class PackEdgesTest(AtTddTest):
+    """Three things the first packs written in anger got wrong."""
+
+    def complete_the_plan(self):
+        """A green per planned slice, which is what a complete plan looks like."""
+        for _ in range(self.slices):
+            self.green()
+        from harness import thresholds
+        return self.records(), thresholds.load(self.root)
+
+    def test_a_complete_plan_at_tdd_names_what_is_left_there(self):
+        from harness import handoff as building
+        records, rules = self.complete_the_plan()
+        built = building.pack(records, dict(stage='tdd', attempt=1), rules)
+        self.assertIn('regression', built['markdown'])
+        self.assertIn('3 of 3 slices', built['markdown'])
+
+    def test_a_complete_plan_at_review_does_not_send_you_back_to_tdd(self):
+        """At review the regression and the coverage are already behind you."""
+        from harness import handoff as building
+        records, rules = self.complete_the_plan()
+        built = building.pack(records, dict(stage='review', attempt=1), rules)
+        self.assertNotIn('What is left is the regression', built['markdown'])
+        self.assertIn('every slice has an accepted GREEN', built['markdown'])
+
+    def test_a_section_that_does_not_fit_charges_nothing(self):
+        from harness import handoff as building
+        lines = []
+        remaining = building._section(lines, 'Decisions', ['x' * 300] * 4, 6, remaining=10)
+        self.assertEqual(lines, [])
+        self.assertEqual(remaining, 10)
+
+    def test_a_later_section_still_fits_after_one_that_did_not(self):
+        from harness import handoff as building
+        lines = []
+        remaining = building._section(lines, 'Long', ['x' * 300], 6, remaining=40)
+        building._section(lines, 'Short', ['fits'], 6, remaining=remaining)
+        self.assertIn('- fits', lines)
+
+    def test_the_pack_is_written_as_utf_8_whatever_the_locale(self):
+        """The bytes on disk are compared against a recorded hash."""
+        source = (Path(__file__).resolve().parents[1] / 'cli.py').read_text()
+        self.assertIn("write_text(text, encoding='utf-8')", source)
+        self.assertIn("read_text(encoding='utf-8')", source)
+
+
+class NoPlanYetTest(SessionEnvironment):
+    """A pack before the solution record has advanced names no slice."""
+
+    def setUp(self):
+        super().setUp()
+        self.start()
+
+    def test_it_says_there_is_no_plan_rather_than_inventing_one(self):
+        answer = self.run_harness('status', self.ticket_id, '--brief')
+        self.assertIn('No plan yet', answer['pack'])
+
+    def test_it_names_the_stage_the_plan_is_written_at(self):
+        self.assertIn('solution stage',
+                      self.run_harness('status', self.ticket_id, '--brief')['pack'])
+
+
 class StatusBriefTest(AtTddTest):
     """What a fresh session reads before it does anything else."""
 

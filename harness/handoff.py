@@ -105,26 +105,31 @@ def _decisions(records):
 
 
 def _section(lines, title, entries, maximum, remaining):
-    """One optional section, as much of it as the character budget allows."""
+    """One optional section, as much of it as the character budget allows.
+
+    A section that did not fit charges nothing. Charging for a block that was
+    discarded drove the budget negative and dropped every later section, which
+    is how the graph answers disappeared from a pack with room for them.
+    """
     if not entries:
         return remaining
-    block = ['', f'## {title}', '']
-    written = 0
+    block, spent, written = ['', f'## {title}', ''], 0, 0
     for entry in entries[:maximum]:
         line = f'- {_one_line(entry)}'
-        if len(line) + 1 > remaining:
+        if spent + len(line) + 1 > remaining:
             break
         block.append(line)
-        remaining -= len(line) + 1
+        spent += len(line) + 1
         written += 1
+    if not written:
+        return remaining
     left = len(entries) - written
     if left > 0:
         note = f'- and {left} more in the journal, which is where they are read in full'
         block.append(note)
-        remaining -= len(note) + 1
-    if written:
-        lines += block
-    return remaining
+        spent += len(note) + 1
+    lines += block
+    return remaining - spent
 
 
 def pack(records, state, thresholds, branch=None, next_command=''):
@@ -143,9 +148,15 @@ def pack(records, state, thresholds, branch=None, next_command=''):
         lines.append('No plan yet: the solution record has not advanced, so no slice has been '
                      'accepted. The plan is written at the solution stage.')
     elif slice_now['entry'] is None:
-        lines.append(f'The plan is complete: {slice_now["total"]} of {slice_now["total"]} slices '
-                     'have an accepted GREEN. What is left is the regression, the coverage '
-                     'measurement and the advance to review.')
+        # What follows a complete plan depends on where it is read. The first
+        # pack written at the review stage told its reader to go and run the
+        # regression, which the journal three records above it already showed.
+        finished = (f'The plan is complete: {slice_now["total"]} of {slice_now["total"]} slices '
+                    'done, every slice has an accepted GREEN.')
+        if state['stage'] == 'tdd':
+            finished += (' What is left is the regression, the coverage measurement and the '
+                         'advance to review.')
+        lines.append(finished)
     else:
         entry = slice_now['entry']
         lines += [f'Slice {slice_now["position"]} of {slice_now["total"]}, '
