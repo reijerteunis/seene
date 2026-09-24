@@ -1,0 +1,94 @@
+{
+  "sequence": 3,
+  "ticket": "SEEN-099",
+  "timestamp": "2026-09-24T06:18:59.630249+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "solution",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "1084eaea6f5407f19dcd8994f1551f1c4d3600f2",
+  "prev_hash": "ebbc051ff57c6e1c847a862ca89f77409d29f7b5bddfcd13c22b13d2772dc5bb",
+  "data": {
+    "from_stage": "solution",
+    "to_stage": "tdd",
+    "evidence": {
+      "approach": "Four small pieces.\n\nthresholds.toml gains a [context] table with the three rules as strings, so they are visible, versioned and testable rather than living in a prompt. The skill gains a short section naming the tool per stage, which sync regenerates.\n\ncost.py gains tool_calls_between, counting tool_use blocks in the same window tokens_between already uses, so the two numbers come from one definition of a ticket's window and are comparable with the baseline, which was counted the same way.\n\nreport.py gains a context section: per-point output tokens and tool calls for the tickets in the report, the baseline beside them, the decision rule, and what it points to. When fewer than five qualifying tickets have delivered, what it points to is that nothing can be concluded, said in those words, and the comparison moves to Not measurable yet. A ticket qualifies when it started after both tools were installed, which the report decides from a date in thresholds.toml rather than from a hardcoded list.\n\nOverlap is read from the journals: two graph records on one ticket asking the same subject of two different tools is one tool too many, and the report names the ticket, the subject and the two tools.",
+      "changes": [
+        "harness/thresholds.toml: a [context] table with the three rules, the baseline path, the decision rule and the date the tools landed",
+        "harness/cost.py: tool_calls_between",
+        "harness/report.py: the context section, the overlap detection, and the qualifying-ticket rule",
+        "harness/tests/test_report.py: extend for the rules, the two rows, the conclusion and the overlap",
+        "docs/harness/skill.md and its two generated copies: which tool answers at which stage"
+      ],
+      "migrations": [],
+      "tests_first": [
+        "thresholds.toml carries the three context rules and they read back: the RED must fail because there is no [context] table",
+        "tool_calls_between counts tool_use blocks inside the window and returns null rather than zero with no logs: the RED must fail because the function does not exist",
+        "The report shows output tokens and tool calls per point beside the baseline: the RED must fail because there is no context section",
+        "With fewer than five qualifying tickets the report says nothing can be concluded and puts the comparison under Not measurable yet: the RED must fail for the same reason",
+        "Two graph records asking the same subject of two different tools are reported as one tool too many, naming both: the RED must fail because nothing reads graph records",
+        "The same subject asked twice of the same tool is not overlap: the RED must pass, and guards the one above from being trivially true"
+      ],
+      "alternatives": [
+        "Declaring which questions overlap in a table, rejected in clarify: written in advance it is an opinion, and two records asking the same thing is evidence",
+        "Making the comparison now against the ten-ticket baseline, rejected because no ticket has been worked with both tools available from its first record, so the figure would measure the installation rather than the tools",
+        "Counting tool calls from the journals instead of the session logs, rejected because the journal records harness commands rather than the session's tool calls, and the baseline counted the logs"
+      ],
+      "risks": [
+        "The qualifying date is a threshold someone can move to make a comparison look ready. It is in a committed file and the report prints it, which is the same protection every other threshold has",
+        "Tool calls read from session logs are unavailable on a machine without them, so the row can be null. It is reported as null rather than zero, the way tokens already are",
+        "Attributing a session's tokens to a ticket by its window assumes one ticket at a time. That was true for the baseline and has been true since; a report covering interleaved work would over-attribute, which the note in the baseline file already says"
+      ],
+      "rollback": "Revert the commit. The report loses its context section, thresholds.toml loses the [context] table, and no journal already written becomes invalid because nothing about a record changes.",
+      "new_dependencies": [],
+      "tenant_tables": [
+        "none"
+      ],
+      "buyer_pii": "none",
+      "policy_gate_action": null
+    },
+    "decisions": [
+      {
+        "question": "solution_complete",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.68,
+          "no": 0.32
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "question": "touches_billing_or_policy_gate",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.06,
+          "no": 0.94
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

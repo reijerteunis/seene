@@ -17,8 +17,8 @@ import subprocess
 import sys
 
 from . import (checks, cost as cost_module, coverage as coverage_module, doctor, gates,
-               graph as graph_module, jev, journal, kpi, report as report_module, risk,
-               thresholds)
+               context, graph as graph_module, jev, journal, kpi,
+               report as report_module, risk, thresholds)
 from .errors import HarnessError, require
 from .paths import (DRAFTS, HISTORY, KINDS, LOCK, NON_CODE_TEMPLATE, STAGES, TEMPLATES,
                     TEMPLATE_FOR_STAGE, TICKETS, WORKING_STAGES)
@@ -643,6 +643,11 @@ def ticket_figures(repository):
         if records and measured['delivered_at']:
             measured['tokens'] = cost_module.tokens_between(
                 repository.root, records[0]['timestamp'], measured['delivered_at'])
+        if records and measured['delivered_at']:
+            measured['tool_calls'] = cost_module.tool_calls_between(
+                repository.root, records[0]['timestamp'], measured['delivered_at'])
+            measured['started'] = records[0]['timestamp']
+        measured['output_tokens'] = (measured.get('tokens') or {}).get('output_tokens')
         measured['escaped_defects'] = reporting.escaped_defects(repository.root, identifier)
         figures.append(measured)
     return figures
@@ -661,6 +666,7 @@ UNMEASURABLE = [
 def write_report(repository, args):
     from . import report as reporting
     require(args.week or args.sprint is not None, 'Ask for --week or --sprint <n>')
+    rules = thresholds.load(repository.root)
     figures = ticket_figures(repository)
     if args.sprint is not None:
         planned = 0
@@ -685,11 +691,31 @@ def write_report(repository, args):
         year, week, _ = date.fromisoformat(when).isocalendar()
         name = f'{year}-W{week:02d}'
         title = f'Week {week} of {year}'
+    budget = rules['context']
+    baseline_path = repository.root / budget['baseline']
+    section = None
+    if baseline_path.is_file():
+        section = context.compare(covered, json.loads(baseline_path.read_text()),
+                                  budget['minimum_tickets'], budget['tools_available_from'])
+        section['overlaps'] = context.overlaps(_graph_records(repository.root, covered))
     payload = dict(name=name, generated_for=name, tickets=covered, totals=totals,
-                   unmeasurable=UNMEASURABLE)
-    markdown = reporting.render(title, covered, totals, UNMEASURABLE)
+                   unmeasurable=UNMEASURABLE, context=section)
+    markdown = reporting.render(title, covered, totals, UNMEASURABLE, section, budget)
     written = reporting.write(repository.root, name, markdown, payload)
     return dict(written, tickets=len(covered), totals=totals)
+
+
+def _graph_records(root, tickets):
+    """Every graph note on the tickets a report covers."""
+    found = []
+    for entry in tickets:
+        folder = root / HISTORY / entry['ticket']
+        if not folder.is_dir():
+            continue
+        for record in journal.read(folder):
+            if record['kind'] == 'note' and 'source' in record['data']:
+                found.append(record)
+    return found
 
 
 def list_tickets(repository):

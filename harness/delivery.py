@@ -62,9 +62,11 @@ def verify(repository, folder, records, args, current):
                                           package=measurement['package'],
                                           lines=measurement['lines'],
                                           delta=measurement['delta'])))
-    # The KPI record is a cache of what harness report computes from this
-    # journal, so a reader sees the numbers beside the receipt without
-    # recomputing them, and the report is identical either way.
+    # What this journal alone can say, cached beside the receipt so a reader
+    # need not recompute it. Points and tokens stay null here on purpose:
+    # points live in the ticket frontmatter and tokens in the session logs,
+    # neither of which delivery reads, and harness report fills both. The
+    # report is the authority; this is the part that needs no machine.
     figures = kpi.measure(journal.read(folder), record['ticket'])
     (folder / 'kpi.json').write_text(json.dumps(figures, indent=2, ensure_ascii=False) + '\n')
 

@@ -1,0 +1,30 @@
+{
+  "sequence": 8,
+  "ticket": "SEEN-099",
+  "timestamp": "2026-09-24T06:22:46.173825+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "1084eaea6f5407f19dcd8994f1551f1c4d3600f2",
+  "prev_hash": "7b118eac818aac5b83eb6bfcec00e8543f15bce922fd2499bba160a6dd46760a",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "behaviour": "The three context budget rules, the decision rule, the minimum of five tickets and the moment the tools landed live in harness/thresholds.toml and read back; cost.tool_calls_between counts tool_use blocks in the same window tokens_between uses and returns null rather than zero without logs; context.compare reports both rows against the baseline, concludes keep below it and graphify first above it, and concludes nothing at all below five qualifying tickets, naming how many there are; context.overlaps reports a subject asked of two tools on one ticket and does not report the same subject asked twice of one tool.",
+          "failure_reason": "ModuleNotFoundError: No module named 'harness.context', and KeyError: 'context' from thresholds",
+          "red": 4,
+          "green": 5
+        }
+      ],
+      "regression": 6,
+      "coverage_delta": 0.0
+    },
+    "decisions": []
+  }
+}
