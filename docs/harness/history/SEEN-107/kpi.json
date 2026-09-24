@@ -1,0 +1,64 @@
+{
+  "ticket": "SEEN-107",
+  "delivered_at": "2026-09-24T22:50:37.650490+00:00",
+  "points": null,
+  "cycle_time_seconds": 17037,
+  "stage_seconds": {
+    "clarify": 225,
+    "solution": 158,
+    "tdd": 9066,
+    "review": 6498,
+    "deliver": 1089
+  },
+  "attempts": 11,
+  "rework": 10,
+  "red_before_green": true,
+  "coverage": {
+    "package": "@seen/core",
+    "lines": 100.0,
+    "delta": 0.0
+  },
+  "findings": {
+    "by_severity": {
+      "high": 2,
+      "medium": 16,
+      "low": 27
+    },
+    "fixed": 45,
+    "waived": 0
+  },
+  "first_pass_ci": true,
+  "tokens": null,
+  "cost": null,
+  "escaped_defects": [],
+  "slices": {
+    "planned": 3,
+    "proven": 13
+  },
+  "sessions": 1,
+  "subagents": {
+    "briefs": 0,
+    "agents": [],
+    "review": "self-review",
+    "both": false
+  },
+  "review_triage": {
+    "record": 98,
+    "depth": "full",
+    "model_depth": "spot",
+    "shadow": true,
+    "asked": true,
+    "rules": [
+      "slice_files did not pass, so the reviewer reads everything: Changed but named by no slice and no changes entry: harness/delivery.py, harness/doctor.py, harness/repository.py, harness/tests/helpers.py, harness/tests/test_context_budget.py, harness/tests/test_delivery.py, harness/tests/test_doctor.py, harness/tests/test_enforcement.py, harness/tests/test_question_criteria.py, harness/tests/test_reopen.py, harness/tests/test_stage_gates.py"
+    ],
+    "files": 29,
+    "focus": 29,
+    "excluded": 19,
+    "excluded_share": 0.5924,
+    "reviewer_output_tokens": null,
+    "reviewer_tokens": null
+  },
+  "output_tokens_per_slice": null,
+  "harness_version": "2",
+  "note": null
+}

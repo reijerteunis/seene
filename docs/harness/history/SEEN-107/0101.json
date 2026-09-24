@@ -1,0 +1,69 @@
+{
+  "sequence": 101,
+  "ticket": "SEEN-107",
+  "timestamp": "2026-09-24T22:50:37.650490+00:00",
+  "harness_version": "2",
+  "kind": "receipt",
+  "stage": "deliver",
+  "attempt": 11,
+  "actor": "claude:implementer",
+  "session": "253bf8e84e82",
+  "head": "3fd2ea62c2c35b2c73c11a1c28ddefa41c8b7377",
+  "prev_hash": "55d0d4d7203cfdf246d21d7340c9db0b1f2dce2d5480b07e0353d4aaf4d283ab",
+  "data": {
+    "from_stage": "deliver",
+    "to_stage": "delivered",
+    "commit": "3fd2ea62c2c35b2c73c11a1c28ddefa41c8b7377",
+    "branch": "claude/SEEN-107-review-triage",
+    "remote": "origin",
+    "tree": "e05f2adb5776a26163134bd3976d23226dc760a0aece3fb733f6345a07551623",
+    "pull_request": "https://github.com/reijerteunis/seene/pull/22",
+    "limits": [
+      "Nothing narrows a review yet. [review] triage_shadow ships true, so the focus set is still the whole diff and the reviewer still reads everything; what is delivered is the measurement, not the saving. SEEN-109 decides on it.",
+      "The four thresholds in [jev.thresholds] and [review] focus_probability are starting values with no evidence behind them. They were not calibrated here and nothing in this ticket claims they are right.",
+      "The reviewer's output token figure counts every subagent entry in the review round, because the session log cannot tell one subagent from another. It will also read null on this repository until a subagent is logged with isSidechain true, which has never happened here.",
+      "A Claude Code subagent inherits its parent session digest, measured on this ticket at record 35, so every review of it was honestly disclosed as self-review despite running in a context of its own. The subagent disclosure SEEN-105 designed is unusable on this assistant until either a Codex reviewer or a minted identifier exists.",
+      "The pull_request check ran unavailable on all eleven triages of this ticket, because no pull request existed for the branch until delivery. Its passing path is untested against a real pull request.",
+      "doctor now wants review at the deliver stage, which is CLAUDE.md's rule and none of the five criteria. It is enforcement this ticket added because the procedure trapped it, and it is recorded in the journal at record 69 rather than hidden in the diff."
+    ],
+    "evidence": {
+      "remote": "origin",
+      "pull_request": "https://github.com/reijerteunis/seene/pull/22",
+      "limits": [
+        "Nothing narrows a review yet. [review] triage_shadow ships true, so the focus set is still the whole diff and the reviewer still reads everything; what is delivered is the measurement, not the saving. SEEN-109 decides on it.",
+        "The four thresholds in [jev.thresholds] and [review] focus_probability are starting values with no evidence behind them. They were not calibrated here and nothing in this ticket claims they are right.",
+        "The reviewer's output token figure counts every subagent entry in the review round, because the session log cannot tell one subagent from another. It will also read null on this repository until a subagent is logged with isSidechain true, which has never happened here.",
+        "A Claude Code subagent inherits its parent session digest, measured on this ticket at record 35, so every review of it was honestly disclosed as self-review despite running in a context of its own. The subagent disclosure SEEN-105 designed is unusable on this assistant until either a Codex reviewer or a minted identifier exists.",
+        "The pull_request check ran unavailable on all eleven triages of this ticket, because no pull request existed for the branch until delivery. Its passing path is untested against a real pull request.",
+        "doctor now wants review at the deliver stage, which is CLAUDE.md's rule and none of the five criteria. It is enforcement this ticket added because the procedure trapped it, and it is recorded in the journal at record 69 rather than hidden in the diff."
+      ]
+    },
+    "checks": [
+      {
+        "name": "Harness tests (Python 3.12)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Knowledge graph",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Monorepo (Node 24)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Secrets and supply chain",
+        "conclusion": "success",
+        "runs": 1
+      }
+    ],
+    "coverage": {
+      "package": "@seen/core",
+      "lines": 100.0,
+      "delta": 0.0
+    }
+  }
+}
