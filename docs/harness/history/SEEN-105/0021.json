@@ -1,0 +1,41 @@
+{
+  "sequence": 21,
+  "ticket": "SEEN-105",
+  "timestamp": "2026-09-24T12:18:33.254464+00:00",
+  "harness_version": "2",
+  "kind": "handoff",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "2377cfb62f89",
+  "head": "cc0449d380030bffb7738c2a3c19d2f29cf1b276",
+  "prev_hash": "c4e8c985ad442e66b43d508352cc37a4b3cfda47919c61b0eddc3cd01ce9148e",
+  "data": {
+    "pack": ".harness-drafts/SEEN-105-handoff.md",
+    "sha256": "36f863b593884fa48e902f455892c0a8dd713cb5b76984459ccd1ab8564a197a",
+    "estimated_tokens": 1078,
+    "token_limit": 2000,
+    "slice": {
+      "position": 3,
+      "total": 4,
+      "done": 2,
+      "entry": {
+        "name": "The review gate: a subagent review, and the other assistant where it matters",
+        "points": 1,
+        "files": [
+          "harness/gates.py",
+          "harness/templates/review.json",
+          "harness/cli.py",
+          "harness/tests/test_stage_gates.py"
+        ],
+        "red": "A review record disclosing independence subagent whose reviewer_session is a session that wrote this attempt's own records advances, and a fixture whose solution advance answered touches_billing_or_policy_gate yes advances with a reviewer from the implementer's own tool"
+      }
+    },
+    "figures": {
+      "session": "2377cfb62f89",
+      "output_tokens": 154010,
+      "tool_calls": 72,
+      "unavailable": null
+    }
+  }
+}
