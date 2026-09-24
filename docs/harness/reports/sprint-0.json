@@ -37,11 +37,14 @@
       "cost": null,
       "escaped_defects": [],
       "harness_version": "1",
-      "note": null
+      "note": null,
+      "tool_calls": 47,
+      "started": "2026-09-23T19:07:47.301078+00:00",
+      "output_tokens": 118466
     },
     {
       "ticket": "SEEN-086",
-      "delivered_at": "2026-09-24T01:05:47+02:00",
+      "delivered_at": "2026-09-24T07:07:01+02:00",
       "points": 5,
       "cycle_time_seconds": null,
       "stage_seconds": {},
@@ -59,7 +62,8 @@
       "cost": null,
       "escaped_defects": [],
       "harness_version": null,
-      "note": "Measured from the ticket file: this ticket has no journal"
+      "note": "Measured from the ticket file: this ticket has no journal",
+      "output_tokens": null
     },
     {
       "ticket": "SEEN-087",
@@ -96,7 +100,10 @@
       "cost": null,
       "escaped_defects": [],
       "harness_version": "1",
-      "note": null
+      "note": null,
+      "tool_calls": 39,
+      "started": "2026-09-23T15:59:17.417788+00:00",
+      "output_tokens": 81572
     },
     {
       "ticket": "SEEN-088",
@@ -135,7 +142,10 @@
       "cost": null,
       "escaped_defects": [],
       "harness_version": "1",
-      "note": null
+      "note": null,
+      "tool_calls": 92,
+      "started": "2026-09-23T18:26:11.873304+00:00",
+      "output_tokens": 206032
     },
     {
       "ticket": "SEEN-089",
@@ -176,7 +186,10 @@
       "cost": null,
       "escaped_defects": [],
       "harness_version": "1",
-      "note": null
+      "note": null,
+      "tool_calls": 103,
+      "started": "2026-09-23T19:05:41.774586+00:00",
+      "output_tokens": 249212
     },
     {
       "ticket": "SEEN-090",
@@ -218,7 +231,10 @@
       "cost": null,
       "escaped_defects": [],
       "harness_version": "1",
-      "note": null
+      "note": null,
+      "tool_calls": 86,
+      "started": "2026-09-23T20:45:59.536037+00:00",
+      "output_tokens": 151325
     },
     {
       "ticket": "SEEN-091",
@@ -260,7 +276,10 @@
       "cost": null,
       "escaped_defects": [],
       "harness_version": "1",
-      "note": null
+      "note": null,
+      "tool_calls": 47,
+      "started": "2026-09-23T21:48:35.067922+00:00",
+      "output_tokens": 105894
     },
     {
       "ticket": "SEEN-092",
@@ -300,7 +319,10 @@
       "cost": null,
       "escaped_defects": [],
       "harness_version": "1",
-      "note": null
+      "note": null,
+      "tool_calls": 19,
+      "started": "2026-09-23T22:23:53.048198+00:00",
+      "output_tokens": 34381
     },
     {
       "ticket": "SEEN-093",
@@ -336,7 +358,10 @@
       "cost": null,
       "escaped_defects": [],
       "harness_version": "1",
-      "note": null
+      "note": null,
+      "tool_calls": 12,
+      "started": "2026-09-23T18:51:10.588159+00:00",
+      "output_tokens": 27471
     },
     {
       "ticket": "SEEN-094",
@@ -377,7 +402,10 @@
       "cost": null,
       "escaped_defects": [],
       "harness_version": "1",
-      "note": null
+      "note": null,
+      "tool_calls": 22,
+      "started": "2026-09-23T20:22:59.297667+00:00",
+      "output_tokens": 70970
     },
     {
       "ticket": "SEEN-095",
@@ -418,27 +446,216 @@
       "cost": null,
       "escaped_defects": [],
       "harness_version": "1",
-      "note": null
+      "note": null,
+      "tool_calls": 33,
+      "started": "2026-09-23T22:46:42.388587+00:00",
+      "output_tokens": 50377
+    },
+    {
+      "ticket": "SEEN-096",
+      "delivered_at": "2026-09-24T05:57:54.188419+00:00",
+      "points": 1,
+      "cycle_time_seconds": 23955,
+      "stage_seconds": {
+        "clarify": 20869,
+        "solution": 2709,
+        "tdd": 201,
+        "review": 33,
+        "deliver": 141
+      },
+      "attempts": 1,
+      "rework": 0,
+      "red_before_green": true,
+      "coverage": {
+        "package": "@seen/core",
+        "lines": 100.0,
+        "delta": 0.0
+      },
+      "findings": {
+        "by_severity": {
+          "high": 1,
+          "medium": 1,
+          "low": 1
+        },
+        "fixed": 3,
+        "waived": 0
+      },
+      "first_pass_ci": true,
+      "tokens": {
+        "input_tokens": 560,
+        "output_tokens": 233087,
+        "cache_read_input_tokens": 101658164,
+        "cache_creation_input_tokens": 1296310
+      },
+      "cost": null,
+      "escaped_defects": [],
+      "harness_version": "1",
+      "note": null,
+      "tool_calls": 172,
+      "started": "2026-09-23T23:18:38.879940+00:00",
+      "output_tokens": 233087
+    },
+    {
+      "ticket": "SEEN-098",
+      "delivered_at": "2026-09-24T06:15:10.769645+00:00",
+      "points": 2,
+      "cycle_time_seconds": 895,
+      "stage_seconds": {
+        "clarify": 71,
+        "solution": 160,
+        "tdd": 505,
+        "review": 39,
+        "deliver": 119
+      },
+      "attempts": 1,
+      "rework": 0,
+      "red_before_green": true,
+      "coverage": {
+        "package": "@seen/core",
+        "lines": 100.0,
+        "delta": 0.0
+      },
+      "findings": {
+        "by_severity": {
+          "high": 2,
+          "medium": 2
+        },
+        "fixed": 4,
+        "waived": 0
+      },
+      "first_pass_ci": true,
+      "tokens": {
+        "input_tokens": 202,
+        "output_tokens": 65539,
+        "cache_read_input_tokens": 22202217,
+        "cache_creation_input_tokens": 96162
+      },
+      "cost": null,
+      "escaped_defects": [],
+      "harness_version": "1",
+      "note": null,
+      "tool_calls": 66,
+      "started": "2026-09-24T06:00:15.192701+00:00",
+      "output_tokens": 65539
+    },
+    {
+      "ticket": "SEEN-100",
+      "delivered_at": "2026-09-24T05:31:27.989220+00:00",
+      "points": 1,
+      "cycle_time_seconds": 1305,
+      "stage_seconds": {
+        "clarify": 489,
+        "solution": 19,
+        "tdd": 371,
+        "review": 276,
+        "deliver": 147
+      },
+      "attempts": 1,
+      "rework": 0,
+      "red_before_green": true,
+      "coverage": {
+        "package": "@seen/core",
+        "lines": 100.0,
+        "delta": 0.0
+      },
+      "findings": {
+        "by_severity": {
+          "medium": 1,
+          "low": 2
+        },
+        "fixed": 3,
+        "waived": 0
+      },
+      "first_pass_ci": true,
+      "tokens": {
+        "input_tokens": 204,
+        "output_tokens": 75652,
+        "cache_read_input_tokens": 39113810,
+        "cache_creation_input_tokens": 166247
+      },
+      "cost": null,
+      "escaped_defects": [],
+      "harness_version": "1",
+      "note": null,
+      "tool_calls": 63,
+      "started": "2026-09-24T05:09:42.707437+00:00",
+      "output_tokens": 75652
+    },
+    {
+      "ticket": "SEEN-101",
+      "delivered_at": "2026-09-24T05:45:31.565409+00:00",
+      "points": 1,
+      "cycle_time_seconds": 427,
+      "stage_seconds": {
+        "clarify": 63,
+        "solution": 21,
+        "tdd": 166,
+        "review": 31,
+        "deliver": 145
+      },
+      "attempts": 1,
+      "rework": 0,
+      "red_before_green": true,
+      "coverage": {
+        "package": "@seen/core",
+        "lines": 100.0,
+        "delta": 0.0
+      },
+      "findings": {
+        "by_severity": {
+          "medium": 1,
+          "low": 1,
+          "high": 1
+        },
+        "fixed": 3,
+        "waived": 0
+      },
+      "first_pass_ci": true,
+      "tokens": {
+        "input_tokens": 78,
+        "output_tokens": 33999,
+        "cache_read_input_tokens": 5098175,
+        "cache_creation_input_tokens": 37232
+      },
+      "cost": null,
+      "escaped_defects": [],
+      "harness_version": "1",
+      "note": null,
+      "tool_calls": 25,
+      "started": "2026-09-24T05:38:24.317121+00:00",
+      "output_tokens": 33999
     }
   ],
   "totals": {
-    "tickets": 11,
-    "points_delivered": 32,
-    "median_cycle_time_seconds": 1354.5,
-    "rework_per_ticket": 1.1,
+    "tickets": 15,
+    "points_delivered": 37,
+    "median_cycle_time_seconds": 1215.5,
+    "rework_per_ticket": 0.79,
     "first_pass_ci_rate": 1.0,
     "first_pass_ci_unknown": 8,
     "findings_by_severity": {
-      "medium": 22,
-      "high": 14,
-      "low": 12,
+      "medium": 27,
+      "high": 18,
+      "low": 16,
       "blocking": 2
     },
-    "points_planned": 78
+    "points_planned": 81
   },
   "unmeasurable": [
     "Eval pass rate for policy-gate action tickets: the eval set is SEEN-036 and no such ticket has been worked, so a figure here would be invented",
     "Escaped defects: counted from tickets whose frontmatter names an earlier one, and none has been written yet",
     "Cost in euros: the session logs carry tokens, and a price per token is stale the day it is written, so only tokens are reported"
-  ]
+  ],
+  "context": {
+    "tickets": 0,
+    "minimum": 5,
+    "output_tokens_per_point": null,
+    "tool_calls_per_point": null,
+    "baseline_output_tokens_per_point": 40581.5,
+    "baseline_tool_calls_per_point": 18.5,
+    "baseline_points": 27,
+    "conclusion": null,
+    "not_measurable": "The context budget comparison: 0 of 5 qualifying tickets have delivered, so the figures are reported and nothing is concluded from them",
+    "overlaps": []
+  }
 }

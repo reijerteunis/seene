@@ -105,7 +105,40 @@ def _duration(seconds):
     return f'{hours}h {rest // 60}m' if hours else f'{rest // 60}m'
 
 
-def render(title, tickets, figures, unmeasurable):
+def render_context(section, rules):
+    """The context budget and what the figures say about it, or that they cannot.
+
+    The rule is printed beside the numbers every time, so a reader never has to
+    take on trust that it was chosen before them.
+    """
+    lines = ['', '## The context budget', '']
+    lines += [f'- {rule}' for rule in rules['rules']]
+    per_point = section['output_tokens_per_point']
+    calls = section['tool_calls_per_point']
+    lines += ['', '| Measure | This report | Baseline |', '|---|---|---|',
+              f'| Output tokens per point | {per_point if per_point is not None else "not measured"} '
+              f'| {section["baseline_output_tokens_per_point"]} |',
+              f'| Tool calls per point | {calls if calls is not None else "not measured"} '
+              f'| {section["baseline_tool_calls_per_point"]} |',
+              f'| Qualifying tickets | {section["tickets"]} | {section["baseline_points"]} points '
+              'over 10 tickets |']
+    lines += ['', f'**The rule, recorded before the numbers.** {rules["decision_rule"]}', '']
+    if section['conclusion']:
+        lines += [f'**What it points to.** {section["conclusion"]}', '',
+                  "**The founder's call.** Not made here; it belongs in this report, written by "
+                  'Ruud beside the line above.']
+    else:
+        lines += ['**What it points to.** Nothing yet. '
+                  f'{section["not_measurable"]}']
+    if section.get('overlaps'):
+        lines += ['', '### One tool too many', '']
+        for overlap in section['overlaps']:
+            lines.append(f'- {overlap["ticket"]} asked about `{overlap["subject"]}` of both '
+                         f'{" and ".join(overlap["tools"])}: one question, two right addressees.')
+    return lines
+
+
+def render(title, tickets, figures, unmeasurable, context_section=None, context_rules=None):
     """A report anyone can read without opening a journal.
 
     The last section names what could not be measured and why, because a report
@@ -143,6 +176,11 @@ def render(title, tickets, figures, unmeasurable):
             lines.append(f'- {severity}: {count}')
     else:
         lines.append('- none recorded')
+    if context_section is not None:
+        lines += render_context(context_section, context_rules)
     lines += ['', '## Not measurable yet', '']
-    lines += [f'- {reason}' for reason in unmeasurable] or ['- nothing']
+    reasons = list(unmeasurable)
+    if context_section is not None and context_section.get('not_measurable'):
+        reasons.append(context_section['not_measurable'])
+    lines += [f'- {reason}' for reason in reasons] or ['- nothing']
     return '\n'.join(lines) + '\n'

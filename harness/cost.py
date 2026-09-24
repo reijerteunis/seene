@@ -18,6 +18,36 @@ def log_directory(root):
     return LOGS / str(root.resolve()).replace('/', '-')
 
 
+def tool_calls_between(root, opened, closed):
+    """How many tool calls a ticket's window contains.
+
+    Counted from the same logs and the same window as the tokens, because the
+    baseline in SEEN-099 was counted that way and a comparison against a
+    differently counted number is not a comparison. Null rather than zero on a
+    machine with no logs, for the same reason tokens are.
+    """
+    directory = log_directory(root)
+    if not directory.is_dir():
+        return None
+    calls, seen = 0, False
+    for path in sorted(directory.glob('*.jsonl')):
+        for line in path.read_text(errors='replace').splitlines():
+            try:
+                entry = json.loads(line)
+            except (json.JSONDecodeError, ValueError):
+                continue
+            stamp = entry.get('timestamp')
+            if not stamp or not (opened <= stamp <= closed):
+                continue
+            content = (entry.get('message') or {}).get('content')
+            if not isinstance(content, list):
+                continue
+            seen = True
+            calls += sum(1 for block in content
+                         if isinstance(block, dict) and block.get('type') == 'tool_use')
+    return calls if seen else None
+
+
 def tokens_between(root, opened, closed):
     """Token counts from entries falling inside a ticket's window.
 

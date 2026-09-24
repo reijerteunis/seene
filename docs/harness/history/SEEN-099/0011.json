@@ -1,0 +1,66 @@
+{
+  "sequence": 11,
+  "ticket": "SEEN-099",
+  "timestamp": "2026-09-24T06:27:24.667755+00:00",
+  "harness_version": "1",
+  "kind": "receipt",
+  "stage": "deliver",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "d8a295004c72b9edf85974576fb9063b04d32903",
+  "prev_hash": "87630c33a748da5e7de1587dbeb159c90cc3534d93907a4eefc27dda8ef2ae8c",
+  "data": {
+    "from_stage": "deliver",
+    "to_stage": "delivered",
+    "commit": "d8a295004c72b9edf85974576fb9063b04d32903",
+    "branch": "claude/SEEN-099-set-the-context-budget-and-measure",
+    "remote": "origin",
+    "tree": "26661c12b6fdc73805d3566aca93294d859973d4847f0b9f2a397b734e20854d",
+    "pull_request": "https://github.com/reijerteunis/seene/pull/16",
+    "limits": [
+      "The comparison this ticket exists to enable has not been made. Zero tickets qualify; five are needed. Nothing here says whether the three tools pay for the context they occupy, and the report says so in those words rather than implying a verdict.",
+      "The budget rules are written but nothing enforces them. A session can make three tool calls for one question and no gate will notice. They are a stated bound and a thing to measure against, not a control.",
+      "Attributing a session's tokens and tool calls to a ticket by its window assumes one ticket at a time, as the baseline note already says. Interleaved work would over-attribute to whichever ticket was open.",
+      "Overlap is detected only between harness graph records. Two tools asked the same question directly through their MCP tools, which is the common case while writing code, leave no journal record and are invisible to it.",
+      "The review was a self-review, like every ticket in this epic. An independent pass over the harness is still owed."
+    ],
+    "evidence": {
+      "remote": "origin",
+      "pull_request": "https://github.com/reijerteunis/seene/pull/16",
+      "limits": [
+        "The comparison this ticket exists to enable has not been made. Zero tickets qualify; five are needed. Nothing here says whether the three tools pay for the context they occupy, and the report says so in those words rather than implying a verdict.",
+        "The budget rules are written but nothing enforces them. A session can make three tool calls for one question and no gate will notice. They are a stated bound and a thing to measure against, not a control.",
+        "Attributing a session's tokens and tool calls to a ticket by its window assumes one ticket at a time, as the baseline note already says. Interleaved work would over-attribute to whichever ticket was open.",
+        "Overlap is detected only between harness graph records. Two tools asked the same question directly through their MCP tools, which is the common case while writing code, leave no journal record and are invisible to it.",
+        "The review was a self-review, like every ticket in this epic. An independent pass over the harness is still owed."
+      ]
+    },
+    "checks": [
+      {
+        "name": "Harness tests (Python 3.12)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Knowledge graph",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Monorepo (Node 24)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Secrets and supply chain",
+        "conclusion": "success",
+        "runs": 1
+      }
+    ],
+    "coverage": {
+      "package": "@seen/core",
+      "lines": 100.0,
+      "delta": 0.0
+    }
+  }
+}

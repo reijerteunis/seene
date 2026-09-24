@@ -1,0 +1,83 @@
+{
+  "sequence": 2,
+  "ticket": "SEEN-099",
+  "timestamp": "2026-09-24T06:18:36.205786+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "1084eaea6f5407f19dcd8994f1551f1c4d3600f2",
+  "prev_hash": "ebf36cbc430624879b88174bcb6e3bfea211d9a0fe31957ab0abcbbe8c4e6d32",
+  "data": {
+    "from_stage": "clarify",
+    "to_stage": "solution",
+    "evidence": {
+      "scope": "Write the three context budget rules into harness/thresholds.toml, name in the skill which tool answers at which stage, and build the measurement into harness report so that tokens and tool calls per point stand beside the baseline with the decision rule written next to them; the edge is that the comparison cannot be made today, because no ticket has yet been worked with both tools available from its first record.",
+      "acceptance": [
+        "thresholds.toml carries the three rules, one tool call per question, codegraph queries name a symbol rather than a directory, and no repository-wide read when a graph can answer: a unit test reads them back, because a rule in a prompt is not a rule.",
+        "docs/harness/skill.md names which tool answers at which stage and sync regenerates both copies: the file says it and the generated copies match, which doctor already checks.",
+        "The sprint report shows output tokens and tool calls per point against the baseline: a unit test builds a report over journals with known figures and asserts both rows, and the real report shows what it has.",
+        "The report states the decision the rule points to: a unit test asserts the report carries the rule and its conclusion, including the conclusion that too few tickets have been delivered to conclude anything.",
+        "A question with two right addressees is reported as one tool too many: a unit test writes two graph records asking the same subject of two different tools and asserts the report names it."
+      ],
+      "decisions": [
+        "The comparison against the baseline is not made in this ticket and cannot be. The baseline covers ten tickets delivered before any of these tools existed; since then SEEN-096 installed codegraph during its own work and SEEN-098 installed repowise during its own, so neither was worked with the tools it was adding. Zero tickets qualify. What settles it is five tickets delivered after this one, and until then the report says so under Not measurable yet rather than dividing two numbers and calling it evidence. Taken by the implementer, 24 September 2026.",
+        "The decision rule is written into thresholds.toml now, before the numbers exist, because a rule chosen after seeing the figure is not a rule. Below the baseline the tools stay; above it one goes, graphify first, because codegraph and repowise can partly answer its questions; a rise removes them at once rather than after five tickets. Authority: the ticket, written by the founder.",
+        "The founder's call is not the harness's to make and is not faked. The report states the rule and what the numbers point to; the call goes in the sprint report under a heading for it, written by Ruud. Taken by the implementer.",
+        "Tool calls are counted from the session logs the way tokens already are, by counting tool_use blocks in the window between a ticket's first record and its receipt. The baseline was counted the same way, which is what makes the two comparable.",
+        "One tool too many is detected from the journals rather than declared in a table: when the same subject is asked of two different tools on one ticket, the report names it. A table of which questions overlap would be an opinion written in advance; two records asking the same thing twice is evidence.",
+        "Tokens and points are absent from the kpi.json cached at delivery and present in harness report, because points come from the ticket frontmatter and tokens from the session logs, neither of which delivery reads. The report is the authority and this ticket does not change that."
+      ],
+      "open_questions": [],
+      "changes_agent_action": false,
+      "graph_impact": [
+        "harness/report.py, harness/cost.py, harness/thresholds.toml"
+      ]
+    },
+    "decisions": [
+      {
+        "question": "clarified",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.89,
+          "no": 0.11
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.8,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "question": "risk",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "low",
+        "probabilities": {
+          "low": 0.8,
+          "medium": 0.2,
+          "high": 0.0
+        },
+        "confidence": 0.69,
+        "score": 0.21,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

@@ -73,6 +73,32 @@ percentile against this repository's own commits, the tests that may break, the 
 repowise is not installed the decision still happens, with the absence recorded as an absence rather
 than as a low score.
 
+## The context budget
+
+Three knowledge tools put three sets of tool schemas into every session before a ticket is read, so
+what they buy is bounded:
+
+- **One tool call per question.** A second call answering the same question is a question that was
+  not asked properly.
+- **A codegraph query names a symbol, not a directory.** A directory is a repository-wide read wearing
+  a tool's name.
+- **No repository-wide read when a graph can answer.** grep over the tree is the last resort, not the
+  first move.
+
+Which tool answers when:
+
+| Stage | Tool | What you are asking |
+|---|---|---|
+| clarify | repowise | What the history says: why this is shaped this way, how healthy it is, how dangerous this change looks |
+| solution | repowise, codegraph | What already exists and what depends on it |
+| writing code | codegraph | Callers, callees, impact, a symbol's source |
+| review | repowise | What this change touches that has broken before, and which tests guard it |
+| across code and documents | graphify | How two ends connect, and what the open pull requests touch |
+
+Whether they pay for the context they occupy is measured, not assumed: `harness report --sprint <n>`
+carries output tokens and tool calls per point against the baseline captured before any of them
+existed, with the rule for reading it written in `harness/thresholds.toml` before the numbers arrived.
+
 ## What the harness will refuse
 
 A RED that did not fail. A slice citing a check from another attempt. Coverage that fell. A record

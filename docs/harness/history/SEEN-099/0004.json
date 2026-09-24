@@ -1,0 +1,28 @@
+{
+  "sequence": 4,
+  "ticket": "SEEN-099",
+  "timestamp": "2026-09-24T06:19:35.834898+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "1084eaea6f5407f19dcd8994f1551f1c4d3600f2",
+  "prev_hash": "2a1e49705acd6637da2b8d6f1ae771b906a698bdc95bf1779dd8f584e39b1c77",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_context_budget"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "duration_ms": 40,
+    "output": "E\n======================================================================\nERROR: test_context_budget (unittest.loader._FailedTest.test_context_budget)\n----------------------------------------------------------------------\nImportError: Failed to import test module: test_context_budget\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/.local/share/mise/installs/python/3.14.5/lib/python3.14/unittest/loader.py\", line 137, in loadTestsFromName\n    module = __import__(module_name)\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_context_budget.py\", line 13, in <module>\n    from harness import context, cost, thresholds\nImportError: cannot import name 'context' from 'harness' (/Users/ruudvanengelenhoven/Development/seene/harness/__init__.py)\n\n\n----------------------------------------------------------------------\nRan 1 test in 0.000s\n\nFAILED (errors=1)\n",
+    "output_sha256": "aefeadc82495d20d19341b588b63ab861edac5e0e0aabe235c49081231a7ef33",
+    "output_truncated": false,
+    "before": "d8dbdcbaf59eb8e334b8bc37779036f84f0b484263901cf092cb4a2098baef87",
+    "after": "d8dbdcbaf59eb8e334b8bc37779036f84f0b484263901cf092cb4a2098baef87"
+  }
+}

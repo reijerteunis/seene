@@ -1,0 +1,106 @@
+{
+  "sequence": 10,
+  "ticket": "SEEN-099",
+  "timestamp": "2026-09-24T06:25:03.769106+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "review",
+  "attempt": 1,
+  "actor": "claude:reviewer",
+  "head": "1084eaea6f5407f19dcd8994f1551f1c4d3600f2",
+  "prev_hash": "12078ce06c0ec90678661d64cade96af8fc88c5555442c75bda716c4bef10ce5",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "deliver",
+    "evidence": {
+      "reviewer": "claude:reviewer",
+      "independence": "self-review",
+      "acceptance_evidence": [
+        "thresholds.toml carries the three rules: the [context] table holds them, and BudgetRulesTest reads all three back plus the decision rule, the minimum and the boundary, green at record 5.",
+        "The skill names which tool answers at which stage: a table by stage from clarify to review plus graphify across code and documents, regenerated into both copies by sync, which doctor's drift check holds.",
+        "The sprint report shows both rows against the baseline: docs/harness/reports/sprint-0.md carries them, and ComparisonTest asserts the figures, the two conclusions and the refusal to conclude.",
+        "The report states what the rule points to: the rule is printed beside the numbers every time, and with too few tickets the conclusion is that nothing can be concluded, naming how many there are. The founder's line is named as the founder's and left empty rather than written.",
+        "A question with two right addressees is reported as one tool too many: OverlapTest asserts it is detected across tools, not detected for one tool asked twice, and not detected across tickets."
+      ],
+      "findings": [
+        {
+          "id": "F1",
+          "severity": "high",
+          "claim": "The qualifying boundary was a date, which counted the two tickets that installed the tools",
+          "failure_scenario": "The clarify record said in as many words that SEEN-096 and SEEN-098 were not worked with what they added, and then a date boundary of 2026-09-24 counted them both. The report printed 43,797 output tokens per point against 40,581 and 38.5 tool calls against 18.5, a conclusion about installing tools presented as a conclusion about using them. With one more qualifying ticket it would have crossed the five-ticket bar and told the founder to remove graphify on that evidence.",
+          "status": "resolved",
+          "resolution": "The boundary is SEEN-098's receipt timestamp, so zero tickets qualify and the report says so. A test asserts a ticket that installed a tool does not count towards it, and the rejected numbers are recorded in the ticket outcome rather than quietly dropped."
+        },
+        {
+          "id": "F2",
+          "severity": "low",
+          "claim": "kpi.json written at delivery has null points and null tokens while the report computes both",
+          "failure_scenario": "A reader opening a ticket's kpi.json beside its receipt sees nulls and concludes the figures were never captured, when harness report computes them from the ticket frontmatter and the session logs. The comment in delivery.py calls kpi.json a cache of what the report computes, which these two fields make untrue.",
+          "status": "resolved",
+          "resolution": "The comment no longer claims to cache what delivery cannot compute: it says points and tokens stay null on purpose, where each lives, and that harness report fills both. Delivery still reads neither the ticket frontmatter nor the session logs, because putting a machine path into the delivery path for a number the report already produces would be the worse trade. A test holds the comment, because the defect was the claim rather than the nulls."
+        }
+      ],
+      "checks": [
+        4,
+        5,
+        6,
+        7,
+        9
+      ],
+      "security_checklist": [
+        "The session logs are read for two numbers only, tool_use block counts and token counts. Nothing from a prompt or a file reaches a record, which harness/cost.py's docstring states and the report's credential check enforces.",
+        "No credential is in the change or in any record. The context section carries counts, ticket ids and tool names.",
+        "The overlap detection reads graph notes from this repository's own journals only.",
+        "The change touches no money, no tenant data and no policy-gate action."
+      ],
+      "verdict": "pass",
+      "tree": "26661c12b6fdc73805d3566aca93294d859973d4847f0b9f2a397b734e20854d"
+    },
+    "decisions": [
+      {
+        "question": "severity",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high",
+          "blocking"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "blocking",
+        "probabilities": {
+          "low": 0.01,
+          "medium": 0.2,
+          "high": 0.21,
+          "blocking": 0.58
+        },
+        "confidence": 0.37,
+        "score": 2.37,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      },
+      {
+        "question": "must_fix",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.41,
+          "no": 0.59
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.7,
+        "passed": false,
+        "fallback_reason": null
+      }
+    ]
+  }
+}
