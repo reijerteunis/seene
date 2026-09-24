@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-099, SEEN-103, SEEN-091]
-status: doing
+status: review
 ---
 # SEEN-104: Cap a session at one slice: the slice plan, the budget and the handoff pack
 
@@ -23,7 +23,7 @@ status: doing
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | doing |
+| Status | review |
 
 ## Description
 
@@ -31,11 +31,11 @@ The baseline in docs/harness/reports/context-tools-baseline.json says 40,600 out
 
 ## Acceptance criteria
 
-- [ ] advance from solution refuses a slice over max_points_per_slice and a plan over max_slices_per_ticket, naming the slice, and refuses a code-mode solution record without a slice plan
-- [ ] harness handoff writes the pack under handoff_token_limit, appends a handoff record carrying the pack's sha256, and status --brief prints it; a test proves the pack carries no environment value
-- [ ] harness budget reports the current session's output tokens and tool calls against the budget, null rather than zero where no session log exists, and names the slice boundary as the next stop when over budget
-- [ ] kpi.json carries slices, sessions per ticket and output tokens per slice, and harness report --sprint shows tokens per slice beside tokens per point
-- [ ] docs/harness/skill.md says one slice per session and that later sessions start from the handoff pack, and sync regenerates both copies
+- [x] advance from solution refuses a slice over max_points_per_slice and a plan over max_slices_per_ticket, naming the slice, and refuses a code-mode solution record without a slice plan
+- [x] harness handoff writes the pack under handoff_token_limit, appends a handoff record carrying the pack's sha256, and status --brief prints it; a test proves the pack carries no environment value
+- [x] harness budget reports the current session's output tokens and tool calls against the budget, null rather than zero where no session log exists, and names the slice boundary as the next stop when over budget
+- [x] kpi.json carries slices, sessions per ticket and output tokens per slice, and harness report --sprint shows tokens per slice beside tokens per point
+- [x] docs/harness/skill.md says one slice per session and that later sessions start from the handoff pack, and sync regenerates both copies
 
 ## Depends on
 
@@ -54,3 +54,62 @@ The baseline in docs/harness/reports/context-tools-baseline.json says 40,600 out
 - Architecture: [docs/architecture.md](../architecture.md)
 - Development plan and gates: [docs/development-plan.md](../development-plan.md)
 - Epic goal: Give every ticket one fast, evidence-recording procedure across Claude Code and Codex, with graphify for context, Jev for typed gate decisions, CI as the definition of done, security controls built into the stages, and a KPI record per ticket.
+
+## Outcome
+
+Three slices, one branch, one receipt, which is the shape the ticket argues for. Slice one put the
+four numbers in `harness/thresholds.toml`, the slice plan in the solution template with the two caps
+in `gates._slice_plan`, and the session in the record envelope. Slice two built `harness/handoff.py`,
+the `handoff` record kind and `status --brief`. Slice three added `harness budget`, the three KPI
+figures, the sprint report row and the sixth rule in the skill.
+
+**The session id is a digest, never the value.** `secrets.SECRET_NAME` matches SESSION, so
+`journal.append` already refused any record carrying `CLAUDE_CODE_SESSION_ID`, and it was right to.
+A record now carries twelve hex characters of its sha256, which is all the KPI needs: the question is
+whether two records came from the same session, not what the session is called. The envelope gained
+the field rather than the check record, so a session that clarified and handed off without running a
+test is counted too, and `HARNESS_VERSION` went to 2, which is the one thing it exists for.
+
+**The ticket measured itself and the figure is the argument.** Worked in one session against its own
+advice, `harness budget` reported 214,671 output tokens and 114 tool calls against the 60,000 it had
+just written, on the session that wrote it. The handoff pack on this journal came out at 993 tokens
+at the second boundary and 1,057 at the third, against a limit of 2,000, so the pack is a fifth of
+its allowance with every section present. The clarify stage is where the tokens went: eleven harness
+modules read to answer what the ticket touches, and four readings of a gate.
+
+**Three things the tests found that the design had wrong.** The leak test passed a value that did not
+appear in the pack, which is how it emerged that the pack carries the ticket file path and that a
+test of a refusal has to use a string the artefact really holds. A criterion assertion was pointed at
+the ticket file when a criterion restated as a check lives in the clarify record, which is what the
+pack should carry and now does. And the skill writes `harness status <ticket> --brief`, so a test
+looking for the literal `status --brief` was looking for something no correctly written document
+would contain; it asserts the command and the flag.
+
+**Four fixtures broke, not fifty-five.** Adding a required key to `solution.json` failed only
+`test_stage_gates.filled_solution`, because SEEN-103's shared `solution_evidence` absorbed the rest.
+That is the shared fixture earning its keep one ticket after it was written.
+
+`sessions.figures` landed in slice two rather than slice three, because the handoff record needs this
+session's figures and the record is slice two's. The commit says so and the journal shows it.
+
+### Known and deliberately left
+
+Nothing enforces one slice per session. The solution gate refuses a plan that breaks the caps, and
+that is the only wall this ticket builds; `budget` reports, the skill asks, and the hooks that act on
+either are SEEN-106. A ticket that claimed to cap a session and shipped no wall would be worse than
+one that says which.
+
+Output tokens per slice is a division, not an attribution. Two slices worked in one session, which is
+what this ticket did three times, cannot be told apart that way. The handoff records carry each
+session's own figures from now on, so a later ticket can refine the measure without re-deriving the
+data.
+
+Which variable a Codex session exposes its session id in is not known from this machine.
+`SESSION_VARIABLES` is an ordered list of one, null is recorded until one of them is set, and the
+first Codex session on this repository settles it.
+
+The `clarified` gate held at 0.76 to 0.77 across four readings while the record gained nine
+decisions, and Ruud cleared it by recorded override at record 8, with the readings at record 6 and
+the reason at record 7. Reading 2 lowered the score by 0.01 for adding four resolutions, which is the
+signature SEEN-100 measured and calibrated against; this is the second ticket in the epic to meet it
+after SEEN-100's own record.
