@@ -56,7 +56,7 @@ The review is the most expensive read in the procedure: a model reads the whole 
 
 ## Outcome
 
-Delivered on 24 September 2026 in four attempts, three slices and three rework
+Delivered on 24 September 2026 in five attempts, three slices and four rework
 slices, one session by the digest: `253bf8e84e82`. The return was the triage's
 own doing: run on this branch at record 19 it flagged the four files `sync`
 generates as changed but named by no slice, while the solution record named both
@@ -91,7 +91,22 @@ that two words appeared in the source of `delivery.verify`, while the comment
 above the call carried both, so it passed with the behaviour removed. That one is
 now a walk to delivered through a real triage, with a subagent entry inside the
 review window and an implementer entry outside it, reading the figure out of the
-delivered file. The solution gate refused twice at 0.58 against 0.6 and
+delivered file.
+
+The fourth return was the sharpest, and it was about what the triage claims rather
+than what it computes. The task said to read the focus set "and no others", but
+the journal can never be in a focus set, because the changed-file list drops
+everything the fingerprint excludes, and the ticket file can be dropped from one at
+spot depth like any other file. At spot depth the task would have told the reviewer
+not to read the criteria or the evidence it reviews against. The task now names
+those two separately, above the focus set, and "no others" is scoped to the diff.
+Two checks were also claiming more than they prove and then being listed as
+settled: `red_before_green` proves the cited check exited non-zero and never that
+it failed for the reason the slice states, which is the failure this ticket had
+already had once and resolved without code, and `acceptance_entries` counts two
+lists against each other without either saying which entry answers which. Both are
+handed to the reviewer now with the remainder named, in `PARTLY_SETTLED`, rather
+than closed. The solution gate refused twice at 0.58 against 0.6 and
 cleared at 0.65 once the record named the interfaces the clarify decisions had
 settled, which is the gap the question was right about: Jev is shown the solution
 record and not the clarify one, so a mechanism decided at clarify and never
@@ -160,4 +175,9 @@ full depth and is SEEN-109's to carry. Three findings across the three reviews
 were about a check that fires on the harness's own writing, and the answer each
 time was to name what the procedure writes rather than to weaken the check:
 `triage.procedure_paths` is that list, and it is left out of the slice check and
-of the fingerprint the review gate compares, and of nothing else.
+of the fingerprint the review gate compares, and of nothing else. The reviewer's
+token figure counts every subagent entry in the review round, because the session
+log cannot tell one subagent from another: a scout spawned to answer a question a
+finding raised lands in it too. The window is right and the name claims more than
+the log supports, which is recorded here rather than renamed, because criterion 5
+names the figure and SEEN-109 is the ticket that divides on it.

@@ -36,6 +36,20 @@ DETERMINISTIC = ('coverage', 'lint', 'gitleaks', 'fingerprint', 'slice_files',
 
 PASS, FAIL, UNAVAILABLE = 'pass', 'fail', 'unavailable'
 
+# Checks that pass on less than their name suggests, and what is left over. The
+# task hands these to the reviewer with the remainder named rather than listing
+# them as settled, because a check that closes a question it did not answer is
+# worse than no check: H2 and H3 of this ticket's fourth review, and this ticket
+# had already been bitten by the first of them, at record 33.
+PARTLY_SETTLED = {
+    'red_before_green': 'it proves the cited check exited non-zero, never that it failed for '
+                        'the reason the slice states, which only a reader comparing the two can '
+                        'judge',
+    'acceptance_entries': "it counts the clarify record's checks against the ticket's criteria, "
+                          'never that each criterion has one, because neither list names the '
+                          'other',
+}
+
 # A path that is a test, by the two conventions this repository uses: Python
 # tests under harness/tests/ and TypeScript tests beside the code they cover.
 TEST_PATH = re.compile(r'(^|/)(tests?|__tests__)/|\.(test|spec)\.[jt]sx?$|(^|/)test_[^/]+\.py$')
@@ -307,7 +321,9 @@ def _red_check(records):
                       'No accepted tdd record carries slices, which is every non-code ticket')
     if answer:
         return _entry('red_before_green', PASS,
-                      'Every slice cites a RED that failed rather than a command that passed')
+                      'Every slice cites a check that exited non-zero rather than one that '
+                      'passed. Whether it failed for the reason the slice states is not '
+                      'something the harness can read')
     return _entry('red_before_green', FAIL,
                   'A slice cites a RED that did not fail, so nothing proves the test could tell '
                   'the behaviour was absent')
@@ -330,7 +346,8 @@ def _acceptance_check(records, criteria):
     if len(restated) >= len(criteria):
         return _entry('acceptance_entries', PASS,
                       f'The clarify record restates {len(restated)} checks against '
-                      f'{len(criteria)} criteria in the ticket')
+                      f'{len(criteria)} criteria in the ticket. Which check answers which '
+                      'criterion is not something either list says')
     return _entry('acceptance_entries', FAIL,
                   f'The clarify record restates {len(restated)} checks against '
                   f'{len(criteria)} criteria in the ticket, so at least one criterion was '
@@ -553,21 +570,40 @@ def excluded_share(facts, narrowed):
     return round(dropped / total, 4)
 
 
-def reviewer_task(ticket, sequence, depth, focus, results, shadow):
+def always_read(records, ticket):
+    """What a review is against, which no focus set can contain.
+
+    The journal is never a candidate, because `changed_files` drops everything
+    under FINGERPRINT_EXCLUDED, and the ticket file can be dropped from a spot
+    focus set like any other file. H1 of this ticket's fourth review: the task
+    said "read these and no others", so at spot depth it was telling the reviewer
+    not to read the criteria or the evidence it reviews against.
+    """
+    from .paths import HISTORY
+    ticket_file = (records[0]['data'].get('ticket_file') if records else None)
+    return [path for path in (ticket_file, f'{HISTORY}/{ticket}/') if path]
+
+
+def reviewer_task(ticket, sequence, depth, focus, results, shadow, always):
     """The task the session hands its reviewer subagent.
 
     Text rather than a call, because the harness runs no model: what it buys is
     that the focus set the reviewer is given and the focus set the gate will
-    check are the same list, read from the same record. What pass one already
-    settled is named so the reviewer does not spend a read confirming it.
+    check are the same list, read from the same record. What pass one settled is
+    named so the reviewer does not spend a read confirming it, and what pass one
+    only partly settled is named with the remainder, so nothing is closed that
+    was not answered.
     """
     passed = [check['name'] for check in results if check['outcome'] == PASS]
+    settled = [name for name in passed if name not in PARTLY_SETTLED]
     # Names for what passed, and the detail only for what did not. A passing
     # check's detail names paths, and at spot depth some of those are outside the
     # focus set: naming one is inviting the read this ticket exists to save. The
     # detail is safe on the rest, because a failed check has already forced full
     # depth, where the focus set is the whole diff, and no unavailable check's
     # detail names a path at all.
+    partly = [f'- {name}: it passed, but {PARTLY_SETTLED[name]}'
+              for name in passed if name in PARTLY_SETTLED]
     outstanding = [f'- {check["name"]} ({check["outcome"]}): {check["detail"]}'
                    for check in results if check['outcome'] != PASS]
     lines = [f'Review {ticket} against its acceptance criteria and its journal.',
@@ -576,12 +612,19 @@ def reviewer_task(ticket, sequence, depth, focus, results, shadow):
              + (', in shadow mode, so the focus set is the whole diff and what the narrowing '
                 'would have dropped is recorded rather than acted on' if shadow else ''),
              '',
-             f'Read these {len(focus)} file(s) and no others:']
+             'Read these whatever the depth, because they are what a review is against and no '
+             'focus set can hold them:']
+    lines += [f'- {path}' for path in always]
+    lines += ['',
+              f'Of the diff, read these {len(focus)} file(s) and no others:']
     lines += [f'- {path}' for path in focus]
-    if passed:
+    if settled:
         lines += ['',
                   'Already settled with no model, so do not spend a read confirming any of '
-                  'them: ' + ', '.join(passed) + '.']
+                  'them: ' + ', '.join(settled) + '.']
+    if partly:
+        lines += ['', 'Partly settled, and the rest is yours:']
+        lines += partly
     if outstanding:
         lines += ['', 'Not settled, so they are yours:']
         lines += outstanding
@@ -649,6 +692,7 @@ def run(repository, records, current, rules, ticket, sequence):
     narrowed = focus_set(facts, by_key, depth, rules)
     shadow = bool(rules['review']['triage_shadow'])
     focus = [entry['path'] for entry in facts] if shadow else list(narrowed)
+    required = always_read(records, ticket)
     return dict(fingerprint=fingerprint,
                 # What the review gate compares, and why it is a second number:
                 # the procedure writes the ticket file between this record and
@@ -671,7 +715,9 @@ def run(repository, records, current, rules, ticket, sequence):
                 shadow=shadow,
                 would_exclude=sorted({entry['path'] for entry in facts} - set(narrowed)),
                 excluded_share=excluded_share(facts, narrowed),
-                reviewer_task=reviewer_task(ticket, sequence, depth, focus, results, shadow))
+                always_read=required,
+                reviewer_task=reviewer_task(ticket, sequence, depth, focus, results, shadow,
+                                            required))
 
 
 def _ticket_text(repository, records):

@@ -1,0 +1,19 @@
+{
+  "sequence": 44,
+  "ticket": "SEEN-107",
+  "timestamp": "2026-09-24T20:12:18.609503+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 4,
+  "actor": "claude:implementer",
+  "session": "253bf8e84e82",
+  "head": "484206a6f8b54142f4a5b9a6d9bf396f7be40211",
+  "prev_hash": "593444b734578dbaf9fa6883bf77e6f2d60f81f9d6a529f85a6c7ec9bb873142",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 5,
+    "reason": "Fourth review, four findings, all about what the triage claims and what the task tells the reviewer to skip. H1: the task says read the focus set and no others, but the journal can never be in a focus set because changed_files drops everything under FINGERPRINT_EXCLUDED, and the ticket file can be dropped from one at spot depth, so the reviewer would be told not to read the two things a review is against. H2: red_before_green reports settled when kpi.red_before_green proves only that the cited check exited non-zero, never that it failed for the reason the slice states, and the task then tells the reviewer not to spend a read confirming it; this ticket has already had that exact failure, found at record 33 and resolved without code. H3: acceptance_entries passes on a count while its detail reads as one check per criterion. H4 is resolved without code: the log cannot tell one subagent from another, so the figure counts every subagent in the review round, and that is recorded rather than renamed."
+  }
+}

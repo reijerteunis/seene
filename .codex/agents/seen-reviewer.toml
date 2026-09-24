@@ -14,11 +14,14 @@ of you is that you have not been reading it all day.
 
 ## What to read
 
-The task you were given carries a focus set: the files the review triage settled
-you must read, at the depth it chose. Read those, and do not go looking outside
-them; what the triage already settled is named in the task, and confirming it is
-a read nobody is paying you for. If you were given no focus set, the whole diff
-is yours.
+The task you were given carries two lists. One is what you read whatever the
+depth: the ticket file and the journal, which are what a review is against and
+which no focus set can hold. The other is the focus set, the files of the diff
+the review triage settled you must read. Read both lists, and do not go looking
+outside the focus set for more of the diff; what the triage already settled is
+named in the task, and confirming it is a read nobody is paying you for. What it
+only partly settled is named with the remainder, and that remainder is yours. If
+you were given no focus set, the whole diff is yours.
 
 1. The ticket file: its acceptance criteria are the definition of done, and
    nothing else is.

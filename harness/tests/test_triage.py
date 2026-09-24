@@ -580,16 +580,23 @@ class ReviewerTaskTest(FocusSetTest):
     """Pass three is text: the task the session hands its subagent."""
 
     def test_the_task_names_every_file_in_the_focus_set_and_no_other(self):
+        """Asserted on the diff section, which is the part `no others` governs.
+
+        The ticket file and the journal are named above it whatever the depth,
+        because they are what a review is against and no focus set can hold them:
+        H1 of the fourth review, which this test predates.
+        """
         self.set_shadow(False)
         jev.TRANSPORT = self.only_thing_is_worth_reading()
         self.reach_review()
         record = self.triage()
 
-        task = record['data']['reviewer_task']
-        self.assertIn('harness/thing.py', task)
+        of_the_diff = record['data']['reviewer_task'].split('Of the diff')[1]
+        self.assertIn('harness/thing.py', of_the_diff)
         for path in record['data']['would_exclude']:
-            self.assertNotIn(path, task,
-                             f'{path} is outside the focus set, so the task must not name it')
+            self.assertNotIn(path, of_the_diff.split('Already settled')[0],
+                             f'{path} is outside the focus set, so the task must not list it '
+                             'among the files to read')
 
     def test_the_task_names_the_depth_and_the_record_the_focus_set_came_from(self):
         self.reach_review()
@@ -1138,6 +1145,94 @@ class TriageAcrossAttemptsTest(FocusSetTest):
     def test_a_ticket_that_never_triaged_is_still_unaffected(self):
         self.reach_review()
         self.advance_review(['harness/thing.py'])
+
+
+class AlwaysReadTest(FocusSetTest):
+    """H1: the two things a review is against are never in a focus set.
+
+    The journal cannot be, because changed_files drops everything under
+    FINGERPRINT_EXCLUDED, and the ticket file can be dropped from one at spot
+    depth. A task that said "read these and no others" was telling the reviewer
+    not to read the criteria or the evidence.
+    """
+
+    def test_the_task_names_the_ticket_file_and_the_journal_at_full_depth(self):
+        self.reach_review()
+        task = self.triage()['data']['reviewer_task']
+
+        self.assertIn(self.ticket_file, task)
+        self.assertIn(f'docs/harness/history/{self.ticket_id}/', task)
+
+    def test_it_names_them_at_spot_depth_even_when_the_ticket_file_is_excluded(self):
+        self.set_shadow(False)
+        jev.TRANSPORT = self.only_thing_is_worth_reading()
+        self.reach_review()
+        record = self.triage()
+
+        self.assertEqual(record['data']['review_depth'], 'spot')
+        self.assertIn(self.ticket_file, record['data']['would_exclude'],
+                      'The fixture must drop it, or this proves nothing')
+        self.assertIn(self.ticket_file, record['data']['reviewer_task'])
+        self.assertIn(f'docs/harness/history/{self.ticket_id}/',
+                      record['data']['reviewer_task'])
+
+    def test_the_record_says_what_must_be_read_whatever_the_depth(self):
+        self.reach_review()
+        always = self.triage()['data']['always_read']
+
+        self.assertEqual(always, [self.ticket_file,
+                                  f'docs/harness/history/{self.ticket_id}/'])
+
+    def test_the_no_others_applies_to_the_diff_and_says_so(self):
+        self.reach_review()
+        task = self.triage()['data']['reviewer_task']
+
+        self.assertIn('Of the diff', task)
+
+
+class PartlySettledTest(FocusSetTest):
+    """H2 and H3: a check that proves less than its name must not close a question."""
+
+    def test_red_before_green_is_not_in_the_do_not_confirm_list(self):
+        self.reach_review()
+        task = self.triage()['data']['reviewer_task']
+
+        settled = task.split('Already settled with no model')[1].split('\n')[0]
+        self.assertNotIn('red_before_green', settled)
+        self.assertIn('coverage', settled)
+
+    def test_it_says_what_is_left_of_a_partly_settled_check(self):
+        self.reach_review()
+        task = self.triage()['data']['reviewer_task']
+
+        self.assertIn('Partly settled', task)
+        self.assertIn('red_before_green', task)
+        self.assertIn('never that it failed for the reason', task)
+
+    def test_acceptance_entries_is_partly_settled_too(self):
+        self.reach_review()
+        task = self.triage()['data']['reviewer_task']
+
+        self.assertIn('acceptance_entries', task.split('Partly settled')[1])
+
+    def test_the_red_check_detail_claims_only_what_it_proves(self):
+        self.reach_review()
+        ran = {check['name']: check for check in self.triage()['data']['deterministic']}
+
+        detail = ran['red_before_green']['detail']
+        self.assertEqual(ran['red_before_green']['outcome'], 'pass')
+        self.assertIn('exited non-zero', detail)
+        self.assertIn('for the reason the slice states', detail)
+
+    def test_the_acceptance_check_detail_says_it_counts_rather_than_maps(self):
+        self.reach_review()
+        ran = {check['name']: check for check in self.triage()['data']['deterministic']}
+
+        self.assertIn('Which check answers which criterion', ran['acceptance_entries']['detail'])
+
+    def test_every_partly_settled_name_is_a_check_the_triage_runs(self):
+        """A typo here would silently settle a check the reviewer should read."""
+        self.assertTrue(set(triage.PARTLY_SETTLED) <= set(triage.DETERMINISTIC))
 
 
 if __name__ == '__main__':
