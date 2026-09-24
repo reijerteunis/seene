@@ -1,0 +1,44 @@
+{
+  "sequence": 8,
+  "ticket": "SEEN-107",
+  "timestamp": "2026-09-24T18:21:54.867335+00:00",
+  "harness_version": "2",
+  "kind": "handoff",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "253bf8e84e82",
+  "head": "83ee81d237b371461e3c1b965eaa408711135154",
+  "prev_hash": "d5ef455fcef9c2b92a7f6101756d1d401d4c5145170dd510177538e26b455e67",
+  "data": {
+    "pack": ".harness-drafts/SEEN-107-handoff.md",
+    "sha256": "dda1f518fc983dba5d314c9ab942d343a0a0c09f2171d357c2a186171daee6ed",
+    "estimated_tokens": 1025,
+    "token_limit": 2000,
+    "slice": {
+      "position": 2,
+      "total": 3,
+      "done": 1,
+      "declared": true,
+      "inferred": 1,
+      "entry": {
+        "name": "Pass two: one batched Jev request and the return on an unevidenced criterion",
+        "points": 1,
+        "files": [
+          "harness/jev.py",
+          "harness/triage.py",
+          "harness/cli.py",
+          "harness/thresholds.toml",
+          "harness/tests/test_triage.py"
+        ],
+        "red": "The triage record holds no criterion_evidenced, diff_matches_solution, reviewer_must_read or review_depth answers from the stub transport, and a criterion answered at 0.1 leaves the journal at review instead of appending a return to tdd that names it."
+      }
+    },
+    "figures": {
+      "session": "253bf8e84e82",
+      "output_tokens": 110056,
+      "tool_calls": 78,
+      "unavailable": null
+    }
+  }
+}
