@@ -20,7 +20,7 @@ from . import (checks, cost as cost_module, coverage as coverage_module, doctor,
                graph as graph_module, jev, journal, kpi, report as report_module, thresholds)
 from .errors import HarnessError, require
 from .paths import (DRAFTS, HISTORY, KINDS, LOCK, NON_CODE_TEMPLATE, STAGES, TEMPLATES,
-                    TEMPLATE_FOR_STAGE, WORKING_STAGES)
+                    TEMPLATE_FOR_STAGE, TICKETS, WORKING_STAGES)
 from .repository import Repository
 
 DEFAULT_ROOT = Path(__file__).resolve().parents[1]
@@ -299,17 +299,40 @@ def state_for(records, current, evidence=None, root=None):
     Internal working text only. No credential is in it, and nothing is read from
     the environment to build it.
     """
-    snapshot = records[0]['data']['ticket_snapshot']
-    ticket_text = snapshot
-    if root is not None:
-        path = root / records[0]['data']['ticket_file']
-        if path.is_file():
-            ticket_text = path.read_text()
-    return dict(ticket=records[0]['data'].get('ticket_id', records[0]['ticket']),
+    ticket_id = records[0]['data'].get('ticket_id', records[0]['ticket'])
+    ticket_text, source = _ticket_text(records[0]['data'], ticket_id, root)
+    return dict(ticket=ticket_id,
                 stage=current['stage'],
                 attempt=current['attempt'],
                 ticket_text=ticket_text,
+                ticket_source=source,
                 record=evidence if evidence is not None else _latest_evidence(records))
+
+
+def _ticket_text(first, ticket_id, root):
+    """The ticket and where it came from: the path, the id, or the snapshot.
+
+    A filename carries a title, so renaming a ticket is ordinary. SEEN-096 was
+    split three ways, its file was renamed, and every judgement after that read
+    a snapshot of the ticket before the split. The id is stable; the filename is
+    not. Which source was used is returned rather than hidden, because a
+    judgement against a snapshot of a deleted ticket is weaker evidence than one
+    against the ticket, and a journal should say which it was.
+    """
+    snapshot = first['ticket_snapshot']
+    if root is None:
+        return snapshot, 'snapshot in record 1'
+    path = root / first['ticket_file']
+    if path.is_file():
+        return path.read_text(), 'recorded path'
+    matches = sorted((root / TICKETS).glob(f'{ticket_id}-*.md'))
+    require(len(matches) < 2,
+            f'{ticket_id} matches more than one ticket file, so the harness cannot tell which '
+            'one it is judging against: '
+            + ', '.join(str(match.relative_to(root)) for match in matches))
+    if matches:
+        return matches[0].read_text(), 'found by id'
+    return snapshot, 'snapshot in record 1' 
 
 
 def _latest_evidence(records):

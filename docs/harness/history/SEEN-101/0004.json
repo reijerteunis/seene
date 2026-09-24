@@ -1,0 +1,28 @@
+{
+  "sequence": 4,
+  "ticket": "SEEN-101",
+  "timestamp": "2026-09-24T05:40:14.527487+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "8805dc9955e5d83d7722575c26042b5f4a533dad",
+  "prev_hash": "e36b269f133ddfa85c027e441fe99a27e79d16b7901b201aaad94626fcffcc4f",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_state_for"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "duration_ms": 899,
+    "output": "FFEEEF\n======================================================================\nERROR: test_the_id_falls_back_to_the_record_when_record_1_has_no_ticket_id (harness.tests.test_state_for.StateForTest.test_the_id_falls_back_to_the_record_when_record_1_has_no_ticket_id)\nEvery journal so far carries ticket_id, but the envelope is the promise.\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_state_for.py\", line 82, in test_the_id_falls_back_to_the_record_when_record_1_has_no_ticket_id\n    self.assertEqual(state['ticket_source'], 'found by id')\n                     ~~~~~^^^^^^^^^^^^^^^^^\nKeyError: 'ticket_source'\n\n======================================================================\nERROR: test_the_recorded_path_is_read_when_it_is_there (harness.tests.test_state_for.StateForTest.test_the_recorded_path_is_read_when_it_is_there)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_state_for.py\", line 34, in test_the_recorded_path_is_read_when_it_is_there\n    self.assertEqual(state['ticket_source'], 'recorded path')\n                     ~~~~~^^^^^^^^^^^^^^^^^\nKeyError: 'ticket_source'\n\n======================================================================\nERROR: test_the_snapshot_is_used_only_when_no_ticket_matches_and_says_so (harness.tests.test_state_for.StateForTest.test_the_snapshot_is_used_only_when_no_ticket_matches_and_says_so)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_state_for.py\", line 52, in test_the_snapshot_is_used_only_when_no_ticket_matches_and_says_so\n    self.assertEqual(state['ticket_source'], 'snapshot in record 1')\n                     ~~~~~^^^^^^^^^^^^^^^^^\nKeyError: 'ticket_source'\n\n======================================================================\nFAIL: test_a_longer_id_is_not_a_match_for_a_shorter_one (harness.tests.test_state_for.StateForTest.test_a_longer_id_is_not_a_match_for_a_shorter_one)\nSEEN-10 must not glob up SEEN-100.\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_state_for.py\", line 72, in test_a_longer_id_is_not_a_match_for_a_shorter_one\n    self.assertIn('A ticket to work', state['ticket_text'])\n    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 'A ticket to work' not found in '# The ticket as it was\\n'\n\n======================================================================\nFAIL: test_a_renamed_ticket_is_found_by_its_id (harness.tests.test_state_for.StateForTest.test_a_renamed_ticket_is_found_by_its_id)\nThe rename SEEN-096 made, and the silent fallback it exposed.\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_state_for.py\", line 43, in test_a_renamed_ticket_is_found_by_its_id\n    self.assertIn('A ticket to work', state['ticket_text'])\n    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 'A ticket to work' not found in '# The ticket as it was\\n'\n\n======================================================================\nFAIL: test_two_files_for_one_id_is_a_refusal_naming_both (harness.tests.test_state_for.StateForTest.test_two_files_for_one_id_is_a_refusal_naming_both)\nA duplicated id is a mistake worth seeing, not a choice to make.\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_state_for.py\", line 58, in test_two_files_for_one_id_is_a_refusal_naming_both\n    with self.assertRaises(HarnessError) as refused:\n         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^\nAssertionError: HarnessError not raised\n\n----------------------------------------------------------------------\nRan 6 tests in 0.847s\n\nFAILED (failures=3, errors=3)\n",
+    "output_sha256": "d99cc0d27884c390a02684fcc0a617b4331ed316180d5573c58fa8fdff9aef1f",
+    "output_truncated": false,
+    "before": "b29b1a331253c0fad03300894f15cc718a30f13081beab23befc5bf579d3c1bc",
+    "after": "b29b1a331253c0fad03300894f15cc718a30f13081beab23befc5bf579d3c1bc"
+  }
+}
