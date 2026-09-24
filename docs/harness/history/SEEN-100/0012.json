@@ -1,0 +1,15 @@
+{
+  "sequence": 12,
+  "ticket": "SEEN-100",
+  "timestamp": "2026-09-24T05:22:52.347582+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "2d59e508e2352e219be0dc1fac9c55a5bef74b3e",
+  "prev_hash": "fbdbf71156acb26068d076fbab39d12657b44810568c302386ae58943a37a0b3",
+  "data": {
+    "text": "# Record 10 measured the wrong payload\n\nThe first regression run sent each clarify record's `data` alone. The stage gate does not send that:\nit sends `state_for`, which carries the ticket text as it stands now beside the record. Judging a\nrecord without the ticket it was written against produced scores far below anything the gate has ever\nshown, 0.36 where the gate saw 0.63, and the ranking held only by accident.\n\nRecord 10 stands as written, because records are not removed. It is not evidence of anything except\nthat the script had to be fixed. Record 11 is the regression: the script now builds its payload\nthrough `cli.state_for`, the same function the gate calls, and reproduces yesterday's measurement\nwithin noise, 0.63 to 0.81 against 0.65 to 0.79 for SEEN-096.\n\nThe general point, which is worth more than this ticket: a measurement of a model is a measurement of\na payload. Change the payload and the number means something else.\n"
+  }
+}

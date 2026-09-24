@@ -1,0 +1,30 @@
+{
+  "sequence": 10,
+  "ticket": "SEEN-100",
+  "timestamp": "2026-09-24T05:22:07.485550+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "2d59e508e2352e219be0dc1fac9c55a5bef74b3e",
+  "prev_hash": "6d2f19d8a51d12fd9f1a7306d66752defb7b9e67c66a44be8bf5772cd709e019",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "harness.measure_criteria",
+      "docs/harness/history/SEEN-096/0001.json",
+      "docs/harness/history/SEEN-088/0001.json",
+      "docs/harness/history/SEEN-091/0001.json"
+    ],
+    "phase": "regression",
+    "exit_code": 0,
+    "duration_ms": 4636,
+    "output": "record                                                previous  in force\ndocs/harness/history/SEEN-096/0001.json                   0.36      0.54\ndocs/harness/history/SEEN-088/0001.json                   0.25      0.39\ndocs/harness/history/SEEN-091/0001.json                   0.33      0.50\n\nmodel: jev-1.13.0\n",
+    "output_sha256": "16208ffd8d98be0ee2a1ce2116855162fe432515eba7171e79dfd7fca8e9e918",
+    "output_truncated": false,
+    "before": "2df8460a39aaa39d71a92a23498390f09a9fba823afad4e12a3f40b12edadd27",
+    "after": "2df8460a39aaa39d71a92a23498390f09a9fba823afad4e12a3f40b12edadd27"
+  }
+}

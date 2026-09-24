@@ -1,0 +1,30 @@
+{
+  "sequence": 11,
+  "ticket": "SEEN-100",
+  "timestamp": "2026-09-24T05:22:39.775433+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "2d59e508e2352e219be0dc1fac9c55a5bef74b3e",
+  "prev_hash": "0c72d1864c4d6bc973f160efb5c853a5b2a0c684b4aa7839d49b49c796537cbd",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "harness.measure_criteria",
+      "SEEN-096",
+      "SEEN-088",
+      "SEEN-091"
+    ],
+    "phase": "regression",
+    "exit_code": 0,
+    "duration_ms": 4807,
+    "output": "ticket          previous  in force\nSEEN-096            0.63      0.81\nSEEN-088            0.63      0.72\nSEEN-091            0.84      0.88\n\nmodel: jev-1.13.0\n",
+    "output_sha256": "9bbfb41b00e7f1d712e8ceaf5b96a2ad558037850a810fca507c5bb5478cae9e",
+    "output_truncated": false,
+    "before": "10426f7ba57e964af33bdc682dc1e1c5bd164304a96a0d8b70c267a859121dab",
+    "after": "10426f7ba57e964af33bdc682dc1e1c5bd164304a96a0d8b70c267a859121dab"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "sequence": 3,
+  "ticket": "SEEN-100",
+  "timestamp": "2026-09-24T05:17:51.867824+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "2d59e508e2352e219be0dc1fac9c55a5bef74b3e",
+  "prev_hash": "9726ff41418038e28589ad14a5b2fb189d8fb3affd16f5ab271f51906bd4eaac",
+  "data": {
+    "text": "# This ticket could not pass the gate it repairs\n\nThree demonstrations in one day, each the same shape: writing down an honest constraint lowered the\nscore.\n\n- SEEN-096, naming that codegraph's documented behaviour can only be verified by installing it:\n  0.67 to 0.46, a confident no.\n- This record, naming that no test may call the model so the behaviour is verified by a recorded\n  measurement: 0.77 to 0.72.\n- And the summary figure: this record scores 0.74 under the current criteria and 0.81 under the fix\n  it proposes.\n\nThe founder overrode `clarified` at 0.85 to let the work proceed, recorded beside Jev's 0.72. Of the\nthree overrides taken today this is the one with the least doubt attached, because the refusal being\nbypassed is the defect under repair, measured from both sides.\n\nThe constraint that caused the drop stands and is worth repeating here, since it belongs in the record\nsomewhere: no test may call Jev, so the unit tests assert the shape of the question and the threshold,\nand the behaviour is verified by the measurement in this journal, repeatable by anyone with the script\nthat produced it. A test that called the API would spend money and answer differently on different\ndays, which is the rule SEEN-088 established when it sealed the suite off.\n"
+  }
+}

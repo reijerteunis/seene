@@ -1,0 +1,113 @@
+{
+  "sequence": 19,
+  "ticket": "SEEN-100",
+  "timestamp": "2026-09-24T05:29:00.952713+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "review",
+  "attempt": 1,
+  "actor": "claude:reviewer",
+  "head": "2d59e508e2352e219be0dc1fac9c55a5bef74b3e",
+  "prev_hash": "35a7702c28590b7b27ea29b31203814f97c45f2807cfcc974d0248699db3a981",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "deliver",
+    "evidence": {
+      "reviewer": "claude:reviewer",
+      "independence": "self-review",
+      "acceptance_evidence": [
+        "The clarified question's criteria distinguish a question nobody has answered from one only the work can settle: harness/jev.py now says a question that only doing the work can settle counts as resolved when the record names what will settle it, and refuses only what is unresolved with nothing said about what would resolve it. Asserted by test_a_question_only_the_work_can_settle_counts_as_resolved_when_named and test_the_false_criterion_needs_both_halves, green at record 13.",
+        "SEEN-096's clarify record, unchanged, scores higher than the 0.46 its honest decision earned: the regression at record 15 reads 0.80 under the criteria in force against 0.65 under the previous ones, through the same cli.state_for payload the stage gate sends.",
+        "The three re-asked records and their before and after scores are in the journal: record 15 for the committed script's run, record 2 for yesterday's wider measurement including the two controls, and record 12 for why record 10 measured the wrong payload and does not count.",
+        "docs/harness/skill.md tells a session to name what only the work can settle: a fourth rule under the rules you cannot infer, pointing at open_questions with a resolution, regenerated into both skill copies by sync.",
+        "The threshold is not changed: test_the_threshold_is_untouched asserts thresholds.toml still reads 0.8 for clarified, and the diff of thresholds.toml is empty."
+      ],
+      "findings": [
+        {
+          "id": "F1",
+          "severity": "medium",
+          "claim": "The first regression run measured a payload the stage gate never sends",
+          "failure_scenario": "The script built its state from the record's data alone, so SEEN-096 read 0.36 where the gate saw 0.63. Had the table gone into the outcome unexamined, the ticket would have claimed a calibration for a question the harness does not ask, and the next person to change the criteria would have compared against a number that meant nothing.",
+          "status": "resolved",
+          "resolution": "state_of now builds the payload through cli.state_for, the function the gate itself calls, and the rerun reproduces yesterday's independent measurement within noise. Record 10 stands, disowned in record 12."
+        },
+        {
+          "id": "F2",
+          "severity": "low",
+          "claim": "The measurement script hardcoded the journal directory that paths.py exists to hold",
+          "failure_scenario": "Moving docs/harness/history would leave this one caller reading a directory that no longer exists, and the failure would appear as an empty measurement rather than as a missing path.",
+          "status": "resolved",
+          "resolution": "It imports HISTORY from harness.paths like every other caller. Full suite green at record 18."
+        },
+        {
+          "id": "F3",
+          "severity": "low",
+          "claim": "A test asserted two things through a conditional expression inside assertIn",
+          "failure_scenario": "The assertion computed its own expected value from the actual value, so it could pass whatever solution_complete said. A future edit to that question would not have been caught by the test written to catch it.",
+          "status": "resolved",
+          "resolution": "Split into test_the_other_six_questions_are_still_there and test_solution_complete_keeps_the_wording_SEEN_006_gave_it, each asserting one thing against a literal."
+        }
+      ],
+      "checks": [
+        7,
+        13,
+        15,
+        18
+      ],
+      "security_checklist": [
+        "No credential is in the criteria text, in the script or in any record this ticket wrote; the script reads the key through jev.credential, which prefers .env.local, and never prints it.",
+        "The measurement script calls the Jev API and is therefore not a test: nothing under harness/tests reaches the network, which the suite already enforces and lint confirms for marketplace hosts.",
+        "No test or script writes into the repository's own journal; the script only reads records.",
+        "The change is to a question's wording. It touches no money, no tenant data and no policy-gate action."
+      ],
+      "verdict": "pass",
+      "tree": "a4d91168db033f9b0c354ec5dd3c6cfd8738bc584cf8ba6878c4d41179235ccf"
+    },
+    "decisions": [
+      {
+        "question": "severity",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high",
+          "blocking"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "medium",
+        "probabilities": {
+          "low": 0.07,
+          "medium": 0.65,
+          "high": 0.17,
+          "blocking": 0.11
+        },
+        "confidence": 0.53,
+        "score": 1.33,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      },
+      {
+        "question": "must_fix",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.33,
+          "no": 0.67
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.7,
+        "passed": false,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

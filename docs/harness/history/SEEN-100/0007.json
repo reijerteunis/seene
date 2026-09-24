@@ -1,0 +1,28 @@
+{
+  "sequence": 7,
+  "ticket": "SEEN-100",
+  "timestamp": "2026-09-24T05:18:25.660541+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "2d59e508e2352e219be0dc1fac9c55a5bef74b3e",
+  "prev_hash": "b5ef01239b07406b629883f319aa0235898d25bb84edca6d040f687cfba1d704",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_question_criteria"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "duration_ms": 74,
+    "output": "F.FF..\n======================================================================\nFAIL: test_a_question_only_the_work_can_settle_counts_as_resolved_when_named (harness.tests.test_question_criteria.ClarifiedCriteriaTest.test_a_question_only_the_work_can_settle_counts_as_resolved_when_named)\nNaming an unknown used to read as leaving it open, three times over.\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_question_criteria.py\", line 23, in test_a_question_only_the_work_can_settle_counts_as_resolved_when_named\n    self.assertIn('only doing the work can settle', allowed)\n    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 'only doing the work can settle' not found in 'every open question is answered or explicitly deferred with a decision'\n\n======================================================================\nFAIL: test_no_other_question_changed (harness.tests.test_question_criteria.ClarifiedCriteriaTest.test_no_other_question_changed)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_question_criteria.py\", line 46, in test_no_other_question_changed\n    self.assertIn('names everything', jev.QUESTIONS['solution_complete']['ask'].lower()\n    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                  if 'names everything' in jev.QUESTIONS['solution_complete']['ask'].lower()\n                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                  else 'without stopping', jev.QUESTIONS['solution_complete']['ask'].lower())\n                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 'names everything' not found in 'without stopping' : could a competent implementer build this change from this record without stopping to ask a question the record should have answered?\n\n======================================================================\nFAIL: test_the_false_criterion_needs_both_halves (harness.tests.test_question_criteria.ClarifiedCriteriaTest.test_the_false_criterion_needs_both_halves)\nUnresolved is not enough: nothing said about what would resolve it.\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_question_criteria.py\", line 31, in test_the_false_criterion_needs_both_halves\n    self.assertIn('what would resolve it', refused)\n    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 'what would resolve it' not found in 'something material is still unresolved'\n\n----------------------------------------------------------------------\nRan 6 tests in 0.001s\n\nFAILED (failures=3)\n",
+    "output_sha256": "e16cd4ef826594050ed4ec4ad01d4dc91a7ac3f2a3d0176ea229f54e9e9bc183",
+    "output_truncated": false,
+    "before": "5b2f21d6a5484b9360d00eff480613e50f8be7c466401ab969369d4795e48ad4",
+    "after": "5b2f21d6a5484b9360d00eff480613e50f8be7c466401ab969369d4795e48ad4"
+  }
+}

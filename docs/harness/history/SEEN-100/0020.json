@@ -1,0 +1,64 @@
+{
+  "sequence": 20,
+  "ticket": "SEEN-100",
+  "timestamp": "2026-09-24T05:31:27.989220+00:00",
+  "harness_version": "1",
+  "kind": "receipt",
+  "stage": "deliver",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "2485cb3d1c873129ba1fbcab116a9f4477dce6d8",
+  "prev_hash": "60a00aa533bd36254f935413fb8f28b9f2612bf9ab5d2a43d58a2124380b8c78",
+  "data": {
+    "from_stage": "deliver",
+    "to_stage": "delivered",
+    "commit": "2485cb3d1c873129ba1fbcab116a9f4477dce6d8",
+    "branch": "claude/SEEN-100-let-a-gate-tell-an-open-question",
+    "remote": "origin",
+    "tree": "a4d91168db033f9b0c354ec5dd3c6cfd8738bc584cf8ba6878c4d41179235ccf",
+    "pull_request": "https://github.com/reijerteunis/seene/pull/12",
+    "limits": [
+      "The calibration is against jev-1.13.0 on 24 September 2026. A later model may score differently, which is why harness/measure_criteria.py is committed rather than only its table; rerun it when the model version moves.",
+      "Three genuine records and two synthetic controls is a small sample. It shows the direction and the widening gap, not a guarantee that no record can pass by naming an unknown it never resolves.",
+      "The review was a self-review, like every ticket in this epic. An independent pass over the harness is still owed.",
+      "Only the clarified question changed. The other six keep whatever calibration they have, measured or not."
+    ],
+    "evidence": {
+      "remote": "origin",
+      "pull_request": "https://github.com/reijerteunis/seene/pull/12",
+      "limits": [
+        "The calibration is against jev-1.13.0 on 24 September 2026. A later model may score differently, which is why harness/measure_criteria.py is committed rather than only its table; rerun it when the model version moves.",
+        "Three genuine records and two synthetic controls is a small sample. It shows the direction and the widening gap, not a guarantee that no record can pass by naming an unknown it never resolves.",
+        "The review was a self-review, like every ticket in this epic. An independent pass over the harness is still owed.",
+        "Only the clarified question changed. The other six keep whatever calibration they have, measured or not."
+      ]
+    },
+    "checks": [
+      {
+        "name": "Harness tests (Python 3.12)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Knowledge graph",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Monorepo (Node 24)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Secrets and supply chain",
+        "conclusion": "success",
+        "runs": 1
+      }
+    ],
+    "coverage": {
+      "package": "@seen/core",
+      "lines": 100.0,
+      "delta": 0.0
+    }
+  }
+}
