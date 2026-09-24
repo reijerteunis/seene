@@ -125,6 +125,9 @@ def build_parser():
 
     pack = ticket_command('handoff', 'Write the pack a fresh session starts from at a slice boundary')
     pack.add_argument('--actor', required=True)
+    pack.add_argument('--slice-done', dest='slice_done', type=int,
+                      help='How many slices are done, when the greens do not say it: a slice '
+                           'that recorded two greens counts twice without this')
 
     ticket_command('budget', "This session's tokens and tool calls against the session budget")
 
@@ -249,11 +252,12 @@ def describe(repository, ticket, records, folder):
                 next_command=NEXT_COMMAND[current['stage']])
 
 
-def build_pack(repository, records, current, rules):
+def build_pack(repository, records, current, rules, slice_done=None):
     """The pack, rendered from the journal and nothing else."""
     return handoff_module.pack(records, current, rules,
                                branch=repository.branch_or_none(),
-                               next_command=NEXT_COMMAND[current['stage']])
+                               next_command=NEXT_COMMAND[current['stage']],
+                               slice_done=slice_done)
 
 
 def pack_path(repository, ticket):
@@ -267,7 +271,8 @@ def handoff(repository, folder, records, args, current, rules):
     hash. The figures are the session's own spending at the moment it stopped,
     which is the one place a session's cost is written down.
     """
-    built = build_pack(repository, records, current, rules)
+    built = build_pack(repository, records, current, rules,
+                       slice_done=getattr(args, 'slice_done', None))
     text = built['markdown']
     carried = secrets_module().leaked(text, os.environ)
     require(not carried,

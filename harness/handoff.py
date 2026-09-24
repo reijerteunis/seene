@@ -62,22 +62,40 @@ def accepted_greens(records, attempt):
             and record['data'].get('exit_code') == 0]
 
 
-def current_slice(records, state):
-    """The slice a fresh session picks up, counted from the greens recorded.
+def current_slice(records, state, declared=None):
+    """The slice a fresh session picks up, declared or counted from the greens.
 
     The plan is ordered and the tdd stage gate refuses slices out of order, so
-    the number of accepted greens in this attempt is how many slices are behind
-    us. The pack never invents a slice that is not in the plan: before the
-    solution record has advanced there is none, and it says so.
+    the number of accepted greens in this attempt is usually how many slices are
+    behind us. Usually: a slice that records a second green, which is what a
+    correction inside a slice looks like, counts twice and sends the next session
+    past a slice nobody worked. It happened on SEEN-105's own slice 1.
+
+    Only the session that worked the slice knows it finished it, so it may say so
+    with --slice-done and the record keeps which of the two numbers this was. The
+    inference stays the default, because a flag nobody passes must still leave a
+    right answer most of the time.
+
+    The pack never invents a slice that is not in the plan: before the solution
+    record has advanced there is none, and it says so.
     """
+    from .errors import require
     slices = plan_of(records)
     if not slices:
         return None
-    done = min(len(accepted_greens(records, state['attempt'])), len(slices))
+    if declared is None:
+        done = min(len(accepted_greens(records, state['attempt'])), len(slices))
+    else:
+        require(0 <= declared <= len(slices),
+                f'--slice-done {declared} is not a count this plan can carry: it has '
+                f'{len(slices)} slices, so the number of slices done is between 0 and '
+                f'{len(slices)}')
+        done = declared
     entry = slices[done] if done < len(slices) else None
     return dict(position=done + 1 if entry else None,
                 total=len(slices),
                 done=done,
+                declared=declared is not None,
                 entry=entry)
 
 
@@ -132,10 +150,10 @@ def _section(lines, title, entries, maximum, remaining):
     return remaining - spent
 
 
-def pack(records, state, thresholds, branch=None, next_command=''):
+def pack(records, state, thresholds, branch=None, next_command='', slice_done=None):
     """The markdown a fresh session starts from, and what it cost to say it."""
     limit = thresholds['session']['handoff_token_limit']
-    slice_now = current_slice(records, state)
+    slice_now = current_slice(records, state, declared=slice_done)
     lines = [f'# {records[0]["ticket"]} handoff pack', '',
              '| | |', '|---|---|',
              f'| Ticket | {_one_line(_heading(records))} |',

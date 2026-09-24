@@ -252,6 +252,65 @@ class HandoffPackTest(AtTddTest):
         self.assertFalse(self.pack_file().exists())
 
 
+class DeclaredSliceTest(AtTddTest):
+    """Who says a slice is done.
+
+    The pack counts greens, which is right until a slice records two of them. It
+    happened on SEEN-105's own slice 1: a green, a correction to .gitignore, a
+    second green, and a pack that pointed the next session at slice 3 of 4 with
+    slice 2 unworked. Only the session that worked the slice knows it finished it,
+    so it can say so, and the record says whether the number was declared or
+    inferred.
+    """
+
+    def red(self):
+        script = self.root / 'fails.sh'
+        script.write_text('#!/bin/sh\nexit 1\n')
+        script.chmod(0o755)
+        return self.run_harness('check', self.ticket_id, '--phase', 'red',
+                                '--actor', 'claude:implementer', '--', str(script))
+
+    def handoff_declaring(self, done, actor='claude:implementer'):
+        return self.run_harness('handoff', self.ticket_id, '--actor', actor,
+                                '--slice-done', str(done))
+
+    def test_a_declaration_puts_the_pack_on_the_slice_that_is_next(self):
+        self.red()
+        self.green()
+        self.green()
+        self.handoff_declaring(1)
+        text = self.pack_file().read_text()
+        self.assertIn('Slice 2', text)
+        self.assertIn('1 of 3', text)
+
+    def test_the_record_says_the_count_was_declared(self):
+        self.green()
+        record = self.handoff_declaring(1)
+        self.assertEqual(record['data']['slice']['done'], 1)
+        self.assertTrue(record['data']['slice']['declared'])
+
+    def test_a_record_with_no_declaration_says_the_count_was_inferred(self):
+        self.green()
+        record = self.handoff()
+        self.assertFalse(record['data']['slice']['declared'])
+
+    def test_a_declaration_over_the_plan_is_refused_and_names_the_plan(self):
+        with self.assertRaises(HarnessError) as raised:
+            self.handoff_declaring(self.slices + 1)
+        self.assertIn(str(self.slices), str(raised.exception))
+
+    def test_a_declaration_below_zero_is_refused(self):
+        with self.assertRaises(HarnessError):
+            self.handoff_declaring(-1)
+
+    def test_two_greens_for_one_slice_are_miscounted_without_a_declaration(self):
+        """The limit the flag exists for, pinned so nobody is surprised by it."""
+        self.green()
+        self.green()
+        self.handoff()
+        self.assertIn('Slice 3', self.pack_file().read_text())
+
+
 class PackEdgesTest(AtTddTest):
     """Three things the first packs written in anger got wrong."""
 
