@@ -26,7 +26,7 @@ Every ticket runs through the Seen harness (`docs/harness/workflow.md`): five st
 4. Tests first for anything in `packages/core` (detectors, matching, fee expectations, the policy gate). Integration tests mock the connectors; never call a live marketplace from a test.
 5. Commits: `feat(<id>): ...`, `fix(<id>): ...`, `docs(<id>): ...`, `test(<id>): ...`. Keep the ticket id in every commit.
 6. Human tickets (executor `human`) are registrations, verifications against a live account and real-data runs. Do them with Ruud, record the outcome in the ticket file under a `## Outcome` heading, and never invent API facts a verification ticket was meant to establish.
-7. One slice per session. A session reads the PRD and the architecture once, at clarify; every later session starts from the handoff pack (`harness status --brief`), works one slice of at most 2 points, writes the next pack with `harness handoff` and ends. Research goes to the scout subagent and review to the reviewer subagent, each in a context of its own (SEEN-104 to SEEN-106; until they land, keep the same discipline by hand: `/clear` at every slice boundary after writing the pack).
+7. One slice per session. A session reads the PRD and the architecture once, at clarify; every later session starts from the handoff pack (`harness status --brief`), works one slice of at most 2 points, writes the next pack with `harness handoff` and ends. Research goes to the scout subagent and review to the reviewer subagent, each in a context of its own (`harness handoff` and `status --brief` are SEEN-104's and exist; the subagents and the hooks arrive with SEEN-105 and SEEN-106, and until then `/clear` at every slice boundary after writing the pack). The model and effort a slice runs on are read from the handoff pack once SEEN-108 lands and are never chosen inside the session; the review reads only what SEEN-107's triage leaves for it.
 8. Ticket files are owned by this repository once a ticket has started: the plan generator behind the council artifact rewrites only tickets still at `status: todo` and never touches a started ticket's criteria, `## Outcome` or amendments. Renumbering is never done on a started ticket, because receipts, journals and pull request bodies quote its id. No new ticket is above 3 points; a five-point ticket carries a `## Slices` section that the solution stage adopts or amends.
 9. When a ticket changes an agent action (`changes_agent_action: true`), the tool must declare reversibility, action type and a euro impact estimator, and the gate decision must be written to `agent_actions` and `audit_events` before execution.
 
@@ -51,7 +51,7 @@ lint | sync | discard | list`. Every writing command refuses unless the branch i
 | [CONTEXT.md](CONTEXT.md) | Glossary: the harness terms, the product terms they collide with, and the resolution of the three meanings of gate |
 | [docs/adr/](docs/adr/) | Architecture decision records: journal integrity, the delivery receipt, the SEEN-086 bootstrap exemption |
 
-### Tickets (106, 346 build points)
+### Tickets (109, 353 build points)
 
 | Ticket | Title | Epic | Size |
 |---|---|---|---|
@@ -83,6 +83,9 @@ lint | sync | discard | list`. Every writing command refuses unless the branch i
 | [SEEN-104](docs/tickets/SEEN-104-cap-a-session-at-one-slice-the-slice-plan-the.md) | Cap a session at one slice: the slice plan, the budget and the handoff pack | E10 | 3 pt |
 | [SEEN-105](docs/tickets/SEEN-105-give-the-scout-and-the-reviewer-their-own.md) | Give the scout and the reviewer their own context as subagents in both assistants | E10 | 3 pt |
 | [SEEN-106](docs/tickets/SEEN-106-enforce-the-harness-with-hooks-in-both.md) | Enforce the harness with hooks in both assistants, generated from one source | E10 | 3 pt |
+| [SEEN-107](docs/tickets/SEEN-107-let-jev-settle-what-the-review-can-settle.md) | Let Jev settle what the review can settle before a model reads the diff | E10 | 3 pt |
+| [SEEN-108](docs/tickets/SEEN-108-route-each-slice-to-a-model-and-an-effort-at.md) | Route each slice to a model and an effort at solution, by rule first and by Jev second | E10 | 2 pt |
+| [SEEN-109](docs/tickets/SEEN-109-calibrate-the-review-triage-and-the-routes-on.md) | Calibrate the review triage and the routes on ten tickets before either saves a token | E10 | 2 pt |
 | [SEEN-008](docs/tickets/SEEN-008-create-trade-record-schema-v1-with-tenant-id.md) | Create trade-record schema v1 with tenant_id and RLS on every table | E0 | 5 pt |
 | [SEEN-009](docs/tickets/SEEN-009-define-connector-interface-capability-matrix.md) | Define connector interface, capability matrix and credential access | E1 | 5 pt |
 | [SEEN-010](docs/tickets/SEEN-010-add-per-marketplace-rate-limiting-with-header.md) | Add per-marketplace rate limiting with header-driven backoff | E1 | 3 pt |

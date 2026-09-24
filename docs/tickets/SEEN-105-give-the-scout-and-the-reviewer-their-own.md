@@ -57,7 +57,8 @@ Two readers fill a session: the research at clarify and solution (graph answers,
 
 ## Blocks
 
-- none
+- [SEEN-107](SEEN-107-let-jev-settle-what-the-review-can-settle.md): Let Jev settle what the review can settle before a model reads the diff
+- [SEEN-108](SEEN-108-route-each-slice-to-a-model-and-an-effort-at.md): Route each slice to a model and an effort at solution, by rule first and by Jev second
 
 ## Context
 
