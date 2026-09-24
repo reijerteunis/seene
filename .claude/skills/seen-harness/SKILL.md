@@ -21,7 +21,7 @@ run next.
 | Stage | What it establishes | The command |
 |---|---|---|
 | clarify | The scope, the acceptance criteria restated as checks, and every material question answered | `draft`, fill it in, `advance` |
-| solution | The files, the tests to write first, the rollback, the risks | `draft`, fill it in, `advance` |
+| solution | The mode, the files, the tests to write first, the rollback, the risks | `draft`, fill it in, `advance` |
 | tdd | A red that failed for the stated reason, a green, a regression, coverage | `check --phase red\|green\|regression`, `coverage`, `advance` |
 | review | The diff read against the criteria, findings with a failure scenario each | `check --phase qa`, `advance` or `return` |
 | deliver | The branch pushed, CI green on that commit, the receipt written | `verify-delivery`, then `verify-merge` before merging |
@@ -29,7 +29,7 @@ run next.
 `return` sends a ticket back to an earlier stage and counts as rework. `reopen` voids a receipt before
 the work is merged, when a defect is found after delivery. Both are recorded with a reason.
 
-## Four rules you cannot infer
+## Five rules you cannot infer
 
 **Evidence lives in `.harness-drafts/`.** `draft` puts it there and `advance` reads it from there.
 Anywhere else it is an untracked file in the tree, so submitting it changes the fingerprint review
@@ -43,6 +43,12 @@ cannot be written earlier, and it belongs in the pull request body.
 were none. Write it in `decisions`, as the decision to proceed with the observation that will settle
 it, and the stage gate counts it as resolved rather than as a hole. `open_questions` must be empty to
 advance: it is the list of what is still open, not the list of what is known to be unknowable.
+
+**A ticket with no behaviour to prove says so at solution.** Set `mode` to `non-code` there and
+`tests_first` may be empty; the tdd stage then uses its own template, with a change type of
+documentation, research, verification or policy and a reason. The two stages must agree, so changing
+your mind means a note and a `return`, not a different word at the next gate. Registrations,
+verifications against a live account and policy decisions are all non-code.
 
 **One ticket, one branch.** Every writing command refuses unless the branch is `claude/<ticket>-…` or
 `codex/<ticket>-…`, and refuses on `main`. Drifting onto another branch mid-ticket records evidence

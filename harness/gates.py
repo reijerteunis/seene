@@ -34,6 +34,28 @@ def load_template(root, stage, mode=None):
         raise HarnessError(f'Template {path.name} is not readable JSON: {error}')
 
 
+def mode_of(data):
+    """A record's mode, with silence meaning code.
+
+    Nine solution records were written before the field existed, and a gate that
+    invalidates history to gain a field is the worse trade.
+    """
+    return data.get('mode', 'code')
+
+
+def for_mode(template, stage, mode):
+    """The fields a stage requires of this kind of ticket.
+
+    A non-code ticket has no tests to write first, and until SEEN-103 it had to
+    write some anyway to reach the stage where it said so. The tdd stage solves
+    the same problem with a whole second template; one field out of eleven does
+    not justify a second one here.
+    """
+    if stage == 'solution' and mode == 'non-code':
+        return {key: value for key, value in template.items() if key != 'tests_first'}
+    return template
+
+
 def _filled(value):
     if isinstance(value, str):
         return bool(value.strip())
@@ -150,8 +172,17 @@ def _solution(data, records, current, repository, thresholds):
 
 
 def _tdd(data, records, current, repository, thresholds):
-    mode = data.get('mode')
+    mode = mode_of(data)
     require(mode in MODES, f'Unknown mode: {mode!r}; use {" or ".join(MODES)}')
+    solution = latest_evidence(records, 'solution')
+    # No solution record is not a record saying code: there is nothing to
+    # disagree with, and the stage order is what requires one.
+    if solution is not None:
+        planned = mode_of(solution)
+        require(mode == planned,
+                f'The solution record planned {planned} and this tdd record says {mode}. A '
+                'ticket that changes its mind about having behaviour to prove says so in a note '
+                'and returns to solution, rather than changing it between stages')
     if mode == 'non-code':
         return _non_code(data, thresholds)
     slices = data['slices']
@@ -253,10 +284,10 @@ def evaluate(stage, data, records, current, repository, thresholds):
     require(gate is not None,
             f'Stage {stage} has no advance out of it'
             + ('; verify-delivery is its stage gate' if stage == 'deliver' else ''))
-    if stage == 'tdd':
-        require(data.get('mode') in MODES,
+    if stage in ('solution', 'tdd'):
+        require(mode_of(data) in MODES,
                 f'Unknown mode: {data.get("mode")!r}; use {" or ".join(MODES)}')
     template = load_template(repository.root, stage, data.get('mode'))
-    require_template_fields(template, data)
+    require_template_fields(for_mode(template, stage, mode_of(data)), data)
     reject_placeholders(template, data)
     return gate(data, records, current, repository, thresholds)

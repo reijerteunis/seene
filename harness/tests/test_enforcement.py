@@ -186,9 +186,24 @@ class CoverageTest(CommandTest):
                                                  red=red, green=green)],
                                     regression=regression, coverage_delta=None))
 
+
+class NonCodeCoverageTest(CommandTest):
+    """A ticket with no behaviour to prove owes no coverage figure.
+
+    Its own setUp since SEEN-103, because the mode is declared at solution now
+    and the two stages must agree.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.start()
+        self.submit('clarify', clarify_evidence())
+        self.submit('solution', solution_evidence(mode='non-code', tests_first=[]))
+
     def test_a_non_code_ticket_needs_no_coverage(self):
         self.submit('tdd', dict(mode='non-code', change_type='documentation',
                                 reason='Prose only.', sources=[], checks=[]))
+
         self.assertEqual(self.run_harness('status', self.ticket_id)['stage'], 'review')
 
 
