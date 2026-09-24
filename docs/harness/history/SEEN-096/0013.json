@@ -1,0 +1,15 @@
+{
+  "sequence": 13,
+  "ticket": "SEEN-096",
+  "timestamp": "2026-09-24T05:51:06.487792+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "solution",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "03320345cde387fe250c4a128632431c57c03ebd",
+  "prev_hash": "f9f92e68d22b68713231ac388e09ab8d6e9f14666b11d7c4d2803e0e1da8297f",
+  "data": {
+    "text": "# What codegraph does, established by installing it\n\nThe clarify record named two things that only the work could settle, and both are now observed.\nVersion 1.6.0, installed globally on 24 September 2026.\n\n**A question about a symbol's callers, in one call.** `codegraph callers state_for` returns six callers\nwith file and line in 0.10 seconds: two in `harness/cli.py`, one in `harness/measure_criteria.py`, three\nin tests. The same answer is available as the `codegraph_explore` MCP tool, which was wired into both\nassistants by `codegraph install --target claude,codex --location global`.\n\n**The index refreshes within five seconds of a save, but only while the MCP server runs.** This is the\npart the ticket assumed wrongly. There is no standing daemon. With no `codegraph serve --mcp` process,\nfive saves went unindexed for fifteen seconds each; `codegraph sync` picked them up in 55 milliseconds,\nbut nothing called it. With the MCP server running, five saves indexed in 0.43, 0.10, 0.10, 0.10 and\n0.10 seconds.\n\nSo the watcher is a property of the agent session, not of the repository. An assistant with the MCP\nserver connected has a live index; a shell without one has a stale index until it syncs. That is worth\nknowing before the harness routes anything to it: `harness graph` runs as a shell command, and must\nsync before it queries rather than trusting the index it finds.\n\n**What the install wrote, outside this repository.** `~/.claude.json` gained a `codegraph` stdio MCP\nserver, `~/.claude/settings.json` gained `mcp__codegraph__*` to its permission allowlist,\n`~/.claude/CLAUDE.md` and `~/.codex/AGENTS.md` each gained a CodeGraph section between marker comments,\nand `~/.codex/config.toml` gained `[mcp_servers.codegraph]`. These are the founder's machine-wide\nfiles, not the repository, and they are named here because a tool that edits a user's global\ninstructions should do so on the record.\n\n**Telemetry was turned off** before indexing anything, with `codegraph telemetry off`. It is on by\ndefault and sends anonymous usage data. This repository will hold a marketplace trade record, and the\ndefault was not worth keeping while the tool reads the whole tree.\n\n**`.codegraph/` ignores itself.** It ships a `.gitignore` that excludes everything but that file, so\nthe repository's own `.gitignore` needs no entry and doctor has nothing to say about it. The criterion\nasking for a gitignore entry is satisfied by the tool rather than by us, which is worth recording\nbecause the next reader will look for the line and not find it.\n"
+  }
+}

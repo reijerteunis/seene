@@ -1,0 +1,30 @@
+{
+  "sequence": 22,
+  "ticket": "SEEN-096",
+  "timestamp": "2026-09-24T05:54:59.774004+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "03320345cde387fe250c4a128632431c57c03ebd",
+  "prev_hash": "cedec545bbc9c6fc846cdef328d59c4696a61a0789aaafd2fc05cf8732091b5f",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "behaviour": "harness graph routes impact and explain to codegraph and path and prs to graphify, syncs the codegraph index before querying it because the watcher lives in the MCP server rather than in a daemon, fingerprints whichever index answered, and refuses a codegraph query when there is no index.",
+          "failure_reason": "AssertionError: 'graphify' != 'codegraph' for the source of an impact query, and KeyError: 'synced'",
+          "red": 15,
+          "green": 16
+        }
+      ],
+      "regression": 20,
+      "coverage_delta": 0.0
+    },
+    "decisions": []
+  }
+}

@@ -39,6 +39,22 @@ advance: it is the list of what is still open, not the list of what is known to 
 `codex/<ticket>-…`, and refuses on `main`. Drifting onto another branch mid-ticket records evidence
 about a tree that belongs to different work.
 
+## Asking the graphs
+
+`harness graph <ticket> <mode>` records the answer as a note. Two tools, because they know different
+things:
+
+| Mode | Tool | The question |
+|---|---|---|
+| `impact --about <symbol>` | codegraph | What breaks if I change this |
+| `explain --about <symbol>` | codegraph | What is this and what surrounds it |
+| `path --from <a> --to <b>` | graphify | How these two ends connect |
+| `prs` | graphify | What the open pull requests touch |
+
+codegraph's watcher runs inside the MCP server your session starts, not as a daemon, so the harness
+syncs the index before every codegraph query and records that it did. In a shell with no assistant
+attached, the index is as old as the last sync until something asks.
+
 ## What the harness will refuse
 
 A RED that did not fail. A slice citing a check from another attempt. Coverage that fell. A record

@@ -1,0 +1,15 @@
+{
+  "sequence": 12,
+  "ticket": "SEEN-096",
+  "timestamp": "2026-09-24T05:47:54.900724+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "solution",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "03320345cde387fe250c4a128632431c57c03ebd",
+  "prev_hash": "dc9ca73c377722b8cd348da65f7126521253985345e96a353bf1bf0368196fd5",
+  "data": {
+    "text": "# Unparked, with the gate reading the right ticket\n\nSEEN-101 delivered and is merged. `state_for` now finds this ticket by its id, reports\n`ticket_source: found by id`, and reads the ticket that asks for codegraph alone.\n\nThe clarify record at record 8 is unchanged and stands. Re-asked through the fixed code it scores 0.79,\nagainst the 0.46 it scored while the gate was reading the pre-split ticket, recorded in SEEN-101's\njournal at record 6. It is still a hundredth short of 0.8, and it is not being re-advanced: clarify was\ncleared by decision at record 7 and a cleared stage is not re-litigated because a later measurement\ncame out close.\n\nWhat happens next is the solution record, which was written before the park and sits in\n`.harness-drafts/SEEN-096-solution.json`. The rename fix that was briefly a fifth criterion here has\nshipped in SEEN-101, so that draft's first half is now history rather than plan, and it is rewritten to\ndescribe codegraph alone before it is submitted.\n"
+  }
+}

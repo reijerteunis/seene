@@ -42,6 +42,9 @@ KPI_FILE = 'kpi.json'
 
 # The committed knowledge graph: context before a session reads any file.
 GRAPH_DIRECTORY = Path('graphify-out')
+# codegraph's symbol index. Local to each machine and ignored by a .gitignore
+# the tool ships inside it, so this repository's own .gitignore says nothing.
+CODEGRAPH_DIRECTORY = Path('.codegraph')
 GRAPH_FILE = GRAPH_DIRECTORY / 'graph.json'
 
 # Working copies of templates. Gitignored; only the journal is evidence.

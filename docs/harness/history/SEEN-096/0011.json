@@ -1,0 +1,15 @@
+{
+  "sequence": 11,
+  "ticket": "SEEN-096",
+  "timestamp": "2026-09-24T05:37:51.797783+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "solution",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "8805dc9955e5d83d7722575c26042b5f4a533dad",
+  "prev_hash": "37bb33cdc16187abf5d6fae0aba79f7f25a7e998243d7401242fe0d1e5d7a221",
+  "data": {
+    "text": "# Parked a second time, behind SEEN-101\n\nThe fix for the stale ticket path was written into this ticket's criteria and the advance was tried.\nThe gate refused at 0.46 against 0.6, judging the solution record against the pre-split ticket that\nasked for three tools. The defect blocks the advance that would have fixed it, which is the same shape\nas SEEN-086's bootstrap and the same shape as SEEN-100's: a gate cannot be repaired by the ticket it\nis misjudging.\n\nSo the fix moves to SEEN-101 and the criterion added at record 10 is removed again. This is the second\ntime this ticket has parked to let the thing judging it be fixed first, and the second time the\nmeasurement came from trying rather than from arguing.\n\nNothing is lost. The solution record is written and sits in the draft; when SEEN-101 delivers, this\nticket advances with the gate reading the ticket that actually exists.\n"
+  }
+}

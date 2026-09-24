@@ -1,0 +1,94 @@
+{
+  "sequence": 14,
+  "ticket": "SEEN-096",
+  "timestamp": "2026-09-24T05:51:37.932618+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "solution",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "03320345cde387fe250c4a128632431c57c03ebd",
+  "prev_hash": "2c2d3905c92aaf95a4fa9dceb243911fc95c39910f22837e1969a6f7c97e980e",
+  "data": {
+    "from_stage": "solution",
+    "to_stage": "tdd",
+    "evidence": {
+      "approach": "codegraph is installed and its facts are recorded at record 13, so this is now about routing rather than about discovery.\n\nharness/graph.py gains a tool per mode instead of one tool for all four. impact and explain route to codegraph, which answers about symbols; path and prs stay with graphify, which answers about files and pull requests. The record keeps saying which tool answered, in the source field it already carries, and the graph fingerprint becomes the fingerprint of whichever index was used: graphify's graph.json by hash as now, codegraph's index by its node and edge counts, which codegraph status reports and which change whenever the index does.\n\nThe one thing installing it taught: there is no standing daemon. The watcher belongs to the MCP server process, so a shell command finds whatever the index was when an assistant last had it open. harness graph therefore runs codegraph sync before it queries, which took 55 milliseconds on this repository, and records that it did.\n\nNo git hook, on the same reasoning that removed graphify's: a hook that runs on every commit breaks git when the tool misbehaves, and this index rebuilds in under a second.",
+      "changes": [
+        "harness/graph.py: a tool per mode, codegraph for impact and explain, graphify for path and prs, with a sync before each codegraph query",
+        "harness/tests/test_graph.py: extend for the routing, the sync, the fingerprint and the two refusals",
+        "docs/harness/skill.md and its two generated copies: which tool answers which question"
+      ],
+      "migrations": [],
+      "tests_first": [
+        "harness graph <ticket> impact --about <symbol> builds a codegraph command, not a graphify one: the RED must fail because every mode builds a graphify command",
+        "harness graph <ticket> explain --about <symbol> does the same: the RED must fail for the same reason",
+        "path and prs still build graphify commands: the RED must pass before and after, which is what makes it a guard rather than a change",
+        "A codegraph query syncs first and records that it did: the RED must fail because there is no sync",
+        "The recorded evidence names the tool that answered and fingerprints the index it used: the RED must fail because graph_sha256 assumes graphify's file",
+        "impact refuses without --about, naming the flag: the RED must pass, and is kept so the refusal survives the routing change"
+      ],
+      "alternatives": [
+        "Routing everything to codegraph, rejected because graphify answers about files, commits and pull requests, which codegraph's symbol index does not model",
+        "Running codegraph as a daemon so the index is always live, rejected because the watcher already runs inside the MCP server an assistant starts, and a second long-lived process is a thing to forget about; a 55 millisecond sync before a query is cheaper than a daemon nobody monitors",
+        "A git hook, rejected on the evidence of 24 September, when graphify's post-commit hook broke seven git operations in a day"
+      ],
+      "risks": [
+        "codegraph sync before every query adds a subprocess to a command already running a subprocess; measured at 55 milliseconds on 75 files, and the risk is that it grows with the repository. The duration is recorded per call, so SEEN-091's reports will show it rather than anyone guessing",
+        "The index fingerprint is node and edge counts rather than a hash of the database, because the database is 3 MB of SQLite that changes on every sync. Counts are weaker: two different indexes can share them. It is enough to tell a stale answer from a fresh one, which is what the fingerprint is for",
+        "codegraph parses 75 files here and the repository will grow to six packages of TypeScript. Whether it keeps up is unmeasured, and the duration in each record is what will show it"
+      ],
+      "rollback": "Revert the commit and every mode routes to graphify again. `codegraph uninit` removes .codegraph/ and `codegraph uninstall` removes the MCP wiring from the global assistant configuration; neither is needed for the harness to work, because the routing is the only thing that depends on it.",
+      "new_dependencies": [
+        "@colbymchenry/codegraph 1.6.0, installed globally rather than as a repository dependency. It writes .codegraph/, which ignores itself, and its telemetry was turned off before it indexed anything"
+      ],
+      "tenant_tables": [
+        "none"
+      ],
+      "buyer_pii": "none",
+      "policy_gate_action": null
+    },
+    "decisions": [
+      {
+        "question": "solution_complete",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.73,
+          "no": 0.27
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "question": "touches_billing_or_policy_gate",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.08,
+          "no": 0.92
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

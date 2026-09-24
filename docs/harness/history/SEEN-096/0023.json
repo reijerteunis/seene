@@ -1,0 +1,113 @@
+{
+  "sequence": 23,
+  "ticket": "SEEN-096",
+  "timestamp": "2026-09-24T05:55:33.006341+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "review",
+  "attempt": 1,
+  "actor": "claude:reviewer",
+  "head": "03320345cde387fe250c4a128632431c57c03ebd",
+  "prev_hash": "359e26ad74be9d7e4ab03252342a977f72996232369eb0badbf79f8077b3bb1f",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "deliver",
+    "evidence": {
+      "reviewer": "claude:reviewer",
+      "independence": "self-review",
+      "acceptance_evidence": [
+        "codegraph_explore answers a question about a symbol's callers in one call in both assistants: codegraph install wrote the MCP server into ~/.claude.json and ~/.codex/config.toml, recorded at record 13, and the same answer through the shell returns six callers of state_for with file and line in 0.10 seconds. The MCP tool itself is wired but unexercised in this session, which is named as a limit.",
+        "The index updates within five seconds of a save with no git hook: five saves indexed in 0.43, 0.10, 0.10, 0.10 and 0.10 seconds with the MCP server running, at record 13. The ticket assumed a daemon; there is none, so the harness syncs before it queries.",
+        "harness graph impact and explain route to codegraph and write its answer into the journal: records 17 and 18 against this repository, and RoutingTest asserts the routing, the sync, the index fingerprint and both refusals, green at record 16.",
+        ".codegraph/ is gitignored and doctor is quiet: the tool ships its own .gitignore excluding everything but itself, git status shows nothing, and doctor reports no problems."
+      ],
+      "findings": [
+        {
+          "id": "F1",
+          "severity": "high",
+          "claim": "The ticket's five-second criterion assumed a watcher that does not run",
+          "failure_scenario": "Had the criterion been ticked on the strength of one lucky measurement taken while an MCP server happened to be alive, harness graph would have shipped querying a stale index from a shell. A session asking what breaks if I change this would get an answer about the code as it was when an assistant last had the project open, with nothing saying so.",
+          "status": "resolved",
+          "resolution": "Measured both ways, five trials each, recorded at record 13. Every codegraph query now syncs first and records synced, and the skill says the watcher belongs to the MCP server."
+        },
+        {
+          "id": "F2",
+          "severity": "medium",
+          "claim": "Three tests asserted the old routing and were being carried along by inheritance",
+          "failure_scenario": "RoutingTest inherited GraphTest, so every old test ran twice, and three of them asserted impact goes to graphify. Fixing them in place would have left the recording mechanics untested for the tool that no longer answers impact.",
+          "status": "resolved",
+          "resolution": "GraphFixture holds the stubs and the helper with no tests of its own; GraphTest exercises the recording mechanics through the graphify modes, RoutingTest asserts the routing. Sixteen tests, none run twice."
+        },
+        {
+          "id": "F3",
+          "severity": "low",
+          "claim": "build_command called tool_for for its refusal and discarded the result inside an index expression",
+          "failure_scenario": "MODES[tool_for(mode) and mode] reads as if the tool mattered to the lookup. A reader simplifying it to MODES[mode] would silently delete the refusal for an unknown mode, and the error message naming the four modes would go with it.",
+          "status": "resolved",
+          "resolution": "The refusal is its own statement. test_an_unknown_mode_names_the_ones_that_work holds it."
+        }
+      ],
+      "checks": [
+        15,
+        16,
+        20,
+        21
+      ],
+      "security_checklist": [
+        "codegraph telemetry was turned off before the repository was indexed. It ships enabled, and this tree will hold a marketplace trade record.",
+        "The index and the database live in .codegraph/, which ignores itself, so nothing derived from the source is committed.",
+        "No credential is in the change or in any record. The graph records carry symbol names and file paths from this repository only.",
+        "The install wrote to five files in the founder's home directory. Each is named at record 13 and in the ticket outcome, none is in this repository, and none carries a secret.",
+        "The change touches no money, no tenant data and no policy-gate action."
+      ],
+      "verdict": "pass",
+      "tree": "44e0f54a30b6332613debb85a2675a462c1f82b2b244c89fc253bacc412688c8"
+    },
+    "decisions": [
+      {
+        "question": "severity",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high",
+          "blocking"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "high",
+        "probabilities": {
+          "low": 0.02,
+          "medium": 0.14,
+          "high": 0.74,
+          "blocking": 0.1
+        },
+        "confidence": 0.71,
+        "score": 1.91,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      },
+      {
+        "question": "must_fix",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.37,
+          "no": 0.63
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.7,
+        "passed": false,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "sequence": 17,
+  "ticket": "SEEN-096",
+  "timestamp": "2026-09-24T05:53:26.702692+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "03320345cde387fe250c4a128632431c57c03ebd",
+  "prev_hash": "a76c9bfc34c2139588cb4e066aa95ce22d2b4036933be599d169b7d25062d037",
+  "data": {
+    "source": "codegraph",
+    "mode": "impact",
+    "command": [
+      "codegraph",
+      "impact",
+      "state_for"
+    ],
+    "synced": true,
+    "index": {
+      "nodes": 979,
+      "edges": 2631
+    },
+    "exit_code": 0,
+    "duration_ms": 227,
+    "answer": "\nImpact of changing \"state_for\" — 20 affected symbols:\n\nharness/cli.py\n  function    state_for:290\n  function    decide:280\n  function    execute:702\n  function    stage_decisions:441\n  function    advance:495\n  function    describe:219\n  function    draft:240\n  function    list_tickets:683\n\nharness/measure_criteria.py\n  function    state_of:29\n  function    main:54\n\nharness/tests/test_decisions.py\n  method      test_the_state_carries_the_current_ticket_not_the_snapshot:320\n  method      test_it_falls_back_to_the_snapshot_when_the_ticket_is_gone:331\n\nharness/tests/test_state_for.py\n  method      state:27\n  method      test_the_recorded_path_is_read_when_it_is_there:30\n  method      test_a_renamed_ticket_is_found_by_its_id:36\n  method      test_the_snapshot_is_used_only_when_no_ticket_matches_and_says_so:46\n  method      test_two_files_for_one_id_is_a_refusal_naming_both:54\n  method      test_a_shared_id_is_no_obstacle_while_the_recorded_path_is_there:69\n  method      test_a_longer_id_is_not_a_match_for_a_shorter_one:76\n  method      test_the_id_falls_back_to_the_record_when_record_1_has_no_ticket_id:86\n\n",
+    "answer_truncated": false
+  }
+}

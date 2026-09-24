@@ -1,0 +1,15 @@
+{
+  "sequence": 10,
+  "ticket": "SEEN-096",
+  "timestamp": "2026-09-24T05:36:49.945224+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "solution",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "8805dc9955e5d83d7722575c26042b5f4a533dad",
+  "prev_hash": "ea89c733b59272440f006d5a4b6906316ad26e5246edc9e0558b418d96b5de50",
+  "data": {
+    "text": "# The gate has been reading a ticket that no longer exists\n\nRecord 1 stored `ticket_file` as `docs/tickets/SEEN-096-add-codegraph-and-repowise-and-assign-each.md`.\nThe three-way split on 24 September renamed that file to\n`docs/tickets/SEEN-096-add-codegraph-and-route-the-graph-command.md`. `cli.state_for` reads the ticket\nfrom the recorded path and falls back to the snapshot in record 1 when the path is missing, silently.\n\nSo every judgement on this ticket since the split has been made against the pre-split ticket, which\nasked for codegraph, repowise and a stage assignment for each context tool, while the record being\njudged describes codegraph alone. A record that looks incomplete against a ticket three times its size\nis exactly what the model reported: 0.67, 0.68, 0.62, 0.66, 0.67, 0.46.\n\nThat does not overturn SEEN-100. Its measurement sent the same payload under both sets of criteria, so\nthe delta it recorded stands. What it means is that SEEN-096's absolute numbers were never about\nSEEN-096 as it is now, and the honest decision at record 6 was scored against a ticket that had asked\nfor two tools this record had already given away.\n\nThe fallback is the defect. A ticket id is stable and a filename is not, so the harness should find the\nticket by its id and only use the snapshot when the ticket is genuinely gone, saying so rather than\npretending it read the file. This ticket's own split caused the rename, so the fix is carried here and\nthe acceptance criteria are amended to say so.\n"
+  }
+}
