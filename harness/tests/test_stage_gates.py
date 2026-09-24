@@ -7,11 +7,12 @@ thresholds.toml.
 
 import json
 import os
+import unittest
 
 from harness import gates, thresholds
 from harness.errors import HarnessError
 from harness.repository import Repository
-from harness.tests.helpers import ProjectTest
+from harness.tests.helpers import PROJECT, ProjectTest
 
 
 def check_record(sequence, phase, stage='tdd', attempt=1, exit_code=None, **extra):
@@ -337,6 +338,55 @@ class ReviewGateTest(GateTest):
 
 
 
+class AuthorshipTest(unittest.TestCase):
+    """Which tools wrote the work, asked of every journal this repository holds.
+
+    H1 of SEEN-105's third review: F2, G1 and H1 are three generations of one
+    question, each fixed with another predicate and each tested against another
+    fixture. This asks it of the twenty real journals instead, plus the two record
+    shapes the fixtures kept missing: a return written at the deliver stage and a
+    reopen written at delivered, both of which this repository actually contains.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        from harness import journal
+        history = PROJECT / 'docs' / 'harness' / 'history'
+        cls.journals = {folder.name: journal.read(folder)
+                        for folder in sorted(history.iterdir()) if folder.is_dir()}
+
+    def test_every_real_journal_has_an_author(self):
+        for ticket, records in self.journals.items():
+            with self.subTest(ticket=ticket):
+                self.assertTrue(gates._implementer_tools(records),
+                                f'{ticket} would let any tool review it')
+
+    def test_a_return_at_the_deliver_stage_is_not_authorship(self):
+        records = [dict(sequence=1, kind='start', stage='clarify', attempt=1,
+                        actor='claude:implementer', data={}),
+                   dict(sequence=2, kind='return', stage='deliver', attempt=1,
+                        actor='codex:reviewer',
+                        data=dict(from_stage='deliver', to_stage='tdd', reason='CI refused it'))]
+
+        self.assertEqual(gates._implementer_tools(records), {'claude'})
+
+    def test_a_reopen_at_delivered_is_not_authorship(self):
+        records = [dict(sequence=1, kind='start', stage='clarify', attempt=1,
+                        actor='claude:implementer', data={}),
+                   dict(sequence=2, kind='reopen', stage='delivered', attempt=1,
+                        actor='codex:reviewer', data=dict(reason='a defect after delivery'))]
+
+        self.assertEqual(gates._implementer_tools(records), {'claude'})
+
+    def test_work_recorded_by_the_other_assistant_is_authorship(self):
+        records = [dict(sequence=1, kind='start', stage='clarify', attempt=1,
+                        actor='claude:implementer', data={}),
+                   dict(sequence=2, kind='check', stage='tdd', attempt=1,
+                        actor='codex:implementer', data=dict(phase='green', exit_code=0))]
+
+        self.assertEqual(gates._implementer_tools(records), {'claude', 'codex'})
+
+
 class SubagentReviewTest(ReviewGateTest):
     """A review from a context of its own, and the one case the gate can detect.
 
@@ -413,7 +463,8 @@ class TwoReviewerTest(ReviewGateTest):
 
     def billing_journal(self, actors=('claude:implementer',)):
         records = [dict(sequence=1, kind='start', stage='clarify', attempt=1,
-                        actor=actors[0], session='aaaaaaaaaaaa', data={}),
+                        actor=actors[0], session='aaaaaaaaaaaa',
+                        data=dict(ticket_file=self.ticket_file)),
                    dict(sequence=2, kind='advance', stage='solution', attempt=1,
                         actor=actors[0], session='aaaaaaaaaaaa',
                         data=dict(from_stage='solution', to_stage='tdd', evidence={},
@@ -517,6 +568,34 @@ class TwoReviewerTest(ReviewGateTest):
                                                 reviewer_session='bbbbbbbbbbbb',
                                                 second_reviewer='claude:reviewer',
                                                 security_checklist=self.CHECKLIST),
+                          records=records)
+
+    def test_a_ticket_returned_from_deliver_can_still_be_reviewed(self):
+        """H1: twelve such records exist, and each one bricked the review gate."""
+        records = self.billing_journal()
+        records.append(dict(sequence=4, kind='return', stage='deliver', attempt=1,
+                            actor='codex:reviewer', session='cccccccccccc',
+                            data=dict(from_stage='deliver', to_stage='tdd', reason='CI refused')))
+
+        self.evaluate('review', self.review(independence='independent',
+                                            reviewer='codex:reviewer',
+                                            second_reviewer='codex:reviewer',
+                                            security_checklist=self.CHECKLIST),
+                      records=records)
+
+    def test_the_frontmatter_declaration_is_read_beside_the_clarify_record(self):
+        """H2: the repository owns the ticket file; a clarify record is self-declared."""
+        path = self.root / self.ticket_file
+        path.write_text(path.read_text().replace('changes_agent_action: false',
+                                                 'changes_agent_action: true'))
+        records = self.billing_journal()
+        records[1]['data']['decisions'] = [dict(question='touches_billing_or_policy_gate',
+                                                outcome='no')]
+
+        with self.assertRaisesRegex(HarnessError, 'second_reviewer'):
+            self.evaluate('review', self.review(independence='subagent',
+                                                reviewer='claude:reviewer',
+                                                reviewer_session='bbbbbbbbbbbb'),
                           records=records)
 
     def test_an_ordinary_ticket_needs_neither(self):

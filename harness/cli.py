@@ -358,7 +358,7 @@ def draft(repository, records, args):
             f'A draft already exists; edit or delete it: {target.relative_to(repository.root)}')
     target.parent.mkdir(parents=True, exist_ok=True)
     content = json.loads(source.read_text())
-    content.update(extra_review_fields(records, stage))
+    content.update(extra_review_fields(records, stage, repository.root))
     target.write_text(json.dumps(content, indent=2, ensure_ascii=False) + '\n')
     current = journal.state(records)
     available = [dict(record=record['sequence'], phase=record['data']['phase'],
@@ -471,29 +471,25 @@ def graph(repository, folder, records, args, current, rules):
                           head=repository.head(), ticket=args.ticket, data=evidence)
 
 
-def extra_review_fields(records, stage):
-    """What a review must answer beyond the template, given the solution's decisions.
+def extra_review_fields(records, stage, root=None):
+    """What a review must answer beyond the template, asked of the gate itself.
 
-    A change that touches billing or the policy gate is reviewed twice and
-    against the security checklist, so the draft asks for both rather than
-    leaving a reviewer to remember.
+    A change that touches billing or changes an agent action is reviewed twice and
+    against the security checklist, so the draft asks for both rather than leaving
+    a reviewer to remember. H3 of SEEN-105's third review: this used to carry its
+    own copy of the gate's reasoning and the two had already drifted apart, so the
+    harness wrote a draft the gate it ships with would refuse.
     """
-    if stage != 'review':
+    if stage != 'review' or not gates.needs_two_reviewers(records, root):
         return {}
-    for record in reversed(records):
-        if record['kind'] == 'advance' and record['data'].get('from_stage') == 'solution':
-            for decision in record['data'].get('decisions', []):
-                if (decision['question'] == 'touches_billing_or_policy_gate'
-                        and decision['outcome'] == 'yes'):
-                    return {'second_reviewer': 'The second reviewer, tool:role. Required because '
-                                               'this change touches billing or the policy gate.',
-                            'security_checklist': [
-                                'No secret in the diff',
-                                'No new dependency without a lockfile entry and an audit',
-                                'No live marketplace call in a test',
-                                'No PII field without its expiry job',
-                                'No tool without a policy-gate declaration']}
-    return {}
+    return {'second_reviewer': 'The second reviewer, tool:role, from the other assistant. '
+                               'Required because this change touches billing or an agent action.',
+            'security_checklist': [
+                'No secret in the diff',
+                'No new dependency without a lockfile entry and an audit',
+                'No live marketplace call in a test',
+                'No PII field without its expiry job',
+                'No tool without a policy-gate declaration']}
 
 
 def note(repository, folder, records, args, current, rules):

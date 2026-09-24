@@ -1,0 +1,31 @@
+{
+  "sequence": 62,
+  "ticket": "SEEN-105",
+  "timestamp": "2026-09-24T14:58:13.224171+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 5,
+  "actor": "claude:implementer",
+  "session": "2377cfb62f89",
+  "head": "b347ec537a41f2155e112e0a8a81493b7b38e4d6",
+  "prev_hash": "cec7c85deeb7825403d4ef57a288ad029aa449e09a1594fbd505467fc88ce336",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "behaviour": "The seven findings of the third review: authorship is named positively as the stages where a ticket is worked, so a return at deliver or a reopen at delivered is not authorship and a ticket cannot be left unable to leave review; the gate reads changes_agent_action from the ticket frontmatter as well as the clarify record; the review draft asks the gate rather than carrying a copy of its reasoning; the pack counts from where the plan was last accepted rather than within an attempt, so a return does not discard a declaration; and the skill describes both triggers, the assistants vocabulary and the session rule as the code applies them",
+          "failure_reason": "AssertionError: {'claude', 'codex'} != {'claude'} for a return at the deliver stage and for a reopen at delivered (H1), HarnessError: the review comes from the other assistant raised for the review the gate demands (H1 at the gate), HarnessError not raised for a ticket whose frontmatter declares an agent action (H2), AttributeError: module 'harness.gates' has no attribute 'needs_two_reviewers' (H3), 'Slice 3' not found in the pack after a return (H4), and 'changes_agent_action', '[actors] assistants' absent from the skill with \"this attempt's own records\" still in it (H5, H6)",
+          "red": 58,
+          "green": 59
+        }
+      ],
+      "regression": 61,
+      "coverage_delta": 0.0
+    },
+    "decisions": []
+  }
+}

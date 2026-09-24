@@ -54,26 +54,48 @@ def plan_of(records):
     return (gates.latest_evidence(records, 'solution') or {}).get('slices') or []
 
 
-def accepted_greens(records, attempt):
+def accepted_greens(records, after=0):
+    """Greens recorded since the plan was accepted, whatever attempt wrote them.
+
+    A slice that was proved green does not become unproved because a review sent
+    the ticket back: the code is in the branch either way, and the rework is work
+    on top of it. H4 of SEEN-105's third review.
+    """
     return [record for record in records
-            if record['kind'] == 'check' and record['stage'] == 'tdd'
-            and record['attempt'] == attempt
+            if record['sequence'] > after and record['kind'] == 'check'
+            and record['stage'] == 'tdd'
             and record['data'].get('phase') == 'green'
             and record['data'].get('exit_code') == 0]
 
 
-def last_declaration(records, attempt):
-    """The count the most recent handoff in this attempt declared, and where.
+def plan_accepted_at(records):
+    """Where the plan the pack counts against was last accepted.
+
+    Slices belong to a plan, and a plan is set by the solution record. Counting
+    from there rather than from the attempt is what H4 in SEEN-105's third review
+    asked for: a return starts a new attempt without undoing a slice that shipped,
+    and scoping the count to the attempt threw the declaration away and pointed the
+    next session at work already delivered. A plan changed by a return to solution
+    starts its own count, which is the one case an attempt boundary got right.
+    """
+    for record in reversed(records):
+        if record['kind'] == 'advance' and record['data'].get('from_stage') == 'solution':
+            return record['sequence']
+    return 0
+
+
+def last_declaration(records, after=0):
+    """The count the most recent handoff declared since the plan was accepted.
 
     F1 in SEEN-105's first review: --slice-done wrote the right number into the
     record and `status --brief` rebuilt the pack without it, so the session that
     resumed read the inference anyway and was sent past a slice nobody worked.
     """
     for record in reversed(records):
-        if (record['kind'] == 'handoff' and record['attempt'] == attempt
+        if (record['sequence'] > after and record['kind'] == 'handoff'
                 and (record['data'].get('slice') or {}).get('declared')):
             return record['data']['slice']['done'], record['sequence']
-    return 0, 0
+    return 0, after
 
 
 def current_slice(records, state, declared=None):
@@ -100,9 +122,9 @@ def current_slice(records, state, declared=None):
     # The last declaration stands, and greens recorded after it still count: a
     # session that declared at its boundary and then worked on is where both
     # numbers are needed.
-    at_boundary, since = last_declaration(records, state['attempt'])
-    inferred = min(at_boundary + len([record for record in accepted_greens(
-        records, state['attempt']) if record['sequence'] > since]), len(slices))
+    planned_at = plan_accepted_at(records)
+    at_boundary, since = last_declaration(records, planned_at)
+    inferred = min(at_boundary + len(accepted_greens(records, since)), len(slices))
     if declared is None:
         done = inferred
     else:

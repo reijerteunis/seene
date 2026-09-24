@@ -19,6 +19,9 @@ MODES = ('code', 'non-code')
 # second meaning of independent: the escaped-defect figures are read per kind
 # later, and a word covering both could not answer which kind caught what.
 INDEPENDENCE = ('independent', 'subagent', 'self-review')
+# Where a ticket is worked. A tool that wrote a record at one of these wrote the
+# work; the stages after them are what happens to the work once it exists.
+WORK_STAGES = ('clarify', 'solution', 'tdd')
 SLICE_KEYS = ('name', 'points', 'files', 'red')
 POLICY_GATE_ACTION_KEYS = ('reversibility', 'action_type', 'euro_impact_estimator')
 FINDING_KEYS = ('id', 'severity', 'claim', 'failure_scenario', 'status', 'resolution')
@@ -296,9 +299,10 @@ def _review(data, records, current, repository, thresholds):
                 f'Finding {finding["id"]} is {finding["status"]}; resolve every finding or '
                 'return the ticket, and do not relabel it')
         require(_filled(finding.get('resolution')), f'Finding {finding["id"]} is missing resolution')
-    if _needs_two_reviewers(records):
+    two_reviewers = needs_two_reviewers(records, repository.root)
+    if two_reviewers:
         require(_filled(data.get('second_reviewer')),
-                'This change touches billing or the policy gate, so the review needs a '
+                'This change touches billing or an agent action, so the review needs a '
                 'second_reviewer and a security checklist')
         require(data.get('security_checklist'), 'The security checklist must be answered')
     require(data['independence'] in INDEPENDENCE,
@@ -316,7 +320,7 @@ def _review(data, records, current, repository, thresholds):
                 'own as subagent, and a review by the session that wrote the code as self-review')
     if data['independence'] == 'subagent':
         _require_another_context(data, records)
-    if _needs_two_reviewers(records):
+    if two_reviewers:
         # G6: [actors] tools carries human, and a person reviewing alone is not the
         # other assistant. The assistants are their own vocabulary.
         known = set(thresholds['actors']['assistants'])
@@ -326,7 +330,7 @@ def _review(data, records, current, repository, thresholds):
         named = {str(data.get(key) or '').partition(':')[0]
                  for key in ('reviewer', 'second_reviewer')} & known
         require(named - worked_by,
-                'This change touches billing or the policy gate, so the review comes from the '
+                'This change touches billing or an agent action, so the review comes from the '
                 f'other assistant: {", ".join(sorted(worked_by))} wrote this '
                 f'ticket and {", ".join(sorted(named)) or "no tool this repository knows"} '
                 'reviewed it. A subagent is a context boundary, not independence by itself, and a '
@@ -343,16 +347,22 @@ def _tools_of(records):
 def _implementer_tools(records):
     """The tools that wrote the work, read from the stage each record was written at.
 
-    F2 in SEEN-105's first review: the other assistant records a `return` when it
-    sends work back, which is the documented path, and reading every record as
-    authorship made the gate refuse the very review it demands. G1 in its second
-    review: reading the actor's role instead left a ticket recorded entirely as
-    `:reviewer` with no author at all, which is worse, because a role is a word the
-    session chooses and a stage is where the work happened. Clarify, solution and
-    tdd are the work; a review stage record is the review.
+    Three reviews asked this question and the first two answers were both wrong in
+    the same way, by naming what does not count. F2: every record counted, so the
+    other assistant's `return`, which is the documented way to send work back, made
+    it an author and the gate refused the review it demands. G1: the actor's role
+    counted instead, so a ticket recorded entirely as `:reviewer` had no author at
+    all. H1: everything but the review stage counted, so a return at deliver or a
+    reopen at delivered did it again through the two stages nobody had thought of.
+
+    So it is named positively. WORK_STAGES is where a ticket is worked, and a tool
+    that wrote a record there wrote the work. Anything else, at review, at deliver,
+    after delivery, is what happens to the work once it exists. The test that holds
+    this runs over every journal in this repository rather than over another
+    fixture, which is what the third review asked for instead of a fourth predicate.
     """
     return {(record.get('actor') or '').partition(':')[0] for record in records
-            if record.get('actor') and record.get('stage') != 'review'}
+            if record.get('actor') and record.get('stage') in WORK_STAGES}
 
 
 def _sessions_of(records):
@@ -395,14 +405,22 @@ def _require_another_context(data, records):
 GATES = {'clarify': _clarify, 'solution': _solution, 'tdd': _tdd, 'review': _review}
 
 
-def _needs_two_reviewers(records):
+def needs_two_reviewers(records, root=None):
     """Whether this review needs a second reviewer, the checklist and another tool.
 
-    Criterion 4 of SEEN-105 says an agent action or billing. G3 in its second
-    review found only the billing half enforced: the solution question can be
-    answered no, as it was on SEEN-105 itself at record 14, while the clarify record
-    says in its own field that the ticket changes an agent action.
+    Criterion 4 of SEEN-105 says an agent action or billing. G3 in its second review
+    found only the billing half enforced, because the solution question can be
+    answered no, as it was on SEEN-105 itself at record 14. H2 in its third found
+    the half that was added reading a field the same session writes, whose template
+    default is false, while the ticket's own frontmatter, which this repository owns
+    and which the plan generator will not touch once a ticket has started, was read
+    by no harness code at all. Both are read now, and either one is enough.
+
+    Public, because `harness draft` has to ask the same question and a second copy
+    of this reasoning is a second answer waiting to disagree: that was H3.
     """
+    if _frontmatter_declares_agent_action(records, root):
+        return True
     if (latest_evidence(records, 'clarify') or {}).get('changes_agent_action'):
         return True
     for record in reversed(records):
@@ -411,6 +429,20 @@ def _needs_two_reviewers(records):
                        and decision['outcome'] == 'yes'
                        for decision in record['data'].get('decisions', []))
     return False
+
+
+def _frontmatter_declares_agent_action(records, root):
+    """What the ticket file itself says, which no session rewrites by hand."""
+    if root is None or not records:
+        return False
+    name = records[0].get('data', {}).get('ticket_file')
+    if not name:
+        return False
+    path = root / name
+    if not path.is_file():
+        return False
+    from . import report as reporting
+    return reporting._field(reporting.frontmatter(path), 'changes_agent_action') == 'true'
 
 
 def evaluate(stage, data, records, current, repository, thresholds):

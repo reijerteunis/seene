@@ -326,6 +326,15 @@ class DeclaredSliceTest(AtTddTest):
         self.assertEqual(record['data']['slice']['done'], 3)
         self.assertEqual(record['data']['slice']['inferred'], 1)
 
+    def test_a_return_does_not_discard_the_count_already_declared(self):
+        """H4: F1 again, with a return as the trigger instead of a second green."""
+        self.green()
+        self.handoff_declaring(2)
+        self.run_harness('return', self.ticket_id, '--to', 'solution', '--reason',
+                         'A finding from the review', '--actor', 'claude:reviewer')
+
+        self.assertIn('Slice 3', self.brief()['pack'])
+
     def test_two_greens_for_one_slice_are_miscounted_without_a_declaration(self):
         """The limit the flag exists for, pinned so nobody is surprised by it."""
         self.green()

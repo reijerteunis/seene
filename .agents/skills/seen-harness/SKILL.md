@@ -119,13 +119,22 @@ content, transcribed.
 
 **A subagent is a context boundary, not independence by itself.** A review from one
 is disclosed as `subagent` and names the `reviewer_session` it came from, and the
-gate refuses a session that worked this attempt's own records. It cannot refuse a
-value typed to pass, because a Claude Code subagent inherits its parent's session
-id, so the declaration is a disclosure and not a proof. Where a missed defect costs
-money, the review still comes from the other assistant: a ticket whose solution
-record answered `touches_billing_or_policy_gate` yes needs a reviewer or a second
-reviewer from the tool that did not write it, named as one of the tools in
-`[actors]` rather than as any string.
+gate refuses a session that wrote any record on the ticket, whichever attempt it
+worked in. It cannot refuse a value typed to pass, because a Claude Code subagent
+inherits its parent's session id, so the declaration is a disclosure and not a
+proof. A review disclosed as `independent` is refused when the tool that reviewed
+it is a tool that wrote the work, which is read from the records at the clarify,
+solution and tdd stages: a reviewer's own `return`, wherever it was written, is not
+authorship.
+
+Where a missed defect costs money, the review still comes from the other assistant.
+That is a ticket whose solution record answered `touches_billing_or_policy_gate`
+yes, **or** one whose frontmatter or clarify record says `changes_agent_action`:
+either one needs a second reviewer, the security checklist, and a reviewer or second
+reviewer from the other assistant, named as one of `[actors] assistants`. A person
+is in `[actors] tools` and is not the other assistant. `harness draft` asks the gate
+this question rather than repeating it, so a draft asks for exactly what the gate
+will demand.
 
 The reviewer holds Bash, because it cannot read a diff without it, and Claude Code
 has no read-only Bash. On that side it is held to reading by its instructions and

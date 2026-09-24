@@ -260,5 +260,17 @@ class TheSkillSaysSoTest(unittest.TestCase):
         self.assertIn('Bash', self.text)
         self.assertIn('SEEN-106', self.text)
 
+    def test_it_names_the_trigger_the_gate_actually_reads(self):
+        """H5: the skill described the rule as it was before G3."""
+        self.assertIn('changes_agent_action', self.text)
+
+    def test_it_points_at_the_assistants_rather_than_every_actor(self):
+        """H5: [actors] tools carries human, and the gate reads [actors] assistants."""
+        self.assertIn('[actors] assistants', self.text)
+
+    def test_it_says_a_reviewer_session_is_refused_whichever_attempt_it_worked(self):
+        """H6: F5 widened this from the current attempt to every attempt."""
+        self.assertNotRegex(self.text, r"(?i)this attempt's own records")
+
     def test_it_names_the_word_cap_on_a_brief(self):
         self.assertIn('400', self.text)

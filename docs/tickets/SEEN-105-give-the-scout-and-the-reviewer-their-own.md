@@ -68,12 +68,12 @@ Two readers fill a session: the research at clarify and solution (graph answers,
 
 ## Outcome
 
-Delivered on 24 September 2026 across four attempts. The four planned slices and
+Delivered on 24 September 2026 across five attempts. The four planned slices and
 the handoff defect found while working slice 1 were proved in attempt 2, and one
-rework slice in each of attempts 3 and 4 after the two review rounds, which
-`kpi.slices` counts as seven proven against four planned, with three returns
-counted as rework. Two sessions, both of them the same one by the digest: the
-clarify session that opened the ticket and the session that worked it.
+rework slice in each of attempts 3, 4 and 5 after the three review rounds, which
+`kpi.slices` counts as eight proven against four planned, with four returns counted
+as rework. Two sessions by the digest: `7c81cdfdd5e9`, which opened the ticket and
+wrote the first pack, and `2377cfb62f89`, which worked the rest.
 
 **What was built.** `harness/agents.py` holds what each agent may do and
 `harness/agents/<name>.md` holds what each is told; `sync` renders
@@ -98,26 +98,30 @@ cannot detect a value typed to pass; the control that stands there is the
 cross-tool review.
 
 **Evidence.** Record 26 is a real 381-word brief from `seen-scout` against
-SEEN-009. Notes 39 and 47 are two real reviews by `seen-reviewer`, each in a
-context of its own, and both returned the ticket: eleven findings the first time,
-three of them high, and eight the second, four of them medium. F2 would have
-shipped a gate that refuses the review it demands, because the other assistant
-records a `return` when it sends work back and the rule read that as authorship.
-F1 would have sent every resuming session to the wrong slice. G1 and G2 were
-introduced by the fix to F2 and caught by the second pass: reading authorship from
-the actor's role turned an over-refusal into an under-refusal, and the mirror image
-had been left standing at the `independent` rule, where a second tool merely having
-recorded anything counted as independence. Authorship is now read from the stage a
-record was written at, which is where the work happened rather than what the actor
-called itself.
+SEEN-009. Notes 39, 47 and 55 are three real reviews by `seen-reviewer`, each in a
+context of its own, and all three returned the ticket: eleven findings the first
+time with three high, eight the second with five medium, and seven the third with
+one high.
+
+One question took all three rounds to answer, and each answer was wrong in the same
+way, by naming what does not count as authorship. F2: every record counted, so the
+other assistant's `return`, which is the documented way to send work back, made it
+an author and the gate refused the review it demands. G1: the fix read the actor's
+role instead, so a ticket recorded entirely as `:reviewer` had no author at all and
+the billing rule accepted a review by the tool that wrote the code. H1: the next
+fix counted everything but the review stage, and a `return` at deliver or a
+`reopen` at delivered, of which this repository holds twelve, did it again through
+the two stages nobody had thought of. It is named positively now, as the stages
+where a ticket is worked, and the test that holds it runs over every journal in
+this repository rather than over another fixture.
 
 That the reviewer this ticket built found, on this ticket, two holes in the control
-the ticket exists to strengthen, and then found the holes the first round's fixes
-opened, is the strongest evidence the ticket has that the agents pay for
-themselves. It is also the reason the review of a ticket that changes an agent
-action or touches billing still goes to the other assistant: both rounds were the
-same model reading the same repository, and neither round would have caught a
-mistake both rounds share.
+the ticket exists to strengthen, and then twice found the holes the previous
+round's fixes had opened, is the strongest evidence the ticket has that the agents
+pay for themselves. It is also the reason the review of a ticket that changes an
+agent action or touches billing still goes to the other assistant: all three rounds
+were the same model reading the same repository, and no number of them would catch
+a mistake all of them share.
 
 **What is unverified, and by whom.** The Codex keys (`name`, `description`,
 `developer_instructions`, `sandbox_mode`, `model`) come from this ticket's own text
