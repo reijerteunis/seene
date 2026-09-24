@@ -1,0 +1,66 @@
+{
+  "sequence": 24,
+  "ticket": "SEEN-096",
+  "timestamp": "2026-09-24T05:57:54.188419+00:00",
+  "harness_version": "1",
+  "kind": "receipt",
+  "stage": "deliver",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "c8376cd709c97f207abe9aab780be7daffba38d3",
+  "prev_hash": "a08ef4ebdb3d6e4b271ca3f5b86dad2a9214c6b5e8c6207530b722b6faa3d60b",
+  "data": {
+    "from_stage": "deliver",
+    "to_stage": "delivered",
+    "commit": "c8376cd709c97f207abe9aab780be7daffba38d3",
+    "branch": "claude/SEEN-096-add-codegraph-and-route-the-graph",
+    "remote": "origin",
+    "tree": "44e0f54a30b6332613debb85a2675a462c1f82b2b244c89fc253bacc412688c8",
+    "pull_request": "https://github.com/reijerteunis/seene/pull/14",
+    "limits": [
+      "The MCP tool codegraph_explore is wired into both assistants but was not exercised through MCP in this session, because the server is loaded when a session starts and this one was already running. The same answers were taken through the shell, which codegraph documents as identical output. Exercising it through MCP is the first thing the next session can confirm.",
+      "Codex was configured by the installer writing ~/.codex/config.toml and ~/.codex/AGENTS.md. No Codex session has used it yet, so the Codex half of the first criterion rests on the configuration being present rather than on an answer observed.",
+      "The timings are on this repository, 75 files, 979 nodes, 2,631 edges. Whether codegraph keeps up as six TypeScript packages arrive is unmeasured; every record carries its duration, so SEEN-091's reports will show it rather than anyone guessing.",
+      "The index fingerprint is node and edge counts, not a hash. Two different indexes can share them. It is enough to tell a stale answer from a fresh one and no more.",
+      "The review was a self-review, like every ticket in this epic. An independent pass over the harness is still owed."
+    ],
+    "evidence": {
+      "remote": "origin",
+      "pull_request": "https://github.com/reijerteunis/seene/pull/14",
+      "limits": [
+        "The MCP tool codegraph_explore is wired into both assistants but was not exercised through MCP in this session, because the server is loaded when a session starts and this one was already running. The same answers were taken through the shell, which codegraph documents as identical output. Exercising it through MCP is the first thing the next session can confirm.",
+        "Codex was configured by the installer writing ~/.codex/config.toml and ~/.codex/AGENTS.md. No Codex session has used it yet, so the Codex half of the first criterion rests on the configuration being present rather than on an answer observed.",
+        "The timings are on this repository, 75 files, 979 nodes, 2,631 edges. Whether codegraph keeps up as six TypeScript packages arrive is unmeasured; every record carries its duration, so SEEN-091's reports will show it rather than anyone guessing.",
+        "The index fingerprint is node and edge counts, not a hash. Two different indexes can share them. It is enough to tell a stale answer from a fresh one and no more.",
+        "The review was a self-review, like every ticket in this epic. An independent pass over the harness is still owed."
+      ]
+    },
+    "checks": [
+      {
+        "name": "Harness tests (Python 3.12)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Knowledge graph",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Monorepo (Node 24)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Secrets and supply chain",
+        "conclusion": "success",
+        "runs": 1
+      }
+    ],
+    "coverage": {
+      "package": "@seen/core",
+      "lines": 100.0,
+      "delta": 0.0
+    }
+  }
+}
