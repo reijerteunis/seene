@@ -1,0 +1,38 @@
+{
+  "sequence": 7,
+  "ticket": "SEEN-102",
+  "timestamp": "2026-09-24T07:29:36.750576+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "5554a005ecc5a05d693c0e9042058f9ad77717d3",
+  "prev_hash": "d13f71ddfa6dc3f90d43e6efd5fc5e65197ec27c146fb3293b69bf96e9b38136",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "non-code",
+      "change_type": "policy",
+      "reason": "The ticket produces a decision and two documentation edits. Nothing executable changes: no software was installed, no GitHub App authorised, no plan bought, and no code touched. A test here would prove that a sentence is in a file, which is what reading the file does.",
+      "sources": [
+        "https://www.repowise.dev/bot: the GitHub App's permissions, Contents Read, Pull requests Write, Metadata Read, Issues Write; no clone, no LLM; read-only, no code execution",
+        "https://github.com/marketplace/repowise-bot: private repos install and index free, but PR comments on private repos require the Pro plan, and the bot stays silent until the owner upgrades",
+        "https://repowise.dev/pricing: 15 USD per month; the repository is cloned onto an ephemeral indexing container and the working tree wiped at the end of every run, with derived artefacts kept; never used to train a model",
+        "https://repowise.dev/pr/repowise-dev/repowise/1204: the live per-PR page, read without signing in, carrying the title, author, commit hash, risk percentile, changed contracts with file paths and line numbers, outside callers, introduced findings, authors by file, test relationships and AI-versus-human attribution",
+        "https://repowise.dev/privacy and https://repowise.dev/security: both return HTTP 404 on 24 September 2026, which is why the page-visibility question could not be settled from the public material",
+        "repowise 0.52.0 README, the section comparing the bot with CodeRabbit and Greptile, listing a public analysis page per PR with no sign-in as a feature and no carve-out for private repositories",
+        "gh repo view: reijerteunis/seene is private",
+        "docs/harness/history/SEEN-102/0003.json: the founder's decision, recorded in his own words"
+      ],
+      "checks": [
+        "The decision is recorded under ## Outcome in this ticket with its grounds and its two reopening conditions: read the file.",
+        "SEEN-098's fourth criterion says decided and declined and points here, so reading SEEN-098 alone tells the truth about what happened to it.",
+        "Nothing was installed: the repowise bot does not appear in this repository's GitHub App installations, and no Pro subscription exists.",
+        "The page-visibility question is written as unresolved in three places, the note at record 2, the clarify record and the Outcome, each saying what would settle it."
+      ]
+    },
+    "decisions": []
+  }
+}

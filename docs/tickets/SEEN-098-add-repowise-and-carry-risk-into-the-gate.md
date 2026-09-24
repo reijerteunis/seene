@@ -43,7 +43,7 @@ operations. Its local index is gitignored for the same reason CodeGraph's is.
 - [x] repowise get_change_risk on a diff touching packages/core returns a risk and a test gap
 - [x] harness graph <ticket> why, health and risk route to repowise and write the answer into the journal
 - [x] harness decide risk reads the change-risk answer as part of its state, evidenced by the decision record
-- [x] The PR bot is handed to a human decision, because it is a GitHub App authorised on a private repository that publishes a public page per pull request: SEEN-102
+- [x] The PR bot was **declined** on 24 September 2026 in [SEEN-102](SEEN-102-decide-on-the-repowise-pr-bot.md): a GitHub App wanting Contents: Read on a private tree, 15 USD per month before it comments at all, and a per-PR page whose visibility for private repositories nobody could establish. Two conditions reopen it
 - [x] The local index is gitignored and doctor is quiet about it
 
 ## Depends on

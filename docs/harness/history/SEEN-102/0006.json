@@ -1,0 +1,84 @@
+{
+  "sequence": 6,
+  "ticket": "SEEN-102",
+  "timestamp": "2026-09-24T07:29:21.948071+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "solution",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "5554a005ecc5a05d693c0e9042058f9ad77717d3",
+  "prev_hash": "219ac9bd4a9c425977a73c3d6b8f398340d843c529feb2d1810abb3dd690a442",
+  "data": {
+    "from_stage": "solution",
+    "to_stage": "tdd",
+    "evidence": {
+      "mode": "non-code",
+      "approach": "No code. Two documentation edits and a decision already recorded.\n\nSEEN-102's own ticket file gains the ## Outcome carrying the decline, the grounds and the two reopening conditions, written before the review stage as the fingerprint requires.\n\nSEEN-098's ticket file has its fourth criterion changed from handed to a human decision to decided and declined, pointing here, so that reading SEEN-098 alone tells the truth about what happened to its PR bot criterion rather than leaving a reader to chase a ticket that might still be open.\n\nNothing is installed, no plan is bought, no GitHub App is authorised, and no dependency changes. The repowise CLI and its local index stay exactly as SEEN-098 left them, because they are unrelated to the bot: the bot is a hosted surface onto a hosted index, and everything the harness uses runs on this machine.\n\nThis ticket parked at this gate: the solution template required tests_first of every ticket while non-code mode was declared a stage later, so a policy ticket had to write tests it would never run to reach the stage where it said it had none. SEEN-103 moved the declaration here, and this record is the first to use it.",
+      "changes": [
+        "docs/tickets/SEEN-102-decide-on-the-repowise-pr-bot.md: the Outcome, the criteria ticked or marked not applicable",
+        "docs/tickets/SEEN-098-add-repowise-and-carry-risk-into-the-gate.md: the fourth criterion marked decided and declined"
+      ],
+      "migrations": [],
+      "tests_first": [],
+      "alternatives": [
+        "Asking repowise before deciding, offered and not chosen: a decline needs no answer, and the question is written into the reopening condition so it can be asked whenever anyone wants to revisit",
+        "Installing on a throwaway private repository to settle the page question, offered and not chosen: it costs a month of Pro to answer a question that only matters if the answer would change the decision, and it would not",
+        "Installing on this repository, offered and not chosen: it would settle the page question by exposing the repository to find out"
+      ],
+      "risks": [
+        "A decision recorded without an expiry becomes folklore, and someone re-argues it in six months. The two reopening conditions are the mitigation and they are in the Outcome rather than only in the journal",
+        "The unresolved page-visibility question could be read later as a claim that the page is public. It is written as unresolved in three places, the note, the clarify record and the Outcome, each saying what would settle it"
+      ],
+      "rollback": "Revert the commit. No software state changes either way, because none was created: nothing was installed, authorised or paid for.",
+      "new_dependencies": [],
+      "tenant_tables": [
+        "none"
+      ],
+      "buyer_pii": "none",
+      "policy_gate_action": null
+    },
+    "decisions": [
+      {
+        "question": "solution_complete",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.72,
+          "no": 0.28
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "question": "touches_billing_or_policy_gate",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.1,
+          "no": 0.9
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}
