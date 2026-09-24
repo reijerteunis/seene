@@ -242,7 +242,10 @@ def _ask_api(rules, asked, state, credential_value):
     answers = body.get('answers') or {}
     read = {}
     for key, name, _ in asked:
-        require(key in answers, f'The API answered without {key}')
+        # A key the reply left out is skipped rather than refused here. What to
+        # do about it is the caller's, and the two callers differ: see ask_batch.
+        if key not in answers:
+            continue
         read[key] = dict(_read_answer(name, answers[key]),
                          source='jev', model=body.get('model'), fallback_reason=None)
     return read
@@ -307,6 +310,19 @@ def ask_batch(root, rules, asked, state, answers=None, confidence=1.0, must_answ
             raise
         except Exception as error:                      # noqa: BLE001 - any transport failure
             reason = f'{type(error).__name__}: {error}'
+        else:
+            # A well-formed reply that left a question out is not a transport
+            # failure, and treating it as one cost every answer that did come
+            # back. F1 of SEEN-107's review: on a triage that raised here, no
+            # triage record was written at all, so the review gate then had no
+            # focus set and accepted any read list. A stage gate still refuses,
+            # because it needs a judgement; the triage records the absence.
+            unanswered = [key for key, _, _ in outstanding if key not in read]
+            require(not unanswered or not must_answer,
+                    'The API answered without ' + ', '.join(unanswered))
+            if unanswered:
+                reason = ('The API answered without ' + ', '.join(unanswered)
+                          + ', so each of those is recorded as an absence')
     elif not credential_value:
         reason = 'No Jev credential'
     recorded = []

@@ -317,9 +317,32 @@ def _require_focus_was_read(data, records, current):
             'change; read them, or run the triage again if the diff has moved since')
 
 
+def _require_the_diff_has_not_moved(records, current, repository):
+    """The focus set is a floor, and a floor under a diff that has moved is none.
+
+    F4 of SEEN-107's review: nothing re-checked the diff between the triage and
+    this advance, so a file added after the triage was read by nobody and refused
+    by nothing. Compared over the code fingerprint the triage recorded, which
+    leaves out the ticket file and the generated copies, because the procedure
+    writes those in between on every ticket.
+    """
+    triaged = latest_triage(records, current)
+    recorded = (triaged or {}).get('data', {}).get('code_fingerprint')
+    if recorded is None:
+        return
+    from . import triage
+    now = repository.fingerprint(excluding=triage.procedure_paths(records))
+    require(recorded == now,
+            f'The diff has moved since triage record {triaged["sequence"]}: it read '
+            f'{recorded[:12]} and this advance reads {now[:12]}. The focus set it chose does not '
+            'describe this change any more, so a file could reach merge that nothing read. Run '
+            'harness review triage again')
+
+
 def _review(data, records, current, repository, thresholds):
     require(latest_evidence(records, 'tdd') is not None, 'Complete the TDD stage before review')
     _require_focus_was_read(data, records, current)
+    _require_the_diff_has_not_moved(records, current, repository)
     require(data['verdict'] == 'pass',
             f'A verdict of {data["verdict"]!r} is a return, not an advance; use harness return')
     severities = thresholds['review']['severities']

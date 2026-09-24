@@ -10,7 +10,7 @@ rather than passes when it cannot be run.
 import json
 import subprocess
 
-from . import coverage, gates, github, journal, kpi
+from . import cost, coverage, gates, github, journal, kpi
 from .errors import require
 from .paths import HISTORY, WORKING_STAGES
 
@@ -63,11 +63,18 @@ def verify(repository, folder, records, args, current):
                                           lines=measurement['lines'],
                                           delta=measurement['delta'])))
     # What this journal alone can say, cached beside the receipt so a reader
-    # need not recompute it. Points and tokens stay null here on purpose:
-    # points live in the ticket frontmatter and tokens in the session logs,
-    # neither of which delivery reads, and harness report fills both. The
-    # report is the authority; this is the part that needs no machine.
-    figures = kpi.measure(journal.read(folder), record['ticket'])
+    # need not recompute it. Points and the ticket's own tokens stay null here on
+    # purpose: points live in the ticket frontmatter and tokens in the session
+    # logs, and harness report fills both. The report is the authority.
+    written = journal.read(folder)
+    # The one figure read from a machine here, because criterion 5 of SEEN-107
+    # names kpi.json and this is its only writer. Null where there are no logs,
+    # so the file still reads the same everywhere; it simply carries more where
+    # it can. F3 of that ticket's review.
+    window = kpi.review_window(written)
+    figures = kpi.measure(written, record['ticket'],
+                          reviewer_tokens=cost.tokens_between(repository.root, *window,
+                                                              sidechain=True) if window else None)
     (folder / 'kpi.json').write_text(json.dumps(figures, indent=2, ensure_ascii=False) + '\n')
 
     path = folder / f'{record["sequence"]:04d}.json'

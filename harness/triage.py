@@ -264,6 +264,20 @@ def generated_paths():
     return paths
 
 
+def procedure_paths(records):
+    """Paths a solution record cannot plan and a comparison must not fire on.
+
+    The ticket file, which the procedure writes: `status: doing` with the first
+    commit, the `## Outcome` before review is left, the boxes ticked after the
+    reviewer has read. And the copies `sync` generates, for the reason
+    `generated_paths` gives. Neither is left out of the diff, only out of the
+    slice check and out of the code fingerprint the review gate compares: they
+    changed, and a reviewer can still be sent to them.
+    """
+    ticket = {records[0]['data'].get('ticket_file')} - {None} if records else set()
+    return ticket | generated_paths()
+
+
 def _slice_files_check(files, named, procedure):
     """Every changed file is one the solution record planned, bar what it cannot plan.
 
@@ -275,7 +289,7 @@ def _slice_files_check(files, named, procedure):
     diff, only from this check: they changed, and the reviewer can still be sent
     to them.
     """
-    procedure = set(procedure) | generated_paths()
+    procedure = set(procedure)
     outside = sorted(path for path in files if path not in named and path not in procedure)
     if not outside:
         return _entry('slice_files', PASS,
@@ -352,12 +366,11 @@ def _pull_request_check(repository, ticket):
 def deterministic(repository, records, current, files, named, criteria, ticket, fingerprint):
     """Pass one, in the order DETERMINISTIC lists it."""
     attempt = current['attempt']
-    procedure = {records[0]['data'].get('ticket_file')} - {None}
     return [_coverage_check(records, attempt),
             _lint_check(repository.root),
             _gitleaks_check(repository),
             _fingerprint_check(repository, records, attempt, fingerprint),
-            _slice_files_check(files, named, procedure),
+            _slice_files_check(files, named, procedure_paths(records)),
             _red_check(records),
             _tests_check(files),
             _acceptance_check(records, criteria),
@@ -627,6 +640,12 @@ def run(repository, records, current, rules, ticket, sequence):
     shadow = bool(rules['review']['triage_shadow'])
     focus = [entry['path'] for entry in facts] if shadow else list(narrowed)
     return dict(fingerprint=fingerprint,
+                # What the review gate compares, and why it is a second number:
+                # the procedure writes the ticket file between this record and
+                # that advance, every time, so a comparison over the whole tree
+                # would fire on the harness's own writing. F4 and F5 of this
+                # ticket's review.
+                code_fingerprint=repository.fingerprint(excluding=procedure_paths(records)),
                 files=facts,
                 criteria=criteria,
                 deterministic=results,

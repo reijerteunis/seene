@@ -810,5 +810,125 @@ class GeneratedCopiesTest(TriageTest):
         self.assertIn('harness/unplanned.py', ran['slice_files']['detail'])
 
 
+class PartialAnswerTest(ThreeCriteriaTest):
+    """F1: a reply that left one question out must not cost the rest.
+
+    A transport failure is already an absence on every key. A well-formed reply
+    missing one key was not: `_ask_api` refused it, `ask_batch` re-raised, and the
+    triage record was never written at all, which also left the review gate with
+    no focus set to hold the reviewer to.
+    """
+
+    def stub_that_drops(self, dropped):
+        base = triage_stub()
+
+        def transport(endpoint, payload, credential, timeout):
+            body = base(endpoint, payload, credential, timeout)
+            body['answers'].pop(dropped, None)
+            return body
+
+        transport.sent = base.sent
+        return transport
+
+    def test_the_triage_is_still_recorded_when_one_answer_is_missing(self):
+        self.reach_review()
+        jev.TRANSPORT = self.stub_that_drops('criterion_evidenced#2')
+        record = self.triage()
+
+        self.assertEqual(record['kind'], 'triage')
+        answered = {answer['key']: answer for answer in record['data']['jev']['answers']}
+        self.assertEqual(answered['criterion_evidenced#2']['source'], 'unavailable')
+        self.assertIn('criterion_evidenced#2',
+                      answered['criterion_evidenced#2']['fallback_reason'])
+        self.assertEqual(answered['criterion_evidenced#1']['source'], 'jev')
+
+    def test_a_missing_answer_does_not_return_the_ticket(self):
+        self.reach_review()
+        jev.TRANSPORT = self.stub_that_drops('criterion_evidenced#2')
+        self.triage()
+
+        self.assertEqual(self.run_harness('status', self.ticket_id)['stage'], 'review')
+
+    def test_a_missing_review_depth_leaves_the_review_at_full(self):
+        self.set_shadow(False)
+        jev.TRANSPORT = self.stub_that_drops('review_depth')
+        self.reach_review()
+
+        self.assertEqual(self.triage()['data']['review_depth'], 'full')
+
+    def set_shadow(self, on):
+        path = self.root / 'harness' / 'thresholds.toml'
+        path.write_text(path.read_text().replace(
+            'triage_shadow = true', f'triage_shadow = {"true" if on else "false"}'))
+
+    def test_a_stage_gate_still_refuses_a_reply_that_left_its_question_out(self):
+        """The other half of must_answer: a stage needs a judgement."""
+        from harness import thresholds
+
+        def drops_clarified(endpoint, payload, credential, timeout):
+            return {'model': 'jev-1.13.0',
+                    'answers': {key: score([0.2, 0.7, 0.1])
+                                for key in payload['questions'] if key != 'clarified'}}
+
+        jev.TRANSPORT = drops_clarified
+        with self.assertRaisesRegex(HarnessError, 'clarified'):
+            jev.ask_many(self.root, thresholds.load(self.root), ['clarified', 'risk'], {})
+
+
+class StaleTriageTest(FocusSetTest):
+    """F4: the focus set is a floor, and a floor under a diff that has moved is none."""
+
+    def advance_review(self, read):
+        return self.submit('review', review_evidence(read), actor='codex:reviewer')
+
+    def test_a_file_added_after_the_triage_refuses_the_advance(self):
+        self.reach_review()
+        record = self.triage()
+        self.write('harness/afterwards.py', 'def afterwards():\n    return 3\n')
+
+        with self.assertRaisesRegex(HarnessError, 'moved'):
+            self.advance_review(record['data']['focus'])
+
+    def test_the_ticket_file_moving_does_not_refuse_the_advance(self):
+        """The procedure writes it between the triage and the advance, every time."""
+        self.reach_review()
+        record = self.triage()
+        path = self.root / self.ticket_file
+        path.write_text(path.read_text() + '\n## Outcome\n\nWhat happened.\n')
+
+        self.advance_review(record['data']['focus'])
+
+    def test_a_generated_copy_moving_does_not_refuse_the_advance(self):
+        self.reach_review()
+        record = self.triage()
+        from harness import skills
+        copy = self.root / skills.COMMITTED[0]
+        copy.write_text(copy.read_text() + '\n')
+
+        self.advance_review(record['data']['focus'])
+
+    def test_the_triage_records_the_code_fingerprint_the_gate_compares(self):
+        self.reach_review()
+        data = self.triage()['data']
+
+        self.assertEqual(len(data['code_fingerprint']), 64)
+        self.assertNotEqual(data['code_fingerprint'], data['fingerprint'],
+                            'The ticket file is in the tree, so leaving it out must change it')
+
+
+class DeliveredFiguresTest(unittest.TestCase):
+    """F3: criterion 5 names kpi.json, which delivery is the only writer of."""
+
+    def test_delivery_passes_the_reviewer_tokens_it_can_read(self):
+        import inspect
+        from harness import delivery
+
+        source = inspect.getsource(delivery.verify)
+        self.assertIn('reviewer_tokens', source,
+                      'kpi.json is written here and nowhere else, so a figure not passed here '
+                      'can never reach it')
+        self.assertIn('review_window', source)
+
+
 if __name__ == '__main__':
     unittest.main()

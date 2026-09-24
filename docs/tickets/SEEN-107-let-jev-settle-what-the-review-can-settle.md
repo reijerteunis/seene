@@ -56,8 +56,8 @@ The review is the most expensive read in the procedure: a model reads the whole 
 
 ## Outcome
 
-Delivered on 24 September 2026 in two attempts, three slices and one rework
-slice, one session by the digest: `253bf8e84e82`. The return was the triage's
+Delivered on 24 September 2026 in three attempts, three slices and two rework
+slices, one session by the digest: `253bf8e84e82`. The return was the triage's
 own doing: run on this branch at record 19 it flagged the four files `sync`
 generates as changed but named by no slice, while the solution record named both
 their sources. A generated copy has no review surface of its own, because
@@ -68,7 +68,15 @@ SEEN-109 nothing to calibrate. `triage.generated_paths` is the fix. The nine
 other paths the same check flagged were a true positive and stand: adding one
 required field to the review template really did change six test fixtures the
 solution record never named, so this ticket reviews at full depth on its own
-evidence. The solution gate refused twice at 0.58 against 0.6 and
+evidence. The second return was the reviewer's, and it found three holes worth
+code. A well-formed Jev reply that left one answer key out was treated as a
+transport failure, so it destroyed the whole triage rather than recording that one
+absence, and with no triage record the review gate then had no focus set and would
+have accepted any read list at all. Nothing re-checked the diff between the triage
+and the review advance, so a file added in between was read by nobody and refused
+by nothing. And `kpi.json` could never have carried the reviewer's tokens that
+criterion 5 names, because delivery is its only writer and called `kpi.measure`
+without them. The solution gate refused twice at 0.58 against 0.6 and
 cleared at 0.65 once the record named the interfaces the clarify decisions had
 settled, which is the gap the question was right about: Jev is shown the solution
 record and not the clarify one, so a mechanism decided at clarify and never
@@ -114,15 +122,23 @@ any failed check are all full depth, and a spot focus set is never empty. The
 ticket file is excluded from the slice-plan check, because the procedure writes it
 and no solution record plans it, so the check would otherwise have failed on every
 ticket including this one, and generated copies are excluded for the same reason
-one layer out. Neither is excluded from the diff, only from the check: they
-changed, and a reviewer can still be sent to them. The `## Outcome` section is
-written before the regression rather than after it, because the fingerprint check
-compares the tree against the tree the tests last ran on and the ticket file is
-in it.
+one layer out; `triage.procedure_paths` is the one set, and the review gate's
+`code_fingerprint` comparison leaves out the same paths, because the procedure
+writes them between the triage and the advance every time. Neither is excluded
+from the diff, only from those two comparisons: they changed, and a reviewer can
+still be sent to them. The `## Outcome` section is written before the regression
+rather than after it, because the triage's own fingerprint check compares against
+the tree the tests last ran on, and that one has no exemption to give.
 
 **What is unsettled.** No subagent has ever been logged on this repository: every
 `isSidechain` field in the session logs reads false, so the reviewer's token figure
 is null until the first ticket runs the reviewer as a subagent, and the null is
 what says so. The four thresholds in `[jev.thresholds]` and `[review]
 focus_probability` are starting values with no evidence behind them yet; SEEN-109
-calibrates them on ten tickets, and nothing narrows a review until it does.
+calibrates them on ten tickets, and nothing narrows a review until it does. Two
+review findings were resolved without code and their reasons are in the review
+record: the accepted tdd evidence for slice 3 states a failure reason that check
+12 does not show, because the fixture was corrected between that RED and its
+GREEN, and the triage's own fingerprint check fires on the ticket file whenever a
+triage is re-run after the procedure has written it, which is bounded to forcing
+full depth and is SEEN-109's to carry.

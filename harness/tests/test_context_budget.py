@@ -10,7 +10,7 @@ chosen after seeing the figure is not a rule.
 import json
 import unittest
 
-from harness import context, cost, thresholds
+from harness import context, cost, kpi, thresholds
 from harness.tests.helpers import PROJECT, ProjectTest
 
 BASELINE = {'totals': {'points': 27, 'output_tokens_per_point': 40581.5,
@@ -94,9 +94,26 @@ class CachedFiguresTest(unittest.TestCase):
     """What the kpi.json beside a receipt claims to be."""
 
     def test_delivery_does_not_claim_to_cache_what_it_cannot_compute(self):
-        source = (PROJECT / 'harness' / 'delivery.py').read_text()
+        """SEEN-099's rule, which SEEN-107 narrowed by one figure rather than broke.
 
-        self.assertIn('Points and tokens stay null here on purpose', source)
+        Points and the ticket's own tokens are still null at delivery and still
+        filled by the report. The reviewer's tokens are the one exception, because
+        criterion 5 of SEEN-107 names kpi.json and delivery is its only writer;
+        they are null where there are no logs, so the file still reads the same on
+        a machine that has none.
+        """
+        # Comment markers and wrapping removed first, so rewrapping the paragraph
+        # does not fail a test about what it says.
+        source = (PROJECT / 'harness' / 'delivery.py').read_text()
+        prose = ' '.join(line.lstrip('# ') if line.lstrip().startswith('#') else line
+                         for line in source.splitlines())
+
+        self.assertIn("Points and the ticket's own tokens stay null here on purpose", prose)
+        self.assertIn('harness report fills both', prose)
+
+    def test_the_one_figure_delivery_reads_is_null_when_there_is_nothing_to_read(self):
+        figures = kpi.measure([], 'SEEN-001', reviewer_tokens=None)
+        self.assertIsNone(figures['review_triage'])
 
 
 class ComparisonTest(unittest.TestCase):

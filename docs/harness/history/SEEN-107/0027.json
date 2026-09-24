@@ -1,0 +1,19 @@
+{
+  "sequence": 27,
+  "ticket": "SEEN-107",
+  "timestamp": "2026-09-24T19:28:10.894548+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "253bf8e84e82",
+  "head": "3e293c23b6c2a577e4055fa1f817685e6c62b3ce",
+  "prev_hash": "8b03d14850cc69d30de4163c918cad2732e3750607f997a627c8199d85f377af",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 3,
+    "reason": "Review findings F1, F3 and F4. F1: a well-formed Jev reply missing one answer key raises out of _ask_api, so ask_batch's HarnessError re-raise destroys the whole triage rather than recording that one absence, and with no triage record the review gate then accepts any read list at all. F3: criterion 5 names kpi.json, and delivery is the only writer of it and calls kpi.measure without reviewer_tokens, so the figure could never land there. F4: the focus set is a floor over the read list but nothing re-checks the diff at the review advance, so a file added after the triage is read by nobody and refused by nothing. F2 and F5 are resolved without code and recorded in the review record."
+  }
+}
