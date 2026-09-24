@@ -2,6 +2,9 @@
   "reviewer": "codex:reviewer",
   "independence": "independent",
   "reviewer_session": "The session the review came from, when it came from a subagent.",
+  "read": [
+    "Path the reviewer read. Together these must cover the triage's focus set."
+  ],
   "acceptance_evidence": [
     "Acceptance criterion, and the recorded evidence that satisfies it."
   ],

@@ -7,9 +7,11 @@ tested is the task text the record hands the session to give its subagent.
 """
 
 import json
+import pathlib
+import shutil
 import unittest
 
-from harness import cli, jev, triage
+from harness import cli, jev, kpi, triage
 from harness.errors import HarnessError
 from harness.tests.test_decisions import noul, score
 from harness.tests.test_lifecycle import CommandTest, clarify_evidence, solution_evidence
@@ -17,7 +19,8 @@ from harness.tests.test_lifecycle import CommandTest, clarify_evidence, solution
 TICKET_CRITERIA = ['Something observable happens']
 
 
-def triage_stub(criterion=0.95, depth=(0.2, 0.8), must_read=0.9, matches=0.9, billing=0.1):
+def triage_stub(criterion=0.95, depth=(0.2, 0.8), must_read=0.9, matches=0.9,
+                billing=0.1, must_fix=0.05):
     """A transport answering every triage question, keyed the way triage asks them.
 
     The keys carry a suffix, `criterion_evidenced#1` and
@@ -46,6 +49,8 @@ def triage_stub(criterion=0.95, depth=(0.2, 0.8), must_read=0.9, matches=0.9, bi
                 replies[key] = score(list(depth))
             elif name == 'touches_billing_or_policy_gate':
                 replies[key] = noul(billing)
+            elif name == 'must_fix':
+                replies[key] = noul(must_fix)
             elif question['type'] == 'score':
                 replies[key] = score([0.2, 0.7, 0.1])
             else:
@@ -555,6 +560,201 @@ class FocusSetTest(ThreeCriteriaTest):
 
         transport.sent = base.sent
         return transport
+
+
+def review_evidence(read, **changes):
+    """A review record in the shape the gate demands, with what it read."""
+    data = dict(reviewer='codex:reviewer',
+                independence='independent',
+                acceptance_evidence=['Every criterion is proven by the recorded checks'],
+                read=list(read),
+                findings=[],
+                checks=[],
+                security_checklist=[],
+                verdict='pass')
+    data.update(changes)
+    return data
+
+
+class ReviewerTaskTest(FocusSetTest):
+    """Pass three is text: the task the session hands its subagent."""
+
+    def test_the_task_names_every_file_in_the_focus_set_and_no_other(self):
+        self.set_shadow(False)
+        jev.TRANSPORT = self.only_thing_is_worth_reading()
+        self.reach_review()
+        record = self.triage()
+
+        task = record['data']['reviewer_task']
+        self.assertIn('harness/thing.py', task)
+        for path in record['data']['would_exclude']:
+            self.assertNotIn(path, task,
+                             f'{path} is outside the focus set, so the task must not name it')
+
+    def test_the_task_names_the_depth_and_the_record_the_focus_set_came_from(self):
+        self.reach_review()
+        record = self.triage()
+
+        task = record['data']['reviewer_task']
+        self.assertIn(record['data']['review_depth'], task)
+        self.assertIn(str(record['sequence']), task)
+        self.assertIn(self.ticket_id, task)
+
+    def test_in_shadow_the_task_names_every_changed_file(self):
+        self.set_shadow(True)
+        jev.TRANSPORT = self.only_thing_is_worth_reading()
+        self.reach_review()
+        record = self.triage()
+
+        for entry in record['data']['files']:
+            self.assertIn(entry['path'], record['data']['reviewer_task'])
+
+
+class FocusSetGateTest(FocusSetTest):
+    """The gate that makes the focus set worth computing."""
+
+    def advance_review(self, read):
+        return self.submit('review', review_evidence(read), actor='codex:reviewer')
+
+    def test_a_read_list_short_of_the_focus_set_is_refused(self):
+        self.reach_review()
+        record = self.triage()
+        focus = record['data']['focus']
+
+        with self.assertRaisesRegex(HarnessError, focus[-1].replace('.', r'\.')):
+            self.advance_review(focus[:-1])
+
+    def test_a_read_list_that_covers_the_focus_set_is_accepted(self):
+        self.reach_review()
+        record = self.triage()
+
+        advanced = self.advance_review(record['data']['focus'])
+        self.assertEqual(advanced['data']['to_stage'], 'deliver')
+
+    def test_reading_more_than_the_focus_set_is_never_refused(self):
+        self.set_shadow(False)
+        jev.TRANSPORT = self.only_thing_is_worth_reading()
+        self.reach_review()
+        record = self.triage()
+        everything = [entry['path'] for entry in record['data']['files']]
+
+        self.assertLess(len(record['data']['focus']), len(everything))
+        self.advance_review(everything)
+
+    def test_a_review_with_no_triage_at_all_is_unaffected(self):
+        self.reach_review()
+        self.advance_review(['harness/thing.py'])
+
+
+class TriageFiguresTest(unittest.TestCase):
+    """What kpi.json keeps of a triage, derived and never typed."""
+
+    def journal(self, **changes):
+        from harness.tests.test_kpi import record
+        data = dict(review_depth='spot', shadow=True, excluded_share=0.42,
+                    files=[dict(path='a'), dict(path='b'), dict(path='c')],
+                    focus=['a', 'b', 'c'], would_exclude=['b', 'c'],
+                    jev=dict(asked=True, model='jev-1.13.0', answers=[]))
+        data.update(changes)
+        return [record(1, 'start', 'clarify', minute=0, ticket_file='docs/tickets/x.md',
+                       ticket_snapshot='# x'),
+                record(2, 'advance', 'tdd', minute=10, from_stage='tdd', to_stage='review',
+                       evidence={}, decisions=[]),
+                record(3, 'triage', 'review', minute=20, **data),
+                record(4, 'advance', 'review', minute=40, from_stage='review',
+                       to_stage='deliver', evidence={}, decisions=[])]
+
+    def test_the_figures_carry_the_depth_the_counts_and_the_excluded_share(self):
+        figures = kpi.measure(self.journal(), 'SEEN-001')['review_triage']
+
+        self.assertEqual(figures['depth'], 'spot')
+        self.assertTrue(figures['shadow'])
+        self.assertEqual(figures['files'], 3)
+        self.assertEqual(figures['focus'], 3)
+        self.assertEqual(figures['excluded'], 2)
+        self.assertEqual(figures['excluded_share'], 0.42)
+        self.assertEqual(figures['record'], 3)
+
+    def test_the_reviewer_s_output_tokens_are_carried_when_they_are_known(self):
+        figures = kpi.measure(self.journal(), 'SEEN-001',
+                              reviewer_tokens=dict(output_tokens=7200))['review_triage']
+
+        self.assertEqual(figures['reviewer_output_tokens'], 7200)
+
+    def test_they_are_null_rather_than_zero_when_no_log_was_read(self):
+        figures = kpi.measure(self.journal(), 'SEEN-001')['review_triage']
+        self.assertIsNone(figures['reviewer_output_tokens'])
+
+    def test_a_journal_with_no_triage_has_none_rather_than_a_hollow_section(self):
+        records = [entry for entry in self.journal() if entry['kind'] != 'triage']
+        self.assertIsNone(kpi.measure(records, 'SEEN-001')['review_triage'])
+
+    def test_the_window_runs_from_the_triage_to_the_review_advance(self):
+        opened, closed = kpi.review_window(self.journal())
+
+        self.assertEqual(opened, '2026-09-23T10:20:00+00:00')
+        self.assertEqual(closed, '2026-09-23T10:40:00+00:00')
+
+    def test_there_is_no_window_without_a_triage(self):
+        records = [entry for entry in self.journal() if entry['kind'] != 'triage']
+        self.assertIsNone(kpi.review_window(records))
+
+
+class SidechainTokensTest(unittest.TestCase):
+    """The reviewer's own cost, read from the log rather than declared."""
+
+    def setUp(self):
+        import tempfile
+        from harness import cost
+        self.root = pathlib.Path(tempfile.mkdtemp())
+        self.directory = cost.log_directory(self.root)
+        self.directory.mkdir(parents=True, exist_ok=True)
+        self.addCleanup(shutil.rmtree, self.directory, True)
+
+    def write_log(self, entries):
+        (self.directory / 'session.jsonl').write_text(
+            ''.join(json.dumps(entry) + '\n' for entry in entries))
+
+    def entry(self, stamp, output, sidechain):
+        return dict(timestamp=stamp, isSidechain=sidechain,
+                    message=dict(usage=dict(input_tokens=10, output_tokens=output,
+                                            cache_read_input_tokens=0,
+                                            cache_creation_input_tokens=0)))
+
+    def test_only_the_subagent_s_own_entries_are_counted(self):
+        from harness import cost
+        self.write_log([self.entry('2026-09-23T10:25:00+00:00', 500, True),
+                        self.entry('2026-09-23T10:26:00+00:00', 700, True),
+                        self.entry('2026-09-23T10:27:00+00:00', 9000, False)])
+
+        totals = cost.tokens_between(self.root, '2026-09-23T10:20:00+00:00',
+                                     '2026-09-23T10:40:00+00:00', sidechain=True)
+        self.assertEqual(totals['output_tokens'], 1200)
+
+    def test_the_window_still_applies(self):
+        from harness import cost
+        self.write_log([self.entry('2026-09-23T10:25:00+00:00', 500, True),
+                        self.entry('2026-09-23T11:99:00+00:00', 700, True)])
+
+        totals = cost.tokens_between(self.root, '2026-09-23T10:20:00+00:00',
+                                     '2026-09-23T10:40:00+00:00', sidechain=True)
+        self.assertEqual(totals['output_tokens'], 500)
+
+    def test_a_log_with_no_subagent_entry_reads_null_rather_than_zero(self):
+        from harness import cost
+        self.write_log([self.entry('2026-09-23T10:25:00+00:00', 9000, False)])
+
+        self.assertIsNone(cost.tokens_between(self.root, '2026-09-23T10:20:00+00:00',
+                                              '2026-09-23T10:40:00+00:00', sidechain=True))
+
+    def test_counting_both_is_still_what_a_bare_call_does(self):
+        from harness import cost
+        self.write_log([self.entry('2026-09-23T10:25:00+00:00', 500, True),
+                        self.entry('2026-09-23T10:27:00+00:00', 9000, False)])
+
+        totals = cost.tokens_between(self.root, '2026-09-23T10:20:00+00:00',
+                                     '2026-09-23T10:40:00+00:00')
+        self.assertEqual(totals['output_tokens'], 9500)
 
 
 if __name__ == '__main__':

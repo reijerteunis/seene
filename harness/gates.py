@@ -284,8 +284,42 @@ def _non_code(data, thresholds):
     return {}
 
 
+def latest_triage(records, current):
+    """The most recent triage of this attempt, or nothing.
+
+    Scoped to the attempt for the reason a cited check is: a focus set computed
+    before a return describes a diff that has changed since, and a review held to
+    it would be held to the wrong list.
+    """
+    for record in reversed(records):
+        if record['kind'] == 'triage' and record['attempt'] == current['attempt']:
+            return record
+    return None
+
+
+def _require_focus_was_read(data, records, current):
+    """A review reads what the triage said to read, or it reviewed something smaller.
+
+    A ticket with no triage has no focus set and nothing to check, which is every
+    journal written before SEEN-107 and every review run without the command.
+    Reading more than the focus set is never refused: the focus set is a floor.
+    """
+    triaged = latest_triage(records, current)
+    if triaged is None:
+        return
+    focus = set(triaged['data'].get('focus') or [])
+    read = {str(path) for path in data.get('read') or []}
+    missing = sorted(focus - read)
+    require(not missing,
+            f'The review does not say it read {len(missing)} file(s) that triage record '
+            f'{triaged["sequence"]} put in the focus set: {", ".join(missing)}. A review that '
+            'skipped what the triage told it to read is a review of something smaller than the '
+            'change; read them, or run the triage again if the diff has moved since')
+
+
 def _review(data, records, current, repository, thresholds):
     require(latest_evidence(records, 'tdd') is not None, 'Complete the TDD stage before review')
+    _require_focus_was_read(data, records, current)
     require(data['verdict'] == 'pass',
             f'A verdict of {data["verdict"]!r} is a return, not an advance; use harness return')
     severities = thresholds['review']['severities']

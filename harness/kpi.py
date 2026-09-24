@@ -150,6 +150,62 @@ def subagents(records):
                 both=roster.SCOUT['name'] in named and review == 'subagent')
 
 
+def _latest_triage(records):
+    for record in reversed(records):
+        if record['kind'] == 'triage':
+            return record
+    return None
+
+
+def review_window(records):
+    """From the first triage to the review advance that followed it, or nothing.
+
+    The reviewer runs inside that window and nothing else does, which is what
+    makes a sidechain total over it the reviewer's own cost rather than the
+    session's. A ticket still at review has no closing advance, so the window
+    runs to the last record: an open window is a lower bound and reads as one.
+    """
+    opened = None
+    for record in records:
+        if record['kind'] == 'triage' and opened is None:
+            opened = record['timestamp']
+        if (opened and record['kind'] == 'advance'
+                and record['data'].get('from_stage') == 'review'):
+            return opened, record['timestamp']
+    return (opened, records[-1]['timestamp']) if opened else None
+
+
+def review_triage(records, reviewer_tokens=None):
+    """What the review triage settled on this ticket, and what the reviewer cost.
+
+    Null rather than a hollow section on a journal with no triage record. Every
+    ticket delivered before SEEN-107 had none, and a ticket that could not have
+    been triaged must not read as one that was triaged badly: the same rule
+    `sessions` and `subagents` already apply.
+
+    The excluded share is the figure SEEN-109 decides on. In shadow mode it is
+    what the narrowing would have dropped while the reviewer still read
+    everything, which is the only way to measure a saving before taking it.
+    """
+    latest = _latest_triage(records)
+    if latest is None:
+        return None
+    data = latest['data']
+    return dict(record=latest['sequence'],
+                depth=data.get('review_depth'),
+                shadow=data.get('shadow'),
+                asked=(data.get('jev') or {}).get('asked'),
+                rules=list(data.get('rules') or []),
+                files=len(data.get('files') or []),
+                focus=len(data.get('focus') or []),
+                excluded=len(data.get('would_exclude') or []),
+                excluded_share=data.get('excluded_share'),
+                # Null until harness report reads the session logs, for the same
+                # reason points and tokens are: delivery reads no machine.
+                reviewer_output_tokens=(reviewer_tokens or {}).get('output_tokens'),
+                reviewer_tokens=reviewer_tokens)
+
+
 def coverage(records):
     for record in reversed(records):
         if record['kind'] == 'check' and record['data'].get('phase') == 'coverage':
@@ -197,7 +253,8 @@ def first_pass_ci(records):
                for check in checks)
 
 
-def measure(records, ticket, points=None, delivered_at=None, tokens=None, cost=None):
+def measure(records, ticket, points=None, delivered_at=None, tokens=None, cost=None,
+            reviewer_tokens=None):
     """Everything a KPI record carries for one ticket."""
     if not records:
         return dict(ticket=ticket, delivered_at=delivered_at, points=points,
@@ -206,7 +263,7 @@ def measure(records, ticket, points=None, delivered_at=None, tokens=None, cost=N
                     findings=dict(by_severity={}, fixed=0, waived=0),
                     first_pass_ci=None, tokens=tokens, cost=cost, escaped_defects=[],
                     slices=None, sessions=None, output_tokens_per_slice=None,
-                    subagents=None, harness_version=None,
+                    subagents=None, review_triage=None, harness_version=None,
                     note='Measured from the ticket file: this ticket has no journal')
     receipt = _receipt(records)
     rework = sum(1 for record in records if record['kind'] in ('return', 'reopen'))
@@ -229,6 +286,7 @@ def measure(records, ticket, points=None, delivered_at=None, tokens=None, cost=N
                 slices=cut,
                 sessions=sessions(records),
                 subagents=subagents(records),
+                review_triage=review_triage(records, reviewer_tokens),
                 output_tokens_per_slice=output_tokens_per_slice(
                     tokens, (cut or {}).get('proven') or (cut or {}).get('planned')),
                 harness_version=records[-1].get('harness_version'),

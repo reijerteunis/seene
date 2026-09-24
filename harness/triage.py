@@ -505,7 +505,45 @@ def excluded_share(facts, narrowed):
     return round(dropped / total, 4)
 
 
-def run(repository, records, current, rules, ticket):
+def reviewer_task(ticket, sequence, depth, focus, results, shadow):
+    """The task the session hands its reviewer subagent.
+
+    Text rather than a call, because the harness runs no model: what it buys is
+    that the focus set the reviewer is given and the focus set the gate will
+    check are the same list, read from the same record. What pass one already
+    settled is named so the reviewer does not spend a read confirming it.
+    """
+    passed = [check['name'] for check in results if check['outcome'] == PASS]
+    # Names for what passed, and the detail only for what did not. A passing
+    # check's detail names paths, and at spot depth some of those are outside the
+    # focus set: naming one is inviting the read this ticket exists to save. The
+    # detail is safe on the rest, because a failed check has already forced full
+    # depth, where the focus set is the whole diff, and no unavailable check's
+    # detail names a path at all.
+    outstanding = [f'- {check["name"]} ({check["outcome"]}): {check["detail"]}'
+                   for check in results if check['outcome'] != PASS]
+    lines = [f'Review {ticket} against its acceptance criteria and its journal.',
+             '',
+             f'Depth: {depth}, settled by triage record {sequence}'
+             + (', in shadow mode, so the focus set is the whole diff and what the narrowing '
+                'would have dropped is recorded rather than acted on' if shadow else ''),
+             '',
+             f'Read these {len(focus)} file(s) and no others:']
+    lines += [f'- {path}' for path in focus]
+    if passed:
+        lines += ['',
+                  'Already settled with no model, so do not spend a read confirming any of '
+                  'them: ' + ', '.join(passed) + '.']
+    if outstanding:
+        lines += ['', 'Not settled, so they are yours:']
+        lines += outstanding
+    lines += ['',
+              "Return the review record's shape. Its `read` list must name every file you "
+              'read and must cover the focus set above, which the review gate checks.']
+    return '\n'.join(lines)
+
+
+def run(repository, records, current, rules, ticket, sequence):
     """The whole triage, as the data a `triage` record carries."""
     require(current['stage'] == 'review',
             f'A triage is run at the review stage; this ticket is at {current["stage"]}. '
@@ -562,6 +600,7 @@ def run(repository, records, current, rules, ticket):
     depth = 'full' if reasons else depth_from(by_key.get('review_depth'))
     narrowed = focus_set(facts, by_key, depth, rules)
     shadow = bool(rules['review']['triage_shadow'])
+    focus = [entry['path'] for entry in facts] if shadow else list(narrowed)
     return dict(fingerprint=fingerprint,
                 files=facts,
                 criteria=criteria,
@@ -574,10 +613,11 @@ def run(repository, records, current, rules, ticket):
                 # narrowing would have dropped is stored rather than acted on.
                 # That is the figure SEEN-109 decides on, measured before
                 # anything is decided by it.
-                focus=[entry['path'] for entry in facts] if shadow else list(narrowed),
+                focus=focus,
                 shadow=shadow,
                 would_exclude=sorted({entry['path'] for entry in facts} - set(narrowed)),
-                excluded_share=excluded_share(facts, narrowed))
+                excluded_share=excluded_share(facts, narrowed),
+                reviewer_task=reviewer_task(ticket, sequence, depth, focus, results, shadow))
 
 
 def _ticket_text(repository, records):
@@ -608,7 +648,10 @@ def append(repository, folder, records, current, args, rules):
     RED that did not fail, and it is what puts the return before any model reads
     the diff.
     """
-    data = run(repository, records, current, rules, args.ticket)
+    # The reviewer task names the record it came from, and a record does not know
+    # its own number until it is written. This is the number journal.append will
+    # give it, computed the same way and under the same lock.
+    data = run(repository, records, current, rules, args.ticket, len(records) + 1)
     record = journal.append(folder, records, kind='triage', stage='review',
                             attempt=current['attempt'], actor=args.actor,
                             head=repository.head(), ticket=args.ticket, data=data)

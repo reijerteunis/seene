@@ -93,6 +93,7 @@ class ReopenTest(DeliveryWalk):
                          '--', 'true')
         qa = self.run_harness('history', self.ticket_id)[-1]['sequence']
         self.submit('review', dict(reviewer='codex:reviewer', independence='independent',
+                                   read=['harness/journal.py'],
                                    acceptance_evidence=['The correction is covered'],
                                    findings=[], checks=[qa],
                                    security_checklist=['No secret in the diff'], verdict='pass'),

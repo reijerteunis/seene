@@ -266,6 +266,7 @@ class ReviewGateTest(GateTest):
 
     def review(self, **changes):
         data = self.template('review',
+                             read=['harness/gates.py'],
                              acceptance_evidence=['AC1 proven by check 4'],
                              independence='self-review',
                              reviewer='claude:reviewer')

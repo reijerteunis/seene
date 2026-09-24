@@ -48,12 +48,20 @@ def tool_calls_between(root, opened, closed):
     return calls if seen else None
 
 
-def tokens_between(root, opened, closed):
+def tokens_between(root, opened, closed, sidechain=None):
     """Token counts from entries falling inside a ticket's window.
 
     Null rather than zero when there are no logs: zero is a claim that nothing
     was spent, and the honest answer on a machine without logs is that nobody
     knows.
+
+    `sidechain` picks whose entries count: True for a subagent's own, False for
+    the main session's, None for both, which is what every caller before
+    SEEN-107 asked for. Claude Code marks a subagent's entries with isSidechain,
+    and it is the only thing in the log that tells the reviewer's cost from the
+    session's. The field is on every entry and has never yet read true on this
+    repository, so a null here is a machine that has not run a subagent rather
+    than a reviewer that cost nothing: see SEEN-107's clarify record.
     """
     directory = log_directory(root)
     if not directory.is_dir():
@@ -69,6 +77,8 @@ def tokens_between(root, opened, closed):
             stamp = entry.get('timestamp')
             usage = (entry.get('message') or {}).get('usage')
             if not stamp or not usage:
+                continue
+            if sidechain is not None and bool(entry.get('isSidechain')) != sidechain:
                 continue
             stamp = stamp.replace('Z', '+00:00')
             if opened <= stamp <= closed:

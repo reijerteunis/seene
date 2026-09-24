@@ -241,6 +241,7 @@ class BaselineTest(CommandTest):
                          'codex:reviewer', '--', 'true')
         qa = self.records()[-1]['sequence']
         self.submit('review', dict(reviewer='codex:reviewer', independence='independent',
+                                   read=['harness/journal.py'],
                                    acceptance_evidence=['covered'], findings=[], checks=[qa],
                                    security_checklist=['No secret in the diff'], verdict='pass'),
                     actor='codex:reviewer')
