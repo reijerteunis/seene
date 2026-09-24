@@ -1,0 +1,46 @@
+{
+  "sequence": 33,
+  "ticket": "SEEN-105",
+  "timestamp": "2026-09-24T12:48:03.150350+00:00",
+  "harness_version": "2",
+  "kind": "handoff",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "2377cfb62f89",
+  "head": "2adad62d0b864fb8399bf8491364f6ced4f2cac0",
+  "prev_hash": "4f636d9a61e6874e0ed3ef15b84ace920ac4269ecd12eb797eab34b375a74fe9",
+  "data": {
+    "pack": ".harness-drafts/SEEN-105-handoff.md",
+    "sha256": "5bac7c516c3f1e04ce34e0c53d0aea76ecaf4ec7f248d5b6befc92cc86b5c307",
+    "estimated_tokens": 1087,
+    "token_limit": 2000,
+    "slice": {
+      "position": 4,
+      "total": 4,
+      "done": 3,
+      "declared": true,
+      "entry": {
+        "name": "The attribution in the KPI and the sprint report, and the skill both assistants read",
+        "points": 1,
+        "files": [
+          "harness/kpi.py",
+          "harness/context.py",
+          "harness/report.py",
+          "docs/harness/skill.md",
+          ".claude/skills/seen-harness/SKILL.md",
+          ".agents/skills/seen-harness/SKILL.md",
+          "harness/tests/test_kpi.py",
+          "harness/tests/test_context_budget.py"
+        ],
+        "red": "measure over a journal carrying a scout brief and a subagent review returns no subagents field, and the rendered sprint report has no row for the tickets worked with both agents"
+      }
+    },
+    "figures": {
+      "session": "2377cfb62f89",
+      "output_tokens": 234101,
+      "tool_calls": 101,
+      "unavailable": null
+    }
+  }
+}

@@ -324,5 +324,36 @@ def solution_evidence(**changes):
     return data
 
 
+
+class DraftAsksTheGateTest(CommandTest):
+    """H3 of SEEN-105's third review: one predicate, two readers.
+
+    extra_review_fields is the draft-time twin of gates._needs_two_reviewers, and a
+    twin that carries a copy of the other's reasoning is a twin that will disagree
+    with it. It did: for an agent-action ticket the harness wrote a draft the gate
+    it ships with would refuse.
+    """
+
+    def test_the_review_draft_asks_for_what_the_gate_will_demand(self):
+        from harness import cli, gates
+        records = [dict(sequence=1, kind='start', stage='clarify', attempt=1,
+                        actor='claude:implementer', data={}),
+                   dict(sequence=2, kind='advance', stage='clarify', attempt=1,
+                        actor='claude:implementer',
+                        data=dict(from_stage='clarify', to_stage='solution', decisions=[],
+                                  evidence=dict(changes_agent_action=True))),
+                   dict(sequence=3, kind='advance', stage='solution', attempt=1,
+                        actor='claude:implementer',
+                        data=dict(from_stage='solution', to_stage='tdd', evidence={},
+                                  decisions=[dict(question='touches_billing_or_policy_gate',
+                                                  outcome='no')]))]
+
+        demanded = gates.needs_two_reviewers(records)
+        asked = cli.extra_review_fields(records, 'review')
+
+        self.assertTrue(demanded)
+        self.assertIn('second_reviewer', asked)
+        self.assertIn('security_checklist', asked)
+
 if __name__ == '__main__':
     unittest.main()

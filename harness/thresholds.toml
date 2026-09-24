@@ -15,6 +15,10 @@ prefix = "SEEN"
 [actors]
 tools = ["claude", "codex", "human"]
 roles = ["implementer", "reviewer"]
+# The two that can review each other's work. A person reviewing alone is not the
+# other assistant, which is what a ticket touching billing or an agent action
+# needs: SEEN-105's second review, G6.
+assistants = ["claude", "codex"]
 
 [stages]
 return_targets = ["clarify", "solution", "tdd"]
@@ -67,6 +71,11 @@ baseline = "docs/harness/reports/context-tools-baseline.json"
 # and a date alone would have counted them both: this is SEEN-098's receipt.
 tools_available_from = "2026-09-24T06:15:10.769645+00:00"
 minimum_tickets = 5
+# When both agents of SEEN-105 existed: the commit that generated their copies,
+# cc0449d on 24 September 2026. A ticket that installed a tool was not worked with
+# it, which is the rule SEEN-098 wrote for itself; SEEN-105 started at 11:36 that
+# morning, so its own figures are not the figures its fifth criterion asks for.
+agents_available_from = "2026-09-24T12:18:27+00:00"
 decision_rule = "Below the baseline, the tools paid for the context they occupy and stay. Above it, one is removed, graphify first, because codegraph and repowise can partly answer its questions. A rise removes them immediately rather than after five tickets. The call is the founder's."
 
 # The session cap, from SEEN-104. The slice is the unit of context and the
@@ -89,3 +98,13 @@ output_token_budget = 60000
 # The handoff pack is the only thing that crosses a slice boundary, so it is
 # small enough to be read in full by the session that receives it.
 handoff_token_limit = 2000
+
+# The two agents with a context of their own, from SEEN-105. The roster and the
+# cap are here rather than in code because adding an agent or moving the cap is a
+# legitimate decision that should be a diff a person reviews; what each agent may
+# do is structure and lives in harness/agents.py.
+[agents]
+names = ["seen-scout", "seen-reviewer"]
+# A brief is what crosses back into the session that asked, so it is small enough
+# to be read in full. Four hundred words is about two thirds of the handoff pack.
+brief_word_limit = 400

@@ -153,6 +153,54 @@ class ComparisonTest(unittest.TestCase):
         self.assertIn('Output tokens per point', table)
         self.assertIn('Output tokens per slice', table)
 
+    def with_agents(self, count, both=True):
+        return [dict(ticket=f'SEEN-{300 + n}', points=2, output_tokens=30000, tool_calls=10,
+                     started='2026-09-25T09:00:00Z',
+                     subagents=dict(briefs=1, agents=['seen-scout'], review='subagent', both=both))
+                for n in range(count)]
+
+    def test_the_tickets_worked_with_the_agents_are_divided_on_their_own(self):
+        section = context.compare(self.qualifying(4) + self.with_agents(1), BASELINE, minimum=5)
+
+        self.assertEqual(section['tickets_with_agents'], 1)
+        self.assertEqual(section['output_tokens_per_point_with_agents'], 15000.0)
+
+    def test_a_report_with_no_such_ticket_says_nothing_rather_than_zero(self):
+        section = context.compare(self.qualifying(5), BASELINE, minimum=5)
+
+        self.assertEqual(section['tickets_with_agents'], 0)
+        self.assertIsNone(section['output_tokens_per_point_with_agents'])
+
+    def test_a_ticket_that_used_one_agent_and_not_the_other_does_not_count(self):
+        section = context.compare(self.with_agents(3, both=False), BASELINE, minimum=5)
+
+        self.assertEqual(section['tickets_with_agents'], 0)
+
+    def test_the_ticket_that_built_the_agents_is_not_counted_as_worked_with_them(self):
+        """G4: SEEN-098's own rule, applied to the agents this time."""
+        built_them = self.with_agents(1)
+        built_them[0]['started'] = '2026-09-24T09:00:00Z'
+
+        section = context.compare(built_them + self.with_agents(1), BASELINE, minimum=5,
+                                  agents_from='2026-09-24T12:18:27Z')
+
+        self.assertEqual(section['tickets_with_agents'], 1)
+
+    def test_the_row_names_the_tickets_it_counted(self):
+        section = context.compare(self.with_agents(2), BASELINE, minimum=5)
+
+        self.assertEqual(section['tickets_named_with_agents'], ['SEEN-300', 'SEEN-301'])
+
+    def test_the_rendered_table_names_the_scout_and_the_reviewer(self):
+        from harness import report, thresholds
+        from harness.tests.helpers import PROJECT
+
+        section = context.compare(self.with_agents(5), BASELINE, minimum=5)
+        table = '\n'.join(report.render_context(section, thresholds.load(PROJECT)['context']))
+
+        self.assertIn('scout and the reviewer', table)
+        self.assertIn('15000.0', table)
+
     def test_too_few_tickets_concludes_nothing_and_says_so(self):
         """Two numbers divided is not evidence when there are two tickets."""
         section = context.compare(self.qualifying(2), BASELINE, minimum=5)

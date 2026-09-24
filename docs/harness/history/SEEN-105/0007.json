@@ -1,0 +1,16 @@
+{
+  "sequence": 7,
+  "ticket": "SEEN-105",
+  "timestamp": "2026-09-24T11:45:36.458406+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "2377cfb62f89",
+  "head": "8008446ad03941e9c819fc6ad0a0f4387b44222e",
+  "prev_hash": "341cafb14a5c75390e88b7ed2e3a283a4721a744c215075f404072a62d4ca023",
+  "data": {
+    "text": "# Two facts established before the clarify gate, 24 September 2026\n\n## A Claude Code subagent inherits its parent's session id\n\nA subagent was spawned from this clarify session with one instruction: print\n`CLAUDE_CODE_SESSION_ID`, the harness's own digest of it, and the names of any\nagent-related environment variables. It returned:\n\n```\nCLAUDE_CODE_SESSION_ID=<the parent's own value, not repeated here>\ndigest: 2377cfb62f89\nAI_AGENT=<set>\n```\n\nThat is the same session id and the same digest, 2377cfb62f89, as the session\nthat spawned it. The raw id is not written here, and the harness refused this\nnote twice over until it was taken out: `journal.append` matched the value\nagainst the environment and said so, which is the control `sessions.py`\ndescribes and the reason a record carries twelve hex characters of a digest\nrather than an id.\nand `AI_AGENT` is set to `claude-code_2-1-273_agent` in the parent as well, so it\ndoes not discriminate either. Before this run no journal and no session log on\nthis machine held a subagent turn, so nothing recorded answered the question.\n\nThe consequence: `sessions.current()` cannot tell a subagent from the session\nthat spawned it. Wherever this ticket says \"the session id it came from\", the\nvalue is declared by the session that records it, not derived from the\nenvironment. The gate can refuse the case it can see, a review that names the\nimplementer's own session as the reviewer's, and it cannot detect a value typed\nto pass.\n\n## The frontmatter keys the two assistants read\n\nThe Claude Code documentation lists `name`, `description`, `tools`, `model`,\n`permissionMode`, `maxTurns`, `skills`, `memory`, `isolation`, `mcpServers`,\n`hooks` and `omitClaudeMd` for `.claude/agents/<name>.md`, camelCase as spelled\nhere, and skips a file with invalid YAML or without `name` and `description`\nwhile silently ignoring a key it does not know. A skill may declare\n`context: fork` with `agent: <type>` to run in a subagent context. Sources:\ncode.claude.com/docs/en/sub-agents.md and code.claude.com/docs/en/skills.md,\nread on 24 September 2026.\n\nSilently ignoring an unknown key matters for the generator: a wrong key in a\ngenerated file produces no error anywhere, so the test that pins the rendered\nfrontmatter is the only thing that will catch it.\n"
+  }
+}

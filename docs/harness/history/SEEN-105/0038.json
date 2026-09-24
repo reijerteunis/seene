@@ -1,0 +1,55 @@
+{
+  "sequence": 38,
+  "ticket": "SEEN-105",
+  "timestamp": "2026-09-24T12:55:18.616507+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "2377cfb62f89",
+  "head": "1457f6031b8fea852a82fc526451a6c551247ba6",
+  "prev_hash": "27e35dfc253e3fa11cedfa795bdb5118f88ef6f455b30508794632261ab86fab",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "behaviour": "harness sync generates the two agents' copies for both assistants from one source each, and doctor reports a copy edited by hand, a missing copy and a missing source",
+          "failure_reason": "AssertionError: False is not true : .claude/agents/seen-scout.md was not written, and '.claude/agents/seen-scout.md' not found in the list sync returned, with twelve errors from harness.agents not existing at all",
+          "red": 17,
+          "green": 20
+        },
+        {
+          "behaviour": "harness handoff takes --slice-done, so the session that worked a slice says how many are done rather than leaving it to a count of greens, and a declaration the plan cannot carry is refused with the plan's length",
+          "failure_reason": "HarnessError: Unrecognised arguments: --slice-done 1, and AssertionError: '3' not found in 'Unrecognised arguments: --slice-done 4'",
+          "red": 22,
+          "green": 23
+        },
+        {
+          "behaviour": "harness note --from <agent> records a brief with its agent and word count, refuses one over the cap with both numbers, refuses an unknown agent with the roster, and leaves an ordinary note uncapped",
+          "failure_reason": "HarnessError: Unrecognised arguments: --from seen-scout, and AssertionError: 'seen-scout' not found in 'Unrecognised arguments: --from seen-implementer'",
+          "red": 25,
+          "green": 27
+        },
+        {
+          "behaviour": "The review gate accepts a review disclosed as subagent when it names a session that did not work the ticket, refuses one that names the implementer's own session or the session running the advance, and still requires a reviewer from the other assistant on a ticket that touches billing or the policy gate",
+          "failure_reason": "AssertionError: 'reviewer_session' does not match 'Field reviewer_session must not be empty'... and 'other assistant' does not match 'Disclose independence as independent or self-review', with three errors from reviewer_session being unknown to the template",
+          "red": 30,
+          "green": 31
+        },
+        {
+          "behaviour": "kpi.measure records whether a ticket was worked with both agents, null when its journal cannot say, and the sprint report divides those tickets' output tokens per point on their own beside the SEEN-099 baseline; the skill tells both assistants how to invoke the two agents",
+          "failure_reason": "AttributeError: module 'harness.kpi' has no attribute 'subagents', KeyError: 'tickets_with_agents', and AssertionError: 'scout and the reviewer' not found in the rendered table, with four failures for a skill that did not name either agent",
+          "red": 34,
+          "green": 35
+        }
+      ],
+      "regression": 37,
+      "coverage_delta": 0.0
+    },
+    "decisions": []
+  }
+}

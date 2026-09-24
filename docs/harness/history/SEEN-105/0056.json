@@ -1,0 +1,19 @@
+{
+  "sequence": 56,
+  "ticket": "SEEN-105",
+  "timestamp": "2026-09-24T14:48:36.341967+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 4,
+  "actor": "claude:implementer",
+  "session": "2377cfb62f89",
+  "head": "b347ec537a41f2155e112e0a8a81493b7b38e4d6",
+  "prev_hash": "6a076189b2fdca58781c9ef0be93ebf7724981f106b6cbebc93f511d79a5bc1a",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 5,
+    "reason": "The third review by seen-reviewer in context c3dbd72395a4 closed all eight findings of the second round and returned seven new ones, recorded at note 55. H1 must not ship: the G1 fix counts every record outside the review stage as authorship, so a return at the deliver stage or a reopen at delivered by the other assistant, of which this repository holds twelve, makes that assistant an author and every disclosure at the next review gate is refused, which leaves the ticket unable to leave review at all. It is the third generation of F2 and G1, so the fix defines authorship positively as the stages where work happens and is tested against all twenty real journals rather than against another fixture. H2 and H3 are the parts of the G3 fix that stopped at the gate: the declaration the repository owns is the ticket frontmatter, and the draft must ask the gate rather than carry a copy of its reasoning. H4 is F1 again with a return as the trigger. H5, H6 and H7 are the skill and the Outcome describing rules the fixes have changed."
+  }
+}

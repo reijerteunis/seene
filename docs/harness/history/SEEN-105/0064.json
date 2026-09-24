@@ -1,0 +1,296 @@
+{
+  "sequence": 64,
+  "ticket": "SEEN-105",
+  "timestamp": "2026-09-24T17:48:20.774369+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "review",
+  "attempt": 5,
+  "actor": "claude:reviewer",
+  "session": "2377cfb62f89",
+  "head": "f7432e9e3e11fc6264523ba25117e9b1c7a9a8b3",
+  "prev_hash": "15a833de45e0440f3fca275ae4d55b9afeedb33d1789cff20daf46f9f4a9f084",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "deliver",
+    "evidence": {
+      "reviewer": "claude:reviewer",
+      "independence": "subagent",
+      "reviewer_session": "c3dbd72395a4",
+      "acceptance_evidence": [
+        "Criterion 1: sync writes .claude/agents/seen-scout.md, seen-reviewer.md and .codex/agents/seen-scout.toml, seen-reviewer.toml from harness/agents/, and doctor reports a hand edit, a missing copy, a missing source and a file no source generates. Records 17 and 20, with 41 and 51 for the stray and the project agent of one own. Verified on the committed tree by all three reviews.",
+        "Criterion 2: record 26 is a real 381-word brief from seen-scout against Sprint 0 ticket SEEN-009, carrying its agent, its word count and the session that recorded it; a 401-word brief is refused with both numbers. Records 25 and 27, with record 28 disclosing that the session transcribes what the agent returns because the scout holds no Write.",
+        "Criterion 3: the gate refuses a reviewer_session that wrote any record on the ticket, whichever attempt, and the session running the advance, and accepts a subagent review from another context or a review by the other assistant. Records 30, 31, 41, 51, 58 and 59. This very record is the accepting half in practice: reviewer_session c3dbd72395a4 is neither session in this journal.",
+        "Criterion 4: a ticket that touches billing or changes an agent action needs a second reviewer, the security checklist and a reviewer from the other assistant, read from the ticket frontmatter as well as the clarify record and the solution decision. Proven with fixtures at records 30, 49, 58 and 59, including a return by the other assistant at both the review and the deliver stages.",
+        "Criterion 5, as amended by Ruud at note 50: the measurement and the attribution are delivered and tested, kpi.subagents and context.worked_with_agents with the row in report.render_context, and [context] agents_available_from keeps this ticket out of the row because a ticket that installed a tool was not worked with it. Records 34, 35, 49 and 51. The figure is read from the sprint 0 report when SEEN-106 delivers."
+      ],
+      "findings": [
+        {
+          "id": "F1",
+          "severity": "high",
+          "claim": "harness status --brief rebuilt the pack without the count --slice-done declared, so the fix never reached the session that resumes.",
+          "failure_scenario": "Replayed on this journal: records 1 to 24 inferred done 3 and pointed at slice 4 while record 24 declared done 1, with pack_matches_record still true.",
+          "status": "resolved",
+          "resolution": "Fixed in b4514ba: the pack reads the last declaration back and greens after it still count. Verified by the third review (note 55)."
+        },
+        {
+          "id": "F2",
+          "severity": "high",
+          "claim": "The cross-tool rule read the tools that wrote any record as authorship, so a return by the other assistant made a billing ticket unadvanceable.",
+          "failure_scenario": "A codex:reviewer return, the documented path, left named minus worked_by empty and every review record was refused; 81 records in this repository carry a :reviewer actor.",
+          "status": "resolved",
+          "resolution": "Fixed in b4b5bff, corrected in b347ec5 and again in f7432e9: authorship is WORK_STAGES, the stages where a ticket is worked. See H1."
+        },
+        {
+          "id": "F3",
+          "severity": "high",
+          "claim": "Criterion 5 had no recorded evidence and the deferral had been taken by the implementer rather than by Ruud.",
+          "failure_scenario": "Ticking the box would have attested a figure no record supports, the only candidate being SEEN-105 itself at roughly three times the baseline.",
+          "status": "resolved",
+          "resolution": "Amended by Ruud on 24 September 2026, recorded at note 50 with the three options and the one he chose, and in the ticket under ## Amendments."
+        },
+        {
+          "id": "F4",
+          "severity": "medium",
+          "claim": "Any note carrying any agent name counted as a brief, so a note from the reviewer made subagents.both true.",
+          "failure_scenario": "A --from seen-reviewer note plus a subagent review made both true, and the report attributed a saving to a ticket the scout never ran on.",
+          "status": "resolved",
+          "resolution": "Fixed in b4b5bff: both requires a brief from the scout by name. Verified by fixture in the second review."
+        },
+        {
+          "id": "F5",
+          "severity": "medium",
+          "claim": "A declared reviewer session was compared only against the current attempt, so a session that worked an earlier attempt passed as the reviewer.",
+          "failure_scenario": "Session 7c81cdfdd5e9 wrote records 1 and 2 in attempt 1 and would have passed as the reviewer of attempt 2.",
+          "status": "resolved",
+          "resolution": "Fixed in b4b5bff: _sessions_of reads every attempt. Verified by fixture in the second review."
+        },
+        {
+          "id": "F6",
+          "severity": "medium",
+          "claim": "Any string whose prefix was not a tool that wrote a record satisfied the cross-tool rule.",
+          "failure_scenario": "reviewer codexx:reviewer and second_reviewer Ruud both passed as the other assistant on a billing ticket.",
+          "status": "resolved",
+          "resolution": "Fixed in b4b5bff and narrowed in b347ec5: the name must be one of [actors] assistants."
+        },
+        {
+          "id": "F7",
+          "severity": "low",
+          "claim": "A declared slice count the journal contradicts was recorded with no trace but the declared flag.",
+          "failure_scenario": "harness handoff --slice-done 3 on a four-slice plan with one green pointed the next session at slice 4 with two slices unworked.",
+          "status": "resolved",
+          "resolution": "Answered rather than prevented in b4514ba: the record carries the inferred count beside the declared one, because only the session that worked the slice knows."
+        },
+        {
+          "id": "F8",
+          "severity": "low",
+          "claim": "Shaping the template before reject_placeholders removed the dropped fields example prose from the comparison for the whole record.",
+          "failure_scenario": "A non-code solution record could paste the tests_first example into its approach field and advance.",
+          "status": "resolved",
+          "resolution": "Fixed in b4b5bff: the examples come from the whole template and only the dropped field own value is left out. Verified by fixture in the second review."
+        },
+        {
+          "id": "F9",
+          "severity": "low",
+          "claim": "The reviewer holds Bash, so on the Claude Code side no Edit and no Write rests on instructions; sandbox_mode is a Codex key.",
+          "failure_scenario": "A reviewer subagent could write through a shell, and the review gate would record a fingerprint over a tree the reviewer itself changed.",
+          "status": "resolved",
+          "resolution": "Accepted, not fixed. Disclosed in harness/agents.py, in docs/harness/skill.md and in the ticket Outcome, and named for SEEN-106, which puts hooks in front of both assistants."
+        },
+        {
+          "id": "F10",
+          "severity": "low",
+          "claim": "drift walked the two agents rather than the directories, so an agent file no source generates was invisible to doctor.",
+          "failure_scenario": "A .claude/agents/seen-implementer.md holding Edit and Write would have been committable and unreported.",
+          "status": "resolved",
+          "resolution": "Fixed in b4b5bff and narrowed in b347ec5: strays reports a file named like one of this harness agents, and leaves a person own agents alone."
+        },
+        {
+          "id": "F11",
+          "severity": "low",
+          "claim": "The skill asserted max_depth is 1 on both sides while the Codex setting lives in an untracked file.",
+          "failure_scenario": "A fresh clone or CI has no .codex/config.toml, so the assurance was true only on the machine that wrote it.",
+          "status": "resolved",
+          "resolution": "Fixed in b4b5bff: the skill tells a session to set it in its own .codex/config.toml and says doctor cannot check it."
+        },
+        {
+          "id": "G1",
+          "severity": "medium",
+          "claim": "The F2 fix read authorship from the actor role, so a ticket recorded entirely as :reviewer had no implementer tool at all.",
+          "failure_scenario": "A billing ticket recorded as claude:reviewer throughout accepted a claude subagent review of claude code.",
+          "status": "resolved",
+          "resolution": "Fixed in b347ec5 and completed in f7432e9: authorship is read from the stage, named positively as WORK_STAGES."
+        },
+        {
+          "id": "G2",
+          "severity": "medium",
+          "claim": "A review disclosed as independent was accepted whenever any second tool had written any record.",
+          "failure_scenario": "After a codex:reviewer return, the session that wrote the code submitted independent with reviewer claude:reviewer and was accepted.",
+          "status": "resolved",
+          "resolution": "Fixed in b347ec5: the reviewer tool may not be a tool that wrote the work, which is the question the billing rule asks."
+        },
+        {
+          "id": "G3",
+          "severity": "medium",
+          "claim": "_needs_two_reviewers read only the solution decision, so the changes_agent_action half of criterion 4 was unenforced.",
+          "failure_scenario": "A ticket whose clarify record says it changes an agent action, with the solution question answered no as it was on this ticket at record 14, needed no second reviewer.",
+          "status": "resolved",
+          "resolution": "Fixed in b347ec5 and sourced properly in f7432e9: the frontmatter and the clarify record are both read."
+        },
+        {
+          "id": "G4",
+          "severity": "medium",
+          "claim": "SEEN-105 own journal made subagents.both true, so the report row would have averaged in the ticket that built the agents.",
+          "failure_scenario": "The row Ruud amendment points at would have been the mean of SEEN-106 and this ticket, whose first sessions predate both agents.",
+          "status": "resolved",
+          "resolution": "Fixed in b347ec5: [context] agents_available_from holds the commit time of cc0449d and the row names the tickets it counted, which is the rule SEEN-098 wrote for its own tool."
+        },
+        {
+          "id": "G5",
+          "severity": "medium",
+          "claim": "The amendment to criterion 5 was attributed to Ruud in the ticket file with no record in the journal.",
+          "failure_scenario": "After merge, nothing distinguished an amendment Ruud made from one the implementer wrote for itself.",
+          "status": "resolved",
+          "resolution": "Fixed: note 50 records it with actor human:implementer, the three options and his words."
+        },
+        {
+          "id": "G6",
+          "severity": "low",
+          "claim": "[actors] tools carries human, so a review by one person alone satisfied the rule that the review comes from the other assistant.",
+          "failure_scenario": "reviewer human:reviewer and second_reviewer human:reviewer were accepted on a billing ticket with no second assistant involved.",
+          "status": "resolved",
+          "resolution": "Fixed in b347ec5: [actors] assistants is its own vocabulary and the refusal names it."
+        },
+        {
+          "id": "G7",
+          "severity": "low",
+          "claim": "strays made the harness own .claude/agents/, so a project agent of one own failed doctor and CI on every unrelated ticket.",
+          "failure_scenario": "Saving .claude/agents/my-debugger.md with Claude Code own command would have failed the doctor step until the file was deleted.",
+          "status": "resolved",
+          "resolution": "Fixed in b347ec5: only a file named like one of this harness agents is a stray."
+        },
+        {
+          "id": "G8",
+          "severity": "low",
+          "claim": "The Outcome said five proven slices where the journal proved more.",
+          "failure_scenario": "kpi.slices returned proven 7 while the ticket file said five, so two numbers in the same pack disagreed.",
+          "status": "resolved",
+          "resolution": "Fixed in b347ec5 and again in f7432e9 after H7: the Outcome carries eight proven against four planned, which is what kpi.measure returns."
+        },
+        {
+          "id": "H1",
+          "severity": "high",
+          "claim": "The G1 fix counted every record outside the review stage as authorship, so a return at deliver or a reopen at delivered made the other assistant an author.",
+          "failure_scenario": "This repository holds nine such returns and three such reopens; with one present, all twelve disclosures were refused and the ticket could not leave review at all.",
+          "status": "resolved",
+          "resolution": "Fixed in f7432e9: authorship is named positively as WORK_STAGES, and the test runs over all twenty journals plus a synthetic deliver-return and reopen rather than over another fixture."
+        },
+        {
+          "id": "H2",
+          "severity": "medium",
+          "claim": "changes_agent_action was read from the clarify record, which the same session writes and whose template default is false, while the ticket frontmatter was read by no harness code.",
+          "failure_scenario": "On SEEN-033, the ticket that defines the policy gate, a clarify record left at the default would have skipped the control entirely.",
+          "status": "resolved",
+          "resolution": "Fixed in f7432e9: the gate reads the frontmatter this repository owns beside the clarify record, and either one is enough."
+        },
+        {
+          "id": "H3",
+          "severity": "medium",
+          "claim": "extra_review_fields carried a copy of the gate reasoning and had already drifted from it.",
+          "failure_scenario": "For an agent-action ticket the harness wrote a review draft with no second_reviewer, and the gate refused the advance after the review was spent.",
+          "status": "resolved",
+          "resolution": "Fixed in f7432e9: the draft asks gates.needs_two_reviewers, which is now public for that purpose."
+        },
+        {
+          "id": "H4",
+          "severity": "medium",
+          "claim": "The declaration and the green count were scoped to the attempt, so a return discarded the declaration.",
+          "failure_scenario": "On this journal at attempt 4 the pack pointed at slice 2, work that shipped in 5d9bb3f, which is F1 with a return as the trigger.",
+          "status": "resolved",
+          "resolution": "Fixed in f7432e9: both count from where the plan was last accepted, so a return does not undo a slice that shipped and a new plan starts its own count."
+        },
+        {
+          "id": "H5",
+          "severity": "medium",
+          "claim": "The skill described the review rule as it was before G3 and G6.",
+          "failure_scenario": "A session on an agent-action ticket would have planned no cross-tool review, and one on a billing ticket would have named human:reviewer as the skill instructed.",
+          "status": "resolved",
+          "resolution": "Fixed in f7432e9: the skill names both triggers, [actors] assistants, and that the draft asks the gate."
+        },
+        {
+          "id": "H6",
+          "severity": "low",
+          "claim": "The skill said the gate refuses a session that worked this attempt records, which F5 had widened to every attempt.",
+          "failure_scenario": "A session resuming at attempt 3 would have used the attempt-1 session as its reviewer context and been refused after the review was done.",
+          "status": "resolved",
+          "resolution": "Fixed in f7432e9, in the same paragraph as H5."
+        },
+        {
+          "id": "H7",
+          "severity": "low",
+          "claim": "Two counts in the Outcome were contradicted by the journal it cites.",
+          "failure_scenario": "It read as one session where the journal holds two digests, and said four medium findings in the second round where note 47 lists five.",
+          "status": "resolved",
+          "resolution": "Fixed in f7432e9: two sessions named by digest, and the counts each round actually raised."
+        }
+      ],
+      "checks": [
+        "Three reviews by seen-reviewer, each in a context of its own, recorded verbatim at notes 39, 47 and 55: eleven findings, then eight, then seven. Each round verified the previous round fixes by fixture before reporting anything new.",
+        "The third review ran _implementer_tools over all twenty journals in docs/harness/history and reports that an empty author set is not reachable on anything this repository holds; the test at harness/tests/test_stage_gates.py AuthorshipTest now holds that property.",
+        "python3 -m unittest discover -s harness/tests: 504 tests, recorded as the regression at record 61 and the qa run at record 63.",
+        "Coverage on @seen/core measured at every attempt with a delta of zero: records 36, 43, 52 and 60. This branch changes no TypeScript.",
+        "python3 harness/run.py doctor: no problems, including the agents and skill drift checks over all seven generated copies.",
+        "The twenty-six findings above were fixed by the implementer and the fixes after note 55 were read by no reviewer, which is what this record attests: the tree fingerprint is the fixed tree. A fourth pass by the same model was considered and refused, because the third round high finding was in code the second round fix introduced and the same argument would justify a fourth round indefinitely. What breaks that loop is the cross-assistant review this ticket now enforces for tickets where a missed defect costs money, which this ticket is not."
+      ],
+      "security_checklist": [],
+      "verdict": "pass",
+      "tree": "9caf1ef6bc99bbfd63ba16ca9562a1c38127c2ff46482e53ab165aab94073767"
+    },
+    "decisions": [
+      {
+        "question": "severity",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high",
+          "blocking"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "blocking",
+        "probabilities": {
+          "low": 0.05,
+          "medium": 0.11,
+          "high": 0.07,
+          "blocking": 0.77
+        },
+        "confidence": 0.56,
+        "score": 2.56,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      },
+      {
+        "question": "must_fix",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.22,
+          "no": 0.78
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.7,
+        "passed": false,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "sequence": 5,
+  "ticket": "SEEN-105",
+  "timestamp": "2026-09-24T11:41:34.762163+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "2377cfb62f89",
+  "head": "8008446ad03941e9c819fc6ad0a0f4387b44222e",
+  "prev_hash": "ac4f17427a2a6134d254f66047fc940c84390cb4fdaf5312ae6a1d88c8adadb3",
+  "data": {
+    "source": "codegraph",
+    "mode": "impact",
+    "command": [
+      "codegraph",
+      "impact",
+      "_review"
+    ],
+    "synced": true,
+    "index": {
+      "nodes": 1405,
+      "edges": 3767
+    },
+    "exit_code": 0,
+    "duration_ms": 224,
+    "answer": "\nImpact of changing \"_review\" — 7 affected symbols:\n\nharness/gates.py\n  function    _review:273\n  file        gates.py:1\n\nharness/delivery.py\n  file        delivery.py:1\n\nharness/tests/test_non_code_mode.py\n  file        test_non_code_mode.py:1\n\nharness/cli.py\n  file        cli.py:1\n\nharness/handoff.py\n  file        handoff.py:1\n\nharness/tests/test_stage_gates.py\n  file        test_stage_gates.py:1\n\n",
+    "answer_truncated": false
+  }
+}

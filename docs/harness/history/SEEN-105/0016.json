@@ -1,0 +1,49 @@
+{
+  "sequence": 16,
+  "ticket": "SEEN-105",
+  "timestamp": "2026-09-24T12:06:09.123795+00:00",
+  "harness_version": "2",
+  "kind": "handoff",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "2377cfb62f89",
+  "head": "a952dd6b4235680a1c45243dc2a9b0e5fac05dde",
+  "prev_hash": "8e3a53bbfc1f016840a71e6568d2ef29a9059d68fecfc3fc4b8427e7ff7e312f",
+  "data": {
+    "pack": ".harness-drafts/SEEN-105-handoff.md",
+    "sha256": "725940418f5b62a097229dc6f49b8d2b2d3b4ea654c41cf7e8cb4950dfad9ec8",
+    "estimated_tokens": 1104,
+    "token_limit": 2000,
+    "slice": {
+      "position": 1,
+      "total": 4,
+      "done": 0,
+      "entry": {
+        "name": "The agent sources and their four generated copies",
+        "points": 1,
+        "files": [
+          "harness/agents.py",
+          "harness/agents/seen-scout.md",
+          "harness/agents/seen-reviewer.md",
+          "harness/cli.py",
+          "harness/doctor.py",
+          "harness/thresholds.toml",
+          ".claude/agents/seen-scout.md",
+          ".claude/agents/seen-reviewer.md",
+          ".codex/agents/seen-scout.toml",
+          ".codex/agents/seen-reviewer.toml",
+          ".codex/config.toml",
+          "harness/tests/test_agents.py"
+        ],
+        "red": "python3 -m unittest harness.tests.test_agents fails because nothing generates an agent copy: the four paths do not exist after sync, and doctor's report carries no agents section"
+      }
+    },
+    "figures": {
+      "session": "2377cfb62f89",
+      "output_tokens": 97257,
+      "tool_calls": 55,
+      "unavailable": null
+    }
+  }
+}

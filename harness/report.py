@@ -125,6 +125,17 @@ def render_context(section, rules):
               f'| {section["baseline_tool_calls_per_point"]} |',
               f'| Qualifying tickets | {section["tickets"]} | {section["baseline_points"]} points '
               'over 10 tickets |']
+    with_agents = section.get('output_tokens_per_point_with_agents')
+    counted = section.get('tickets_with_agents') or 0
+    lines += [f'| Output tokens per point, worked with the scout and the reviewer '
+              f'| {with_agents if with_agents is not None else "not measured"} '
+              f'| {section["baseline_output_tokens_per_point"]} |',
+              f'| Tickets worked with both agents | {counted} | none: the baseline predates them |']
+    # G4 of SEEN-105's second review: a mean nobody can attribute is a mean nobody
+    # can check, so the row says which tickets are in it.
+    named = section.get('tickets_named_with_agents') or []
+    if named:
+        lines += ['', f'Worked with the scout and the reviewer: {", ".join(named)}.']
     lines += ['', f'**The rule, recorded before the numbers.** {rules["decision_rule"]}', '']
     if section['conclusion']:
         lines += [f'**What it points to.** {section["conclusion"]}', '',

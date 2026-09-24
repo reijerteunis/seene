@@ -1,6 +1,7 @@
 {
   "reviewer": "codex:reviewer",
   "independence": "independent",
+  "reviewer_session": "The session the review came from, when it came from a subagent.",
   "acceptance_evidence": [
     "Acceptance criterion, and the recorded evidence that satisfies it."
   ],

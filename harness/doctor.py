@@ -11,7 +11,7 @@ import os
 import re
 import sys
 
-from . import journal, secrets, skills
+from . import agents, journal, secrets, skills
 from .errors import HarnessError
 from .paths import (DRAFTS, HISTORY, LOCK, NON_CODE_TEMPLATE, TEMPLATES, TEMPLATE_FOR_STAGE,
                     THRESHOLDS)
@@ -131,6 +131,11 @@ def skill_problems(repository):
     return skills.drift(repository.root)
 
 
+def agent_problems(repository):
+    """The agent copies both assistants read, against the sources that make them."""
+    return agents.drift(repository.root)
+
+
 def hook_problems(repository):
     """The pre-commit hook is the first place a credential is caught.
 
@@ -201,6 +206,7 @@ def report(repository, rules):
         'gitignore': gitignore_problems(repository),
         'hooks': hook_problems(repository),
         'skill': skill_problems(repository),
+        'agents': agent_problems(repository),
         'ticket_status': status_problems(repository),
         'marketplace_hosts': [f'{entry["path"]}:{entry["line"]} names {entry["host"]}'
                               for entry in secrets.marketplace_hosts(repository.root)],

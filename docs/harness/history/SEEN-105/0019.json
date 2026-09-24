@@ -1,0 +1,16 @@
+{
+  "sequence": 19,
+  "ticket": "SEEN-105",
+  "timestamp": "2026-09-24T12:18:07.545323+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "2377cfb62f89",
+  "head": "833bfdbe4062430b9c1805787356a2276da43579",
+  "prev_hash": "ef494cb66d5df6c960dfccff788de0a6e1ae49c60104dd14c4c232737509bda6",
+  "data": {
+    "text": "# Where the Codex copies live, and a clarify decision corrected\n\nSlice 1 hit something the clarify record got wrong. The decision said the\ngenerated Codex agent files are committed at `.codex/agents/` because\n\"committing them is what lets doctor's drift check cover all four agent copies\nrather than two\". Two things about that were wrong.\n\n**The reason was wrong.** `agents.drift` reads the working tree, not the index,\nso doctor checks all four copies whether or not git tracks them. What committing\nactually buys is what the skill copies buy: a fresh clone has the two agents\nbefore its first sync, and `doctor` does not refuse on a clone for a file that\nhas never been generated on it.\n\n**`.codex/` is ignored, by an earlier decision.** SEEN-102 put it in\n`.gitignore` because repowise writes editor and agent wiring there that points at\neach machine's own absolute paths, and `.codex/config.toml` on this machine\nindeed carries `cwd = \"/Users/ruudvanengelenhoven/Development/seene\"`. That\nreason does not reach the generated agent files, which carry no path at all, so\nthe rule is narrowed rather than reversed: `.codex/*` with `!.codex/agents/`.\n`config.toml` stays out.\n\n**The cap cannot be tested.** The same decision named `[agents] max_depth = 1` in\n`.codex/config.toml`, and that file is untracked on purpose, so it is absent in\nCI and on every other clone. The setting is made on this machine, the test that\nasserted it has been removed rather than left to pass here and fail everywhere\nelse, and the cap belongs in the skill, which slice 4 changes and which is\ngenerated, committed and checked by doctor.\n\nNothing about the criteria changed. What changed is one line of `.gitignore`, one\ntest that could not hold, and a decision whose reason now matches what the code\nactually does.\n"
+  }
+}

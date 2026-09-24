@@ -1,0 +1,31 @@
+{
+  "sequence": 10,
+  "ticket": "SEEN-105",
+  "timestamp": "2026-09-24T11:53:13.029170+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "solution",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "2377cfb62f89",
+  "head": "45f680609d2f7d44ff6fc393e0c75377c4a037ab",
+  "prev_hash": "cf7f05b42b2029c2cc18c469b7dc9c282115ce55ad0034955eef381b9ee0f92f",
+  "data": {
+    "source": "codegraph",
+    "mode": "impact",
+    "command": [
+      "codegraph",
+      "impact",
+      "note"
+    ],
+    "synced": true,
+    "index": {
+      "nodes": 1405,
+      "edges": 3767
+    },
+    "exit_code": 0,
+    "duration_ms": 233,
+    "answer": "\nImpact of changing \"note\" — 4 affected symbols:\n\nharness/cli.py\n  function    note:491\n  function    execute:841\n  function    main:916\n\nharness/tests/test_lifecycle.py\n  method      run_harness:20\n\n",
+    "answer_truncated": false
+  }
+}

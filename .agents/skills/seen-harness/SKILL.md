@@ -90,6 +90,60 @@ percentile against this repository's own commits, the tests that may break, the 
 repowise is not installed the decision still happens, with the absence recorded as an absence rather
 than as a low score.
 
+## The two agents
+
+Two readers fill a session: the research at clarify and solution, and the review,
+which has to hold the diff, the journal and the criteria at once. Both have a
+context of their own.
+
+| Agent | What it is for | What comes back |
+|---|---|---|
+| `seen-scout` | One scoped question, answered from the graphs. Read-only, no Bash | A brief of at most 400 words: what it could not answer, then the answer with its paths, then what it did not check |
+| `seen-reviewer` | The diff against the ticket's criteria and its journal, in a context that did not write the code | Findings in the review record's shape, with a failure scenario each |
+
+`harness/agents.py` holds what each agent may do and `harness/agents/<name>.md`
+holds what each is told. `sync` generates `.claude/agents/<name>.md` and
+`.codex/agents/<name>.toml` from them, and `doctor` reports a copy edited by hand,
+exactly as it does for this skill. Claude Code invokes one by name, as
+`@agent-seen-scout` or through the Agent tool. Codex spawns a subagent only when it
+is told to, so the session says so explicitly. A subagent may not spawn another,
+which is `[agents] max_depth = 1` in your own `.codex/config.toml`: this repository
+does not track that file, so `doctor` cannot check the setting and the session sets
+it on its own machine.
+
+Record a brief with `harness note <ticket> --file <brief> --from seen-scout`. It
+refuses a brief over the cap and names the count, and it records the agent, the
+word count and the session that wrote the record. The scout cannot write a file,
+so the session writes the brief down: what is in the journal is the agent's
+content, transcribed.
+
+**A subagent is a context boundary, not independence by itself.** A review from one
+is disclosed as `subagent` and names the `reviewer_session` it came from, and the
+gate refuses a session that wrote any record on the ticket, whichever attempt it
+worked in. It cannot refuse a value typed to pass, because a Claude Code subagent
+inherits its parent's session id, so the declaration is a disclosure and not a
+proof. A review disclosed as `independent` is refused when the tool that reviewed
+it is a tool that wrote the work, which is read from the records at the clarify,
+solution and tdd stages: a reviewer's own `return`, wherever it was written, is not
+authorship.
+
+Where a missed defect costs money, the review still comes from the other assistant.
+That is a ticket whose solution record answered `touches_billing_or_policy_gate`
+yes, **or** one whose frontmatter or clarify record says `changes_agent_action`:
+either one needs a second reviewer, the security checklist, and a reviewer or second
+reviewer from the other assistant, named as one of `[actors] assistants`. A person
+is in `[actors] tools` and is not the other assistant. `harness draft` asks the gate
+this question rather than repeating it, so a draft asks for exactly what the gate
+will demand.
+
+The reviewer holds Bash, because it cannot read a diff without it, and Claude Code
+has no read-only Bash. On that side it is held to reading by its instructions and
+by holding no Edit and no Write, and nothing refuses a write it makes through a
+shell; `sandbox_mode` closes that on the Codex side only. Enforcing it on both is
+SEEN-106, which puts hooks in front of both assistants. Until then, a review that
+changed the tree is a review to throw away: the gate records the fingerprint it
+attested, and delivery refuses a tree that moved after it.
+
 ## The context budget
 
 Three knowledge tools put three sets of tool schemas into every session before a ticket is read, so

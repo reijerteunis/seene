@@ -1,0 +1,31 @@
+{
+  "sequence": 45,
+  "ticket": "SEEN-105",
+  "timestamp": "2026-09-24T14:01:14.124560+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "session": "2377cfb62f89",
+  "head": "258bf2177a94c7e7244c35ea306546af0edde499",
+  "prev_hash": "8bc92646b7efb00fe8e1357882fd57bc2da0fb5f0d43941628247d1c70cd3003",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "behaviour": "The eleven findings of the first review: status --brief reads back the count a handoff declared and records the inference beside it, authorship is read from implementer actors rather than from every record, a reviewer session is refused whichever attempt it worked, the other assistant must be a tool this repository knows, only the scout's brief makes a ticket one worked with both agents, the placeholder check still guards the fields a record does carry, doctor reports an agent file no source generates, and the skill instructs a session to set the Codex depth rather than asserting it while disclosing that the reviewer holds Bash",
+          "failure_reason": "AssertionError: 'Slice 2' not found in the rendered pack (F1), HarnessError: claude, codex wrote this ticket and codex reviewed it (F2), 'aaaaaaaaaaaa' not found in the refusal at attempt 2 (F5), no refusal at all for codexx:reviewer or Ruud (F6), both True for a brief from seen-reviewer (F4), no refusal for template prose pasted into approach (F8), no problem reported for .claude/agents/seen-implementer.md (F10), and 'max_depth is 1 on both sides' still in the skill (F11)",
+          "red": 41,
+          "green": 42
+        }
+      ],
+      "regression": 44,
+      "coverage_delta": 0.0
+    },
+    "decisions": []
+  }
+}

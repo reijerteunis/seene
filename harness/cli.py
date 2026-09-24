@@ -87,9 +87,12 @@ def build_parser():
     draft.add_argument('--non-code', action='store_true',
                        help='Take the non-code path at the TDD stage')
 
-    note = ticket_command('note', 'Record a decision, a question or a handoff')
+    note = ticket_command('note', 'Record a decision, a question or a brief')
     note.add_argument('--file', required=True, help='Markdown file holding the note')
     note.add_argument('--actor', required=True)
+    note.add_argument('--from', dest='from_agent',
+                      help='The agent this came back from, for example seen-scout. A note from '
+                           'an agent is a brief and is held to the word cap')
 
     check = ticket_command('check', 'Run and record a verification command')
     check.add_argument('--phase', required=True)
@@ -125,6 +128,9 @@ def build_parser():
 
     pack = ticket_command('handoff', 'Write the pack a fresh session starts from at a slice boundary')
     pack.add_argument('--actor', required=True)
+    pack.add_argument('--slice-done', dest='slice_done', type=int,
+                      help='How many slices are done, when the greens do not say it: a slice '
+                           'that recorded two greens counts twice without this')
 
     ticket_command('budget', "This session's tokens and tool calls against the session budget")
 
@@ -249,11 +255,12 @@ def describe(repository, ticket, records, folder):
                 next_command=NEXT_COMMAND[current['stage']])
 
 
-def build_pack(repository, records, current, rules):
+def build_pack(repository, records, current, rules, slice_done=None):
     """The pack, rendered from the journal and nothing else."""
     return handoff_module.pack(records, current, rules,
                                branch=repository.branch_or_none(),
-                               next_command=NEXT_COMMAND[current['stage']])
+                               next_command=NEXT_COMMAND[current['stage']],
+                               slice_done=slice_done)
 
 
 def pack_path(repository, ticket):
@@ -267,7 +274,8 @@ def handoff(repository, folder, records, args, current, rules):
     hash. The figures are the session's own spending at the moment it stopped,
     which is the one place a session's cost is written down.
     """
-    built = build_pack(repository, records, current, rules)
+    built = build_pack(repository, records, current, rules,
+                       slice_done=getattr(args, 'slice_done', None))
     text = built['markdown']
     carried = secrets_module().leaked(text, os.environ)
     require(not carried,
@@ -350,7 +358,7 @@ def draft(repository, records, args):
             f'A draft already exists; edit or delete it: {target.relative_to(repository.root)}')
     target.parent.mkdir(parents=True, exist_ok=True)
     content = json.loads(source.read_text())
-    content.update(extra_review_fields(records, stage))
+    content.update(extra_review_fields(records, stage, repository.root))
     target.write_text(json.dumps(content, indent=2, ensure_ascii=False) + '\n')
     current = journal.state(records)
     available = [dict(record=record['sequence'], phase=record['data']['phase'],
@@ -463,37 +471,55 @@ def graph(repository, folder, records, args, current, rules):
                           head=repository.head(), ticket=args.ticket, data=evidence)
 
 
-def extra_review_fields(records, stage):
-    """What a review must answer beyond the template, given the solution's decisions.
+def extra_review_fields(records, stage, root=None):
+    """What a review must answer beyond the template, asked of the gate itself.
 
-    A change that touches billing or the policy gate is reviewed twice and
-    against the security checklist, so the draft asks for both rather than
-    leaving a reviewer to remember.
+    A change that touches billing or changes an agent action is reviewed twice and
+    against the security checklist, so the draft asks for both rather than leaving
+    a reviewer to remember. H3 of SEEN-105's third review: this used to carry its
+    own copy of the gate's reasoning and the two had already drifted apart, so the
+    harness wrote a draft the gate it ships with would refuse.
     """
-    if stage != 'review':
+    if stage != 'review' or not gates.needs_two_reviewers(records, root):
         return {}
-    for record in reversed(records):
-        if record['kind'] == 'advance' and record['data'].get('from_stage') == 'solution':
-            for decision in record['data'].get('decisions', []):
-                if (decision['question'] == 'touches_billing_or_policy_gate'
-                        and decision['outcome'] == 'yes'):
-                    return {'second_reviewer': 'The second reviewer, tool:role. Required because '
-                                               'this change touches billing or the policy gate.',
-                            'security_checklist': [
-                                'No secret in the diff',
-                                'No new dependency without a lockfile entry and an audit',
-                                'No live marketplace call in a test',
-                                'No PII field without its expiry job',
-                                'No tool without a policy-gate declaration']}
-    return {}
+    return {'second_reviewer': 'The second reviewer, tool:role, from the other assistant. '
+                               'Required because this change touches billing or an agent action.',
+            'security_checklist': [
+                'No secret in the diff',
+                'No new dependency without a lockfile entry and an audit',
+                'No live marketplace call in a test',
+                'No PII field without its expiry job',
+                'No tool without a policy-gate declaration']}
 
 
-def note(repository, folder, records, args, current):
+def note(repository, folder, records, args, current, rules):
+    """A note, or a brief from one of the agents.
+
+    A brief is the only thing that crosses back from a context of its own, so it
+    is held to a word cap here rather than in the agent's instructions: what an
+    agent is told is a request, and what the harness records is a control. It
+    stays a note rather than a new kind, because the kinds are the one vocabulary
+    every reader of a journal has to know.
+    """
     text = repository.file_inside(args.file).read_text()
     require(text.strip(), 'A note must not be empty')
+    data = dict(text=text)
+    agent = getattr(args, 'from_agent', None)
+    if agent:
+        roster = rules['agents']['names']
+        require(agent in roster,
+                f'{agent!r} is not one of the agents this repository generates: '
+                f'{", ".join(roster)}. An agent with no source has no instructions either')
+        limit = rules['agents']['brief_word_limit']
+        words = len(text.split())
+        require(words <= limit,
+                f'This brief is {words} words against a cap of {limit}. Cut it to the answer, '
+                'the paths it rests on and the questions it could not answer; a brief that has '
+                'to be skimmed buys the session nothing')
+        data.update(agent=agent, words=words)
     return journal.append(folder, records, kind='note', stage=current['stage'],
                           attempt=current['attempt'], actor=args.actor, head=repository.head(),
-                          ticket=args.ticket, data=dict(text=text))
+                          ticket=args.ticket, data=data)
 
 
 def check(repository, folder, records, args, current, rules):
@@ -797,7 +823,8 @@ def write_report(repository, args):
     section = None
     if baseline_path.is_file():
         section = context.compare(covered, json.loads(baseline_path.read_text()),
-                                  budget['minimum_tickets'], budget['tools_available_from'])
+                                  budget['minimum_tickets'], budget['tools_available_from'],
+                                  agents_from=budget['agents_available_from'])
         section['overlaps'] = context.overlaps(_graph_records(repository.root, covered))
     payload = dict(name=name, generated_for=name, tickets=covered, totals=totals,
                    unmeasurable=UNMEASURABLE, context=section)
@@ -848,8 +875,11 @@ def execute(args):
                 'The harness self-check found problems:\n  ' + '\n  '.join(result['problems']))
         return result
     if args.command == 'sync':
-        from . import skills
-        return skills.sync(repository.root)
+        from . import agents, skills
+        written = skills.sync(repository.root)
+        # One command for every generated copy: a session that has to remember a
+        # second one is a session that will read a stale agent.
+        return dict(written, written=written['written'] + agents.sync(repository.root))
     if args.command == 'report':
         return write_report(repository, args)
     if args.command == 'lint':
@@ -904,10 +934,7 @@ def execute(args):
         handlers = dict(note=note, check=check, advance=advance, graph=graph, decide=decide,
                         coverage=coverage, handoff=handoff)
         handlers['return'] = go_back
-        handler = handlers[args.command]
-        if handler is note:
-            return note(repository, folder, records, args, current)
-        return handler(repository, folder, records, args, current, rules)
+        return handlers[args.command](repository, folder, records, args, current, rules)
     finally:
         if path is not None:
             path.unlink(missing_ok=True)

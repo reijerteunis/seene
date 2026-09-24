@@ -1,0 +1,29 @@
+{
+  "sequence": 22,
+  "ticket": "SEEN-105",
+  "timestamp": "2026-09-24T12:21:06.105862+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "2377cfb62f89",
+  "head": "6cbc55d9203eb08b8b2f8a0a074f86008679779b",
+  "prev_hash": "de7cd2a62bdd4a5729733284fa891020496e349957be5d79305097f4d735371f",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_session_cap"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "duration_ms": 10036,
+    "output": ".......FEEE............................................\n======================================================================\nERROR: test_a_declaration_puts_the_pack_on_the_slice_that_is_next (harness.tests.test_session_cap.DeclaredSliceTest.test_a_declaration_puts_the_pack_on_the_slice_that_is_next)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_session_cap.py\", line 281, in test_a_declaration_puts_the_pack_on_the_slice_that_is_next\n    self.handoff_declaring(1)\n    ~~~~~~~~~~~~~~~~~~~~~~^^^\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_session_cap.py\", line 274, in handoff_declaring\n    return self.run_harness('handoff', self.ticket_id, '--actor', actor,\n           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                            '--slice-done', str(done))\n                            ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_lifecycle.py\", line 21, in run_harness\n    return cli.execute(cli.parse(['--root', str(self.root), *args]))\n                       ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/cli.py\", line 166, in parse\n    require(not extra, f'Unrecognised arguments: {\" \".join(extra)}')\n    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/errors.py\", line 11, in require\n    raise HarnessError(message)\nharness.errors.HarnessError: Unrecognised arguments: --slice-done 1\n\n======================================================================\nERROR: test_a_record_with_no_declaration_says_the_count_was_inferred (harness.tests.test_session_cap.DeclaredSliceTest.test_a_record_with_no_declaration_says_the_count_was_inferred)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_session_cap.py\", line 295, in test_a_record_with_no_declaration_says_the_count_was_inferred\n    self.assertFalse(record['data']['slice']['declared'])\n                     ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^\nKeyError: 'declared'\n\n======================================================================\nERROR: test_the_record_says_the_count_was_declared (harness.tests.test_session_cap.DeclaredSliceTest.test_the_record_says_the_count_was_declared)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_session_cap.py\", line 288, in test_the_record_says_the_count_was_declared\n    record = self.handoff_declaring(1)\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_session_cap.py\", line 274, in handoff_declaring\n    return self.run_harness('handoff', self.ticket_id, '--actor', actor,\n           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                            '--slice-done', str(done))\n                            ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_lifecycle.py\", line 21, in run_harness\n    return cli.execute(cli.parse(['--root', str(self.root), *args]))\n                       ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/cli.py\", line 166, in parse\n    require(not extra, f'Unrecognised arguments: {\" \".join(extra)}')\n    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/errors.py\", line 11, in require\n    raise HarnessError(message)\nharness.errors.HarnessError: Unrecognised arguments: --slice-done 1\n\n======================================================================\nFAIL: test_a_declaration_over_the_plan_is_refused_and_names_the_plan (harness.tests.test_session_cap.DeclaredSliceTest.test_a_declaration_over_the_plan_is_refused_and_names_the_plan)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_session_cap.py\", line 300, in test_a_declaration_over_the_plan_is_refused_and_names_the_plan\n    self.assertIn(str(self.slices), str(raised.exception))\n    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: '3' not found in 'Unrecognised arguments: --slice-done 4'\n\n----------------------------------------------------------------------\nRan 55 tests in 9.980s\n\nFAILED (failures=1, errors=3)\n",
+    "output_sha256": "ffdb872684f863544759412d7531a2e3d200bed27f0f5c6dc83e9c46e78f67d6",
+    "output_truncated": false,
+    "before": "5851c38542332361288ede161d2f4a833175f2616f200b2fb70c959a1d3f0f63",
+    "after": "5851c38542332361288ede161d2f4a833175f2616f200b2fb70c959a1d3f0f63"
+  }
+}

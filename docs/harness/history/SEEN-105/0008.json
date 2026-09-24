@@ -1,0 +1,91 @@
+{
+  "sequence": 8,
+  "ticket": "SEEN-105",
+  "timestamp": "2026-09-24T11:45:50.148217+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "2377cfb62f89",
+  "head": "8008446ad03941e9c819fc6ad0a0f4387b44222e",
+  "prev_hash": "4e0a1f17db28fea7038278a5d5c3d30efabc34e1106380b779f5956a7540c44d",
+  "data": {
+    "from_stage": "clarify",
+    "to_stage": "solution",
+    "evidence": {
+      "scope": "Give research and review a context of their own: one maintained source per agent under harness/agents/, from which harness sync generates .claude/agents/seen-scout.md, .claude/agents/seen-reviewer.md, .codex/agents/seen-scout.toml and .codex/agents/seen-reviewer.toml the way it already generates the skill copies, with doctor reporting a copy edited by hand; a scout brief the harness records under a word cap and refuses over it; a review gate that accepts a review disclosed as coming from a subagent while still requiring the other assistant for a ticket that changes an agent action or touches billing; and the KPI and the sprint report able to say which tickets were worked that way. The edge: the harness never spawns an agent, it only generates the files each assistant reads and records what an agent returned, so nothing here runs a model; seen-implementer is described in the ticket as optional and is named by no acceptance criterion, so it is not built; no stage, no receipt, no ticket status and no template other than the review template changes; and packages/agent, the product's own agent runtime, is not touched.",
+      "acceptance": [
+        "harness sync writes the four agent copies from harness/agents/ and doctor reports one edited by hand: unit tests that sync renders .claude/agents/seen-scout.md and seen-reviewer.md with the frontmatter Claude Code reads and .codex/agents/seen-scout.toml and seen-reviewer.toml with the keys Codex reads, all four from one source per agent; that a copy whose text differs from what the source would generate appears in doctor's report naming the file and the command that regenerates it; that a missing copy is reported as missing; and doctor green on the committed tree after sync, which is what proves the copies in the repository were generated and not typed.",
+        "The scout returns a brief of at most 400 words and the harness records it with the word count, the agent it came from and the session digest of the command that recorded it: unit tests that a 400-word brief is recorded and a 401-word brief is refused with both the count and the cap in the message, and that the record carries the agent name and the session digest; the evidence that it works outside a fixture is the scout run once against a Sprint 0 ticket in this ticket's own tdd stage, with its brief in this journal.",
+        "The review gate refuses a review record whose reviewer session equals the implementer's and accepts one from a subagent or from the other assistant: unit tests against gates._review that a record disclosing a subagent review whose reviewer_session equals the envelope session of the record itself is refused naming both, that one whose reviewer_session differs is accepted, that a cross-tool review is accepted as it is today, and that a self-review is still allowed to say so.",
+        "A ticket that changes an agent action or touches billing still needs the other assistant: a fixture journal whose solution advance answered touches_billing_or_policy_gate yes is refused when the reviewer's tool is the tool that wrote the implementer's records, even when the review discloses a subagent and a different reviewer_session, and is accepted when the reviewer's tool differs; the existing second_reviewer and security_checklist requirements are unchanged and their tests still pass.",
+        "The KPI and the sprint report can attribute the saving: unit tests that kpi.measure over a journal carrying a scout brief and a subagent review records that the ticket was worked with the two agents, that a journal without them records the absence rather than false, and that the sprint report's context section shows those tickets' output tokens per point beside the SEEN-099 baseline of 40,600. The figure itself is an observation after delivery, not a number this ticket can produce: see the decision on it."
+      ],
+      "decisions": [
+        "A Claude Code subagent inherits its parent's session id. Observed on 24 September 2026 from this clarify session: a subagent spawned from it printed the same CLAUDE_CODE_SESSION_ID, digest 2377cfb62f89, as the session that spawned it, and AI_AGENT is set to claude-code_2-1-273_agent in both, so no environment variable this harness can read tells a subagent from its parent. sessions.current() therefore cannot detect a subagent, and the two criteria that say session id mean a declared value and not a derived one. Taken by the implementer on that observation rather than on the ticket's wording, because the wording assumed the opposite.",
+        "The review record therefore carries the reviewer's context as a declaration, reviewer_session, and the gate refuses the case it can actually detect: a review that declares the implementer's own session as the reviewer's. A value typed to pass is not detectable and the gate does not pretend to detect it, which is the limit gates.py already states in its own opening comment: a gate checks that recorded evidence exists, is current and is ordered, not that a conclusion is correct. The control that a forged declaration would defeat is the cross-tool review, which criterion four keeps for exactly the tickets where it matters.",
+        "A subagent review is disclosed as its own kind rather than relabelled as independent: independence gains subagent beside independent and self-review. Three values because the KPI must be able to tell a review by the other assistant from a review by a subagent of the same one when the escaped-defect figures are read later; folding them into one word would lose the distinction this ticket exists to introduce. Taken by the implementer.",
+        "seen-implementer is not built. The ticket calls it optional and no acceptance criterion names it, and an agent that holds Edit, Write and the test runner is the one place where a second context could quietly work a slice nobody reviewed. If it is wanted it is its own ticket, with its own decision about what it may write.",
+        "The generated Codex agent files are committed inside the repository at .codex/agents/, unlike the skill's Codex copy which sync writes to ~/.codex and which doctor cannot check because it is outside the tree. Committing them is what lets doctor's drift check cover all four agent copies rather than two, which is what criterion one asks for. .codex/config.toml keeps [agents] max_depth at 1, so a subagent cannot spawn another.",
+        "Criterion five is settled by an observation after this ticket is delivered, not by a number produced inside it: the main session's output tokens per point can only fall below the SEEN-099 baseline of 40,600 on a ticket worked with the scout and the reviewer from its first session, and this ticket's own first session was spent before either existed. What this ticket delivers is the measurement and the attribution in the sprint report; SEEN-106 is the first ticket that will be worked with both from the start, and its figure in the sprint 0 report is the evidence. Recorded here as a decision to proceed rather than as an open question, because no amount of clarifying settles a figure that does not exist yet.",
+        "repowise's change-risk answer at record 3 reads the change at HEAD, which at clarify is the commit that wrote the opening handoff pack: below typical, 24th percentile, no bug-fix history in the files it touches, 26 lines in one file. It is recorded as the evidence the gate is given, with the limit stated, and not as a reading of the change this ticket plans. repowise has no recorded answer for why the review gate's independence rule is shaped the way it is, record 4, so that reasoning exists only in the comment in gates.py and in this journal."
+      ],
+      "open_questions": [],
+      "changes_agent_action": false,
+      "graph_impact": [
+        "harness/skills.py and harness/doctor.py: codegraph's impact answer on drift, record 6, lists three affected symbols, skills.drift, doctor.skill_problems and doctor.report, so the agent copies follow the same generate-and-check shape with the same blast radius",
+        "harness/gates.py _review: codegraph's impact answer at record 5 lists seven affected symbols, gates._review itself and the files around it, harness/delivery.py, harness/cli.py, harness/handoff.py, harness/tests/test_stage_gates.py and harness/tests/test_non_code_mode.py",
+        "harness/templates/review.json gains reviewer_session, and independence gains a third value the gate accepts",
+        "harness/cli.py: sync writes the agent copies beside the skill copies, and the command that records a brief gains the word cap and the agent it came from",
+        "harness/kpi.py measure and harness/report.py render_context, for the attribution criterion five needs",
+        "harness/agents/ (new, one source per agent) and the four generated copies under .claude/agents/ and .codex/agents/, with .codex/config.toml holding [agents] max_depth = 1",
+        "docs/harness/skill.md and its two generated copies: how each assistant invokes the two agents, and that Codex spawns one only when told to"
+      ]
+    },
+    "decisions": [
+      {
+        "question": "clarified",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.87,
+          "no": 0.13
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.8,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "question": "risk",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "medium",
+        "probabilities": {
+          "low": 0.05,
+          "medium": 0.94,
+          "high": 0.01
+        },
+        "confidence": 0.91,
+        "score": 0.96,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "sequence": 32,
+  "ticket": "SEEN-105",
+  "timestamp": "2026-09-24T12:48:02.963191+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "2377cfb62f89",
+  "head": "4343e7c8695e29d6de56ebccf167beb3a772f6ef",
+  "prev_hash": "22fd446ab8882c55869d295d3a2afab1b8a15cf9028fa31a463142a5855e6f02",
+  "data": {
+    "text": "# Two things slice 3 did differently from the plan\n\n**The draft asks for the reviewer's session through the template, not through\n`extra_review_fields`.** The solution record said `extra_review_fields` would ask\nfor `reviewer_session`. It does not: the field is in `harness/templates/review.json`,\nso every review draft carries it, and `for_mode` drops it from the fields a record\nmust answer unless the record discloses a subagent. That is one place rather than\ntwo, and `extra_review_fields` keeps its one job, which is the pair of fields a\nbilling ticket owes. Nothing about the criterion changed.\n\n**A latent bug in `reject_placeholders` had to be fixed to get there.** The\nplaceholder check compared a record against every example in the whole template,\nincluding the fields `for_mode` had just decided this kind of record does not\ncarry. So a review that left the inapplicable `reviewer_session` example in place\nwas refused for prose the gate never asked for, and the same was already true of a\nnon-code solution record that left the `tests_first` example alone: it would have\nbeen refused for a field the non-code path drops. Both checks now read the shape\n`for_mode` returns. The fix is three lines in `gates.evaluate` and it is the\nreason the whole suite moved from 27 failures to none.\n\nThe residue, stated so nobody has to guess: a review record that is not a subagent\nreview may still carry the template's sentence in `reviewer_session`, because\nnothing strips a field the gate does not ask about. It is prose in an inapplicable\nfield beside an `independence` that says which kind of review it was, and the\nalternative, a gate that edits the evidence it was given, is worse.\n"
+  }
+}

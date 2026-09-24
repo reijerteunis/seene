@@ -1,0 +1,19 @@
+{
+  "sequence": 40,
+  "ticket": "SEEN-105",
+  "timestamp": "2026-09-24T13:12:55.135506+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "2377cfb62f89",
+  "head": "258bf2177a94c7e7244c35ea306546af0edde499",
+  "prev_hash": "71d6dceeeb8d4355680c9699422580f98a8717c18edf8ef8bef44ada2a170a5e",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 3,
+    "reason": "The review by seen-reviewer in context 1992b406ee9f returned eleven findings, three high, recorded at note 39. F2 is the one that would have shipped a gate that refuses the review it demands: the cross-tool rule reads the tools that wrote any record, so a return by codex:reviewer, which is the documented path, makes a billing ticket unadvanceable for ever. F1 would have sent every resuming session to the wrong slice, because status --brief rebuilds the pack without the count --slice-done declared. F5 accepts a session that worked an earlier attempt as the reviewer's context, which is the thing criterion 3 exists to refuse. Returning to tdd to fix F1, F2, F4, F5, F6, F8, F10 and F11 with a test each, to record the inferred count beside the declared one for F7, and to write F9 down as a limitation for SEEN-106. F3, criterion 5 having no evidence, goes to Ruud."
+  }
+}

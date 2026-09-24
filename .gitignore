@@ -43,7 +43,12 @@ coverage/
 # absolute paths, so committing it would hand the next machine a broken one.
 .vscode/mcp.json
 .vscode/extensions.json
-.codex/
+.codex/*
+# Except the agent copies sync generates, from SEEN-105: they carry no
+# machine-local path, and committing them means a fresh clone has the two agents
+# before its first sync, the way the skill copies do. .codex/config.toml stays
+# out for the reason above.
+!.codex/agents/
 # repowise's managed Codex entry point, from SEEN-102. It is CLAUDE.md with
 # Codex substituted for Claude Code throughout, which breaks a filename inside
 # a link and rewrites the branch rule to a prefix the harness refuses. Codex

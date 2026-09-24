@@ -1,0 +1,31 @@
+{
+  "sequence": 54,
+  "ticket": "SEEN-105",
+  "timestamp": "2026-09-24T14:30:40.333528+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 4,
+  "actor": "claude:implementer",
+  "session": "2377cfb62f89",
+  "head": "0cfe616892199728138f45ef6654d02563cc0301",
+  "prev_hash": "b1756c35b999af3db3e0d6cbdc0bc8f1dafda8154d361256e391a4f48eb05aaf",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "behaviour": "The eight findings of the second review: authorship is read from the stage a record was written at rather than the role its actor claimed, an independent review may not name a tool that wrote the work, a ticket that changes an agent action needs the other assistant whatever the solution question answered, the report row counts only tickets started after the two agents existed and names the tickets it counted, the other assistant must be one of the assistants in [actors] rather than any actor, and only a file named like one of this harness's agents counts as a stray",
+          "failure_reason": "AssertionError: HarnessError not raised for a billing journal recorded entirely as claude:reviewer (G1), for an independent review naming the tool that wrote the work (G2), for a ticket whose clarify record says changes_agent_action with the solution question answered no (G3), and for a human reviewer on both sides (G6); TypeError: compare() got an unexpected keyword argument 'agents_from' and KeyError: 'tickets_named_with_agents' (G4); and a project agent of one's own reported as a problem (G7)",
+          "red": 49,
+          "green": 51
+        }
+      ],
+      "regression": 53,
+      "coverage_delta": 0.0
+    },
+    "decisions": []
+  }
+}

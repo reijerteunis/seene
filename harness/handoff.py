@@ -54,30 +54,95 @@ def plan_of(records):
     return (gates.latest_evidence(records, 'solution') or {}).get('slices') or []
 
 
-def accepted_greens(records, attempt):
+def accepted_greens(records, after=0):
+    """Greens recorded since the plan was accepted, whatever attempt wrote them.
+
+    A slice that was proved green does not become unproved because a review sent
+    the ticket back: the code is in the branch either way, and the rework is work
+    on top of it. H4 of SEEN-105's third review.
+    """
     return [record for record in records
-            if record['kind'] == 'check' and record['stage'] == 'tdd'
-            and record['attempt'] == attempt
+            if record['sequence'] > after and record['kind'] == 'check'
+            and record['stage'] == 'tdd'
             and record['data'].get('phase') == 'green'
             and record['data'].get('exit_code') == 0]
 
 
-def current_slice(records, state):
-    """The slice a fresh session picks up, counted from the greens recorded.
+def plan_accepted_at(records):
+    """Where the plan the pack counts against was last accepted.
+
+    Slices belong to a plan, and a plan is set by the solution record. Counting
+    from there rather than from the attempt is what H4 in SEEN-105's third review
+    asked for: a return starts a new attempt without undoing a slice that shipped,
+    and scoping the count to the attempt threw the declaration away and pointed the
+    next session at work already delivered. A plan changed by a return to solution
+    starts its own count, which is the one case an attempt boundary got right.
+    """
+    for record in reversed(records):
+        if record['kind'] == 'advance' and record['data'].get('from_stage') == 'solution':
+            return record['sequence']
+    return 0
+
+
+def last_declaration(records, after=0):
+    """The count the most recent handoff declared since the plan was accepted.
+
+    F1 in SEEN-105's first review: --slice-done wrote the right number into the
+    record and `status --brief` rebuilt the pack without it, so the session that
+    resumed read the inference anyway and was sent past a slice nobody worked.
+    """
+    for record in reversed(records):
+        if (record['sequence'] > after and record['kind'] == 'handoff'
+                and (record['data'].get('slice') or {}).get('declared')):
+            return record['data']['slice']['done'], record['sequence']
+    return 0, after
+
+
+def current_slice(records, state, declared=None):
+    """The slice a fresh session picks up, declared or counted from the greens.
 
     The plan is ordered and the tdd stage gate refuses slices out of order, so
-    the number of accepted greens in this attempt is how many slices are behind
-    us. The pack never invents a slice that is not in the plan: before the
-    solution record has advanced there is none, and it says so.
+    the number of accepted greens in this attempt is usually how many slices are
+    behind us. Usually: a slice that records a second green, which is what a
+    correction inside a slice looks like, counts twice and sends the next session
+    past a slice nobody worked. It happened on SEEN-105's own slice 1.
+
+    Only the session that worked the slice knows it finished it, so it may say so
+    with --slice-done and the record keeps which of the two numbers this was. The
+    inference stays the default, because a flag nobody passes must still leave a
+    right answer most of the time.
+
+    The pack never invents a slice that is not in the plan: before the solution
+    record has advanced there is none, and it says so.
     """
+    from .errors import require
     slices = plan_of(records)
     if not slices:
         return None
-    done = min(len(accepted_greens(records, state['attempt'])), len(slices))
+    # The last declaration stands, and greens recorded after it still count: a
+    # session that declared at its boundary and then worked on is where both
+    # numbers are needed.
+    planned_at = plan_accepted_at(records)
+    at_boundary, since = last_declaration(records, planned_at)
+    inferred = min(at_boundary + len(accepted_greens(records, since)), len(slices))
+    if declared is None:
+        done = inferred
+    else:
+        require(0 <= declared <= len(slices),
+                f'--slice-done {declared} is not a count this plan can carry: it has '
+                f'{len(slices)} slices, so the number of slices done is between 0 and '
+                f'{len(slices)}')
+        done = declared
     entry = slices[done] if done < len(slices) else None
     return dict(position=done + 1 if entry else None,
                 total=len(slices),
                 done=done,
+                declared=declared is not None,
+                # Recorded beside the declaration so a count the journal does not
+                # support is visible later. It is not refused: only the session
+                # that worked the slice knows, and a gate that guessed would be
+                # the miscount this flag exists to answer.
+                inferred=inferred,
                 entry=entry)
 
 
@@ -132,10 +197,10 @@ def _section(lines, title, entries, maximum, remaining):
     return remaining - spent
 
 
-def pack(records, state, thresholds, branch=None, next_command=''):
+def pack(records, state, thresholds, branch=None, next_command='', slice_done=None):
     """The markdown a fresh session starts from, and what it cost to say it."""
     limit = thresholds['session']['handoff_token_limit']
-    slice_now = current_slice(records, state)
+    slice_now = current_slice(records, state, declared=slice_done)
     lines = [f'# {records[0]["ticket"]} handoff pack', '',
              '| | |', '|---|---|',
              f'| Ticket | {_one_line(_heading(records))} |',

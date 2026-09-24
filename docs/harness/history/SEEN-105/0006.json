@@ -1,0 +1,31 @@
+{
+  "sequence": 6,
+  "ticket": "SEEN-105",
+  "timestamp": "2026-09-24T11:41:38.867749+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "2377cfb62f89",
+  "head": "8008446ad03941e9c819fc6ad0a0f4387b44222e",
+  "prev_hash": "0399491665a609076c98a115878ad495b7cba2213c51f2d35d4fd0cb6e93d51c",
+  "data": {
+    "source": "codegraph",
+    "mode": "impact",
+    "command": [
+      "codegraph",
+      "impact",
+      "drift"
+    ],
+    "synced": true,
+    "index": {
+      "nodes": 1405,
+      "edges": 3767
+    },
+    "exit_code": 0,
+    "duration_ms": 228,
+    "answer": "\nImpact of changing \"drift\" — 3 affected symbols:\n\nharness/skills.py\n  function    drift:66\n\nharness/doctor.py\n  function    skill_problems:129\n  function    report:193\n\n",
+    "answer_truncated": false
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "sequence": 26,
+  "ticket": "SEEN-105",
+  "timestamp": "2026-09-24T12:34:04.245027+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "2377cfb62f89",
+  "head": "b8c2160d8d5bce456295a4c046ba90b773462442",
+  "prev_hash": "785e13cf20a3ca9e3bda82bc644f5ef13c692f8ced45aa2ce1bbebd74d5fa3df",
+  "data": {
+    "text": "# Brief from seen-scout: what SEEN-009's connector interface must fit\n\nQuestion asked: what already exists that SEEN-009's connector interface must fit,\nand where is the capability matrix per marketplace recorded?\n\n## What I could not answer\n\nGrep on docs/architecture.md truncated several long lines (lines 7, 72, 110, 145:\nthe Principles, Services, Trade-record and Infrastructure-and-security sections),\nso I have the table and diagram text but not the full prose of those sections. I\ndid not re-verify packages/providers/src/secrets.ts line by line beyond what\ncodegraph surfaced.\n\n## The answer\n\n**packages/connectors** is empty of interface: `packages/connectors/src/index.ts:1`\nexports only `packageName = '@seen/connectors'`. No `Connector` interface and no\n`CapabilityMatrix` type exists anywhere in the repository; a grep for\n`interface.*Connector|ConnectorInterface|CapabilityMatrix` matched ticket and doc\nprose only, no code.\n\n**packages/core** is similarly minimal: `packages/core/src/index.ts:1` exports\n`packageName`, `LEDGER_CURRENCY = 'EUR'` and `sumCents()`. Nothing connector- or\ncredential-related lives here; core is scoped to deterministic reconciliation.\n\n**Credential access already exists**, one layer down, in\n`packages/providers/src/secrets.ts`: the `SecretsProvider` interface (line 13)\nexposes `name: SecretsProviderName` and `get(reference: string): Promise<string>`,\nwith `envSecretsProvider` backed by .env.local and `createSecretsProvider`\nselecting between `env` and `gcp-secret-manager` through\n`selectImplementation(env, 'SEEN_SECRETS_PROVIDER', ...)`. Its comment states this\nis deliberately the only way a credential reaches a connector: the database holds\nonly the reference. SEEN-009's credential provider sits on top of this, adding\nOAuth refresh (Amazon LWA, eBay user token, Bol client credentials) under a\nper-connection lock. None of that refresh logic exists yet.\n\n**docs/architecture.md** has a capability routing section (line 9) with the matrix\nat lines 13 to 24: rows for ingest orders, shipments, returns, sponsored\nplacements and others, columns Bol, Amazon SP-API, eBay, Kaufland, Otto and\nShopify, values API, assisted, none or n/a, and a consequences paragraph (line 25)\non the claims rail fragmenting into three modes. That is the table SEEN-009's\ncriteria say the typed matrix must mirror row for row. The system-context diagram\n(lines 38 to 49) names the CONN node \"Connectors / per-marketplace adapters /\ncapability flags\" and a SEC node for Secret Manager credentials.\n\nThe ticket file itself, lines 30 to 45, spells out the required methods\n(`listOrders`, `listShipments`, `listReturns`, `listSettlements`,\n`listSettlementLines`, optional `fileClaim`, `listMessages`, `updateListing`,\n`listCompetingOffers`) and the decision that capabilities are data, not subclass\nchecks.\n\n## Not checked\n\nThe full prose of the Principles, Services, Trade-record and Infrastructure\nsections of architecture.md, whose lines grep omitted.\n",
+    "agent": "seen-scout",
+    "words": 381
+  }
+}
