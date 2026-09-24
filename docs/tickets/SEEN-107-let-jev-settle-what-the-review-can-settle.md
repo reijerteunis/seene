@@ -64,10 +64,10 @@ their sources. A generated copy has no review surface of its own, because
 `doctor` refuses one that does not match what its source would generate, so
 naming the source is naming the copy; left in place it would have forced full
 depth on every harness ticket that runs `sync`, which is most of them, and left
-SEEN-109 nothing to calibrate. `triage.generated_paths` is the fix. The nine
-other paths the same check flagged were a true positive and stand: adding one
-required field to the review template really did change six test fixtures the
-solution record never named, so this ticket reviews at full depth on its own
+SEEN-109 nothing to calibrate. `triage.generated_paths` is the fix. Record 19
+flagged ten paths, four generated and six not, and those six were a true positive
+and stand: adding one required field to the review template really did change six
+test fixtures the solution record never named, so this ticket reviews at full depth on its own
 evidence. The second return was the reviewer's, and it found three holes worth
 code. A well-formed Jev reply that left one answer key out was treated as a
 transport failure, so it destroyed the whole triage rather than recording that one
@@ -209,11 +209,13 @@ named rather than listed as settled: `red_before_green`, `acceptance_entries` an
 the one resolver `_ticket_text` already used, rather than by a second reading of
 record 1.
 
-**What the reviews cost, and what they were worth.** Seven reviews and ten
-returns, and every return was earned. The counts in this paragraph were wrong when
-first written and were corrected against the journal, which is the only place they
-are derivable from: `harness report` reads them from the records rather than from
-here. Three of them found a previous attempt's fix
+**What the reviews cost, and what they were worth.** Eight reviews and ten
+returns, and every return was earned. The counts here were wrong twice before they
+were right: first as seven attempts and six rework slices, which was stale, and
+then as seven reviews, which missed the one review that passed and left this
+paragraph contradicting the two sentences below it that name the eighth. They are
+derivable only from the journal, and `harness report` reads them from there rather
+than from here. Three of them found a previous attempt's fix
 to be half right, which is the pattern worth recording: making an elided Jev answer
 cheap instead of fatal left `focus_set` scoring that absence zero and dropping the
 file from a spot review; separating the enforced depth from the model's own left
