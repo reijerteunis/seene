@@ -1,0 +1,15 @@
+{
+  "sequence": 9,
+  "ticket": "SEEN-096",
+  "timestamp": "2026-09-24T05:09:40.151947+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "solution",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "5ff709cc6a2c00fa827bc290ab79e6aa13072983",
+  "prev_hash": "143b7bbfb1fad2446d762a02a2fe7d9b722a5ea0932e1bfbe49ad478b049954a",
+  "data": {
+    "text": "# Parked at solution until SEEN-100 delivers\n\nDecision by the founder, 24 September 2026: fix the question before working the tickets it will judge.\nSEEN-096, SEEN-098 and SEEN-099 are all integration tickets, and each has the shape that dropped this\nticket's clarify score to 0.46 when it was written down honestly.\n\nThe journal stops at the solution stage with the clarify record accepted, its `clarified` answer\ncarrying the founder's override at record 7 beside Jev's 0.67. Resuming needs nothing beyond\n`harness status SEEN-096`, which will say solution.\n\nWhat travels with it: the baseline captured at record 2 belongs to SEEN-099 now, and the note at\nrecord 6 is the evidence SEEN-100 was opened on.\n"
+  }
+}

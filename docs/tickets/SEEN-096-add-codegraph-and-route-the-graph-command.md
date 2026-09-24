@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-086, SEEN-087]
-status: doing
+status: parked
 ---
 # SEEN-096: Add codegraph and route the graph command to it
 
@@ -23,7 +23,7 @@ status: doing
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | doing |
+| Status | parked (waiting for SEEN-100) |
 
 ## Description
 
