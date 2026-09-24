@@ -1,0 +1,26 @@
+{
+  "sequence": 2,
+  "ticket": "SEEN-107",
+  "timestamp": "2026-09-24T18:07:47.889737+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "253bf8e84e82",
+  "head": "e189cb86f4e35238e76ecc2341913387a5b24b71",
+  "prev_hash": "801c5889bed170fbd5616ce9204bfb0616f33be609b47a96899b713dd9e09a56",
+  "data": {
+    "source": "repowise",
+    "mode": "why",
+    "command": [
+      "repowise",
+      "why",
+      "harness/gates.py review gate"
+    ],
+    "exit_code": 0,
+    "duration_ms": 560,
+    "answer": "Nothing recorded for that query.\nIndex is behind live HEAD — run `repowise update`.\n",
+    "answer_truncated": false
+  }
+}
