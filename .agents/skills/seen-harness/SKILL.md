@@ -39,9 +39,10 @@ attested and delivery refuses the ticket for a change the harness itself caused.
 ticket file, so an outcome added afterwards makes `verify-delivery` refuse. Only the receipt hash
 cannot be written earlier, and it belongs in the pull request body.
 
-**Name what only the work can settle.** A clarify record that leaves out an unknown reads as if
-there were none. Write it down with the observation that will settle it, in `open_questions` with a
-`resolution`, and the stage gate counts it as resolved rather than as a hole.
+**Name what only the work can settle.** A clarify record that leaves out an unknown reads as if there
+were none. Write it in `decisions`, as the decision to proceed with the observation that will settle
+it, and the stage gate counts it as resolved rather than as a hole. `open_questions` must be empty to
+advance: it is the list of what is still open, not the list of what is known to be unknowable.
 
 **One ticket, one branch.** Every writing command refuses unless the branch is `claude/<ticket>-…` or
 `codex/<ticket>-…`, and refuses on `main`. Drifting onto another branch mid-ticket records evidence

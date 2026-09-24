@@ -1,0 +1,86 @@
+{
+  "sequence": 2,
+  "ticket": "SEEN-101",
+  "timestamp": "2026-09-24T05:39:27.877167+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "8805dc9955e5d83d7722575c26042b5f4a533dad",
+  "prev_hash": "52f7b72c5579f5d0373805c52d98b891eff1dc8bca7de8017b19d4c2b33cbad5",
+  "data": {
+    "from_stage": "clarify",
+    "to_stage": "solution",
+    "evidence": {
+      "scope": "cli.state_for resolves a ticket by its id rather than by the filename recorded when the journal started, and reports which of the three sources it used; the edge is that nothing else changes, not the records, not the questions, not the thresholds, and no journal already written becomes invalid.",
+      "acceptance": [
+        "state_for reads the ticket at the recorded path when it exists and records the source: a unit test builds a journal whose recorded path exists, asserts the ticket text is the file's and the source reads as the recorded path.",
+        "When the recorded path is gone, state_for finds the ticket at docs/tickets/<ID>-*.md and records that it did: a unit test renames the ticket file under a temporary root and asserts the text is the renamed file's, not the snapshot's.",
+        "The snapshot is used only when no file matches, and the state says so: a unit test removes the ticket entirely and asserts the text is the snapshot and the source names it as a snapshot.",
+        "Two files matching the id is a refusal naming the candidates: a unit test writes two SEEN-XXX-*.md files and asserts the HarnessError lists both paths.",
+        "SEEN-096's clarify record re-asked against the ticket that now exists, with the score recorded here: a note in this journal carrying the number, run through the live API, which is why it is a note and not a test.",
+        "The skill's fourth rule tells a session to name an unknowable in decisions: the file says so, sync has regenerated both copies, and the rule is verified by this very record, which was refused for following the old advice."
+      ],
+      "decisions": [
+        "Resolve by id rather than recording renames as journal records, because the id is already in every record and the filename is derived from it; more machinery would buy nothing. Taken by the implementer, 24 September 2026.",
+        "Report the source in the state rather than only in the code, because a judgement made against a snapshot and one made against the live ticket are different evidence and a reader of the journal cannot otherwise tell them apart. Taken by the implementer.",
+        "An ambiguous id refuses rather than picking the newest or the first match. The harness refuses when it cannot know, which is the rule SEEN-086 set and every stage has followed since. Taken by the implementer.",
+        "Keep the snapshot fallback rather than refusing outright when a ticket is deleted, because a delivered ticket's journal must stay readable after its file is archived, and history and report both read old journals. Taken by the implementer.",
+        "The fix is carried by its own ticket rather than by SEEN-096, on the founder's standing pattern: the gate that is misjudging a ticket cannot be repaired by that ticket. SEEN-096 tried and was refused at 0.46, recorded in its journal at record 11. Authority: Ruud, twice, on SEEN-100 and on the SEEN-089 split.",
+        "Whether SEEN-096's clarify record clears 0.8 once the gate reads the ticket that exists cannot be known before the fix is in; proceed anyway, because the fix is right whether it then clears or not, and re-ask it before review with the number recorded here either way. If it still does not clear, that is SEEN-096's evidence to act on, not a reason to hold this ticket.",
+        "Whether any other journal carries a stale ticket path is not known yet; proceed, and settle it by reading record 1 of every journal and testing each recorded path, with the answer recorded here before review. It cannot change the fix, only the size of what the fix repairs.",
+        "SEEN-100's fourth rule in the skill is corrected here rather than in a ticket of its own. It told a session to leave a named unknown in open_questions, and the code layer of this same gate refuses a non-empty open_questions. This record was refused for following it, one hour after it shipped. Taken by the implementer, 24 September 2026."
+      ],
+      "open_questions": [],
+      "changes_agent_action": false,
+      "graph_impact": [
+        "harness/cli.py state_for, called by every stage gate through advance and return"
+      ]
+    },
+    "decisions": [
+      {
+        "question": "clarified",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.85,
+          "no": 0.15
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.8,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "question": "risk",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "medium",
+        "probabilities": {
+          "low": 0.29,
+          "medium": 0.71,
+          "high": 0.0
+        },
+        "confidence": 0.56,
+        "score": 0.71,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

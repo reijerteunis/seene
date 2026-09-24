@@ -22,6 +22,9 @@ KINDS = ('start', 'note', 'check', 'advance', 'return', 'receipt', 'reopen', 'de
 
 # Committed run history: docs/harness/history/<TICKET>/0001.json and onwards.
 HISTORY = Path('docs/harness/history')
+# Where a ticket lives. Its filename carries its title and so changes when the
+# title does; the id at the front is what a journal can rely on.
+TICKETS = Path('docs/tickets')
 # Stage evidence templates a session copies, fills in and passes to advance.
 TEMPLATES = Path('harness/templates')
 # Thresholds and vocabularies. Fatal when missing: never silently defaulted.

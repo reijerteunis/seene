@@ -1,0 +1,90 @@
+{
+  "sequence": 3,
+  "ticket": "SEEN-101",
+  "timestamp": "2026-09-24T05:39:49.203587+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "solution",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "8805dc9955e5d83d7722575c26042b5f4a533dad",
+  "prev_hash": "455434b31d4ffd4566fca18a0d2b70716b81bcb222cd95fc4165bdaccaf09ce9",
+  "data": {
+    "from_stage": "solution",
+    "to_stage": "tdd",
+    "evidence": {
+      "approach": "state_for gains one helper, _ticket_text, which returns the text and a word saying where it came from. It tries the path recorded in record 1, then docs/tickets/<ID>-*.md sorted, then record 1's snapshot. Two matches for an id is a refusal naming both, because the harness refuses when it cannot know rather than choosing. The state gains ticket_source alongside ticket_text, so a journal shows which evidence a judgement was made against.\n\nThe id comes from record 1's data, which already carries ticket_id, falling back to the record's own ticket field, so no journal written so far is missing what this needs.\n\nNothing else changes. The payload gains one short string, which the model sees; that is deliberate, because a judgement made against a snapshot of a deleted ticket deserves to be read as weaker than one made against the ticket.\n\nThe two questions the clarify record deferred are settled before review: SEEN-096's record is re-asked through the fixed code and the number recorded, and every journal's record 1 is checked for a stale path with the answer recorded.",
+      "changes": [
+        "harness/cli.py: _ticket_text, and state_for reporting ticket_source",
+        "harness/tests/test_state_for.py: new, the three sources, the refusal, and the id falling back to the record's ticket field",
+        "docs/harness/skill.md and its two generated copies: the fourth rule corrected to decisions"
+      ],
+      "migrations": [],
+      "tests_first": [
+        "state_for reads the recorded path when it exists and reports ticket_source as the recorded path: the RED must fail because there is no ticket_source in the state",
+        "state_for finds the ticket by id when the recorded path is gone, and reports that: the RED must fail because the current code returns the snapshot",
+        "state_for uses the snapshot only when nothing matches, and says it is a snapshot: the RED must fail for the same reason",
+        "state_for refuses when two files match the id, naming both: the RED must fail because there is no such refusal",
+        "state_for takes the id from record 1's ticket field when ticket_id is absent: the RED must fail if the lookup assumes ticket_id is always there"
+      ],
+      "alternatives": [
+        "Recording a rename as its own journal record, rejected in clarify: the id is in every record already",
+        "Refusing outright when the ticket file is gone, rejected because history and report read the journals of delivered tickets whose files may be archived",
+        "Choosing the most recently modified file when two match, rejected because it is a guess dressed as an answer, and a duplicated id is a mistake worth seeing"
+      ],
+      "risks": [
+        "A ticket id that is a prefix of another, such as SEEN-10 and SEEN-100, would glob into each other. The pattern anchors on the id followed by a hyphen, which every ticket filename uses, and a test covers it",
+        "Adding ticket_source to the payload changes what every gate sends, so scores may shift slightly across the board. It is one short string and the same string for almost every record; SEEN-096's re-ask before review is the check on that"
+      ],
+      "rollback": "Revert the commit. state_for returns to reading the recorded path with its silent fallback, and no journal already written becomes unreadable, because ticket_source is only ever added to a payload, never to a record's required shape.",
+      "new_dependencies": [],
+      "tenant_tables": [
+        "none"
+      ],
+      "buyer_pii": "none",
+      "policy_gate_action": null
+    },
+    "decisions": [
+      {
+        "question": "solution_complete",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.79,
+          "no": 0.21
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "question": "touches_billing_or_policy_gate",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.07,
+          "no": 0.93
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}
