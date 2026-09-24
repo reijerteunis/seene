@@ -1,0 +1,34 @@
+{
+  "sequence": 15,
+  "ticket": "SEEN-098",
+  "timestamp": "2026-09-24T06:07:54.359683+00:00",
+  "harness_version": "1",
+  "kind": "decision",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "2425d70273719325d7f930fac042808c29f5d31c",
+  "prev_hash": "91f81e45dc89d1bf153d04c13d1f25429ad6c039e0b895370bfbec20785bff54",
+  "data": {
+    "question": "risk",
+    "type": "score",
+    "options": [
+      "low",
+      "medium",
+      "high"
+    ],
+    "source": "jev",
+    "model": "jev-1.13.0",
+    "outcome": "medium",
+    "probabilities": {
+      "low": 0.24,
+      "medium": 0.76,
+      "high": 0.0
+    },
+    "confidence": 0.64,
+    "score": 0.77,
+    "threshold": null,
+    "passed": null,
+    "fallback_reason": null
+  }
+}

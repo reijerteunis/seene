@@ -1,0 +1,36 @@
+{
+  "sequence": 20,
+  "ticket": "SEEN-098",
+  "timestamp": "2026-09-24T06:12:31.954330+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "2425d70273719325d7f930fac042808c29f5d31c",
+  "prev_hash": "babe52b63848c69991502d52b6f0ea64beacd188264ac9240568b49c3c569fc5",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "behaviour": "risk.assess returns repowise's change-risk answer for the working tree, the percentile and priority beside the tests that may break and the missing co-changes, and returns an absence with its reason when repowise is not installed, the repository is not indexed, nothing has changed, or repowise answers with something that is not JSON. harness decide risk carries that answer into the state, and no other question is given it.",
+          "failure_reason": "ModuleNotFoundError: No module named 'harness.risk', and KeyError: 'change_risk' in the state",
+          "red": 6,
+          "green": 8
+        },
+        {
+          "behaviour": "An elided blast radius is named as an elision rather than read as an empty test gap, carrying repowise's own omission marker, counted in files rather than in command-line arguments, and without repeating the expand instruction the marker already holds.",
+          "failure_reason": "KeyError: 'blast_radius_unavailable'",
+          "red": 12,
+          "green": 14
+        }
+      ],
+      "regression": 19,
+      "coverage_delta": 0.0
+    },
+    "decisions": []
+  }
+}

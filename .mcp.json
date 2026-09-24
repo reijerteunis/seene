@@ -8,6 +8,16 @@
         "graphify-out/graph.json"
       ],
       "env": {}
+    },
+    "repowise": {
+      "type": "stdio",
+      "command": "repowise",
+      "args": [
+        "mcp",
+        "--transport",
+        "stdio"
+      ],
+      "env": {}
     }
   }
 }

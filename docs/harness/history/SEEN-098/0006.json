@@ -1,0 +1,28 @@
+{
+  "sequence": 6,
+  "ticket": "SEEN-098",
+  "timestamp": "2026-09-24T06:04:44.809860+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "2425d70273719325d7f930fac042808c29f5d31c",
+  "prev_hash": "50730043f2fbcd490276a236b2bfd7e0e00243f5ef88fa983b0d6de17831cfe0",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_risk"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "duration_ms": 39,
+    "output": "E\n======================================================================\nERROR: test_risk (unittest.loader._FailedTest.test_risk)\n----------------------------------------------------------------------\nImportError: Failed to import test module: test_risk\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/.local/share/mise/installs/python/3.14.5/lib/python3.14/unittest/loader.py\", line 137, in loadTestsFromName\n    module = __import__(module_name)\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_risk.py\", line 15, in <module>\n    from harness import risk\nImportError: cannot import name 'risk' from 'harness' (/Users/ruudvanengelenhoven/Development/seene/harness/__init__.py)\n\n\n----------------------------------------------------------------------\nRan 1 test in 0.000s\n\nFAILED (errors=1)\n",
+    "output_sha256": "c95c07021977fbbab9c25481bdbdcac957d81ef5c2df377d4ef5e88384843077",
+    "output_truncated": false,
+    "before": "b073397121328bde0dd0eaf9df5c728bfae0ea063ededc3f4dab4fa611b7ba3b",
+    "after": "b073397121328bde0dd0eaf9df5c728bfae0ea063ededc3f4dab4fa611b7ba3b"
+  }
+}

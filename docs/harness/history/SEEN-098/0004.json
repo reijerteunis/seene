@@ -1,0 +1,15 @@
+{
+  "sequence": 4,
+  "ticket": "SEEN-098",
+  "timestamp": "2026-09-24T06:03:19.715169+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "solution",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "2425d70273719325d7f930fac042808c29f5d31c",
+  "prev_hash": "d633324fbc13e5c8463e2c685bcc0e1394843899f07b1616df79a7bb36dc9372",
+  "data": {
+    "text": "# The PR bot is not mine to install\n\nThe fourth criterion asked for the zero-LLM PR bot commenting on a pull request. It is a GitHub App,\n`github.com/apps/repowise-bot`, not a command or a workflow file. Installing it means authorising a\nthird party on this repository through a browser flow on the founder's account, and it is the account\nowner who does that.\n\nTwo things make it more than a formality, and both are why it is being handed over rather than worked\naround:\n\n**This repository is private.** Installing the app grants a third party read access to the whole tree,\nwhich will hold marketplace credentials configuration, the trade record schema and the claims logic.\nThat is a decision about who sees Seen's code, and nobody but Ruud gets to make it.\n\n**The bot publishes a public page per pull request.** The comment links to\n`repowise.dev/pr/<owner>/<repo>/<number>`, described in repowise's own documentation as public with no\nsign-in. For a private repository that is a disclosure, not a convenience.\n\nEverything else in this ticket is unaffected: the bot is a surface onto the same local index that\n`harness graph` and the risk decision now use, and none of them needs it.\n\nSo the criterion moves to SEEN-102, executor human, where it can be decided with the two questions\nabove in front of whoever decides it. This ticket's criteria are amended to say so rather than quietly\ndropping it or ticking it on the strength of the CLI doing something adjacent.\n"
+  }
+}

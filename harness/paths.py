@@ -45,6 +45,9 @@ GRAPH_DIRECTORY = Path('graphify-out')
 # codegraph's symbol index. Local to each machine and ignored by a .gitignore
 # the tool ships inside it, so this repository's own .gitignore says nothing.
 CODEGRAPH_DIRECTORY = Path('.codegraph')
+# repowise's index and structural wiki. Gitignored for the same reason: derived
+# from the tree, rebuilt by repowise update, and not evidence about the work.
+REPOWISE_DIRECTORY = Path('.repowise')
 GRAPH_FILE = GRAPH_DIRECTORY / 'graph.json'
 
 # Working copies of templates. Gitignored; only the journal is evidence.

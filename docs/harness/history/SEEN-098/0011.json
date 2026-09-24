@@ -1,0 +1,24 @@
+{
+  "sequence": 11,
+  "ticket": "SEEN-098",
+  "timestamp": "2026-09-24T06:06:22.364253+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "2425d70273719325d7f930fac042808c29f5d31c",
+  "prev_hash": "ba5a9aa3806a2f575f412c07eb53f89e01e2cfdc7dd381f9cc26886e789d0dbf",
+  "data": {
+    "source": "repowise",
+    "mode": "risk",
+    "command": [
+      "repowise",
+      "risk"
+    ],
+    "exit_code": 0,
+    "duration_ms": 873,
+    "answer": "Sampling up to 200 recent commits…\n\nBenchmarked review priority: Elevated · 68th percentile of recent commits by size and spread\n  Larger or more dispersed than most commits in this repo.\n\nChange risk for working tree: touches files that have broken before · 44th percentile of this repo's recent commits\n  Scoring your uncommitted changes, not the last commit.\n  +855 / -17 lines · 22 files · 6 dirs · 5 subsystems · entropy 3.86 · author exp 122\n┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━┓\n┃ File                        ┃ Lines ┃ Prior fixes ┃\n┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━╇━━━━━━━━━━━━━┩\n│ harness/cli.py              │    32 │         3.0 │\n│ harness/paths.py            │     3 │         1.0 │\n│ harness/tests/test_graph.py │    47 │         1.0 │\n└─────────────────────────────┴───────┴─────────────┘\n  Prior fixes are recency-weighted against this change's own date — one from a year earlier counts a half.\n  Diff-size score: 9.4/10 — how big and spread out the change is, not where it lands. Corpus-anchored to a single commit.\n Diff shape (each driver vs. the model's baseline commit)  \n┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━┓\n┃ Driver                                ┃   Value ┃  Push ┃\n┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━┩\n│ more lines added than baseline        │     855 │ +3.43 │\n│ more scattered than baseline          │ 3.86253 │ +0.64 │\n│ more experienced author than baseline │     122 │ -0.06 │\n│ more lines deleted than baseline      │      17 │ +0.01 │\n└───────────────────────────────────────┴─────────┴───────┘\n",
+    "answer_truncated": false
+  }
+}
