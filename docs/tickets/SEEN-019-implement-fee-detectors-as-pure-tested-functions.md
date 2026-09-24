@@ -36,6 +36,14 @@ Add packages/core/detectors with four pure functions over matched settlement lin
 - [ ] Duplicate charge detects two settlement lines with the same type, order line and amount within 90 days
 - [ ] Detectors are deterministic: the same input yields identical findings on 100 repeated runs
 
+## Slices
+
+The starting slice plan, one session each; the solution stage adopts or amends it (SEEN-104). A slice is at most 2 points and a ticket has at most four.
+
+1. Finding shape, tolerances per marketplace and the commission overcharge detector (2 pt). RED: a charged rate above the expected rate by more than the tolerance raises, a rounding difference does not
+2. Fixed-fee error and duplicate charge detectors (2 pt). RED: two lines with the same type, order line and amount inside the window raise a duplicate
+3. Ad charge above expectation and the determinism run (1 pt). RED: 100 runs over the same input yield identical findings
+
 ## Depends on
 
 - [SEEN-017](SEEN-017-compute-fee-expectations-per-order-line-from.md): Compute fee_expectations per order line from schedules and APIs

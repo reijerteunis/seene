@@ -37,6 +37,14 @@ Opens only after Ruud records a go decision in the journal (the local Docker env
 - [ ] Secrets, storage and telemetry switch to Secret Manager, Supabase Storage and Cloud Logging by configuration; a request through apps/api produces a trace in Cloud Trace carrying a tenant_id attribute
 - [ ] Pilot tenants' data is migrated with a rehearsed export and import and the local environment is retired for those tenants; daily backups and point-in-time recovery are enabled
 
+## Slices
+
+The starting slice plan, one session each; the solution stage adopts or amends it (SEEN-104). A slice is at most 2 points and a ticket has at most four.
+
+1. Terraform for the GCP project, Cloud Run, Memorystore, Secret Manager, logging and Cloud Armor (2 pt). RED: terraform plan is clean and apply creates every resource in europe-west4
+2. Supabase EU project, the pipeline deploy on merge to main and the provider switch by configuration (2 pt). RED: the three services deploy from GitHub Actions and read secrets from Secret Manager
+3. Rehearsed export and import of the pilot tenants and the tunnel switched off (1 pt). RED: the migrated tenant's row counts equal the local environment's, then the tunnel is removed
+
 ## Depends on
 
 - [SEEN-097](SEEN-097-set-up-the-local-docker-development-environment.md): Set up the local Docker development environment

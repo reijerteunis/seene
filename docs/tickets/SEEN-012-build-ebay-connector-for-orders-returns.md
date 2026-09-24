@@ -36,6 +36,14 @@ Implement the eBay adapter in packages/connectors/ebay: Sell Fulfillment API for
 - [ ] Fee transactions map to settlement_lines of type commission or fixed_fee with the eBay feeType kept in the raw reference
 - [ ] A 90-day backfill for the friendly brand completes and the sum of transactions equals the sum of payouts within EUR 1
 
+## Slices
+
+The starting slice plan, one session each; the solution stage adopts or amends it (SEEN-104). A slice is at most 2 points and a ticket has at most four.
+
+1. Orders and fulfilments from Sell Fulfillment fixtures (2 pt). RED: an order with a fulfilment maps to orders, order_lines and shipments
+2. Returns and cases from Post-Order fixtures (1 pt). RED: a return with a case maps to returns with the case reference kept
+3. Transactions and payouts from Sell Finances, linked by payoutId and orderId (2 pt). RED: the sum of a payout's transactions equals the payout amount in the fixture
+
 ## Depends on
 
 - [SEEN-002](SEEN-002-obtain-ebay-production-keys-and-file.md): Obtain eBay production keys and file Application Growth Check

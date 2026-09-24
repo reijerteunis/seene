@@ -36,6 +36,14 @@ Implement the Bol adapter in packages/connectors/bol against Retailer API v10: o
 - [ ] Commissions per EAN return percentage and fixed fee for at least 20 EANs of the friendly brand
 - [ ] A 90-day backfill for the friendly brand completes without an unhandled error
 
+## Slices
+
+The starting slice plan, one session each; the solution stage adopts or amends it (SEEN-104). A slice is at most 2 points and a ticket has at most four.
+
+1. Orders, order items and shipments from recorded Bol v10 fixtures (2 pt). RED: the fixture replay maps an order with two items and a shipment to the trade-record types
+2. Returns and invoice specifications as settlement lines (2 pt). RED: a specification line of type compensation lands as a settlement_line with that type
+3. Commissions per EAN and the 90-day backfill against the friendly brand (1 pt). RED: 20 EANs return a percentage and a fixed fee, then the backfill runs without an unhandled error
+
 ## Depends on
 
 - [SEEN-003](SEEN-003-obtain-bol-credentials-and-verify-oauth-grant.md): Obtain Bol credentials and verify OAuth grant and rate limits

@@ -36,6 +36,14 @@ Implement matchSettlementLines in packages/core/reconcile as a pure function tha
 - [ ] Match method (order_ref, sku_amount, manual) and confidence are stored on settlement_lines
 - [ ] Unmatched lines are listed by GET /tenants/:id/settlements/:id/unmatched with their amount
 
+## Slices
+
+The starting slice plan, one session each; the solution stage adopts or amends it (SEEN-104). A slice is at most 2 points and a ticket has at most four.
+
+1. Match by external order id and line reference (2 pt). RED: a settlement line with an order reference matches exactly one order line of the same tenant and marketplace
+2. Fallback match by EAN or SKU and amount within the settlement period, with confidence (2 pt). RED: a line without a reference matches by SKU and amount and is stored with method sku_amount
+3. Persistence and the unmatched endpoint (1 pt). RED: an unmatched line appears in GET /tenants/:id/settlements/:id/unmatched with its amount
+
 ## Depends on
 
 - [SEEN-014](SEEN-014-run-ingest-workers-with-idempotent-upserts-raw.md): Run ingest workers with idempotent upserts, raw archive and cadences

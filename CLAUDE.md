@@ -18,7 +18,7 @@ Read the three documents in this order before writing code: the PRD for what and
 
 ## Working a ticket
 
-Every ticket runs through the Seen harness (`docs/harness/workflow.md`): five stages, clarify, solution, tdd, review, deliver, one command each, with the evidence written to `docs/harness/history/<ticket>/` as it happens. Until SEEN-086 to SEEN-092 have delivered the harness, follow the same five stages by hand and keep the records in the same place. SEEN-086 is the bootstrap ticket and is exempt: the harness did not exist while it was being built, so it has no journal at all, and its evidence is its test suite, its pull request body and an `## Outcome` section in the ticket file. Every ticket from SEEN-087 onwards has a journal written by the harness itself; a hand-written journal record is a falsification, not a stand-in. Context comes from the graph tools before reading files, one tool call per question: `codegraph_explore` (symbols, callers, callees, blast radius, verbatim source) while writing code; repowise `get_context`, `get_risk`, `get_why`, `get_change_risk`, `get_health`, `get_dead_code` at clarify, solution and review; graphify `query_graph` and `shortest_path` for the map across code and documents. Judgement calls at the gates go to Jev through `harness decide` and are recorded with their probabilities.
+Every ticket runs through the Seen harness (`docs/harness/workflow.md`): five stages, clarify, solution, tdd, review, deliver, one command each, with the evidence written to `docs/harness/history/<ticket>/` as it happens. The harness delivered on 23 and 24 September 2026 (SEEN-086 to SEEN-103); SEEN-104 to SEEN-106 add the session cap, the subagents and the hooks. SEEN-086 is the bootstrap ticket and is exempt: the harness did not exist while it was being built, so it has no journal at all, and its evidence is its test suite, its pull request body and an `## Outcome` section in the ticket file. Every ticket from SEEN-087 onwards has a journal written by the harness itself; a hand-written journal record is a falsification, not a stand-in. Context comes from the graph tools before reading files, one tool call per question: `codegraph_explore` (symbols, callers, callees, blast radius, verbatim source) while writing code; repowise `risk`, `why` and `health` through `harness graph` at clarify, solution and review; graphify `path` and `prs` for the map across code and documents (see the graphify section below). Judgement calls at the gates go to Jev through `harness decide` and are recorded with their probabilities.
 
 1. Read `docs/prd/prd.md`, `docs/architecture.md`, `docs/harness/workflow.md` and the ticket file. The ticket's acceptance criteria are the definition of done; do not widen the scope.
 2. Branch from `main` as `claude/<ticket-id>-<slug>` (Codex sessions use `codex/`). One ticket per branch.
@@ -26,9 +26,9 @@ Every ticket runs through the Seen harness (`docs/harness/workflow.md`): five st
 4. Tests first for anything in `packages/core` (detectors, matching, fee expectations, the policy gate). Integration tests mock the connectors; never call a live marketplace from a test.
 5. Commits: `feat(<id>): ...`, `fix(<id>): ...`, `docs(<id>): ...`, `test(<id>): ...`. Keep the ticket id in every commit.
 6. Human tickets (executor `human`) are registrations, verifications against a live account and real-data runs. Do them with Ruud, record the outcome in the ticket file under a `## Outcome` heading, and never invent API facts a verification ticket was meant to establish.
-7. When a ticket changes an agent action (`changes_agent_action: true`), the tool must declare reversibility, action type and a euro impact estimator, and the gate decision must be written to `agent_actions` and `audit_events` before execution.
-
-Harness commands, once SEEN-086 has landed: `python3 harness/run.py doctor | start | status | history | draft | note | check | advance | graph | decide | return | verify-delivery | report | sync`. Leftover from the previous project until SEEN-092 removes them: `.claude/skills/seene-harness` and `.claude/settings.json` reference a `harness/run.py` from Seene that no longer exists in this tree; ignore them.
+7. One slice per session. A session reads the PRD and the architecture once, at clarify; every later session starts from the handoff pack (`harness status --brief`), works one slice of at most 2 points, writes the next pack with `harness handoff` and ends. Research goes to the scout subagent and review to the reviewer subagent, each in a context of its own (SEEN-104 to SEEN-106; until they land, keep the same discipline by hand: `/clear` at every slice boundary after writing the pack).
+8. Ticket files are owned by this repository once a ticket has started: the plan generator behind the council artifact rewrites only tickets still at `status: todo` and never touches a started ticket's criteria, `## Outcome` or amendments. Renumbering is never done on a started ticket, because receipts, journals and pull request bodies quote its id. No new ticket is above 3 points; a five-point ticket carries a `## Slices` section that the solution stage adopts or amends.
+9. When a ticket changes an agent action (`changes_agent_action: true`), the tool must declare reversibility, action type and a euro impact estimator, and the gate decision must be written to `agent_actions` and `audit_events` before execution.
 
 After cloning, wire up the git hooks once: `git config core.hooksPath .githooks`. The pre-commit hook
 runs gitleaks on staged changes, and `doctor` refuses until it is set.
@@ -46,10 +46,12 @@ lint | sync | discard | list`. Every writing command refuses unless the branch i
 | [docs/prd/prd.md](docs/prd/prd.md) | Product requirements for the MVP: summary, problem, goals and non-goals, users, principles, scope by module, journeys, functional requirements FR-1 to FR-46, capability routing, pricing and metering, data and security, gates and metrics, release plan, risks, open questions, glossary |
 | [docs/architecture.md](docs/architecture.md) | MVP architecture: principles, capability routing per marketplace, system context, services, trade record data model, agent runtime and policy gate, modules, infrastructure and security, open verifications |
 | [docs/development-plan.md](docs/development-plan.md) | Sprint calendar (harness days from 24 Sep, Sprint 0 to 7 to 29 Jan 2027), gates G0 to G7, team and capacity, day-0 checklist, not in the MVP, risks |
-| [docs/harness/workflow.md](docs/harness/workflow.md) | The development harness: why, principles, the five stages and their gates, graphify and Jev AI integration, CI, the ten KPIs, security controls, commands, repository layout, the harness tickets |
-| [docs/tickets/README.md](docs/tickets/README.md) | Ticket index by sprint with points, executors and dependencies, plus the epic table |
+| [docs/harness/workflow.md](docs/harness/workflow.md) | The development harness as built: why, principles, the five stages and their stage gates, graphify, CodeGraph and Repowise with one role each, the context per session (slices, handoff packs, subagents, hooks), how the harness meets Claude Code and Codex, Jev AI, CI, the eleven KPIs, security controls, commands, repository layout, what the building settled, the harness tickets |
+| [docs/tickets/README.md](docs/tickets/README.md) | Ticket index by sprint with points, executors, status and dependencies, plus the epic table |
+| [CONTEXT.md](CONTEXT.md) | Glossary: the harness terms, the product terms they collide with, and the resolution of the three meanings of gate |
+| [docs/adr/](docs/adr/) | Architecture decision records: journal integrity, the delivery receipt, the SEEN-086 bootstrap exemption |
 
-### Tickets (100, 357 build points)
+### Tickets (106, 346 build points)
 
 | Ticket | Title | Epic | Size |
 |---|---|---|---|
@@ -59,7 +61,7 @@ lint | sync | discard | list`. Every writing command refuses unless the branch i
 | [SEEN-003](docs/tickets/SEEN-003-obtain-bol-credentials-and-verify-oauth-grant.md) | Obtain Bol credentials and verify OAuth grant and rate limits | E0 | human |
 | [SEEN-004](docs/tickets/SEEN-004-set-up-postmark-inbound-domain-and-stripe.md) | Set up Postmark inbound domain and Stripe account | E0 | human |
 | [SEEN-005](docs/tickets/SEEN-005-review-partao-contract-and-draft-dpa-and-amazon.md) | Review Partao contract and draft DPA and Amazon data statement | E0 | human |
-| [SEEN-086](docs/tickets/SEEN-086-build-the-seen-harness-cli-with-staged-journal.md) | Build the Seen harness CLI with staged journal and receipts | E10 | 5 pt |
+| [SEEN-086](docs/tickets/SEEN-086-build-the-seen-harness-cli-with-staged-journal.md) | Build the Seen harness CLI with staged journal and receipts | E10 | 8 pt |
 | [SEEN-006](docs/tickets/SEEN-006-scaffold-the-pnpm-turborepo-monorepo-with-all.md) | Scaffold the pnpm turborepo monorepo with all six packages | E0 | 3 pt |
 | [SEEN-097](docs/tickets/SEEN-097-set-up-the-local-docker-development-environment.md) | Set up the local Docker development environment | E0 | 3 pt |
 | [SEEN-087](docs/tickets/SEEN-087-install-graphify-build-the-repo-graph-and-wire.md) | Install graphify, build the repo graph and wire it into both assistants | E10 | 3 pt |
@@ -68,13 +70,19 @@ lint | sync | discard | list`. Every writing command refuses unless the branch i
 | [SEEN-099](docs/tickets/SEEN-099-set-the-context-budget-and-measure-the-tools.md) | Set the context budget and measure what the tools changed | E10 | 1 pt |
 | [SEEN-100](docs/tickets/SEEN-100-let-a-gate-tell-an-open-question-from-an.md) | Let a gate tell an open question from an unknowable one | E10 | 1 pt |
 | [SEEN-088](docs/tickets/SEEN-088-integrate-jev-ai-typed-decisions-into-the.md) | Integrate Jev AI typed decisions into the harness gates | E10 | 3 pt |
-| [SEEN-089](docs/tickets/SEEN-089-enforce-tdd-and-ci-quality-gates-in-the-harness.md) | Enforce TDD and CI quality gates in the harness | E10 | 5 pt |
-| [SEEN-090](docs/tickets/SEEN-090-add-harness-security-controls-secrets.md) | Add harness security controls: secrets, permissions, injection, supply chain | E10 | 3 pt |
-| [SEEN-091](docs/tickets/SEEN-091-collect-harness-kpis-per-ticket-and-produce.md) | Collect harness KPIs per ticket and produce weekly and sprint reports | E10 | 3 pt |
-| [SEEN-092](docs/tickets/SEEN-092-sync-the-harness-skill-to-claude-code-and-codex.md) | Sync the harness skill to Claude Code and Codex and retire the Seene leftovers | E10 | 2 pt |
-| [SEEN-093](docs/tickets/SEEN-093-add-harness-reopen-to-void-a-receipt-before.md) | Add harness reopen to void a receipt before merge | E10 | 2 pt |
+| [SEEN-089](docs/tickets/SEEN-089-enforce-tdd-and-ci-quality-gates-in-the-harness.md) | Enforce the TDD gates in the harness | E10 | 3 pt |
 | [SEEN-094](docs/tickets/SEEN-094-verify-delivery-against-ci-and-the-merge.md) | Verify delivery against CI and verify the merge against the receipt | E10 | 2 pt |
 | [SEEN-095](docs/tickets/SEEN-095-check-ticket-status-against-its-own-journal.md) | Check a ticket's status against its own journal | E10 | 1 pt |
+| [SEEN-090](docs/tickets/SEEN-090-add-harness-security-controls-secrets.md) | Add harness security controls: secrets, permissions, injection, supply chain | E10 | 3 pt |
+| [SEEN-091](docs/tickets/SEEN-091-collect-harness-kpis-per-ticket-and-produce.md) | Collect harness KPIs per ticket and produce weekly and sprint reports | E10 | 3 pt |
+| [SEEN-093](docs/tickets/SEEN-093-add-harness-reopen-to-void-a-receipt-before.md) | Add harness reopen to void a receipt before merge | E10 | 2 pt |
+| [SEEN-092](docs/tickets/SEEN-092-sync-the-harness-skill-to-claude-code-and-codex.md) | Sync the harness skill to Claude Code and Codex and retire the Seene leftovers | E10 | 2 pt |
+| [SEEN-101](docs/tickets/SEEN-101-let-a-journal-survive-its-ticket-being-renamed.md) | Let a journal survive its ticket being renamed | E10 | 1 pt |
+| [SEEN-102](docs/tickets/SEEN-102-decide-on-the-repowise-pr-bot.md) | Decide on the repowise PR bot for a private repository | E10 | human |
+| [SEEN-103](docs/tickets/SEEN-103-declare-non-code-mode-at-the-solution-stage.md) | Declare non-code mode at the solution stage, not after it | E10 | 1 pt |
+| [SEEN-104](docs/tickets/SEEN-104-cap-a-session-at-one-slice-the-slice-plan-the.md) | Cap a session at one slice: the slice plan, the budget and the handoff pack | E10 | 3 pt |
+| [SEEN-105](docs/tickets/SEEN-105-give-the-scout-and-the-reviewer-their-own.md) | Give the scout and the reviewer their own context as subagents in both assistants | E10 | 3 pt |
+| [SEEN-106](docs/tickets/SEEN-106-enforce-the-harness-with-hooks-in-both.md) | Enforce the harness with hooks in both assistants, generated from one source | E10 | 3 pt |
 | [SEEN-008](docs/tickets/SEEN-008-create-trade-record-schema-v1-with-tenant-id.md) | Create trade-record schema v1 with tenant_id and RLS on every table | E0 | 5 pt |
 | [SEEN-009](docs/tickets/SEEN-009-define-connector-interface-capability-matrix.md) | Define connector interface, capability matrix and credential access | E1 | 5 pt |
 | [SEEN-010](docs/tickets/SEEN-010-add-per-marketplace-rate-limiting-with-header.md) | Add per-marketplace rate limiting with header-driven backoff | E1 | 3 pt |
@@ -161,3 +169,19 @@ lint | sync | discard | list`. Every writing command refuses unless the branch i
 | [SEEN-083](docs/tickets/SEEN-083-expire-amazon-pii-after-30-days-and-delete.md) | Expire Amazon PII after 30 days and delete tenants on request | E9 | 3 pt |
 | [SEEN-084](docs/tickets/SEEN-084-build-the-day-120-metrics-dashboard-and-csv.md) | Build the day-120 metrics dashboard and CSV export | E9 | 5 pt |
 | [SEEN-085](docs/tickets/SEEN-085-run-restore-drill-close-pen-test-findings-sign.md) | Run restore drill, close pen-test findings, sign metrics pack | E9 | human |
+
+## graphify
+
+The repository's knowledge graph lives in `graphify-out/` and is committed, so a fresh clone has
+context before its first build. Ask it before reading files.
+
+- `graphify query "<question>"` for a scoped subgraph, `graphify path "<A>" "<B>"` for how two things
+  connect, `graphify explain "<concept>"` for one concept, `graphify affected "<symbol>"` for what a
+  change touches. The same graph is available as MCP tools (`query_graph`, `get_neighbors`,
+  `shortest_path`, `get_pr_impact`) in Claude Code and Codex.
+- `graphify-out/GRAPH_REPORT.md` is for broad architecture review, not for answering a specific
+  question. Reach for it after query, path and explain have not surfaced enough.
+- The post-commit hook runs `graphify update .`, so the graph follows the code without an API call.
+  A commit that changes code carries the updated graph with it.
+- `harness graph <ticket> <impact|path|explain|prs>` asks the same graph and writes the answer into
+  the ticket's journal, with the hash of the graph that answered.

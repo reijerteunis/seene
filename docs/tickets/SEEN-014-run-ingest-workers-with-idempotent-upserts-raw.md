@@ -37,6 +37,14 @@ Build the ingest stage in apps/worker: one BullMQ queue per connector, jobs keye
 - [ ] connections.last_sync per stream updates after each successful run and the log shows rows written per run
 - [ ] 90 days of orders, shipments, returns and settlement lines from Bol, eBay and Amazon exist for the friendly brand
 
+## Slices
+
+The starting slice plan, one session each; the solution stage adopts or amends it (SEEN-104). A slice is at most 2 points and a ticket has at most four.
+
+1. Queues per connector, per-tenant job keys and the idempotent upsert on (tenant_id, marketplace, external_id) (2 pt). RED: the same page ingested twice produces zero duplicate rows
+2. Raw payload archive written before mapping, and last_sync per stream (2 pt). RED: a mapping failure still leaves the archive object and last_sync unchanged
+3. Repeatable jobs for orders hourly and settlements daily against the local Redis (1 pt). RED: the repeatable job enqueues one job per active connection
+
 ## Depends on
 
 - [SEEN-008](SEEN-008-create-trade-record-schema-v1-with-tenant-id.md): Create trade-record schema v1 with tenant_id and RLS on every table

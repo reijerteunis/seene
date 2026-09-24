@@ -36,6 +36,14 @@ Implement the eBay api mode in packages/connectors/ebay: Sell Fulfillment paymen
 - [ ] Filing is refused by code when the dispute's respond-by date is in the past
 - [ ] Recorded-fixture tests cover contest, add evidence and status polling
 
+## Slices
+
+The starting slice plan, one session each; the solution stage adopts or amends it (SEEN-104). A slice is at most 2 points and a ticket has at most four.
+
+1. Payment disputes: fetch, contest with reason, add evidence, against sandbox fixtures (2 pt). RED: a contest call is refused when the respond-by date is in the past
+2. Post-Order cases: respond, provide tracking, escalate (2 pt). RED: a case response maps to a claim_events row with the case status
+3. Status polling into claim_events (1 pt). RED: a closed-won poll result writes the terminal claim_events row once
+
 ## Depends on
 
 - [SEEN-012](SEEN-012-build-ebay-connector-for-orders-returns.md): Build eBay connector for orders, returns, transactions and payouts

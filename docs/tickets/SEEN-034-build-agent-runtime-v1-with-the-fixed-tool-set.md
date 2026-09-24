@@ -36,6 +36,14 @@ Implement packages/agent: a tool-calling loop per task with Claude and the fixed
 - [ ] agent_runs records model, input and output tokens, cost in EUR and duration for every run
 - [ ] A tool call that throws is recorded as an agent_actions row with outcome error and the run escalates
 
+## Slices
+
+The starting slice plan, one session each; the solution stage adopts or amends it (SEEN-104). A slice is at most 2 points and a ticket has at most four.
+
+1. Tool declarations: action type, reversibility and euro impact for the seven tools (2 pt). RED: a tool without a declaration is refused at registration
+2. The run loop with the policy gate before every side effect and agent_runs accounting (2 pt). RED: a tool call that throws is recorded as an agent_actions row with outcome error
+3. Prompts per claim rule and the end-to-end run producing a draft and a request_approval (1 pt). RED: a run on a fixture finding ends in a request_approval action
+
 ## Depends on
 
 - [SEEN-027](SEEN-027-build-the-claims-rail-with-api-assisted-and.md): Build the claims rail with api, assisted and track modes

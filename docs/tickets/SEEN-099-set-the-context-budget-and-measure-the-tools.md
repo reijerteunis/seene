@@ -59,7 +59,7 @@ after five tickets. The figure and the call go in the sprint report, and the cal
 
 ## Blocks
 
-- none
+- [SEEN-104](SEEN-104-cap-a-session-at-one-slice-the-slice-plan-the.md): Cap a session at one slice: the slice plan, the budget and the handoff pack
 
 ## Context
 
