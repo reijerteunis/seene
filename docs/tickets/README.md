@@ -1,6 +1,6 @@
 # Tickets
 
-97 tickets for the Seen MVP, one file per ticket, grouped by sprint. Each file carries YAML frontmatter (id, epic, sprint, gate, estimate, executor, changes_agent_action, marketplaces, depends_on, status) so the backlog can be filtered with grep or loaded by a script. Status values: todo, doing, review, done, parked. Update the status line in the frontmatter and the table when a ticket moves.
+100 tickets for the Seen MVP, one file per ticket, grouped by sprint. Each file carries YAML frontmatter (id, epic, sprint, gate, estimate, executor, changes_agent_action, marketplaces, depends_on, status) so the backlog can be filtered with grep or loaded by a script. Status values: todo, doing, review, done, parked. Update the status line in the frontmatter and the table when a ticket moves.
 
 Conventions: branch `claude/<id>-<slug>` (or `codex/`), commit messages `feat(<id>): ...`, `fix(<id>): ...`, `docs(<id>): ...`; a ticket is done only when every acceptance criterion is checked and the tests named in it run in CI.
 
@@ -19,7 +19,10 @@ Conventions: branch `claude/<id>-<slug>` (or `codex/`), commit messages `feat(<i
 | [SEEN-006](SEEN-006-scaffold-the-pnpm-turborepo-monorepo-with-all.md) | Scaffold the pnpm turborepo monorepo with all six packages | E0 | 3 | Claude Code |  |
 | [SEEN-097](SEEN-097-set-up-the-local-docker-development-environment.md) | Set up the local Docker development environment | E0 | 3 | Claude Code | SEEN-006 |
 | [SEEN-087](SEEN-087-install-graphify-build-the-repo-graph-and-wire.md) | Install graphify, build the repo graph and wire it into both assistants | E10 | 3 | Claude Code | SEEN-086 |
-| [SEEN-096](SEEN-096-add-codegraph-and-repowise-and-assign-each.md) | Add codegraph and repowise and assign each context tool its stage | E10 | 3 | Claude Code | SEEN-086, SEEN-087 |
+| [SEEN-096](SEEN-096-add-codegraph-and-route-the-graph-command.md) | Add codegraph and route the graph command to it | E10 | 1 | Claude Code | SEEN-086, SEEN-087 |
+| [SEEN-098](SEEN-098-add-repowise-and-carry-risk-into-the-gate.md) | Add repowise and carry its risk answer into the gate | E10 | 2 | Claude Code | SEEN-086, SEEN-088 |
+| [SEEN-099](SEEN-099-set-the-context-budget-and-measure-the-tools.md) | Set the context budget and measure what the tools changed | E10 | 1 | Claude Code | SEEN-096, SEEN-098, SEEN-091 |
+| [SEEN-100](SEEN-100-let-a-gate-tell-an-open-question-from-an.md) | Let a gate tell an open question from an unknowable one | E10 | 1 | Claude Code | SEEN-088 |
 | [SEEN-088](SEEN-088-integrate-jev-ai-typed-decisions-into-the.md) | Integrate Jev AI typed decisions into the harness gates | E10 | 3 | Claude Code | SEEN-086 |
 | [SEEN-089](SEEN-089-enforce-tdd-and-ci-quality-gates-in-the-harness.md) | Enforce TDD and CI quality gates in the harness | E10 | 5 | Claude Code | SEEN-006, SEEN-086, SEEN-094 |
 | [SEEN-090](SEEN-090-add-harness-security-controls-secrets.md) | Add harness security controls: secrets, permissions, injection, supply chain | E10 | 3 | Claude Code | SEEN-086, SEEN-088 |

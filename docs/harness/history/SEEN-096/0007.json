@@ -1,0 +1,32 @@
+{
+  "sequence": 7,
+  "ticket": "SEEN-096",
+  "timestamp": "2026-09-24T05:06:27.334153+00:00",
+  "harness_version": "1",
+  "kind": "decision",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "human:implementer",
+  "head": "fd9926453018267c516b1c8d9f96dbd703588dc4",
+  "prev_hash": "4dd659cbbd2ce82a8b3d48d9c4a04cbb9c8142af8390d05ca334710a320f572b",
+  "data": {
+    "question": "clarified",
+    "type": "noul",
+    "options": [
+      "yes",
+      "no"
+    ],
+    "source": "human",
+    "model": null,
+    "outcome": "yes",
+    "probabilities": {
+      "yes": 0.85,
+      "no": 0.0
+    },
+    "confidence": 0.85,
+    "score": null,
+    "threshold": 0.8,
+    "passed": true,
+    "fallback_reason": null
+  }
+}

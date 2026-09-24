@@ -49,7 +49,7 @@ lint | sync | discard | list`. Every writing command refuses unless the branch i
 | [docs/harness/workflow.md](docs/harness/workflow.md) | The development harness: why, principles, the five stages and their gates, graphify and Jev AI integration, CI, the ten KPIs, security controls, commands, repository layout, the harness tickets |
 | [docs/tickets/README.md](docs/tickets/README.md) | Ticket index by sprint with points, executors and dependencies, plus the epic table |
 
-### Tickets (97, 355 build points)
+### Tickets (100, 357 build points)
 
 | Ticket | Title | Epic | Size |
 |---|---|---|---|
@@ -63,7 +63,10 @@ lint | sync | discard | list`. Every writing command refuses unless the branch i
 | [SEEN-006](docs/tickets/SEEN-006-scaffold-the-pnpm-turborepo-monorepo-with-all.md) | Scaffold the pnpm turborepo monorepo with all six packages | E0 | 3 pt |
 | [SEEN-097](docs/tickets/SEEN-097-set-up-the-local-docker-development-environment.md) | Set up the local Docker development environment | E0 | 3 pt |
 | [SEEN-087](docs/tickets/SEEN-087-install-graphify-build-the-repo-graph-and-wire.md) | Install graphify, build the repo graph and wire it into both assistants | E10 | 3 pt |
-| [SEEN-096](docs/tickets/SEEN-096-add-codegraph-and-repowise-and-assign-each.md) | Add codegraph and repowise and assign each context tool its stage | E10 | 3 pt |
+| [SEEN-096](docs/tickets/SEEN-096-add-codegraph-and-route-the-graph-command.md) | Add codegraph and route the graph command to it | E10 | 1 pt |
+| [SEEN-098](docs/tickets/SEEN-098-add-repowise-and-carry-risk-into-the-gate.md) | Add repowise and carry its risk answer into the gate | E10 | 2 pt |
+| [SEEN-099](docs/tickets/SEEN-099-set-the-context-budget-and-measure-the-tools.md) | Set the context budget and measure what the tools changed | E10 | 1 pt |
+| [SEEN-100](docs/tickets/SEEN-100-let-a-gate-tell-an-open-question-from-an.md) | Let a gate tell an open question from an unknowable one | E10 | 1 pt |
 | [SEEN-088](docs/tickets/SEEN-088-integrate-jev-ai-typed-decisions-into-the.md) | Integrate Jev AI typed decisions into the harness gates | E10 | 3 pt |
 | [SEEN-089](docs/tickets/SEEN-089-enforce-tdd-and-ci-quality-gates-in-the-harness.md) | Enforce TDD and CI quality gates in the harness | E10 | 5 pt |
 | [SEEN-090](docs/tickets/SEEN-090-add-harness-security-controls-secrets.md) | Add harness security controls: secrets, permissions, injection, supply chain | E10 | 3 pt |

@@ -1,0 +1,15 @@
+{
+  "sequence": 4,
+  "ticket": "SEEN-096",
+  "timestamp": "2026-09-23T23:21:04.938764+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "fd9926453018267c516b1c8d9f96dbd703588dc4",
+  "prev_hash": "e91ee1a338ee8e8138efc0069299431e831990fbeb6aafb633b592a1f1e833ed",
+  "data": {
+    "text": "# Why three tools, and what happens if they do not pay\n\nTwo questions the record was quiet about, and the second is the one that matters.\n\n**Why keep graphify at all.** codegraph indexes code and repowise reads code and git history; neither\nreads the 100 documents that are most of this repository. graphify does: its extraction covers the\nPRD, the architecture, the development plan and every ticket alongside the source, which is how\n`harness graph` answered questions during the harness epic. So the three roles are genuinely\ndifferent, and the test is whether a question has exactly one right addressee: what does this symbol\ntouch goes to codegraph, what does this change risk goes to repowise, where does this idea live across\ncode and documents goes to graphify. A question with two right answers means one tool too many.\n\n**What happens if they do not pay for themselves.** Measuring without a decision rule is theatre, so\nthe rule is written before the measurement: after five delivered tickets, if output tokens per point\nhave not fallen below the baseline of 40,581, the tools have not paid for the context they occupy and\none is removed, graphify first, because it is the one whose questions the other two can partly answer.\nIf tokens per point rise, they are removed immediately rather than after five. The figure and the\ndecision go in the sprint report, and it is the founder's call informed by that number rather than an\nautomatic uninstall.\n\nThe context they occupy is the cost being weighed: three MCP servers mean three sets of tool schemas\nin every session before a ticket is read. That is the reason the budget rules exist at all, and the\nreason the rule above has a direction rather than only a threshold.\n"
+  }
+}

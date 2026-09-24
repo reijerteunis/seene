@@ -1,0 +1,73 @@
+{
+  "measured_at": "2026-09-24",
+  "note": "Recorded before codegraph and repowise were installed, so the effect of adding them can be measured against something. Output tokens and tool calls are attributed to a ticket by the window between its start record and its receipt; one session worked these tickets in sequence, so the windows do not overlap.",
+  "tickets": [
+    {
+      "ticket": "SEEN-006",
+      "points": 3,
+      "output_tokens": 118466,
+      "tool_calls": 47
+    },
+    {
+      "ticket": "SEEN-087",
+      "points": 3,
+      "output_tokens": 81572,
+      "tool_calls": 39
+    },
+    {
+      "ticket": "SEEN-088",
+      "points": 3,
+      "output_tokens": 206032,
+      "tool_calls": 92
+    },
+    {
+      "ticket": "SEEN-089",
+      "points": 5,
+      "output_tokens": 249212,
+      "tool_calls": 103
+    },
+    {
+      "ticket": "SEEN-090",
+      "points": 3,
+      "output_tokens": 151325,
+      "tool_calls": 86
+    },
+    {
+      "ticket": "SEEN-091",
+      "points": 3,
+      "output_tokens": 105894,
+      "tool_calls": 47
+    },
+    {
+      "ticket": "SEEN-092",
+      "points": 2,
+      "output_tokens": 34381,
+      "tool_calls": 19
+    },
+    {
+      "ticket": "SEEN-093",
+      "points": 2,
+      "output_tokens": 27471,
+      "tool_calls": 12
+    },
+    {
+      "ticket": "SEEN-094",
+      "points": 2,
+      "output_tokens": 70970,
+      "tool_calls": 22
+    },
+    {
+      "ticket": "SEEN-095",
+      "points": 1,
+      "output_tokens": 50377,
+      "tool_calls": 33
+    }
+  ],
+  "totals": {
+    "points": 27,
+    "output_tokens": 1095700,
+    "tool_calls": 500,
+    "output_tokens_per_point": 40581.5,
+    "tool_calls_per_point": 18.5
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "sequence": 3,
+  "ticket": "SEEN-096",
+  "timestamp": "2026-09-23T23:20:36.322410+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "fd9926453018267c516b1c8d9f96dbd703588dc4",
+  "prev_hash": "a783424d65b4202640a36fbb9f5ad633571d25d6df853d6f0a2b65b0fd29b3b7",
+  "data": {
+    "text": "# No post-commit hook, on today's evidence\n\nThe ticket says `repowise serve` goes on the post-commit hook. We removed graphify's post-commit hook\nthis afternoon for exactly that shape of problem: it rebuilt in the background after every commit and\nleft the tree dirty, which broke two branch switches, two pulls, and three rebases that had to resolve\na twenty-thousand-line conflict. SEEN-087's criterion was amended to say the graph refreshes in CI and\nat delivery instead.\n\nNeither tool needs one.\n\n**codegraph watches files.** Auto-sync is on by default: the watcher fires 300 milliseconds after a\nsave and syncs in well under a second, which is what AC1's five-second requirement is about. It also\nauto-configures Claude Code and Codex CLI itself, so registration is its own command rather than ours.\n\n**repowise's hooks are optional by its own documentation**, with file watching, webhooks and polling as\nalternatives. It runs on demand from the harness at clarify, solution and review, which are the three\nstages the ticket assigns it, and those are commands a session already runs.\n\nSo the decision is: no git hook for either tool. `.githooks/pre-commit` stays as it is, running\ngitleaks, because that one has to see a commit before it happens rather than after.\n\n**What they write.** codegraph creates `.codegraph/` in the project and honours `.gitignore`. Both\ndirectories are local indexes rebuilt from the code, so both are gitignored rather than committed,\nwhich is the opposite of graphify's graph and deliberate: graphify's is committed so a fresh clone has\ncontext before its first build, while these two rebuild themselves in seconds.\n"
+  }
+}

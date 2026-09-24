@@ -45,7 +45,8 @@ Write docs/harness/skill.md as the single maintained skill (the steps, commands,
 - [SEEN-089](SEEN-089-enforce-tdd-and-ci-quality-gates-in-the-harness.md): Enforce TDD and CI quality gates in the harness
 - [SEEN-090](SEEN-090-add-harness-security-controls-secrets.md): Add harness security controls: secrets, permissions, injection, supply chain
 - [SEEN-091](SEEN-091-collect-harness-kpis-per-ticket-and-produce.md): Collect harness KPIs per ticket and produce weekly and sprint reports
-- [SEEN-096](SEEN-096-add-codegraph-and-repowise-and-assign-each.md): Add codegraph and repowise and assign each context tool its stage
+- [SEEN-096](SEEN-096-add-codegraph-and-route-the-graph-command.md): Add codegraph and route the graph command to it
+- [SEEN-098](SEEN-098-add-repowise-and-carry-risk-into-the-gate.md): Add repowise and carry its risk answer into the gate
 
 ## Blocks
 

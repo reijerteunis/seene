@@ -1,0 +1,15 @@
+{
+  "sequence": 2,
+  "ticket": "SEEN-096",
+  "timestamp": "2026-09-23T23:19:30.233621+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "fd9926453018267c516b1c8d9f96dbd703588dc4",
+  "prev_hash": "f79bb2f489d5e6f85ef1a45d97cf59f0919217ec1c482f80f36c94fe1eede059",
+  "data": {
+    "text": "# Established before clarify\n\n**Both packages exist.** `@colbymchenry/codegraph` is at 1.6.0 on npm; `repowise` is at 0.52.0 on\nPyPI. Neither was taken on trust.\n\n**The ticket names a file that was renamed.** It says the context budget rules go in `policy.toml`.\nThat file has been `harness/thresholds.toml` since SEEN-086: the word policy belongs to the product's\npolicy gate, and `CONTEXT.md` records the rename and why. The ticket was written against a snapshot\nfrom before it. The criterion is amended to name the file that exists.\n\n**AC1 names a symbol that does not exist.** The policy gate arrives with SEEN-033. The same\nre-pointing SEEN-087 needed: the question becomes the callers of a symbol that is in the tree today,\nand SEEN-033 re-verifies it against the policy gate when there is one.\n\n**The baseline is captured, because it could only be captured now.** AC5 compares tool calls and\ntokens per point against a baseline recorded before the tools were installed, and installing them\ndestroys the chance. `docs/harness/reports/context-tools-baseline.json` holds it: ten delivered\ntickets, 27 points, **40,581 output tokens per point** and **18.5 tool calls per point**, attributed\nby each ticket's window from its start record to its receipt.\n\nTool calls are measurable because the session logs record them: 976 in this project so far, 913 of\nthem Bash. So the comparison AC5 asks for is real rather than aspirational, and the cost reader that\nSEEN-091 built already knows how to read that file.\n"
+  }
+}

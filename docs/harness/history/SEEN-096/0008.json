@@ -1,0 +1,80 @@
+{
+  "sequence": 8,
+  "ticket": "SEEN-096",
+  "timestamp": "2026-09-24T05:06:28.141802+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "fd9926453018267c516b1c8d9f96dbd703588dc4",
+  "prev_hash": "cf41cf5fde1c5054d807833147b6a683d71e05d4c679480e1fe9962aa9256b53",
+  "data": {
+    "from_stage": "clarify",
+    "to_stage": "solution",
+    "evidence": {
+      "scope": "Install codegraph, let it register itself for Claude Code and Codex, and route harness graph impact and explain to it.",
+      "acceptance": [
+        "codegraph_explore answers a question about a symbol's callers in one MCP call in both assistants: the recorded call is the evidence",
+        "The index updates within five seconds of a file save: a timed save is the evidence",
+        "harness graph <ticket> impact and explain route to codegraph and write its answer into the journal: the records this ticket produces are the evidence",
+        ".codegraph/ is gitignored and doctor is quiet about it"
+      ],
+      "decisions": [
+        "No git hook: codegraph's watcher fires 300ms after a save, which is what the five-second criterion is about, and graphify's post-commit hook was removed on 24 September after breaking seven git operations",
+        ".codegraph/ is gitignored rather than committed, unlike graphify's graph, because it rebuilds itself in seconds while graphify's exists so a fresh clone has context before its first build",
+        "codegraph registers itself for both assistants, so this ticket verifies the result rather than reimplementing it",
+        "The original criterion named the policy gate, which arrives with SEEN-033; it becomes a symbol that exists today, and SEEN-033 re-verifies it"
+      ],
+      "open_questions": [],
+      "changes_agent_action": false,
+      "graph_impact": [
+        "harness/graph.py maps a question to a graphify verb today, and is where routing to a second tool belongs"
+      ]
+    },
+    "decisions": [
+      {
+        "question": "clarified",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "human",
+        "model": null,
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.85,
+          "no": 0.0
+        },
+        "confidence": 0.85,
+        "score": null,
+        "threshold": 0.8,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "question": "risk",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "medium",
+        "probabilities": {
+          "low": 0.17,
+          "medium": 0.83,
+          "high": 0.0
+        },
+        "confidence": 0.74,
+        "score": 0.83,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

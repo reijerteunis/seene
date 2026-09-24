@@ -43,7 +43,8 @@ Install graphify (uv tool install graphifyy), register it for Claude Code and Co
 
 ## Blocks
 
-- [SEEN-096](SEEN-096-add-codegraph-and-repowise-and-assign-each.md): Add codegraph and repowise and assign each context tool its stage
+- [SEEN-096](SEEN-096-add-codegraph-and-route-the-graph-command.md): Add codegraph and route the graph command to it
+- [SEEN-098](SEEN-098-add-repowise-and-carry-risk-into-the-gate.md): Add repowise and carry its risk answer into the gate
 - [SEEN-092](SEEN-092-sync-the-harness-skill-to-claude-code-and-codex.md): Sync the harness skill to Claude Code and Codex and retire the Seene leftovers
 
 ## Context

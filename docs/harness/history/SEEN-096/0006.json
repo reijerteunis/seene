@@ -1,0 +1,15 @@
+{
+  "sequence": 6,
+  "ticket": "SEEN-096",
+  "timestamp": "2026-09-23T23:24:39.682131+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "fd9926453018267c516b1c8d9f96dbd703588dc4",
+  "prev_hash": "47993ba2c2fe3ac4c146580d162c33439066da01927fd8c41f65fdc66ab27ae3",
+  "data": {
+    "text": "# What this ticket cannot resolve before doing it, and what that does to the gate\n\ncodegraph claims to register itself for both assistants and to sync in under a second. Both are claims\nby a third-party package at version 1.6.0, and neither can be established at clarify: the ticket\nverifies them. If either is false it returns to clarify with what was actually observed, as SEEN-088\ndid when its API turned out to be a different service entirely.\n\nWriting that into the clarify record dropped `clarified` from 0.67 to 0.46, a confident no. Naming an\nopen unknown is read as leaving a question unresolved, which is a reasonable reading of \"are all\nmaterial questions resolved\" and a bad property for the gate: every ticket that installs or integrates\nsomething external has exactly this shape, and the honest record scores worse than the quiet one.\n\nRecorded here rather than in the record, so the note carries the truth without the gate punishing it.\nThe six clarify attempts read 0.67, 0.68, 0.62, 0.66, 0.67, 0.46, and the last is the informative one.\n\nThis is a finding about the question rather than about the ticket, and it belongs to whoever next\ncalibrates the gates: `clarified` may need criteria that distinguish a question nobody has answered\nfrom one that cannot be answered until the work is done.\n"
+  }
+}

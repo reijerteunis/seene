@@ -1,0 +1,15 @@
+{
+  "sequence": 5,
+  "ticket": "SEEN-096",
+  "timestamp": "2026-09-23T23:23:24.253270+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "human:implementer",
+  "head": "fd9926453018267c516b1c8d9f96dbd703588dc4",
+  "prev_hash": "08690c0c1b0e39a55f9713da11abb7048df37dc798c984b2b0c69050790ef986",
+  "data": {
+    "text": "# Split three ways, on the same evidence as SEEN-089\n\nThe clarify record for the whole of SEEN-096 scored 0.67, then 0.68, then 0.62: adding two genuine\nresolutions, the no-hook decision and the keep-or-drop rule, made the score fall. The same question\nasked about codegraph alone scored 0.81 and cleared.\n\nThat is the signature of a ticket carrying too much rather than a record explaining too little, and it\nis the second time the pattern has appeared: SEEN-089 scored 0.49 covering seven enforcements and 0.67\ncovering one.\n\nDecision by the founder, 24 September 2026. SEEN-096 keeps codegraph, its registration and the routing.\nSEEN-098 takes repowise, its routing, the risk answer carried into the gate's state, and the PR bot.\nSEEN-099 takes the context budget and the measurement, which cannot conclude until five tickets have\ndelivered with the tools in place, and which already has its decision rule written.\n\nThe baseline was captured before any of this at record 2, so the split costs nothing there.\n\nNothing of the revision's intent is lost: the three roles, the stage assignment, and the measurement\nagainst a baseline are all still there, in tickets each of which can be judged.\n"
+  }
+}
