@@ -1,0 +1,66 @@
+{
+  "sequence": 11,
+  "ticket": "SEEN-101",
+  "timestamp": "2026-09-24T05:45:31.565409+00:00",
+  "harness_version": "1",
+  "kind": "receipt",
+  "stage": "deliver",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "bc52a84042277b1ee79ea4e39d15f7146504305a",
+  "prev_hash": "47db8281b81df1f57d6d46de4899150417409520d74f4ad10458848c4ccb0cf9",
+  "data": {
+    "from_stage": "deliver",
+    "to_stage": "delivered",
+    "commit": "bc52a84042277b1ee79ea4e39d15f7146504305a",
+    "branch": "claude/SEEN-101-let-a-journal-survive-its-ticket-rename",
+    "remote": "origin",
+    "tree": "28bca7301324ff50c87fe37e5407731a8b8b1c6dc83e033672eb1d9b638d8615",
+    "pull_request": "https://github.com/reijerteunis/seene/pull/13",
+    "limits": [
+      "SEEN-096's re-ask at 0.79 is one reading of one record on 24 September against jev-1.13.0. It says the fix moved the score a long way; it does not say the record is now good enough, and it is not, being a hundredth short.",
+      "must_fix came back yes at 0.50 against its 0.7 threshold on this ticket's review, a coin flip rather than a judgement. The review found three real defects, one of them high, all resolved before the advance, so the gate cleared on the numbers; a reader should not take 0.50 as agreement.",
+      "ticket_source is now in every gate payload, so every question sees one extra short string. The effect on other questions' scores is unmeasured.",
+      "The review was a self-review, like every ticket in this epic. An independent pass over the harness is still owed.",
+      "Only state_for was fixed. Nothing else in the harness that reads a ticket path was audited for the same assumption."
+    ],
+    "evidence": {
+      "remote": "origin",
+      "pull_request": "https://github.com/reijerteunis/seene/pull/13",
+      "limits": [
+        "SEEN-096's re-ask at 0.79 is one reading of one record on 24 September against jev-1.13.0. It says the fix moved the score a long way; it does not say the record is now good enough, and it is not, being a hundredth short.",
+        "must_fix came back yes at 0.50 against its 0.7 threshold on this ticket's review, a coin flip rather than a judgement. The review found three real defects, one of them high, all resolved before the advance, so the gate cleared on the numbers; a reader should not take 0.50 as agreement.",
+        "ticket_source is now in every gate payload, so every question sees one extra short string. The effect on other questions' scores is unmeasured.",
+        "The review was a self-review, like every ticket in this epic. An independent pass over the harness is still owed.",
+        "Only state_for was fixed. Nothing else in the harness that reads a ticket path was audited for the same assumption."
+      ]
+    },
+    "checks": [
+      {
+        "name": "Harness tests (Python 3.12)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Knowledge graph",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Monorepo (Node 24)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Secrets and supply chain",
+        "conclusion": "success",
+        "runs": 1
+      }
+    ],
+    "coverage": {
+      "package": "@seen/core",
+      "lines": 100.0,
+      "delta": 0.0
+    }
+  }
+}

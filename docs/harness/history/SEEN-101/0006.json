@@ -1,0 +1,15 @@
+{
+  "sequence": 6,
+  "ticket": "SEEN-101",
+  "timestamp": "2026-09-24T05:41:19.098470+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "8805dc9955e5d83d7722575c26042b5f4a533dad",
+  "prev_hash": "958cd007384ef916666aa8065193eb6eacda15313c6c5c5a03bb7b84cec40198",
+  "data": {
+    "text": "# The two questions the clarify record deferred, answered\n\n**How far the damage reached.** All thirteen journals were checked by reading record 1 and testing the\nrecorded path. One is stale: SEEN-096, whose file was renamed by its own three-way split. Every other\njournal names a ticket that still exists, so no other score was taken against the wrong text. The fix\nrepairs one ticket and prevents the next.\n\n**What SEEN-096's clarify record scores now.** Re-asked unchanged, through the fixed `state_for`, which\nreports `found by id` and reads a ticket that no longer mentions repowise: **0.79**, against the 0.46 it\nscored on the same record when the gate was reading the pre-split ticket.\n\nThat is 0.33 of pure measurement error, and it is still one hundredth short of the 0.8 threshold.\n\nBoth halves of that matter. The record was never as bad as the gate said, and it is not yet good\nenough on its own terms either. SEEN-096 will need another attempt at its clarify record or a recorded\noverride, and now it will be judged against the ticket it is actually working. The number is written\ndown here so that when SEEN-096 unparks, nobody has to guess whether the fix was what moved it.\n"
+  }
+}

@@ -1,0 +1,114 @@
+{
+  "sequence": 10,
+  "ticket": "SEEN-101",
+  "timestamp": "2026-09-24T05:43:06.501406+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "review",
+  "attempt": 1,
+  "actor": "claude:reviewer",
+  "head": "8805dc9955e5d83d7722575c26042b5f4a533dad",
+  "prev_hash": "adea7dfdcd481854d8889f3811e2e9c8dd6a7572a931c1eb219425849db5ca79",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "deliver",
+    "evidence": {
+      "reviewer": "claude:reviewer",
+      "independence": "self-review",
+      "acceptance_evidence": [
+        "state_for reads the recorded path and records the source: test_the_recorded_path_is_read_when_it_is_there asserts ticket_source is 'recorded path', green at record 5.",
+        "A renamed ticket is found by id and says so: test_a_renamed_ticket_is_found_by_its_id renames the file under a temporary root and asserts the text is the file's and the source is 'found by id'.",
+        "The snapshot is used only when nothing matches, and the state says so: test_the_snapshot_is_used_only_when_no_ticket_matches_and_says_so deletes the ticket and asserts both.",
+        "Two files for one id is a refusal naming both: test_two_files_for_one_id_is_a_refusal_naming_both asserts the HarnessError carries both filenames, and test_a_shared_id_is_no_obstacle_while_the_recorded_path_is_there fixes the boundary.",
+        "SEEN-096's clarify record re-asked and recorded: record 6 carries 0.79 against the 0.46 taken against the pre-split ticket, with the source reported as 'found by id' and the ticket confirmed free of repowise.",
+        "The skill's fourth rule corrected: docs/harness/skill.md now says decisions, sync regenerated both copies, and this ticket's own clarify record was refused under the old wording and cleared at 0.85 under the new one."
+      ],
+      "findings": [
+        {
+          "id": "F1",
+          "severity": "medium",
+          "claim": "The first version of the ambiguity test asserted a refusal that should not happen",
+          "failure_scenario": "It left the recorded path in place and added a second file with the same id, expecting a refusal. Had the code been written to satisfy it, a ticket would have become unjudgeable the moment any file shared its id prefix, including its own journal directory naming, and the refusal would have fired where there was nothing to disambiguate.",
+          "status": "resolved",
+          "resolution": "The test now renames the recorded file first, so the id is genuinely what is being resolved by, and a second test asserts a shared id is no obstacle while the recorded path is there."
+        },
+        {
+          "id": "F2",
+          "severity": "low",
+          "claim": "docs/tickets was a string literal in the new lookup while every other location lives in paths.py",
+          "failure_scenario": "Moving the tickets directory would leave this one caller globbing a directory that does not exist, and the failure would look like a missing ticket rather than a missing directory.",
+          "status": "resolved",
+          "resolution": "TICKETS added to harness/paths.py beside HISTORY, with the comment saying why an id is what a journal can rely on."
+        },
+        {
+          "id": "F3",
+          "severity": "high",
+          "claim": "SEEN-100 shipped advice the clarify gate refuses",
+          "failure_scenario": "A session following the skill's fourth rule writes its named unknown into open_questions, and the code layer refuses the advance because open_questions must be empty. The session either deletes the unknown, which is the behaviour SEEN-100 set out to stop, or fights the gate.",
+          "status": "resolved",
+          "resolution": "The rule now says decisions and says why open_questions must be empty. Verified by this ticket's own clarify record, refused under the old wording and cleared at 0.85 under the new one with two named unknowables in it."
+        }
+      ],
+      "checks": [
+        4,
+        5,
+        7,
+        8
+      ],
+      "security_checklist": [
+        "No credential is in the change, in any record, or in the new ticket_source string.",
+        "The re-ask of SEEN-096 was a script run by hand, not a test: nothing under harness/tests reaches the network.",
+        "state_for reads only files under docs/tickets and only through paths relative to the repository root, so a recorded ticket_file cannot be made to read outside the project any more than it could before.",
+        "The change touches no money, no tenant data and no policy-gate action."
+      ],
+      "verdict": "pass",
+      "tree": "28bca7301324ff50c87fe37e5407731a8b8b1c6dc83e033672eb1d9b638d8615"
+    },
+    "decisions": [
+      {
+        "question": "severity",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high",
+          "blocking"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "high",
+        "probabilities": {
+          "low": 0.02,
+          "medium": 0.18,
+          "high": 0.6799999999999999,
+          "blocking": 0.12
+        },
+        "confidence": 0.68,
+        "score": 1.91,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      },
+      {
+        "question": "must_fix",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.5,
+          "no": 0.5
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.7,
+        "passed": false,
+        "fallback_reason": null
+      }
+    ]
+  }
+}
