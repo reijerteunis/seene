@@ -56,7 +56,7 @@ The review is the most expensive read in the procedure: a model reads the whole 
 
 ## Outcome
 
-Delivered on 24 September 2026 in five attempts, three slices and four rework
+Delivered on 24 September 2026 in six attempts, three slices and five rework
 slices, one session by the digest: `253bf8e84e82`. The return was the triage's
 own doing: run on this branch at record 19 it flagged the four files `sync`
 generates as changed but named by no slice, while the solution record named both
@@ -106,7 +106,24 @@ it failed for the reason the slice states, which is the failure this ticket had
 already had once and resolved without code, and `acceptance_entries` counts two
 lists against each other without either saying which entry answers which. Both are
 handed to the reviewer now with the remainder named, in `PARTLY_SETTLED`, rather
-than closed. The solution gate refused twice at 0.58 against 0.6 and
+than closed.
+
+The fifth return was the one that mattered most, and the reviewer found it by
+reading this ticket's own journal rather than its code. A failed deterministic
+check was appended to the same list as the three depth rules, and the whole Jev
+request was skipped whenever that list was not empty. So `criterion_evidenced`,
+the one answer that can send a ticket back, was never asked on exactly the tickets
+pass one had already found something wrong with, which is the opposite of what the
+solution record said was being built. The evidence was in the journal all along:
+all five triages on this branch carried `jev.asked: false` and
+`criteria_answers: []` because `slice_files` fails on this ticket, so pass two had
+never run once while the ticket that builds it was being worked. Only the three
+rules silence the request now. The same finding exposed a second: every one of
+those triages recorded `excluded_share: 0.0`, which in `kpi.json` cannot be told
+apart from a narrowing that would have saved nothing, and that is the figure
+SEEN-109 divides on. The record now carries two depths, what the rules enforced
+and what the model would have chosen, and measures the narrowing against the
+second, so a narrowing that never ran still has a number. The solution gate refused twice at 0.58 against 0.6 and
 cleared at 0.65 once the record named the interfaces the clarify decisions had
 settled, which is the gap the question was right about: Jev is shown the solution
 record and not the clarify one, so a mechanism decided at clarify and never
@@ -180,4 +197,9 @@ token figure counts every subagent entry in the review round, because the sessio
 log cannot tell one subagent from another: a scout spawned to answer a question a
 finding raised lands in it too. The window is right and the name claims more than
 the log supports, which is recorded here rather than renamed, because criterion 5
-names the figure and SEEN-109 is the ticket that divides on it.
+names the figure and SEEN-109 is the ticket that divides on it. Three checks pass
+on less than their name suggests and are handed to the reviewer with the remainder
+named rather than listed as settled: `red_before_green`, `acceptance_entries` and
+`tests_added`. A ticket renamed after it started is followed by `cli.ticket_file`,
+the one resolver `_ticket_text` already used, rather than by a second reading of
+record 1.

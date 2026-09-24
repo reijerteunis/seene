@@ -1235,5 +1235,132 @@ class PartlySettledTest(FocusSetTest):
         self.assertTrue(set(triage.PARTLY_SETTLED) <= set(triage.DETERMINISTIC))
 
 
+class FailedCheckStillAsksTest(ThreeCriteriaTest):
+    """J1: only the three rules silence the request; a failed check does not.
+
+    Pass one finding something wrong is the case where the criteria most need
+    checking, and it was the one case nothing checked them. Every triage on this
+    ticket's own branch carried jev.asked false for this reason, so pass two never
+    ran once while the ticket that built it was being worked.
+    """
+
+    def unplanned_file(self):
+        self.write('harness/unplanned.py', 'def unplanned():\n    return 2\n')
+
+    def test_a_failed_check_forces_full_depth_and_still_asks(self):
+        self.reach_review()
+        self.unplanned_file()
+        record = self.triage()
+
+        ran = {check['name']: check for check in record['data']['deterministic']}
+        self.assertEqual(ran['slice_files']['outcome'], 'fail')
+        self.assertEqual(record['data']['review_depth'], 'full')
+        self.assertTrue(record['data']['jev']['asked'],
+                        'A failed check is why the reviewer reads everything, not a reason to '
+                        'stop asking whether the criteria are evidenced')
+        self.assertEqual(len(jev.TRANSPORT.sent), 1)
+
+    def test_the_criteria_are_still_answered(self):
+        self.reach_review()
+        self.unplanned_file()
+        answers = self.triage()['data']['criteria_answers']
+
+        self.assertEqual(len(answers), len(self.criteria))
+        for answer in answers:
+            self.assertEqual(answer['source'], 'jev')
+
+    def test_an_unevidenced_criterion_still_returns_the_ticket(self):
+        self.reach_review()
+        self.unplanned_file()
+        base = triage_stub()
+
+        def low_on_the_second(endpoint, payload, credential, timeout):
+            body = base(endpoint, payload, credential, timeout)
+            if 'criterion_evidenced#2' in body['answers']:
+                body['answers']['criterion_evidenced#2'] = noul(0.1)
+            return body
+
+        low_on_the_second.sent = base.sent
+        jev.TRANSPORT = low_on_the_second
+        with self.assertRaisesRegex(HarnessError, self.criteria[1]):
+            self.triage()
+
+        self.assertEqual(self.run_harness('status', self.ticket_id)['stage'], 'tdd')
+
+    def test_what_the_narrowing_would_have_dropped_is_still_measured(self):
+        """The figure SEEN-109 divides on, which a skipped request left at zero."""
+        self.reach_review()
+        self.unplanned_file()
+        jev.TRANSPORT = triage_stub(depth=(0.9, 0.1), must_read=0.05)
+        record = self.triage()
+
+        self.assertEqual(record['data']['review_depth'], 'full')
+        self.assertEqual(record['data']['model_depth'], 'spot',
+                         'What the rules enforced and what the model chose are two answers')
+        self.assertTrue(record['data']['would_exclude'],
+                        'Full depth by a failed check still records what spot would have dropped')
+        self.assertGreater(record['data']['excluded_share'], 0.0)
+
+    def test_a_depth_rule_does_still_silence_the_request(self):
+        self.reach_review(solution=solution_evidence(
+            migrations=['0003_add_triage.sql: a column'],
+            changes=['harness/thing.py: the behaviour',
+                     'harness/thresholds.toml: the settings these tests vary'],
+            slices=[dict(name='The behaviour', points=1,
+                         files=['harness/thing.py', 'harness/tests/test_thing.py'],
+                         red='The behaviour is absent')]))
+        record = self.triage()
+
+        self.assertEqual(record['data']['jev']['asked'], False)
+        self.assertEqual(jev.TRANSPORT.sent, [])
+        self.assertEqual(record['data']['review_depth'], 'full')
+
+
+class TestsAddedTest(FocusSetTest):
+    """J2: a test path in the diff is not a test for the behaviour."""
+
+    def test_tests_added_is_partly_settled(self):
+        self.reach_review()
+        task = self.triage()['data']['reviewer_task']
+
+        self.assertIn('tests_added', task.split('Partly settled')[1])
+        self.assertNotIn('tests_added',
+                         task.split('Already settled with no model')[1].split('\n')[0])
+
+    def test_its_detail_claims_only_that_a_test_path_changed(self):
+        self.reach_review()
+        ran = {check['name']: check for check in self.triage()['data']['deterministic']}
+
+        self.assertIn('Whether the behaviour this slice adds has one', ran['tests_added']['detail'])
+
+
+class RenamedTicketTest(FocusSetTest):
+    """J3: SEEN-101's case, which procedure_paths and always_read did not follow."""
+
+    def rename(self):
+        old = self.root / self.ticket_file
+        new = old.with_name(f'{self.ticket_id}-a-ticket-renamed-mid-flight.md')
+        old.rename(new)
+        self.git('add', '-A')
+        return str(new.relative_to(self.root))
+
+    def test_the_renamed_ticket_file_is_still_the_procedure_s_own(self):
+        self.reach_review()
+        renamed = self.rename()
+        ran = {check['name']: check for check in self.triage()['data']['deterministic']}
+
+        self.assertEqual(ran['slice_files']['outcome'], 'pass',
+                         f'{renamed} is the ticket file under a new name, not an unplanned change')
+
+    def test_the_task_points_at_the_ticket_as_it_stands(self):
+        self.reach_review()
+        renamed = self.rename()
+        record = self.triage()
+
+        self.assertEqual(record['data']['always_read'][0], renamed)
+        self.assertIn(renamed, record['data']['reviewer_task'])
+        self.assertTrue((self.root / renamed).is_file())
+
+
 if __name__ == '__main__':
     unittest.main()

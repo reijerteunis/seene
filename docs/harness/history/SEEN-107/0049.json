@@ -1,0 +1,31 @@
+{
+  "sequence": 49,
+  "ticket": "SEEN-107",
+  "timestamp": "2026-09-24T20:22:11.312691+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 5,
+  "actor": "claude:implementer",
+  "session": "253bf8e84e82",
+  "head": "936dc8461b55dfb83ad023be8b0e5625d449e771",
+  "prev_hash": "29a9d6d6c3db7544d7afc392cc26230f4643baaceae0ea28c2f6851abadd9fe5",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "behaviour": "The reviewer task names the ticket file and the journal whatever the depth, scopes its no-others to the diff, and hands over the two checks that pass on less than their name with the remainder named rather than listing them as settled",
+          "failure_reason": "KeyError: 'always_read'; AttributeError: module 'harness.triage' has no attribute 'PARTLY_SETTLED'; 'docs/harness/history/SEEN-001/' not found in the task; 'Partly settled' not found in the task; and 'red_before_green' unexpectedly found in the do-not-confirm list",
+          "red": 45,
+          "green": 46
+        }
+      ],
+      "regression": 47,
+      "coverage_delta": 0.0
+    },
+    "decisions": []
+  }
+}

@@ -437,30 +437,49 @@ def state_for(records, current, evidence=None, root=None, question=None):
     return state
 
 
-def _ticket_text(first, ticket_id, root):
-    """The ticket and where it came from: the path, the id, or the snapshot.
+def ticket_file(first, ticket_id, root):
+    """The ticket file as it stands now: the recorded path, or found by its id.
 
     A filename carries a title, so renaming a ticket is ordinary. SEEN-096 was
-    split three ways, its file was renamed, and every judgement after that read
-    a snapshot of the ticket before the split. The id is stable; the filename is
-    not. Which source was used is returned rather than hidden, because a
-    judgement against a snapshot of a deleted ticket is weaker evidence than one
-    against the ticket, and a journal should say which it was.
+    split three ways and its file was renamed mid-ticket, which is why SEEN-101
+    exists. The path in record 1 is the one the ticket was started with; the id is
+    what stays true. Public because the review triage needs the same answer, and a
+    second copy of this resolution is a second answer waiting to disagree: J3 of
+    SEEN-107's fifth review found it reading record 1 directly and excluding a path
+    that was no longer there.
+
+    Returns the project-relative path and how it was found, or None when nothing
+    on disk matches.
     """
-    snapshot = first['ticket_snapshot']
+    recorded = first.get('ticket_file')
     if root is None:
-        return snapshot, 'snapshot in record 1'
-    path = root / first['ticket_file']
-    if path.is_file():
-        return path.read_text(), 'recorded path'
+        return recorded, 'recorded path'
+    if recorded and (root / recorded).is_file():
+        return recorded, 'recorded path'
     matches = sorted((root / TICKETS).glob(f'{ticket_id}-*.md'))
     require(len(matches) < 2,
             f'{ticket_id} matches more than one ticket file, so the harness cannot tell which '
             'one it is judging against: '
             + ', '.join(str(match.relative_to(root)) for match in matches))
     if matches:
-        return matches[0].read_text(), 'found by id'
-    return snapshot, 'snapshot in record 1' 
+        return str(matches[0].relative_to(root)), 'found by id'
+    return recorded, None
+
+
+def _ticket_text(first, ticket_id, root):
+    """The ticket and where it came from: the path, the id, or the snapshot.
+
+    Which source was used is returned rather than hidden, because a judgement
+    against a snapshot of a deleted ticket is weaker evidence than one against the
+    ticket, and a journal should say which it was.
+    """
+    snapshot = first['ticket_snapshot']
+    if root is None:
+        return snapshot, 'snapshot in record 1'
+    path, found = ticket_file(first, ticket_id, root)
+    if found is None:
+        return snapshot, 'snapshot in record 1'
+    return (root / path).read_text(), found
 
 
 def _latest_evidence(records):

@@ -348,7 +348,8 @@ def _require_the_diff_has_not_moved(records, current, repository):
     if recorded is None:
         return
     from . import triage
-    now = repository.fingerprint(excluding=triage.procedure_paths(records))
+    now = repository.fingerprint(
+        excluding=triage.procedure_paths(records, repository.root))
     require(recorded == now,
             f'The diff has moved since triage record {triaged["sequence"]}: it read '
             f'{recorded[:12]} and this advance reads {now[:12]}. The focus set it chose does not '

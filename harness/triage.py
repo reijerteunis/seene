@@ -48,6 +48,9 @@ PARTLY_SETTLED = {
     'acceptance_entries': "it counts the clarify record's checks against the ticket's criteria, "
                           'never that each criterion has one, because neither list names the '
                           'other',
+    'tests_added': 'it proves a test file is in the change, never that the behaviour the slice '
+                   'adds has a test of its own, which a one-line fixture edit satisfies just as '
+                   'well',
 }
 
 # A path that is a test, by the two conventions this repository uses: Python
@@ -278,7 +281,7 @@ def generated_paths():
     return paths
 
 
-def procedure_paths(records):
+def procedure_paths(records, root=None):
     """Paths a solution record cannot plan and a comparison must not fire on.
 
     The ticket file, which the procedure writes: `status: doing` with the first
@@ -288,8 +291,12 @@ def procedure_paths(records):
     slice check and out of the code fingerprint the review gate compares: they
     changed, and a reviewer can still be sent to them.
     """
-    ticket = {records[0]['data'].get('ticket_file')} - {None} if records else set()
-    return ticket | generated_paths()
+    if not records:
+        return generated_paths()
+    from .cli import ticket_file
+    path, _ = ticket_file(records[0]['data'],
+                          records[0]['data'].get('ticket_id', records[0]['ticket']), root)
+    return ({path} - {None}) | generated_paths()
 
 
 def _slice_files_check(files, named, procedure):
@@ -332,7 +339,10 @@ def _red_check(records):
 def _tests_check(files):
     tests = sorted(path for path in files if TEST_PATH.search(path))
     if tests:
-        return _entry('tests_added', PASS, 'Tests changed: ' + ', '.join(tests[:5]))
+        return _entry('tests_added', PASS,
+                      'Test files changed: ' + ', '.join(tests[:5])
+                      + '. Whether the behaviour this slice adds has one of its own is not '
+                        'something a path can say')
     return _entry('tests_added', FAIL,
                   'No test file is in this change, so nothing new is guarded by a test')
 
@@ -387,7 +397,7 @@ def deterministic(repository, records, current, files, named, criteria, ticket, 
             _lint_check(repository.root),
             _gitleaks_check(repository),
             _fingerprint_check(repository, records, attempt, fingerprint),
-            _slice_files_check(files, named, procedure_paths(records)),
+            _slice_files_check(files, named, procedure_paths(records, repository.root)),
             _red_check(records),
             _tests_check(files),
             _acceptance_check(records, criteria),
@@ -570,7 +580,7 @@ def excluded_share(facts, narrowed):
     return round(dropped / total, 4)
 
 
-def always_read(records, ticket):
+def always_read(records, ticket, root=None):
     """What a review is against, which no focus set can contain.
 
     The journal is never a candidate, because `changed_files` drops everything
@@ -579,9 +589,10 @@ def always_read(records, ticket):
     said "read these and no others", so at spot depth it was telling the reviewer
     not to read the criteria or the evidence it reviews against.
     """
+    from .cli import ticket_file
     from .paths import HISTORY
-    ticket_file = (records[0]['data'].get('ticket_file') if records else None)
-    return [path for path in (ticket_file, f'{HISTORY}/{ticket}/') if path]
+    path = ticket_file(records[0]['data'], ticket, root)[0] if records else None
+    return [entry for entry in (path, f'{HISTORY}/{ticket}/') if entry]
 
 
 def reviewer_task(ticket, sequence, depth, focus, results, shadow, always):
@@ -649,14 +660,18 @@ def run(repository, records, current, rules, ticket, sequence):
                             fingerprint)
     facts = file_facts(repository, files, named, records, current['attempt'])
 
-    reasons = [gates.FULL_DEPTH_RULES[name]
-               for name in gates.full_depth_rules(records, repository.root, solution)]
+    tripped = gates.full_depth_rules(records, repository.root, solution)
+    reasons = [gates.FULL_DEPTH_RULES[name] for name in tripped]
     reasons += [f'{check["name"]} did not pass, so the reviewer reads everything: '
                 f'{check["detail"]}' for check in failed(results)]
 
-    if reasons:
-        # Nothing is put to the model, because nothing it could answer would
-        # change the answer. That is the whole point of a rule.
+    if tripped:
+        # Only the three rules silence the request, because nothing the model
+        # could answer would change what they settle. A failed check is not one
+        # of them: it says the reviewer reads everything, and the question it
+        # leaves most worth asking is whether the criteria are evidenced at all.
+        # J1 of the fifth review found the two in one list, so pass two never ran
+        # once on the branch that built it.
         asked, answers = [], []
         requested = dict(asked=False, model=None,
                          reason='Full depth is settled by rule, so no request was made: '
@@ -688,18 +703,27 @@ def run(repository, records, current, rules, ticket, sequence):
     criteria_answers = [dict(by_key[criterion_key(position)], criterion=text)
                         for position, text in enumerate(criteria, start=1)
                         if criterion_key(position) in by_key]
-    depth = 'full' if reasons else depth_from(by_key.get('review_depth'))
-    narrowed = focus_set(facts, by_key, depth, rules)
+    # Two depths, because they answer two questions. The enforced one is what the
+    # reviewer does, and a rule or a failed check makes it full. The model's own
+    # is what the narrowing would have chosen, and that is the figure the shadow
+    # window measures: a narrowing that never ran because full depth was enforced
+    # still has a number, and leaving it at zero made every triage on this
+    # ticket's own branch look like a narrowing that would have saved nothing.
+    model_depth = depth_from(by_key.get('review_depth'))
+    depth = 'full' if reasons else model_depth
+    enforced = focus_set(facts, by_key, depth, rules)
+    narrowed = focus_set(facts, by_key, model_depth, rules)
     shadow = bool(rules['review']['triage_shadow'])
-    focus = [entry['path'] for entry in facts] if shadow else list(narrowed)
-    required = always_read(records, ticket)
+    focus = [entry['path'] for entry in facts] if shadow else list(enforced)
+    required = always_read(records, ticket, repository.root)
     return dict(fingerprint=fingerprint,
                 # What the review gate compares, and why it is a second number:
                 # the procedure writes the ticket file between this record and
                 # that advance, every time, so a comparison over the whole tree
                 # would fire on the harness's own writing. F4 and F5 of this
                 # ticket's review.
-                code_fingerprint=repository.fingerprint(excluding=procedure_paths(records)),
+                code_fingerprint=repository.fingerprint(
+                    excluding=procedure_paths(records, repository.root)),
                 files=facts,
                 criteria=criteria,
                 deterministic=results,
@@ -707,6 +731,8 @@ def run(repository, records, current, rules, ticket, sequence):
                 jev=requested,
                 criteria_answers=criteria_answers,
                 review_depth=depth,
+                # What Jev would have chosen, beside what the rules enforced.
+                model_depth=model_depth,
                 # In shadow the reviewer still reads everything, and what the
                 # narrowing would have dropped is stored rather than acted on.
                 # That is the figure SEEN-109 decides on, measured before
