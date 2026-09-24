@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-099, SEEN-103, SEEN-091]
-status: todo
+status: doing
 ---
 # SEEN-104: Cap a session at one slice: the slice plan, the budget and the handoff pack
 
@@ -23,7 +23,7 @@ status: todo
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | todo |
+| Status | doing |
 
 ## Description
 
