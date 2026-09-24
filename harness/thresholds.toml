@@ -89,3 +89,13 @@ output_token_budget = 60000
 # The handoff pack is the only thing that crosses a slice boundary, so it is
 # small enough to be read in full by the session that receives it.
 handoff_token_limit = 2000
+
+# The two agents with a context of their own, from SEEN-105. The roster and the
+# cap are here rather than in code because adding an agent or moving the cap is a
+# legitimate decision that should be a diff a person reviews; what each agent may
+# do is structure and lives in harness/agents.py.
+[agents]
+names = ["seen-scout", "seen-reviewer"]
+# A brief is what crosses back into the session that asked, so it is small enough
+# to be read in full. Four hundred words is about two thirds of the handoff pack.
+brief_word_limit = 400

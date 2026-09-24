@@ -1,0 +1,31 @@
+{
+  "sequence": 20,
+  "ticket": "SEEN-105",
+  "timestamp": "2026-09-24T12:18:16.506206+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "2377cfb62f89",
+  "head": "833bfdbe4062430b9c1805787356a2276da43579",
+  "prev_hash": "5a184345aeb77515d90ac93b7c7dbc719a6756d67c7948a784c25d05fd4c8597",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_agents",
+      "harness.tests.test_skill",
+      "harness.tests.test_doctor"
+    ],
+    "phase": "green",
+    "exit_code": 0,
+    "duration_ms": 8862,
+    "output": ".....................................................\n----------------------------------------------------------------------\nRan 53 tests in 8.776s\n\nOK\n",
+    "output_sha256": "1b5f419c97e48986d39c84fc5263beb91d15f9b785cce6cc11811f29e6356eef",
+    "output_truncated": false,
+    "before": "4e63a07acaa7c4e7daccc4d2253310dd491eba6613735fca9acddec0a0cec686",
+    "after": "4e63a07acaa7c4e7daccc4d2253310dd491eba6613735fca9acddec0a0cec686"
+  }
+}

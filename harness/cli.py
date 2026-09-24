@@ -848,8 +848,11 @@ def execute(args):
                 'The harness self-check found problems:\n  ' + '\n  '.join(result['problems']))
         return result
     if args.command == 'sync':
-        from . import skills
-        return skills.sync(repository.root)
+        from . import agents, skills
+        written = skills.sync(repository.root)
+        # One command for every generated copy: a session that has to remember a
+        # second one is a session that will read a stale agent.
+        return dict(written, written=written['written'] + agents.sync(repository.root))
     if args.command == 'report':
         return write_report(repository, args)
     if args.command == 'lint':

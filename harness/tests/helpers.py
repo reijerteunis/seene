@@ -68,6 +68,15 @@ def make_project(ticket_id='SEEN-001', branch=None):
         copy.parent.mkdir(parents=True, exist_ok=True)
         copy.write_text(skills.render(source.read_text()))
 
+    # The agent copies, generated the same way, for the same reason: doctor
+    # checks them, so every project under test carries them.
+    from harness import agents
+    for agent in agents.AGENTS:
+        source = root / agents.source_of(agent)
+        source.parent.mkdir(parents=True, exist_ok=True)
+        source.write_text(f'# {agent["name"]}\n\nStand-in body for the tests.\n')
+    agents.sync(root)
+
     tickets = root / 'docs' / 'tickets'
     tickets.mkdir(parents=True)
     ticket_file = tickets / f'{ticket_id}-a-ticket-to-work.md'
