@@ -1,0 +1,166 @@
+{
+  "sequence": 11,
+  "ticket": "SEEN-105",
+  "timestamp": "2026-09-24T11:54:41.485247+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "solution",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "2377cfb62f89",
+  "head": "45f680609d2f7d44ff6fc393e0c75377c4a037ab",
+  "prev_hash": "275619b517ade50e9120b45adf28de802a1b20674341283fc4e3f26a0c8efa03",
+  "data": {
+    "from_stage": "solution",
+    "to_stage": "tdd",
+    "evidence": {
+      "mode": "code",
+      "approach": "Mirror the shape SEEN-092 already proved for the skill, twice over. harness/agents.py holds the two agents' structure as literals, the way harness/skills.py holds NAME, DESCRIPTION and HEADER, and harness/agents/<name>.md holds each agent's instructions, the way docs/harness/skill.md holds the skill's body. Structure in code and prose in a file is this repository's own rule (the comment at the top of harness/paths.py), and it is what lets the generator render two unlike targets, Claude Code's markdown with camelCase frontmatter and Codex's TOML, from one source per agent without a YAML parser the standard library does not have. agents.sync and agents.drift are the same two functions skills.py exposes, called by the same sync command and reported by the same doctor, so a copy edited by hand is named with the command that regenerates it. Four copies are committed, including the Codex ones, because a copy outside the tree cannot be checked and the skill's ~/.codex copy already shows what that costs. The scout's brief is recorded by harness note, which gains --from <agent> and a word cap read from a new [agents] section in thresholds.toml: over the cap it refuses with the count and the cap, under it the record carries the agent, the word count and the session digest of the command that wrote it. The review gate gains the third disclosure the clarify stage settled: independence may be subagent, a review record carries reviewer_session, and the gate refuses a declared reviewer session that is one of the sessions that wrote this attempt's own records, or the session running advance. Because that declaration is not verifiable, the gate keeps the cross-tool review for the tickets where it matters: when the solution advance answered touches_billing_or_policy_gate yes, the reviewer's tool must differ from the tool that wrote the implementer's records, subagent or not. What the KPI reads from all of this is one field, subagents, and the sprint report divides the output tokens of the tickets that carry it by their points beside the SEEN-099 baseline, so criterion five has somewhere to land when the first such ticket delivers.",
+      "changes": [
+        "harness/agents.py (new): SCOUT and REVIEWER as literals (name, description, tools, model, permissionMode, omitClaudeMd for Claude Code; name, description, developer_instructions, sandbox_mode, model for Codex), render_claude, render_codex, sync and drift, mirroring harness/skills.py function for function",
+        "harness/agents/seen-scout.md (new): the scout's instructions. Read-only tools and the three graph MCP servers, one tool call per question, and a brief of at most 400 words carrying file paths, the answers it found and the questions it could not answer",
+        "harness/agents/seen-reviewer.md (new): the reviewer's instructions. A fresh context with no Edit and no Write, reading the diff, the journal and the ticket's criteria, returning findings in the review template's shape with file, line, claim and failure scenario, and the disclosure that its context is a subagent of the implementer's session",
+        ".claude/agents/seen-scout.md, .claude/agents/seen-reviewer.md, .codex/agents/seen-scout.toml, .codex/agents/seen-reviewer.toml (new, generated and committed)",
+        ".codex/config.toml: an [agents] section with max_depth = 1, so a subagent cannot spawn another",
+        "harness/cli.py: sync returns the agent copies beside the skill copies; note gains --from and enforces the brief word cap, recording the agent and the count; extra_review_fields asks a review draft for reviewer_session",
+        "harness/doctor.py: an agents section in report, beside skill, from agents.drift",
+        "harness/thresholds.toml: [agents] with brief_word_limit = 400 and the two agent names, so the cap and the roster are a diff a person reviews",
+        "harness/gates.py: _review accepts independence subagent, requires reviewer_session on a subagent review, refuses a reviewer_session that is a session which wrote this attempt's records or the session running advance, and requires a reviewer from the other tool when _needs_two_reviewers",
+        "harness/templates/review.json: reviewer_session, and independence documented as independent, subagent or self-review",
+        "harness/kpi.py: subagents in measure, read from the journal's briefs and the accepted review's disclosure, null when the journal holds neither",
+        "harness/context.py and harness/report.py: the output tokens per point of the tickets worked with both agents, beside the existing rows and the baseline",
+        "docs/harness/skill.md and its two generated copies: how each assistant invokes the two agents, and that Codex spawns one only when told to",
+        "harness/tests/test_agents.py (new), and cases added to harness/tests/test_stage_gates.py, harness/tests/test_kpi.py and harness/tests/test_context_budget.py"
+      ],
+      "migrations": [],
+      "tests_first": [
+        "sync writes the four agent copies and doctor reports one edited by hand: python3 -m unittest harness.tests.test_agents. The RED must fail because harness.agents does not exist, and then because sync writes no agent copy and doctor's report has no agents section; the frontmatter assertions must name the camelCase keys, because Claude Code ignores a key it does not recognise without a word and nothing else would catch a wrong one",
+        "A brief of at most 400 words is recorded with its agent and its count, and a longer one is refused naming both numbers: python3 -m unittest harness.tests.test_agents. The RED must show a 401-word brief recorded as an ordinary note, with no count and no agent in the record",
+        "The review gate on a subagent review: python3 -m unittest harness.tests.test_stage_gates. The RED must show a record disclosing independence subagent accepted while its reviewer_session equals a session that wrote this attempt's own records, and a record with a different reviewer_session refused for not being independent, which is what the gate does today",
+        "The cross-tool rule for a billing or policy-gate ticket: python3 -m unittest harness.tests.test_stage_gates. The RED must show a fixture whose solution advance answered touches_billing_or_policy_gate yes accepted with a reviewer from the same tool as the implementer",
+        "The attribution: python3 -m unittest harness.tests.test_kpi harness.tests.test_context_budget. The RED must show measure returning no subagents field at all for a journal carrying a scout brief and a subagent review, and the rendered sprint report with no row for those tickets"
+      ],
+      "slices": [
+        {
+          "name": "The agent sources and their four generated copies",
+          "points": 1,
+          "files": [
+            "harness/agents.py",
+            "harness/agents/seen-scout.md",
+            "harness/agents/seen-reviewer.md",
+            "harness/cli.py",
+            "harness/doctor.py",
+            "harness/thresholds.toml",
+            ".claude/agents/seen-scout.md",
+            ".claude/agents/seen-reviewer.md",
+            ".codex/agents/seen-scout.toml",
+            ".codex/agents/seen-reviewer.toml",
+            ".codex/config.toml",
+            "harness/tests/test_agents.py"
+          ],
+          "red": "python3 -m unittest harness.tests.test_agents fails because nothing generates an agent copy: the four paths do not exist after sync, and doctor's report carries no agents section"
+        },
+        {
+          "name": "The scout brief under a word cap",
+          "points": 1,
+          "files": [
+            "harness/cli.py",
+            "harness/thresholds.toml",
+            "harness/tests/test_agents.py"
+          ],
+          "red": "A 401-word brief passed to harness note is recorded as an ordinary note instead of being refused with the count and the cap, and a 400-word brief produces a record with no agent and no word count"
+        },
+        {
+          "name": "The review gate: a subagent review, and the other assistant where it matters",
+          "points": 1,
+          "files": [
+            "harness/gates.py",
+            "harness/templates/review.json",
+            "harness/cli.py",
+            "harness/tests/test_stage_gates.py"
+          ],
+          "red": "A review record disclosing independence subagent whose reviewer_session is a session that wrote this attempt's own records advances, and a fixture whose solution advance answered touches_billing_or_policy_gate yes advances with a reviewer from the implementer's own tool"
+        },
+        {
+          "name": "The attribution in the KPI and the sprint report, and the skill both assistants read",
+          "points": 1,
+          "files": [
+            "harness/kpi.py",
+            "harness/context.py",
+            "harness/report.py",
+            "docs/harness/skill.md",
+            ".claude/skills/seen-harness/SKILL.md",
+            ".agents/skills/seen-harness/SKILL.md",
+            "harness/tests/test_kpi.py",
+            "harness/tests/test_context_budget.py"
+          ],
+          "red": "measure over a journal carrying a scout brief and a subagent review returns no subagents field, and the rendered sprint report has no row for the tickets worked with both agents"
+        }
+      ],
+      "alternatives": [
+        "Deriving the reviewer's context from the environment inside the subagent, which is what the ticket's wording assumed. Rejected on the observation recorded at clarify: a Claude Code subagent inherits its parent's CLAUDE_CODE_SESSION_ID, digest 2377cfb62f89 in both, and AI_AGENT is set in both, so there is nothing to derive.",
+        "Reading the subagent's own transcript, which Claude Code writes to a separate file under a per-session tasks directory, and recording its path or its hash as proof that a review ran in another context. Rejected on three counts: the path is in a temporary directory that does not survive the machine, it is not a documented interface, and a journal that cites a file nobody else can read is not evidence.",
+        "A new record kind, brief, beside note. Rejected because the criterion says harness note, a note carrying its agent is enough for the KPI to find it, and KINDS is the one vocabulary in the harness that every reader must know.",
+        "Folding a subagent review into the existing independent value. Rejected because the escaped-defect figures are read per review kind later, and a word that covers both cannot answer whether a subagent review catches what the other assistant catches.",
+        "One source file per agent holding its own frontmatter, parsed by the harness. Rejected because the standard library has no YAML parser, the harness takes no dependency, and a hand-rolled parser for five keys is a liability the skill's own design already avoided by keeping structure in code."
+      ],
+      "risks": [
+        "Claude Code ignores an unrecognised frontmatter key without a word, so a wrong key in a generated .claude/agents file fails silently and the agent simply behaves differently. Mitigated by pinning the rendered frontmatter key by key in test_agents.py against the keys read from the documentation on 24 September 2026, and recorded in the journal at record 7 with its source.",
+        "The Codex TOML keys (name, description, developer_instructions, sandbox_mode, model) come from the ticket text and are not verified against a Codex release on this machine: no Codex session has ever run on this repository. Mitigated the way SEEN-104 handled the same gap for the Codex session id: the generator is written to the keys the ticket names, doctor checks that the copy matches its source and not that Codex accepts it, and the first Codex session on this repository settles it. It is named in the ticket's Outcome as unverified rather than claimed as working.",
+        "reviewer_session is a declaration, so a session that wants to pass its own review can type another value. Mitigated by keeping the cross-tool review for tickets that change an agent action or touch billing, where the cost of a missed defect is money, and by the disclosure being in the journal where a reader can see which kind of review was claimed.",
+        "A 400-word cap on a brief can push the scout into dropping the questions it could not answer, which is the half of a brief the session most needs. Mitigated by the agent's instructions putting the unanswered questions before the findings, and by the refusal naming the count so a scout trims rather than guesses.",
+        "Four slices against a three-point forecast. The estimate counted the two agents and the gate and not the attribution the fifth criterion needs; the plan is a point above it, reported by the gate and allowed, rather than a slice quietly carrying two points of work."
+      ],
+      "rollback": "Nothing here is deployed and no table is touched, so rollback is git: reverting the branch's merge removes harness/agents.py, the two sources, the four generated copies, the [agents] sections and the gate's third disclosure. Journals already written keep their reviewer_session and their briefs, which no gate reads after the fact, and the sprint report simply stops carrying the extra row. The one thing a revert cannot undo is a review that was accepted as a subagent review while the value existed, which is why the record carries the disclosure rather than the gate inferring it.",
+      "new_dependencies": [],
+      "tenant_tables": [
+        "none: the harness touches no database table"
+      ],
+      "buyer_pii": "none",
+      "policy_gate_action": null,
+      "slice_points": 4
+    },
+    "decisions": [
+      {
+        "question": "solution_complete",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.66,
+          "no": 0.34
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "question": "touches_billing_or_policy_gate",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.73,
+          "no": 0.27
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}
