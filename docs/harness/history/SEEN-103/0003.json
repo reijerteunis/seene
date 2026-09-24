@@ -1,0 +1,15 @@
+{
+  "sequence": 3,
+  "ticket": "SEEN-103",
+  "timestamp": "2026-09-24T07:10:50.789260+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "solution",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "debdee44a026404b5c054505282e0130246b8970",
+  "prev_hash": "74860d168bdf04ed601c718749f4827b6b5e569c9c40132c03a0b1ad006dbbf5",
+  "data": {
+    "text": "# Whether any other gate asks for something a ticket cannot say does not apply\n\nAll six templates read against their gates. Every field that a gate requires non-empty:\n\n| Stage | Required field | Can a non-code ticket answer it |\n|---|---|---|\n| clarify | acceptance, decisions | yes, every ticket has both |\n| solution | changes, alternatives, risks, rollback, tenant_tables | yes; a policy ticket changes documents, considered other options, carries risks, can be reverted, and writes \"none\" for tables |\n| solution | **tests_first** | **no** |\n| tdd | slices | not asked: non-code mode uses its own template, which has no slices |\n| review | acceptance_evidence | yes |\n| deliver | limits | yes |\n\n`tests_first` is the only one, and the reason is the same one this ticket is about: it is the only\nfield whose answer depends on a declaration that is made after it is asked for. `slices` has the same\nshape and is already solved, by the non-code template that replaces the tdd one entirely; solution has\nno such split and does not need one, because one field out of eleven does not justify a second\ntemplate to maintain.\n\nSo the fix is where the ticket said it was, and nothing else is hiding behind it.\n"
+  }
+}

@@ -1,4 +1,5 @@
 {
+  "mode": "code",
   "approach": "The chosen shape, the interfaces it adds or changes, and why this one.",
   "changes": [
     "Path, and what changes in it."

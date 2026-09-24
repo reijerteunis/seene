@@ -1,0 +1,91 @@
+{
+  "sequence": 4,
+  "ticket": "SEEN-103",
+  "timestamp": "2026-09-24T07:11:10.930397+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "solution",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "debdee44a026404b5c054505282e0130246b8970",
+  "prev_hash": "0774a858091aa2258f32c2b804643d80480bb7280c294fe1653eab0fd6e39217",
+  "data": {
+    "from_stage": "solution",
+    "to_stage": "tdd",
+    "evidence": {
+      "approach": "The solution template gains a mode field shipping as 'code', so the common case is the default and a ticket with no executable behaviour is the one that has to say something.\n\nThe solution gate checks mode against the same MODES tuple the tdd gate uses, then requires tests_first only when the mode is code. The check has to run before require_template_fields, because that is what refuses the empty list, so the stage's shape check moves behind a mode-aware filter: for a non-code solution, tests_first is removed from the template before the fields are required, which is the same trick the tdd stage already plays with a whole second template, at one field's worth of cost instead.\n\nThe tdd gate gains one refusal: a mode that disagrees with the solution record's. Silence still means code, on both sides, so the nine solution records already written stay valid.\n\nNothing else moves. The non-code tdd template keeps change_type, reason and sources.",
+      "changes": [
+        "harness/templates/solution.json: mode, shipping as code",
+        "harness/gates.py: _solution checks the mode and requires tests_first only for code; _tdd refuses a mode that disagrees with the solution record",
+        "harness/cli.py: the stage's template fields are filtered by mode before they are required",
+        "harness/tests/test_non_code_mode.py: new, the five behaviours the criteria name"
+      ],
+      "migrations": [],
+      "tests_first": [
+        "A non-code solution record advances with tests_first empty: the RED must fail with Field tests_first must not be empty, which is the exact refusal SEEN-102 hit",
+        "A code solution record still refuses without tests_first, naming the field: the RED must pass, and is the guard that stops this becoming a way round the gate",
+        "A mode that is neither code nor non-code is refused, naming both: the RED must fail because nothing checks the solution's mode",
+        "A tdd record whose mode differs from the solution's is refused, naming both: the RED must fail because nothing compares them",
+        "A solution record with no mode key is read as code: the RED must fail if the lookup assumes the key is there"
+      ],
+      "alternatives": [
+        "A second solution template for non-code tickets, mirroring the tdd split, rejected because one field out of eleven does not justify a template to keep in step with the other",
+        "Dropping tests_first from the solution template entirely and asking for it only at tdd, rejected because the field's value is that it is written before the code, which is the point of the stage",
+        "Requiring mode and refusing records that lack it, rejected in clarify: nine solution records are already written without it and invalidating history to gain a field is the worse trade"
+      ],
+      "risks": [
+        "A ticket could declare non-code to skip writing tests_first and then write code anyway. The tdd gate's new agreement check catches the declaration changing; it does not catch a ticket that lies at both stages, which no gate can, and which the review stage reads a diff to find",
+        "Filtering a template by mode before requiring its fields is a new path through the shape check, and a filter that drops the wrong key would weaken every gate silently. It drops exactly one named key for exactly one stage and mode, and a test asserts the code path still refuses"
+      ],
+      "rollback": "Revert the commit. mode becomes an unknown key in any solution record written meanwhile, which require_template_fields ignores because it iterates the template rather than the data, so nothing already recorded breaks.",
+      "new_dependencies": [],
+      "tenant_tables": [
+        "none"
+      ],
+      "buyer_pii": "none",
+      "policy_gate_action": null
+    },
+    "decisions": [
+      {
+        "question": "solution_complete",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.77,
+          "no": 0.23
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "question": "touches_billing_or_policy_gate",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.06,
+          "no": 0.94
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

@@ -304,7 +304,8 @@ def clarify_evidence(**changes):
 
 
 def solution_evidence(**changes):
-    data = dict(approach='Write the records, then read them back.',
+    data = dict(mode='code',
+                approach='Write the records, then read them back.',
                 changes=['harness/journal.py: append and read'],
                 migrations=[],
                 tests_first=['test_journal.py: a chain that does not verify is refused'],
