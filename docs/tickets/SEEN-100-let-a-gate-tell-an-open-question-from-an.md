@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-088]
-status: todo
+status: doing
 ---
 # SEEN-100: Let a gate tell an open question from an unknowable one
 
@@ -23,7 +23,7 @@ status: todo
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | todo |
+| Status | doing |
 
 ## Description
 
