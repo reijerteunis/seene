@@ -34,3 +34,13 @@ graphify-out/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]/
 .turbo/
 *.tsbuildinfo
 coverage/
+
+# repowise's local index and wiki, from SEEN-098. Rebuilt from the tree by
+# repowise update, so it is derived rather than evidence, and 64 per cent of
+# what it would index is the journal.
+.repowise/
+# Editor and agent wiring repowise writes. Each machine points at its own
+# absolute paths, so committing it would hand the next machine a broken one.
+.vscode/mcp.json
+.vscode/extensions.json
+.codex/

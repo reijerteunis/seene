@@ -1,0 +1,86 @@
+{
+  "sequence": 2,
+  "ticket": "SEEN-098",
+  "timestamp": "2026-09-24T06:01:26.351001+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "2425d70273719325d7f930fac042808c29f5d31c",
+  "prev_hash": "95a7ec46fa6bd858359f4acf7c3367dc7b5c057cc9b09afb0ab0e3bb9c7388da",
+  "data": {
+    "from_stage": "clarify",
+    "to_stage": "solution",
+    "evidence": {
+      "scope": "Install repowise, route harness graph why, health and risk to it, carry its change-risk answer into the state the risk decision is judged on, and add its PR bot; the edge is that no LLM key is configured for it and nothing it does may cost money or call a model.",
+      "acceptance": [
+        "repowise get_change_risk on a diff touching packages/core returns a risk and a test gap: run against a real diff in this repository and record the answer in the journal, because the tool is external and only running it proves what it returns.",
+        "harness graph why, health and risk route to repowise and write the answer into the journal: unit tests assert the routing and the refusals, and three real records against this repository show the answers.",
+        "harness decide risk reads the change-risk answer as part of its state: a unit test asserts the state carries it, and the decision record from a real run shows it went to the model.",
+        "The PR bot comments on a pull request with no LLM call: run it on this ticket's own pull request and record the comment, with the absence of a key as the evidence that no model was called.",
+        "The local index is gitignored and doctor is quiet: git status shows nothing after an index, and doctor reports no problems."
+      ],
+      "decisions": [
+        "repowise 0.52.0 is installed with uv under Python 3.12, not the machine's 3.14. Its watchdog 4.0.2 dependency has no wheel for 3.14 and building it needs an Xcode licence this machine has not accepted. The harness itself stays on 3.12 as doctor requires, so nothing about this is a new constraint. Taken by the implementer, 24 September 2026.",
+        "Telemetry was disabled before anything was indexed, as it was for codegraph. It ships enabled. Taken by the implementer.",
+        "init runs with --no-prose, so the whole wiki is rendered from structure with no model, no key and no spend. The ticket's own wording asks for this and the budget rule makes it not optional.",
+        "init runs with --no-claude-md and --no-agents. It generates both files by default, and this project's CLAUDE.md is hand-written, checked in, and the entry point every session reads. A tool overwriting it would be a silent loss. Taken by the implementer.",
+        "The journals are excluded from the index with -x docs/harness/history/. A dry run saw 521 files, 64 per cent of them JSON, which is the journal rather than the codebase. Indexing the evidence about the code as if it were the code would make every answer worse. Taken by the implementer.",
+        "No git hook, for the third time in this epic: graphify's post-commit hook broke seven git operations on 24 September, and repowise documents its hooks as optional. Authority: the founder's decision on 24 September, recorded in SEEN-087.",
+        "Whether repowise's MCP tools carry the names the ticket lists, get_risk, get_change_risk, get_health, get_dead_code and get_why, can only be settled by installing the agent integration and reading what it registers. The criteria are written about what the answers must contain rather than about the tool names, and the names as found go in the journal.",
+        "Whether get_change_risk returns a test gap on a core diff at all is not knowable in advance; running it on a real diff settles it, and if it returns a risk without a test gap that is recorded as the answer rather than dressed up as one.",
+        "Whether the PR bot works with no LLM key configured is the whole point of the fourth criterion and is settled by running it. If it needs a key, the criterion fails and is recorded as failed, because a bot that spends money per pull request is not what this ticket is for."
+      ],
+      "open_questions": [],
+      "changes_agent_action": false,
+      "graph_impact": [
+        "harness/graph.py routing, harness/cli.py decide and its state"
+      ]
+    },
+    "decisions": [
+      {
+        "question": "clarified",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.86,
+          "no": 0.14
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.8,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "question": "risk",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "medium",
+        "probabilities": {
+          "low": 0.2,
+          "medium": 0.78,
+          "high": 0.02
+        },
+        "confidence": 0.68,
+        "score": 0.82,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

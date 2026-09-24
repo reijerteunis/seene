@@ -1,0 +1,25 @@
+{
+  "sequence": 10,
+  "ticket": "SEEN-098",
+  "timestamp": "2026-09-24T06:06:21.431917+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "2425d70273719325d7f930fac042808c29f5d31c",
+  "prev_hash": "bb860022327bb1a32d55184ca50d0ba51760089f041980046d3bc34478780bdf",
+  "data": {
+    "source": "repowise",
+    "mode": "why",
+    "command": [
+      "repowise",
+      "why",
+      "the policy gate"
+    ],
+    "exit_code": 0,
+    "duration_ms": 368,
+    "answer": "Nothing recorded for that query.\n",
+    "answer_truncated": false
+  }
+}

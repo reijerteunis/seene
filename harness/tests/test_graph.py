@@ -190,3 +190,50 @@ class RoutingTest(GraphFixture):
         (self.root / '.codegraph').rmdir()
         with self.assertRaisesRegex(HarnessError, 'codegraph'):
             self.graph('impact', '--about', 'state_for')
+
+
+REPOWISE_STUB = """#!/bin/sh
+echo "repowise: $@"
+exit %d
+"""
+
+
+class RepowiseRoutingTest(GraphFixture):
+    """why, health and risk: what the history says rather than what the code is."""
+
+    def stub_repowise(self, exit_code=0):
+        binaries = self.root / '.harness-drafts' / 'bin'
+        binaries.mkdir(parents=True, exist_ok=True)
+        stub = binaries / 'repowise'
+        stub.write_text(REPOWISE_STUB % exit_code)
+        stub.chmod(stub.stat().st_mode | stat.S_IEXEC)
+        (self.root / '.repowise').mkdir(exist_ok=True)
+        os.environ['PATH'] = f'{binaries}{os.pathsep}{os.environ["PATH"]}'
+        self.addCleanup(lambda: os.environ.__setitem__(
+            'PATH', os.environ['PATH'].replace(f'{binaries}{os.pathsep}', '')))
+
+    def test_why_asks_repowise(self):
+        self.stub_repowise()
+        record = self.graph('why', '--about', 'the policy gate')
+
+        self.assertEqual(record['data']['source'], 'repowise')
+        self.assertIn('the policy gate', record['data']['command'])
+
+    def test_health_needs_no_subject(self):
+        self.stub_repowise()
+        self.assertEqual(self.graph('health')['data']['source'], 'repowise')
+
+    def test_risk_asks_repowise(self):
+        self.stub_repowise()
+        self.assertEqual(self.graph('risk')['data']['source'], 'repowise')
+
+    def test_a_missing_index_is_refused_naming_repowise_init(self):
+        self.stub_repowise()
+        (self.root / '.repowise').rmdir()
+        with self.assertRaisesRegex(HarnessError, 'repowise init'):
+            self.graph('health')
+
+    def test_why_without_its_subject_is_refused(self):
+        self.stub_repowise()
+        with self.assertRaisesRegex(HarnessError, 'about'):
+            self.graph('why')

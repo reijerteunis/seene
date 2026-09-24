@@ -1,0 +1,98 @@
+{
+  "sequence": 5,
+  "ticket": "SEEN-098",
+  "timestamp": "2026-09-24T06:04:06.940436+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "solution",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "2425d70273719325d7f930fac042808c29f5d31c",
+  "prev_hash": "11a02c9e8d0cf7d6a710e6979f41e477ab60c535b6f0ab1f284d481d8f41b254",
+  "data": {
+    "from_stage": "solution",
+    "to_stage": "tdd",
+    "evidence": {
+      "approach": "Three pieces.\n\nRouting: harness/graph.py gains why, health and risk, each going to repowise with its own verb. The tool table already carries a tool per mode from SEEN-096, so this adds rows rather than a mechanism. A repowise query refuses when there is no .repowise/ index, the way a codegraph query refuses without .codegraph/.\n\nRisk into the state: harness/risk.py runs repowise risk --format json over the working tree and returns the risk band, the percentile and the test gap, or None with a reason when repowise is not installed or the repository is not indexed. cli.decide adds it to the state under change_risk when the question is risk, so the model reads evidence rather than impressions, and the decision record shows what it read. A missing answer is recorded as missing rather than as no risk: a gate that cannot tell a low score from an absent one is worse than no gate.\n\nThe index stays out of git: .repowise/ and the two .vscode files it writes are gitignored, and .mcp.json is committed because it is how a session finds both servers.\n\nThe PR bot has moved to SEEN-102, a human decision, recorded at record 4.\n\nNo git hook. repowise init installed a post-commit hook without being asked; it was removed and repowise doctor confirms it is gone. The index updates when repowise update runs, and the risk answer is computed from the working tree rather than from the index, so it does not go stale between updates.",
+      "changes": [
+        "harness/graph.py: why, health and risk routed to repowise, with the same missing-index refusal codegraph has",
+        "harness/risk.py: new, the change-risk answer as a dict or a recorded reason for its absence",
+        "harness/cli.py: decide carries change_risk into the state for the risk question",
+        "harness/tests/test_risk.py: new, the answer, the absence and the shape of what reaches the state",
+        "harness/tests/test_graph.py: the three repowise modes and their refusal",
+        ".gitignore: .repowise/ and the two .vscode files",
+        "docs/harness/skill.md and its two generated copies: the three new modes in the table"
+      ],
+      "migrations": [],
+      "tests_first": [
+        "harness graph why, health and risk each build a repowise command: the RED must fail because the three modes do not exist",
+        "A repowise query refuses when there is no .repowise/ index, naming repowise init: the RED must fail for the same reason",
+        "risk.assess returns the band, the percentile and the test gap from repowise's JSON: the RED must fail because there is no risk module",
+        "risk.assess returns None with a reason when repowise is not on PATH, rather than raising: the RED must fail for the same reason",
+        "harness decide risk carries change_risk into the state, and the decision record shows it: the RED must fail because the state has no such key",
+        "harness decide risk still works with change_risk absent, recording the reason instead: the RED must fail because there is nothing to record"
+      ],
+      "alternatives": [
+        "Reading the risk from the index with --target rather than from the working tree, rejected because the index is only as fresh as the last repowise update and the decision is about the change in front of the session",
+        "Carrying the risk into every question's state rather than only risk, rejected because a change-risk score is evidence about risk and noise everywhere else; SEEN-101 showed one extra string in the payload is not free",
+        "Letting a missing repowise fail the decide command, rejected because the harness must work on a machine where repowise is not installed, and it already records an unavailable judgement honestly for Jev"
+      ],
+      "risks": [
+        "repowise risk shells out and samples up to 200 commits; it took a few seconds on this repository. It runs once per risk decision, which is once per clarify stage, and the duration is recorded",
+        "The change-risk answer is computed from the working tree, so a dirty tree scores the uncommitted work. That is the intent at clarify, where there is usually nothing uncommitted, and the record says which commit or tree it scored",
+        "repowise is installed under Python 3.12 because watchdog has no 3.14 wheel and building it needs an Xcode licence this machine has not accepted. A machine without 3.12 cannot install it, and the harness must keep working there, which is what the absent-answer path is for"
+      ],
+      "rollback": "Revert the commit: the three modes disappear, decide stops carrying change_risk, and nothing in a journal already written becomes invalid because change_risk is only ever added to a state. `repowise uninstall` removes the index and the agent wiring, and `uv tool uninstall repowise` removes the tool.",
+      "new_dependencies": [
+        "repowise 0.52.0, installed with uv under Python 3.12, not a repository dependency. It writes .repowise/, which is gitignored, and its telemetry was turned off before it indexed anything"
+      ],
+      "tenant_tables": [
+        "none"
+      ],
+      "buyer_pii": "none",
+      "policy_gate_action": null
+    },
+    "decisions": [
+      {
+        "question": "solution_complete",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.7,
+          "no": 0.3
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "question": "touches_billing_or_policy_gate",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.12,
+          "no": 0.88
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

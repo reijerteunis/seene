@@ -1,0 +1,124 @@
+{
+  "sequence": 21,
+  "ticket": "SEEN-098",
+  "timestamp": "2026-09-24T06:13:11.727677+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "review",
+  "attempt": 1,
+  "actor": "claude:reviewer",
+  "head": "2425d70273719325d7f930fac042808c29f5d31c",
+  "prev_hash": "9354c4c81bfd574c972ea5f12b2aa4c2f6fb4ded1a36f5a6197737615136c246",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "deliver",
+    "evidence": {
+      "reviewer": "claude:reviewer",
+      "independence": "self-review",
+      "acceptance_evidence": [
+        "get_change_risk on a diff touching packages/core returns a risk and a test gap: recorded at record 3, elevated priority at the 93rd percentile on commit af90731, and in PR mode against packages/core/src/index.ts five downstream files, two tests that may break, three missing co-changes and one test to run.",
+        "harness graph why, health and risk route to repowise and write the answer into the journal: records 9, 10 and 11 against this repository, with RepowiseRoutingTest asserting the three modes, the missing-index refusal and the missing-subject refusal, green at record 8.",
+        "harness decide risk reads the change-risk answer as part of its state: the decision at record 15 was taken with it, RiskInTheDecisionTest asserts the state carries it and that no other question is given it, and an absent answer reaches the state as an absence rather than as a low score.",
+        "The PR bot is handed to a human decision: SEEN-102 exists with the read-access and public-page questions written out, and the reasoning is at record 4. It is not ticked as done here, because it is not done.",
+        "The local index is gitignored and doctor is quiet: .repowise/, .codex/ and the two .vscode files are ignored, git status shows nothing from them, and doctor reports no problems."
+      ],
+      "findings": [
+        {
+          "id": "F1",
+          "severity": "high",
+          "claim": "repowise init installed a post-commit git hook against a decision taken before it ran",
+          "failure_scenario": "The hook queues repowise update in the background after every commit. This is the same shape as graphify's hook, which broke seven git operations in a day on 24 September, and it would have arrived silently in a repository whose ticket said no git hook.",
+          "status": "resolved",
+          "resolution": "Removed, and repowise doctor confirms it as not installed. The index updates when repowise update runs, and the risk answer is computed from the working tree rather than the index, so it does not go stale between updates."
+        },
+        {
+          "id": "F2",
+          "severity": "high",
+          "claim": "An elided blast radius was being read as an empty test gap",
+          "failure_scenario": "Past some payload size repowise omits a section and leaves a marker. At 23 changed files the blast radius vanished, and risk.assess reported test_gaps as null beside a real percentile, which a reader takes as this change has no test gaps. A gate that cannot tell a missing answer from a clean one is worse than no gate, which is the sentence the module was written around.",
+          "status": "resolved",
+          "resolution": "blast_radius_unavailable carries repowise's own marker and the fields stay null. Three tests hold it, including that a full answer says so."
+        },
+        {
+          "id": "F3",
+          "severity": "medium",
+          "claim": ".mcp.json was committed with an absolute path from this machine",
+          "failure_scenario": "repowise init wrote /Users/ruudvanengelenhoven/Development/seene into a committed file. On any other machine the server starts against a directory that does not exist, and the failure is an MCP server that silently answers about nothing.",
+          "status": "resolved",
+          "resolution": "The path is dropped: repowise mcp defaults to the current directory. Verified by starting the server with the committed arguments and listing its ten tools, all five the ticket names among them. The em dash repowise put in the description went with it, this project having banned them."
+        },
+        {
+          "id": "F4",
+          "severity": "medium",
+          "claim": "The elision message counted command-line arguments as files and repeated an instruction the marker already carried",
+          "failure_scenario": "It reported 50 files for a 25-file change, because one file is four arguments, and appended repowise expand <marker> to a marker whose own text ends with restore: repowise expand <id>. A reader sees a count that does not match their change and an instruction twice.",
+          "status": "resolved",
+          "resolution": "Counted in files, and said once. Two tests hold both, written after reading the real output rather than the code."
+        }
+      ],
+      "checks": [
+        6,
+        8,
+        12,
+        14,
+        19
+      ],
+      "security_checklist": [
+        "repowise telemetry was disabled before the repository was indexed. It ships enabled, and this tree will hold the trade record schema and the claims logic.",
+        "No LLM key is configured for repowise and none is needed: --no-prose renders the wiki from structure, and risk, health and why are deterministic. Nothing in this ticket can spend money.",
+        "The PR bot was not installed. It would grant a third party read access to a private repository and publish a public page per pull request, which is the account owner's decision, recorded as SEEN-102.",
+        "No credential is in the change or in any record. The change-risk answer carries file paths and percentiles from this repository only.",
+        "init was run with --no-claude-md and --no-agents so it could not generate over this project's hand-written CLAUDE.md, and the journals were excluded from the index because evidence about the code is not the code.",
+        "The change touches no money, no tenant data and no policy-gate action."
+      ],
+      "verdict": "pass",
+      "tree": "0e996ef16a6a6f02c949718a03d8bedc5136143b876e6288ef6435b576c26f38"
+    },
+    "decisions": [
+      {
+        "question": "severity",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high",
+          "blocking"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "blocking",
+        "probabilities": {
+          "low": 0.01,
+          "medium": 0.05,
+          "high": 0.42,
+          "blocking": 0.52
+        },
+        "confidence": 0.44,
+        "score": 2.44,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      },
+      {
+        "question": "must_fix",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.39,
+          "no": 0.61
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.7,
+        "passed": false,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

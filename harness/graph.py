@@ -23,16 +23,22 @@ import subprocess
 import time
 
 from .errors import require
-from .paths import CODEGRAPH_DIRECTORY, GRAPH_FILE
+from .paths import CODEGRAPH_DIRECTORY, GRAPH_FILE, REPOWISE_DIRECTORY
 
-# The four questions a ticket asks, the tool that answers each, and its verb.
+# The questions a ticket asks, the tool that answers each, and its verb.
+# codegraph knows symbols, graphify knows files and pull requests, repowise
+# knows what the history says: why the code is shaped this way, how healthy it
+# is, and how dangerous this change looks against the repository's own past.
 MODES = {
     'impact': ('codegraph', 'impact'),
     'explain': ('codegraph', 'explore'),
     'path': ('graphify', 'path'),
     'prs': ('graphify', 'prs'),
+    'why': ('repowise', 'why'),
+    'health': ('repowise', 'health'),
+    'risk': ('repowise', 'risk'),
 }
-NEEDS_SUBJECT = ('impact', 'explain')
+NEEDS_SUBJECT = ('impact', 'explain', 'why')
 NEEDS_ENDS = ('path',)
 OUTPUT_LIMIT = 65536
 COUNT = re.compile(r'^\s*(Nodes|Edges):\s*([\d,]+)', re.MULTILINE)
@@ -63,8 +69,9 @@ def _run(command, root, timeout):
         return completed.returncode, completed.stdout + completed.stderr
     except FileNotFoundError:
         tool = command[0]
-        hint = ('npm i -g @colbymchenry/codegraph, then codegraph init'
-                if tool == 'codegraph' else 'uv tool install graphifyy')
+        hint = {'codegraph': 'npm i -g @colbymchenry/codegraph, then codegraph init',
+                'repowise': 'uv tool install --python 3.12 repowise, then repowise init',
+                }.get(tool, 'uv tool install graphifyy')
         require(False, f'{tool} is not on PATH; install it with {hint}')
     except subprocess.TimeoutExpired:
         return 124, f'The harness stopped {command[0]} after {timeout}s.\n'
@@ -95,6 +102,10 @@ def ask(repository, mode, about=None, source=None, target=None, timeout=300):
                 'repository before asking it questions')
         sync_code, _ = _run(['codegraph', 'sync'], root, timeout)
         record['synced'] = sync_code == 0
+    elif tool == 'repowise':
+        require((root / REPOWISE_DIRECTORY).is_dir(),
+                f'No repowise index at {REPOWISE_DIRECTORY}; run repowise init in this '
+                'repository before asking it questions')
     else:
         graph = root / GRAPH_FILE
         require(graph.is_file(),

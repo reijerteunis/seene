@@ -50,10 +50,19 @@ things:
 | `explain --about <symbol>` | codegraph | What is this and what surrounds it |
 | `path --from <a> --to <b>` | graphify | How these two ends connect |
 | `prs` | graphify | What the open pull requests touch |
+| `why --about <thing>` | repowise | Why the code is shaped this way |
+| `health` | repowise | Where the code is worst and why |
+| `risk` | repowise | How dangerous this change looks against the repo's own past |
 
 codegraph's watcher runs inside the MCP server your session starts, not as a daemon, so the harness
 syncs the index before every codegraph query and records that it did. In a shell with no assistant
-attached, the index is as old as the last sync until something asks.
+attached, the index is as old as the last sync until something asks. repowise's index updates when
+`repowise update` runs; nothing does it for you.
+
+The `risk` question at the clarify gate is given repowise's change-risk answer as evidence: the
+percentile against this repository's own commits, the tests that may break, the missing co-changes. If
+repowise is not installed the decision still happens, with the absence recorded as an absence rather
+than as a low score.
 
 ## What the harness will refuse
 

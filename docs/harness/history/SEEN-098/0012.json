@@ -1,0 +1,28 @@
+{
+  "sequence": 12,
+  "ticket": "SEEN-098",
+  "timestamp": "2026-09-24T06:07:04.451255+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "2425d70273719325d7f930fac042808c29f5d31c",
+  "prev_hash": "307cb6d32fa2435d611fe522caadb2ad5b7ccd8fe6a641c60bbe95d455057ded",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_risk"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "duration_ms": 4577,
+    "output": ".EE........................\n======================================================================\nERROR: test_a_full_answer_says_the_blast_radius_was_available (harness.tests.test_risk.ElidedBlastRadiusTest.test_a_full_answer_says_the_blast_radius_was_available)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_risk.py\", line 164, in test_a_full_answer_says_the_blast_radius_was_available\n    self.assertIsNone(answer['blast_radius_unavailable'])\n                      ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nKeyError: 'blast_radius_unavailable'\n\n======================================================================\nERROR: test_an_elided_blast_radius_is_named_rather_than_read_as_no_gaps (harness.tests.test_risk.ElidedBlastRadiusTest.test_an_elided_blast_radius_is_named_rather_than_read_as_no_gaps)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_risk.py\", line 147, in test_an_elided_blast_radius_is_named_rather_than_read_as_no_gaps\n    self.assertIn('[repowise#abc123]', answer['blast_radius_unavailable'])\n                                       ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nKeyError: 'blast_radius_unavailable'\n\n----------------------------------------------------------------------\nRan 27 tests in 4.505s\n\nFAILED (errors=2)\n",
+    "output_sha256": "2e192ce192e793e6cd4087a082b17c77513d04d7c0218361a9be35de700343b3",
+    "output_truncated": false,
+    "before": "c40999c987a010463ff1f6e69b99577538c1e0e9a1886f457c43fe50efa1a8f7",
+    "after": "c40999c987a010463ff1f6e69b99577538c1e0e9a1886f457c43fe50efa1a8f7"
+  }
+}

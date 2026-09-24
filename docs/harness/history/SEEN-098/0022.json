@@ -1,0 +1,68 @@
+{
+  "sequence": 22,
+  "ticket": "SEEN-098",
+  "timestamp": "2026-09-24T06:15:10.769645+00:00",
+  "harness_version": "1",
+  "kind": "receipt",
+  "stage": "deliver",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "950085a5614acfb0db1ba670f2189fc1a3e63dd9",
+  "prev_hash": "278a34f7897ef149759c819e7cb4e5f240f1c611f842c2d0f4933c0bf63e942b",
+  "data": {
+    "from_stage": "deliver",
+    "to_stage": "delivered",
+    "commit": "950085a5614acfb0db1ba670f2189fc1a3e63dd9",
+    "branch": "claude/SEEN-098-add-repowise-and-carry-risk-into-the-gate",
+    "remote": "origin",
+    "tree": "0e996ef16a6a6f02c949718a03d8bedc5136143b876e6288ef6435b576c26f38",
+    "pull_request": "https://github.com/reijerteunis/seene/pull/15",
+    "limits": [
+      "The PR bot is not installed and its criterion is not met. It moved to SEEN-102 as a human decision, with the read-access and public-page questions written down. Nothing in this ticket depends on it.",
+      "The repowise MCP tools were exercised by driving the server over stdio from a script, not from inside a Claude Code or Codex session, because the server list is loaded when a session starts and this one was already running. The committed .mcp.json entry was verified to start a server that lists all ten tools.",
+      "Codex was wired by repowise agents add, which wrote fourteen prompt files under ~/.codex/prompts and a distill rewrite hook. No Codex session has used any of it.",
+      "repowise is installed under Python 3.12 because watchdog 4.0.2 has no wheel for 3.14 and building it needs an Xcode licence this machine has not accepted. On a machine with only 3.14 the harness keeps working and records the absence, which is tested, but nobody has run it on such a machine.",
+      "The change-risk answer went into one real decision. Whether it improves the risk judgement across many tickets is unmeasured, and SEEN-091's reports are where that would show.",
+      "The review was a self-review, like every ticket in this epic. An independent pass over the harness is still owed."
+    ],
+    "evidence": {
+      "remote": "origin",
+      "pull_request": "https://github.com/reijerteunis/seene/pull/15",
+      "limits": [
+        "The PR bot is not installed and its criterion is not met. It moved to SEEN-102 as a human decision, with the read-access and public-page questions written down. Nothing in this ticket depends on it.",
+        "The repowise MCP tools were exercised by driving the server over stdio from a script, not from inside a Claude Code or Codex session, because the server list is loaded when a session starts and this one was already running. The committed .mcp.json entry was verified to start a server that lists all ten tools.",
+        "Codex was wired by repowise agents add, which wrote fourteen prompt files under ~/.codex/prompts and a distill rewrite hook. No Codex session has used any of it.",
+        "repowise is installed under Python 3.12 because watchdog 4.0.2 has no wheel for 3.14 and building it needs an Xcode licence this machine has not accepted. On a machine with only 3.14 the harness keeps working and records the absence, which is tested, but nobody has run it on such a machine.",
+        "The change-risk answer went into one real decision. Whether it improves the risk judgement across many tickets is unmeasured, and SEEN-091's reports are where that would show.",
+        "The review was a self-review, like every ticket in this epic. An independent pass over the harness is still owed."
+      ]
+    },
+    "checks": [
+      {
+        "name": "Harness tests (Python 3.12)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Knowledge graph",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Monorepo (Node 24)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Secrets and supply chain",
+        "conclusion": "success",
+        "runs": 1
+      }
+    ],
+    "coverage": {
+      "package": "@seen/core",
+      "lines": 100.0,
+      "delta": 0.0
+    }
+  }
+}

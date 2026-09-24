@@ -17,7 +17,8 @@ import subprocess
 import sys
 
 from . import (checks, cost as cost_module, coverage as coverage_module, doctor, gates,
-               graph as graph_module, jev, journal, kpi, report as report_module, thresholds)
+               graph as graph_module, jev, journal, kpi, report as report_module, risk,
+               thresholds)
 from .errors import HarnessError, require
 from .paths import (DRAFTS, HISTORY, KINDS, LOCK, NON_CODE_TEMPLATE, STAGES, TEMPLATES,
                     TEMPLATE_FOR_STAGE, TICKETS, WORKING_STAGES)
@@ -280,14 +281,15 @@ def coverage(repository, folder, records, args, current, rules):
 def decide(repository, folder, records, args, current, rules):
     """Ask one typed question about this ticket and keep the answer."""
     answer = jev.ask(repository.root, rules, args.question,
-                     state_for(records, current, None, repository.root),
+                     state_for(records, current, None, repository.root,
+                               question=args.question),
                      args.answer, args.confidence)
     return journal.append(folder, records, kind='decision', stage=current['stage'],
                           attempt=current['attempt'], actor=args.actor,
                           head=repository.head(), ticket=args.ticket, data=answer)
 
 
-def state_for(records, current, evidence=None, root=None):
+def state_for(records, current, evidence=None, root=None, question=None):
     """What Jev is given to judge: the ticket, the stage and the record at hand.
 
     The ticket text is read from the file as it stands now, not from the snapshot
@@ -301,12 +303,18 @@ def state_for(records, current, evidence=None, root=None):
     """
     ticket_id = records[0]['data'].get('ticket_id', records[0]['ticket'])
     ticket_text, source = _ticket_text(records[0]['data'], ticket_id, root)
-    return dict(ticket=ticket_id,
-                stage=current['stage'],
-                attempt=current['attempt'],
-                ticket_text=ticket_text,
-                ticket_source=source,
-                record=evidence if evidence is not None else _latest_evidence(records))
+    state = dict(ticket=ticket_id,
+                 stage=current['stage'],
+                 attempt=current['attempt'],
+                 ticket_text=ticket_text,
+                 ticket_source=source,
+                 record=evidence if evidence is not None else _latest_evidence(records))
+    if question == 'risk' and root is not None:
+        # Evidence rather than impressions, and only for the question it is
+        # evidence about: one more string in every payload is not free, which
+        # SEEN-101 had to say out loud after adding ticket_source.
+        state['change_risk'] = risk.assess(root)
+    return state
 
 
 def _ticket_text(first, ticket_id, root):
@@ -452,10 +460,14 @@ def stage_decisions(repository, records, args, current, rules, evidence):
     if outstanding:
         if jev.credential(repository.root):
             # One request for the whole stage, which is what the API is shaped for.
+            # The whole stage in one request, which is what the API is shaped
+            # for, so the change risk goes in whenever risk is among the
+            # questions being asked rather than once per question.
+            asked = 'risk' if 'risk' in outstanding else None
             fresh = {answer['question']: answer
                      for answer in jev.ask_many(repository.root, rules, outstanding,
                                                 state_for(records, current, evidence,
-                                                          repository.root))}
+                                                          repository.root, question=asked))}
         else:
             fresh = {name: jev.unavailable(
                 name, jev.QUESTIONS[name],
