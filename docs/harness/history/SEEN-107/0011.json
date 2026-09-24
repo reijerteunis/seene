@@ -1,0 +1,47 @@
+{
+  "sequence": 11,
+  "ticket": "SEEN-107",
+  "timestamp": "2026-09-24T18:53:16.787539+00:00",
+  "harness_version": "2",
+  "kind": "handoff",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "253bf8e84e82",
+  "head": "24afbf44a6ce4cc084cc7de7e2fb780bd695ae3e",
+  "prev_hash": "df5ee4b5390c0e91ce5383e185a089e3fee5289b1cb348c65721b12c5bfc6224",
+  "data": {
+    "pack": ".harness-drafts/SEEN-107-handoff.md",
+    "sha256": "8717fbba32c727297a3f39cba62278ebd08cc0b7312fc29df1189454c3dd60a4",
+    "estimated_tokens": 1026,
+    "token_limit": 2000,
+    "slice": {
+      "position": 3,
+      "total": 3,
+      "done": 2,
+      "declared": true,
+      "inferred": 2,
+      "entry": {
+        "name": "The focus set at the gate, in the reviewer's instructions and in the figures",
+        "points": 1,
+        "files": [
+          "harness/gates.py",
+          "harness/templates/review.json",
+          "harness/kpi.py",
+          "harness/cost.py",
+          "harness/agents/seen-reviewer.md",
+          "harness/tests/test_triage.py",
+          "docs/harness/workflow.md",
+          "docs/harness/skill.md"
+        ],
+        "red": "An advance out of review with a read list missing a focus-set file is accepted, and kpi.measure over a journal holding a triage record returns no review_triage section."
+      }
+    },
+    "figures": {
+      "session": "253bf8e84e82",
+      "output_tokens": 180902,
+      "tool_calls": 108,
+      "unavailable": null
+    }
+  }
+}
