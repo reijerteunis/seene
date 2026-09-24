@@ -1,0 +1,66 @@
+{
+  "sequence": 15,
+  "ticket": "SEEN-103",
+  "timestamp": "2026-09-24T07:27:02.354901+00:00",
+  "harness_version": "1",
+  "kind": "receipt",
+  "stage": "deliver",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "3a430bf6b09cf95fdabe9ec5dedc61e50f439c02",
+  "prev_hash": "d43fd7ae123fbf1779ba6e3af6d5f2031a8225a251c0b665510c94fe54edb563",
+  "data": {
+    "from_stage": "deliver",
+    "to_stage": "delivered",
+    "commit": "3a430bf6b09cf95fdabe9ec5dedc61e50f439c02",
+    "branch": "claude/SEEN-103-declare-non-code-mode-at-solution",
+    "remote": "origin",
+    "tree": "dfc885a94d1bd27183930f892c415283bf166f391b5454b09589671ebf933247",
+    "pull_request": "https://github.com/reijerteunis/seene/pull/17",
+    "limits": [
+      "must_fix came back yes at 0.63 against its 0.7 threshold on this ticket's review, so the gate cleared on the number rather than on agreement. The review found three real defects, one of them high, all resolved before the advance; a reader should not take 0.63 as the model endorsing the change.",
+      "The agreement check catches a ticket changing its declaration between stages. It does not catch one that declares non-code at both and writes code anyway, which no gate can; the review stage reads a diff, and that is where it would be found.",
+      "SEEN-102, the ticket that found this, has not yet been advanced through the fixed gate. Until it has, the fix is proven by unit tests rather than by the ticket it exists to unblock.",
+      "Nine solution records already written are read as code by mode_of. None of them is a non-code ticket, so nothing was misread, but nothing re-examined them either: the default was chosen to avoid invalidating history rather than because each was checked.",
+      "The review was a self-review, like every ticket in this epic. An independent pass over the harness is still owed."
+    ],
+    "evidence": {
+      "remote": "origin",
+      "pull_request": "https://github.com/reijerteunis/seene/pull/17",
+      "limits": [
+        "must_fix came back yes at 0.63 against its 0.7 threshold on this ticket's review, so the gate cleared on the number rather than on agreement. The review found three real defects, one of them high, all resolved before the advance; a reader should not take 0.63 as the model endorsing the change.",
+        "The agreement check catches a ticket changing its declaration between stages. It does not catch one that declares non-code at both and writes code anyway, which no gate can; the review stage reads a diff, and that is where it would be found.",
+        "SEEN-102, the ticket that found this, has not yet been advanced through the fixed gate. Until it has, the fix is proven by unit tests rather than by the ticket it exists to unblock.",
+        "Nine solution records already written are read as code by mode_of. None of them is a non-code ticket, so nothing was misread, but nothing re-examined them either: the default was chosen to avoid invalidating history rather than because each was checked.",
+        "The review was a self-review, like every ticket in this epic. An independent pass over the harness is still owed."
+      ]
+    },
+    "checks": [
+      {
+        "name": "Harness tests (Python 3.12)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Knowledge graph",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Monorepo (Node 24)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Secrets and supply chain",
+        "conclusion": "success",
+        "runs": 1
+      }
+    ],
+    "coverage": {
+      "package": "@seen/core",
+      "lines": 100.0,
+      "delta": 0.0
+    }
+  }
+}
