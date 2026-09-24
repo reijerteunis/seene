@@ -1,0 +1,19 @@
+{
+  "sequence": 13,
+  "ticket": "SEEN-105",
+  "timestamp": "2026-09-24T12:05:47.895167+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "2377cfb62f89",
+  "head": "a952dd6b4235680a1c45243dc2a9b0e5fac05dde",
+  "prev_hash": "6c35a0b508e82b0ce3ff149b9a6105ad775d95af27090c7deef52e0ca010485d",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "solution",
+    "to_attempt": 2,
+    "reason": "The decision was wrong, not the evidence. Jev answered touches_billing_or_policy_gate yes at 0.73 on a ticket that changes how a review is allowed, not how an agent action is allowed, approved or refused, and that touches no billable event and no invoice; the question's own criteria for true name those three things. CONTEXT.md exists because gate has three meanings in this repository, and this is the harness stage gate, not the product's policy gate. Ruud's call, taken on 24 September 2026: return to solution and record a human answer of no. The solution evidence is resubmitted unchanged so the journal shows exactly one thing different on this attempt."
+  }
+}
