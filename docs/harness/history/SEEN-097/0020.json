@@ -1,0 +1,28 @@
+{
+  "sequence": 20,
+  "ticket": "SEEN-097",
+  "timestamp": "2026-09-24T08:34:49.096048+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "head": "774d8b68005617ce02d51528ec6ebfeac2dfdd6c",
+  "prev_hash": "5ace16baad8358d3484c6b9eb481bbadbd9f6bd71aec27a949a0b9c160661791",
+  "data": {
+    "command": [
+      "pnpm",
+      "--filter",
+      "@seen/providers",
+      "test"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "duration_ms": 1445,
+    "output": "\n> @seen/providers@0.0.0 test /Users/ruudvanengelenhoven/Development/seene/packages/providers\n> vitest run\n\n\n RUN  v3.2.7 /Users/ruudvanengelenhoven/Development/seene/packages/providers\n\nStopped services: [supabase_inbucket_seen supabase_realtime_seen supabase_imgproxy_seen supabase_edge_runtime_seen supabase_analytics_seen supabase_vector_seen supabase_pooler_seen]\nA new version of Supabase CLI is available: v2.117.0 (currently installed v2.116.0)\nWe recommend updating regularly for new features and bug fixes: https://supabase.com/docs/guides/cli/getting-started#updating-the-supabase-cli\n ✓ src/no-cloud-sdk.test.ts (5 tests) 6ms\n ✓ src/selection.test.ts (11 tests) 4ms\n ✓ src/stack.test.ts (6 tests) 464ms\n\n⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯\n\n FAIL  src/environment.test.ts [ src/environment.test.ts ]\nError: Cannot find module './environment' imported from '/Users/ruudvanengelenhoven/Development/seene/packages/providers/src/environment.test.ts'\n ❯ src/environment.test.ts:6:1\n      4| import { afterEach, describe, expect, it } from 'vitest';\n      5| \n      6| import { loadLocalEnvironment } from './environment';\n       | ^\n      7| import { createSecretsProvider } from './secrets';\n      8| \n\nCaused by: Error: Failed to load url ./environment (resolved id: ./environment) in /Users/ruudvanengelenhoven/Development/seene/packages/providers/src/environment.test.ts. Does the file exist?\n ❯ loadAndTransform ../../node_modules/.pnpm/vite@7.3.6_@types+node@24.13.6/node_modules/vite/dist/node/chunks/config.js:22739:33\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯\n\n\n Test Files  1 failed | 3 passed (4)\n      Tests  22 passed (22)\n   Start at  10:34:47\n   Duration  992ms (transform 40ms, setup 0ms, collect 90ms, tests 474ms, environment 0ms, prepare 105ms)\n\n/Users/ruudvanengelenhoven/Development/seene/packages/providers:\n ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @seen/providers@0.0.0 test: `vitest run`\nExit status 1\n",
+    "output_sha256": "b63e6592e9e02611c366da9a66d31e6ee2bb6e6a87ec3aecc012bda09dbc1fb7",
+    "output_truncated": false,
+    "before": "53670bc4ff25b8f7a7d19deff1e0565f56c1b94a5397121261ca857f53a534ad",
+    "after": "53670bc4ff25b8f7a7d19deff1e0565f56c1b94a5397121261ca857f53a534ad"
+  }
+}

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { createStorageProvider, sha256 } from './storage';
-import { otlpTelemetryProvider } from './telemetry';
+import { createStorageProvider, sha256 } from './storage.ts';
+import { otlpTelemetryProvider } from './telemetry.ts';
 
 /**
  * The two providers that talk to something, against the containers `pnpm dev:up`

@@ -1,5 +1,6 @@
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
-import { dirname, join, relative, sep } from 'node:path';
+import { readdirSync, readFileSync } from 'node:fs';
+import { join, relative, sep } from 'node:path';
+
 
 /**
  * The SDKs that may only be imported inside packages/providers. The list is
@@ -30,26 +31,6 @@ export interface CloudSdkImport {
   file: string;
   line: number;
   specifier: string;
-}
-
-/**
- * The repository root: the directory up the tree that holds pnpm-workspace.yaml.
- * Walking up rather than counting '..' from this file, because this file compiles
- * to CommonJS in the apps and runs as ESM under vitest, and neither __dirname nor
- * import.meta.url is available in both.
- */
-export function repositoryRoot(from: string = process.cwd()): string {
-  let directory = from;
-
-  for (;;) {
-    if (existsSync(join(directory, 'pnpm-workspace.yaml'))) return directory;
-
-    const parent = dirname(directory);
-    if (parent === directory) {
-      throw new Error(`No pnpm-workspace.yaml above '${from}', so there is no repository root.`);
-    }
-    directory = parent;
-  }
 }
 
 /**

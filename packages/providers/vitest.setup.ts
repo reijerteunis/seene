@@ -1,5 +1,7 @@
 import { execFileSync } from 'node:child_process';
 
+import { loadLocalEnvironment } from './src/environment.ts';
+
 /**
  * The Supabase keys are generated per machine, so they are asked of the running
  * stack rather than committed anywhere or kept in a .env.local a fresh clone does
@@ -7,6 +9,9 @@ import { execFileSync } from 'node:child_process';
  * `pnpm test` behaves the same in both places.
  */
 export default function setup(): void {
+  // The same file the apps read, so a test sees the environment a developer set up.
+  loadLocalEnvironment();
+
   if (process.env.SUPABASE_SERVICE_ROLE_KEY && process.env.SUPABASE_URL) return;
 
   let output: string;

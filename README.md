@@ -44,6 +44,13 @@ You need Docker (Docker Desktop, colima or Rancher), the
 `supabase status -o env`; they are generated per machine and belong in `.env.local`,
 which is gitignored and is never committed.
 
+`.env.local` is read at startup by `apps/api` and `apps/worker`, from the repository
+root whatever directory you started them from, and by the test suite. A variable
+already set in the environment wins, so a real deployment is never overridden by a
+file that was left lying around. Marketplace credentials go in it as
+`SEEN_SECRET_<reference shouted>`: the secrets provider reads
+`SEEN_SECRET_BOL_NL_CLIENT_SECRET` for `bol/nl/client-secret`.
+
 | | |
 |---|---|
 | api | <http://127.0.0.1:8080> (`/health`) |

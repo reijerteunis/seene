@@ -1,0 +1,15 @@
+{
+  "sequence": 22,
+  "ticket": "SEEN-097",
+  "timestamp": "2026-09-24T08:40:52.149918+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "head": "774d8b68005617ce02d51528ec6ebfeac2dfdd6c",
+  "prev_hash": "d297ce1bcf86c6e473666977c2827ccec7abdb8cc63559dcbd0fbc817b509e46",
+  "data": {
+    "text": "# What the second attempt found\n\nThe review gate put `must_fix` at 0.59 against a 0.7 threshold and `severity` most\nlikely blocking. The record said pass. The gate was right.\n\n## The defect that sent it back\n\nNothing read `.env.local`. The README said to copy `.env.example` to it, `.env.example`\ncarried every variable the services and the three providers read, and the secrets\nprovider's own error said `Set SEEN_SECRET_X in .env.local`. No process ever opened the\nfile. A developer following the README exactly would set a marketplace credential and\nwatch the provider say the secret was missing.\n\n`loadLocalEnvironment` now reads it with Node's own parser, so the syntax is the one\n`node --env-file` uses rather than a library's dialect of it, and a variable already in\nthe environment wins: a deployment must not be overridden by a file left in an image,\nand after go-live there is no file at all.\n\n## Two more defects that only running it could find\n\nWiring the loader into `apps/api` and `apps/worker` broke both at boot with\n`ERR_MODULE_NOT_FOUND` on `packages/providers/src/environment`. Lint, typecheck and all\n26 tests were green at the time. Node loads a package's TypeScript source directly here,\nas ESM, where a relative import has to name a file that exists; `packages/providers` is\nthe first package in this repository with a second file, so nothing had hit it.\n`allowImportingTsExtensions` with `rewriteRelativeImportExtensions` is the fix: the\nsource says `./environment.ts`, which resolves, and tsc rewrites it to `./environment.js`\non emit, which also resolves. `\"type\": \"module\"` on the package stops Node parsing the\nfile twice and saying so on every boot.\n\nThen `PORT=8081` in `.env.local` still did not move the api. The loader defaulted to\n`process.cwd()`, and `nest start` runs from `apps/api` while `pnpm --filter` runs from\nthe package, so it looked for a file that was not there and found nothing, silently. It\nnow defaults to the repository root, found by walking up to `pnpm-workspace.yaml`.\n\nThree defects, and the unit tests saw none of them. Each surfaced by starting the thing\nand watching it fail.\n\n## Proof\n\n`PORT=8081` in `.env.local`, `pnpm dev`: the api answered on 8081 and 8080 was dead.\nWith the line removed it is back on 8080. No module errors, no reparse warnings, web\nstill 200.\n\nOne thing the attempt also fixed in the tests themselves: the suite now loads the\ndeveloper's real `.env.local`, so the environment tests explicitly clear the names they\nassert on. Without that they pass on most machines and fail on the one machine that has\nthe variable set, which is the worst kind of test to leave behind.\n"
+  }
+}

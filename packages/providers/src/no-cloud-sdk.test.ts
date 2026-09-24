@@ -3,7 +3,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-import { CLOUD_SDK_PREFIXES, findCloudSdkImports, repositoryRoot } from './boundary';
+import { CLOUD_SDK_PREFIXES, findCloudSdkImports } from './boundary.ts';
+import { repositoryRoot } from './environment.ts';
 
 /**
  * The rule the whole repository is held to: a cloud SDK may only be imported

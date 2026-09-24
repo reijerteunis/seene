@@ -3,7 +3,7 @@ import {
   notUntilGoLive,
   ProviderConfigurationError,
   selectImplementation,
-} from './selection';
+} from './selection.ts';
 
 /**
  * Credentials are held per connection and read at job time. The database holds

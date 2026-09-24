@@ -1,0 +1,18 @@
+{
+  "sequence": 19,
+  "ticket": "SEEN-097",
+  "timestamp": "2026-09-24T08:34:30.734154+00:00",
+  "harness_version": "1",
+  "kind": "return",
+  "stage": "deliver",
+  "attempt": 1,
+  "actor": "claude:reviewer",
+  "head": "774d8b68005617ce02d51528ec6ebfeac2dfdd6c",
+  "prev_hash": "016c61506c1a04a2c03cca80921bcb1d67f69cf860d32dc23c3a8b95217e8952",
+  "data": {
+    "from_stage": "deliver",
+    "to_stage": "tdd",
+    "to_attempt": 2,
+    "reason": "Nothing loads .env.local, so the documented way to configure the environment does not work. README says to copy .env.example to .env.local, .env.example carries every variable the providers and services read, and envSecretsProvider's own error says 'Set SEEN_SECRET_X in .env.local' - and no process ever reads that file. A developer following the README to the letter would set a marketplace credential and watch the secrets provider say the secret is missing. Jev put must_fix at 0.59 against a 0.7 threshold and severity most likely blocking, which is what sent me back to look; the gate was right and the review record was not. Returning to tdd to load it with a test, rather than delivering a documented workflow that is inert."
+  }
+}

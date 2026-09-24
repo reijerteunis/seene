@@ -92,6 +92,35 @@ put the api on `https://…trycloudflare.com`, where `/health` answered 200 over
 TLS and the inbound fixture answered 202; the tunnel was closed immediately after and
 the URL then answered 530.
 
+### Three defects the tests could not see
+
+The review gate put `must_fix` at 0.59 against a 0.7 threshold and `severity` most
+likely blocking while the review record said pass. The gate was right and the record
+was not, and the ticket went back to tdd.
+
+Nothing read `.env.local`. The README said to copy `.env.example` to it, `.env.example`
+carried every variable the services and the providers read, and the secrets provider's
+own error said `Set SEEN_SECRET_X in .env.local`. No process ever opened the file, so a
+developer following the README exactly would set a marketplace credential and be told
+the secret was missing. `loadLocalEnvironment` now reads it with Node's own parser, and
+a variable already in the environment wins so a deployment is never overridden by a file
+left in an image.
+
+Wiring that into the two apps then broke both at boot with `ERR_MODULE_NOT_FOUND`, with
+lint, typecheck and all 26 tests green. Node loads a package's TypeScript source
+directly here, as ESM, where a relative import must name a file that exists, and
+`packages/providers` is this repository's first package with a second file.
+`allowImportingTsExtensions` with `rewriteRelativeImportExtensions` fixes it in both
+directions: the source says `./environment.ts` and the emit says `./environment.js`.
+
+And `PORT=8081` in `.env.local` still did not move the api, because the loader defaulted
+to `process.cwd()` while `nest start` runs from `apps/api`. It looked for a file that was
+not there and found nothing, silently. It now walks up to `pnpm-workspace.yaml`.
+
+Each of the three was found by starting the thing and watching it fail, not by a test.
+Proof for the last: with `PORT=8081` in `.env.local` the api answered on 8081 and 8080
+was dead; with the line removed it is back on 8080.
+
 ### Known and deliberately left
 
 A forwarded mail carrying no mailbox hash names no tenant, and the endpoint answers 400,

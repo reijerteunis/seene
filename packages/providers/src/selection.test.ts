@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { createSecretsProvider } from './secrets';
-import { createStorageProvider } from './storage';
-import { createTelemetryProvider } from './telemetry';
-import { ProviderConfigurationError } from './selection';
+import { createSecretsProvider } from './secrets.ts';
+import { createStorageProvider } from './storage.ts';
+import { createTelemetryProvider } from './telemetry.ts';
+import { ProviderConfigurationError } from './selection.ts';
 
 /**
  * The cloud is a configuration switch (SEEN-007), which is only true if the

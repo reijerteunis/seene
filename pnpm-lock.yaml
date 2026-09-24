@@ -47,6 +47,9 @@ importers:
       '@seen/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@seen/providers':
+        specifier: workspace:*
+        version: link:../../packages/providers
       nodemailer:
         specifier: ^10.0.10
         version: 10.0.10
@@ -100,6 +103,9 @@ importers:
       '@seen/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@seen/providers':
+        specifier: workspace:*
+        version: link:../../packages/providers
       bullmq:
         specifier: ^5.0.0
         version: 5.81.5

@@ -4,7 +4,7 @@ import {
   type Environment,
   notUntilGoLive,
   selectImplementation,
-} from './selection';
+} from './selection.ts';
 
 /**
  * Traces and per-tenant cost. Cost is first class rather than a log line because

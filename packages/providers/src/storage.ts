@@ -7,7 +7,7 @@ import {
   notUntilGoLive,
   required,
   selectImplementation,
-} from './selection';
+} from './selection.ts';
 
 /**
  * Raw payloads and evidence. Evidence is hashed on write, so a claim can name the

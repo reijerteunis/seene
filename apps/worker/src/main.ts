@@ -1,3 +1,5 @@
+import './bootstrap';
+
 import { startHelloWorker } from './hello';
 
 /**

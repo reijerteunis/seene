@@ -5,12 +5,14 @@
  * of environment variables rather than a change of code.
  */
 
+export { loadLocalEnvironment, repositoryRoot } from './environment.ts';
+
 export {
   type Environment,
   ProviderConfigurationError,
   required,
   selectImplementation,
-} from './selection';
+} from './selection.ts';
 
 export {
   createSecretsProvider,
@@ -19,7 +21,7 @@ export {
   SECRETS_PROVIDERS,
   type SecretsProvider,
   type SecretsProviderName,
-} from './secrets';
+} from './secrets.ts';
 
 export {
   createStorageProvider,
@@ -29,7 +31,7 @@ export {
   type StorageProviderName,
   type StoredObject,
   supabaseStorageProvider,
-} from './storage';
+} from './storage.ts';
 
 export {
   type Attributes,
@@ -43,4 +45,4 @@ export {
   TELEMETRY_PROVIDERS,
   type TelemetryProvider,
   type TelemetryProviderName,
-} from './telemetry';
+} from './telemetry.ts';

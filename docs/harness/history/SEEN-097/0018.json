@@ -1,0 +1,113 @@
+{
+  "sequence": 18,
+  "ticket": "SEEN-097",
+  "timestamp": "2026-09-24T08:33:46.880148+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "review",
+  "attempt": 1,
+  "actor": "claude:reviewer",
+  "head": "774d8b68005617ce02d51528ec6ebfeac2dfdd6c",
+  "prev_hash": "1b04ffad4cff279b767a824aaf3477c8ac77028967389c82dd34a7e2037f2604",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "deliver",
+    "evidence": {
+      "reviewer": "claude:reviewer",
+      "independence": "self-review",
+      "acceptance_evidence": [
+        "pnpm dev:up starts Supabase, Redis, Mailpit and the collector and pnpm dev serves api, worker and web on a clean machine within 10 minutes: CI is the clean machine and the node job of run 35975300038 went from an empty checkout to green in 4 minutes 4 seconds, pulling every image, starting docker compose and supabase, then lint, typecheck, the whole suite and the build. On this laptop, recorded at sequence 10, pnpm dev serves /health as {\"status\":\"ok\",\"service\":\"@seen/api\",\"core\":\"@seen/core\"}, web answers 200 on 3000 and the worker holds its BullMQ connection; sequence 7 records 49s for a cold supabase start, 24s warm and the compose services healthy inside 10s.",
+        "pnpm test runs the full suite against the local stack and CI runs the identical services: the node job in the same run started docker-compose.yml and supabase/config.toml, the two files pnpm dev:up reads, and the GitHub service container for redis is gone. Both suites that talk to containers ran there, 3 files each for @seen/api and @seen/providers. The regression at sequence 11 is the same suite green on the laptop, 21 tests across 7 packages.",
+        "The three providers are selected by environment variables only and a unit test proves no cloud SDK import outside the provider packages: selection.test.ts holds each factory to one variable, to refusing an unknown value by naming the variable and the value, and to naming the cloud implementation while refusing it until SEEN-007. no-cloud-sdk.test.ts walks apps/ and packages/, exempts packages/providers, and catches import, export-from, require and dynamic import; it is proved against planted violations in a temporary tree rather than only against a clean one, which is the difference between a guard and a test that always passes. Red at sequence 5, green at 6.",
+        "A Postmark inbound fixture replayed through the local endpoint creates a message thread and an outbound mail appears in Mailpit: four tests over the real route at sequence 9 cover creation, a reply joining its thread, a replayed mail id changing nothing and a non-Postmark body refused; the mail test sends through Mailpit's SMTP and reads the message back from its HTTP API rather than trusting the send. Sequence 10 records the same fixture replayed against the running server: created true, then the reply with the same thread id and created false.",
+        "The tunnel script exposes the inbox on an HTTPS URL and the README says pilot data stays on the development machine: sequence 10 records https://infections-collapse-boss-cursor.trycloudflare.com answering 200 on /health over verified TLS and 202 on the inbound webhook, and 530 once closed. README.md carries it under 'Where things run' in plain words, and scripts/tunnel.sh repeats it at the point a person runs the command."
+      ],
+      "findings": [
+        {
+          "id": "F1",
+          "severity": "medium",
+          "claim": "findCloudSdkImports reported the wrong line for almost every finding, and line 0 for an import broken over several lines",
+          "failure_scenario": "The patterns open with (^|\\\\s), so a match anywhere but the first line of a file begins at the newline ending the line before, and the line lookup searched a single line for text that could span two. A violation reported at 'apps/api/src/x.ts:0' sends whoever has to fix it looking for an import that is not where the failure says it is, and the guard exists precisely for the moment nobody remembers putting the import there.",
+          "status": "resolved",
+          "resolution": "A test for the wrapped case was written first and failed at line 2 against an expected 3, which is how the off-by-one surfaced at all rather than only the line-0 case. The offset now steps over the leading whitespace the pattern consumed, and the line is counted from that offset. Fixed in 6d7977a with the test beside it."
+        },
+        {
+          "id": "F2",
+          "severity": "medium",
+          "claim": "stack.test.ts carried the local Supabase service-role JWT as a literal fallback",
+          "failure_scenario": "It is the Supabase CLI's published demo key rather than a real secret, but a JWT in the tree is a thing every future scanner flags and every future reader has to be told is harmless. The likelier harm is the habit: the next person needing a key in a test copies the pattern with one that is not published.",
+          "status": "resolved",
+          "resolution": "A vitest globalSetup asks the running stack through supabase status -o env and fails with a message naming pnpm dev:up when the stack is down. That also removed the duplicate key-export step from the CI workflow, so one mechanism now serves the laptop and CI instead of two that can drift."
+        },
+        {
+          "id": "F3",
+          "severity": "low",
+          "claim": ".gitignore repeated two paths that supabase/.gitignore already covers",
+          "failure_scenario": "Two lists of the same thing drift, and the one that stops being edited is the one that was right.",
+          "status": "resolved",
+          "resolution": "The root .gitignore now carries only supabase/snippets, which is ours because dev:up creates it, and says that the CLI's own state is covered by the CLI's own file."
+        }
+      ],
+      "checks": [
+        16
+      ],
+      "security_checklist": [
+        "No credential is committed. .env.example holds local defaults and placeholders only, the Supabase keys are read from the running stack at test time rather than written anywhere, and gitleaks found nothing across 150 commits of history or in the staged change.",
+        "No table is created or written, so no tenant_id and no RLS policy is at stake. The replayed thread is process memory behind an interface, and SEEN-008 owns message_threads.",
+        "No buyer PII is persisted. Both committed fixtures carry a marketplace partner service address and a synthetic tenant hash, no buyer name and no address.",
+        "No agent action, no policy gate, no billable event. changes_agent_action stays false and Jev put touches_billing_or_policy_gate at 0.89 no.",
+        "The tunnel is the one outward-facing thing here, and it is opt-in, never part of dev:up, refuses to run when nothing is serving, and prints the data-location warning before it opens. The verification run was closed immediately and the URL confirmed dead.",
+        "New dependencies are nodemailer, @supabase/supabase-js and @nestjs/cli, all widely used with no native build step. pnpm audit --audit-level high passes in the same CI run.",
+        "No test touches a live marketplace, and harness lint agrees in the secrets job of run 35975300038."
+      ],
+      "verdict": "pass",
+      "tree": "0d26ce0469056657ae0b825e7345209cfa97cb12671ac5bec5f920188242a723"
+    },
+    "decisions": [
+      {
+        "question": "severity",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high",
+          "blocking"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "blocking",
+        "probabilities": {
+          "low": 0.02,
+          "medium": 0.38,
+          "high": 0.12,
+          "blocking": 0.48
+        },
+        "confidence": 0.07,
+        "score": 2.07,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      },
+      {
+        "question": "must_fix",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.41,
+          "no": 0.59
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.7,
+        "passed": false,
+        "fallback_reason": null
+      }
+    ]
+  }
+}
