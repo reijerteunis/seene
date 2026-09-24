@@ -1,0 +1,16 @@
+{
+  "sequence": 28,
+  "ticket": "SEEN-105",
+  "timestamp": "2026-09-24T12:34:39.140191+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "2377cfb62f89",
+  "head": "b8c2160d8d5bce456295a4c046ba90b773462442",
+  "prev_hash": "216327cfc30183dd345fdbd6c4cc3006a98e6c7aea62d284555479a4ad634b87",
+  "data": {
+    "text": "# Who writes the brief down\n\nRecord 26 is a real brief from the real `seen-scout`, run against Sprint 0 ticket\nSEEN-009 from this session, using the copy slice 1 generated. It cost the main\nsession one tool call and about thirty thousand tokens of a context that was not\nthis one, and it came back at 381 words against the cap of 400.\n\nThe provenance is worth stating once, because it is a property of the design\nrather than an accident of this run: the scout holds no Write tool, so it cannot\nput its brief on disk. It returns the brief to the session that asked, and the\nsession writes it to a file and records it. What is in the journal is therefore\nthe scout's content transcribed by the session: two HTML entities were turned back\ninto the angle brackets they came from, and a heading naming the question was\nadded. Nothing was added to the findings and nothing was cut.\n\nThat is the right trade. An agent that can write to disk is an agent that can\nwrite to the journal, and a brief nobody read on the way in is a brief that could\ncarry anything into a record the ticket's evidence rests on. The alternative, a\nscout with Write, would buy one fewer copy and paste at the price of the one thing\nthe read-only roster is for.\n\nThe consequence for anyone reading record 26 later: it is evidence that the scout\nran and what it found, not a byte-for-byte transcript of what the agent emitted.\n"
+  }
+}

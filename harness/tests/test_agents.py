@@ -11,6 +11,7 @@ anywhere and a test is the only thing that will catch it.
 import tomllib
 
 from harness import doctor as doctoring
+from harness.errors import HarnessError
 from harness.repository import Repository
 from harness.tests.test_lifecycle import CommandTest
 
@@ -143,3 +144,62 @@ class AgentDefinitionTest(CommandTest):
         rules = thresholds.load(self.root)
         self.assertEqual(sorted(rules['agents']['names']), ['seen-reviewer', 'seen-scout'])
         self.assertEqual(rules['agents']['brief_word_limit'], 400)
+
+
+class ScoutBriefTest(CommandTest):
+    """What comes back from a context of its own, and how small it has to be.
+
+    A brief is the only thing that crosses back into the session that asked, so
+    it is capped and the cap is enforced where the record is written rather than
+    in the agent's instructions, which are a request and not a control.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.start()
+
+    def brief(self, words, agent='seen-scout'):
+        relative = '.harness-drafts/brief.md'
+        self.write(relative, ' '.join(['word'] * words) + '\n')
+        return self.run_harness('note', self.ticket_id, '--file', relative,
+                                '--actor', 'claude:implementer', '--from', agent)
+
+    def test_a_brief_at_the_cap_is_recorded_with_its_agent_and_its_count(self):
+        record = self.brief(400)
+        self.assertEqual(record['kind'], 'note')
+        self.assertEqual(record['data']['agent'], 'seen-scout')
+        self.assertEqual(record['data']['words'], 400)
+
+    def test_a_brief_over_the_cap_is_refused_naming_the_count_and_the_cap(self):
+        with self.assertRaises(HarnessError) as raised:
+            self.brief(401)
+        message = str(raised.exception)
+        self.assertIn('401', message)
+        self.assertIn('400', message)
+
+    def test_a_refused_brief_is_not_recorded(self):
+        before = len(self.records())
+        with self.assertRaises(HarnessError):
+            self.brief(401)
+        self.assertEqual(len(self.records()), before)
+
+    def test_a_brief_says_which_session_recorded_it(self):
+        self.assertEqual(self.brief(10)['session'], self.records()[-1]['session'])
+
+    def test_an_unknown_agent_is_refused_and_the_roster_is_named(self):
+        with self.assertRaises(HarnessError) as raised:
+            self.brief(10, agent='seen-implementer')
+        self.assertIn('seen-scout', str(raised.exception))
+
+    def test_an_ordinary_note_is_not_capped(self):
+        relative = '.harness-drafts/long-note.md'
+        self.write(relative, ' '.join(['word'] * 900) + '\n')
+        record = self.run_harness('note', self.ticket_id, '--file', relative,
+                                  '--actor', 'claude:implementer')
+        self.assertEqual(record['kind'], 'note')
+        self.assertNotIn('agent', record['data'])
+
+    def test_a_brief_stays_a_note_so_the_record_kinds_are_unchanged(self):
+        from harness.paths import KINDS
+        self.assertNotIn('brief', KINDS)
+        self.assertEqual(self.brief(10)['kind'], 'note')

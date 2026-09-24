@@ -87,9 +87,12 @@ def build_parser():
     draft.add_argument('--non-code', action='store_true',
                        help='Take the non-code path at the TDD stage')
 
-    note = ticket_command('note', 'Record a decision, a question or a handoff')
+    note = ticket_command('note', 'Record a decision, a question or a brief')
     note.add_argument('--file', required=True, help='Markdown file holding the note')
     note.add_argument('--actor', required=True)
+    note.add_argument('--from', dest='from_agent',
+                      help='The agent this came back from, for example seen-scout. A note from '
+                           'an agent is a brief and is held to the word cap')
 
     check = ticket_command('check', 'Run and record a verification command')
     check.add_argument('--phase', required=True)
@@ -493,12 +496,34 @@ def extra_review_fields(records, stage):
     return {}
 
 
-def note(repository, folder, records, args, current):
+def note(repository, folder, records, args, current, rules):
+    """A note, or a brief from one of the agents.
+
+    A brief is the only thing that crosses back from a context of its own, so it
+    is held to a word cap here rather than in the agent's instructions: what an
+    agent is told is a request, and what the harness records is a control. It
+    stays a note rather than a new kind, because the kinds are the one vocabulary
+    every reader of a journal has to know.
+    """
     text = repository.file_inside(args.file).read_text()
     require(text.strip(), 'A note must not be empty')
+    data = dict(text=text)
+    agent = getattr(args, 'from_agent', None)
+    if agent:
+        roster = rules['agents']['names']
+        require(agent in roster,
+                f'{agent!r} is not one of the agents this repository generates: '
+                f'{", ".join(roster)}. An agent with no source has no instructions either')
+        limit = rules['agents']['brief_word_limit']
+        words = len(text.split())
+        require(words <= limit,
+                f'This brief is {words} words against a cap of {limit}. Cut it to the answer, '
+                'the paths it rests on and the questions it could not answer; a brief that has '
+                'to be skimmed buys the session nothing')
+        data.update(agent=agent, words=words)
     return journal.append(folder, records, kind='note', stage=current['stage'],
                           attempt=current['attempt'], actor=args.actor, head=repository.head(),
-                          ticket=args.ticket, data=dict(text=text))
+                          ticket=args.ticket, data=data)
 
 
 def check(repository, folder, records, args, current, rules):
@@ -912,10 +937,7 @@ def execute(args):
         handlers = dict(note=note, check=check, advance=advance, graph=graph, decide=decide,
                         coverage=coverage, handoff=handoff)
         handlers['return'] = go_back
-        handler = handlers[args.command]
-        if handler is note:
-            return note(repository, folder, records, args, current)
-        return handler(repository, folder, records, args, current, rules)
+        return handlers[args.command](repository, folder, records, args, current, rules)
     finally:
         if path is not None:
             path.unlink(missing_ok=True)
