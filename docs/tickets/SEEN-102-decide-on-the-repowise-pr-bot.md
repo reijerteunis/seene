@@ -11,7 +11,7 @@ executor: human
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-098]
-status: todo
+status: parked
 ---
 # SEEN-102: Decide on the repowise PR bot for a private repository
 
@@ -23,7 +23,7 @@ status: todo
 | Executor | human (Ruud) |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | todo |
+| Status | parked (waiting for SEEN-103) |
 
 ## Description
 

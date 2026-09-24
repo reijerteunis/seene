@@ -1,0 +1,17 @@
+{
+  "sequence": 1,
+  "ticket": "SEEN-102",
+  "timestamp": "2026-09-24T06:47:31.399695+00:00",
+  "harness_version": "1",
+  "kind": "start",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "debdee44a026404b5c054505282e0130246b8970",
+  "prev_hash": null,
+  "data": {
+    "ticket_file": "docs/tickets/SEEN-102-decide-on-the-repowise-pr-bot.md",
+    "ticket_snapshot": "---\nid: SEEN-102\ntitle: \"Decide on the repowise PR bot for a private repository\"\nepic: E10\nepic_name: \"Development harness\"\nsprint: 0\nsprint_dates: \"24 Sep - 9 Oct 2026\"\ngate: G0\nestimate: 0\nexecutor: human\nchanges_agent_action: false\nmarketplaces: []\ndepends_on: [SEEN-098]\nstatus: todo\n---\n# SEEN-102: Decide on the repowise PR bot for a private repository\n\n| | |\n|---|---|\n| Epic | E10 Development harness |\n| Sprint | 0 (24 Sep - 9 Oct 2026), sprint gate G0 |\n| Estimate | human decision |\n| Executor | human (Ruud) |\n| Changes an agent action | no |\n| Marketplaces | none |\n| Status | todo |\n\n## Description\n\nThe repowise PR bot puts change risk, blast radius at symbol level, tests that may break and missing\nco-changes on every pull request, with no LLM call. It is a GitHub App\n(`github.com/apps/repowise-bot`), so installing it is an authorisation on this repository made through\na browser by the account owner.\n\nTwo things to decide with, both from SEEN-098's journal at record 4:\n\n**Read access.** The app reads the whole tree. This repository will hold the trade record schema, the\nclaims logic and the configuration around marketplace credentials, though never the credentials\nthemselves, which live in Secret Manager. Granting a third party read on a private repository is a\ndecision about who sees Seen's code.\n\n**A public page per pull request.** The bot's comment links to `repowise.dev/pr/<owner>/<repo>/<number>`,\nwhich repowise documents as public with no sign-in. For a private repository that is a disclosure\nrather than a convenience, and it is worth confirming what that page shows before deciding, not after.\n\nNothing in the harness depends on this. `harness graph why`, `health` and `risk` and the change-risk\nanswer carried into the risk decision all read the local index and work without it.\n\n## Acceptance criteria\n\n- [ ] What the public per-PR page shows for a private repository is established by looking at one, and recorded\n- [ ] A decision is recorded under `## Outcome`: install, decline, or revisit when the repository goes public\n- [ ] If installed, one pull request carries a bot comment and the absence of an LLM key is recorded with it\n- [ ] If declined, SEEN-098's fourth criterion is marked as decided rather than left open\n\n## Depends on\n\n- [SEEN-098](SEEN-098-add-repowise-and-carry-risk-into-the-gate.md): Add repowise and carry its risk answer into the gate\n\n## Blocks\n\n- none\n\n## Context\n\n- Glossary: [CONTEXT.md](../../CONTEXT.md)\n- Harness workflow: [docs/harness/workflow.md](../harness/workflow.md)\n- Split out of SEEN-098 on 24 September 2026, recorded in that ticket's journal at record 4.\n- The repository was deliberately kept private and branch protection deliberately not bought, both recorded in earlier tickets. This decision belongs to the same set.\n",
+    "base_commit": "debdee44a026404b5c054505282e0130246b8970"
+  }
+}

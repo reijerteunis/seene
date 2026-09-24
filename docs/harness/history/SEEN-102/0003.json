@@ -1,0 +1,15 @@
+{
+  "sequence": 3,
+  "ticket": "SEEN-102",
+  "timestamp": "2026-09-24T07:08:33.434767+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "human:implementer",
+  "head": "debdee44a026404b5c054505282e0130246b8970",
+  "prev_hash": "01671ea019ef58951fb33acd3fed3d16dbdc5ee9a9c34f024d0607830800453d",
+  "data": {
+    "text": "# Declined, 24 September 2026\n\nRuud's call, taken on the evidence at record 2 and recorded in his words as offered and chosen:\n\n> Outcome: DECLINED, 24 Sep 2026\n>\n> Why:\n>   - Contents: Read on the whole private tree\n>   - repowise servers clone the repo to index it\n>   - Per-PR page public-vs-private: UNRESOLVED (/privacy and /security both 404)\n>   - 15 USD/month before it says a word\n>   - Nothing in the harness depends on it\n>\n> Revisit when: seene goes public, or repowise states the page is access-controlled for private repos.\n\nThe decision is not a judgement on the bot, which does something this project believes in: a review\ncomment with no model behind it, deterministic, the same twice for the same diff. It is a judgement on\nthe trade. A private repository whose file names are a product roadmap, read in full by a third party,\nfor a page whose visibility nobody has been able to establish, at a monthly cost, for a surface that\nanswers questions the local index already answers through `harness graph` and the risk decision.\n\nTwo conditions would change it, and they are written down so nobody has to reconstruct them:\n`reijerteunis/seene` becoming public, where the bot is free and there is nothing left to expose, or\nrepowise stating that a private repository's per-PR page is access-controlled. Either one reopens this\nticket rather than starting a new argument.\n"
+  }
+}
