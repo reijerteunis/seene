@@ -1,0 +1,30 @@
+{
+  "sequence": 16,
+  "ticket": "SEEN-100",
+  "timestamp": "2026-09-24T05:24:24.615276+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "2d59e508e2352e219be0dc1fac9c55a5bef74b3e",
+  "prev_hash": "7b85586c5e231f14232cae4d1f53cb66853b48ffc7e53be35bf30ce4f785e90b",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "behaviour": "The clarified question's criteria count a question only the work can settle as resolved when the record names what will settle it, and refuse only what is unresolved with nothing said about what would resolve it. The threshold and the other six questions are untouched.",
+          "failure_reason": "AssertionError: 'only doing the work can settle' not found in 'every open question is answered or explicitly deferred with a decision'",
+          "red": 7,
+          "green": 13
+        }
+      ],
+      "regression": 15,
+      "coverage_delta": 0.0
+    },
+    "decisions": []
+  }
+}

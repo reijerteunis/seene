@@ -27,9 +27,17 @@ NOUL = ('yes', 'no')
 QUESTIONS = {
     'clarified': dict(
         type='noul', options=NOUL, stage='clarify',
+        # A named unknown is clarity, not a hole. Writing down what only the work
+        # can settle used to lower the score: SEEN-096 fell from 0.67 to 0.46 for
+        # saying that a tool's documented behaviour has to be verified by
+        # installing it, and SEEN-100's own record fell from 0.77 to 0.72 for
+        # saying that no test may call this API. Measured in SEEN-100's journal.
         ask='Are all material questions in this clarify record resolved?',
-        criteria={'true': 'Every open question is answered or explicitly deferred with a decision',
-                  'false': 'Something material is still unresolved'}),
+        criteria={'true': 'Every open question is answered or explicitly deferred with a decision. '
+                          'A question that only doing the work can settle counts as resolved when '
+                          'the record names what will settle it.',
+                  'false': 'Something material is still unresolved, with no decision and nothing '
+                           'said about what would resolve it.'}),
     'risk': dict(
         type='score', options=('low', 'medium', 'high'), stage='clarify',
         ask='How risky is the change this ticket describes?',

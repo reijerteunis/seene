@@ -1,0 +1,90 @@
+{
+  "sequence": 6,
+  "ticket": "SEEN-100",
+  "timestamp": "2026-09-24T05:18:12.618565+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "solution",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "2d59e508e2352e219be0dc1fac9c55a5bef74b3e",
+  "prev_hash": "e692ce3b7d7cb9a443e6418716c9bf2395e072c8f070f7eed45c07ac6f757c10",
+  "data": {
+    "from_stage": "solution",
+    "to_stage": "tdd",
+    "evidence": {
+      "approach": "One entry in harness/jev.py changes. The clarified question keeps its wording and its threshold; its true criterion gains the sentence that a question only doing the work can settle counts as resolved when the record names what will settle it, and its false criterion becomes something material unresolved with no decision and nothing said about what would resolve it.\n\nThe unit tests assert the shape, because no test may call Jev: that the question carries both criteria, that the true criterion admits a named unknown, that the threshold in thresholds.toml is untouched at 0.8, and that the other six questions are unchanged. The behaviour is verified by a measurement script committed beside the tests, which re-asks four records with both the old and the new criteria and prints the table; its output goes in the journal as the regression, and anyone can repeat it.\n\ndocs/harness/skill.md gains one line telling a session to name what only the work can settle rather than leave it out, and sync regenerates both copies.",
+      "changes": [
+        "harness/jev.py: the clarified question's criteria",
+        "harness/tests/test_question_criteria.py: new, the shape of the question and the untouched threshold",
+        "harness/measure_criteria.py: new, the script that re-asks records with two sets of criteria and prints the table",
+        "docs/harness/skill.md and its two generated copies: the line about naming what only the work can settle"
+      ],
+      "migrations": [],
+      "tests_first": [
+        "The clarified question's true criterion admits a question that only the work can settle when the record names what will settle it: the RED must fail because the criterion says no such thing",
+        "The false criterion requires both that something material is unresolved and that nothing is said about what would resolve it: the RED must fail for the same reason",
+        "The threshold for clarified is still 0.8 and the other six questions are unchanged: the RED must fail if the change touched either",
+        "No test in the suite calls Jev, which the existing test base already enforces and this one re-asserts for the new file: the RED must fail if the new tests reach the transport"
+      ],
+      "alternatives": [
+        "Changing the threshold, rejected and stated in the ticket: clarified cleared at 0.81 five times today on records that resolved things, so the bar is doing real work",
+        "The first candidate criteria, which put the caveat in the question, rejected by measurement: they lowered every score, SEEN-096 from 0.65 to 0.49",
+        "Asking several narrow questions instead of one broad one, rejected for now because the measured discrimination of the chosen criteria is adequate, 0.79 against 0.50 for a thin record, and more questions means more calls per stage"
+      ],
+      "risks": [
+        "A wider true criterion could let a record pass by naming an unknown without really resolving anything; the measurement shows a thin record at 0.50 and a vague one at 0.44, both refused, and the script is committed so the check can be repeated when the model changes",
+        "The measurement is against one model version, jev-1.13.0; a later model may score differently, which is why the script is committed rather than only its output"
+      ],
+      "rollback": "Revert the commit. The question returns to its current criteria and the journals already written stay valid, because nothing about a decision record's shape changes.",
+      "new_dependencies": [],
+      "tenant_tables": [
+        "none"
+      ],
+      "buyer_pii": "none",
+      "policy_gate_action": null
+    },
+    "decisions": [
+      {
+        "question": "solution_complete",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.79,
+          "no": 0.21
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "question": "touches_billing_or_policy_gate",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.07,
+          "no": 0.93
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "sequence": 2,
+  "ticket": "SEEN-100",
+  "timestamp": "2026-09-24T05:12:25.343924+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "2d59e508e2352e219be0dc1fac9c55a5bef74b3e",
+  "prev_hash": "b29dde38371d6eee1b8fe9ef08960e56163d6cbbdc02b96201b04b66acaca5cf",
+  "data": {
+    "text": "# Three candidate questions, measured before choosing one\n\nThe ticket was opened on a hypothesis: the `clarified` question punishes a record for naming what only\nthe work can settle. Rather than rewrite the criteria on that belief, three candidates were measured\nagainst records already written, with everything else held still.\n\n**The first candidate was wrong, and the measurement said so.** Asking \"is this record ready to be\nworked from, given that some things can only be settled by doing the work\" lowered every score:\nSEEN-096 0.65 to 0.49, SEEN-088 0.64 to 0.39, SEEN-091 0.84 to 0.65. Putting the caveat in the\nquestion made the model more demanding, not less. It is discarded.\n\n**The second candidate keeps the question and widens what counts as resolved.** A question only the\nwork can settle counts as resolved when the record names what will settle it.\n\n| record | current | candidate |\n|---|---|---|\n| SEEN-096 as written | 0.65 | 0.79 |\n| SEEN-088 as written | 0.64 | 0.74 |\n| SEEN-091 as written | 0.84 | 0.88 |\n| thin: one line per field | 0.47 | 0.50 |\n| vague: decisions deferred to implementation | 0.21 | 0.44 |\n\nGenuine records rise and thin ones stay refused, so the gap between a record worth working from and\none that is not widens from 0.19 to 0.29. That is the property worth having: the gate should separate\nthem further, not pass everything.\n\n**A control that failed to be a control.** The first control was SEEN-096's record with one decision\nof six removed, and it scored 0.65 against the original's 0.65. One decision out of six does not change\nhow workable a record is, and the question was right not to notice. The real control is a record that\nis thin throughout, which both questions refuse.\n\nSo the change is to the criteria of `clarified`, the threshold stays at 0.8, and the evidence is this\ntable rather than the hypothesis the ticket was opened on.\n"
+  }
+}

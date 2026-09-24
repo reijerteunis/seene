@@ -20,7 +20,7 @@ run next.
 `return` sends a ticket back to an earlier stage and counts as rework. `reopen` voids a receipt before
 the work is merged, when a defect is found after delivery. Both are recorded with a reason.
 
-## Three rules you cannot infer
+## Four rules you cannot infer
 
 **Evidence lives in `.harness-drafts/`.** `draft` puts it there and `advance` reads it from there.
 Anywhere else it is an untracked file in the tree, so submitting it changes the fingerprint review
@@ -29,6 +29,10 @@ attested and delivery refuses the ticket for a change the harness itself caused.
 **Write the ticket's `## Outcome` before leaving review.** The reviewed-tree fingerprint covers the
 ticket file, so an outcome added afterwards makes `verify-delivery` refuse. Only the receipt hash
 cannot be written earlier, and it belongs in the pull request body.
+
+**Name what only the work can settle.** A clarify record that leaves out an unknown reads as if
+there were none. Write it down with the observation that will settle it, in `open_questions` with a
+`resolution`, and the stage gate counts it as resolved rather than as a hole.
 
 **One ticket, one branch.** Every writing command refuses unless the branch is `claude/<ticket>-…` or
 `codex/<ticket>-…`, and refuses on `main`. Drifting onto another branch mid-ticket records evidence
