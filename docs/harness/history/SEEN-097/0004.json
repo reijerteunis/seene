@@ -1,0 +1,110 @@
+{
+  "sequence": 4,
+  "ticket": "SEEN-097",
+  "timestamp": "2026-09-24T08:05:16.515534+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "solution",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "bc3d616d5679e1680508e5a7950c6c4463ca31f3",
+  "prev_hash": "24e9bf2b29fa90376ce1b995ffad9c205a73a459c62ad5098a36c46625bdb188",
+  "data": {
+    "from_stage": "solution",
+    "to_stage": "tdd",
+    "evidence": {
+      "mode": "code",
+      "approach": "One compose file and one supabase/config.toml are the single definition of the local services, and both the laptop and CI start them from those same two files rather than restating the images anywhere. A new packages/providers holds the three abstractions: SecretsProvider (get a credential by reference), StorageProvider (put, get and sign a path) and TelemetryProvider (start a span, record a per-tenant cost line), each an interface with a local implementation and a factory that reads exactly one environment variable and refuses an unknown value. Every cloud-specific import is confined to that package by a test that walks the tree and fails on one anywhere else, so SEEN-007 swaps implementations inside packages/providers and touches no caller. apps/api gains a Postmark inbound controller that parses the webhook body into a thread held in an in-memory ThreadStore behind an interface SEEN-062 replaces, and an outbound mailer pointed at Mailpit's SMTP port, so the fixture replay and the Mailpit round trip both exercise the real containers.",
+      "changes": [
+        "docker-compose.yml: new, the one definition of redis:8, axllent/mailpit and otel/opentelemetry-collector-contrib, every tag pinned, ports read from the environment with the current defaults as fallbacks.",
+        "infra/otel-collector.yaml: new, an OTLP receiver on 4318 and a debug exporter at detailed verbosity so traces and per-tenant cost attributes print to the container log.",
+        "supabase/config.toml: new, from supabase init, with the analytics container disabled and the ports fixed so the same file drives CI.",
+        "package.json: dev:up (compose up plus supabase start), dev:down, db:reset (supabase db reset), dev (turbo run dev) and tunnel scripts.",
+        "turbo.json: a persistent, uncached dev task.",
+        "apps/api/package.json, apps/worker/package.json: dev scripts, and nodemailer plus @seen/providers on apps/api.",
+        "packages/providers/: new workspace package with src/secrets.ts, src/storage.ts, src/telemetry.ts, src/index.ts, its tsconfig, vitest config and manifest.",
+        "packages/providers/src/no-cloud-sdk.test.ts: walks every .ts and .tsx file under apps/ and packages/ except packages/providers and fails on an import of a cloud SDK.",
+        "apps/api/src/mail/threads.ts, apps/api/src/mail/outbound.ts, apps/api/src/webhooks/postmark.controller.ts and app.module.ts: the inbound endpoint, the in-memory thread store behind a ThreadStore interface and the Mailpit mailer.",
+        "apps/api/src/webhooks/fixtures/postmark-inbound.json: a committed Postmark inbound payload with no real buyer name or address in it.",
+        "scripts/tunnel.sh: new, a cloudflared quick tunnel over the apps/api port that prints the https URL it was given.",
+        "README.md: new, the clone-to-running path, the environment variables, and the section saying pilot data lives on the development machine until the SEEN-007 go decision.",
+        ".env.example: new, every variable the three factories and the services read, with no value that is a credential.",
+        ".github/workflows/ci.yml: the node job starts the same compose file and supabase, and drops the redis service container that restated the image.",
+        "docs/architecture.md: Redis 8 rather than Redis 7, and packages/providers added to the package paragraph.",
+        "tsconfig.base.json: the @seen/providers path mapping."
+      ],
+      "migrations": [],
+      "tests_first": [
+        "The secrets, storage and telemetry factories select an implementation from SEEN_SECRETS_PROVIDER, SEEN_STORAGE_PROVIDER and SEEN_TELEMETRY_PROVIDER and refuse an unknown value by name. pnpm --filter @seen/providers test. The RED must fail because packages/providers does not exist, not because an assertion is wrong.",
+        "No file under apps/ or packages/ outside packages/providers imports a cloud SDK. pnpm --filter @seen/providers test. The RED must fail on a planted import in apps/api, proving the walk reaches the tree rather than passing over an empty file list.",
+        "Posting the committed Postmark inbound fixture to the apps/api endpoint creates a thread the store then holds, keyed by the marketplace and the mail's own reference. pnpm --filter @seen/api test. The RED must fail with a 404 from a route that is not registered yet.",
+        "An outbound mail sent through the mailer is readable back from Mailpit's HTTP API with the subject and recipient it was sent with. pnpm --filter @seen/api test. The RED must fail because the mailer does not exist, with Mailpit already running so a later green cannot be a container that was never up."
+      ],
+      "alternatives": [
+        "GitHub service containers in the workflow rather than the compose file: rejected at the clarify gate because two definitions of the same service drift and nothing catches it. Compose costs the node job a startup it did not have before.",
+        "The OpenTelemetry Node SDK behind the telemetry provider: rejected for now. The provider needs to emit a span and a per-tenant cost line to a collector, which OTLP over HTTP with a JSON body does in about fifty lines against the real container, and the SDK's dependency tree is large for what this ticket has to prove. The interface is ours either way, so SEEN-007 can put the SDK behind it without touching a caller.",
+        "Persisting the replayed thread in Postgres: rejected at the clarify gate. It would write SEEN-008's schema and its tenant_id and RLS rules inside an environment ticket.",
+        "Providers inside packages/core: rejected. core is pure deterministic reconciliation with no I/O, and the cloud-SDK boundary the criterion asks for needs a package of its own to point at."
+      ],
+      "risks": [
+        "The Docker VM on this machine is 2 CPU and 4 GiB, which may not hold the Supabase stack beside Redis, Mailpit and a collector. Mitigated by disabling Supabase's analytics container, which is the heaviest and serves nothing this ticket needs, and by recording the measured footprint in the README so the next machine knows the floor rather than guessing it.",
+        "supabase start in CI adds minutes to the node job and can fail on a port that GitHub's runner already holds. Mitigated by fixing every port in config.toml rather than letting the CLI choose, so a clash is a deterministic failure with a named port rather than a flake.",
+        "The Mailpit assertion reads back over HTTP, which is a race against the SMTP delivery. Mitigated by polling Mailpit's message list to a short deadline rather than asserting once after a sleep.",
+        "A hand-written OTLP body can be accepted by the collector and still be wrong in a way no unit test sees. Mitigated by asserting against the collector's own log output rather than against the request we sent.",
+        "The cloudflared quick tunnel depends on a third party being reachable and gives a different hostname every run. Mitigated by making the script optional, never part of dev:up, and by recording one real run as the evidence rather than a test that would be flaky in CI."
+      ],
+      "rollback": "Nothing here runs in production: there is no production until SEEN-007. On a laptop, pnpm dev:down stops the compose services and supabase stop stops the rest, and deleting docker-compose.yml, supabase/ and packages/providers returns the tree to the SEEN-006 scaffold. The one change that reaches an existing green path is the CI workflow; reverting that commit restores the redis service container.",
+      "new_dependencies": [
+        "nodemailer and @types/nodemailer in apps/api: the SMTP client for the Mailpit round trip. Widely used, no native build.",
+        "@supabase/supabase-js in packages/providers: the client for the local Storage implementation. It is the Supabase client, not a Google or AWS SDK, and it is confined to the provider package by the same test that guards the boundary."
+      ],
+      "tenant_tables": [
+        "none. No table is created or written. The replayed thread lives in an in-memory store behind a ThreadStore interface, and SEEN-008 creates message_threads with its tenant_id and RLS policy."
+      ],
+      "buyer_pii": "none persisted. The committed Postmark fixture carries a synthetic sender name and address and no real buyer data, and the in-memory store holds it only for the life of the process.",
+      "policy_gate_action": null
+    },
+    "decisions": [
+      {
+        "question": "solution_complete",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.68,
+          "no": 0.32
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "question": "touches_billing_or_policy_gate",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.11,
+          "no": 0.89
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

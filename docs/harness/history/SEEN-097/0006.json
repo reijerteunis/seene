@@ -1,0 +1,28 @@
+{
+  "sequence": 6,
+  "ticket": "SEEN-097",
+  "timestamp": "2026-09-24T08:08:11.988619+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "bc3d616d5679e1680508e5a7950c6c4463ca31f3",
+  "prev_hash": "e48384f68ac0bd55c0d1a8ca103ba684690d475582dcac34f4d88efb169af210",
+  "data": {
+    "command": [
+      "pnpm",
+      "--filter",
+      "@seen/providers",
+      "test"
+    ],
+    "phase": "green",
+    "exit_code": 0,
+    "duration_ms": 607,
+    "output": "\n> @seen/providers@0.0.0 test /Users/ruudvanengelenhoven/Development/seene/packages/providers\n> vitest run\n\n\n RUN  v3.2.7 /Users/ruudvanengelenhoven/Development/seene/packages/providers\n\n ✓ src/no-cloud-sdk.test.ts (4 tests) 5ms\n ✓ src/selection.test.ts (11 tests) 4ms\n\n Test Files  2 passed (2)\n      Tests  15 passed (15)\n   Start at  10:08:11\n   Duration  201ms (transform 35ms, setup 0ms, collect 56ms, tests 9ms, environment 0ms, prepare 58ms)\n\n",
+    "output_sha256": "9779149ca932ec23a9be456a38458a474dc74f1fd526c46ae5bbd37f1ee08072",
+    "output_truncated": false,
+    "before": "2700794d57ffc474da7b5b11cb71ce0ecdda7cbc4c94bbe5c8dca1aa5c1d471b",
+    "after": "2700794d57ffc474da7b5b11cb71ce0ecdda7cbc4c94bbe5c8dca1aa5c1d471b"
+  }
+}

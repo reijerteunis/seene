@@ -6,6 +6,7 @@
   "main": "./dist/apps/api/src/main.js",
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "dev": "nest start --watch",
     "start": "node dist/apps/api/src/main.js",
     "test": "vitest run",
     "lint": "eslint src",
@@ -16,11 +17,14 @@
     "@nestjs/core": "^11.0.0",
     "@nestjs/platform-express": "^11.0.0",
     "@seen/core": "workspace:*",
+    "nodemailer": "^10.0.10",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },
   "devDependencies": {
+    "@nestjs/cli": "^12.0.6",
     "@nestjs/testing": "^11.0.0",
+    "@types/nodemailer": "^8.0.2",
     "@types/supertest": "^6.0.2",
     "supertest": "^7.0.0"
   }

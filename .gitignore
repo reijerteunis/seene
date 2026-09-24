@@ -49,3 +49,10 @@ coverage/
 # a link and rewrites the branch rule to a prefix the harness refuses. Codex
 # reads .agents/skills/seen-harness/SKILL.md, which sync generates.
 AGENTS.md
+
+# The local Docker environment, from SEEN-097. Studio's scratch directory is created
+# by dev:up because docker cannot chown a mount source it creates on some mounts;
+# nothing in it is ours to keep.
+supabase/snippets/
+supabase/.branches/
+supabase/.temp/

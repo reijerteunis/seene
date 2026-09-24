@@ -1,0 +1,46 @@
+# Local telemetry: receive OTLP, print it, keep nothing. The debug exporter at
+# detailed verbosity writes every attribute, which is what makes a per-tenant cost
+# line readable in `docker compose logs otel-collector`.
+
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+      grpc:
+        endpoint: 0.0.0.0:4317
+
+processors:
+  # Small batches: on a laptop the point is to see the span, not to save a round trip.
+  batch:
+    timeout: 1s
+    send_batch_size: 64
+
+exporters:
+  debug:
+    verbosity: detailed
+
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+
+service:
+  extensions: [health_check]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug]
+  telemetry:
+    logs:
+      level: info
+    metrics:
+      # The collector's own account of what it accepted, on 8888. A test asserts
+      # against this rather than against the request it sent, because a body the
+      # collector rejects still leaves the sender looking successful.
+      readers:
+        - pull:
+            exporter:
+              prometheus:
+                host: 0.0.0.0
+                port: 8888

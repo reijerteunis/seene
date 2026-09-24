@@ -1,0 +1,84 @@
+{
+  "sequence": 3,
+  "ticket": "SEEN-097",
+  "timestamp": "2026-09-24T08:03:54.574920+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "bc3d616d5679e1680508e5a7950c6c4463ca31f3",
+  "prev_hash": "b2b04246d917243ff6cd0de913cf21337b239b5ad7501d20fcbe35aa4ddfa1cf",
+  "data": {
+    "from_stage": "clarify",
+    "to_stage": "solution",
+    "evidence": {
+      "scope": "Make the whole stack run on a laptop with no cloud: a docker compose file for Redis, Mailpit and an OpenTelemetry collector alongside the Supabase CLI stack, pnpm dev:up, dev:down, db:reset and dev scripts, a new packages/providers holding the secrets, storage and telemetry abstractions selected by environment variable alone, a Postmark inbound endpoint in apps/api with a fixture replay that ends in Mailpit, an optional Cloudflare Tunnel script and a root README, with CI running the identical services. Its edge: no cloud resource is created and no cloud SDK is added (SEEN-007), no trade-record table is written (SEEN-008), and no real mail parsing, matching or evidence storage (SEEN-062).",
+      "acceptance": [
+        "pnpm dev:up starts Supabase, Redis, Mailpit and the collector and pnpm dev serves api, worker and web against them within 10 minutes: evidence is a recorded dev:up run on this machine with its wall-clock time, the health endpoint of each of the three apps answering against those services, and every image tag pinned in compose and supabase/config.toml so the cold-pull path is determined rather than floating.",
+        "pnpm test runs the full suite against the local stack and CI runs the identical services: evidence is the same docker compose file and the same supabase/config.toml driving both, invoked from .github/workflows/ci.yml rather than restated as workflow service containers, and a green pnpm test locally and in CI on the same commit.",
+        "The secrets, storage and telemetry providers are selected by environment variables only: evidence is three factory functions in packages/providers that read SEEN_SECRETS_PROVIDER, SEEN_STORAGE_PROVIDER and SEEN_TELEMETRY_PROVIDER and nothing else, with unit tests covering each selection and the unknown-value refusal, plus a test that walks every source file in apps/ and packages/ outside packages/providers and fails on an import of a cloud SDK.",
+        "A Postmark inbound fixture replayed through the local endpoint creates a message thread and an outbound mail appears in Mailpit: evidence is a committed Postmark inbound fixture posted to the apps/api endpoint in a test, asserting the thread the in-memory store then holds, and an outbound send asserted by reading it back from Mailpit's HTTP API.",
+        "The tunnel script exposes the inbox on an HTTPS URL and the README states that pilot data stays on the development machine: evidence is a recorded run of the script printing its https trycloudflare.com URL with that URL answering the inbox, and the README section saying in plain words that until the SEEN-007 go decision a pilot brand's data lives on this laptop."
+      ],
+      "decisions": [
+        "The replayed fixture creates its thread in an in-memory store behind a narrow interface, not in a table. SEEN-008 owns the trade-record schema and SEEN-062 owns real inbound parsing, matching and evidence, so persisting here would write another ticket's schema and its tenant_id and RLS rules inside an environment ticket. Ruud's decision, asked and answered 24 September 2026.",
+        "CI runs full parity: the same docker compose file for Redis, Mailpit and the collector and supabase start from the same config.toml, rather than GitHub service containers restating the images. It costs the Node job a few minutes and is the only arrangement in which one definition cannot drift from the other. Ruud's decision, asked and answered 24 September 2026.",
+        "Redis is pinned to redis:8 in compose and in CI, and the architecture's 'Redis 7' line is corrected to match. SEEN-006 already pinned 8 in a green pipeline, and the criterion that binds is that local and CI are identical, not which of the two versions it is. Ruud's decision, asked and answered 24 September 2026.",
+        "The three providers go in a new packages/providers workspace package. Criterion 3 asks for a test proving no cloud SDK is imported 'outside the provider packages', which needs a boundary to point at, and none of the six packages SEEN-006 scaffolded is that boundary. This widens the package list by one and the architecture's package paragraph is updated to say so.",
+        "Proceed with the VM as it is sized and let the first dev:up run settle whether it holds. The colima profile on this machine carried disk 20 against an instance already grown to 100 GiB, which made the daemon refuse to start at all; that is repaired to 100. It is sized 2 CPU and 4 GiB, which is small for the Supabase stack next to Redis, Mailpit and a collector, and the honest way to learn the real floor is to run it and read the failure rather than to guess a number. Whatever it turns out to need is what the README will tell the next machine.",
+        "The 10 minute claim is recorded warm, with the cold path pinned rather than timed. Every image on this machine is already pulled, so a cold first run cannot be observed here without deleting the user's image cache, which is not this ticket's to delete. Pinning every tag in compose and config.toml fixes what a cold machine would pull, and the recorded warm time plus those pins is the evidence; a genuinely clean machine settles the rest."
+      ],
+      "open_questions": [],
+      "changes_agent_action": false,
+      "graph_impact": [
+        "codegraph impact AppModule: three affected symbols, all inside apps/api (app.module.ts, main.ts, health.test.ts). Registering the Postmark inbound controller touches nothing outside that app.",
+        "Nothing imports the worker's exported Redis connection outside apps/worker/src, so pointing it at the compose Redis changes no other package."
+      ]
+    },
+    "decisions": [
+      {
+        "question": "clarified",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.87,
+          "no": 0.13
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.8,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "question": "risk",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "medium",
+        "probabilities": {
+          "low": 0.33,
+          "medium": 0.65,
+          "high": 0.02
+        },
+        "confidence": 0.48,
+        "score": 0.69,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

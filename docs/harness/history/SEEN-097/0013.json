@@ -1,0 +1,15 @@
+{
+  "sequence": 13,
+  "ticket": "SEEN-097",
+  "timestamp": "2026-09-24T08:24:01.833164+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "bc3d616d5679e1680508e5a7950c6c4463ca31f3",
+  "prev_hash": "d266a0eee9ce56906c094ba37dab85f1ca7926aea52fda1b3fad5c1311809343",
+  "data": {
+    "text": "# Where the cycle was red-green and where it was not\n\nTwo slices were a real cycle. The providers slice recorded a RED (sequence 5) that\nfailed because `packages/providers` held tests and no implementation, then a GREEN\n(sequence 6). The api slice recorded a RED (sequence 8) on a missing mailer and a\nmissing route, then a GREEN (sequence 9).\n\n`packages/providers/src/stack.test.ts` was not. Those six tests exercise the storage\nand telemetry implementations against real Supabase and a real collector, and they\nwere written after the implementations they cover, so they passed the first time they\nran. They are regression cover for code the providers slice wrote, not a cycle, and\ncalling them a RED would be a false claim about how they came about.\n\nThe judgement behind that: what was new at that point was the environment, not the\ncode. The implementations had landed in the providers slice with the containers still\nto exist, and once the containers existed the honest thing was to find out whether the\ncode worked against them. It did. Had it not, the failure would have been a defect\nfound late rather than a RED, which is exactly the cost of writing them in that order\nand is worth naming rather than dressing up.\n\nThe environment itself carries no unit tests at all and is not meant to: a compose\nfile, a `config.toml`, four shell scripts and a workflow are proven by being run, and\nthose runs are recorded at sequence 10.\n"
+  }
+}

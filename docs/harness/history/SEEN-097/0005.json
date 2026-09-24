@@ -1,0 +1,28 @@
+{
+  "sequence": 5,
+  "ticket": "SEEN-097",
+  "timestamp": "2026-09-24T08:06:42.190333+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "bc3d616d5679e1680508e5a7950c6c4463ca31f3",
+  "prev_hash": "78a050a544a4a6fe399961d41d3fce12fc5740e49c657e832ce4304cc433968f",
+  "data": {
+    "command": [
+      "pnpm",
+      "--filter",
+      "@seen/providers",
+      "test"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "duration_ms": 661,
+    "output": "\n> @seen/providers@0.0.0 test /Users/ruudvanengelenhoven/Development/seene/packages/providers\n> vitest run\n\n\n RUN  v3.2.7 /Users/ruudvanengelenhoven/Development/seene/packages/providers\n\n\n⎯⎯⎯⎯⎯⎯ Failed Suites 2 ⎯⎯⎯⎯⎯⎯⎯\n\n FAIL  src/no-cloud-sdk.test.ts [ src/no-cloud-sdk.test.ts ]\nError: Cannot find module './boundary' imported from '/Users/ruudvanengelenhoven/Development/seene/packages/providers/src/no-cloud-sdk.test.ts'\n ❯ src/no-cloud-sdk.test.ts:6:1\n      4| import { describe, expect, it } from 'vitest';\n      5| \n      6| import { CLOUD_SDK_PREFIXES, findCloudSdkImports, repositoryRoot } fro…\n       | ^\n      7| \n      8| /**\n\nCaused by: Error: Failed to load url ./boundary (resolved id: ./boundary) in /Users/ruudvanengelenhoven/Development/seene/packages/providers/src/no-cloud-sdk.test.ts. Does the file exist?\n ❯ loadAndTransform ../../node_modules/.pnpm/vite@7.3.6_@types+node@24.13.6/node_modules/vite/dist/node/chunks/config.js:22739:33\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯\n\n FAIL  src/selection.test.ts [ src/selection.test.ts ]\nError: Cannot find module './secrets' imported from '/Users/ruudvanengelenhoven/Development/seene/packages/providers/src/selection.test.ts'\n ❯ src/selection.test.ts:3:1\n      1| import { describe, expect, it } from 'vitest';\n      2| \n      3| import { createSecretsProvider } from './secrets';\n       | ^\n      4| import { createStorageProvider } from './storage';\n      5| import { createTelemetryProvider } from './telemetry';\n\nCaused by: Error: Failed to load url ./secrets (resolved id: ./secrets) in /Users/ruudvanengelenhoven/Development/seene/packages/providers/src/selection.test.ts. Does the file exist?\n ❯ loadAndTransform ../../node_modules/.pnpm/vite@7.3.6_@types+node@24.13.6/node_modules/vite/dist/node/chunks/config.js:22739:33\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯\n\n\n Test Files  2 failed (2)\n      Tests  no tests\n   Start at  10:06:41\n   Duration  173ms (transform 26ms, setup 0ms, collect 0ms, tests 0ms, environment 0ms, prepare 57ms)\n\n/Users/ruudvanengelenhoven/Development/seene/packages/providers:\n ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @seen/providers@0.0.0 test: `vitest run`\nExit status 1\n",
+    "output_sha256": "74df3e09769a2f2e44843a4e98d07139ff75ccdbdb7f820c8a0dedb4d5c68292",
+    "output_truncated": false,
+    "before": "86de409fa59f49a3b9f25617ccc63aa78ff834204fdfef25b9a444190db62c65",
+    "after": "86de409fa59f49a3b9f25617ccc63aa78ff834204fdfef25b9a444190db62c65"
+  }
+}

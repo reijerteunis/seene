@@ -1,0 +1,36 @@
+{
+  "sequence": 14,
+  "ticket": "SEEN-097",
+  "timestamp": "2026-09-24T08:24:12.634401+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "bc3d616d5679e1680508e5a7950c6c4463ca31f3",
+  "prev_hash": "d4f458f8a601629aaec0197b4f6f84c5bd417c15ea9508422242045efbc0df35",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "behaviour": "Each of the secrets, storage and telemetry providers is chosen by one environment variable, refuses a value it does not know by naming the variable and the value, and names its cloud implementation while refusing it until SEEN-007. Separately, no file under apps/ or packages/ outside packages/providers imports a cloud SDK, through import, export-from, require or dynamic import.",
+          "failure_reason": "Error: Cannot find module './secrets' imported from 'packages/providers/src/selection.test.ts' and Cannot find module './boundary' imported from 'packages/providers/src/no-cloud-sdk.test.ts'. Both test files failed to collect: the package held its tests and none of its implementation.",
+          "red": 5,
+          "green": 6
+        },
+        {
+          "behaviour": "A Postmark inbound webhook posted to apps/api creates a thread, puts a reply on the thread it answers rather than a second one, ignores a replay of a mail it already holds, and refuses a body that is not a Postmark payload. An outbound mail sent through the mailer is readable back from Mailpit with its subject and recipient, and a mailer pointed at a dead port says which host and port it could not reach.",
+          "failure_reason": "Error: Cannot find module './outbound' imported from 'apps/api/src/mail/outbound.test.ts', and the webhook suite failed to collect on the missing './mail/threads'. Neither the route nor the mailer existed.",
+          "red": 8,
+          "green": 9
+        }
+      ],
+      "regression": 11,
+      "coverage_delta": 0.0
+    },
+    "decisions": []
+  }
+}

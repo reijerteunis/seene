@@ -1,0 +1,27 @@
+{
+  "FromName": "Bol Partnerservice",
+  "From": "partnerservice@bol.com",
+  "FromFull": { "Email": "partnerservice@bol.com", "Name": "Bol Partnerservice" },
+  "To": "inbox+demo-tenant@seen.localhost",
+  "ToFull": [{ "Email": "inbox+demo-tenant@seen.localhost", "Name": "" }],
+  "Cc": "",
+  "CcFull": [],
+  "Bcc": "",
+  "BccFull": [],
+  "OriginalRecipient": "inbox+demo-tenant@seen.localhost",
+  "Subject": "Re: Vergoedingsverzoek 1234567890 ontvangen",
+  "MessageID": "1a2b3c4d-0000-4000-8000-000000000002",
+  "ReplyTo": "",
+  "MailboxHash": "demo-tenant",
+  "Date": "Thu, 24 Sep 2026 14:40:00 +0200",
+  "TextBody": "Je verzoek is goedgekeurd. Het bedrag van EUR 24,95 wordt met de volgende uitbetaling verrekend.\n\n> We hebben je vergoedingsverzoek voor bestelling 1234567890 ontvangen.\n",
+  "HtmlBody": "<p>Je verzoek is goedgekeurd.</p>",
+  "StrippedTextReply": "Je verzoek is goedgekeurd. Het bedrag van EUR 24,95 wordt met de volgende uitbetaling verrekend.",
+  "Tag": "",
+  "Headers": [
+    { "Name": "Message-ID", "Value": "<case-1234567890-reply@bol.com>" },
+    { "Name": "In-Reply-To", "Value": "<case-1234567890@bol.com>" },
+    { "Name": "References", "Value": "<case-1234567890@bol.com>" }
+  ],
+  "Attachments": []
+}
