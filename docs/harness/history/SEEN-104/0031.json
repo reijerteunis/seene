@@ -1,0 +1,28 @@
+{
+  "sequence": 31,
+  "ticket": "SEEN-104",
+  "timestamp": "2026-09-24T11:08:54.770948+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "review",
+  "attempt": 2,
+  "actor": "claude:reviewer",
+  "session": "7c81cdfdd5e9",
+  "head": "8e5053f3608a490ec9ca8e7cba5dfb5e4e2e680b",
+  "prev_hash": "2bda34d7197adae3625971f2c320aaea532052616f7d254f488d5324e02855e8",
+  "data": {
+    "command": [
+      "python3",
+      "harness/run.py",
+      "lint"
+    ],
+    "phase": "qa",
+    "exit_code": 0,
+    "duration_ms": 666,
+    "output": "{\n  \"ok\": true,\n  \"checked\": \"test code\",\n  \"hosts\": [\n    \"api.bol.com\",\n    \"sellingpartnerapi\",\n    \"api.ebay.com\",\n    \"sellerapi.kaufland.com\",\n    \"api.otto.market\"\n  ]\n}\n",
+    "output_sha256": "bf709464ac740ce731779ad69fa72004563856d089cc68d9247d08e3048a0252",
+    "output_truncated": false,
+    "before": "6a5150ff063e5970b8b3a7b8cf9185c9a909ccf915be3983569182a484111358",
+    "after": "6a5150ff063e5970b8b3a7b8cf9185c9a909ccf915be3983569182a484111358"
+  }
+}
