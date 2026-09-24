@@ -27,13 +27,13 @@ from .repository import Repository
 DEFAULT_ROOT = Path(__file__).resolve().parents[1]
 TICKET_COMMANDS = ('start', 'status', 'history', 'draft', 'note', 'check', 'advance',
                    'return', 'graph', 'decide', 'coverage', 'handoff', 'budget', 'reopen',
-                   'discard', 'verify-delivery', 'verify-merge')
+                   'discard', 'verify-delivery', 'verify-merge', 'review')
 # handoff writes a record, so it is bound to the ticket's own branch like every
 # other writing command. status --brief is not here and neither is budget: a
 # command a session runs to see where it stands must not make the journal longer
 # every time it is run.
 WRITING_COMMANDS = ('start', 'note', 'check', 'advance', 'return', 'graph', 'decide', 'coverage',
-                    'handoff', 'reopen',
+                    'handoff', 'reopen', 'review',
                     'verify-delivery')
 BRANCH = re.compile(r'^(claude|codex)/(?P<ticket>[A-Z]+-\d+)-')
 
@@ -148,6 +148,17 @@ def build_parser():
     deliver = ticket_command('verify-delivery', 'Confirm the delivery and write the receipt')
     deliver.add_argument('--file', required=True, help='Completed deliver evidence JSON')
     deliver.add_argument('--actor', required=True)
+
+    # Two words because the triage is one pass of the review rather than a stage of
+    # its own, and because a later pass should be another action here rather than
+    # another top-level verb.
+    review = commands.add_parser('review', help='The review stage, cheapest pass first')
+    actions = review.add_subparsers(dest='action', required=True)
+    triage_action = actions.add_parser(
+        'triage', help='Run the deterministic pass and one Jev request, and record what the '
+                       'reviewer must read')
+    triage_action.add_argument('ticket', help='Ticket identifier, for example SEEN-086')
+    triage_action.add_argument('--actor', required=True)
 
     report = commands.add_parser('report', help='Aggregate delivered tickets into a report')
     report.add_argument('--week', action='store_true', help='The ISO week of --date, or today')
@@ -547,6 +558,16 @@ def check(repository, folder, records, args, current, rules):
     return record
 
 
+def review(repository, folder, records, args, current, rules):
+    """One pass of the review stage. Today there is one: the triage."""
+    from . import triage
+    actions = dict(triage=triage.append)
+    require(args.action in actions,
+            f'Unknown review action: {args.action!r}; the harness runs '
+            f'{", ".join(sorted(actions))}')
+    return actions[args.action](repository, folder, records, current, args, rules)
+
+
 def read_evidence(repository, relative):
     """Read a stage evidence file, which must live where drafts live.
 
@@ -932,7 +953,7 @@ def execute(args):
         require(current['stage'] in WORKING_STAGES,
                 f'{args.ticket} is {current["stage"]}; open a follow-up ticket for further work')
         handlers = dict(note=note, check=check, advance=advance, graph=graph, decide=decide,
-                        coverage=coverage, handoff=handoff)
+                        coverage=coverage, handoff=handoff, review=review)
         handlers['return'] = go_back
         return handlers[args.command](repository, folder, records, args, current, rules)
     finally:

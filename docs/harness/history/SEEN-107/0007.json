@@ -1,0 +1,30 @@
+{
+  "sequence": 7,
+  "ticket": "SEEN-107",
+  "timestamp": "2026-09-24T18:21:47.836401+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "253bf8e84e82",
+  "head": "1056f1228649c0c3c8cb6115128127888e9d214d",
+  "prev_hash": "fddd5062143a3700cd27bc4ac0a5f1f4d7e6cd5d907f6310e2ebb0713836b27f",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_triage",
+      "-v"
+    ],
+    "phase": "green",
+    "exit_code": 0,
+    "duration_ms": 7314,
+    "output": "test_a_file_outside_the_plan_is_marked_as_unnamed (harness.tests.test_triage.ChangedFilesTest.test_a_file_outside_the_plan_is_marked_as_unnamed) ... ok\ntest_every_changed_file_carries_the_facts_the_question_needs (harness.tests.test_triage.ChangedFilesTest.test_every_changed_file_carries_the_facts_the_question_needs) ... ok\ntest_a_migration_gets_full_depth_with_jev_not_asked (harness.tests.test_triage.DepthByRuleTest.test_a_migration_gets_full_depth_with_jev_not_asked) ... ok\ntest_an_agent_action_gets_full_depth_with_jev_not_asked (harness.tests.test_triage.DepthByRuleTest.test_an_agent_action_gets_full_depth_with_jev_not_asked) ... ok\ntest_billing_or_the_policy_gate_gets_full_depth_with_jev_not_asked (harness.tests.test_triage.DepthByRuleTest.test_billing_or_the_policy_gate_gets_full_depth_with_jev_not_asked) ... ok\ntest_a_change_with_no_test_in_it_fails_tests_added (harness.tests.test_triage.DeterministicPassTest.test_a_change_with_no_test_in_it_fails_tests_added) ... ok\ntest_a_file_no_slice_named_fails_the_slice_check_and_forces_full_depth (harness.tests.test_triage.DeterministicPassTest.test_a_file_no_slice_named_fails_the_slice_check_and_forces_full_depth) ... ok\ntest_a_first_coverage_measurement_is_not_a_regression (harness.tests.test_triage.DeterministicPassTest.test_a_first_coverage_measurement_is_not_a_regression) ... ok\ntest_a_red_that_failed_and_a_coverage_that_held_both_pass (harness.tests.test_triage.DeterministicPassTest.test_a_red_that_failed_and_a_coverage_that_held_both_pass) ... ok\ntest_a_tree_that_moved_after_the_tests_fails_the_fingerprint (harness.tests.test_triage.DeterministicPassTest.test_a_tree_that_moved_after_the_tests_fails_the_fingerprint) ... ok\ntest_coverage_that_fell_fails_the_check (harness.tests.test_triage.DeterministicPassTest.test_coverage_that_fell_fails_the_check)\nAsserted on the check rather than on a journey, because there is none. ... ok\ntest_the_deterministic_pass_names_every_check_it_ran (harness.tests.test_triage.DeterministicPassTest.test_the_deterministic_pass_names_every_check_it_ran) ... ok\ntest_the_record_carries_the_fingerprint_it_read (harness.tests.test_triage.DeterministicPassTest.test_the_record_carries_the_fingerprint_it_read) ... ok\ntest_triage_is_refused_before_the_review_stage (harness.tests.test_triage.DeterministicPassTest.test_triage_is_refused_before_the_review_stage) ... ok\ntest_a_triage_record_does_not_move_the_ticket (harness.tests.test_triage.RecordTest.test_a_triage_record_does_not_move_the_ticket) ... ok\ntest_the_triage_record_is_its_own_kind (harness.tests.test_triage.RecordTest.test_the_triage_record_is_its_own_kind) ... ok\ntest_triage_is_refused_on_another_ticket_s_branch (harness.tests.test_triage.RecordTest.test_triage_is_refused_on_another_ticket_s_branch) ... ok\n\n----------------------------------------------------------------------\nRan 17 tests in 7.220s\n\nOK\n",
+    "output_sha256": "855de44cafe73da859f44827718b346befd7a7f1621b9a74d5e69dcccaa7dcf7",
+    "output_truncated": false,
+    "before": "b07ef0c2a779d28de4ae4a6c03e5d88e31800e5204fd98d5321159c2c679ff4c",
+    "after": "b07ef0c2a779d28de4ae4a6c03e5d88e31800e5204fd98d5321159c2c679ff4c"
+  }
+}

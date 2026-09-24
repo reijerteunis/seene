@@ -405,6 +405,51 @@ def _require_another_context(data, records):
 GATES = {'clarify': _clarify, 'solution': _solution, 'tdd': _tdd, 'review': _review}
 
 
+# The three conditions SEEN-107 keeps as rules rather than putting to a model,
+# and the prose each is recorded as. Two of them are also what makes a change one
+# a second reviewer reads, so both readers ask the one predicate below rather than
+# keeping a copy of it: a second copy of this reasoning is a second answer waiting
+# to disagree, which is what H3 of SEEN-105's third review found.
+FULL_DEPTH_RULES = {
+    'agent_action': 'This ticket changes an agent action, so the review is full depth by rule',
+    'billing': 'This change touches billing or the policy gate, so the review is full depth '
+               'by rule',
+    'migration': 'This change carries a migration, so the review is full depth by rule',
+}
+# The two that also need a second reviewer, the security checklist and the other
+# assistant. A migration is expensive to review and cheap to revert, which is not
+# the same thing as a missed defect costing money.
+REVIEWED_TWICE = ('agent_action', 'billing')
+
+
+def full_depth_rules(records, root=None, solution=None):
+    """Which of the three rules this ticket trips, in the order they are listed.
+
+    `solution` is the record in hand when there is one, because a triage run
+    against a draft should read that draft rather than the last accepted advance.
+    """
+    tripped = []
+    if (_frontmatter_declares_agent_action(records, root)
+            or (latest_evidence(records, 'clarify') or {}).get('changes_agent_action')):
+        tripped.append('agent_action')
+    if _billing_decision(records):
+        tripped.append('billing')
+    planned = solution if solution is not None else (latest_evidence(records, 'solution') or {})
+    if planned.get('migrations'):
+        tripped.append('migration')
+    return tripped
+
+
+def _billing_decision(records):
+    """Whether the solution stage answered touches_billing_or_policy_gate yes."""
+    for record in reversed(records):
+        if record['kind'] == 'advance' and record['data'].get('from_stage') == 'solution':
+            return any(decision['question'] == 'touches_billing_or_policy_gate'
+                       and decision['outcome'] == 'yes'
+                       for decision in record['data'].get('decisions', []))
+    return False
+
+
 def needs_two_reviewers(records, root=None):
     """Whether this review needs a second reviewer, the checklist and another tool.
 
@@ -419,16 +464,7 @@ def needs_two_reviewers(records, root=None):
     Public, because `harness draft` has to ask the same question and a second copy
     of this reasoning is a second answer waiting to disagree: that was H3.
     """
-    if _frontmatter_declares_agent_action(records, root):
-        return True
-    if (latest_evidence(records, 'clarify') or {}).get('changes_agent_action'):
-        return True
-    for record in reversed(records):
-        if record['kind'] == 'advance' and record['data'].get('from_stage') == 'solution':
-            return any(decision['question'] == 'touches_billing_or_policy_gate'
-                       and decision['outcome'] == 'yes'
-                       for decision in record['data'].get('decisions', []))
-    return False
+    return bool(set(full_depth_rules(records, root)) & set(REVIEWED_TWICE))
 
 
 def _frontmatter_declares_agent_action(records, root):

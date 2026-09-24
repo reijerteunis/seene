@@ -24,8 +24,13 @@ HARNESS_VERSION = '2'
 # handoff is its own kind rather than a note, because the KPI and status must
 # find a slice boundary without parsing prose. It is not in journal.TRANSITIONS:
 # writing a pack says where the work stands and never moves it.
+# triage is its own kind for the reason handoff is: the review gate has to find
+# the focus set and the KPI the excluded share, and a reader that parses prose is
+# a reader that will one day read it wrong. Like handoff it is not in
+# journal.TRANSITIONS: a triage says what the reviewer must read and never moves
+# the ticket. The envelope is unchanged, so HARNESS_VERSION stays at 2.
 KINDS = ('start', 'note', 'check', 'advance', 'return', 'receipt', 'reopen', 'decision',
-         'handoff')
+         'handoff', 'triage')
 
 # Committed run history: docs/harness/history/<TICKET>/0001.json and onwards.
 HISTORY = Path('docs/harness/history')

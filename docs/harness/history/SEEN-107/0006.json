@@ -1,0 +1,30 @@
+{
+  "sequence": 6,
+  "ticket": "SEEN-107",
+  "timestamp": "2026-09-24T18:14:09.184623+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "253bf8e84e82",
+  "head": "1056f1228649c0c3c8cb6115128127888e9d214d",
+  "prev_hash": "43a4ff620292ff3735ba9e0304bba92634592bdf1e5f572cce165191517ba9c5",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_triage",
+      "-v"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "duration_ms": 72,
+    "output": "test_triage (unittest.loader._FailedTest.test_triage) ... ERROR\n\n======================================================================\nERROR: test_triage (unittest.loader._FailedTest.test_triage)\n----------------------------------------------------------------------\nImportError: Failed to import test module: test_triage\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/.local/share/mise/installs/python/3.14.5/lib/python3.14/unittest/loader.py\", line 137, in loadTestsFromName\n    module = __import__(module_name)\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_triage.py\", line 12, in <module>\n    from harness import cli, jev, triage\nImportError: cannot import name 'triage' from 'harness' (/Users/ruudvanengelenhoven/Development/seene/harness/__init__.py)\n\n\n----------------------------------------------------------------------\nRan 1 test in 0.000s\n\nFAILED (errors=1)\n",
+    "output_sha256": "07749496a85340865147caff3e96e445215845f3d14c7b8b1cb0c5af31e0b0c7",
+    "output_truncated": false,
+    "before": "03708538fde2bbe9f3cc4346e12870ce239aa770abbb76bfda42e055686e7b3c",
+    "after": "03708538fde2bbe9f3cc4346e12870ce239aa770abbb76bfda42e055686e7b3c"
+  }
+}

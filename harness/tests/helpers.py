@@ -45,7 +45,11 @@ def make_project(ticket_id='SEEN-001', branch=None):
     (root / 'harness').mkdir()
     shutil.copytree(HARNESS / 'templates', root / 'harness' / 'templates')
     shutil.copyfile(HARNESS / 'thresholds.toml', root / 'harness' / 'thresholds.toml')
-    (root / '.gitignore').write_text('.harness-drafts/\n.harness.lock\n')
+    # The same ignores the real project has, because a test project that ignores
+    # less is a test project whose diff carries files the real one never sees:
+    # SEEN-107's triage reads the working diff, and .env.local, which holds the
+    # Jev credential, turned up in it.
+    (root / '.gitignore').write_text('.harness-drafts/\n.harness.lock\n.env\n.env.local\n')
     # The project under test carries the same controls the real one does, so
     # doctor's checks are exercised rather than skipped.
     hooks = root / '.githooks'

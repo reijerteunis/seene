@@ -31,6 +31,16 @@ output_limit_bytes = 65536
 
 [review]
 severities = ["low", "medium", "high", "blocking"]
+# The review triage, from SEEN-107. Shadow is on until SEEN-109's window says the
+# narrowing saves more than it misses: in shadow the reviewer still reads every
+# changed file and the triage record stores what would have been excluded, so the
+# figure that decides is measured before anything is decided on it. Turning it off
+# is one line here, which is a diff a person reviews.
+triage_shadow = true
+# How sure Jev has to be that a file is worth reading before it enters a spot
+# review's focus set. Half, to start: a file the model is undecided about is a
+# file the reviewer reads. SEEN-109 calibrates it against what a full review found.
+focus_probability = 0.5
 
 [non_code]
 change_types = ["documentation", "research", "verification", "policy"]
@@ -53,6 +63,15 @@ clarified = 0.8
 solution_complete = 0.6
 must_fix = 0.7
 is_destructive = 0.5
+# The four triage questions, from SEEN-107. criterion_evidenced is the only one
+# that can send a ticket back, so its bar is the one that matters: below it the
+# ticket returns to tdd with the criterion named, before any model reads the diff.
+# All four are starting values for SEEN-109 to calibrate on ten tickets, not
+# numbers anybody has evidence for yet.
+criterion_evidenced = 0.6
+diff_matches_solution = 0.6
+reviewer_must_read = 0.5
+review_depth = 0.5
 
 # The context budget, from SEEN-099. Three MCP servers put three sets of tool
 # schemas into every session before a ticket is read; these say what that buys.
