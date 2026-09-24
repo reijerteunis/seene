@@ -53,3 +53,62 @@ The review is the most expensive read in the procedure: a model reads the whole 
 - Architecture: [docs/architecture.md](../architecture.md)
 - Development plan and gates: [docs/development-plan.md](../development-plan.md)
 - Epic goal: Give every ticket one fast, evidence-recording procedure across Claude Code and Codex, with graphify for context, Jev for typed gate decisions, CI as the definition of done, security controls built into the stages, and a KPI record per ticket.
+
+## Outcome
+
+Delivered on 24 September 2026 in one attempt, three slices, one session by the
+digest: `253bf8e84e82`. The solution gate refused twice at 0.58 against 0.6 and
+cleared at 0.65 once the record named the interfaces the clarify decisions had
+settled, which is the gap the question was right about: Jev is shown the solution
+record and not the clarify one, so a mechanism decided at clarify and never
+restated is a mechanism an implementer would have had to stop and ask for.
+
+**What was built.** `harness review triage <ticket>` runs at the review stage and
+appends a `triage` record, its own journal kind for the reason `handoff` is one.
+Pass one is nine named checks answering pass, fail or unavailable with a line of
+detail each: coverage, lint, gitleaks, the reviewed-tree fingerprint, every changed
+file being one the slice plan named, a RED that failed, a test in the change, an
+entry in the clarify record for every criterion in the ticket, and a pull request
+whose body names the ticket. A failure forces full depth and is carried in the
+record rather than refusing, because most of these can be unavailable for a reason
+about the machine rather than about the work.
+
+Pass two is one Jev request. `jev.ask_batch` keys the payload rather than naming
+it, so one request carries `criterion_evidenced` once per criterion,
+`diff_matches_solution`, `reviewer_must_read` once per changed file and
+`review_depth`, each with the subject that tells it from its siblings in its own
+instructions; `ask_many` is now a wrapper over it and every earlier call site is
+unchanged. All four questions carry no stage, so the review advance still asks only
+`severity` and `must_fix`. `must_answer=False` is what separates the triage from a
+stage gate: a stage needs a judgement and refuses without one, and the triage
+records the absence, because a judgement nobody made must neither send a ticket
+back nor narrow a review.
+
+Pass three stays a model the harness does not run. The record carries the task
+text naming the focus set and nothing else, and the review gate refuses a review
+record whose `read` list does not cover that focus set, so what the reviewer was
+given and what the gate checks are one list read from one record. `[review]
+triage_shadow` is true, so the focus set is still the whole diff and
+`would_exclude` and `excluded_share` record what the narrowing would have dropped;
+that is the figure SEEN-109 decides on, measured before anything is decided by it.
+`kpi.measure` carries `review_triage`, null on a journal without one, and the
+reviewer's own output tokens come from the session log's sidechain entries over
+`kpi.review_window` rather than being typed by the session they measure.
+
+**What the work settled that the ticket did not.** Three rules stay rules, and two
+of them are `gates.full_depth_rules`, the one predicate `needs_two_reviewers` also
+reads, so the copy that H3 of SEEN-105 warned about was never made. Every doubt
+resolves towards reading more: a tie on `review_depth`, an unavailable answer and
+any failed check are all full depth, and a spot focus set is never empty. The
+ticket file is excluded from the slice-plan check, because the procedure writes it
+and no solution record plans it, so the check would otherwise have failed on every
+ticket including this one. The `## Outcome` section is written before the
+regression rather than after it, because the fingerprint check compares the tree
+against the tree the tests last ran on and the ticket file is in it.
+
+**What is unsettled.** No subagent has ever been logged on this repository: every
+`isSidechain` field in the session logs reads false, so the reviewer's token figure
+is null until the first ticket runs the reviewer as a subagent, and the null is
+what says so. The four thresholds in `[jev.thresholds]` and `[review]
+focus_probability` are starting values with no evidence behind them yet; SEEN-109
+calibrates them on ten tickets, and nothing narrows a review until it does.
