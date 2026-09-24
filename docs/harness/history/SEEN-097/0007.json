@@ -1,0 +1,15 @@
+{
+  "sequence": 7,
+  "ticket": "SEEN-097",
+  "timestamp": "2026-09-24T08:11:15.232097+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "bc3d616d5679e1680508e5a7950c6c4463ca31f3",
+  "prev_hash": "2e768158ed0f077e4ff7ef72fc70cd6cdbde455c0e55954b4d695bdecc9dbae1",
+  "data": {
+    "text": "# The local stack, measured\n\nThe full environment is 10 containers: redis, mailpit and the collector from\n`docker-compose.yml`, and seven Supabase containers (db, kong, auth, rest, storage,\nstudio, pg_meta).\n\nResident memory totals about 805 MiB against the VM's 3.815 GiB, the largest single\ncontainer being storage at 242 MiB. The 2 CPU and 4 GiB VM holds it with room, which\nsettles the observation the clarify record left open.\n\nThat is with `analytics`, `realtime` and `edge_runtime` disabled in\n`supabase/config.toml`. Analytics alone is Logflare plus a second Postgres, and it is\nwhy the default stack does not fit comfortably on a small VM. Nothing in the product\nreads any of the three: traces go to the collector, no subscription reads Postgres\nchanges, and nothing runs on Deno.\n\nTiming: `supabase start` took 49s on a machine holding none of its images, and 24s\nwarm. The three compose services were healthy within 6s.\n\n## Two obstacles the next machine will also meet\n\nThe colima profile carried `disk: 20` against an instance already grown to 100 GiB,\nand the daemon refused to start at all until `~/.colima/_lima/colima/colima.yaml`\nmatched the instance. Neither `colima start --disk 100` nor editing\n`~/.colima/default/colima.yaml` reaches that file.\n\nStudio refuses to start unless `supabase/snippets` exists beforehand: docker chowns a\nmount source path it creates itself, and colima's virtiofs denies the chown. Creating\nthe directory first is enough, so `dev:up` creates it.\n"
+  }
+}

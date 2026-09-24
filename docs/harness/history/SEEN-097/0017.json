@@ -1,0 +1,15 @@
+{
+  "sequence": 17,
+  "ticket": "SEEN-097",
+  "timestamp": "2026-09-24T08:33:43.825252+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "review",
+  "attempt": 1,
+  "actor": "claude:reviewer",
+  "head": "774d8b68005617ce02d51528ec6ebfeac2dfdd6c",
+  "prev_hash": "32727ef481042663c5c00152c6a6ef183ce3a7c836f470f0988fd113311a6ed8",
+  "data": {
+    "text": "# Two observations that are not findings\n\nThe review gate refuses a finding marked accepted: resolve it or return the ticket,\nand do not relabel it. That is the right rule, and it made me look again at two things\nI had written into the findings list.\n\nNeither is a defect in the work. Both are the documented edge of a seam this ticket\ndeliberately made narrow, and both were already written in the ticket's Outcome under\n'Known and deliberately left' before the gate refused anything.\n\n**A forwarded mail with no mailbox hash is answered 400, which Postmark retries.** The\nmail names no tenant, and there is nowhere to put a mail that names no tenant until\nSEEN-062 builds the ops queue that owns exactly this case. Answering 202 with nowhere\nto put it would drop it silently, which is worse than a bounded retry. Building the\nqueue here would be writing SEEN-062 inside an environment ticket, which is the thing\nthe clarify gate decided against and Ruud confirmed.\n\n**otlpTelemetryProvider.flush drops its batch when the export fails.** This is a\nchoice, not an oversight: putting the batch back would retry it forever behind\neverything queued after it, and telemetry is not the thing to hold a process up. The\ncode now says so at the line where it happens.\n\nRecording them as findings would have claimed I found defects in my own work and then\nwaved them through. Recording them nowhere would have hidden two real limitations.\nThey belong in the Outcome, which is permanent and is what the next person reads, and\nthis note is here so the record shows the reasoning rather than a list that quietly\ngot shorter.\n"
+  }
+}

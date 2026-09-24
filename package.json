@@ -6,6 +6,12 @@
     "node": ">=24"
   },
   "scripts": {
+    "dev": "turbo run dev",
+    "dev:up": "./scripts/dev-up.sh",
+    "dev:down": "./scripts/dev-down.sh",
+    "db:reset": "supabase db reset",
+    "replay:inbound": "./scripts/replay-inbound.sh",
+    "tunnel": "./scripts/tunnel.sh",
     "build": "turbo run build",
     "test": "turbo run test",
     "lint": "turbo run lint",

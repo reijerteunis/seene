@@ -1,0 +1,158 @@
+{
+  "sequence": 35,
+  "ticket": "SEEN-097",
+  "timestamp": "2026-09-24T08:53:21.783525+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "review",
+  "attempt": 3,
+  "actor": "claude:reviewer",
+  "head": "2e83ca56a08464118962aa54a7808dc5a293f380",
+  "prev_hash": "8169e999b76e2d7f0e1517257ae72558456107c524a532226c77fb84678fcd59",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "deliver",
+    "evidence": {
+      "reviewer": "claude:reviewer",
+      "independence": "self-review",
+      "acceptance_evidence": [
+        "pnpm dev:up starts Supabase, Redis, Mailpit and the collector and pnpm dev serves api, worker and web on a clean machine within 10 minutes: CI is the clean machine, and run 35977478159 on the delivered commit 2e83ca5 went from an empty checkout to green, pulling every image, starting docker compose and supabase, then lint, typecheck, the whole suite and the build; the first run of that job took 4 minutes 4 seconds end to end. On this laptop, sequence 22, all three apps boot and answer, with no module errors and no reparse warnings. Sequence 7 records 49s for a cold supabase start, 24s warm, and the compose services healthy inside 10s.",
+        "pnpm test runs the full suite against the local stack and CI runs the identical services: the node job starts docker-compose.yml and supabase/config.toml, the two files pnpm dev:up reads, and the redis service container SEEN-006 added is gone. Both suites that talk to containers ran there. The regression at sequence 31 is the same suite green on the laptop, 45 tests across 7 packages.",
+        "The three providers are selected by environment variables only and a unit test proves no cloud SDK import outside the provider packages: selection.test.ts holds each factory to one variable, to refusing an unknown value by naming the variable and the value, and to naming the cloud implementation while refusing it until SEEN-007. no-cloud-sdk.test.ts walks apps/ and packages/, exempts packages/providers, catches import, export-from, require and dynamic import, and is proved against planted violations in a temporary tree rather than only against a clean one. Red at 5, green at 6. Attempt 2 added what made those variables reachable at all: environment.test.ts, red at 20, green at 21, covering the file being read, the environment winning over it, the absent file, the repository-root default, and the secrets provider getting the credential the README asked for.",
+        "A Postmark inbound fixture replayed through the local endpoint creates a message thread and an outbound mail appears in Mailpit: four tests over the real route at sequence 9 cover creation, a reply joining its thread, a replayed mail id changing nothing and a non-Postmark body refused; the mail test sends through Mailpit's SMTP and reads the message back from its HTTP API rather than trusting the send. Sequence 10 records the same fixture replayed against the running server, created true, then the reply with the same thread id and created false, and sequence 22 repeats it against the rebuilt api.",
+        "The tunnel script exposes the inbox on an HTTPS URL and the README says pilot data stays on the development machine: sequence 10 records https://infections-collapse-boss-cursor.trycloudflare.com answering 200 on /health over verified TLS and 202 on the inbound webhook, and 530 once closed. README.md carries it under 'Where things run' in plain words, and scripts/tunnel.sh repeats it at the point a person runs the command."
+      ],
+      "findings": [
+        {
+          "id": "F1",
+          "severity": "medium",
+          "claim": "findCloudSdkImports reported the wrong line for almost every finding, and line 0 for an import broken over several lines",
+          "failure_scenario": "The patterns open with (^|\\s), so a match anywhere but the first line of a file begins at the newline ending the line before, and the line lookup searched a single line for text that could span two. A violation reported at 'apps/api/src/x.ts:0' sends whoever has to fix it looking for an import that is not where the failure says it is, and the guard exists precisely for the moment nobody remembers putting the import there.",
+          "status": "resolved",
+          "resolution": "A test for the wrapped case was written first and failed at line 2 against an expected 3, which is how the off-by-one surfaced at all rather than only the line-0 case. The offset now steps over the leading whitespace the pattern consumed. Fixed in 6d7977a with the test beside it."
+        },
+        {
+          "id": "F2",
+          "severity": "medium",
+          "claim": "stack.test.ts carried the local Supabase service-role JWT as a literal fallback",
+          "failure_scenario": "It is the Supabase CLI's published demo key rather than a real secret, but a JWT in the tree is a thing every future scanner flags and every future reader has to be told is harmless. The likelier harm is the habit: the next person needing a key in a test copies the pattern with one that is not published.",
+          "status": "resolved",
+          "resolution": "A vitest globalSetup asks the running stack through supabase status -o env and fails with a message naming pnpm dev:up when the stack is down. That also removed the duplicate key-export step from the CI workflow, so one mechanism serves the laptop and CI instead of two that can drift."
+        },
+        {
+          "id": "F3",
+          "severity": "low",
+          "claim": ".gitignore repeated two paths that supabase/.gitignore already covers",
+          "failure_scenario": "Two lists of the same thing drift, and the one that stops being edited is the one that was right.",
+          "status": "resolved",
+          "resolution": "The root .gitignore now carries only supabase/snippets, which is ours because dev:up creates it, and says the CLI's own state is covered by the CLI's own file."
+        },
+        {
+          "id": "F6",
+          "severity": "blocking",
+          "claim": "Nothing read .env.local, so the documented way to configure the whole environment did nothing",
+          "failure_scenario": "The README says copy .env.example to .env.local, .env.example carries every variable the services and the three providers read, and envSecretsProvider's own error says 'Set SEEN_SECRET_X in .env.local'. No process opened the file. A developer following the README exactly sets a marketplace credential and is told by the provider that the secret is missing, with the file they just wrote sitting there and every document in the repository saying it should work.",
+          "status": "resolved",
+          "resolution": "loadLocalEnvironment reads it with Node's own parser, so the syntax is the one node --env-file uses rather than a library's dialect. A variable already in the environment wins, because a deployment must not be overridden by a file left in an image and after SEEN-007 there is no file. Imported first by both apps through a bootstrap module, since the worker builds its Redis connection at module scope and a call inside bootstrap() would run after every import had already read an empty environment. Red at 20, green at 21."
+        },
+        {
+          "id": "F7",
+          "severity": "blocking",
+          "claim": "Wiring the loader in broke both apps at boot, with lint, typecheck and all 26 tests green",
+          "failure_scenario": "ERR_MODULE_NOT_FOUND on packages/providers/src/environment, from both apps, on every start. Node loads a package's TypeScript source directly here, as ESM, where a relative import must name a file that exists, and packages/providers is this repository's first package with a second file: core, connectors and agent are one file each with no relative import between them. Nothing in the suite, the typecheck or the build could see it, because none of them starts a process.",
+          "status": "resolved",
+          "resolution": "allowImportingTsExtensions with rewriteRelativeImportExtensions, which TypeScript 5.7 allows together while emitting. The source says './environment.ts', which Node resolves, and tsc rewrites it to './environment.js' on emit, which the compiled output resolves. '\"type\": \"module\"' on the package stops Node parsing the file twice and saying so on every boot. Verified by starting all three apps: no module errors, no reparse warnings."
+        },
+        {
+          "id": "F8",
+          "severity": "high",
+          "claim": "The loader defaulted to the working directory, which is never the repository root in practice",
+          "failure_scenario": "PORT=8081 in .env.local did not move the api. nest start runs from apps/api and pnpm --filter runs from the package, so the loader looked for apps/api/.env.local, did not find it, and returned null without a word. Every variable in the file would have been silently ignored for every way the code is actually started, which looks exactly like the defect it was meant to fix.",
+          "status": "resolved",
+          "resolution": "It walks up to pnpm-workspace.yaml, the same lookup the boundary walker needed, now defined once in environment.ts and imported rather than written twice. A test asserts the default resolves from a subdirectory. Proved by running it: with PORT=8081 in .env.local the api answered on 8081 and 8080 was dead, and with the line removed it is back on 8080."
+        },
+        {
+          "id": "F9",
+          "severity": "medium",
+          "claim": "The environment tests depended on the developer's own .env.local",
+          "failure_scenario": "The global setup loads the real .env.local, and this suite's subject is that a value already in the environment wins over the file. A developer with SEEN_SECRET_BOL_NL_CLIENT_SECRET set would see the suite fail on a machine where everyone else's passes, which is the worst kind of test to leave behind. It was caught because it happened to me while verifying the fix.",
+          "status": "resolved",
+          "resolution": "The tests clear each name they assert on before writing the fixture file, and say why in a comment so nobody helpfully removes it."
+        },
+        {
+          "id": "F10",
+          "severity": "blocking",
+          "claim": "loadLocalEnvironment threw where there is no repository, which is every deployed container",
+          "failure_scenario": "Its default walked up for pnpm-workspace.yaml and raised at the filesystem root. A built image has no workspace file, and the function is imported first by both apps through a bootstrap module, so after SEEN-007 apps/api and apps/worker would have failed to start on Cloud Run with 'No pnpm-workspace.yaml above /app'. This ticket's whole claim is that go-live is a change of configuration, so a boot-time throw on the cloud path is the one defect it cannot afford, and it was introduced by the fix for F8 rather than being there from the start.",
+          "status": "resolved",
+          "resolution": "The lookup splits. findRepositoryRoot returns null when there is no repository and loadLocalEnvironment treats that as no file, which is what it always documented itself as doing. repositoryRoot still throws, for the cloud-SDK boundary walker, which only ever runs inside the repository and for which no root is a broken assumption rather than a deployment. Red at 29, green at 30, and verified by running it from a directory outside any repository, where it returns null. Confirmed the local path is unharmed in the same pass: PORT=8081 from .env.local still moves the api, web still answers, and the fixture still replays."
+        }
+      ],
+      "checks": [
+        16,
+        26,
+        34
+      ],
+      "security_checklist": [
+        "No credential is committed. .env.example holds local defaults and placeholders only, the Supabase keys are read from the running stack at test time rather than written anywhere, and gitleaks found nothing across the history or in any staged change.",
+        "loadLocalEnvironment never overwrites a variable the environment already holds, so a deployment's real credentials cannot be replaced by a .env.local left in an image, and the file is gitignored and absent after go-live.",
+        "No table is created or written, so no tenant_id and no RLS policy is at stake. The replayed thread is process memory behind an interface, and SEEN-008 owns message_threads.",
+        "No buyer PII is persisted. Both committed fixtures carry a marketplace partner service address and a synthetic tenant hash, no buyer name and no address.",
+        "No agent action, no policy gate, no billable event. changes_agent_action stays false and Jev put touches_billing_or_policy_gate at 0.89 no.",
+        "The tunnel is the one outward-facing thing here, and it is opt-in, never part of dev:up, refuses to run when nothing is serving, and prints the data-location warning before it opens. The verification run was closed immediately and the URL confirmed dead.",
+        "New dependencies are nodemailer, @supabase/supabase-js and @nestjs/cli, all widely used with no native build step. pnpm audit --audit-level high passes in CI run 35977478159.",
+        "No test touches a live marketplace, and harness lint agrees in the secrets job of the same run.",
+        "Verification used a temporary marker in .env.local twice; the file was restored from a copy both times and checked to hold no marker line, and nothing from it reached a commit.",
+        "The environment loader cannot be made to read a file outside the repository: it looks only at the repository root it found, or nowhere at all."
+      ],
+      "verdict": "pass",
+      "tree": "3464e8f70a31ba7e7167c7148a2d940613a18af8a0bd7f8b89f0bd79fe125543"
+    },
+    "decisions": [
+      {
+        "question": "severity",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high",
+          "blocking"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "blocking",
+        "probabilities": {
+          "low": 0.02,
+          "medium": 0.03,
+          "high": 0.31,
+          "blocking": 0.64
+        },
+        "confidence": 0.57,
+        "score": 2.57,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      },
+      {
+        "question": "must_fix",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.6,
+          "no": 0.4
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.7,
+        "passed": false,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

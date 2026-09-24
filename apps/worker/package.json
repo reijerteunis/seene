@@ -6,6 +6,7 @@
   "main": "./dist/apps/worker/src/main.js",
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "dev": "nest start --watch",
     "start": "node dist/apps/worker/src/main.js",
     "test": "vitest run",
     "lint": "eslint src",
@@ -13,7 +14,11 @@
   },
   "dependencies": {
     "@seen/core": "workspace:*",
+    "@seen/providers": "workspace:*",
     "bullmq": "^5.0.0",
     "ioredis": "^5.4.0"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^12.0.6"
   }
 }

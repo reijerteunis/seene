@@ -1,0 +1,30 @@
+{
+  "sequence": 25,
+  "ticket": "SEEN-097",
+  "timestamp": "2026-09-24T08:41:14.835449+00:00",
+  "harness_version": "1",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "head": "774d8b68005617ce02d51528ec6ebfeac2dfdd6c",
+  "prev_hash": "307c99e75a25780a89028b65942615117242931581dbf48f05f15f4f4d22dc01",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "behaviour": "Something reads .env.local. loadLocalEnvironment puts the file's variables into the environment, leaves alone any name the environment already set so a deployment is never overridden by a file left lying around, does nothing at all when there is no file, defaults to the repository root rather than the working directory, and hands the secrets provider the credential the README told you to put there.",
+          "failure_reason": "Error: Cannot find module './environment' imported from 'packages/providers/src/environment.test.ts'. The file the README, .env.example and the secrets provider's own error message all pointed at was read by no process anywhere.",
+          "red": 20,
+          "green": 21
+        }
+      ],
+      "regression": 24,
+      "coverage_delta": 0.0
+    },
+    "decisions": []
+  }
+}

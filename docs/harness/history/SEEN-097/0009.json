@@ -1,0 +1,28 @@
+{
+  "sequence": 9,
+  "ticket": "SEEN-097",
+  "timestamp": "2026-09-24T08:12:50.537268+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "bc3d616d5679e1680508e5a7950c6c4463ca31f3",
+  "prev_hash": "07c87fb27e0e0e5977ce37bd269a2011c8df4a60d7e21ec3accb36cad188db45",
+  "data": {
+    "command": [
+      "pnpm",
+      "--filter",
+      "@seen/api",
+      "test"
+    ],
+    "phase": "green",
+    "exit_code": 0,
+    "duration_ms": 768,
+    "output": "\n> @seen/api@0.0.0 test /Users/ruudvanengelenhoven/Development/seene/apps/api\n> vitest run\n\n\n RUN  v3.2.7 /Users/ruudvanengelenhoven/Development/seene/apps/api\n\n ✓ src/mail/outbound.test.ts (2 tests) 23ms\n ✓ src/health.test.ts (2 tests) 40ms\n ✓ src/webhooks/postmark.test.ts (4 tests) 53ms\n\n Test Files  3 passed (3)\n      Tests  8 passed (8)\n   Start at  10:12:50\n   Duration  355ms (transform 43ms, setup 0ms, collect 311ms, tests 116ms, environment 0ms, prepare 85ms)\n\n",
+    "output_sha256": "83c0bcaba025628dd8f6a6b35e1c12a3647b18beb691448862ade93d22d38c2c",
+    "output_truncated": false,
+    "before": "042d85d099ba6d72fee72ee980a204a73db2715cd889fd9431008ab9fee8b07c",
+    "after": "042d85d099ba6d72fee72ee980a204a73db2715cd889fd9431008ab9fee8b07c"
+  }
+}

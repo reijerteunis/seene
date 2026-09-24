@@ -1,0 +1,15 @@
+{
+  "sequence": 10,
+  "ticket": "SEEN-097",
+  "timestamp": "2026-09-24T08:22:18.387289+00:00",
+  "harness_version": "1",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "head": "bc3d616d5679e1680508e5a7950c6c4463ca31f3",
+  "prev_hash": "aec95c7446c6f25fd22744c1b9b0f2bbfde6496a621e9041c9d450750895592e",
+  "data": {
+    "text": "# The four things only a run can show\n\n## pnpm dev serves all three apps\n\n`pnpm dev` against the running stack: `GET http://127.0.0.1:8080/health` answers\n`{\"status\":\"ok\",\"service\":\"@seen/api\",\"core\":\"@seen/core\"}`, `http://127.0.0.1:3000/`\nanswers 200, and the worker compiles clean and holds its BullMQ connection to the\ncompose Redis.\n\nTwo things had to be fixed to get there, both real and both now committed. `import.meta.url`\nin the boundary walker broke the CommonJS build of every app that imports the provider\npackage, so the repository root is found by walking up to `pnpm-workspace.yaml` instead;\nit is the one lookup that works the same under tsc and under vitest. And `nest-cli.json`\nresolves `entryFile` against `outDir`, which with this repository's root-level `rootDir`\nmeans `apps/<app>/src/main`, not a path relative to the app.\n\n## The Postmark fixture, replayed against the running server\n\n    $ pnpm replay:inbound\n    {\"threadId\":\"3ec7dca3-b797-4ab8-b3e1-1b93fbd99e9f\",\"created\":true}\n    $ pnpm replay:inbound apps/api/src/webhooks/fixtures/postmark-inbound-reply.json\n    {\"threadId\":\"3ec7dca3-b797-4ab8-b3e1-1b93fbd99e9f\",\"created\":false}\n\nThe reply joined the thread the first mail opened rather than starting a second one.\n\n## The collector prints traces and per-tenant cost lines\n\nFrom `docker compose logs otel-collector`, on spans the provider sent over OTLP/HTTP:\n\n    -> seen.tenant_id: Str(demo-tenant)\n    -> seen.operation: Str(agent.draft_claim)\n    -> seen.model: Str(claude-opus-5)\n    -> seen.cost_cents: Int(7)\n    -> seen.currency: Str(EUR)\n\n## The tunnel\n\n`pnpm tunnel` took the local api to `https://infections-collapse-boss-cursor.trycloudflare.com`.\nOver that URL, with TLS verifying: `/health` answered 200 with the api's own body, and\na POST of the inbound fixture to `/webhooks/postmark/inbound` answered 202 with the\nthread id the local replay had already created. The tunnel was closed immediately\nafterwards and the same URL then answered 530, which is what a closed quick tunnel\nanswers.\n\nOne environment note for whoever runs this next: `curl` inside this session could not\nresolve the trycloudflare hostname although `dig` resolved it, so the checks above went\nthrough `curl --resolve`. That is this shell's resolver, not the tunnel; a browser on\nthe same machine reaches the URL directly.\n"
+  }
+}

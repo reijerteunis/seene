@@ -1,0 +1,28 @@
+{
+  "sequence": 29,
+  "ticket": "SEEN-097",
+  "timestamp": "2026-09-24T08:47:50.329115+00:00",
+  "harness_version": "1",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "head": "f02d209b0178e989215e8ffccd9d05131eb13ac4",
+  "prev_hash": "1855159710466688fc6f3a3ce87fdd44745addb2c94328c377a8292a8dd9d769",
+  "data": {
+    "command": [
+      "pnpm",
+      "--filter",
+      "@seen/providers",
+      "test"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "duration_ms": 1443,
+    "output": "\n> @seen/providers@0.0.0 test /Users/ruudvanengelenhoven/Development/seene/packages/providers\n> vitest run\n\n\n RUN  v3.2.7 /Users/ruudvanengelenhoven/Development/seene/packages/providers\n\nStopped services: [supabase_inbucket_seen supabase_realtime_seen supabase_imgproxy_seen supabase_edge_runtime_seen supabase_analytics_seen supabase_vector_seen supabase_pooler_seen]\nA new version of Supabase CLI is available: v2.117.0 (currently installed v2.116.0)\nWe recommend updating regularly for new features and bug fixes: https://supabase.com/docs/guides/cli/getting-started#updating-the-supabase-cli\n ❯ src/environment.test.ts (6 tests | 1 failed) 5ms\n   ✓ loading .env.local > puts what the file holds into the environment 1ms\n   ✓ loading .env.local > leaves a variable the environment already set alone, so a real deployment wins 1ms\n   ✓ loading .env.local > defaults to the repository root, not the working directory 0ms\n   ✓ loading .env.local > does nothing at all when there is no file, because after go-live there will not be one 0ms\n   × loading .env.local > does nothing where there is no repository at all, which is every deployed container 2ms\n     → (0 , findRepositoryRoot) is not a function\n   ✓ loading .env.local > gives the secrets provider the credential the README told you to put there 1ms\n ✓ src/no-cloud-sdk.test.ts (5 tests) 6ms\n ✓ src/selection.test.ts (11 tests) 4ms\n ✓ src/stack.test.ts (6 tests) 465ms\n\n⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯\n\n FAIL  src/environment.test.ts > loading .env.local > does nothing where there is no repository at all, which is every deployed container\nTypeError: (0 , findRepositoryRoot) is not a function\n ❯ src/environment.test.ts:86:12\n     84| \n     85|     expect(() => loadLocalEnvironment()).not.toThrow();\n     86|     expect(findRepositoryRoot(outsideAnyRepository)).toBeNull();\n       |            ^\n     87|     expect(() => repositoryRoot(outsideAnyRepository)).toThrow(/pnpm-w…\n     88|   });\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯\n\n\n Test Files  1 failed | 3 passed (4)\n      Tests  1 failed | 27 passed (28)\n   Start at  10:47:49\n   Duration  992ms (transform 42ms, setup 0ms, collect 103ms, tests 479ms, environment 0ms, prepare 113ms)\n\n/Users/ruudvanengelenhoven/Development/seene/packages/providers:\n ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @seen/providers@0.0.0 test: `vitest run`\nExit status 1\n",
+    "output_sha256": "5ba302a73f7fd427cc87838770b6936bcdf15b9eab21d93ef7b6601c57ae5d6a",
+    "output_truncated": false,
+    "before": "4d442c7c9ecc7e84789edef08d31f7abaa768096cce66c6d874d76296d962bb1",
+    "after": "4d442c7c9ecc7e84789edef08d31f7abaa768096cce66c6d874d76296d962bb1"
+  }
+}

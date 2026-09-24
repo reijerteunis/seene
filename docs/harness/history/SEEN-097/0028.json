@@ -1,0 +1,18 @@
+{
+  "sequence": 28,
+  "ticket": "SEEN-097",
+  "timestamp": "2026-09-24T08:47:35.885584+00:00",
+  "harness_version": "1",
+  "kind": "return",
+  "stage": "deliver",
+  "attempt": 2,
+  "actor": "claude:reviewer",
+  "head": "f02d209b0178e989215e8ffccd9d05131eb13ac4",
+  "prev_hash": "11705ad620d9a86940bde1ad708c84c3b21c01810005a35e9b90479ce2b72f4d",
+  "data": {
+    "from_stage": "deliver",
+    "to_stage": "tdd",
+    "to_attempt": 3,
+    "reason": "loadLocalEnvironment throws where there is no repository root, which is every deployed container. Its default walks up for pnpm-workspace.yaml and raises when it reaches the filesystem root, and it is called from a bootstrap module imported first by both apps, so after SEEN-007 apps/api and apps/worker would fail to start on Cloud Run with 'No pnpm-workspace.yaml above /app'. The function is documented as doing nothing when there is no file, and no repository root means no file. This ticket exists to make go-live a configuration change, so shipping a boot-time throw on the cloud path is the one defect it cannot afford. Jev put must_fix at yes both times the review gate ran and neither reading cleared the threshold; both times there was something. Returning to tdd."
+  }
+}

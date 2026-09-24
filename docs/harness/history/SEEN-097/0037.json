@@ -1,0 +1,70 @@
+{
+  "sequence": 37,
+  "ticket": "SEEN-097",
+  "timestamp": "2026-09-24T09:03:36.434759+00:00",
+  "harness_version": "1",
+  "kind": "receipt",
+  "stage": "deliver",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "head": "165eb38f724d1ba3fff4affbcb5e893d189b897a",
+  "prev_hash": "4b542b5839083dc9977f0425a117be289b78f0e1c04466f67d8fefdcdff7682e",
+  "data": {
+    "from_stage": "deliver",
+    "to_stage": "delivered",
+    "commit": "165eb38f724d1ba3fff4affbcb5e893d189b897a",
+    "branch": "claude/SEEN-097-local-docker-dev-environment",
+    "remote": "origin",
+    "tree": "3464e8f70a31ba7e7167c7148a2d940613a18af8a0bd7f8b89f0bd79fe125543",
+    "pull_request": "https://github.com/reijerteunis/seene/pull/19",
+    "limits": [
+      "No cloud resource exists and none was created. The three cloud implementations are named and refused with a message pointing at SEEN-007; nothing here proves any of them works, only that switching to them changes no calling code.",
+      "The replayed thread is process memory. No table was created, no tenant_id and no RLS policy is involved, and nothing survives a restart. SEEN-008 creates message_threads and SEEN-062 does the real matching against orders and claims; a green test here says the environment carries the mail, not that the mail was understood.",
+      "The Postmark endpoint identifies a marketplace from the sending domain and a tenant from the mailbox hash, and nothing else. It reads no order id and no case id out of a body, and a mail with no mailbox hash is refused rather than queued.",
+      "The ten-minute claim is CI's, on an actually clean machine, for this repository at this size. A laptop behind a slow connection pulling roughly 2 GB of images for the first time is a different number, and the README gives the warm figures rather than pretending otherwise.",
+      "The tunnel was verified once, by hand, against a quick tunnel that gives a different hostname every run. It is not in CI and should not be: a test that depends on a third party being reachable fails for reasons that have nothing to do with this repository.",
+      "The environment is proven on macOS with colima and on the GitHub ubuntu runner. Docker Desktop, Rancher and Linux workstations are untried, and the two obstacles written up in the README are the colima ones specifically.",
+      "The three providers are implemented, not adopted. Nothing in apps/api or apps/worker yet reads a secret, writes evidence or emits a span through them; the connectors and the agent do that as they land."
+    ],
+    "evidence": {
+      "remote": "origin",
+      "pull_request": "https://github.com/reijerteunis/seene/pull/19",
+      "limits": [
+        "No cloud resource exists and none was created. The three cloud implementations are named and refused with a message pointing at SEEN-007; nothing here proves any of them works, only that switching to them changes no calling code.",
+        "The replayed thread is process memory. No table was created, no tenant_id and no RLS policy is involved, and nothing survives a restart. SEEN-008 creates message_threads and SEEN-062 does the real matching against orders and claims; a green test here says the environment carries the mail, not that the mail was understood.",
+        "The Postmark endpoint identifies a marketplace from the sending domain and a tenant from the mailbox hash, and nothing else. It reads no order id and no case id out of a body, and a mail with no mailbox hash is refused rather than queued.",
+        "The ten-minute claim is CI's, on an actually clean machine, for this repository at this size. A laptop behind a slow connection pulling roughly 2 GB of images for the first time is a different number, and the README gives the warm figures rather than pretending otherwise.",
+        "The tunnel was verified once, by hand, against a quick tunnel that gives a different hostname every run. It is not in CI and should not be: a test that depends on a third party being reachable fails for reasons that have nothing to do with this repository.",
+        "The environment is proven on macOS with colima and on the GitHub ubuntu runner. Docker Desktop, Rancher and Linux workstations are untried, and the two obstacles written up in the README are the colima ones specifically.",
+        "The three providers are implemented, not adopted. Nothing in apps/api or apps/worker yet reads a secret, writes evidence or emits a span through them; the connectors and the agent do that as they land."
+      ]
+    },
+    "checks": [
+      {
+        "name": "Harness tests (Python 3.12)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Knowledge graph",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Monorepo (Node 24)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Secrets and supply chain",
+        "conclusion": "success",
+        "runs": 1
+      }
+    ],
+    "coverage": {
+      "package": "@seen/core",
+      "lines": 100.0,
+      "delta": 0.0
+    }
+  }
+}
