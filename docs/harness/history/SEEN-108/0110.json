@@ -1,0 +1,16 @@
+{
+  "sequence": 110,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T14:22:54.030581+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "review",
+  "attempt": 10,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "4830e7926b5547805fd321ad45be20524e663c62",
+  "prev_hash": "d8f327ab90ca318ee7675757bf1a12aef14b58c8d0c6466f4c2c49d8a0fa4a6c",
+  "data": {
+    "text": "# The rule that stops the review loop, written before the seventh review runs\n\n**The problem it answers.** Six reviews have found nine, six, six, five, two and\nthree findings, thirty-four in all, every one closed in this ticket. The count\nis falling and is not falling to zero, and each round's fixes are themselves\ncode no review has read: the focus set grew from 28 files to 36 across the six\nrounds, and twice the delta was the only place the next round found anything.\nTwo of the last three rounds found something that would have broken in\nSEEN-109's hands, which is the argument for continuing; each round costs about\ntwo hundred thousand subagent tokens, which is the argument against.\n\n**The rule, decided by Ruud on 25 September 2026, before the seventh review was\nspawned.** Run the seventh review. If nothing it returns is above `low`\nseverity, fix what it found, record that this rule is why, and deliver without\nan eighth. If it returns anything at `medium` or above, the loop is still\nearning its cost and the ticket takes another round.\n\n**Why it is written now.** A stopping rule chosen after the findings are known\nis not a rule, it is a rationalisation of whatever the findings happened to be.\nThat is the reasoning `[context] decision_rule` already applies to the tool\nbudget, recorded before the first figure existed, and the reasoning SEEN-109's\nown window applies to the triage and the routes. A ticket that spent six rounds\nlearning to write evidence before the thing it describes should not stop by\ndeciding afterwards that it had done enough.\n\n**What it does not do.** It does not lower any bar. The review gate still\nrefuses a delivery with an open finding and still says not to relabel one, so\n`low` findings are fixed rather than carried, and the read list still has to\ncover the focus set of the triage that ran. What the rule settles is only\nwhether an eighth review is spawned to read the seventh's fixes.\n"
+  }
+}
