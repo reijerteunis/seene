@@ -1,0 +1,16 @@
+{
+  "sequence": 116,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T14:47:20.407160+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 11,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "927f98841d89cd84d6b07cf80e644dbb68daeeef",
+  "prev_hash": "0688e6ba8c76449b991fb873c1b83bdb0d045d7bcc6b1151a0707394f3704458",
+  "data": {
+    "text": "# Seventh review of SEEN-108, attempt 10, from the seen-reviewer subagent\n\nSpawned fresh on opus with the task text of triage record 109, and told that\nnote 110's stopping rule existed and did not ask it to soften anything. Verdict\n`return`, five findings, two medium, so the rule takes another round rather than\ndelivering. It compared every accepted tdd advance's failure reason against its\ncited check, confirmed the three the journal already corrects, and judged\n`slice_files` a plan-accuracy gap for the sixth time, having read all nine\nunplanned files.\n\n- **F1, medium, harness/agents.py:106.** `routed` read\n  `handoff.current_slice`, which infers the count from greens, so its answer\n  moved the moment a slice was proved; only route, a boundary and the solution\n  advance rewrite the copies, so doctor reported drift on a tree nobody had\n  edited, and CI runs doctor on every push and every pull request. Worse at the\n  end of a plan, where no handoff follows the last slice and the drift persists\n  through the advance, the review and the receipt. Reproduced in a fixture and\n  found to have already happened on this branch at commit adbdb4c.\n- **F2, medium, the ticket file.** The outcome's counts were wrong in three\n  places, inside the paragraph that says they are read from the journal rather\n  than recalled: \"thirty-four findings\" where the list beside it sums to\n  thirty-one, \"four of the returns came from a review\" where the journal holds\n  nine review-stage returns, and \"all four reviews\" where there were six. The\n  same defect the fourth review returned the ticket for as F4, in the section\n  written to fix it.\n- **F3, low, harness/tests/test_agents.py.** `GuardIsLastTest` matched its own\n  string literal, so it would have failed on the module it lives in, which has\n  no guard and does contain that literal.\n- **F4, low, harness/report.py:186.** The Points priced cell was guarded by no\n  test: every fixture had `priced_points` equal to `slices`, so printing the\n  slice count instead kept the suite green and reinstated the non-reconciling\n  row the sixth review returned the ticket for.\n- **F5, low, harness/tests/test_routing.py.** The 1,036 lines this ticket adds\n  had no `unittest.main` guard, so a direct run collected nothing and said so by\n  printing nothing, and `GuardIsLastTest` skipped exactly the modules with none,\n  which was sixteen of the twenty-five.\n"
+  }
+}
