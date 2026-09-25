@@ -1,0 +1,126 @@
+{
+  "ticket": "SEEN-108",
+  "delivered_at": "2026-09-25T19:30:29.323386+00:00",
+  "points": null,
+  "cycle_time_seconds": 50838,
+  "stage_seconds": {
+    "clarify": 351,
+    "solution": 78,
+    "tdd": 14505,
+    "review": 35581,
+    "deliver": 321
+  },
+  "attempts": 14,
+  "rework": 13,
+  "red_before_green": true,
+  "coverage": {
+    "package": "@seen/core",
+    "lines": 100.0,
+    "delta": 0.0
+  },
+  "findings": {
+    "by_severity": {
+      "high": 1,
+      "medium": 3,
+      "low": 1
+    },
+    "fixed": 5,
+    "waived": 0
+  },
+  "first_pass_ci": true,
+  "tokens": null,
+  "cost": null,
+  "escaped_defects": [],
+  "slices": {
+    "planned": 4,
+    "proven": 17
+  },
+  "sessions": 1,
+  "subagents": {
+    "briefs": 0,
+    "agents": [],
+    "review": "self-review",
+    "both": false
+  },
+  "review_triage": {
+    "record": 147,
+    "depth": "full",
+    "model_depth": "full",
+    "shadow": true,
+    "asked": true,
+    "rules": [
+      "slice_files did not pass, so the reviewer reads everything: Changed but named by no slice and no changes entry: harness/delivery.py, harness/templates/tdd.json, harness/tests/test_decisions.py, harness/tests/test_delivery.py, harness/tests/test_doctor.py, harness/tests/test_enforcement.py, harness/tests/test_graph.py, harness/tests/test_isolation.py, harness/tests/test_journal.py, harness/tests/test_lifecycle.py, harness/tests/test_merge.py, harness/tests/test_non_code_mode.py, harness/tests/test_question_criteria.py, harness/tests/test_reopen.py, harness/tests/test_repository.py, harness/tests/test_risk.py, harness/tests/test_security.py, harness/tests/test_session_cap.py, harness/tests/test_skill.py, harness/tests/test_state_for.py, harness/tests/test_status_check.py"
+    ],
+    "files": 48,
+    "focus": 48,
+    "excluded": 0,
+    "excluded_share": 0.0,
+    "reviewer_output_tokens": null,
+    "reviewer_tokens": null
+  },
+  "execution": [
+    {
+      "position": 1,
+      "name": "The rules, the questions and the route command",
+      "points": 2,
+      "model": "opus",
+      "effort": "high",
+      "source": "jev",
+      "rule": null,
+      "ran_on": null,
+      "ran_on_tier": null,
+      "output_tokens": 68043,
+      "cost_cents": null,
+      "routed_cost_cents": 510,
+      "cost_basis": "output tokens only, at the price of the model the slice ran on: a handoff record carries the session's output tokens and tool calls and nothing about input. routed_cost_cents prices the same tokens at the model the route chose, which in shadow is a counterfactual and not a cost"
+    },
+    {
+      "position": 2,
+      "name": "The pack carries it and the tdd gate holds it",
+      "points": 2,
+      "model": "opus",
+      "effort": "high",
+      "source": "jev",
+      "rule": null,
+      "ran_on": "claude-opus-5",
+      "ran_on_tier": "opus",
+      "output_tokens": 23659,
+      "cost_cents": 177,
+      "routed_cost_cents": 177,
+      "cost_basis": "output tokens only, at the price of the model the slice ran on: a handoff record carries the session's output tokens and tool calls and nothing about input. routed_cost_cents prices the same tokens at the model the route chose, which in shadow is a counterfactual and not a cost"
+    },
+    {
+      "position": 3,
+      "name": "The implementer agent in both assistants, and the reviewer's model rule",
+      "points": 1,
+      "model": "haiku",
+      "effort": "medium",
+      "source": "jev",
+      "rule": null,
+      "ran_on": "claude-opus-5",
+      "ran_on_tier": "opus",
+      "output_tokens": 45545,
+      "cost_cents": 342,
+      "routed_cost_cents": 18,
+      "cost_basis": "output tokens only, at the price of the model the slice ran on: a handoff record carries the session's output tokens and tool calls and nothing about input. routed_cost_cents prices the same tokens at the model the route chose, which in shadow is a counterfactual and not a cost"
+    },
+    {
+      "position": 4,
+      "name": "The cost per slice in the KPI and per point by model in the report",
+      "points": 2,
+      "model": "sonnet",
+      "effort": "high",
+      "source": "jev",
+      "rule": null,
+      "ran_on": "claude-opus-5",
+      "ran_on_tier": "opus",
+      "output_tokens": null,
+      "cost_cents": null,
+      "routed_cost_cents": null,
+      "cost_basis": "output tokens only, at the price of the model the slice ran on: a handoff record carries the session's output tokens and tool calls and nothing about input. routed_cost_cents prices the same tokens at the model the route chose, which in shadow is a counterfactual and not a cost"
+    }
+  ],
+  "output_tokens_per_slice": null,
+  "harness_version": "2",
+  "note": null
+}

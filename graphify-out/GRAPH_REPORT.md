@@ -1,17 +1,17 @@
 # Graph Report - seene  (2026-09-25)
 
 ## Corpus Check
-- 890 files · ~400,272 words
+- 1044 files · ~544,252 words
 - Verdict: corpus is large enough that graph structure adds value.
-- Unclassified: 10 file(s) not represented in the graph (top: (none) 5, .toml 4, .example 1)
+- Unclassified: 11 file(s) not represented in the graph (top: (none) 5, .toml 5, .example 1)
 
 ## Summary
-- 3147 nodes · 6085 edges · 240 communities (211 shown, 29 thin omitted)
-- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 191 edges (avg confidence: 0.93)
+- 3585 nodes · 7095 edges · 270 communities (238 shown, 32 thin omitted)
+- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 226 edges (avg confidence: 0.93)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `3fd2ea62`
+- Built from commit: `25cfd244`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -20,11 +20,11 @@
 - .evaluate
 - web/package.json
 - Repository
-- EntryPointTest
+- test_isolation.py
 - boundary.ts
 - RecordTest
 - cli.py
-- DeliveryTest
+- DeliveryWalk
 - .graph
 - .mcp.json
 - app.module.ts
@@ -129,14 +129,14 @@
 - solution_evidence
 - compilerOptions
 - compilerOptions
-- providers/src/index.ts
-- jev.py
+- telemetry.ts
+- state_for
 - Journal records are hashed as file bytes, and git is the notary
 - SEEN-088: Integrate Jev AI typed decisions into the harness gates
 - tasks
 - DiscardTest
-- The Seen harness
-- .reach_review
+- advance
+- routing.py
 - agent/package.json
 - connectors/package.json
 - core/package.json
@@ -145,7 +145,7 @@
 - api/tsconfig.json
 - worker/tsconfig.json
 - SEEN-007: Go live on Google Cloud after the go/no-go decision
-- .start
+- CommandTest
 - SEEN-089: Enforce the TDD gates in the harness
 - SEEN-090: Add harness security controls: secrets, permissions, injection, supply chain
 - agent/tsconfig.json
@@ -170,12 +170,12 @@
 - providers/package.json
 - handoff.py
 - FocusSetTest
-- storage.ts
+- providers/src/index.ts
 - SEEN-098: Add repowise and carry its risk answer into the gate
 - postmark.ts
 - Seen: development harness
 - BudgetRulesTest
-- delivery.py
+- coverage.py
 - SEEN-102: Decide on the repowise PR bot for a private repository
 - SyncTest
 - ComparisonTest
@@ -196,48 +196,48 @@
 - providers/tsconfig.json
 - devDependencies
 - record
-- CommandTest
+- MarketplaceHostTest
 - Seen
 - SEEN-093: Add harness reopen to void a receipt before merge
 - PostmarkController
 - hello.ts
 - Seen: Claude Code entry point
-- triage_stub
-- UnevidencedCriterionTest
+- test_triage.py
+- .reach_tdd
 - dev-down.sh
 - dev-up.sh
 - replay-inbound.sh
 - tunnel.sh
 - RepositoryTest
-- RedRuleTest
+- test_enforcement.py
 - SidechainTokensTest
 - paths.py
 - ModesMustAgreeTest
 - TheSkillSaysSoTest
 - SEEN-094: Verify delivery against CI and verify the merge against the receipt
 - SEEN-104: Cap a session at one slice: the slice plan, the budget and the handoff pack
-- SubagentAttributionTest
+- .journal
 - SEEN-106: Enforce the harness with hooks in both assistants, generated from one source
-- advance
+- model
 - SEEN-103: Declare non-code mode at the solution stage, not after it
-- The Seen harness
+- run
 - agents.py
-- The Seen harness
-- gates.py
+- jev.py
+- require
 - TheSkillSaysSoTest
-- SupersededRunTest
-- SessionEnvironment
-- Seen: MVP architecture
+- route_stub
 - BudgetTest
-- FailedCheckStillAsksTest
-- BookkeepingAfterReceiptTest
-- DeliveryChecksTest
+- Seen: MVP architecture
+- delivery.py
+- ThreeCriteriaTest
+- .rendered
+- SlicePositionTest
 - MergeTest
 - SEEN-095: Check a ticket's status against its own journal
 - DeliverStatusTest
 - GeneratedCopiesTest
 - AuthorshipTest
-- DeliveryWalk
+- ExecutionFiguresTest
 - The reviewer
 - The reviewer
 - The scout
@@ -245,68 +245,106 @@
 - SessionDigestTest
 - CachedFiguresTest
 - SessionThresholdTest
-- SEEN-107: Let Jev settle what the review can settle before a model reads the diff
+- ask_batch
 - SEEN-108: Route each slice to a model and an effort at solution, by rule first and by Jev second
 - SEEN-109: Calibrate the review triage and the routes on ten tickets before either saves a token
 - ReportTest
 - AgentDefinitionTest
-- RepeatedReviewTest
+- GateTest
 - RenamedTicketTest
-- IsolationTest
-- PartlySettledIsDocumentedTest
+- .task
+- .evidence
+- secrets.py
+- CostPerPointByModelTest
+- risk.py
+- execution
+- OutcomeReconcilesTest
+- PartialAnswerTest
+- checks.py
+- skills.py
+- SprintReportCostTest
+- ReworkWindowTest
+- RiskInTheDecisionTest
+- DirectoryNamedSliceTest
+- ImplementerCopyTest
+- EveryAttemptsEvidenceTest
+- SEEN-105: Give the scout and the reviewer their own context as subagents in both assistants
+- Outcome
+- GuardIsLastTest
+- SkillAgreesWithItselfTest
+- RouteInTheSkillTest
+- TemplatePositionTest
+- The implementer
+- The implementer
+- ticket_file
+- SliceBoundaryTest
+- PricedPointsCellTest
+- IntegerCentsTest
+- DeclarationIsInstructedTest
+- AgentCountTest
+- DraftAsksTheGateTest
+- _stage_of
 
 ## God Nodes (most connected - your core abstractions)
-1. `HarnessError` - 106 edges
-2. `require()` - 85 edges
-3. `Repository` - 67 edges
-4. `CommandTest` - 55 edges
-5. `solution_evidence()` - 45 edges
-6. `clarify_evidence()` - 42 edges
-7. `execute()` - 36 edges
-8. `run()` - 26 edges
-9. `DeliveryWalk` - 24 edges
-10. `advance()` - 22 edges
+1. `HarnessError` - 116 edges
+2. `require()` - 90 edges
+3. `Repository` - 74 edges
+4. `CommandTest` - 59 edges
+5. `solution_evidence()` - 51 edges
+6. `clarify_evidence()` - 49 edges
+7. `execute()` - 37 edges
+8. `route_stub()` - 33 edges
+9. `DeliveryWalk` - 30 edges
+10. `run()` - 27 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `Agent runtime and the policy gate` --references--> `read_evidence()`  [INFERRED]
   docs/architecture.md → harness/cli.py
 - `Development harness` --references--> `advance()`  [INFERRED]
   CONTEXT.md → harness/cli.py
+- `The five stages` --references--> `advance()`  [INFERRED]
+  docs/harness/workflow.md → harness/cli.py
 - `Description` --references--> `advance()`  [INFERRED]
   docs/tickets/SEEN-089-enforce-tdd-and-ci-quality-gates-in-the-harness.md → harness/cli.py
 - `Outcome` --references--> `ThreadStore`  [INFERRED]
   docs/tickets/SEEN-097-set-up-the-local-docker-development-environment.md → apps/api/src/mail/threads.ts
-- `Six rules you cannot infer` --references--> `draft()`  [INFERRED]
-  .agents/skills/seen-harness/SKILL.md → harness/cli.py
 
 ## Import Cycles
 - None detected.
 
-## Communities (240 total, 29 thin omitted)
+## Communities (270 total, 32 thin omitted)
 
 ### Community 0 - "TriageTest"
-Cohesion: 0.11
-Nodes (11): DepthByRuleTest, EveryAttemptsEvidenceTest, A coverage check, written straight into the journal. The real command runs…, L1: a returned ticket proved slices in each attempt, and Jev sees them all.…, A return, then one more slice proved, the way rework goes., The three rules that are never Jev's to answer., A ticket with more than one criterion, so per-criterion means something., A ticket worked to the review stage, with one file changed on the branch. (+3 more)
+Cohesion: 0.14
+Nodes (8): ChangedFilesTest, DepthByRuleTest, A coverage check, written straight into the journal. The real command runs…, The per-file facts pass two is given, gathered without a model., The three rules that are never Jev's to answer., A ticket worked to the review stage, with one file changed on the branch., Everything up to the review stage, with the checks a triage reads., TriageTest
 
 ### Community 1 - ".evaluate"
 Cohesion: 0.06
-Nodes (27): advance_record(), check_record(), coverage_record(), GateTest, NonCodeGateTest, PlaceholderShapeTest, F8: shaping the template must not stop guarding the fields it kept., A recorded check. A red fails by default, because a red that passed is not one. (+19 more)
+Nodes (28): advance_record(), check_record(), ClarifyGateTest, coverage_record(), GateTest, NonCodeGateTest, PlaceholderShapeTest, F8: shaping the template must not stop guarding the fields it kept. (+20 more)
 
 ### Community 2 - "web/package.json"
 Cohesion: 0.06
 Nodes (28): metadata, config, dependencies, next, react, react-dom, @seen/core, description (+20 more)
 
 ### Community 3 - "Repository"
-Cohesion: 0.07
-Nodes (22): ask(), main(), Ask one question about real records under two sets of criteria, side by side.…, Exactly what the stage gate sends: the ticket as it stands and the record.…, One question, one set of criteria, one probability back., state_of(), Every file in the project that git can see, ignored files excluded., Record files only. A journal directory also holds kpi.json and attachments,… (+14 more)
+Cohesion: 0.08
+Nodes (18): Every file in the project that git can see, ignored files excluded., Record files only. A journal directory also holds kpi.json and attachments,…, Journal files git has seen change after the commit that created them. The hash…, The branch work merges into, asked of git rather than assumed., The working copy a harness command operates on., Whether a commit has already merged, locally or on the remote. Both are asked:…, Whether the remote already holds this commit as the tip of this branch., Refuse to operate from a subdirectory or from another repository. (+10 more)
+
+### Community 4 - "test_isolation.py"
+Cohesion: 0.18
+Nodes (5): EntryPointTest, IsolationTest, Tests must never touch the journal of the repository they live in. A test suite…, run.py must work as a script, which is how every session calls it., tempfile
 
 ### Community 6 - "boundary.ts"
 Cohesion: 0.16
 Nodes (18): Three defects the tests could not see, CLOUD_SDK_PREFIXES, CloudSdkImport, EXEMPT, findCloudSdkImports(), isCloudSdk(), SEARCHED, SKIP_DIRECTORIES (+10 more)
 
 ### Community 8 - "cli.py"
-Cohesion: 0.05
-Nodes (79): argparse, Run one check and return the evidence to record., run(), brief(), budget(), build_pack(), build_parser(), check() (+71 more)
+Cohesion: 0.04
+Nodes (75): argparse, Run one check and return the evidence to record. `declared` is the tier the…, run(), brief(), budget(), build_pack(), build_parser(), check() (+67 more)
+
+### Community 9 - "DeliveryWalk"
+Cohesion: 0.24
+Nodes (5): DeliveryTest, DeliveryWalk, The walk to a delivered ticket, without the tests. Separated so other files can…, No test reaches GitHub. Green by default; a test that cares says otherwise., Take a ticket through every stage, with real recorded checks.
 
 ### Community 10 - ".graph"
 Cohesion: 0.11
@@ -317,8 +355,8 @@ Cohesion: 0.40
 Nodes (4): graphify-mcp, repowise, graphify, repowise
 
 ### Community 13 - "app.module.ts"
-Cohesion: 0.14
-Nodes (13): AppModule, AppendResult, InMemoryThreadStore, MessageThread, THREAD_STORE, ThreadMessage, ThreadStore, apps_api_src_webhooks_fixtures_postmark_inbound (+5 more)
+Cohesion: 0.13
+Nodes (14): AppModule, AppendResult, InMemoryThreadStore, MessageThread, THREAD_STORE, ThreadMessage, ThreadStore, apps_api_src_webhooks_fixtures_postmark_inbound (+6 more)
 
 ### Community 14 - "SEEN-087: Install graphify, build the repo graph and wire it into both assistants"
 Cohesion: 0.22
@@ -329,16 +367,16 @@ Cohesion: 0.08
 Nodes (23): dependencies, bullmq, ioredis, @seen/core, @seen/providers, description, devDependencies, @nestjs/cli (+15 more)
 
 ### Community 16 - ".stub_repowise"
-Cohesion: 0.11
-Nodes (11): ElidedBlastRadiusTest, repowise elides a large payload and leaves a marker in its place. Observed at…, One file is four arguments: --target X --changed-file X., repowise's own marker already says how to restore it., What the model sees when it is asked how risky this change is., Not as a low score, and not as silence., One extra payload string per question is not free: SEEN-101., The half of the ticket that is about tests rather than about size. (+3 more)
+Cohesion: 0.16
+Nodes (7): ElidedBlastRadiusTest, repowise elides a large payload and leaves a marker in its place. Observed at…, One file is four arguments: --target X --changed-file X., repowise's own marker already says how to restore it., The half of the ticket that is about tests rather than about size., The harness must work on a machine that has never heard of repowise., RiskTest
 
 ### Community 17 - "Seen: product requirements (MVP)"
 Cohesion: 0.11
 Nodes (18): 10. Pricing and metering, 11. Data, security and compliance, 12. Non-functional requirements, 13. Success metrics and gates, 14. Release plan, 15. Risks, 16. Open questions, 17. Glossary (+10 more)
 
 ### Community 18 - ".triage"
-Cohesion: 0.12
-Nodes (8): AnswersTest, DeterministicPassTest, Run the triage, with the requests the stage gates made cleared first. Reaching…, Pass one: what the harness can settle with no model at all., Asserted on the check rather than on a journey, because there is none. The tdd…, The triage record itself: a kind of its own, at the review stage., What the record keeps of pass two., RecordTest
+Cohesion: 0.06
+Nodes (21): AlwaysReadTest, AnswersTest, AskedHonestlyTest, DeterministicPassTest, OneRequestTest, PartlySettledTest, H1: the two things a review is against are never in a focus set. The journal…, Run the triage, with the requests the stage gates made cleared first. Reaching… (+13 more)
 
 ### Community 19 - "CoverageTest"
 Cohesion: 0.38
@@ -349,8 +387,8 @@ Cohesion: 0.07
 Nodes (18): AnswerTest, FallbackTest, GateTest, OverrideTest, QuestionTest, A transport failure is not fatal: it becomes a question for a person. The…, The live transport, exercised without a network. Nothing here calls the API. It…, Cloudflare rejects Python's default user agent with error 1010. Without a user… (+10 more)
 
 ### Community 21 - "kpi.py"
-Cohesion: 0.07
-Nodes (42): Known and deliberately left, Outcome, Acceptance criteria, Amendments, Blocks, Context, Depends on, Description (+34 more)
+Cohesion: 0.13
+Nodes (23): datetime, _check(), coverage(), first_pass_ci(), _latest_triage(), measure(), _moment(), output_tokens_per_slice() (+15 more)
 
 ### Community 22 - "Tickets"
 Cohesion: 0.20
@@ -713,8 +751,8 @@ Cohesion: 0.33
 Nodes (6): Acceptance criteria, Blocks, Context, Depends on, Description, SEEN-085: Run restore drill, close pen-test findings, sign metrics pack
 
 ### Community 112 - "solution_evidence"
-Cohesion: 0.17
-Nodes (8): clarify_evidence(), solution_evidence(), plan(), A slice plan of the shape the solution record carries., What the solution gate does with the plan it is now given., A plan may disagree with the estimate; the gate says so and proceeds. The caps…, SlicePlanTest, walk_to_review()
+Cohesion: 0.10
+Nodes (15): BaselineTest, The baseline moves only when a ticket delivers., DeliveredCostTest, F2 of SEEN-108's second review: criterion 4 names kpi.json, and delivery writes…, A session log for this walk, because a cost without tokens is null. The name is…, clarify_evidence(), solution_evidence(), NonCodeSlicePlanTest (+7 more)
 
 ### Community 113 - "compilerOptions"
 Cohesion: 0.08
@@ -724,13 +762,13 @@ Nodes (23): compilerOptions, allowImportingTsExtensions, baseUrl, declaration, e
 Cohesion: 0.13
 Nodes (14): compilerOptions, allowJs, baseUrl, incremental, isolatedModules, jsx, lib, module (+6 more)
 
-### Community 115 - "providers/src/index.ts"
-Cohesion: 0.21
-Nodes (17): STORAGE_PROVIDERS, StoredObject, Attributes, AttributeValue, consoleTelemetryProvider(), CostEntry, createTelemetryProvider(), nowUnixNano() (+9 more)
+### Community 115 - "telemetry.ts"
+Cohesion: 0.16
+Nodes (15): sha256(), Attributes, AttributeValue, consoleTelemetryProvider(), CostEntry, nowUnixNano(), otlpAttributes(), otlpTelemetryProvider() (+7 more)
 
-### Community 116 - "jev.py"
-Cohesion: 0.05
-Nodes (52): Acceptance criteria, Blocks, Context, Depends on, Description, Outcome, SEEN-100: Let a gate tell an open question from an unknowable one, Acceptance criteria (+44 more)
+### Community 116 - "state_for"
+Cohesion: 0.12
+Nodes (17): Acceptance criteria, Blocks, Context, Depends on, Description, Outcome, SEEN-100: Let a gate tell an open question from an unknowable one, Acceptance criteria (+9 more)
 
 ### Community 118 - "SEEN-088: Integrate Jev AI typed decisions into the harness gates"
 Cohesion: 0.29
@@ -744,13 +782,13 @@ Nodes (14): dependsOn, outputs, cache, persistent, dependsOn, $schema, tasks, bu
 Cohesion: 0.08
 Nodes (14): Acceptance criteria, Blocks, Context, Depends on, Description, Outcome, SEEN-092: Sync the harness skill to Claude Code and Codex and retire the Seene leftovers, DiscardTest (+6 more)
 
-### Community 121 - "The Seen harness"
-Cohesion: 0.22
-Nodes (8): Asking the graphs, Six rules you cannot infer, The context budget, The five stages, The Seen harness, The two agents, The worked example, What the harness will refuse
+### Community 121 - "advance"
+Cohesion: 0.06
+Nodes (36): Asking the graphs, Six rules you cannot infer, The context budget, The five stages, The Seen harness, The three agents, The worked example, What the harness will refuse (+28 more)
 
-### Community 122 - ".reach_review"
-Cohesion: 0.11
-Nodes (10): ChangedFilesTest, OneRequestTest, PartlySettledTest, H2 and H3: a check that proves less than its name must not close a question., A typo here would silently settle a check the reviewer should read., J2: a test path in the diff is not a test for the behaviour., The per-file facts pass two is given, gathered without a model., The clarify record restates all three, so pass one has nothing to say. The… (+2 more)
+### Community 122 - "routing.py"
+Cohesion: 0.06
+Nodes (50): fnmatch, implementer_default(), The model and effort the implementer's copies carry, which never vary. The…, The ticket and where it came from: the path, the id, or the snapshot. Which…, _ticket_text(), A slice is proved on the model it was routed to, or not at all. Three ways not…, _require_the_routed_model(), append() (+42 more)
 
 ### Community 123 - "agent/package.json"
 Cohesion: 0.18
@@ -769,8 +807,8 @@ Cohesion: 0.12
 Nodes (14): description, @nestjs/cli, @seen/core, @seen/providers, main, name, private, version (+6 more)
 
 ### Community 127 - "vitest"
-Cohesion: 0.15
-Nodes (4): packageName, packageName, sha256(), vitest
+Cohesion: 0.20
+Nodes (3): packageName, packageName, vitest
 
 ### Community 128 - "api/tsconfig.json"
 Cohesion: 0.22
@@ -784,9 +822,9 @@ Nodes (8): compilerOptions, baseUrl, outDir, rootDir, exclude, extends, include,
 Cohesion: 0.29
 Nodes (7): Acceptance criteria, Blocks, Context, Depends on, Description, SEEN-007: Go live on Google Cloud after the go/no-go decision, Slices
 
-### Community 131 - ".start"
-Cohesion: 0.10
-Nodes (7): AdvanceTest, BranchTest, DraftTest, NoteAndCheckTest, ReturnTest, StartTest, StatusTest
+### Community 131 - "CommandTest"
+Cohesion: 0.08
+Nodes (13): AdvanceTest, BranchTest, CommandTest, DraftTest, NoteAndCheckTest, Runs commands in process, which is how the tests stay fast and readable., ReturnTest, StartTest (+5 more)
 
 ### Community 132 - "SEEN-089: Enforce the TDD gates in the harness"
 Cohesion: 0.25
@@ -809,8 +847,8 @@ Cohesion: 0.29
 Nodes (6): compilerOptions, baseUrl, noEmit, extends, include, ../../tsconfig.base.json
 
 ### Community 137 - ".measure"
-Cohesion: 0.13
-Nodes (9): journal_with_a_return(), Null, not one: a record without a session cannot say it was the same one., A returned ticket proved slices in each attempt, and paid for each. Reading…, Null rather than zero: nothing was cut badly, there was nothing to cut., Rework is time spent, so tdd counts both visits rather than the last., start, clarify, solution, tdd, review, back to tdd, review again, deliver,…, Slices, sessions and what a slice cost, from the journal and nothing else., SliceFiguresTest (+1 more)
+Cohesion: 0.10
+Nodes (11): journal_with_a_return(), LastSliceTest, Slices, sessions and what a slice cost, from the journal and nothing else., Null, not one: a record without a session cannot say it was the same one., A returned ticket proved slices in each attempt, and paid for each. Reading…, Null rather than zero: nothing was cut badly, there was nothing to cut., Rework is time spent, so tdd counts both visits rather than the last., F3: the slice no handoff follows. A handoff is written at a boundary, and the… (+3 more)
 
 ### Community 138 - "SEEN-091: Collect harness KPIs per ticket and produce weekly and sprint reports"
 Cohesion: 0.25
@@ -837,8 +875,8 @@ Cohesion: 0.29
 Nodes (6): Acceptance criteria, Evidence, Limits, Receipt, Review findings, Summary
 
 ### Community 145 - "context.py"
-Cohesion: 0.18
-Nodes (14): compare(), overlaps(), _per_point(), _per_slice(), qualifying(), Whether three knowledge tools paid for the context they occupy. codegraph,…, What a graph record asked about, as the command carries it., Subjects asked of more than one tool on one ticket. The test of the design: a… (+6 more)
+Cohesion: 0.15
+Nodes (16): compare(), cost_by_model(), overlaps(), _per_point(), _per_slice(), qualifying(), Whether three knowledge tools paid for the context they occupy. codegraph,…, Tickets started after both tools existed, with figures to compare. A ticket… (+8 more)
 
 ### Community 147 - "dependencies"
 Cohesion: 0.22
@@ -861,24 +899,24 @@ Cohesion: 0.29
 Nodes (6): Against the targets, Findings, Not measurable yet, Sprint 0: 37 of 81 points delivered, The context budget, What delivered
 
 ### Community 152 - "Outcome"
-Cohesion: 0.11
-Nodes (13): Acceptance criteria, Blocks, Context, Depends on, Description, Known and deliberately left, Outcome, SEEN-097: Set up the local Docker development environment (+5 more)
+Cohesion: 0.12
+Nodes (12): Acceptance criteria, Blocks, Context, Depends on, Description, Known and deliberately left, Outcome, SEEN-097: Set up the local Docker development environment (+4 more)
 
 ### Community 153 - "providers/package.json"
 Cohesion: 0.11
 Nodes (17): dependencies, @supabase/supabase-js, description, devDependencies, @vitest/coverage-v8, @vitest/coverage-v8, main, name (+9 more)
 
 ### Community 154 - "handoff.py"
-Cohesion: 0.12
-Nodes (24): accepted_greens(), current_slice(), _decisions(), estimate_tokens(), _graph_answers(), _heading(), last_declaration(), _one_line() (+16 more)
+Cohesion: 0.10
+Nodes (28): Known and deliberately left, Outcome, accepted_greens(), current_slice(), _decisions(), estimate_tokens(), _graph_answers(), _heading() (+20 more)
 
 ### Community 155 - "FocusSetTest"
-Cohesion: 0.13
-Nodes (8): AlwaysReadTest, FocusSetTest, H1: the two things a review is against are never in a focus set. The journal…, What the reviewer is asked to read, and what shadow mode does to it., A stub asking for a spot review of one file out of the three., Pass three is text: the task the session hands its subagent., Asserted on the diff section, which is the part `no others` governs. The ticket…, ReviewerTaskTest
+Cohesion: 0.12
+Nodes (9): FocusSetTest, transport(), The reviewer's model is a rule, and the depth is what decides it. A full review…, What the reviewer is asked to read, and what shadow mode does to it., A stub asking for a spot review of one file out of the three., Pass three is text: the task the session hands its subagent., Asserted on the diff section, which is the part `no others` governs. The ticket…, ReviewerModelTest (+1 more)
 
-### Community 156 - "storage.ts"
+### Community 156 - "providers/src/index.ts"
 Cohesion: 0.24
-Nodes (14): createSecretsProvider(), environmentVariableFor(), envSecretsProvider(), SECRETS_PROVIDERS, SecretsProviderName, Environment, notUntilGoLive(), ProviderConfigurationError (+6 more)
+Nodes (17): createSecretsProvider(), environmentVariableFor(), envSecretsProvider(), SECRETS_PROVIDERS, SecretsProvider, SecretsProviderName, Environment, notUntilGoLive() (+9 more)
 
 ### Community 157 - "SEEN-098: Add repowise and carry its risk answer into the gate"
 Cohesion: 0.29
@@ -889,16 +927,16 @@ Cohesion: 0.22
 Nodes (12): header(), isPostmarkInbound(), MARKETPLACE_DOMAINS, marketplaceOf(), normaliseSubject(), PostmarkInbound, tenantOf(), threadKey() (+4 more)
 
 ### Community 159 - "Seen: development harness"
-Cohesion: 0.18
-Nodes (10): Commands, KPIs, Principles, Repository layout, Security controls, Seen: development harness, The context per session, Tickets (+2 more)
+Cohesion: 0.17
+Nodes (11): Commands, KPIs, Principles, Repository layout, Security controls, Seen: development harness, The context per session, The five stages (+3 more)
 
 ### Community 160 - "BudgetRulesTest"
 Cohesion: 0.22
 Nodes (3): BudgetRulesTest, A rule in a prompt is not a rule., A date would count the tickets that installed them, which it must not.
 
-### Community 161 - "delivery.py"
-Cohesion: 0.13
-Nodes (19): Read a stage evidence file, which must live where drafts live. Anywhere else it…, read_evidence(), baseline(), compare(), measured(), Line coverage on the packages the harness holds a floor under. One fixed…, The last delivered figure, or None when nothing has delivered yet., The line percentage vitest's json-summary reporter wrote. (+11 more)
+### Community 161 - "coverage.py"
+Cohesion: 0.24
+Nodes (9): baseline(), compare(), measured(), Line coverage on the packages the harness holds a floor under. One fixed…, The last delivered figure, or None when nothing has delivered yet., The line percentage vitest's json-summary reporter wrote., Attach the baseline and the delta to a finished measurement run., Move the baseline. Called at delivery and nowhere else. (+1 more)
 
 ### Community 162 - "SEEN-102: Decide on the repowise PR bot for a private repository"
 Cohesion: 0.17
@@ -909,8 +947,8 @@ Cohesion: 0.16
 Nodes (4): ComparisonTest, What the report says about the figures, and when it refuses to say it., G4: SEEN-098's own rule, applied to the agents this time., Two numbers divided is not evidence when there are two tickets.
 
 ### Community 165 - "figures"
-Cohesion: 0.12
-Nodes (18): log_directory(), Where Claude Code keeps this project's session logs, by its own naming., How many tool calls a ticket's window contains. Counted from the same logs and…, Token counts from entries falling inside a ticket's window. Null rather than…, Totals across several windows, or null when none of them carried anything. Null…, tokens_between(), tokens_over(), tool_calls_between() (+10 more)
+Cohesion: 0.11
+Nodes (20): log_directory(), Where Claude Code keeps this project's session logs, by its own naming., How many tool calls a ticket's window contains. Counted from the same logs and…, Token counts from entries falling inside a ticket's window. Null rather than…, Totals across several windows, or null when none of them carried anything. Null…, tokens_between(), tokens_over(), tool_calls_between() (+12 more)
 
 ### Community 166 - "health.controller.ts"
 Cohesion: 0.29
@@ -921,8 +959,8 @@ Cohesion: 0.20
 Nodes (8): Environment, mailpit(), MailpitMessage, createMailer(), Environment, Mailer, OutboundMail, nodemailer
 
 ### Community 168 - "HarnessError"
-Cohesion: 0.06
-Nodes (59): Exception, harness, Tokens spent on a ticket, read from the session logs. Only four numbers are…, HarnessError, The one error type a harness command may fail with, and the check that raises…, A refusal a person can act on: what is wrong and, where possible, what to do., check_runs(), _gh() (+51 more)
+Cohesion: 0.07
+Nodes (46): Exception, harness, Tokens spent on a ticket, read from the session logs. Only four numbers are…, HarnessError, The one error type a harness command may fail with, and the check that raises…, A refusal a person can act on: what is wrong and, where possible, what to do., The append-only journal: one directory of numbered records per ticket. Each…, Git access, and the fingerprint that decides whether evidence is still current.… (+38 more)
 
 ### Community 169 - "api/nest-cli.json"
 Cohesion: 0.25
@@ -933,8 +971,8 @@ Cohesion: 0.25
 Nodes (7): collection, compilerOptions, deleteOutDir, tsConfigPath, entryFile, $schema, sourceRoot
 
 ### Community 171 - "doctor.py"
-Cohesion: 0.05
-Nodes (58): datetime, agent_problems(), gitignore_problems(), hook_problems(), journal_problems(), link_problems(), python_problems(), The self-check a session runs before it starts working. It reports problems… (+50 more)
+Cohesion: 0.07
+Nodes (40): agent_problems(), gitignore_problems(), hook_problems(), journal_problems(), link_problems(), python_problems(), The self-check a session runs before it starts working. It reports problems…, The skill copies both assistants read, against the one file that makes them. (+32 more)
 
 ### Community 172 - "OverlapTest"
 Cohesion: 0.43
@@ -949,16 +987,16 @@ Cohesion: 0.25
 Nodes (8): Commands, Getting it running, If it will not start, Seen, Tests, The cloud is a configuration, What it costs to run, Where things run
 
 ### Community 175 - "triage.py"
-Cohesion: 0.05
-Nodes (72): Outcome, The ticket file as it stands now: the recorded path, or found by its id. A…, The ticket and where it came from: the path, the id, or the snapshot. Which…, ticket_file(), _ticket_text(), _acceptance_check(), always_read(), append() (+64 more)
+Cohesion: 0.10
+Nodes (36): _acceptance_check(), append(), _check_excerpt(), _coverage_check(), deterministic(), _entry(), file_facts(), _fingerprint_check() (+28 more)
 
 ### Community 176 - ".journal"
-Cohesion: 0.17
-Nodes (6): M1 and M2: what a long ticket loses, and what it must not. The first cap kept…, One accepted tdd record per slice, each citing a red and a green., What kpi.json keeps of a triage, derived and never typed., N1: the field went in at attempt 10 with no test, found by mutation. The share…, SliceCapTest, TriageFiguresTest
+Cohesion: 0.12
+Nodes (9): G3: the window is the reviewer's, and the rework between two is not., Where the scout runs, and from SEEN-108 the implementer subagent., M1 and M2: what a long ticket loses, and what it must not. The first cap kept…, One accepted tdd record per slice, each citing a red and a green., What kpi.json keeps of a triage, derived and never typed., N1: the field went in at attempt 10 with no test, found by mutation. The share…, ReviewWindowsTest, SliceCapTest (+1 more)
 
 ### Community 177 - "AgentSyncTest"
-Cohesion: 0.10
-Nodes (5): AgentSyncTest, F10: a file with no source under harness/agents/ has had no review., G7: .claude/agents/ belongs to the person; only the seen- names are ours., What comes back from a context of its own, and how small it has to be. A brief…, ScoutBriefTest
+Cohesion: 0.06
+Nodes (12): AgentSyncTest, ImplementerTest, F10: a file with no source under harness/agents/ has had no review. The name…, The guard the two above lost: drift must not be able to stand in for strays. A…, G7: .claude/agents/ belongs to the person; only the seen- names are ours., What comes back from a context of its own, and how small it has to be. A brief…, The one agent whose model and effort are not its own to choose. All three carry…, The first agent that does, because writing the slice is what it is for. (+4 more)
 
 ### Community 179 - "providers/tsconfig.json"
 Cohesion: 0.29
@@ -969,12 +1007,8 @@ Cohesion: 0.33
 Nodes (6): devDependencies, @nestjs/cli, @nestjs/testing, supertest, @types/nodemailer, @types/supertest
 
 ### Community 181 - "record"
-Cohesion: 0.12
-Nodes (9): at(), journal_worked_in_two_sessions(), A timestamp minutes after ten, so a journal can span an hour or more., Two slices planned, two proved, and two sessions that wrote the records., record(), G3: the window is the reviewer's, and the rework between two is not., Two review rounds, with a whole tdd attempt between them., Where the scout runs, and from SEEN-108 the implementer subagent. (+1 more)
-
-### Community 182 - "CommandTest"
-Cohesion: 0.07
-Nodes (18): BaselineTest, CitedRedTest, NonCodeCoverageTest, A ticket with no behaviour to prove owes no coverage figure. Its own setUp…, The baseline moves only when a ticket delivers., A red recorded before the rule existed can still be cited, so the gate checks…, A refusal has to say what happened, not what the rule is called., RefusalMessageTest (+10 more)
+Cohesion: 0.16
+Nodes (13): at(), journal_with_a_route(), check(), handoff(), journal_with_rework(), A timestamp minutes after ten, so a journal can span an hour or more., Two slices, routed, each closed by its own handoff boundary. One session, so…, The same two-slice ticket, returned once and proved again. The shape F2 of the… (+5 more)
 
 ### Community 183 - "Seen"
 Cohesion: 0.33
@@ -996,21 +1030,25 @@ Nodes (8): connection, HELLO_QUEUE, HelloPayload, HelloResult, HelloWorker, star
 Cohesion: 0.33
 Nodes (6): graphify, Ground rules, Index of docs/, Seen: Claude Code entry point, Tickets (109, 353 build points), Working a ticket
 
-### Community 188 - "triage_stub"
-Cohesion: 0.12
-Nodes (16): Tooling, noul(), score(), transport(), low_on_the_second(), transport(), PartialAnswerTest, drops_clarified() (+8 more)
+### Community 188 - "test_triage.py"
+Cohesion: 0.18
+Nodes (14): Tooling, noul(), score(), transport(), transport(), PartlySettledIsDocumentedTest, The review triage: three passes, cheapest first, and what each one settles.…, G1: a judgement nobody made must not take a file out of a review. (+6 more)
 
-### Community 189 - "UnevidencedCriterionTest"
+### Community 189 - ".reach_tdd"
 Cohesion: 0.14
-Nodes (7): AskedHonestlyTest, K1: `asked` says whether pass two ran, and the reason says why not. Three cases…, The one answer that sends a ticket back before any model reads the diff., A stub answering the second criterion below its threshold and no other., UnevidencedCriterionTest, transport(), broken()
+Nodes (11): JevTest, F4: a route record that predates the fields the skill says it carries. The only…, What no model is asked about, and why each one is a rule., What the model is asked, and what is done with what comes back., The record itself: where it may be written and what it names., A ticket worked to the tdd stage, which is where the route is decided., Both planning gates passed, with the stage requests forgotten. The gates ask…, RecordTest (+3 more)
+
+### Community 195 - "test_enforcement.py"
+Cohesion: 0.12
+Nodes (8): CitedRedTest, NonCodeCoverageTest, What the harness refuses once it stops merely recording. SEEN-086 made evidence…, A ticket with no behaviour to prove owes no coverage figure. Its own setUp…, A red recorded before the rule existed can still be cited, so the gate checks…, A refusal has to say what happened, not what the rule is called., RedRuleTest, RefusalMessageTest
 
 ### Community 196 - "SidechainTokensTest"
 Cohesion: 0.22
 Nodes (5): DeliveredFiguresTest, One subagent entry inside the window, and one before it that is not., The reviewer's own cost, read from the log rather than declared., F3 of the second review: criterion 5 names kpi.json, and delivery writes it. G2…, SidechainTokensTest
 
 ### Community 197 - "paths.py"
-Cohesion: 0.11
-Nodes (23): demonstrates_failure(), phases_for(), Running and recording a verification command. A check is a real subprocess in…, Whether a run is evidence that a test failed. Exit zero is a passing command,…, ask(), build_command(), _index_counts(), Asking the knowledge graphs a question and keeping the answer in the journal.… (+15 more)
+Cohesion: 0.27
+Nodes (10): ask(), build_command(), _index_counts(), Asking the knowledge graphs a question and keeping the answer in the journal.…, Nodes and edges, as codegraph status reports them. Weaker than a hash: two…, Run one verb in the project root and return what to record., _run(), tool_for() (+2 more)
 
 ### Community 198 - "ModesMustAgreeTest"
 Cohesion: 0.43
@@ -1024,65 +1062,73 @@ Nodes (6): Acceptance criteria, Blocks, Context, Depends on, Description, SEEN-0
 Cohesion: 0.33
 Nodes (6): Acceptance criteria, Blocks, Context, Depends on, Description, SEEN-104: Cap a session at one slice: the slice plan, the budget and the handoff pack
 
-### Community 202 - "SubagentAttributionTest"
-Cohesion: 0.26
-Nodes (4): Whether a ticket was worked with the scout and the reviewer, from its journal.…, F4: the report row is about the scout and the reviewer, not either one., Nineteen journals were written before either agent existed., SubagentAttributionTest
+### Community 202 - ".journal"
+Cohesion: 0.14
+Nodes (6): A review re-run lists its findings again; they are still the same findings., Whether a ticket was worked with the scout and the reviewer, from its journal.…, F4: the report row is about the scout and the reviewer, not either one., Nineteen journals were written before either agent existed., RepeatedReviewTest, SubagentAttributionTest
 
 ### Community 203 - "SEEN-106: Enforce the harness with hooks in both assistants, generated from one source"
 Cohesion: 0.33
 Nodes (6): Acceptance criteria, Blocks, Context, Depends on, Description, SEEN-106: Enforce the harness with hooks in both assistants, generated from one source
 
-### Community 204 - "advance"
-Cohesion: 0.20
-Nodes (9): Consequences, The delivery receipt attests the tree minus the journal, Consequences, SEEN-086 is the bootstrap ticket and has no journal, How the harness meets the assistants, The five stages, advance(), discard_draft() (+1 more)
+### Community 204 - "model"
+Cohesion: 0.27
+Nodes (6): How the harness meets the assistants, model(), The model this session is running on, from its own log, or nothing. Read when a…, DescriptionSaysWhatIsNotAppliedTest, The ticket says the routed effort is applied by nothing, where a reader meets…, The sentence that promised Claude Code's effort and the Codex TOML.
 
 ### Community 205 - "SEEN-103: Declare non-code mode at the solution stage, not after it"
 Cohesion: 0.33
 Nodes (6): Acceptance criteria, Blocks, Context, Depends on, Description, SEEN-103: Declare non-code mode at the solution stage, not after it
 
-### Community 206 - "The Seen harness"
-Cohesion: 0.22
-Nodes (8): Asking the graphs, Six rules you cannot infer, The context budget, The five stages, The Seen harness, The two agents, The worked example, What the harness will refuse
+### Community 206 - "run"
+Cohesion: 0.09
+Nodes (25): Why a request produced nothing, or nothing when it produced something. Here…, why_not(), criterion_key(), depth_from(), failed(), file_key(), file_subject(), focus_set() (+17 more)
 
 ### Community 207 - "agents.py"
+Cohesion: 0.14
+Nodes (25): _body(), claude_copy(), codex_copy(), drift(), _folded(), Three agents with a context of their own, and the copies each assistant reads.…, Every agent as this repository defines it, from its source and one table., Long prose as a folded scalar, the form the skill's own frontmatter uses. (+17 more)
+
+### Community 208 - "jev.py"
 Cohesion: 0.11
-Nodes (26): _body(), claude_copy(), codex_copy(), drift(), _folded(), Two agents with a context of their own, and the copies each assistant reads. A…, r"""One multi-line basic string, with the two sequences that could end it early., The TOML copy Codex reads. The keys are the ones SEEN-105 names. No Codex… (+18 more)
+Nodes (22): _ask_api(), build_questions(), build_request(), post(), The harness's decision layer: typed questions with recorded probabilities. Jev…, The request that goes over the wire. Separated so it can be read in a test., The live call. Unverified: no valid credential has yet reached this API., One asked question as (key, question, subject), whichever form it came in. A… (+14 more)
 
-### Community 208 - "The Seen harness"
-Cohesion: 0.22
-Nodes (8): Asking the graphs, Six rules you cannot infer, The context budget, The five stages, The Seen harness, The two agents, The worked example, What the harness will refuse
-
-### Community 209 - "gates.py"
-Cohesion: 0.06
-Nodes (54): Jev before the model: the review triage and the route, Outcome, _billing_decision(), cited_check(), _clarify(), evaluate(), _filled(), for_mode() (+46 more)
+### Community 209 - "require"
+Cohesion: 0.08
+Nodes (51): Outcome, Refuse unless the condition holds. Never repairs, never warns and continues., require(), cited_check(), _clarify(), evaluate(), _filled(), for_mode() (+43 more)
 
 ### Community 210 - "TheSkillSaysSoTest"
 Cohesion: 0.12
 Nodes (7): The one maintained skill, on the two agents a session may send work to., F11: the setting lives in a file this repository does not track., F9: Claude Code has no read-only Bash, so the hole is named, not implied., H5: the skill described the rule as it was before G3., H5: [actors] tools carries human, and the gate reads [actors] assistants., H6: F5 widened this from the current attempt to every attempt., TheSkillSaysSoTest
 
-### Community 212 - "SessionEnvironment"
+### Community 211 - "route_stub"
+Cohesion: 0.17
+Nodes (8): FixedCopiesTest, A transport answering the two route questions, keyed by slice position.…, F5: a route that did not clear its own threshold says so., The copies say the same thing whatever the ticket is doing. Generated per…, Which is what actions/checkout gives on every pull_request event., The state F3 of the eighth review found: no slice is in hand at all., route_stub(), RouteBelowItsBarTest
+
+### Community 212 - "BudgetTest"
 Cohesion: 0.10
-Nodes (10): NonCodeSlicePlanTest, NoPlanYetTest, A ticket with no behaviour to prove plans no slices. Its own class because a…, Which session wrote a record, without saying what the session is called., No session id is an absence, not a claim that there was one session., Tests that decide for themselves which session they are running in. The harness…, A pack before the solution record has advanced names no slice., SessionEnvironment (+2 more)
+Nodes (11): BudgetTest, NoPlanYetTest, Which session wrote a record, without saying what the session is called., No session id is an absence, not a claim that there was one session., Tests that decide for themselves which session they are running in. The harness…, A pack before the solution record has advanced names no slice., What a session can be told about its own spending, and when it cannot., A session log of the shape the assistant writes, and nothing else. (+3 more)
 
 ### Community 213 - "Seen: MVP architecture"
 Cohesion: 0.17
 Nodes (12): Agent runtime and the policy gate, Capability routing per marketplace, Infrastructure and security, Modules on the same record, Open verifications before build, Principles, Seen: MVP architecture, Services (+4 more)
 
-### Community 214 - "BudgetTest"
-Cohesion: 0.38
-Nodes (3): BudgetTest, What a session can be told about its own spending, and when it cannot., A session log of the shape the assistant writes, and nothing else.
+### Community 214 - "delivery.py"
+Cohesion: 0.13
+Nodes (21): Read a stage evidence file, which must live where drafts live. Anywhere else it…, read_evidence(), _evidence(), _latest_coverage(), Delivery: the deliver stage's own gate, and the receipt it writes. There is no…, Every record must already be in the history that was pushed. The receipt is the…, Bring the committed graph up to date with the code being delivered. graphify's…, _refresh_graph() (+13 more)
 
-### Community 215 - "FailedCheckStillAsksTest"
-Cohesion: 0.33
-Nodes (3): FailedCheckStillAsksTest, J1: only the three rules silence the request; a failed check does not. Pass one…, The figure SEEN-109 divides on, which a skipped request left at zero.
+### Community 215 - "ThreeCriteriaTest"
+Cohesion: 0.16
+Nodes (9): FailedCheckStillAsksTest, J1: only the three rules silence the request; a failed check does not. Pass one…, The figure SEEN-109 divides on, which a skipped request left at zero., A ticket with more than one criterion, so per-criterion means something., The one answer that sends a ticket back before any model reads the diff., A stub answering the second criterion below its threshold and no other., ThreeCriteriaTest, UnevidencedCriterionTest (+1 more)
 
-### Community 216 - "BookkeepingAfterReceiptTest"
-Cohesion: 0.43
-Nodes (3): BookkeepingAfterReceiptTest, What delivery itself writes may follow the receipt; nothing else may., The week includes the ticket that just delivered, so the report moves.
+### Community 216 - ".rendered"
+Cohesion: 0.13
+Nodes (8): ForwardReferenceTest, F5 of SEEN-108's third review: what the printed report tells a reader to run.…, If this ever fails, SEEN-109 has landed and the sentence can lose its tense., F1 of the fifth review: a row nothing could price must still render. The fourth…, The shape that raised: one unpriced row beside one priced row., F2 of the sixth review: a row a reader can check. Points is every point the…, ReconcilingRowTest, UnpricedRowTest
 
-### Community 217 - "DeliveryChecksTest"
-Cohesion: 0.29
-Nodes (4): DeliveryChecksTest, broken(), Check runs in the shape gh reports them., runs()
+### Community 217 - "SlicePositionTest"
+Cohesion: 0.15
+Nodes (8): DeclaredModelTest, What a subagent can say about itself, because the log cannot say it. A Claude…, The subagent ran on the routed model; the log says the parent's., Which route a proved slice is held to. F1 of the fourth review: the gate read…, One slice proved on its own, the way a rework attempt proves one., Slice 1 is Jev's haiku, slice 2 is the money rule's opus., A round that belongs to no single slice says so, and is held to no route. This…, SlicePositionTest
+
+### Community 218 - "MergeTest"
+Cohesion: 0.08
+Nodes (10): BookkeepingAfterReceiptTest, DeliveryChecksTest, broken(), MergeTest, A commit can carry more than one run of the same check. GitHub shows the latest…, What delivery itself writes may follow the receipt; nothing else may., Check runs in the shape gh reports them., The week includes the ticket that just delivered, so the report moves. (+2 more)
 
 ### Community 219 - "SEEN-095: Check a ticket's status against its own journal"
 Cohesion: 0.29
@@ -1092,9 +1138,9 @@ Nodes (7): Acceptance criteria, Blocks, Context, Depends on, Description, Outcom
 Cohesion: 0.43
 Nodes (3): GeneratedCopiesTest, Files sync writes are named by naming their source. Found by running the triage…, Excluded from the check, not from the diff: it did change.
 
-### Community 223 - "DeliveryWalk"
-Cohesion: 0.40
-Nodes (3): DeliveryWalk, The walk to a delivered ticket, without the tests. Separated so other files can…, No test reaches GitHub. Green by default; a test that cares says otherwise.
+### Community 223 - "ExecutionFiguresTest"
+Cohesion: 0.12
+Nodes (6): ExecutionFiguresTest, journal_worked_in_two_sessions(), Two slices planned, two proved, and two sessions that wrote the records., What each slice was routed to, what it ran on, and what it cost. From the…, Keyed by `done` and not `position`. A handoff names the slice in front of you,…, In shadow a slice runs on the session's model, whatever it was routed to.…
 
 ### Community 224 - "The reviewer"
 Cohesion: 0.40
@@ -1116,37 +1162,129 @@ Nodes (3): How to answer, The scout, What to return
 Cohesion: 0.40
 Nodes (3): CachedFiguresTest, What the kpi.json beside a receipt claims to be., SEEN-099's rule, which SEEN-107 narrowed by one figure rather than broke.…
 
-### Community 231 - "SEEN-107: Let Jev settle what the review can settle before a model reads the diff"
-Cohesion: 0.33
-Nodes (6): Acceptance criteria, Blocks, Context, Depends on, Description, SEEN-107: Let Jev settle what the review can settle before a model reads the diff
+### Community 231 - "ask_batch"
+Cohesion: 0.07
+Nodes (33): Jev before the model: the review triage and the route, Acceptance criteria, Blocks, Context, Depends on, Description, Outcome, SEEN-107: Let Jev settle what the review can settle before a model reads the diff (+25 more)
 
 ### Community 232 - "SEEN-108: Route each slice to a model and an effort at solution, by rule first and by Jev second"
-Cohesion: 0.33
-Nodes (6): Acceptance criteria, Blocks, Context, Depends on, Description, SEEN-108: Route each slice to a model and an effort at solution, by rule first and by Jev second
+Cohesion: 0.20
+Nodes (10): Acceptance criteria, Amendments, Blocks, Context, Depends on, Description, Outcome, SEEN-108: Route each slice to a model and an effort at solution, by rule first and by Jev second (+2 more)
 
 ### Community 233 - "SEEN-109: Calibrate the review triage and the routes on ten tickets before either saves a token"
 Cohesion: 0.33
 Nodes (6): Acceptance criteria, Blocks, Context, Depends on, Description, SEEN-109: Calibrate the review triage and the routes on ten tickets before either saves a token
 
+### Community 235 - "AgentDefinitionTest"
+Cohesion: 0.29
+Nodes (3): AgentDefinitionTest, What each agent is allowed to do, which is the point of separating them., The scout and the reviewer read and nothing else. SEEN-105 could say this of…
+
+### Community 236 - "GateTest"
+Cohesion: 0.22
+Nodes (5): GateTest, A check recorded under a model the route did not choose. Refused only with…, The one line in the project's own thresholds, and only that line. Written…, A check, recorded under a model, which is what a session log gives. The tests…, One slice proved red then green, both recorded under one model.
+
+### Community 238 - ".task"
+Cohesion: 0.18
+Nodes (5): CarriedNotAppliedTest, A route is read only for the plan it routed. The record names the solution…, Back to solution, a different plan accepted, and no new route., What the spawn instruction may promise about the effort, which is nothing. F1…, StalePlanTest
+
+### Community 239 - ".evidence"
+Cohesion: 0.18
+Nodes (8): PositionIsDeclaredTest, F3 of the ninth review: a rule a plan can miss by not naming a file. The rules…, Checks that declare the routed model, so the rule is what is under test.…, F2 of the fifth review: the route comparison is not skipped by omission. The…, A rework round spanning slices belongs to none of them, and says null., RuleTrippedByTheWorkTest, low_on_the_second(), transport()
+
+### Community 240 - "secrets.py"
+Cohesion: 0.16
+Nodes (14): Write a report and its JSON, refusing anything that carries a credential., write(), credentials(), _files(), leaked(), _looks_opaque(), marketplace_hosts(), What must never appear: credentials in a record, live marketplaces in a test.… (+6 more)
+
+### Community 241 - "CostPerPointByModelTest"
+Cohesion: 0.21
+Nodes (4): CostPerPointByModelTest, What a point cost on each model, beside the tokens per point. The point of the…, In shadow those differ, and only one of them cost anything., F3: dividing a partial cost by every point understates the model. On SEEN-108's…
+
+### Community 242 - "risk.py"
+Cohesion: 0.21
+Nodes (11): Work that trips a routing rule was routed by that rule, or it is refused. The…, _require_the_work_trips_no_unrouted_rule(), _absent(), assess(), changed_files(), What repowise says about the change in front of the session. A risk decision…, What the working tree changes against HEAD, tracked and untracked., The change-risk answer, or a recorded reason there is none. Scored from the… (+3 more)
+
+### Community 243 - "execution"
+Cohesion: 0.17
+Nodes (12): _closes(), cost_cents(), execution(), _latest_route(), Each slice's window: what it cost and which records fall inside it. Keyed by…, Which slice this record's boundary closed, and the figures it carried. A…, What those output tokens cost on that model, or that nobody priced it. A whole…, What each slice was routed to, what it ran on and what it cost. Null rather… (+4 more)
+
+### Community 244 - "OutcomeReconcilesTest"
+Cohesion: 0.36
+Nodes (3): OutcomeReconcilesTest, The Outcome's findings against the journal that is supposed to supply them. F4…, Every reviewer note, in the order they were written.
+
+### Community 245 - "PartialAnswerTest"
+Cohesion: 0.31
+Nodes (4): PartialAnswerTest, drops_clarified(), F1: a reply that left one question out must not cost the rest. A transport…, The other half of must_answer: a stage needs a judgement.
+
+### Community 246 - "checks.py"
+Cohesion: 0.25
+Nodes (6): demonstrates_failure(), phases_for(), Running and recording a verification command. A check is a real subprocess in…, Whether a run is evidence that a test failed. Exit zero is a passing command,…, The Seen development harness. One procedure per ticket, five stages, and an…, time
+
+### Community 247 - "skills.py"
+Cohesion: 0.32
+Nodes (7): drift(), One maintained skill, and the copies each assistant reads. The copies are…, One copy: the frontmatter an assistant reads, then the maintained body., Write every copy from the source, and say which were written., Committed copies that do not match what the source would generate., render(), sync()
+
+### Community 249 - "ReworkWindowTest"
+Cohesion: 0.32
+Nodes (4): F2 of the third review: what a rework round's tokens are charged to. Nothing,…, This fixture ends its plan at a handoff, so the advance has nothing left. The…, The slices do not carry it; the ticket's own token figure does., ReworkWindowTest
+
+### Community 250 - "RiskInTheDecisionTest"
+Cohesion: 0.32
+Nodes (4): What the model sees when it is asked how risky this change is., Not as a low score, and not as silence., One extra payload string per question is not free: SEEN-101., RiskInTheDecisionTest
+
+### Community 251 - "DirectoryNamedSliceTest"
+Cohesion: 0.39
+Nodes (3): DirectoryNamedSliceTest, A rule a plan's wording cannot dodge. F6 of the third review: the patterns were…, `packages/core-utils` is a different package, not money arithmetic.
+
+### Community 253 - "EveryAttemptsEvidenceTest"
+Cohesion: 0.32
+Nodes (3): EveryAttemptsEvidenceTest, L1: a returned ticket proved slices in each attempt, and Jev sees them all.…, A return, then one more slice proved, the way rework goes.
+
+### Community 254 - "SEEN-105: Give the scout and the reviewer their own context as subagents in both assistants"
+Cohesion: 0.29
+Nodes (7): Acceptance criteria, Amendments, Blocks, Context, Depends on, Description, SEEN-105: Give the scout and the reviewer their own context as subagents in both assistants
+
+### Community 255 - "Outcome"
+Cohesion: 0.33
+Nodes (7): Outcome, _evidence(), How this ticket was worked: briefs from the scout, and the review's own kind.…, The evidence of the most recent accepted advance out of a stage., Slices planned at solution against slices proved at tdd. Proved counts every…, slices(), subagents()
+
+### Community 256 - "GuardIsLastTest"
+Cohesion: 0.48
+Nodes (3): GuardIsLastTest, A module's own run must collect its own tests. F3 of the sixth review: five…, The guard's line, found at column zero so a quotation is not one.
+
+### Community 259 - "TemplatePositionTest"
+Cohesion: 0.43
+Nodes (3): F1 of the sixth review: what the template teaches about the position. Every…, The placeholder must not be a value the gate accepts., TemplatePositionTest
+
+### Community 260 - "The implementer"
+Cohesion: 0.33
+Nodes (5): How you work, The implementer, What you are given, What you never do, What you return
+
+### Community 261 - "The implementer"
+Cohesion: 0.33
+Nodes (5): How you work, The implementer, What you are given, What you never do, What you return
+
+### Community 262 - "ticket_file"
+Cohesion: 0.33
+Nodes (6): The ticket file as it stands now: the recorded path, or found by its id. A…, ticket_file(), always_read(), procedure_paths(), Paths a solution record cannot plan and a comparison must not fire on. The…, What a review is against, which no focus set can contain. The journal is never…
+
 ## Knowledge Gaps
-- **940 isolated node(s):** `graphify-mcp`, `repowise`, `$schema`, `collection`, `sourceRoot` (+935 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 1550 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **29 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **948 isolated node(s):** `graphify-mcp`, `repowise`, `$schema`, `collection`, `sourceRoot` (+943 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 1705 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **32 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `HarnessError` connect `HarnessError` to `.evaluate`, `Repository`, `.start`, `RecordTest`, `cli.py`, `DeliveryTest`, `.graph`, `DoctorTest`, `NonCodeSolutionTest`, `.triage`, `CoverageTest`, `stub`, `DeclaredSliceTest`, `StateForTest`, `delivery.py`, `StatusAgainstJournalTest`, `doctor.py`, `.advance_review`, `triage.py`, `AgentSyncTest`, `CommandTest`, `triage_stub`, `UnevidencedCriterionTest`, `RepositoryTest`, `RedRuleTest`, `ModesMustAgreeTest`, `gates.py`, `SupersededRunTest`, `FailedCheckStillAsksTest`, `BookkeepingAfterReceiptTest`, `DeliveryChecksTest`, `MergeTest`, `ReportTest`, `solution_evidence`, `jev.py`, `DiscardTest`?**
-  _High betweenness centrality (0.268) - this node is a cross-community bridge._
-- **Why does `Outcome` connect `Outcome` to `cli.py`, `app.module.ts`, `boundary.ts`?**
-  _High betweenness centrality (0.178) - this node is a cross-community bridge._
-- **Why does `require()` connect `cli.py` to `delivery.py`, `Repository`, `paths.py`, `HarnessError`, `doctor.py`, `triage.py`, `agents.py`, `gates.py`, `jev.py`, `Outcome`, `handoff.py`?**
-  _High betweenness centrality (0.154) - this node is a cross-community bridge._
-- **Are the 65 inferred relationships involving `HarnessError` (e.g. with `list_tickets()` and `main()`) actually correct?**
-  _`HarnessError` has 65 INFERRED edges - model-reasoned connections that need verification._
-- **Are the 13 inferred relationships involving `Repository` (e.g. with `HarnessError` and `AgentSyncTest`) actually correct?**
-  _`Repository` has 13 INFERRED edges - model-reasoned connections that need verification._
+- **Why does `HarnessError` connect `HarnessError` to `.evaluate`, `Repository`, `CommandTest`, `TemplatePositionTest`, `RecordTest`, `cli.py`, `DeliveryWalk`, `.graph`, `DoctorTest`, `NonCodeSolutionTest`, `.triage`, `CoverageTest`, `stub`, `DeclaredSliceTest`, `StateForTest`, `StatusAgainstJournalTest`, `doctor.py`, `.advance_review`, `triage.py`, `AgentSyncTest`, `test_triage.py`, `.reach_tdd`, `RepositoryTest`, `test_enforcement.py`, `ModesMustAgreeTest`, `jev.py`, `require`, `delivery.py`, `ThreeCriteriaTest`, `.rendered`, `SlicePositionTest`, `MergeTest`, `ask_batch`, `ReportTest`, `GateTest`, `.evidence`, `solution_evidence`, `risk.py`, `PartialAnswerTest`, `DiscardTest`, `advance`?**
+  _High betweenness centrality (0.241) - this node is a cross-community bridge._
+- **Why does `Outcome` connect `Outcome` to `require`, `providers/src/index.ts`, `app.module.ts`, `boundary.ts`?**
+  _High betweenness centrality (0.179) - this node is a cross-community bridge._
+- **Why does `require()` connect `require` to `Repository`, `ticket_file`, `cli.py`, `Outcome`, `handoff.py`, `coverage.py`, `HarnessError`, `doctor.py`, `triage.py`, `paths.py`, `run`, `agents.py`, `jev.py`, `delivery.py`, `ask_batch`, `secrets.py`, `risk.py`, `checks.py`, `skills.py`, `advance`, `routing.py`?**
+  _High betweenness centrality (0.163) - this node is a cross-community bridge._
+- **Are the 73 inferred relationships involving `HarnessError` (e.g. with `list_tickets()` and `main()`) actually correct?**
+  _`HarnessError` has 73 INFERRED edges - model-reasoned connections that need verification._
+- **Are the 16 inferred relationships involving `Repository` (e.g. with `HarnessError` and `AgentSyncTest`) actually correct?**
+  _`Repository` has 16 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 2 inferred relationships involving `solution_evidence()` (e.g. with `Outcome` and `Outcome`) actually correct?**
   _`solution_evidence()` has 2 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `graphify-mcp`, `repowise`, `$schema` to the rest of the system?**
-  _940 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _948 weakly-connected nodes found - possible documentation gaps or missing edges._
