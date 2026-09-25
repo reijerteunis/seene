@@ -96,20 +96,24 @@ says which slice caused it, so every slice of the plan carries it and an escaped
 the same way; findings are the one per-slice measure. That is written into `route_rule` so nobody
 reads a per-slice rate as a per-slice cause.
 
-Four deviations from the solution record, all disclosed here because `slice_files` fails on three
-files the plan did not name and a reader auditing that check should find every one of them. The tests were named there as `pytest` commands and this
-repository runs `unittest`, which is what the checks record. The gate tests for the finding file
-went into `test_calibration.py` rather than `test_stage_gates.py`, because that is the file slice 1
-declared. And `harness/tests/test_context_budget.py` changed although no slice named it: SEEN-108
+Six deviations from the solution record. Four of them are files the plan did not name and
+`slice_files` fails on, so a reader auditing that check finds every one here: `harness/doctor.py`,
+`harness/kpi.py`, `harness/tests/test_context_budget.py` and `harness/tests/test_triage.py`. The
+other two are about how the tests were run rather than which files changed. The two about running them: the tests were named in the plan as
+`pytest` commands and this repository runs `unittest`, which is what every check records; and the
+gate tests for the finding file went into `test_calibration.py` rather than `test_stage_gates.py`,
+because that is the file slice 1 declared.
+
+The four files, in the order the reviews forced them. `harness/tests/test_context_budget.py`: SEEN-108
 left a guard there asserting `report --calibration` is not a command the parser accepts, with a note
 saying the ticket that lands it may lose the tense. This is that ticket, so the sentence in
-`render_cost` is in the present now and the guard holds the other direction. `harness/tests/test_triage.py`
-is the third: the two helpers that flip the go-live switch flip both of its lines from attempt 3, and
-two fixtures that return a ticket from review declare `--no-findings` from attempt 4. `harness/doctor.py`
-is the fourth: F3 of the second review asked for the go-live decision to be checked, and `doctor` is
-where the check belongs, because CI runs it and a refusal in front of every triage would make spot
-depth untestable. `harness/kpi.py` joins them at attempt 6, for F2 of the fifth review: two committed
-reports must not state different findings for one ticket.
+`render_cost` is in the present now and the guard holds the other direction. `harness/doctor.py`
+came with attempt 3, for F3 of the second review: the go-live decision had to be checked somewhere,
+and `doctor` is where it belongs, because CI runs it and a refusal in front of every triage would
+make spot depth untestable. `harness/tests/test_triage.py` came with attempt 3 and attempt 4: its
+two helpers that flip the go-live switch flip both lines now, and two fixtures that return a ticket
+from review declare `--no-findings`. `harness/kpi.py` came with attempt 6, for F2 of the fifth
+review: two committed reports must not state different findings for one ticket.
 
 ### What the review found
 
@@ -258,3 +262,33 @@ triage record carried no files, and every `EscapeTest` fixture ran through that 
 through the real record shape; the guard is gone and the fixtures carry the shape. And the Outcome
 now names all four files no slice planned, `harness/kpi.py` included, rather than three with one
 described only in substance.
+
+### What the sixth review found
+
+It settled both questions it was asked. The path-comparison class is closed on both sides, checked by
+running fourteen path shapes through both comparisons rather than by reading them: a plain path, a
+hunk, a line and column, a dot directory, a leading `./` on either side, backslashes, surrounding
+whitespace, an absolute path, an unreadable tail, a drive letter, a bare directory, a double slash, a
+`./` segment mid-path and a case difference. On the triage side every one is either an escape or
+placed nowhere; on the route side every one is either charged to a slice or held as uncharged. The
+partition is exhaustive by construction rather than by patching, because `unchargeable` is the
+complement of the union of every slice's planned files. And the amendment to `route_rule` is sound
+and said the same way in the code, the rule, the workflow and the committed report, verified against
+a window that still counts nothing.
+
+It returned the ticket on a regression attempt 6 had introduced itself. Reading `kpi.findings`
+through the calibration made every finding a returning round recorded count as waived, because a
+return carries `status: open` and only a passing advance carries `resolved`; on this ticket's own
+journal that was fixed 0 and waived 8 where all eight were fixed, and before the change `waived` was
+structurally unreachable, so a dead figure had become a systematically wrong one. The answer is the
+review gate's own rule: it refuses an advance carrying an unresolved finding, so a finding a later
+advance followed was dealt with whoever wrote it down, and one on a return that nothing has advanced
+past is still open and says so.
+
+Three lows with it. `verdict_routes` tested a group by its rate rather than by its membership, so it
+printed that no slice was routed below the strongest tier when the group held slices carrying no
+points; it is the one merged comparison in the change that landed on the safe side, and it is two
+answers now. `went_live_problem` swallowed a damaged journal into an empty record list, so a broken
+chain and a record nobody wrote gave the same message and sent a reader to fix the wrong thing. And
+the counts written around the four files were stale, which is what this section's own earlier
+paragraph now states correctly.

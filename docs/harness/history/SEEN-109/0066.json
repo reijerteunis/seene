@@ -1,0 +1,59 @@
+{
+  "sequence": 66,
+  "ticket": "SEEN-109",
+  "timestamp": "2026-09-25T22:37:35.873786+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 6,
+  "actor": "claude:reviewer",
+  "session": "343d37550220",
+  "head": "4f2a6d82678f19b9d6d43e53cf8069d633ce2713",
+  "prev_hash": "7e582733fe2bcb53fde79689460112be22f25d049354e4312a13ee6d32cd6df6",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 7,
+    "reason": "The review at note 65 settles the class question, on both sides and by running fourteen path shapes through both comparisons, and settles the route_rule amendment as sound and said the same way in all four places. It returns the ticket on F1, a regression attempt 6 introduced itself: reading kpi.findings through calibration made every finding a returning round recorded count as waived, because a return carries status open and only a passing advance carries resolved, and on this ticket's own journal that is fixed 0 waived 8 where all eight were fixed. Taken by reading the gate's own rule: a ticket that advanced out of review has no unresolved finding, so a finding on a return that a later advance followed was fixed. F2, F3 and F4 with it.",
+    "findings": [
+      {
+        "id": "F1",
+        "severity": "medium",
+        "file": "harness/kpi.py:455",
+        "claim": "Routing kpi.findings through calibration.latest_findings makes every finding a returning round recorded count as waived, because a return carries status open and only a passing advance carries resolved",
+        "failure_scenario": "Run against this ticket's own journal the function reports fixed 0, waived 8, while all eight findings were fixed, and the weekly report row sends the founder looking for waiver decisions nobody took.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F2",
+        "severity": "low",
+        "file": "harness/calibration.py:541",
+        "claim": "verdict_routes tests a group by its rate rather than its membership, so it prints that no slice was downgraded when the group holds slices carrying zero points",
+        "failure_scenario": "A downgraded slice with zero points and three rework charged prints that the group is empty while the table above it shows the slice.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F3",
+        "severity": "low",
+        "file": "docs/tickets/SEEN-109-calibrate-the-review-triage-and-the-routes-on.md:99",
+        "claim": "The Outcome names all four files but the counts and ordinals written around them are stale",
+        "failure_scenario": "A reader auditing the failed check reads three files in the Outcome and counts four in the triage record, and cannot tell whether one is undisclosed drift or a stale sentence.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F4",
+        "severity": "low",
+        "file": "harness/calibration.py:622",
+        "claim": "went_live_problem swallows a damaged journal into an empty record list, so it cannot tell one from a record that was never written",
+        "failure_scenario": "A go-live naming a record in a journal whose chain is broken reports that no such record exists, and the founder goes looking for a record that is sitting there.",
+        "status": "open",
+        "resolution": ""
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}

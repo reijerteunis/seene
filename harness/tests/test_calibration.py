@@ -989,6 +989,67 @@ class FifthReviewTest(ProjectTest):
         found = calibration.escapes(records)
         self.assertEqual(found['escapes'], [])
         self.assertEqual([entry['id'] for entry in found['unattributable']], ['F1'])
+class SixthReviewTest(ProjectTest):
+    """The findings of the sixth review, at note 65."""
+
+    def setUp(self):
+        super().setUp()
+        self.rules = thresholds.load(self.root)
+
+    def returned_then_fixed(self):
+        """A round that returned a ticket on an open finding, and a round that passed."""
+        open_finding = dict(finding('F1', 'blocking', 'harness/a.py:2'),
+                            status='open', resolution='')
+        return journal(returned_findings=[open_finding])
+
+    def test_a_finding_a_later_round_advanced_past_counts_as_fixed(self):
+        """F1: the review gate refuses an advance carrying an unresolved finding,
+
+        so a ticket that advanced has no open finding left, whoever recorded it.
+        """
+        from harness import kpi
+        counted = kpi.findings(self.returned_then_fixed())
+        self.assertEqual(counted['by_severity'], {'blocking': 1})
+        self.assertEqual((counted['fixed'], counted['waived']), (1, 0))
+
+    def test_a_finding_no_round_has_advanced_past_is_still_open(self):
+        from harness import kpi
+        records = self.returned_then_fixed()
+        # Drop the passing advance and the receipt: the ticket is still at review.
+        records = [entry for entry in records
+                   if not (entry['kind'] == 'advance'
+                           and entry['data'].get('from_stage') == 'review')
+                   and entry['kind'] != 'receipt']
+        counted = kpi.findings(records)
+        self.assertEqual((counted['fixed'], counted['waived']), (0, 1))
+
+    def test_a_downgraded_group_holding_slices_is_not_called_empty(self):
+        """F2: membership, not the rate, is what says a group is empty."""
+        rows = [dict(group='downgraded', points=0, rework=3, unchargeable=0, ticket='SEEN-D01'),
+                dict(group='strongest', points=1, rework=0, unchargeable=0, ticket='SEEN-D02')]
+        verdict = calibration.verdict_routes(rows, [f'SEEN-D{n:02d}' for n in range(10)],
+                                             self.rules)
+        self.assertEqual(verdict['state'], 'stay_shadow')
+        self.assertNotIn('no slice was routed below', verdict['reason'])
+        self.assertIn('no points', verdict['reason'])
+
+    def test_an_empty_downgraded_group_is_still_called_empty(self):
+        rows = [dict(group='strongest', points=1, rework=0, unchargeable=0, ticket='SEEN-D02')]
+        verdict = calibration.verdict_routes(rows, [f'SEEN-D{n:02d}' for n in range(10)],
+                                             self.rules)
+        self.assertIn('no slice was routed below', verdict['reason'])
+
+    def test_a_damaged_journal_is_not_reported_as_a_missing_record(self):
+        """F4: two faults, two messages, so a reader fixes the right one."""
+        folder = plant(self.root, 'SEEN-D10', 1)
+        (folder / '.DS_Store').write_text('x')
+        rules = dict(self.rules,
+                     calibration=dict(self.rules['calibration'],
+                                      went_live=dict(ticket='SEEN-D10', record=4,
+                                                     on='2026-11-01')))
+        problem = calibration.went_live_problem(self.root, rules)
+        self.assertIn('could not be read', problem)
+        self.assertNotIn('no such record exists', problem)
 
 if __name__ == '__main__':
     unittest.main()

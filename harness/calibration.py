@@ -305,6 +305,20 @@ def finding_key(finding, record, position):
             finding.get('claim'), path_of(finding.get('file')))
 
 
+def latest_finding_records(records):
+    """Every deduplicated finding, with the record that last carried it.
+
+    The record matters because a finding on a return is open by definition and
+    one on an advance is resolved by the gate's own rule, so where it was
+    written is what says whether it was ever fixed. F1 of the sixth review.
+    """
+    latest = {}
+    for record in records:
+        for position, finding in enumerate(_review_findings(record)):
+            latest[finding_key(finding, record, position)] = (record, finding)
+    return list(latest.values())
+
+
 def latest_findings(records):
     """Every review finding, deduplicated, most recent record winning.
 
@@ -312,11 +326,7 @@ def latest_findings(records):
     one finding at the severity it ended at. `escapes` takes the earliest
     instead, for the reason written there.
     """
-    latest = {}
-    for record in records:
-        for position, finding in enumerate(_review_findings(record)):
-            latest[finding_key(finding, record, position)] = finding
-    return list(latest.values())
+    return [finding for _, finding in latest_finding_records(records)]
 
 
 def _covers(path, files):
@@ -527,6 +537,24 @@ def verdict_routes(rows, tickets, rules):
                     rate=round(rework / points, 4) if points else None)
 
     downgraded, strongest = group('downgraded'), group('strongest')
+
+    def missing(name, found, empty):
+        """Why a group cannot be compared: no slices at all, or no points.
+
+        Two answers rather than one, because a rate of None was printing that
+        nobody was routed below the strongest tier while the table above showed
+        the slices. Both verdicts are stay-shadow, so this is the one merged
+        comparison that landed safely, and it is still two answers. F2 of the
+        sixth review.
+        """
+        if found['slices'] == 0:
+            return f'In the last {size} counted tickets {empty}'
+        if found['rate'] is None:
+            return (f'In the last {size} counted tickets the {name} group holds '
+                    f'{found["slices"]} slice(s) carrying no points, so a rate per point cannot '
+                    'be taken over it')
+        return None
+
     unplaced = sorted({row['ticket'] for row in rows if row.get('unchargeable')})
     if unplaced:
         # The same answer the triage verdict gives evidence nobody can place: a
@@ -538,17 +566,17 @@ def verdict_routes(rows, tickets, rules):
                            'slice, because no slice named the file it is in, so the comparison '
                            'saw less than the window contains and a rate taken over it is not '
                            'evidence')
-    if downgraded['rate'] is None:
-        return dict(state='stay_shadow', rule=rule, window=tickets,
-                    downgraded=downgraded, strongest=strongest,
-                    reason=f'In the last {size} counted tickets no slice was routed below the '
-                           'strongest tier, so there is nothing to compare and a rate of zero '
-                           'against zero would read as a pass')
-    if strongest['rate'] is None:
-        return dict(state='stay_shadow', rule=rule, window=tickets,
-                    downgraded=downgraded, strongest=strongest,
-                    reason=f'In the last {size} counted tickets every slice was routed below the '
-                           'strongest tier, so there is nothing to compare it with')
+    groups = (('downgraded', downgraded,
+               'no slice was routed below the strongest tier, so there is nothing to compare '
+               'and a rate of zero against zero would read as a pass'),
+              ('strongest', strongest,
+               'every slice was routed below the strongest tier, so there is nothing to '
+               'compare it with'))
+    for name, found, empty in groups:
+        reason = missing(name, found, empty)
+        if reason:
+            return dict(state='stay_shadow', rule=rule, window=tickets,
+                        downgraded=downgraded, strongest=strongest, reason=reason)
     if downgraded['rate'] <= strongest['rate']:
         return dict(state='go_live', rule=rule, window=tickets,
                     downgraded=downgraded, strongest=strongest,
@@ -617,8 +645,10 @@ def went_live_problem(root, rules):
     folder = root / HISTORY / ticket
     try:
         records = journal.read(folder) if folder.is_dir() else []
-    except HarnessError:
-        records = []
+    except HarnessError as error:
+        return (f'[calibration] went_live names record {sequence} of {ticket} as the go-live '
+                f'decision and that journal could not be read: {error}. The decision may be '
+                'sitting there; the journal is what needs repairing')
     if not any(record['sequence'] == sequence for record in records):
         return (f'[calibration] went_live names record {sequence} of {ticket} as the go-live '
                 'decision and no such record exists, so the switch is flipped on a reference to '

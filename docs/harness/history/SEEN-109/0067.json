@@ -1,0 +1,31 @@
+{
+  "sequence": 67,
+  "ticket": "SEEN-109",
+  "timestamp": "2026-09-25T22:38:18.858449+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 7,
+  "actor": "claude:implementer",
+  "session": "343d37550220",
+  "head": "4f2a6d82678f19b9d6d43e53cf8069d633ce2713",
+  "prev_hash": "f119ffd5d85e1b9eff59e8295be7b6dd64679820c9308b6902e37d5c8fb9a794",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_calibration"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "model": "claude-opus-5",
+    "model_declared": "opus",
+    "duration_ms": 12742,
+    "output": "................................................................FFF.......................\n======================================================================\nFAIL: test_a_damaged_journal_is_not_reported_as_a_missing_record (harness.tests.test_calibration.SixthReviewTest.test_a_damaged_journal_is_not_reported_as_a_missing_record)\nF4: two faults, two messages, so a reader fixes the right one.\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_calibration.py\", line 1051, in test_a_damaged_journal_is_not_reported_as_a_missing_record\n    self.assertIn('could not be read', problem)\n    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 'could not be read' not found in '[calibration] went_live names record 4 of SEEN-D10 as the go-live decision and no such record exists, so the switch is flipped on a reference to nothing'\n\n======================================================================\nFAIL: test_a_downgraded_group_holding_slices_is_not_called_empty (harness.tests.test_calibration.SixthReviewTest.test_a_downgraded_group_holding_slices_is_not_called_empty)\nF2: membership, not the rate, is what says a group is empty.\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_calibration.py\", line 1033, in test_a_downgraded_group_holding_slices_is_not_called_empty\n    self.assertNotIn('no slice was routed below', verdict['reason'])\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 'no slice was routed below' unexpectedly found in 'In the last 10 counted tickets no slice was routed below the strongest tier, so there is nothing to compare and a rate of zero against zero would read as a pass'\n\n======================================================================\nFAIL: test_a_finding_a_later_round_advanced_past_counts_as_fixed (harness.tests.test_calibration.SixthReviewTest.test_a_finding_a_later_round_advanced_past_counts_as_fixed)\nF1: the review gate refuses an advance carrying an unresolved finding,\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_calibration.py\", line 1013, in test_a_finding_a_later_round_advanced_past_counts_as_fixed\n    self.assertEqual((counted['fixed'], counted['waived']), (1, 0))\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: Tuples differ: (0, 1) != (1, 0)\n\nFirst differing element 0:\n0\n1\n\n- (0, 1)\n+ (1, 0)\n\n----------------------------------------------------------------------\nRan 90 tests in 12.649s\n\nFAILED (failures=3)\n",
+    "output_sha256": "1f3c399a79ffac486fee3d280cb70caa8103a0556da5f0ced5ffd6b68c49f546",
+    "output_truncated": false,
+    "before": "6502abfd41f9a1cc787e97befcd11ce18355a8ff532a7879c3ba6e0ae99f9287",
+    "after": "6502abfd41f9a1cc787e97befcd11ce18355a8ff532a7879c3ba6e0ae99f9287"
+  }
+}
