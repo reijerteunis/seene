@@ -27,13 +27,13 @@ status: review
 
 ## Description
 
-Every slice runs on the session's model at the session's effort today, whatever the slice is. After the solution record is accepted, harness route <ticket> decides per slice which model and which effort implement it. Rules first, in a [routing] section of harness/thresholds.toml: a slice that changes an agent action, touches billing or the policy gate, money arithmetic in packages/core (detectors, matching, fee expectations), a migration or an RLS policy, or credentials goes to the strongest model at high effort, and Jev is not asked. Every other slice is a Jev choice: implementation_model over haiku, sonnet and opus and implementation_effort over low, medium and high, with the slice (points, files, the RED), the approach, the risk score from clarify, repowise's change-risk percentile, whether the pattern already exists in the repository (the codegraph and repowise answers on record), new dependencies, the marketplaces touched and the ticket's returns so far as state, and the criteria per option written into the question. The route lands in the solution record as execution (slice, model, effort, source rule or jev, probability) and in the handoff pack; the implementer subagent is spawned with it (Claude Code: the per-invocation model and the agent's effort; Codex: model and model_reasoning_effort in the agent TOML harness sync writes for that slice), and the tdd gate refuses a check recorded under a model other than the route's, reading the model from the session log the cost KPI already reads. The reviewer's model is a rule too: the strongest model at full depth, one tier down at spot depth. The decision that matters: the route is chosen where the information is, at solution with the slice plan and the risk answers on record, and never inside the session that would benefit from a stronger model.
+Every slice runs on the session's model at the session's effort today, whatever the slice is. After the solution record is accepted, harness route <ticket> decides per slice which model and which effort implement it. Rules first, in a [routing] section of harness/thresholds.toml: a slice that changes an agent action, touches billing or the policy gate, money arithmetic in packages/core (detectors, matching, fee expectations), a migration or an RLS policy, or credentials goes to the strongest model at high effort, and Jev is not asked. Every other slice is a Jev choice: implementation_model over haiku, sonnet and opus and implementation_effort over low, medium and high, with the slice (points, files, the RED), the approach, the risk score from clarify, repowise's change-risk percentile, whether the pattern already exists in the repository (the codegraph and repowise answers on record), new dependencies, the marketplaces touched and the ticket's returns so far as state, and the criteria per option written into the question. The route lands in a record of its own naming the accepted solution record, and in the handoff pack; the implementer subagent is spawned on the routed model from the spawn instruction that record carries, and the tdd gate refuses a check recorded under a model other than the route's, reading the model the subagent declares and the session log otherwise. **The routed effort is decided, recorded, carried in the pack and written to kpi.json, and nothing applies it.** Applying it needs a per-slice agent file, and a generated file whose content depends on which slice is in hand was wrong on a detached HEAD, after a replan, the moment a green landed and after the receipt, which is what stopped this ticket merging; the effort is therefore routed and measured here and applied by a later ticket that can carry a mechanism for it. The route still decides both, which is why the title stands. The reviewer's model is a rule too: the strongest model at full depth, one tier down at spot depth. The decision that matters: the route is chosen where the information is, at solution with the slice plan and the risk answers on record, and never inside the session that would benefit from a stronger model.
 
 ## Acceptance criteria
 
 - [x] (as amended) harness route <ticket> writes an execution entry per slice with model, effort, source and probability into a route record naming the accepted solution record it routes, the handoff pack carries the entry for the slice in hand, and a route is read only for the plan it routed
 - [x] A slice matching a routing rule (agent action, billing or policy gate, money arithmetic in packages/core, migration or RLS, credentials) is routed to the strongest model at high effort without a Jev call, proven with a fixture
-- [x] (as amended three times) The implementer subagent is spawned on the routed model in both assistants, from the spawn instruction the route record carries, with the routed effort recorded and reported rather than applied; and a check recorded under a different model is refused by the tdd gate naming both models, reading the model the subagent declares when it declares one and the session log otherwise
+- [x] (as amended) harness route <ticket> writes, per slice, the command that spawns seen-implementer on the routed model, sync generates that agent's copies for Claude Code and for Codex, and the tdd gate refuses a check recorded under a model other than its slice's route, naming both, reading the model the subagent declares when it declares one and the session log otherwise
 - [x] kpi.json carries model, effort, output tokens and cost per slice, and harness report --sprint shows cost per point by model beside the tokens per point it already shows
 - [x] docs/harness/skill.md says the route is read from the handoff pack and never chosen inside the session, and sync regenerates both copies
 
@@ -227,6 +227,20 @@ and this ticket does not improve on.
   receipt, and rebuilding it to satisfy a criterion is not satisfying it. The
   decision, with the three options put to him and the one he chose, is at record
   130.
+
+- **25 September 2026, Ruud: criterion 3 is rewritten, and the description says
+  what is not delivered.** The three earlier amendments each moved criterion 3
+  to match what had been built, and the sequence amended it into a sentence
+  whose own subject was a thing nothing does: the review triage scored it 0.26
+  against a bar of 0.6 and returned the ticket before a reviewer was spawned,
+  having scored it 0.85, 0.82, 0.75, 0.71, 0.80 and 0.66 on the way down. The
+  criterion now asks for what the code does, in terms a reader can check: the
+  spawn command per slice, the generated copies for both assistants, and the
+  gate's refusal naming both models. That the routed effort is applied by
+  nothing is stated in the description instead, where a reader meets it before
+  the criteria rather than inside one. The title stands because the route does
+  decide a model and an effort for every slice; it is the application of the
+  effort that is not delivered, and the description says so in those words.
 
 ## Depends on
 

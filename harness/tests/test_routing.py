@@ -1078,5 +1078,37 @@ class RuleTrippedByTheWorkTest(SlicePositionTest):
 
 
 
+class DescriptionSaysWhatIsNotAppliedTest(unittest.TestCase):
+    """The ticket says the routed effort is applied by nothing, where a reader meets it.
+
+    Criterion 3 was amended three times, each time to match what had been built,
+    and the sequence amended it into a sentence whose subject was a thing
+    nothing does: the review triage scored it 0.26 against a bar of 0.6 and
+    returned the ticket before a reviewer was spawned. The criterion asks for
+    what the code does now, and the gap goes in the description, which is read
+    before the criteria. This holds it there.
+    """
+
+    TICKET = 'SEEN-108'
+
+    def description(self):
+        path = next((PROJECT / 'docs' / 'tickets').glob(f'{self.TICKET}-*.md'))
+        text = path.read_text()
+        start = text.index('## Description')
+        return ' '.join(text[start:text.index('\n## ', start + 1)].split())
+
+    def test_it_says_nothing_applies_the_routed_effort(self):
+        self.assertRegex(self.description(), r'(?i)nothing applies it')
+
+    def test_it_does_not_still_promise_the_agent_s_effort(self):
+        """The sentence that promised Claude Code's effort and the Codex TOML."""
+        self.assertNotRegex(self.description(), r"(?i)the per-invocation model and the agent's "
+                                                r"effort")
+        self.assertNotRegex(self.description(), r'(?i)model_reasoning_effort in the agent TOML')
+
+    def test_it_says_why_the_effort_is_left_to_a_later_ticket(self):
+        self.assertRegex(self.description(), r'(?i)per-slice agent file')
+
+
 if __name__ == '__main__':  # pragma: no cover - a module must run on its own
     unittest.main()
