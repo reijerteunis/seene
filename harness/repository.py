@@ -78,7 +78,7 @@ class Repository:
         require(result.returncode == 0, result.stderr.strip() or 'git hash-object failed')
         return dict(zip(paths, result.stdout.split()))
 
-    def fingerprint(self):
+    def fingerprint(self, excluding=()):
         """A hash of the tree's content, ignoring the journal and the drafts.
 
         Content, not history: committing a file must not change the fingerprint,
@@ -86,14 +86,21 @@ class Repository:
         Every entry is a git blob id, so a file hashes the same whether it is
         committed or still sitting in the working tree.
         See docs/adr/0002-the-receipt-attests-the-tree-minus-the-journal.md.
+
+        `excluding` leaves further paths out, for a comparison that must survive
+        them changing. SEEN-107's review gate uses it for the ticket file and the
+        generated copies: the procedure writes both between the triage and the
+        advance, every time, and a check that fires on the harness's own writing
+        is a check that means nothing.
         """
+        left_out = set(excluding)
         entries = {}
         for line in self.git('ls-files', '-s').splitlines():
             details, _, path = line.partition('\t')
-            if not path.startswith(FINGERPRINT_EXCLUDED):
+            if not path.startswith(FINGERPRINT_EXCLUDED) and path not in left_out:
                 entries[path] = details.split()[1]
         changed = [path for path in sorted(set(self._pending()))
-                   if not path.startswith(FINGERPRINT_EXCLUDED)]
+                   if not path.startswith(FINGERPRINT_EXCLUDED) and path not in left_out]
         present = [path for path in changed if (self.root / path).is_file()]
         for path in changed:
             entries.pop(path, None)

@@ -56,6 +56,7 @@ class DeliveryWalk(CommandTest):
                          'codex:reviewer', '--', 'true')
         self.submit('review', dict(reviewer='codex:reviewer',
                                    independence='independent',
+                                   read=['harness/journal.py'],
                                    acceptance_evidence=['The journal holds every stage'],
                                    findings=[],
                                    checks=[9],

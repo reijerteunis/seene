@@ -284,8 +284,84 @@ def _non_code(data, thresholds):
     return {}
 
 
+def latest_triage(records, current):
+    """The most recent triage of this attempt, or nothing.
+
+    Scoped to the attempt for the reason a cited check is: a focus set computed
+    before a return describes a diff that has changed since, and a review held to
+    it would be held to the wrong list.
+    """
+    for record in reversed(records):
+        if record['kind'] == 'triage' and record['attempt'] == current['attempt']:
+            return record
+    return None
+
+
+def _require_a_current_triage(records, current):
+    """A ticket triaged once is triaged again after a return.
+
+    G4 of SEEN-107's third review: both checks below are scoped to the attempt and
+    pass silently when it has none, so every attempt after a return started with
+    the gate disarmed and a review naming any file at all was accepted. A ticket
+    that has never been triaged is unaffected, which is every journal written
+    before this ticket and every review run without the command.
+    """
+    ever = any(record['kind'] == 'triage' for record in records)
+    require(not ever or latest_triage(records, current) is not None,
+            f'This ticket was triaged in an earlier attempt and not in attempt '
+            f'{current["attempt"]}. The focus set that stands was chosen for work that has '
+            'changed since, so it holds the reviewer to the wrong list; run harness review '
+            'triage again')
+
+
+def _require_focus_was_read(data, records, current):
+    """A review reads what the triage said to read, or it reviewed something smaller.
+
+    A ticket with no triage has no focus set and nothing to check, which is every
+    journal written before SEEN-107 and every review run without the command.
+    Reading more than the focus set is never refused: the focus set is a floor.
+    """
+    triaged = latest_triage(records, current)
+    if triaged is None:
+        return
+    focus = set(triaged['data'].get('focus') or [])
+    read = {str(path) for path in data.get('read') or []}
+    missing = sorted(focus - read)
+    require(not missing,
+            f'The review does not say it read {len(missing)} file(s) that triage record '
+            f'{triaged["sequence"]} put in the focus set: {", ".join(missing)}. A review that '
+            'skipped what the triage told it to read is a review of something smaller than the '
+            'change; read them, or run the triage again if the diff has moved since')
+
+
+def _require_the_diff_has_not_moved(records, current, repository):
+    """The focus set is a floor, and a floor under a diff that has moved is none.
+
+    F4 of SEEN-107's review: nothing re-checked the diff between the triage and
+    this advance, so a file added after the triage was read by nobody and refused
+    by nothing. Compared over the code fingerprint the triage recorded, which
+    leaves out the ticket file and the generated copies, because the procedure
+    writes those in between on every ticket.
+    """
+    triaged = latest_triage(records, current)
+    recorded = (triaged or {}).get('data', {}).get('code_fingerprint')
+    if recorded is None:
+        return
+    from . import triage
+    now = repository.fingerprint(
+        excluding=triage.procedure_paths(records, repository.root))
+    require(recorded == now,
+            f'The diff has moved since triage record {triaged["sequence"]}: it read '
+            f'{recorded[:12]} and this advance reads {now[:12]}. The focus set it chose does not '
+            'describe this change any more, so a file could reach merge that nothing read. Run '
+            'harness review triage again')
+
+
 def _review(data, records, current, repository, thresholds):
     require(latest_evidence(records, 'tdd') is not None, 'Complete the TDD stage before review')
+    _require_a_current_triage(records, current)
+    _require_focus_was_read(data, records, current)
+    _require_the_diff_has_not_moved(records, current, repository)
     require(data['verdict'] == 'pass',
             f'A verdict of {data["verdict"]!r} is a return, not an advance; use harness return')
     severities = thresholds['review']['severities']
@@ -405,6 +481,51 @@ def _require_another_context(data, records):
 GATES = {'clarify': _clarify, 'solution': _solution, 'tdd': _tdd, 'review': _review}
 
 
+# The three conditions SEEN-107 keeps as rules rather than putting to a model,
+# and the prose each is recorded as. Two of them are also what makes a change one
+# a second reviewer reads, so both readers ask the one predicate below rather than
+# keeping a copy of it: a second copy of this reasoning is a second answer waiting
+# to disagree, which is what H3 of SEEN-105's third review found.
+FULL_DEPTH_RULES = {
+    'agent_action': 'This ticket changes an agent action, so the review is full depth by rule',
+    'billing': 'This change touches billing or the policy gate, so the review is full depth '
+               'by rule',
+    'migration': 'This change carries a migration, so the review is full depth by rule',
+}
+# The two that also need a second reviewer, the security checklist and the other
+# assistant. A migration is expensive to review and cheap to revert, which is not
+# the same thing as a missed defect costing money.
+REVIEWED_TWICE = ('agent_action', 'billing')
+
+
+def full_depth_rules(records, root=None, solution=None):
+    """Which of the three rules this ticket trips, in the order they are listed.
+
+    `solution` is the record in hand when there is one, because a triage run
+    against a draft should read that draft rather than the last accepted advance.
+    """
+    tripped = []
+    if (_frontmatter_declares_agent_action(records, root)
+            or (latest_evidence(records, 'clarify') or {}).get('changes_agent_action')):
+        tripped.append('agent_action')
+    if _billing_decision(records):
+        tripped.append('billing')
+    planned = solution if solution is not None else (latest_evidence(records, 'solution') or {})
+    if planned.get('migrations'):
+        tripped.append('migration')
+    return tripped
+
+
+def _billing_decision(records):
+    """Whether the solution stage answered touches_billing_or_policy_gate yes."""
+    for record in reversed(records):
+        if record['kind'] == 'advance' and record['data'].get('from_stage') == 'solution':
+            return any(decision['question'] == 'touches_billing_or_policy_gate'
+                       and decision['outcome'] == 'yes'
+                       for decision in record['data'].get('decisions', []))
+    return False
+
+
 def needs_two_reviewers(records, root=None):
     """Whether this review needs a second reviewer, the checklist and another tool.
 
@@ -419,16 +540,7 @@ def needs_two_reviewers(records, root=None):
     Public, because `harness draft` has to ask the same question and a second copy
     of this reasoning is a second answer waiting to disagree: that was H3.
     """
-    if _frontmatter_declares_agent_action(records, root):
-        return True
-    if (latest_evidence(records, 'clarify') or {}).get('changes_agent_action'):
-        return True
-    for record in reversed(records):
-        if record['kind'] == 'advance' and record['data'].get('from_stage') == 'solution':
-            return any(decision['question'] == 'touches_billing_or_policy_gate'
-                       and decision['outcome'] == 'yes'
-                       for decision in record['data'].get('decisions', []))
-    return False
+    return bool(set(full_depth_rules(records, root)) & set(REVIEWED_TWICE))
 
 
 def _frontmatter_declares_agent_action(records, root):

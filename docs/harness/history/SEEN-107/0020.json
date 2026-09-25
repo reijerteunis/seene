@@ -1,0 +1,19 @@
+{
+  "sequence": 20,
+  "ticket": "SEEN-107",
+  "timestamp": "2026-09-24T19:13:33.637619+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "253bf8e84e82",
+  "head": "c5c352913cee8bf7d9410b306c2b7f4d52654bcc",
+  "prev_hash": "895c7a56650fcbd5c2eec073aa8e66e1bd8ede61a8f185091c0bc69552e50eca",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 2,
+    "reason": "The triage run on this ticket at record 19 flagged the four files sync generates (.claude/skills/, .agents/skills/, .claude/agents/, .codex/agents/) as changed but named by no slice, though the solution record names their sources and doctor refuses a copy that does not match what its source would generate. A generated copy has no review surface of its own, so naming the source is naming the copy: this is the mistake the ticket file already taught, one layer out, and left in place it forces full depth and skips the Jev pass on every harness ticket that runs sync, which is most of them and would leave SEEN-109 nothing to calibrate. The other nine paths it flagged are a true positive and stay: adding a required template field really did change six test fixtures the solution record never named."
+  }
+}

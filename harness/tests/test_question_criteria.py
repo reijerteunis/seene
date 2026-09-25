@@ -40,9 +40,28 @@ class ClarifiedCriteriaTest(unittest.TestCase):
         self.assertEqual(rules['jev']['thresholds']['clarified'], 0.8)
 
     def test_the_other_six_questions_are_still_there(self):
-        self.assertEqual(sorted(jev.QUESTIONS),
-                         ['clarified', 'is_destructive', 'must_fix', 'risk', 'severity',
-                          'solution_complete', 'touches_billing_or_policy_gate'])
+        """SEEN-100's guard, which is that none of the seven is lost.
+
+        It was written as an equality, which also refused a ticket adding one.
+        SEEN-107 adds four, so what the guard means is said instead: these seven
+        are still asked, and a ticket that drops one still fails here.
+        """
+        for name in ('clarified', 'is_destructive', 'must_fix', 'risk', 'severity',
+                     'solution_complete', 'touches_billing_or_policy_gate'):
+            self.assertIn(name, jev.QUESTIONS)
+
+    def test_the_review_triage_questions_are_asked_outside_a_stage(self):
+        """SEEN-107's four, which no stage advance may start asking.
+
+        questions_for('review') is what the review advance asks, and it is
+        severity and must_fix, once per finding after a reviewer has read. The
+        triage asks its own four by name.
+        """
+        for name in ('criterion_evidenced', 'diff_matches_solution', 'reviewer_must_read',
+                     'review_depth'):
+            self.assertIn(name, jev.QUESTIONS)
+            self.assertIsNone(jev.QUESTIONS[name]['stage'])
+        self.assertEqual(sorted(jev.questions_for('review')), ['must_fix', 'severity'])
 
     def test_solution_complete_keeps_the_wording_SEEN_006_gave_it(self):
         """The other calibrated question, unchanged by this one."""

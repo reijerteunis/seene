@@ -1,0 +1,86 @@
+{
+  "sequence": 3,
+  "ticket": "SEEN-107",
+  "timestamp": "2026-09-24T18:10:24.680090+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "253bf8e84e82",
+  "head": "e189cb86f4e35238e76ecc2341913387a5b24b71",
+  "prev_hash": "2016f441ac743e1b4b2adcaf2093fe188f008a2302be6a03c41b641b1c2af8c1",
+  "data": {
+    "from_stage": "clarify",
+    "to_stage": "solution",
+    "evidence": {
+      "scope": "Turn the review stage into three passes, cheapest first, behind one new command `harness review triage <ticket>`: a deterministic pass over the checks and the journal, one Jev request over the journal and the diff excerpts, and a focus set handed to the reviewer subagent; the edge is that nothing here removes reading from the reviewer until shadow mode is switched off, which is SEEN-109's call and not this ticket's.",
+      "acceptance": [
+        "`python3 harness/run.py review triage <ticket>` at the review stage runs pass one, asks Jev once, and appends a `triage` record holding the deterministic results, criterion_evidenced per acceptance criterion, diff_matches_solution, reviewer_must_read per changed file, review_depth and the focus set, each Jev answer carrying its probabilities and threshold: proven by a test asserting the record's shape against a stub transport.",
+        "A `criterion_evidenced` answer whose yes probability is below its threshold makes triage append a `return` record from review to tdd naming the criterion and refuse, so no reviewer is spawned: proven by a fixture whose stub answers one criterion low and whose journal then stands at tdd.",
+        "A ticket whose frontmatter or clarify record says changes_agent_action, whose solution decision answered touches_billing_or_policy_gate yes, or whose solution record lists a migration, gets review_depth full with `jev.TRANSPORT` never called: proven by three fixtures, one per rule, each asserting the stub recorded no request and the record names the rule.",
+        "The triage record carries the reviewer's task text naming exactly the focus set, and `advance` out of review refuses a review record whose `read` list does not cover the focus set of the latest triage record, naming what was not read: proven by a test that advances with a short read list and one that advances with a complete one.",
+        "With `[review] triage_shadow = true` the focus set is every changed file and the record carries `would_exclude` and `excluded_share`; kpi.json carries `review_triage` with the reviewer's output tokens and that excluded share: proven by a test over a journal holding a triage record and a delivered receipt."
+      ],
+      "decisions": [
+        "The triage record is its own journal kind rather than a note, on the same reasoning SEEN-104 used for `handoff`: the review gate and the KPI have to find the focus set and the excluded share without parsing prose. KINDS gains `triage`; the envelope does not change, so HARNESS_VERSION stays at 2.",
+        "The four triage questions are registered in jev.QUESTIONS with `stage=None`, the way `is_destructive` already is, so that `questions_for('review')` keeps returning severity and must_fix and the review advance does not start asking them. Triage asks them explicitly.",
+        "One Jev request has to carry the same question several times, once per criterion and once per file, which `ask_many` cannot express because it keys the payload by question name. `ask_many` becomes a thin wrapper over a new `ask_batch` taking (key, question, subject) triples, so existing call sites and their tests are unchanged and the new keys are `criterion_evidenced#1`, `reviewer_must_read#packages/core/src/x.ts` and so on.",
+        "`jev.QUESTIONS` types are `noul` for criterion_evidenced, diff_matches_solution and reviewer_must_read, and `score` for review_depth with options ('spot', 'full'): the harness already reads a score by level index, and the ticket's word `choice` is what a two-level score is here. No third type is added.",
+        "Shadow mode defaults to true in thresholds.toml, because the ticket says nothing takes effect until SEEN-109's window says it saves more than it misses. In shadow the focus set is every changed file, so criterion 4's gate check passes trivially and the record stores what would have been excluded. Turning it off is a diff a person reviews, which is why the flag is in thresholds.toml and not in code.",
+        "The reviewer's output tokens are derived from the Claude Code session log rather than declared in the review record: a declared figure would be a second reviewer_session, and a number the KPI divides on should not be typed by the session it measures. The log entries carry an isSidechain field; every one of the 8,768 entries in this project's logs on 24 September 2026 reads false, so the field exists and is populated but a subagent's entries have never been observed carrying true here. Proceeding on that reading, with the total recorded as null rather than zero when no sidechain entry falls in the window, which is the rule cost.py already applies to a machine with no logs: the first ticket that runs the reviewer as a subagent settles it, and a null in kpi.json is what says it is unsettled.",
+        "`harness review triage` is a two-word command because the criterion names it that way; `review` becomes a subparser with `triage` as its only action, so a later pass can be added without another top-level verb."
+      ],
+      "open_questions": [],
+      "changes_agent_action": false,
+      "graph_impact": [
+        "repowise why on harness/gates.py's review gate, record 2: the index was behind HEAD and answered nothing, recorded as an absence. The index was refreshed with `repowise update` afterwards, so the change-risk percentile the triage state carries is scored against a current index.",
+        "The shape of the change is settled by docs/harness/workflow.md line 76, which already describes the three passes: this ticket implements what that paragraph specifies rather than choosing a design."
+      ]
+    },
+    "decisions": [
+      {
+        "question": "clarified",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.81,
+          "no": 0.19
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.8,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "question": "risk",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "medium",
+        "probabilities": {
+          "low": 0.49,
+          "medium": 0.51,
+          "high": 0.0
+        },
+        "confidence": 0.26,
+        "score": 0.51,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

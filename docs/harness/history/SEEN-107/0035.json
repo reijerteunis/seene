@@ -1,0 +1,16 @@
+{
+  "sequence": 35,
+  "ticket": "SEEN-107",
+  "timestamp": "2026-09-24T19:44:34.810743+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "review",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "session": "253bf8e84e82",
+  "head": "36b382acda6e06c0aff2da8d68f8b78fe877627c",
+  "prev_hash": "61dcb4b4fbfd4183202a48a08e591b62eb4389d7e420854dabdf7bab8913bde6",
+  "data": {
+    "text": "# What the subagent's session digest turned out to be\n\nSEEN-105 designed the `subagent` disclosure around a reviewer_session the\nspawning session records, and its own journal at record 7 observed that a Claude\nCode subagent inherits its parent's session id. This ticket measured it directly.\nThe reviewer agent was asked to run\n`python3 -c \"from harness import sessions; print(sessions.current())\"` in its own\ncontext and returned `253bf8e84e82`, which is the digest on every record this\nsession has written on SEEN-107.\n\nSo on Claude Code the harness cannot tell a review that ran in a subagent's own\ncontext from one the parent wrote, because there is nothing in the environment\nthat differs. `_require_another_context` would refuse the honest value, and the\nonly value that would pass is one nobody measured, which is what the skill\nalready says it cannot detect.\n\nThis review is therefore disclosed as `self-review`, which is what the harness's\nown vocabulary means by it: the session that wrote the code is the session the\nreview came from, by the only identifier either has. It understates what\nhappened. The review did run in a context of its own, with its own tool budget,\nthat had not read this code; it returned five findings, three of which became\ncode. The word that describes that is `subagent`, and it is unavailable on this\nassistant for want of a distinguishable identifier.\n\nRecorded rather than worked around. SEEN-105's fourth criterion rests on a\ndistinction this platform does not currently expose, and the ticket that wants it\nback needs either a Codex reviewer, where the contexts are separate processes, or\nan identifier the spawning session mints and passes into the task, which would be\na declaration and not a measurement.\n"
+  }
+}

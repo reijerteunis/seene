@@ -80,6 +80,42 @@ QUESTIONS = {
         ask='Would this harness operation destroy or rewrite recorded evidence?',
         criteria={'true': 'It deletes, rewrites or renumbers a journal, a receipt or the graph',
                   'false': 'It only appends or reads'}),
+    # The review triage, from SEEN-107. All four have stage=None, the way
+    # is_destructive does, because they are asked by their own command rather
+    # than by the review stage's advance: questions_for('review') stays severity
+    # and must_fix, which are asked once per finding after a reviewer has read.
+    'criterion_evidenced': dict(
+        type='noul', options=NOUL, stage=None,
+        ask='Does the recorded evidence satisfy this acceptance criterion?',
+        criteria={'true': 'A check record, a test name or a diff hunk in the state satisfies '
+                          'what the criterion asks for',
+                  'false': 'Nothing in the state satisfies it, or what is cited proves something '
+                           'adjacent to it rather than it'}),
+    'diff_matches_solution': dict(
+        type='noul', options=NOUL, stage=None,
+        ask='Are the files changed and the mechanism used the ones the solution record named?',
+        criteria={'true': 'The change lands in the files the record planned and works the way it '
+                          'said; a file it did not name follows from the ones it did',
+                  'false': 'It lands somewhere the record never named, or reaches its result by '
+                           'a mechanism the record did not describe'}),
+    'reviewer_must_read': dict(
+        type='noul', options=NOUL, stage=None,
+        ask='Must a reviewer read this file to judge whether the change is right?',
+        criteria={'true': 'Getting this file wrong is something the tests that ran would not '
+                          'catch: it carries logic, money, a credential, tenant isolation or '
+                          'evidence integrity, or it is large, risky, or changed without the '
+                          'solution record naming it',
+                  'false': 'It is mechanical, small and guarded: a generated copy, a rename, a '
+                           'fixture, or a test whose own failure would be the signal'}),
+    'review_depth': dict(
+        # Two levels, so the harness reads it by level index the way it reads
+        # every other score. A choice between two is what a two-level score is.
+        type='score', options=('spot', 'full'), stage=None,
+        ask='How much of this diff does the reviewer need to read?',
+        criteria=['The focus set is enough: what is outside it is mechanical and the tests '
+                  'that ran guard it',
+                  'The whole diff: the change is broad, or risky, or does not match what the '
+                  'solution record planned']),
 }
 
 # The transport, replaced wholesale in tests. One function, one job: post JSON
@@ -142,16 +178,37 @@ def _threshold(rules, question):
     return rules['jev']['thresholds'].get(question)
 
 
-def build_questions(names):
-    """The questions map the API expects, one entry per name."""
-    asked = {}
-    for name in names:
+def triple(entry):
+    """One asked question as (key, question, subject), whichever form it came in.
+
+    A stage asks each of its questions once, so a bare name is the whole answer
+    there. The review triage asks one question once per acceptance criterion and
+    once per changed file, so it keys them itself and says what each is about.
+    """
+    if isinstance(entry, str):
+        return entry, entry, None
+    key, name, subject = (list(entry) + [None])[:3]
+    return key, name, subject
+
+
+def build_questions(asked):
+    """The questions map the API expects, one entry per key.
+
+    The key rather than the question name, because one request can carry the same
+    question several times and a map keyed by name could not. The subject is
+    appended to the instructions rather than left in the state, because a question
+    should carry what it is answered from: `criterion_evidenced#2` with the
+    criterion in front of it is answerable, and without it is not.
+    """
+    built = {}
+    for key, name, subject in (triple(entry) for entry in asked):
         question = QUESTIONS[name]
-        entry = dict(type=question['type'], instructions=question['ask'])
+        instructions = question['ask'] if not subject else f'{question["ask"]}\n\n{subject}'
+        entry = dict(type=question['type'], instructions=instructions)
         if question.get('criteria') is not None:
             entry['criteria'] = question['criteria']
-        asked[name] = entry
-    return asked
+        built[key] = entry
+    return built
 
 
 def _read_answer(name, body_answer):
@@ -175,30 +232,34 @@ def _read_answer(name, body_answer):
                 confidence=body_answer.get('confidence'), score=body_answer.get('score'))
 
 
-def _ask_api(rules, names, state, credential_value):
+def _ask_api(rules, asked, state, credential_value):
     """One request carrying every question, and the answers it returns."""
     payload = dict(state=state,
                    model=rules['jev']['model'],
-                   questions=build_questions(names))
+                   questions=build_questions(asked))
     body = _transport()(rules['jev']['endpoint'], payload, credential_value,
                         rules['jev']['timeout_seconds'])
     answers = body.get('answers') or {}
     read = {}
-    for name in names:
-        require(name in answers, f'The API answered without {name}')
-        read[name] = dict(_read_answer(name, answers[name]),
-                          source='jev', model=body.get('model'), fallback_reason=None)
+    for key, name, _ in asked:
+        # A key the reply left out is skipped rather than refused here. What to
+        # do about it is the caller's, and the two callers differ: see ask_batch.
+        if key not in answers:
+            continue
+        read[key] = dict(_read_answer(name, answers[key]),
+                         source='jev', model=body.get('model'), fallback_reason=None)
     return read
 
 
-def unavailable(name, question, reason):
+def unavailable(name, question, reason, key=None):
     """The record of a judgement that was not made.
 
     Honest rather than convenient: no probability, no outcome, and passed is
     neither true nor false. A stage may proceed past it, and SEEN-091 can count
     how often one did.
     """
-    return dict(question=name, type=question['type'], options=list(question['options']),
+    return dict(key=key or name, question=name, type=question['type'],
+                options=list(question['options']),
                 source='unavailable', model=None, outcome=None, probabilities={},
                 confidence=None, score=None, threshold=None, passed=None,
                 fallback_reason=reason)
@@ -217,21 +278,29 @@ def _answer_from_human(question, name, answer, confidence, reason):
                 confidence=float(confidence), score=None, fallback_reason=reason)
 
 
-def ask_many(root, rules, names, state, answers=None, confidence=1.0):
-    """Answer several typed questions at once, by API or by human.
+def ask_batch(root, rules, asked, state, answers=None, confidence=1.0, must_answer=True):
+    """Answer several typed questions in one request, by API or by human.
 
-    One request carries the whole stage. Each record is built field by field, so
-    an API that echoed the request back, credentials and environment included,
-    could not put any of it in the journal.
+    `asked` is a sequence of question names, or of (key, question, subject) for a
+    request that carries one question several times. Each record is built field by
+    field, so an API that echoed the request back, credentials and environment
+    included, could not put any of it in the journal.
+
+    `must_answer` is what separates the two callers. A stage gate needs a
+    judgement, so a transport that failed refuses and names the command that
+    records a human answer. The review triage does not: it records the absence and
+    reads it as an absence, because a judgement nobody made must neither send a
+    ticket back nor narrow what a reviewer reads.
     """
-    for name in names:
+    asked = [triple(entry) for entry in asked]
+    for _, name, _ in asked:
         require(name in QUESTIONS,
                 f'Unknown question: {name!r}; the harness asks {", ".join(sorted(QUESTIONS))}')
     # A question a human has already answered is not put to the model: the
     # override the harness documents would not otherwise exist, because a
     # credential being present would send every question to the API.
-    given = {name: value for name, value in (answers or {}).items() if value}
-    outstanding = [name for name in names if name not in given]
+    given = {key: value for key, value in (answers or {}).items() if value}
+    outstanding = [entry for entry in asked if entry[0] not in given]
     credential_value = credential(root)
     read, reason = {}, None
     if credential_value and outstanding:
@@ -241,15 +310,34 @@ def ask_many(root, rules, names, state, answers=None, confidence=1.0):
             raise
         except Exception as error:                      # noqa: BLE001 - any transport failure
             reason = f'{type(error).__name__}: {error}'
+        else:
+            # A well-formed reply that left a question out is not a transport
+            # failure, and treating it as one cost every answer that did come
+            # back. F1 of SEEN-107's review: on a triage that raised here, no
+            # triage record was written at all, so the review gate then had no
+            # focus set and accepted any read list. A stage gate still refuses,
+            # because it needs a judgement; the triage records the absence.
+            unanswered = [key for key, _, _ in outstanding if key not in read]
+            require(not unanswered or not must_answer,
+                    'The API answered without ' + ', '.join(unanswered))
+            if unanswered:
+                reason = ('The API answered without ' + ', '.join(unanswered)
+                          + ', so each of those is recorded as an absence')
+    elif not credential_value:
+        reason = 'No Jev credential'
     recorded = []
-    for name in names:
+    for key, name, _ in asked:
         question = QUESTIONS[name]
-        result = read.get(name)
+        result = read.get(key)
+        answered_by_hand = (answers or {}).get(key)
+        if result is None and not must_answer and not answered_by_hand:
+            recorded.append(unavailable(name, question, reason, key=key))
+            continue
         if result is None:
-            given = (answers or {}).get(name)
-            result = _answer_from_human(question, name, given, confidence, reason)
+            result = _answer_from_human(question, name, answered_by_hand, confidence, reason)
         threshold = _threshold(rules, name)
-        recorded.append(dict(question=name,
+        recorded.append(dict(key=key,
+                             question=name,
                              type=question['type'],
                              options=list(question['options']),
                              source=result['source'],
@@ -262,6 +350,11 @@ def ask_many(root, rules, names, state, answers=None, confidence=1.0):
                              passed=_passed(question, result, threshold),
                              fallback_reason=result['fallback_reason']))
     return recorded
+
+
+def ask_many(root, rules, names, state, answers=None, confidence=1.0):
+    """One question each, keyed by its own name, which is what a stage asks."""
+    return ask_batch(root, rules, list(names), state, answers, confidence)
 
 
 def ask(root, rules, name, state, answer=None, confidence=1.0):

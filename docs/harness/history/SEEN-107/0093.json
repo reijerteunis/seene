@@ -1,0 +1,29 @@
+{
+  "sequence": 93,
+  "ticket": "SEEN-107",
+  "timestamp": "2026-09-24T22:09:41.521292+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 11,
+  "actor": "claude:implementer",
+  "session": "253bf8e84e82",
+  "head": "637eb0c8ab5eab835722bb222e5f067bbf9787d2",
+  "prev_hash": "6d01e2f7446ebf0cca4c01cae6f7b29034d2b3815bf37703d7db4ac7d7775d55",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_triage.TriageFiguresTest"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "duration_ms": 80,
+    "output": ".E..E...\n======================================================================\nERROR: test_a_row_whose_two_depths_agree_reports_a_saving_that_was_available (harness.tests.test_triage.TriageFiguresTest.test_a_row_whose_two_depths_agree_reports_a_saving_that_was_available)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_triage.py\", line 705, in test_a_row_whose_two_depths_agree_reports_a_saving_that_was_available\n    self.assertEqual(figures['model_depth'], 'spot')\n                     ~~~~~~~^^^^^^^^^^^^^^^\nKeyError: 'model_depth'\n\n======================================================================\nERROR: test_the_row_says_which_depth_its_excluded_share_was_measured_at (harness.tests.test_triage.TriageFiguresTest.test_the_row_says_which_depth_its_excluded_share_was_measured_at)\nN1: the field went in at attempt 10 with no test, found by mutation.\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_triage.py\", line 695, in test_the_row_says_which_depth_its_excluded_share_was_measured_at\n    self.assertEqual(figures['model_depth'], 'spot')\n                     ~~~~~~~^^^^^^^^^^^^^^^\nKeyError: 'model_depth'\n\n----------------------------------------------------------------------\nRan 8 tests in 0.001s\n\nFAILED (errors=2)\n",
+    "output_sha256": "ee56774effba375d73f6ae2b87b7d345260b2ff05f86738498ea2a8ea6d4d1c2",
+    "output_truncated": false,
+    "before": "5a37ed2b58afb0a22044537ee0ec14f452d614b92833734563af3a215c3b8a4e",
+    "after": "5a37ed2b58afb0a22044537ee0ec14f452d614b92833734563af3a215c3b8a4e"
+  }
+}

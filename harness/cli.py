@@ -27,13 +27,13 @@ from .repository import Repository
 DEFAULT_ROOT = Path(__file__).resolve().parents[1]
 TICKET_COMMANDS = ('start', 'status', 'history', 'draft', 'note', 'check', 'advance',
                    'return', 'graph', 'decide', 'coverage', 'handoff', 'budget', 'reopen',
-                   'discard', 'verify-delivery', 'verify-merge')
+                   'discard', 'verify-delivery', 'verify-merge', 'review')
 # handoff writes a record, so it is bound to the ticket's own branch like every
 # other writing command. status --brief is not here and neither is budget: a
 # command a session runs to see where it stands must not make the journal longer
 # every time it is run.
 WRITING_COMMANDS = ('start', 'note', 'check', 'advance', 'return', 'graph', 'decide', 'coverage',
-                    'handoff', 'reopen',
+                    'handoff', 'reopen', 'review',
                     'verify-delivery')
 BRANCH = re.compile(r'^(claude|codex)/(?P<ticket>[A-Z]+-\d+)-')
 
@@ -148,6 +148,17 @@ def build_parser():
     deliver = ticket_command('verify-delivery', 'Confirm the delivery and write the receipt')
     deliver.add_argument('--file', required=True, help='Completed deliver evidence JSON')
     deliver.add_argument('--actor', required=True)
+
+    # Two words because the triage is one pass of the review rather than a stage of
+    # its own, and because a later pass should be another action here rather than
+    # another top-level verb.
+    review = commands.add_parser('review', help='The review stage, cheapest pass first')
+    actions = review.add_subparsers(dest='action', required=True)
+    triage_action = actions.add_parser(
+        'triage', help='Run the deterministic pass and one Jev request, and record what the '
+                       'reviewer must read')
+    triage_action.add_argument('ticket', help='Ticket identifier, for example SEEN-086')
+    triage_action.add_argument('--actor', required=True)
 
     report = commands.add_parser('report', help='Aggregate delivered tickets into a report')
     report.add_argument('--week', action='store_true', help='The ISO week of --date, or today')
@@ -426,30 +437,49 @@ def state_for(records, current, evidence=None, root=None, question=None):
     return state
 
 
-def _ticket_text(first, ticket_id, root):
-    """The ticket and where it came from: the path, the id, or the snapshot.
+def ticket_file(first, ticket_id, root):
+    """The ticket file as it stands now: the recorded path, or found by its id.
 
     A filename carries a title, so renaming a ticket is ordinary. SEEN-096 was
-    split three ways, its file was renamed, and every judgement after that read
-    a snapshot of the ticket before the split. The id is stable; the filename is
-    not. Which source was used is returned rather than hidden, because a
-    judgement against a snapshot of a deleted ticket is weaker evidence than one
-    against the ticket, and a journal should say which it was.
+    split three ways and its file was renamed mid-ticket, which is why SEEN-101
+    exists. The path in record 1 is the one the ticket was started with; the id is
+    what stays true. Public because the review triage needs the same answer, and a
+    second copy of this resolution is a second answer waiting to disagree: J3 of
+    SEEN-107's fifth review found it reading record 1 directly and excluding a path
+    that was no longer there.
+
+    Returns the project-relative path and how it was found, or None when nothing
+    on disk matches.
     """
-    snapshot = first['ticket_snapshot']
+    recorded = first.get('ticket_file')
     if root is None:
-        return snapshot, 'snapshot in record 1'
-    path = root / first['ticket_file']
-    if path.is_file():
-        return path.read_text(), 'recorded path'
+        return recorded, 'recorded path'
+    if recorded and (root / recorded).is_file():
+        return recorded, 'recorded path'
     matches = sorted((root / TICKETS).glob(f'{ticket_id}-*.md'))
     require(len(matches) < 2,
             f'{ticket_id} matches more than one ticket file, so the harness cannot tell which '
             'one it is judging against: '
             + ', '.join(str(match.relative_to(root)) for match in matches))
     if matches:
-        return matches[0].read_text(), 'found by id'
-    return snapshot, 'snapshot in record 1' 
+        return str(matches[0].relative_to(root)), 'found by id'
+    return recorded, None
+
+
+def _ticket_text(first, ticket_id, root):
+    """The ticket and where it came from: the path, the id, or the snapshot.
+
+    Which source was used is returned rather than hidden, because a judgement
+    against a snapshot of a deleted ticket is weaker evidence than one against the
+    ticket, and a journal should say which it was.
+    """
+    snapshot = first['ticket_snapshot']
+    if root is None:
+        return snapshot, 'snapshot in record 1'
+    path, found = ticket_file(first, ticket_id, root)
+    if found is None:
+        return snapshot, 'snapshot in record 1'
+    return (root / path).read_text(), found
 
 
 def _latest_evidence(records):
@@ -545,6 +575,16 @@ def check(repository, folder, records, args, current, rules):
             f'{evidence["exit_code"]}. A RED is a test failing for the reason the solution record '
             'predicted, not a command that passed, timed out or could not start')
     return record
+
+
+def review(repository, folder, records, args, current, rules):
+    """One pass of the review stage. Today there is one: the triage."""
+    from . import triage
+    actions = dict(triage=triage.append)
+    require(args.action in actions,
+            f'Unknown review action: {args.action!r}; the harness runs '
+            f'{", ".join(sorted(actions))}')
+    return actions[args.action](repository, folder, records, current, args, rules)
 
 
 def read_evidence(repository, relative):
@@ -766,7 +806,10 @@ def ticket_figures(repository):
             delivered_at = repository.git('log', '-1', '--format=%cI', '--', str(path)) or None
         measured = kpi.measure(records, identifier,
                                points=int(points) if points and points.isdigit() else None,
-                               delivered_at=delivered_at)
+                               delivered_at=delivered_at,
+                               # The same call delivery makes, so the report and
+                               # the delivered file cannot disagree about it.
+                               reviewer_tokens=kpi.reviewer_tokens(repository.root, records))
         if records and measured['delivered_at']:
             measured['tokens'] = cost_module.tokens_between(
                 repository.root, records[0]['timestamp'], measured['delivered_at'])
@@ -932,7 +975,7 @@ def execute(args):
         require(current['stage'] in WORKING_STAGES,
                 f'{args.ticket} is {current["stage"]}; open a follow-up ticket for further work')
         handlers = dict(note=note, check=check, advance=advance, graph=graph, decide=decide,
-                        coverage=coverage, handoff=handoff)
+                        coverage=coverage, handoff=handoff, review=review)
         handlers['return'] = go_back
         return handlers[args.command](repository, folder, records, args, current, rules)
     finally:

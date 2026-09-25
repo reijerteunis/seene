@@ -1,0 +1,43 @@
+{
+  "sequence": 18,
+  "ticket": "SEEN-107",
+  "timestamp": "2026-09-24T19:12:37.410935+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "253bf8e84e82",
+  "head": "c5c352913cee8bf7d9410b306c2b7f4d52654bcc",
+  "prev_hash": "e6160175d3a1abe8db62f06f5fc794933d615370ec57142b94d18d595a6612f7",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "behaviour": "harness review triage runs pass one at the review stage and appends a triage record with the nine deterministic checks, the per-file facts and the three rules that force full depth",
+          "failure_reason": "ImportError: cannot import name 'triage' from 'harness'",
+          "red": 6,
+          "green": 7
+        },
+        {
+          "behaviour": "One Jev request carries criterion_evidenced per criterion, diff_matches_solution, reviewer_must_read per file and review_depth, and a criterion below its threshold returns the ticket to tdd naming it",
+          "failure_reason": "AssertionError: HarnessError not raised, and KeyError on criteria_answers: no question was asked and nothing was returned",
+          "red": 9,
+          "green": 10
+        },
+        {
+          "behaviour": "The triage record carries the reviewer task naming exactly the focus set, the review gate refuses a read list that does not cover it, and kpi.measure carries review_triage with the reviewer's tokens and the excluded share",
+          "failure_reason": "KeyError: 'reviewer_task', AttributeError: module 'harness.kpi' has no attribute 'review_window', and an advance with a short read list was accepted",
+          "red": 12,
+          "green": 13
+        }
+      ],
+      "regression": 16,
+      "coverage_delta": 0.0
+    },
+    "decisions": []
+  }
+}

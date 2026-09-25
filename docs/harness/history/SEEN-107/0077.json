@@ -1,0 +1,29 @@
+{
+  "sequence": 77,
+  "ticket": "SEEN-107",
+  "timestamp": "2026-09-24T21:23:30.177064+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 9,
+  "actor": "claude:implementer",
+  "session": "253bf8e84e82",
+  "head": "39b6b48144002c87b443a3400bef21889f8d7663",
+  "prev_hash": "1de90a056c44ee35bdd0a633a88e1742b248b39863df744eed1ba5c6aff0b995",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_triage.EveryAttemptsEvidenceTest"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "duration_ms": 2546,
+    "output": ".EEF\n======================================================================\nERROR: test_each_slice_says_which_attempt_proved_it (harness.tests.test_triage.EveryAttemptsEvidenceTest.test_each_slice_says_which_attempt_proved_it)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_triage.py\", line 1476, in test_each_slice_says_which_attempt_proved_it\n    self.assertEqual([entry['attempt'] for entry in slices], [1, 2])\n                      ~~~~~^^^^^^^^^^^\nKeyError: 'attempt'\n\n======================================================================\nERROR: test_the_excerpt_is_capped_so_a_long_ticket_cannot_blow_up_the_request (harness.tests.test_triage.EveryAttemptsEvidenceTest.test_the_excerpt_is_capped_so_a_long_ticket_cannot_blow_up_the_request)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_triage.py\", line 1487, in test_the_excerpt_is_capped_so_a_long_ticket_cannot_blow_up_the_request\n    self.assertEqual(triage.MAX_SLICES_IN_STATE, 12)\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^\nAttributeError: module 'harness.triage' has no attribute 'MAX_SLICES_IN_STATE'\n\n======================================================================\nFAIL: test_the_state_carries_every_accepted_attempt_s_slices (harness.tests.test_triage.EveryAttemptsEvidenceTest.test_the_state_carries_every_accepted_attempt_s_slices)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_triage.py\", line 1465, in test_the_state_carries_every_accepted_attempt_s_slices\n    self.assertIn('The behaviour', behaviours,\n    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                  'The slice proved in attempt 1 is still what evidences its criterion')\n                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 'The behaviour' not found in ['The correction'] : The slice proved in attempt 1 is still what evidences its criterion\n\n----------------------------------------------------------------------\nRan 4 tests in 2.462s\n\nFAILED (failures=1, errors=2)\n",
+    "output_sha256": "8d924b0083f53abe2ff903e1095f2adba7bd8c72337999f2031bead3fa322fdb",
+    "output_truncated": false,
+    "before": "3462f242843b7bb6fb912eb3e8759e8298644b218abc768bf3f53403f66dbfef",
+    "after": "3462f242843b7bb6fb912eb3e8759e8298644b218abc768bf3f53403f66dbfef"
+  }
+}

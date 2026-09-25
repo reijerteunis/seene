@@ -1,0 +1,19 @@
+{
+  "sequence": 84,
+  "ticket": "SEEN-107",
+  "timestamp": "2026-09-24T21:43:48.842050+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 9,
+  "actor": "claude:implementer",
+  "session": "253bf8e84e82",
+  "head": "c7f98513dab7b4849dff580896501d4f6ab3af0e",
+  "prev_hash": "08a33e23827a53405b8b64ffb6ffa4a0d9b11e0962b78438396561a64b3e0e65",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 10,
+    "reason": "Seventh review, two defects in attempt 9's own slice and one reporting gap. M1: the slice cap keeps proved[-12:], the newest, and drops the oldest, which is the rework kept and the planned work dropped, the opposite of what its comment claims. This ticket stands at 11 proved slices; two more returns put it past the bound and the state loses attempt 1 slice 1, the only evidence for criterion 1, which is exactly the input that produced the false unevidenced answers at record 75. M2: the only guard on the cap asserts the constant equals 12, so it passes with the capping removed or reversed and no test builds enough slices to reach the bound, which is why M1 was undetectable. M3: kpi.review_triage pairs the enforced depth with an excluded share measured at the model's depth and omits model_depth, so SEEN-109 cannot attribute the one figure it divides on to a depth from within the row."
+  }
+}

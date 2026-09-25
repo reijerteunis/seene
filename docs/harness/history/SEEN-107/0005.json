@@ -1,0 +1,144 @@
+{
+  "sequence": 5,
+  "ticket": "SEEN-107",
+  "timestamp": "2026-09-24T18:13:03.193461+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "solution",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "253bf8e84e82",
+  "head": "e189cb86f4e35238e76ecc2341913387a5b24b71",
+  "prev_hash": "78a903145d0fbf3aed3affbc660c128dd214e2ed3969c538f8346926aa1cf9cd",
+  "data": {
+    "from_stage": "solution",
+    "to_stage": "tdd",
+    "evidence": {
+      "mode": "code",
+      "approach": "A new module harness/triage.py holds the three passes and nothing else, the way harness/handoff.py holds the pack.\n\nPass one is nine named checks, each answering pass, fail or unavailable with one line of detail: `coverage` (the attempt's latest coverage check exists and its delta is null or at least zero), `lint` (secrets.marketplace_hosts finds no live host in test code), `gitleaks` (`gitleaks detect --redact --no-banner --log-opts=<default>..HEAD`, unavailable when gitleaks is not on PATH, which is the same posture the pre-commit hook takes), `fingerprint` (the tree now equals the `after` fingerprint of the last tdd check of this attempt, so the tests last run are the tests for this tree), `slice_files` (every changed file is named by a slice's files or by the solution record's changes), `red_before_green` (kpi.red_before_green over the accepted tdd records), `tests_added` (at least one changed path is a test file), `acceptance_entries` (the clarify record's acceptance list has an entry for every criterion in the ticket file), and `pull_request` (a pull request exists for the branch and its body names the ticket id; unavailable when gh cannot answer, because the pull request is usually opened at deliver). A failure does not refuse: it forces full depth and is carried in the record, because most of these can be unavailable for reasons about the machine rather than about the work.\n\nPass two is one Jev request. Its state carries the ticket criteria, the solution record's approach, changes and slices, the deterministic results, and one entry per changed file holding the hunk count, lines added and removed, the package the path falls in, repowise's change-risk percentile for the change as a whole, the coverage delta and whether the solution record named the file. The questions are `criterion_evidenced#<n>` once per criterion, `diff_matches_solution`, `reviewer_must_read#<path>` once per file and `review_depth`, all in one payload, which is what ask_batch exists for.\n\nPass three is not run here. The record carries the reviewer task text naming exactly the focus set, and the session hands that to the subagent: the harness runs no model.\n\nThe focus set: at full depth it is every changed file. At spot depth it is the files whose reviewer_must_read yes probability is at or above [review] focus_probability, plus every file a failed deterministic check named, and never empty, because a review that reads nothing is not a review, so the highest-scoring file is kept when nothing clears. In shadow mode the focus set is every changed file whatever the depth, and `would_exclude` holds the files the non-shadow set would have dropped with `excluded_share` their share of the changed lines.\n\nThe triage record's data is fingerprint, files, deterministic, rules, jev, criteria, review_depth, focus, shadow, would_exclude, excluded_share and reviewer_task. The review gate gains one relation no template can express: a review record's `read` list must cover the focus set of the latest triage record of this stage and attempt, and a ticket with no triage record has no focus set and is unaffected, which is what keeps the nineteen older journals readable.\n\nThe interfaces this adds, so nothing below has to be guessed:\n\n`jev.ask_batch(root, rules, asked, state, answers=None, confidence=1.0)` where `asked` is a sequence of `(key, question, subject)`: `key` is what the payload and the returned records are keyed by, `question` is a name in jev.QUESTIONS and `subject` is the text appended to that question's `instructions` so the model can tell one criterion or one file from another. `build_questions` takes the same sequence. `ask_many(root, rules, names, state, ...)` becomes `ask_batch` with key, question and subject of `(name, name, None)`, so every existing call site and every existing test is unchanged, and each returned record gains a `key` beside its `question`.\n\nThe four questions are registered in `jev.QUESTIONS` with `stage=None`, the way `is_destructive` already is, so `questions_for('review')` keeps returning severity and must_fix and the review advance does not start asking them. `criterion_evidenced`, `diff_matches_solution` and `reviewer_must_read` are type `noul`; `review_depth` is type `score` with options `('spot', 'full')`, because the harness already reads a score by level index and a two-level score is what the ticket's word choice is here.\n\n`triage` is a new value in `paths.KINDS`, for the reason SEEN-104 gave for `handoff`: the review gate and the KPI have to find the focus set and the excluded share without parsing prose. The envelope does not change, so HARNESS_VERSION stays at 2, and `journal.append(kind='triage', stage='review', ...)` needs nothing else.\n\n`triage.run(repository, records, current, rules)` returns the record data; cli's `review triage` handler appends it, and appends a `return` from review to tdd when any criterion_evidenced answer clears neither its threshold nor the unavailable path, naming the criteria in the reason. An unavailable answer never returns a ticket: a judgement nobody made is not a judgement, which is the rule `require_decisions_pass` already applies.\n\n`[review] triage_shadow` defaults to true, because the ticket says nothing here takes effect until SEEN-109's shadow window says it saves more than it misses; turning it off is one line in thresholds.toml, which is a diff a person reviews.\n\n`cost.sidechain_tokens_between(root, opened, closed)` totals the same four fields `tokens_between` totals, over the log entries whose `isSidechain` is true, and returns null when none falls in the window. `kpi.measure` gains `review_triage`, holding the depth, the focus and changed file counts, the excluded share and those output tokens, read from the latest triage record and null on a journal that has none.",
+      "changes": [
+        "harness/triage.py: new. The deterministic pass, the Jev state and the batched questions, the depth rules, the focus set, the reviewer task text.",
+        "harness/paths.py: KINDS gains 'triage'. The envelope is unchanged, so HARNESS_VERSION stays at 2.",
+        "harness/cli.py: a `review` subparser with a `triage` action, its handler, and `triage` wired into the journal-reading path; the review draft gains nothing.",
+        "harness/jev.py: ask_batch under ask_many, and four questions with stage=None: criterion_evidenced, diff_matches_solution, reviewer_must_read, review_depth.",
+        "harness/thresholds.toml: [review] triage_shadow = true and focus_probability = 0.5; [jev.thresholds] criterion_evidenced = 0.6, diff_matches_solution = 0.6, reviewer_must_read = 0.5, review_depth = 0.5. Set where every other number a person may tune is set, and calibrated by SEEN-109 rather than guessed twice.",
+        "harness/gates.py: the review gate refuses a review record whose read list does not cover the latest triage record's focus set.",
+        "harness/templates/review.json: a `read` field, the files the reviewer actually read.",
+        "harness/kpi.py: a review_triage section, and cost.py: sidechain output tokens over the ticket's window.",
+        "harness/agents/seen-reviewer.md: read the focus set the task names, and record it as `read`. Regenerated into .claude/agents/ and .codex/agents/ by sync.",
+        "harness/tests/test_triage.py: new, the tests below.",
+        "docs/harness/workflow.md and docs/harness/skill.md: the triage as built, and the skill's review row. skill.md is regenerated into its copies by sync."
+      ],
+      "migrations": [],
+      "tests_first": [
+        "Slice 1: `python3 -m unittest harness.tests.test_triage -v`. The RED must demonstrate that `review triage` is not a command at all (SystemExit from the parser) and, once it is, that a ticket whose solution record lists a migration is not given full depth by rule.",
+        "Slice 2: the same command. The RED must demonstrate that the triage record carries no Jev answers, and that a criterion answered below its threshold leaves the ticket at review rather than returning it to tdd.",
+        "Slice 3: the same command. The RED must demonstrate that an advance out of review is accepted with a read list that misses a file in the focus set, and that kpi.measure carries no review_triage section."
+      ],
+      "slices": [
+        {
+          "name": "Pass one and the depth rules, behind the review triage command",
+          "points": 1,
+          "files": [
+            "harness/triage.py",
+            "harness/paths.py",
+            "harness/cli.py",
+            "harness/thresholds.toml",
+            "harness/tests/test_triage.py"
+          ],
+          "red": "`review triage` is not a parser command, so the test that runs it fails before anything else; and with the command in place, a solution record listing a migration does not yield review_depth full by rule."
+        },
+        {
+          "name": "Pass two: one batched Jev request and the return on an unevidenced criterion",
+          "points": 1,
+          "files": [
+            "harness/jev.py",
+            "harness/triage.py",
+            "harness/cli.py",
+            "harness/thresholds.toml",
+            "harness/tests/test_triage.py"
+          ],
+          "red": "The triage record holds no criterion_evidenced, diff_matches_solution, reviewer_must_read or review_depth answers from the stub transport, and a criterion answered at 0.1 leaves the journal at review instead of appending a return to tdd that names it."
+        },
+        {
+          "name": "The focus set at the gate, in the reviewer's instructions and in the figures",
+          "points": 1,
+          "files": [
+            "harness/gates.py",
+            "harness/templates/review.json",
+            "harness/kpi.py",
+            "harness/cost.py",
+            "harness/agents/seen-reviewer.md",
+            "harness/tests/test_triage.py",
+            "docs/harness/workflow.md",
+            "docs/harness/skill.md"
+          ],
+          "red": "An advance out of review with a read list missing a focus-set file is accepted, and kpi.measure over a journal holding a triage record returns no review_triage section."
+        }
+      ],
+      "alternatives": [
+        "Asking Jev once per criterion rather than once per ticket: rejected because the ticket says one request, and N requests on a five-criterion ticket costs more than the reviewer pass it is meant to save.",
+        "Recording the triage as a note: rejected for the reason SEEN-104 gave for handoff. The review gate and the KPI have to find the focus set and the excluded share, and a reader that parses prose is a reader that will one day read it wrong.",
+        "Declaring the reviewer's output tokens in the review record: rejected because the session being measured would be typing its own figure, which is the weakness the ticket already tolerates for reviewer_session and should not repeat where a number is divided on.",
+        "Letting triage spawn the reviewer itself: rejected because the harness runs no model. It prints the task the session gives its subagent, which keeps the harness a recorder and leaves the assistant the one that spends tokens.",
+        "Making the deterministic pass refuse on any failure: rejected because most of its checks can be unavailable for reasons about the machine (no gitleaks, no gh, no repowise index) rather than about the work. A failure forces full depth and is carried in the record; only Jev's unevidenced criterion returns the ticket."
+      ],
+      "risks": [
+        "Jev is asked a question shape it has never been asked, several keys sharing one question definition. Mitigated by the same fallback every other question has: a transport failure records the answers as unavailable with the reason, and an unavailable criterion_evidenced does not return the ticket, because a judgement nobody made is not a judgement.",
+        "The deterministic pass reads the working diff, which at review time is the branch against main, not the working tree. Mitigated by deriving the file list from `git diff --name-only main...HEAD` plus the pending changes, and by recording the fingerprint it read, so a later reader can tell what tree it was.",
+        "Shadow mode makes every test of the focus set trivially satisfied, so the narrowing could ship broken and unobserved. Mitigated by the tests exercising both settings, and by the record carrying would_exclude in both, which is the figure SEEN-109 calibrates against.",
+        "kpi.json gains a section that reads a record kind the nineteen older journals do not have. Mitigated the way sessions and subagents already are: null rather than zero, so a ticket that could not have had a triage does not read as one that was triaged badly."
+      ],
+      "rollback": "Nothing here is deployed and nothing touches a marketplace or a tenant. The command is additive: reverting the branch removes `review triage`, the `triage` kind and the gate check together, and every existing journal still reads, because a review record without a matching triage record is exactly the case the gate treats as no focus set. The one non-additive line is the `read` field in the review template; a revert takes it with the gate that reads it.",
+      "new_dependencies": [],
+      "tenant_tables": [
+        "none: this ticket touches no database table"
+      ],
+      "buyer_pii": "none",
+      "policy_gate_action": null,
+      "slice_points": 3
+    },
+    "decisions": [
+      {
+        "question": "solution_complete",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.65,
+          "no": 0.35
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "question": "touches_billing_or_policy_gate",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.1,
+          "no": 0.9
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

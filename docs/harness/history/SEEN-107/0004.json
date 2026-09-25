@@ -1,0 +1,16 @@
+{
+  "sequence": 4,
+  "ticket": "SEEN-107",
+  "timestamp": "2026-09-24T18:12:16.687304+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "solution",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "253bf8e84e82",
+  "head": "e189cb86f4e35238e76ecc2341913387a5b24b71",
+  "prev_hash": "606b9c7c74f6c36865d64a65f3672346c31c898e6773f29dcbb5fbdede4887d1",
+  "data": {
+    "text": "# solution_complete came back 0.58 against 0.6, and what was actually missing\n\nThe first solution record said pass one was \"a list of named deterministic checks\"\nand never named them, said the focus set came from `reviewer_must_read` and never\nsaid at what probability or what happens when nothing clears, and never gave the\ntriage record's own shape. Three things an implementer would have had to stop and\nask, so the answer was right.\n\nResolved by writing them down rather than by rephrasing:\n\n- The nine checks of pass one are named, with the condition each answers and the\n  gitleaks invocation, and the record now says that a failure forces full depth\n  rather than refusing, with the reason.\n- The focus set rule is written at both depths, including the two edges: nothing\n  clears the bar, and shadow mode. Never empty, because a review that reads\n  nothing is not a review.\n- The triage record's data keys are listed, and the gate's relation is stated\n  together with what it does on a ticket that has no triage record, which is what\n  keeps the nineteen journals written before this ticket readable.\n- The four thresholds and the two review settings are given their values in the\n  changes list, so they are a diff a person reviews rather than a number chosen\n  twice in two places.\n\nNothing was removed and no claim was softened. SEEN-109 calibrates the four\nnumbers; this record sets the starting values.\n"
+  }
+}

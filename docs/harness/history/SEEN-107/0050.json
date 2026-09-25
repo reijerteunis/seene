@@ -1,0 +1,391 @@
+{
+  "sequence": 50,
+  "ticket": "SEEN-107",
+  "timestamp": "2026-09-24T20:22:14.722664+00:00",
+  "harness_version": "2",
+  "kind": "triage",
+  "stage": "review",
+  "attempt": 5,
+  "actor": "claude:implementer",
+  "session": "253bf8e84e82",
+  "head": "936dc8461b55dfb83ad023be8b0e5625d449e771",
+  "prev_hash": "69902946c6d16a78632a7a5157357395aa222388cd7ad02a038efb345d43ac97",
+  "data": {
+    "fingerprint": "c31d77d48a4ba63c31d1425c7d7f9d7837fc96026ecb9dd094678ffeca491b9f",
+    "code_fingerprint": "80d6a64c8b8ba4d2a59c09d12718fdfe33ac283cfffe761d42e76a569d97dcd3",
+    "files": [
+      {
+        "path": ".agents/skills/seen-harness/SKILL.md",
+        "hunks": 2,
+        "added": 12,
+        "removed": 1,
+        "package": ".agents",
+        "risk_percentile": 41.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": false
+      },
+      {
+        "path": ".claude/agents/seen-reviewer.md",
+        "hunks": 3,
+        "added": 20,
+        "removed": 3,
+        "package": ".claude",
+        "risk_percentile": 41.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": false
+      },
+      {
+        "path": ".claude/skills/seen-harness/SKILL.md",
+        "hunks": 2,
+        "added": 12,
+        "removed": 1,
+        "package": ".claude",
+        "risk_percentile": 41.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": false
+      },
+      {
+        "path": ".codex/agents/seen-reviewer.toml",
+        "hunks": 3,
+        "added": 20,
+        "removed": 3,
+        "package": ".codex",
+        "risk_percentile": 41.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": false
+      },
+      {
+        "path": "docs/harness/skill.md",
+        "hunks": 2,
+        "added": 12,
+        "removed": 1,
+        "package": "docs",
+        "risk_percentile": 41.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "docs/harness/workflow.md",
+        "hunks": 1,
+        "added": 7,
+        "removed": 1,
+        "package": "docs",
+        "risk_percentile": 41.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "docs/tickets/SEEN-107-let-jev-settle-what-the-review-can-settle.md",
+        "hunks": 3,
+        "added": 130,
+        "removed": 2,
+        "package": "docs",
+        "risk_percentile": 41.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": false
+      },
+      {
+        "path": "harness/agents/seen-reviewer.md",
+        "hunks": 3,
+        "added": 20,
+        "removed": 3,
+        "package": "harness",
+        "risk_percentile": 41.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/cli.py",
+        "hunks": 5,
+        "added": 28,
+        "removed": 4,
+        "package": "harness",
+        "risk_percentile": 41.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/cost.py",
+        "hunks": 2,
+        "added": 28,
+        "removed": 1,
+        "package": "harness",
+        "risk_percentile": 41.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/delivery.py",
+        "hunks": 1,
+        "added": 10,
+        "removed": 5,
+        "package": "harness",
+        "risk_percentile": 41.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": false
+      },
+      {
+        "path": "harness/gates.py",
+        "hunks": 3,
+        "added": 121,
+        "removed": 10,
+        "package": "harness",
+        "risk_percentile": 41.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/jev.py",
+        "hunks": 6,
+        "added": 121,
+        "removed": 28,
+        "package": "harness",
+        "risk_percentile": 41.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/kpi.py",
+        "hunks": 4,
+        "added": 86,
+        "removed": 2,
+        "package": "harness",
+        "risk_percentile": 41.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/paths.py",
+        "hunks": 1,
+        "added": 6,
+        "removed": 1,
+        "package": "harness",
+        "risk_percentile": 41.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/repository.py",
+        "hunks": 2,
+        "added": 10,
+        "removed": 3,
+        "package": "harness",
+        "risk_percentile": 41.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": false
+      },
+      {
+        "path": "harness/templates/review.json",
+        "hunks": 1,
+        "added": 3,
+        "removed": 0,
+        "package": "harness",
+        "risk_percentile": 41.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/tests/helpers.py",
+        "hunks": 1,
+        "added": 5,
+        "removed": 1,
+        "package": "harness",
+        "risk_percentile": 41.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": false
+      },
+      {
+        "path": "harness/tests/test_context_budget.py",
+        "hunks": 2,
+        "added": 19,
+        "removed": 2,
+        "package": "harness",
+        "risk_percentile": 41.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": false
+      },
+      {
+        "path": "harness/tests/test_delivery.py",
+        "hunks": 1,
+        "added": 1,
+        "removed": 0,
+        "package": "harness",
+        "risk_percentile": 41.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": false
+      },
+      {
+        "path": "harness/tests/test_enforcement.py",
+        "hunks": 1,
+        "added": 1,
+        "removed": 0,
+        "package": "harness",
+        "risk_percentile": 41.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": false
+      },
+      {
+        "path": "harness/tests/test_question_criteria.py",
+        "hunks": 1,
+        "added": 22,
+        "removed": 3,
+        "package": "harness",
+        "risk_percentile": 41.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": false
+      },
+      {
+        "path": "harness/tests/test_reopen.py",
+        "hunks": 1,
+        "added": 1,
+        "removed": 0,
+        "package": "harness",
+        "risk_percentile": 41.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": false
+      },
+      {
+        "path": "harness/tests/test_stage_gates.py",
+        "hunks": 1,
+        "added": 1,
+        "removed": 0,
+        "package": "harness",
+        "risk_percentile": 41.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": false
+      },
+      {
+        "path": "harness/tests/test_triage.py",
+        "hunks": 1,
+        "added": 1239,
+        "removed": 0,
+        "package": "harness",
+        "risk_percentile": 41.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/thresholds.toml",
+        "hunks": 2,
+        "added": 19,
+        "removed": 0,
+        "package": "harness",
+        "risk_percentile": 41.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/triage.py",
+        "hunks": 1,
+        "added": 772,
+        "removed": 0,
+        "package": "harness",
+        "risk_percentile": 41.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      }
+    ],
+    "criteria": [
+      "harness review triage <ticket> runs the deterministic pass and one Jev request and writes a triage record carrying the per-criterion answers, diff_matches_solution, reviewer_must_read per file, review_depth and the focus set, each with its probability",
+      "A criterion answered unevidenced below the threshold returns the ticket to tdd naming the criterion, before the reviewer subagent is spawned, proven with a fixture",
+      "A ticket that changes an agent action, touches billing or the policy gate, or carries a migration gets full depth by rule with Jev not asked, proven with a fixture",
+      "The reviewer subagent's task carries only the focus set at the chosen depth, and the review gate refuses a review record whose recorded read list is smaller than the focus set",
+      "In shadow mode the reviewer still reads everything and the triage record stores what would have been excluded; kpi.json carries the reviewer's output tokens and the excluded share of the diff"
+    ],
+    "deterministic": [
+      {
+        "name": "coverage",
+        "outcome": "pass",
+        "detail": "@seen/core at 100.0%, +0.0 against the baseline"
+      },
+      {
+        "name": "lint",
+        "outcome": "pass",
+        "detail": "No live marketplace host in test code"
+      },
+      {
+        "name": "gitleaks",
+        "outcome": "pass",
+        "detail": "No leak in main..HEAD"
+      },
+      {
+        "name": "fingerprint",
+        "outcome": "pass",
+        "detail": "The tree is the one check 47 ran against"
+      },
+      {
+        "name": "slice_files",
+        "outcome": "fail",
+        "detail": "Changed but named by no slice and no changes entry: harness/delivery.py, harness/repository.py, harness/tests/helpers.py, harness/tests/test_context_budget.py, harness/tests/test_delivery.py, harness/tests/test_enforcement.py, harness/tests/test_question_criteria.py, harness/tests/test_reopen.py, harness/tests/test_stage_gates.py"
+      },
+      {
+        "name": "red_before_green",
+        "outcome": "pass",
+        "detail": "Every slice cites a check that exited non-zero rather than one that passed. Whether it failed for the reason the slice states is not something the harness can read"
+      },
+      {
+        "name": "tests_added",
+        "outcome": "pass",
+        "detail": "Tests changed: harness/tests/helpers.py, harness/tests/test_context_budget.py, harness/tests/test_delivery.py, harness/tests/test_enforcement.py, harness/tests/test_question_criteria.py"
+      },
+      {
+        "name": "acceptance_entries",
+        "outcome": "pass",
+        "detail": "The clarify record restates 5 checks against 5 criteria in the ticket. Which check answers which criterion is not something either list says"
+      },
+      {
+        "name": "pull_request",
+        "outcome": "unavailable",
+        "detail": "gh could not answer, so the pull request body was not read. It is checked again at merge, where the receipt hash has to be in it"
+      }
+    ],
+    "rules": [
+      "slice_files did not pass, so the reviewer reads everything: Changed but named by no slice and no changes entry: harness/delivery.py, harness/repository.py, harness/tests/helpers.py, harness/tests/test_context_budget.py, harness/tests/test_delivery.py, harness/tests/test_enforcement.py, harness/tests/test_question_criteria.py, harness/tests/test_reopen.py, harness/tests/test_stage_gates.py"
+    ],
+    "jev": {
+      "asked": false,
+      "model": null,
+      "reason": "Full depth is settled by rule, so no request was made: slice_files did not pass, so the reviewer reads everything: Changed but named by no slice and no changes entry: harness/delivery.py, harness/repository.py, harness/tests/helpers.py, harness/tests/test_context_budget.py, harness/tests/test_delivery.py, harness/tests/test_enforcement.py, harness/tests/test_question_criteria.py, harness/tests/test_reopen.py, harness/tests/test_stage_gates.py",
+      "answers": []
+    },
+    "criteria_answers": [],
+    "review_depth": "full",
+    "focus": [
+      ".agents/skills/seen-harness/SKILL.md",
+      ".claude/agents/seen-reviewer.md",
+      ".claude/skills/seen-harness/SKILL.md",
+      ".codex/agents/seen-reviewer.toml",
+      "docs/harness/skill.md",
+      "docs/harness/workflow.md",
+      "docs/tickets/SEEN-107-let-jev-settle-what-the-review-can-settle.md",
+      "harness/agents/seen-reviewer.md",
+      "harness/cli.py",
+      "harness/cost.py",
+      "harness/delivery.py",
+      "harness/gates.py",
+      "harness/jev.py",
+      "harness/kpi.py",
+      "harness/paths.py",
+      "harness/repository.py",
+      "harness/templates/review.json",
+      "harness/tests/helpers.py",
+      "harness/tests/test_context_budget.py",
+      "harness/tests/test_delivery.py",
+      "harness/tests/test_enforcement.py",
+      "harness/tests/test_question_criteria.py",
+      "harness/tests/test_reopen.py",
+      "harness/tests/test_stage_gates.py",
+      "harness/tests/test_triage.py",
+      "harness/thresholds.toml",
+      "harness/triage.py"
+    ],
+    "shadow": true,
+    "would_exclude": [],
+    "excluded_share": 0.0,
+    "always_read": [
+      "docs/tickets/SEEN-107-let-jev-settle-what-the-review-can-settle.md",
+      "docs/harness/history/SEEN-107/"
+    ],
+    "reviewer_task": "Review SEEN-107 against its acceptance criteria and its journal.\n\nDepth: full, settled by triage record 50, in shadow mode, so the focus set is the whole diff and what the narrowing would have dropped is recorded rather than acted on\n\nRead these whatever the depth, because they are what a review is against and no focus set can hold them:\n- docs/tickets/SEEN-107-let-jev-settle-what-the-review-can-settle.md\n- docs/harness/history/SEEN-107/\n\nOf the diff, read these 27 file(s) and no others:\n- .agents/skills/seen-harness/SKILL.md\n- .claude/agents/seen-reviewer.md\n- .claude/skills/seen-harness/SKILL.md\n- .codex/agents/seen-reviewer.toml\n- docs/harness/skill.md\n- docs/harness/workflow.md\n- docs/tickets/SEEN-107-let-jev-settle-what-the-review-can-settle.md\n- harness/agents/seen-reviewer.md\n- harness/cli.py\n- harness/cost.py\n- harness/delivery.py\n- harness/gates.py\n- harness/jev.py\n- harness/kpi.py\n- harness/paths.py\n- harness/repository.py\n- harness/templates/review.json\n- harness/tests/helpers.py\n- harness/tests/test_context_budget.py\n- harness/tests/test_delivery.py\n- harness/tests/test_enforcement.py\n- harness/tests/test_question_criteria.py\n- harness/tests/test_reopen.py\n- harness/tests/test_stage_gates.py\n- harness/tests/test_triage.py\n- harness/thresholds.toml\n- harness/triage.py\n\nAlready settled with no model, so do not spend a read confirming any of them: coverage, lint, gitleaks, fingerprint, tests_added.\n\nPartly settled, and the rest is yours:\n- red_before_green: it passed, but it proves the cited check exited non-zero, never that it failed for the reason the slice states, which only a reader comparing the two can judge\n- acceptance_entries: it passed, but it counts the clarify record's checks against the ticket's criteria, never that each criterion has one, because neither list names the other\n\nNot settled, so they are yours:\n- slice_files (fail): Changed but named by no slice and no changes entry: harness/delivery.py, harness/repository.py, harness/tests/helpers.py, harness/tests/test_context_budget.py, harness/tests/test_delivery.py, harness/tests/test_enforcement.py, harness/tests/test_question_criteria.py, harness/tests/test_reopen.py, harness/tests/test_stage_gates.py\n- pull_request (unavailable): gh could not answer, so the pull request body was not read. It is checked again at merge, where the receipt hash has to be in it\n\nReturn the review record's shape. Its `read` list must name every file you read and must cover the focus set above, which the review gate checks."
+  }
+}

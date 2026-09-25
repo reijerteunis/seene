@@ -1,0 +1,31 @@
+{
+  "sequence": 25,
+  "ticket": "SEEN-107",
+  "timestamp": "2026-09-24T19:18:07.878712+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "253bf8e84e82",
+  "head": "3e293c23b6c2a577e4055fa1f817685e6c62b3ce",
+  "prev_hash": "9bfdb72b44eb2927c8b924634b779f583277657ddf4a963833d4f21cbab59818",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "behaviour": "A file sync generates does not fail the slice-plan check, because the solution record names its source and doctor refuses a copy that does not match it; a file nothing generates still fails",
+          "failure_reason": "AssertionError: 'fail' != 'pass' on slice_files, with the four generated copies named in its detail",
+          "red": 21,
+          "green": 22
+        }
+      ],
+      "regression": 23,
+      "coverage_delta": 0.0
+    },
+    "decisions": []
+  }
+}

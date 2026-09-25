@@ -18,12 +18,23 @@ of you is that you have not been reading it all day.
 
 ## What to read
 
+The task you were given carries two lists. One is what you read whatever the
+depth: the ticket file and the journal, which are what a review is against and
+which no focus set can hold. The other is the focus set, the files of the diff
+the review triage settled you must read. Read both lists, and do not go looking
+outside the focus set for more of the diff; what the triage already settled is
+named in the task, and confirming it is a read nobody is paying you for. What it
+only partly settled is named with the remainder, and that remainder is yours. If
+you were given no focus set, the whole diff is yours.
+
 1. The ticket file: its acceptance criteria are the definition of done, and
    nothing else is.
 2. The journal, `docs/harness/history/<ticket>/`: the clarify record's checks and
-   decisions, the solution record's approach and slices, and the tdd record's
-   reds and greens. A criterion is met by recorded evidence or it is not met.
-3. The diff: `git diff main...HEAD`, and `git log --oneline main..HEAD`.
+   decisions, the solution record's approach and slices, the tdd record's reds
+   and greens, and the triage record your focus set came from. A criterion is met
+   by recorded evidence or it is not met.
+3. The diff, scoped to your focus set: `git diff main...HEAD -- <the files>`, and
+   `git log --oneline main..HEAD`.
 4. `CLAUDE.md` and `docs/prd/prd.md` where a ground rule is in question.
 
 Ask `codegraph_explore` for what a changed symbol touches before you judge
@@ -57,6 +68,7 @@ The review record's shape, as JSON:
   "reviewer": "claude:reviewer",
   "independence": "subagent",
   "reviewer_session": "<the id the session that spawned you gives you>",
+  "read": ["Every file you actually read"],
   "acceptance_evidence": ["Criterion, and the record number that satisfies it"],
   "findings": [
     {"id": "F1", "severity": "low|medium|high|blocking", "file": "path:line",
@@ -71,6 +83,11 @@ The review record's shape, as JSON:
 
 Every finding carries a failure scenario. A finding without one is a preference,
 and a preference is not a finding. Order them most severe first.
+
+`read` is what you actually read, not what you were told to read. The review gate
+refuses a review whose `read` list does not cover the focus set, so a file you
+skipped is a refusal rather than a silence; reading more than the focus set is
+never refused.
 
 Never edit a file, never run a test to fix it, and never resolve your own
 finding: the session that asked for the review resolves each one and records how.

@@ -1,0 +1,19 @@
+{
+  "sequence": 52,
+  "ticket": "SEEN-107",
+  "timestamp": "2026-09-24T20:35:42.063743+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 5,
+  "actor": "claude:implementer",
+  "session": "253bf8e84e82",
+  "head": "936dc8461b55dfb83ad023be8b0e5625d449e771",
+  "prev_hash": "bb48aa6b71e5c93ed3b71ab254fa061a4b85333af81fdd0c7784db70550aebfb",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 6,
+    "reason": "Fifth review, one high finding and two low. J1: a failed deterministic check is appended to the same reasons list as the three depth rules, and the whole Jev request is skipped when that list is non-empty, so criterion_evidenced is never asked on exactly the tickets pass one already found something wrong with. The solution record says the opposite of what was built, that a failure forces full depth and is carried in the record while only Jev's unevidenced criterion returns the ticket. All five triages on this branch carry jev.asked false and criteria_answers empty because slice_files fails, so pass two has never run once, and every one records excluded_share 0.0, which in kpi.json is indistinguishable from a narrowing that would have saved nothing and is the figure SEEN-109 divides on. J2: tests_added is listed as settled while it proves only that some path matching the test regex is in the diff, which is H2 and H3 in a third check. J3: procedure_paths and always_read read the ticket file from record 1, which SEEN-101 allows to go stale on a rename, while cli._ticket_text already resolves it by id."
+  }
+}

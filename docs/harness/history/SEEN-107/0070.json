@@ -1,0 +1,29 @@
+{
+  "sequence": 70,
+  "ticket": "SEEN-107",
+  "timestamp": "2026-09-24T21:16:09.870143+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 8,
+  "actor": "claude:implementer",
+  "session": "253bf8e84e82",
+  "head": "ddc8b5c88f225e9108a7e56e018584047984cca1",
+  "prev_hash": "ee93b15962313e1f78e969f73be0284ce358dcf3ccfa1b2a0a6991b21ce0f3be",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_doctor.DeliverStatusTest"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "duration_ms": 3635,
+    "output": ".F...............\n======================================================================\nFAIL: test_a_ticket_at_deliver_still_saying_doing_is_reported (harness.tests.test_doctor.DeliverStatusTest.test_a_ticket_at_deliver_still_saying_doing_is_reported)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_doctor.py\", line 178, in test_a_ticket_at_deliver_still_saying_doing_is_reported\n    self.assertTrue(any('doing' in problem and self.ticket_id in problem\n    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                        for problem in problems),\n                        ^^^^^^^^^^^^^^^^^^^^^^^^^\n                    'It has passed review, so the ticket file has to say so before the '\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                    'fingerprint locks: ' + '; '.join(problems))\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: False is not true : It has passed review, so the ticket file has to say so before the fingerprint locks: \n\n----------------------------------------------------------------------\nRan 17 tests in 3.550s\n\nFAILED (failures=1)\n",
+    "output_sha256": "bc908a1816a1c1eedae6182786cf230dd031e9455c410ce6a31e4f3a31766cd7",
+    "output_truncated": false,
+    "before": "333bd1541a6dea44fa2859a2692411f209762875a8efbf7d8104e4949d207cbb",
+    "after": "333bd1541a6dea44fa2859a2692411f209762875a8efbf7d8104e4949d207cbb"
+  }
+}

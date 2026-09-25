@@ -14,7 +14,7 @@ run next.
 | clarify | The scope, the acceptance criteria restated as checks, and every material question answered | `draft`, fill it in, `advance` |
 | solution | The mode, the files, the tests to write first, the rollback, the risks | `draft`, fill it in, `advance` |
 | tdd | A red that failed for the stated reason, a green, a regression, coverage | `check --phase red\|green\|regression`, `coverage`, `handoff` at each slice boundary, `advance` |
-| review | The diff read against the criteria, findings with a failure scenario each | `check --phase qa`, `advance` or `return` |
+| review | The diff read against the criteria, findings with a failure scenario each | `review triage`, `check --phase qa`, `advance` or `return` |
 | deliver | The branch pushed, CI green on that commit, the receipt written | `verify-delivery`, then `verify-merge` before merging |
 
 `return` sends a ticket back to an earlier stage and counts as rework. `reopen` voids a receipt before
@@ -107,6 +107,17 @@ refuses a brief over the cap and names the count, and it records the agent, the
 word count and the session that wrote the record. The scout cannot write a file,
 so the session writes the brief down: what is in the journal is the agent's
 content, transcribed.
+
+**Run `harness review triage <ticket>` before spawning the reviewer.** It settles
+what the cheaper passes can settle and writes a `triage` record carrying the depth,
+the focus set and the task text to hand the subagent; give the reviewer that text
+and nothing else. The task names the ticket file and the journal separately from
+the focus set, because they are what a review is against and no focus set can hold
+them, and it names what pass one only partly settled with the remainder rather
+than closing it. A criterion it can see no evidence for returns the ticket to tdd
+and refuses, before any model reads the diff. The review record's `read` list is
+what the reviewer actually read, and the gate refuses one that does not cover the
+focus set; reading more than the focus set is never refused.
 
 **A subagent is a context boundary, not independence by itself.** A review from one
 is disclosed as `subagent` and names the `reviewer_session` it came from, and the

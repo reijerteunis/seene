@@ -110,9 +110,21 @@ def status_problems(repository):
             continue
         state = journal.state(records)
         if state['stage'] != 'delivered':
-            if status not in WORKING_STATUSES:
+            # The deliver stage is past the review gate, and the reviewed-tree
+            # fingerprint covers the ticket file, so `review` has to be in the
+            # tree before that advance exactly as the `## Outcome` section does.
+            # Any working status passed here until SEEN-107, and the mismatch was
+            # reported only once the receipt had moved the ticket to delivered, by
+            # which point verify_merge will not let the ticket file change either:
+            # a ticket could deliver and then be unable to merge, which is what
+            # happened to SEEN-107 itself.
+            wanted = ('review', 'done') if state['stage'] == 'deliver' else WORKING_STATUSES
+            if status not in wanted:
                 problems.append(f'{identifier} says {status} but its journal is at '
-                                f'{state["stage"]}')
+                                f'{state["stage"]}'
+                                + ('; it has passed review, so the ticket file has to say '
+                                   'review before the fingerprint locks it'
+                                   if state['stage'] == 'deliver' else ''))
             continue
         receipt = records[-1]
         commit = receipt['data'].get('commit', '')

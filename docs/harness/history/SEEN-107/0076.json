@@ -1,0 +1,19 @@
+{
+  "sequence": 76,
+  "ticket": "SEEN-107",
+  "timestamp": "2026-09-24T21:22:46.067389+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 8,
+  "actor": "claude:implementer",
+  "session": "253bf8e84e82",
+  "head": "39b6b48144002c87b443a3400bef21889f8d7663",
+  "prev_hash": "5b97a1c7f953ad9c5797e96f254dbdfeb2069f07dd890f386f23f5673c424961",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 9,
+    "reason": "The triage could see no evidence for: A ticket that changes an agent action, touches billing or the policy gate, or carries a migration gets full depth by rule with Jev not asked, proven with a fixture; In shadow mode the reviewer still reads everything and the triage record stores what would have been excluded; kpi.json carries the reviewer's output tokens and the excluded share of the diff. A criterion with nothing behind it is answered at the tdd stage, by writing the test or the check that proves it, rather than by a reviewer reading a diff that does not contain it"
+  }
+}

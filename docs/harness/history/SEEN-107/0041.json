@@ -1,0 +1,31 @@
+{
+  "sequence": 41,
+  "ticket": "SEEN-107",
+  "timestamp": "2026-09-24T19:59:31.810996+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 4,
+  "actor": "claude:implementer",
+  "session": "253bf8e84e82",
+  "head": "484206a6f8b54142f4a5b9a6d9bf396f7be40211",
+  "prev_hash": "43843d292a447074790bf77a4b7f3fe5c6dec7d6db032a8322c513c27a531b08",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "behaviour": "A file whose reviewer_must_read answer never came back stays in the focus set, each review round is its own token window with the rework between two in neither, the delivered kpi.json carries the reviewer tokens read from a real log, and a review after a return is refused until the triage is run again",
+          "failure_reason": "AssertionError: 'harness/tests/test_thing.py' not found in ['harness/thing.py']; AttributeError: module 'harness.kpi' has no attribute 'review_windows', raised by the delivery walk and by every window test",
+          "red": 37,
+          "green": 38
+        }
+      ],
+      "regression": 39,
+      "coverage_delta": 0.0
+    },
+    "decisions": []
+  }
+}
