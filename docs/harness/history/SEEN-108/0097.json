@@ -1,0 +1,38 @@
+{
+  "sequence": 97,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T13:38:27.403366+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 9,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "3520ff3d3edabb03e816418bf2658b7686157128",
+  "prev_hash": "eb08f1a5d1e83884e38208191b2eec255d0622a57e62f782f2872da4ffdc7997",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": null,
+          "behaviour": "A per-model row nothing could price renders rather than crashing the sprint report, and a proved slice declares which slice of the plan it is, as a number the plan has or as null, rather than skipping the route comparison by omission.",
+          "failure_reason": "Quoted from check 90's captured output: \"TypeError: '<' not supported between instances of 'NoneType' and 'int'\" and \"TypeError: '<' not supported between instances of 'NoneType' and 'NoneType'\" for the sort, on a row beside a priced one and on two unpriced rows; \"AssertionError: '| None |' unexpectedly found in\" the rendered table for the cell; and \"AssertionError: HarnessError not raised\" for a slice naming no position at all.",
+          "red": 90,
+          "green": 94
+        }
+      ],
+      "regression": 95,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "710e96458c5b",
+      "output_tokens": 656281,
+      "tool_calls": 367,
+      "unavailable": null
+    }
+  }
+}
