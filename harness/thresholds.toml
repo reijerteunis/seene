@@ -174,13 +174,17 @@ opus = "claude-opus-5"
 # Money arithmetic: the pure functions the ground rules say reconcile, and the
 # euro arithmetic they do. Everything in core is matching, fee expectations and
 # detectors, so the package is the pattern.
-money = ["packages/core/src/*"]
+# The directory forms as well as the files under them: a slice whose files entry
+# reads `packages/core` is the same slice as one naming a file in it, and a rule
+# about money arithmetic is not one a plan's wording should be able to dodge.
+money = ["packages/core", "packages/core/*"]
 # A migration or an RLS policy. Both are expensive to get wrong in the same way
 # and both are named by their extension here rather than by their directory,
 # because a migration lives wherever the tool that runs it puts it.
-migration = ["*.sql", "*/migrations/*", "*/policies/*"]
+migration = ["*.sql", "*/migrations", "*/migrations/*", "*/policies", "*/policies/*"]
 # Credentials, wherever they are read, written or named.
-credentials = ["*credential*", "*secret*", "*/auth/*", "packages/connectors/src/oauth*"]
+credentials = ["*credential*", "*secret*", "*/auth", "*/auth/*",
+               "packages/connectors/src/oauth*"]
 
 # What a slice cost, in integer cents per million tokens, by tier. Amounts are
 # cents as integers with a currency code, as the ground rules require, and

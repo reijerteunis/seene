@@ -1,0 +1,19 @@
+{
+  "sequence": 66,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T12:25:30.911127+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 6,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "270f7f41aefc60e75ebef4acef9fff81e2b773a5",
+  "prev_hash": "59d2007dd2dc03bf6f6182862ccd16bac932d1355a6fcd43883ca193555138eb",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 7,
+    "reason": "Ruud's decision: F3 to F6 of the third review are fixed here rather than carried, because the review gate refuses a delivery with open findings and says not to relabel one. F3 the stray-agent check that seen-implementer hid, F4 the correction record 38 needs, F5 the report sentence pointing at a command SEEN-109 adds, F6 the money rule a slice naming a directory would slip past, and the unused local left in go_back. SEEN-111 is withdrawn with them."
+  }
+}

@@ -181,7 +181,8 @@ def render_cost(by_model, prices):
               'covers rather than guessing at the rest. Rows are the model each slice actually '
               'ran on, which while `[routing] shadow` is true is the session\'s model and not '
               'the routed one; what the route would have cost is carried per slice in kpi.json '
-              'as `routed_cost_cents` and compared by `report --calibration`. A row named '
+              'as `routed_cost_cents`; comparing the two is what `report --calibration` will do when '
+              'SEEN-109 adds it, and no command does it today. A row named '
               f'`{context.UNKNOWN}` is slices whose session left no log to read a model from.']
     return lines
 

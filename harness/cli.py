@@ -747,12 +747,11 @@ def go_back(repository, folder, records, args, current, rules):
     require(STAGES.index(args.to) < STAGES.index(stage),
             f'A return must target a stage before {stage}')
     require(args.reason.strip(), 'A return needs a recorded reason')
-    record = journal.append(folder, records, kind='return', stage=stage,
-                            attempt=current['attempt'], actor=args.actor,
-                            head=repository.head(), ticket=args.ticket,
-                            data=dict(from_stage=stage, to_stage=args.to,
-                                      to_attempt=current['attempt'] + 1, reason=args.reason))
-    return record
+    return journal.append(folder, records, kind='return', stage=stage,
+                          attempt=current['attempt'], actor=args.actor,
+                          head=repository.head(), ticket=args.ticket,
+                          data=dict(from_stage=stage, to_stage=args.to,
+                                    to_attempt=current['attempt'] + 1, reason=args.reason))
 
 
 DISCARDED = Path('docs/harness/discarded.jsonl')

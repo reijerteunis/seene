@@ -858,3 +858,32 @@ class DeclarationIsInstructedTest(RouteTest):
                          agents.codex_copy(agents.IMPLEMENTER)):
             self.assertIn('--model', (PROJECT / relative).read_text(),
                           f'{relative} does not tell the implementer to declare its model')
+
+
+class DirectoryNamedSliceTest(RouteTest):
+    """A rule a plan's wording cannot dodge.
+
+    F6 of the third review: the patterns were fnmatch globs under a directory,
+    so a slice whose files entry named `packages/core` rather than a file in it
+    went to Jev like any other and could come back haiku at low effort for fee
+    expectations, which the ground rules call the most expensive thing here to
+    get wrong.
+    """
+
+    def rule_for(self, files):
+        self.reach_tdd([dict(PLAIN, files=files)])
+        return self.route()['data']['execution'][0]
+
+    def test_a_slice_naming_the_core_package_is_the_money_rule(self):
+        self.assertEqual(self.rule_for(['packages/core'])['rule'], 'money')
+
+    def test_a_slice_naming_the_source_directory_is_too(self):
+        self.assertEqual(self.rule_for(['packages/core/src'])['rule'], 'money')
+
+    def test_a_slice_naming_a_migrations_directory_is_the_migration_rule(self):
+        self.assertEqual(self.rule_for(['supabase/migrations'])['rule'], 'migration')
+
+    def test_a_neighbour_of_the_core_package_is_not_the_money_rule(self):
+        """`packages/core-utils` is a different package, not money arithmetic."""
+        entry = self.rule_for(['packages/core-utils/src/format.ts'])
+        self.assertEqual(entry['source'], 'jev')

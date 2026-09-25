@@ -387,3 +387,32 @@ class SprintReportCostTest(ProjectTest):
     def test_the_table_names_the_date_the_prices_were_read(self):
         rules = thresholds.load(self.root)
         self.assertIn(rules['routing']['prices']['priced_on'], self.report())
+
+
+class ForwardReferenceTest(unittest.TestCase):
+    """F5 of SEEN-108's third review: what the printed report tells a reader to run.
+
+    `report --calibration` is criterion 2 of SEEN-109 and nothing implements it,
+    so a table that names it in the present tense sends its reader to a command
+    argparse rejects.
+    """
+
+    def rendered(self):
+        from harness import report as reporting
+        rules = thresholds.load(PROJECT)
+        return '\n'.join(reporting.render_cost(
+            dict(opus=dict(slices=1, points=2, cost_cents=300, output_tokens=40000,
+                           cost_per_point=150.0)),
+            rules['routing']['prices']))
+
+    def test_it_does_not_claim_the_calibration_command_exists_yet(self):
+        rendered = self.rendered()
+        self.assertIn('report --calibration', rendered)
+        self.assertRegex(rendered, r'(?i)SEEN-109')
+
+    def test_the_command_it_names_is_not_one_the_parser_accepts_today(self):
+        """If this ever fails, SEEN-109 has landed and the sentence can lose its tense."""
+        from harness import cli
+        from harness.errors import HarnessError
+        with self.assertRaisesRegex(HarnessError, 'calibration'):
+            cli.parse(['report', '--calibration'])

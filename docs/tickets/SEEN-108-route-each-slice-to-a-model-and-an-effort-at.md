@@ -85,8 +85,11 @@ where a `pull_request` checkout has none, and it fell back while the committed
 copies held the old plan's model. Two were mine in the plainest sense: the
 `failure_reason` field, which asks for the runner's words, was filled three times
 from what this session had been reading, and a correcting note written after the
-first was not enough to stop the second or the third. Records 42 and 52 correct
-two of them; the third is carried.
+first was not enough to stop the second or the third. Records 42, 52 and 70 correct all three, and record 70 has a slip of its own:
+it cites "records 56 and 70" for the two failure reasons written by quoting the
+runner, where it means 56 and 64, because 70 is that note. The journal is
+append-only and a fourth correcting note about a citation inside the third is
+not worth a record, so it is named here.
 
 **What it cost, on its own figures.** Slice 1 68,043 output tokens, slice 2
 23,659, slice 3 45,545, slice 4 unknown because no figure was recorded at the

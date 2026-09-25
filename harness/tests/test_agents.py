@@ -120,20 +120,44 @@ class AgentSyncTest(CommandTest):
                         self.problems())
 
     def test_an_agent_file_nobody_generates_is_reported(self):
-        """F10: a file with no source under harness/agents/ has had no review."""
-        self.run_harness('sync')
-        stray = self.root / '.claude' / 'agents' / 'seen-implementer.md'
-        stray.write_text('---\nname: seen-implementer\ntools: Edit, Write, Bash\n---\n')
+        """F10: a file with no source under harness/agents/ has had no review.
 
-        found = [problem for problem in self.problems() if 'seen-implementer' in problem]
+        The name must be one no source generates. Both of these used
+        seen-implementer until SEEN-108 made it the third agent, at which point
+        its name entered the set `strays` skips and `drift` reported the
+        hand-written bytes instead: the assertion still passed and the check it
+        was written for was exercised by nothing. F3 of that ticket's third
+        review.
+        """
+        self.run_harness('sync')
+        stray = self.root / '.claude' / 'agents' / 'seen-architect.md'
+        stray.write_text('---\nname: seen-architect\ntools: Edit, Write, Bash\n---\n')
+
+        found = [problem for problem in self.problems() if 'seen-architect' in problem]
         self.assertTrue(found, self.problems())
 
     def test_a_stray_codex_agent_file_is_reported_too(self):
         self.run_harness('sync')
-        (self.root / '.codex' / 'agents' / 'seen-implementer.toml').write_text('name = "x"\n')
+        (self.root / '.codex' / 'agents' / 'seen-architect.toml').write_text('name = "x"\n')
 
-        self.assertTrue([problem for problem in self.problems() if 'seen-implementer' in problem],
+        self.assertTrue([problem for problem in self.problems() if 'seen-architect' in problem],
                         self.problems())
+
+    def test_only_the_stray_check_can_report_a_file_with_no_source(self):
+        """The guard the two above lost: drift must not be able to stand in for strays.
+
+        A generated copy differs from its rendering, which is what drift reports;
+        a file no source generates has no rendering to differ from, so if this
+        passes with `strays` removed from `drift` the check is decorative.
+        """
+        from harness import agents
+        self.run_harness('sync')
+        (self.root / '.claude' / 'agents' / 'seen-architect.md').write_text(
+            '---\nname: seen-architect\ntools: Edit, Write, Bash\n---\n')
+
+        self.assertEqual(agents.drift(self.root), agents.strays(self.root),
+                         'drift reports this file only because it calls strays')
+        self.assertTrue(agents.strays(self.root))
 
     def test_a_project_agent_of_ones_own_is_left_alone(self):
         """G7: .claude/agents/ belongs to the person; only the seen- names are ours."""
