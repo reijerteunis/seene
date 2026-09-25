@@ -223,7 +223,7 @@ def render(title, tickets, figures, unmeasurable, context_section=None, context_
             f'| {ticket["ticket"]} | {ticket.get("points") or "-"} '
             f'| {_duration(ticket.get("cycle_time_seconds"))} '
             f'| {ticket.get("attempts") or "-"} | {ticket.get("rework") if ticket.get("rework") is not None else "-"} '
-            f'| {total} ({findings.get("fixed", 0)} fixed, {findings.get("waived", 0)} waived) '
+            f'| {total} ({findings.get("fixed", 0)} closed, {findings.get("waived", 0)} open) '
             f'| {"+" if isinstance(delta, (int, float)) and delta > 0 else ""}{delta if delta is not None else "-"} |')
     rate = figures['first_pass_ci_rate']
     first_pass = 'not measurable yet' if rate is None else f'{round(rate * 100)}%'

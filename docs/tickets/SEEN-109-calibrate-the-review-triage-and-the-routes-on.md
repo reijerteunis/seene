@@ -78,11 +78,14 @@ verdict at stay-shadow until ten further tickets have pushed it out, which is th
 ten.
 
 The return to shadow is computed and never written. Nothing rewrites `thresholds.toml`: going live
-stays one line a person changes, and the triage asks `effective_shadow` rather than reading the
-threshold alone. It returns to shadow on an escape and on nothing else. The first version returned
-on any stay-shadow verdict, including a window that was not full yet, which overrode the founder's
-own line and would have made going live impossible rather than early; twenty-four triage tests said
-so.
+stays a person's, and the triage asks `effective_shadow` rather than reading the threshold alone. It
+returns to shadow on an escape, and from attempt 6 on evidence in the window that nobody can place,
+and on nothing else. The first version returned on any stay-shadow verdict, including a window that
+was not full yet, which overrode the founder's own line and would have made going live impossible
+rather than early; twenty-four triage tests said so. Going live took one line when this paragraph was
+first written and takes two from attempt 3, `[review] triage_shadow` and `[calibration] went_live`;
+the third review returned the ticket for leaving the old instruction printed in four places, and the
+seventh found it still standing here and in one comment.
 
 Two record shapes had to change first, because without them the evidence is silently favourable to
 the thing being measured. A finding at high or blocking severity must name the file it is in, which
@@ -96,13 +99,14 @@ says which slice caused it, so every slice of the plan carries it and an escaped
 the same way; findings are the one per-slice measure. That is written into `route_rule` so nobody
 reads a per-slice rate as a per-slice cause.
 
-Six deviations from the solution record. Four of them are files the plan did not name and
-`slice_files` fails on, so a reader auditing that check finds every one here: `harness/doctor.py`,
+Six deviations from the solution record. Four are the files `slice_files` fails on, which the plan did
+not name, so a reader auditing that check finds every one of them here: `harness/doctor.py`,
 `harness/kpi.py`, `harness/tests/test_context_budget.py` and `harness/tests/test_triage.py`. The
-other two are about how the tests were run rather than which files changed. The two about running them: the tests were named in the plan as
-`pytest` commands and this repository runs `unittest`, which is what every check records; and the
-gate tests for the finding file went into `test_calibration.py` rather than `test_stage_gates.py`,
-because that is the file slice 1 declared.
+other two are about the tests themselves: the command that runs them, and which existing file two of
+them went into. Those two first. The plan named the tests as `pytest` commands and
+this repository runs `unittest`, which is what every check records; and the gate tests for the
+finding file went into `test_calibration.py` rather than the `test_stage_gates.py` the plan named,
+because `test_calibration.py` is the file slice 1 declared.
 
 The four files, in the order the reviews forced them. `harness/tests/test_context_budget.py`: SEEN-108
 left a guard there asserting `report --calibration` is not a command the parser accepts, with a note
@@ -292,3 +296,29 @@ answers now. `went_live_problem` swallowed a damaged journal into an empty recor
 chain and a record nobody wrote gave the same message and sent a reader to fix the wrong thing. And
 the counts written around the four files were stale, which is what this section's own earlier
 paragraph now states correctly.
+
+### What the seventh review found, and passed
+
+A pass, with three low findings, each resolved in the same attempt because none needed a behaviour
+change. It verified attempt 7's fixes by running them: it reverted the `settled` reading in memory and
+watched the test fail with the same tuple the RED at record 67 recorded, and it checked the real
+journals, where SEEN-099, SEEN-104, SEEN-105, SEEN-107 and SEEN-108 now read nothing waived and the
+severities agree between `kpi.findings` and the calibration report, which is what the fifth review
+asked for. It rendered the calibration report in memory and found both committed files
+byte-identical.
+
+The three findings were about what the change claims rather than what it computes. The comment and
+this Outcome justified counting a returning round's finding as fixed by the review gate's rule, and
+the gate reads only the findings the advance itself carries, so nothing checks that the finding in
+question was the one that got fixed: the figure says closed rather than fixed now, in the comment, in
+the key's meaning and in the weekly report's own words. Two places still told a reader that going
+live is one line, the paragraph above and one comment in `harness/triage.py`, which is the claim the
+third review returned the ticket on surviving where that fix did not reach. And the paragraph attempt
+7 wrote to correct the stale counts repeated a clause and called a deviation about which file a test
+went into a deviation about how the tests were run.
+
+Two things it deliberately did not raise, recorded here so they are not lost. `waived` is once again
+structurally unreachable for a delivered ticket that was never reopened, which is a dead figure that
+predates this change. And the committed weekly and sprint reports are stale from earlier tickets:
+they state five findings for SEEN-006 where the code computes six and carry no review-triage section,
+which is a delivery-time matter for whichever ticket regenerates them next.

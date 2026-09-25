@@ -448,19 +448,23 @@ def findings(records):
     F2 of SEEN-109's fifth review.
     """
     from . import calibration
-    # Where a ticket got to after each finding was written. The review gate
-    # refuses an advance carrying a finding that is not resolved, so a finding
-    # a later advance followed was dealt with whoever wrote it down; one on a
-    # return that nothing has advanced past is still open, and says so.
+    # Where a ticket got to after each finding was written. A finding the
+    # passing round records is resolved, because the review gate refuses an
+    # advance carrying one that is not. A finding recorded on a return that a
+    # later advance followed is counted closed rather than open, and the limit of
+    # that is worth saying: the gate reads only the findings the advance itself
+    # carries, so nothing checks that this particular one was what got fixed.
+    # Closed is what the figure means and closed is what the report says. F1 of
+    # the seventh review, which found the first wording claiming more.
     advances = [record['sequence'] for record in records
                 if record['kind'] == 'advance' and record['data'].get('from_stage') == 'review']
     by_severity, fixed, waived = {}, 0, 0
     for record, finding in calibration.latest_finding_records(records):
         severity = finding.get('severity', 'unknown')
         by_severity[severity] = by_severity.get(severity, 0) + 1
-        settled = (finding.get('status') == 'resolved'
-                   or any(sequence > record['sequence'] for sequence in advances))
-        if settled:
+        closed = (finding.get('status') == 'resolved'
+                  or any(sequence > record['sequence'] for sequence in advances))
+        if closed:
             fixed += 1
         else:
             waived += 1

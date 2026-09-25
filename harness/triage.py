@@ -765,9 +765,11 @@ def run(repository, records, current, rules, ticket, sequence):
     enforced = focus_set(facts, by_key, depth, rules)
     narrowed = focus_set(facts, by_key, model_depth, rules)
     # Not the threshold alone: SEEN-109's rule returns the triage to shadow when
-    # an escape lands in the window, and it does that without anybody editing a
-    # file. Going live is still one line in thresholds.toml and nothing here
-    # writes to it.
+    # an escape lands in the window, or when evidence in it cannot be placed, and
+    # it does that without anybody editing a file. Going live is still a person's,
+    # and it takes two lines in thresholds.toml, [review] triage_shadow and
+    # [calibration] went_live naming the record its decision is in. Nothing here
+    # writes to either.
     in_shadow = calibration.effective_shadow(repository.root, rules)
     shadow = in_shadow['shadow']
     focus = [entry['path'] for entry in facts] if shadow else list(enforced)
