@@ -26,6 +26,9 @@ from .paths import HISTORY, TICKETS
 # the window asks is whether anything expensive got through.
 ESCAPING_SEVERITIES = ('high', 'blocking')
 
+# The tail of a finding's reference: a line, a hunk, or a line and a column.
+LINE_REFERENCE = re.compile(r'\d+(-\d+)?')
+
 
 def journals(root):
     """Every ticket's records, by ticket id, and what could not be read.
@@ -102,8 +105,17 @@ def path_of(reference):
     """
     if not reference:
         return None
-    head, separator, tail = str(reference).rpartition(':')
-    if separator and tail.isdigit():
+    reference = str(reference)
+    # A reviewer writes `path:line`, and also `path:12-20` for a hunk and
+    # `path:58:5` for a column. Every such tail is stripped, because the triage
+    # excludes files and not lines, and a tail this cannot read leaves the
+    # reference alone: `harness/a.py:nope` is a path nothing can place rather
+    # than a path called `harness/a.py`. F1 of the fourth review, which measured
+    # a line range counting as clean.
+    while True:
+        head, separator, tail = reference.rpartition(':')
+        if not separator or not LINE_REFERENCE.fullmatch(tail):
+            break
         reference = head
     return normalise(reference)
 
@@ -125,6 +137,22 @@ def _preceding_triage(records, sequence):
     return found
 
 
+def declared_empty(records):
+    """Every review return that declared it found nothing, and who declared it.
+
+    A claim by its author rather than an observation: the harness cannot know
+    what a reviewer found, and `--no-findings` costs a word where recording the
+    findings costs a file. What it can do is name every round that made the
+    claim, so a reader auditing a clean window sees whose word it rests on. F3
+    of the fourth review.
+    """
+    return [dict(ticket=record['ticket'], record=record['sequence'],
+                 actor=record.get('actor'), reason=record['data'].get('reason'))
+            for record in records
+            if record['kind'] == 'return' and record['data'].get('from_stage') == 'review'
+            and record['data'].get('no_findings')]
+
+
 def escapes(records):
     """The escapes in one ticket's journal, and what nothing could place.
 
@@ -144,6 +172,13 @@ def escapes(records):
             excluded = {normalise(path)
                         for path in (triaged or {}).get('data', {}).get('would_exclude') or []}
             excluded.discard(None)
+            # What that triage saw at all. A reference in neither list names a
+            # file the triage never read, so nothing can say whether the
+            # narrowing would have dropped it: the two answers `not excluded`
+            # used to give the same reply to. F1 of the fourth review.
+            seen_by_triage = {normalise(entry.get('path'))
+                              for entry in (triaged or {}).get('data', {}).get('files') or []}
+            seen_by_triage.discard(None)
             for position, finding in enumerate(_review_findings(record)):
                 if finding.get('severity') not in ESCAPING_SEVERITIES:
                     continue
@@ -161,6 +196,14 @@ def escapes(records):
                                          id=finding.get('id'), severity=finding['severity'],
                                          reason='The finding names no file, so nothing can say '
                                                 'whether the triage would have excluded it'))
+                elif path not in excluded and seen_by_triage and path not in seen_by_triage:
+                    unplaced.append(dict(kind='finding', ticket=record['ticket'],
+                                         id=finding.get('id'), severity=finding['severity'],
+                                         file=path,
+                                         reason=f'The finding names {path}, which triage record '
+                                                f'{(triaged or {}).get("sequence")} did not see '
+                                                'in the diff at all, so nothing can say whether '
+                                                'the narrowing would have dropped it'))
                 elif path in excluded:
                     found.append(dict(kind='finding_in_excluded_file', ticket=record['ticket'],
                                       id=finding.get('id'), severity=finding['severity'],
@@ -392,6 +435,7 @@ def ticket_evidence(root, ticket, records, rules, escaped=None):
                 escaped_defects=escaped,
                 escapes=placed['escapes'],
                 unattributable=placed['unattributable'],
+                declared_empty=declared_empty(records),
                 slices=slice_rows(ticket, records, escaped, rules))
 
 
@@ -409,6 +453,7 @@ def verdict_triage(rows, rules):
     if len(rows) < size:
         return dict(state='stay_shadow', rule=rule, window=[row['ticket'] for row in rows],
                     escapes=[escape for row in rows for escape in row['escapes']],
+                    unplaceable=[row['ticket'] for row in rows if row['unattributable']],
                     reason=f'{len(rows)} of {size} counted tickets carry a triage, so the '
                            'evidence is reported and nothing is concluded from it')
     window = rows[-size:]
@@ -421,6 +466,7 @@ def verdict_triage(rows, rules):
         # and it is what let an optional flag decide a go-live. F1 of the third
         # review.
         return dict(state='stay_shadow', rule=rule, window=names, escapes=[],
+                    unplaceable=unplaced,
                     reason=f'No escape in the last {size} counted tickets, but evidence in '
                            f'{", ".join(unplaced)} could not be placed, and evidence nobody can '
                            'place is not evidence of no escape. The window states go-live only '
@@ -430,9 +476,10 @@ def verdict_triage(rows, rules):
         # what the window is made of and an escape is only evidence inside one.
         named = ', '.join(row['ticket'] for row in window if row['escapes'])
         return dict(state='stay_shadow', rule=rule, window=names, escapes=found,
+                    unplaceable=unplaced,
                     reason=f'{len(found)} escape(s) in the last {size} counted tickets, in '
                            f'{named}. The triage stays in shadow until ten tickets carry none')
-    return dict(state='go_live', rule=rule, window=names, escapes=[],
+    return dict(state='go_live', rule=rule, window=names, escapes=[], unplaceable=[],
                 reason=f'No escape in the last {size} counted tickets ({", ".join(names)}), '
                        'and every ticket in them could be read. Spot depth can go live, in two '
                        'lines: set [review] triage_shadow to false and fill [calibration] '
@@ -584,10 +631,22 @@ def effective_shadow(root, rules):
     # An escape, and nothing else. A window that is not full yet is a reason for
     # the report to conclude nothing, never a reason to override the line the
     # founder changed: that would make going live impossible rather than early.
-    if not verdict['escapes']:
+    unplaceable = [row for row in verdict.get('unplaceable') or []]
+    if not verdict['escapes'] and not unplaceable:
         return dict(shadow=False, source='calibration',
                     reason=went_live_line(root, rules) + ' No escape sits in the window of '
-                           f'{len(verdict["window"])} counted ticket(s).')
+                           f'{len(verdict["window"])} counted ticket(s), and every ticket in it '
+                           'could be read.')
+    if not verdict['escapes']:
+        # The report said stay-shadow and the triage went on narrowing, so the
+        # two reports could disagree about the same tree while four documents
+        # said the triage reads the verdict. It does now. A window that is
+        # simply not full yet is still not a reason to override the founder's
+        # line, which is why this reads the evidence and not the state.
+        return dict(shadow=True, source='calibration',
+                    reason='Returned to shadow by the calibration rule: evidence in '
+                           f'{", ".join(unplaceable)} could not be placed, and evidence nobody '
+                           'can place is not evidence of no escape')
     named = ', '.join(sorted({escape['ticket'] for escape in verdict['escapes']}))
     return dict(shadow=True, source='calibration',
                 reason=f'Returned to shadow by the calibration rule: {len(verdict["escapes"])} '

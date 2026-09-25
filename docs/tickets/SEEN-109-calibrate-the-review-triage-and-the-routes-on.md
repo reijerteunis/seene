@@ -195,3 +195,32 @@ file in one journal would have refused the review stage of every other ticket; a
 refuses to be read is now excluded and named, and `doctor` remains where a damaged journal is
 reported. Criterion 1 is marked `(as amended)`, the way this repository marks a criterion a ticket
 deliberately did not meet. And a sentence in the workflow paragraph starts with a capital.
+
+### What the fourth review found
+
+The same class of defect a third time, reached through the shape of a reference rather than through
+`lstrip`. An unattributable row was written only when the reference could not be read at all, so a
+finding at `harness/skipped.py:12-20`, which is what a reviewer writes for a hunk, or at
+`harness/skipped.py:58:5`, or at a path the triage never saw, was counted clean. Two answers were
+giving the same reply: not in the exclusions, and not a file the triage ever read. The triage record
+carries `files` as well as `would_exclude`, so a reference in neither is now placed nowhere, and the
+tail of a reference is stripped whether it is a line, a hunk or a line and a column.
+
+The triage read the escapes while the report read the escapes and the unplaceable evidence, so the
+calibration report could say stay-shadow about the same tree the weekly report said `In shadow: no`
+about, with four documents claiming the triage reads the verdict. It reads both now, and the four
+documents say exactly that: an escape or evidence nobody can place returns a live triage to shadow,
+while a window that is simply not full is a reason to conclude nothing and never a reason to
+override the switch.
+
+`--no-findings` was the third finding, and the reviewer made its case out of this ticket's own
+journal: records 18, 26 and 37 carry no findings while notes 17, 25 and 36 record one high and three
+mediums, one high and four, and two mediums and six lows. The harness cannot know what a reviewer
+found, so it cannot refuse a wrong declaration; what it can do is name every round that made one,
+which the report now does with the record, the actor and the reason. Record 47, the return that
+carries this review, records its findings rather than declaring nothing, which is what the earlier
+three should have done.
+
+The fourth is a test: the printed go-live instruction is now pinned to naming both lines, in the
+verdict's reason and in the rule the report prints verbatim, so the one-line instruction the third
+review returned the ticket on cannot come back green.

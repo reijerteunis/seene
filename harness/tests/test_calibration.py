@@ -8,7 +8,7 @@ written rather than that a number came out favourable.
 import json
 import unittest
 
-from harness import calibration, gates, journal as journal_module, thresholds
+from harness import calibration, gates, journal as journal_module, report, thresholds
 from harness.errors import HarnessError
 from harness.tests.helpers import PROJECT, ProjectTest
 from harness.tests.test_lifecycle import CommandTest
@@ -73,7 +73,7 @@ def slice_entry(position, model, source='jev', points=1, files=('harness/a.py',)
 
 
 def journal(ticket='SEEN-001', day=1, triage=None, findings=(), returns=(), execution=None,
-            answers=(), returned_findings=None):
+            answers=(), returned_findings=None, declared_empty=False):
     """A delivered ticket's journal: start, plan, route, triage, review, receipt."""
     records = [
         record(1, 'start', 'clarify', day=day, ticket=ticket, ticket_file='docs/tickets/x.md',
@@ -95,6 +95,13 @@ def journal(ticket='SEEN-001', day=1, triage=None, findings=(), returns=(), exec
                               ticket=ticket, from_stage='review', to_stage='tdd', to_attempt=2,
                               reason='The review found a defect', unmet_criteria=[],
                               findings=list(returned_findings)))
+        records.append(triage_record(len(records) + 1, day=day, minute=16,
+                                     would_exclude=triage or (), answers=answers, ticket=ticket))
+    if declared_empty:
+        records.append(record(len(records) + 1, 'return', 'review', day=day, minute=13,
+                              ticket=ticket, from_stage='review', to_stage='tdd', to_attempt=2,
+                              reason='Not about a defect', unmet_criteria=[], findings=[],
+                              no_findings=True))
         records.append(triage_record(len(records) + 1, day=day, minute=16,
                                      would_exclude=triage or (), answers=answers, ticket=ticket))
     for position, unmet in enumerate(returns):
@@ -821,5 +828,88 @@ class ReviewReturnDeclarationTest(CommandTest):
         record = self.run_harness('return', self.ticket_id, '--to', 'clarify',
                                   '--actor', 'claude:implementer', '--reason', 'Replanning')
         self.assertEqual(record['data']['findings'], [])
+
+
+class FourthReviewTest(ProjectTest):
+    """The findings of the fourth review, at note 46."""
+
+    def setUp(self):
+        super().setUp()
+        self.rules = thresholds.load(self.root)
+
+    def placed(self, reference, would_exclude=('harness/skipped.py',), files=None):
+        records = journal(triage=would_exclude,
+                          findings=[finding('F1', 'blocking', reference)])
+        for entry in records:
+            if entry['kind'] == 'triage':
+                entry['data']['files'] = [dict(path=path) for path in
+                                          (files if files is not None
+                                           else ['harness/skipped.py', 'harness/read.py'])]
+        return calibration.escapes(records)
+
+    def test_a_line_range_still_finds_the_file(self):
+        """F1: a reviewer writes a hunk, and the tail is not all digits."""
+        found = self.placed('harness/skipped.py:12-20')
+        self.assertEqual([entry['kind'] for entry in found['escapes']],
+                         ['finding_in_excluded_file'])
+
+    def test_a_line_and_column_still_finds_the_file(self):
+        found = self.placed('harness/skipped.py:58:5')
+        self.assertEqual(len(found['escapes']), 1)
+
+    def test_a_path_the_triage_never_saw_is_unattributable(self):
+        """Not in would_exclude and not in the diff: placed nowhere, not placed outside."""
+        found = self.placed('harness/typo.py:3')
+        self.assertEqual(found['escapes'], [])
+        self.assertEqual([entry['id'] for entry in found['unattributable']], ['F1'])
+
+    def test_a_file_the_triage_read_is_neither(self):
+        found = self.placed('harness/read.py:3')
+        self.assertEqual(found['escapes'], [])
+        self.assertEqual(found['unattributable'], [])
+
+    def test_evidence_nobody_can_place_returns_a_live_triage_to_shadow(self):
+        """F2: the triage reads the verdict, which is what four documents say."""
+        rules = dict(self.rules, review=dict(self.rules['review'], triage_shadow=False),
+                     calibration=dict(self.rules['calibration'],
+                                      went_live=dict(ticket='SEEN-B01', record=4,
+                                                     on='2026-11-01')))
+        for day in range(1, 11):
+            plant(self.root, f'SEEN-B{day:02d}', day)
+        self.assertFalse(calibration.effective_shadow(self.root, rules)['shadow'])
+        # One round that returned a ticket and declared nothing at all.
+        plant(self.root, 'SEEN-B20', 11, returns=[[]], answers=[(1, 'A criterion', True)])
+        answer = calibration.effective_shadow(self.root, rules)
+        self.assertTrue(answer['shadow'])
+        self.assertIn('could not be placed', answer['reason'])
+
+    def test_a_short_window_does_not_return_a_live_triage_to_shadow(self):
+        """A window that is not full is a reason to conclude nothing, not to override."""
+        rules = dict(self.rules, review=dict(self.rules['review'], triage_shadow=False),
+                     calibration=dict(self.rules['calibration'],
+                                      went_live=dict(ticket='SEEN-B01', record=4,
+                                                     on='2026-11-01')))
+        plant(self.root, 'SEEN-B01', 1)
+        self.assertFalse(calibration.effective_shadow(self.root, rules)['shadow'])
+
+    def test_the_report_names_every_round_that_declared_it_found_nothing(self):
+        """F3: a declaration is a claim by its author, so the report says who made it."""
+        plant(self.root, 'SEEN-B30', 1, declared_empty=True)
+        section = calibration.evidence(self.root, self.rules)
+        entry = next(row for row in section['tickets'] if row['ticket'] == 'SEEN-B30')
+        self.assertEqual([claim['actor'] for claim in entry['declared_empty']],
+                         ['claude:implementer'])
+        markdown = report.render_calibration(section, self.rules)
+        self.assertIn('declared it found nothing', markdown)
+
+    def test_the_printed_go_live_instruction_names_both_lines(self):
+        """F4: the one-line instruction must not be able to come back quietly."""
+        rows = [dict(ticket=f'SEEN-B{index:02d}', escapes=[], unattributable=[])
+                for index in range(10)]
+        reason = calibration.verdict_triage(rows, self.rules)['reason']
+        self.assertIn('triage_shadow', reason)
+        self.assertIn('went_live', reason)
+        self.assertIn('triage_shadow', self.rules['calibration']['triage_rule'])
+        self.assertIn('went_live', self.rules['calibration']['triage_rule'])
 if __name__ == '__main__':
     unittest.main()

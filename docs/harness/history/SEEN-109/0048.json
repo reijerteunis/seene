@@ -1,0 +1,31 @@
+{
+  "sequence": 48,
+  "ticket": "SEEN-109",
+  "timestamp": "2026-09-25T21:55:24.483450+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 5,
+  "actor": "claude:implementer",
+  "session": "343d37550220",
+  "head": "f7a3f1c78e6de96e56a77465a0c18c76dffaafbd",
+  "prev_hash": "d29d0a656f09c07cd50344290f7513a5739150c7b349ad9a488e8f5afc19b0fd",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_calibration"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "model": "claude-opus-5",
+    "model_declared": "opus",
+    "duration_ms": 9875,
+    "output": "....................FFF.F.E...................................................\n======================================================================\nERROR: test_the_report_names_every_round_that_declared_it_found_nothing (harness.tests.test_calibration.FourthReviewTest.test_the_report_names_every_round_that_declared_it_found_nothing)\nF3: a declaration is a claim by its author, so the report says who made it.\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_calibration.py\", line 902, in test_the_report_names_every_round_that_declared_it_found_nothing\n    self.assertEqual([claim['actor'] for claim in entry['declared_empty']],\n                                                  ~~~~~^^^^^^^^^^^^^^^^^^\nKeyError: 'declared_empty'\n\n======================================================================\nFAIL: test_a_line_and_column_still_finds_the_file (harness.tests.test_calibration.FourthReviewTest.test_a_line_and_column_still_finds_the_file)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_calibration.py\", line 860, in test_a_line_and_column_still_finds_the_file\n    self.assertEqual(len(found['escapes']), 1)\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 0 != 1\n\n======================================================================\nFAIL: test_a_line_range_still_finds_the_file (harness.tests.test_calibration.FourthReviewTest.test_a_line_range_still_finds_the_file)\nF1: a reviewer writes a hunk, and the tail is not all digits.\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_calibration.py\", line 855, in test_a_line_range_still_finds_the_file\n    self.assertEqual([entry['kind'] for entry in found['escapes']],\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                     ['finding_in_excluded_file'])\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: Lists differ: [] != ['finding_in_excluded_file']\n\nSecond list contains 1 additional elements.\nFirst extra element 0:\n'finding_in_excluded_file'\n\n- []\n+ ['finding_in_excluded_file']\n\n======================================================================\nFAIL: test_a_path_the_triage_never_saw_is_unattributable (harness.tests.test_calibration.FourthReviewTest.test_a_path_the_triage_never_saw_is_unattributable)\nNot in would_exclude and not in the diff: placed nowhere, not placed outside.\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_calibration.py\", line 866, in test_a_path_the_triage_never_saw_is_unattributable\n    self.assertEqual([entry['id'] for entry in found['unattributable']], ['F1'])\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: Lists differ: [] != ['F1']\n\nSecond list contains 1 additional elements.\nFirst extra element 0:\n'F1'\n\n- []\n+ ['F1']\n\n======================================================================\nFAIL: test_evidence_nobody_can_place_returns_a_live_triage_to_shadow (harness.tests.test_calibration.FourthReviewTest.test_evidence_nobody_can_place_returns_a_live_triage_to_shadow)\nF2: the triage reads the verdict, which is what four documents say.\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_calibration.py\", line 885, in test_evidence_nobody_can_place_returns_a_live_triage_to_shadow\n    self.assertTrue(answer['shadow'])\n    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^\nAssertionError: False is not true\n\n----------------------------------------------------------------------\nRan 78 tests in 9.830s\n\nFAILED (failures=4, errors=1)\n",
+    "output_sha256": "04ac8419ec55f75d11b1bddbede22f804e6a22447c30971fc678b05057fc1abb",
+    "output_truncated": false,
+    "before": "cdb53e0c573cbc3aab5fc8e99744954bdc205360c6f43c28c232a72b8d767423",
+    "after": "cdb53e0c573cbc3aab5fc8e99744954bdc205360c6f43c28c232a72b8d767423"
+  }
+}

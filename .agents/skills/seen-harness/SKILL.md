@@ -159,9 +159,10 @@ reads everything and every slice still runs on the session's model, while what t
 narrowing and the route would have done is recorded. `harness report --calibration`
 states go-live or stay-shadow for each, by the rule; going live is the founder's, and
 for the triage it is two lines in thresholds.toml, the switch and the record its
-decision is in. The return to shadow needs nobody: an escape in the window makes the verdict
-stay-shadow and the triage reads the verdict, so a triage record says which shadow
-it is in and what put it there. Three things the evidence needs from you: a finding at
+decision is in. The return to shadow needs nobody: an escape in the window returns the triage to
+shadow, and so does evidence in the window that nobody can place, so a triage record
+says which shadow it is in and what put it there. A window that is not full yet is a
+reason for the report to conclude nothing, never a reason to override the switch. Three things the evidence needs from you: a finding at
 high or blocking severity must name the file it is in; a review that sends a ticket
 back records what it found with `harness return --findings <file>`, because a round
 that returned a ticket is a round whose findings the window reads; and one that sends

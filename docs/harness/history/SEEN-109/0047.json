@@ -1,0 +1,59 @@
+{
+  "sequence": 47,
+  "ticket": "SEEN-109",
+  "timestamp": "2026-09-25T21:54:38.674189+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 4,
+  "actor": "claude:reviewer",
+  "session": "343d37550220",
+  "head": "f7a3f1c78e6de96e56a77465a0c18c76dffaafbd",
+  "prev_hash": "b9825b51eeba48ae4a8235681b1dce03c772a4d391eef3d4604cbd18d2bb0127",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 5,
+    "reason": "The review at note 46 returns the ticket on F1, F2 and F3. F1: an unattributable row is written only when the reference cannot be read at all, so a line range, a line and column, or a path the triage never saw is counted clean, which is the silent pass of note 17 and note 25 reaching through the shape of the reference rather than through lstrip. Taken by reading the triage's own files list: a path in neither would_exclude nor the files the triage saw is placed nowhere. F2: the triage returns to shadow on an escape and not on evidence nobody can place, while four documents say it reads the verdict; the triage now returns to shadow on either, and the documents say exactly that. F3: a declared-empty round reads as evidence of no escape rather than as a claim by its author, and the report now names every round that made one. F4 is taken with them. This return records its own findings, which is what the review at note 46 found the earlier three did not.",
+    "findings": [
+      {
+        "id": "F1",
+        "severity": "high",
+        "file": "harness/calibration.py:159",
+        "claim": "An unattributable row is written only when path_of returns nothing, so a high or blocking finding whose file string is not an exact member of would_exclude is counted clean rather than unplaceable",
+        "failure_scenario": "With would_exclude holding harness/skipped.py, a blocking finding at harness/skipped.py:12-20 or at harness/typo.py:3 yields no escape and nothing unattributable, so a window of ten states go-live on a ticket that hid the escape kind it measures.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F2",
+        "severity": "medium",
+        "file": "harness/calibration.py:587",
+        "claim": "Evidence nobody can place holds the report's verdict but does not return a live triage to shadow, while four documents say the triage reads the verdict",
+        "failure_scenario": "On a planted tree the calibration report states stay-shadow and the weekly report states In shadow: no about the same tree, and reviewers keep reading a narrowed focus set.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F3",
+        "severity": "medium",
+        "file": "harness/cli.py:769",
+        "claim": "--no-findings discharges the declaration requirement in one word and makes the round read clean, with nothing cross-checking it",
+        "failure_scenario": "A round that found a blocking finding in an excluded file is cheaper to declare empty than to record, and a declared-empty round reads as evidence of no escape rather than as a claim by its author.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F4",
+        "severity": "low",
+        "file": "harness/calibration.py:435",
+        "claim": "No test pins the printed go-live instruction to naming both lines",
+        "failure_scenario": "Shortening the instruction back to one line leaves the whole suite green and restores the defect the third review returned the ticket on.",
+        "status": "open",
+        "resolution": ""
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}

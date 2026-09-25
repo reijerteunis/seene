@@ -308,6 +308,15 @@ def render_calibration(section, rules):
                 lines.append(f'- {escape["ticket"]}: criterion {escape["position"]}, which '
                              f'triage record {escape["triage"]} answered evidenced and the '
                              f'review found unmet. {escape.get("criterion")}')
+    claimed = [claim for ticket in section['tickets'] for claim in ticket['declared_empty']]
+    if claimed:
+        lines += ['', '### Rounds that declared it found nothing', '',
+                  'A claim by its author, not an observation: the harness cannot know what a '
+                  'reviewer found, so every round that made the claim is named and a clean '
+                  "window says whose word it rests on.", '']
+        for claim in claimed:
+            lines.append(f'- {claim["ticket"]}, record {claim["record"]}, by '
+                         f'{claim["actor"]}: {claim["reason"]}')
     unplaced = [entry for ticket in section['tickets'] for entry in ticket['unattributable']]
     if unplaced:
         lines += ['', '### What nothing could place', '',
@@ -346,8 +355,10 @@ def render_calibration(section, rules):
               'triage_shadow` goes false and `[calibration] went_live` names the ticket and the '
               'record number of the decision, which `doctor` checks exists and CI runs. '
               'The return to shadow is the one thing that happens without '
-              'a person, because an escape in the window makes the verdict stay-shadow and the '
-              'triage reads the verdict.', '']
+              'a person: an escape in the window returns the triage to shadow, and so does '
+              'evidence in it that nobody can place, because counted neither way cannot mean '
+              'counted as clean. A window that is simply not full yet is a reason to conclude '
+              "nothing here and never a reason to override the founder's line.", '']
     return '\n'.join(lines) + '\n'
 
 
