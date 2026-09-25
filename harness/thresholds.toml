@@ -128,7 +128,10 @@ handoff_token_limit = 2000
 # legitimate decision that should be a diff a person reviews; what each agent may
 # do is structure and lives in harness/agents.py.
 [agents]
-names = ["seen-scout", "seen-reviewer"]
+# The implementer joins the two readers in SEEN-108. It is the one agent whose
+# model and effort are not its own: they are the route's, read from the branch's
+# journal, which is why its generated copies change with the slice in hand.
+names = ["seen-scout", "seen-reviewer", "seen-implementer"]
 # A brief is what crosses back into the session that asked, so it is small enough
 # to be read in full. Four hundred words is about two thirds of the handoff pack.
 brief_word_limit = 400

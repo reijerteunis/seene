@@ -436,6 +436,66 @@ class GateTest(RouteTest):
         self.assertEqual(record['data']['to_stage'], 'review')
 
 
+class ImplementerCopyTest(RouteTest):
+    """The agent the slice is worked by, carrying the route it was given.
+
+    Generated per slice rather than once, because Claude Code documents no
+    per-invocation effort override: the file is the only place a routed effort
+    can be put, so the file follows the slice in hand.
+    """
+
+    def setUp(self):
+        super().setUp()
+        for name in ('seen-scout', 'seen-reviewer', 'seen-implementer'):
+            self.write(f'harness/agents/{name}.md', f'# {name}\n\nStand-in body.\n')
+
+    def frontmatter(self):
+        self.run_harness('sync')
+        return (self.root / '.claude/agents/seen-implementer.md').read_text().split('---\n')[1]
+
+    def codex(self):
+        import tomllib
+        self.run_harness('sync')
+        return tomllib.loads(
+            (self.root / '.codex/agents/seen-implementer.toml').read_text())
+
+    def test_the_copies_carry_the_route_of_the_slice_in_hand(self):
+        self.use(route_stub(model=(0.1, 0.7, 0.2), effort=(0.7, 0.2, 0.1)))
+        self.reach_tdd([PLAIN])
+        self.route()
+        self.assertIn('model: sonnet', self.frontmatter())
+        self.assertIn('effort: low', self.frontmatter())
+        self.assertEqual(self.codex()['model'], 'sonnet')
+        self.assertEqual(self.codex()['model_reasoning_effort'], 'low')
+
+    def test_the_copies_follow_the_slice_boundary(self):
+        self.use(route_stub(model=(0.7, 0.2, 0.1)))
+        self.reach_tdd([MONEY, PLAIN])
+        self.route()
+        # Slice 1 is a rule, so the strongest; slice 2 is Jev's, so haiku.
+        self.assertIn('model: opus', self.frontmatter())
+        self.run_harness('handoff', self.ticket_id, '--actor', 'claude:implementer',
+                         '--slice-done', '1')
+        self.assertIn('model: haiku', self.frontmatter())
+
+    def test_a_plan_worked_through_falls_back_to_the_strongest(self):
+        self.use(route_stub(model=(0.7, 0.2, 0.1)))
+        self.reach_tdd([PLAIN])
+        self.route()
+        self.run_harness('handoff', self.ticket_id, '--actor', 'claude:implementer',
+                         '--slice-done', '1')
+        self.assertIn('model: opus', self.frontmatter())
+
+    def test_route_writes_the_copies_so_doctor_is_not_left_behind(self):
+        from harness import doctor as doctoring
+        from harness.repository import Repository
+        self.use(route_stub(model=(0.1, 0.7, 0.2)))
+        self.reach_tdd([PLAIN])
+        self.run_harness('sync')
+        self.route()
+        self.assertEqual(doctoring.report(Repository(self.root), {})['problems'], [])
+
+
 class QuestionTest(CommandTest):
     """The two questions, registered the way the triage's four are."""
 
@@ -455,3 +515,29 @@ class QuestionTest(CommandTest):
         for name in ('implementation_model', 'implementation_effort'):
             question = jev.QUESTIONS[name]
             self.assertEqual(len(question['criteria']), len(question['options']))
+
+
+class DamagedJournalTest(CommandTest):
+    """What the implementer's copies do when the journal cannot be read.
+
+    doctor reports a broken chain and a stray file beside the records. It
+    regenerates the agent copies to compare them, so a generator that raised on
+    a damaged journal would take the report down with it and hand the person a
+    traceback where the problem list belongs.
+    """
+
+    def test_a_broken_chain_leaves_the_copies_at_the_strongest(self):
+        from harness import agents
+        self.start()
+        record = self.root / 'docs' / 'harness' / 'history' / self.ticket_id / '0001.json'
+        record.write_text(record.read_text().replace('"attempt": 1', '"attempt": 2'))
+        self.assertEqual(agents.routed(self.root), ('opus', 'high'))
+
+    def test_doctor_still_reports_the_broken_chain(self):
+        from harness import doctor as doctoring
+        from harness.repository import Repository
+        self.start()
+        folder = self.root / 'docs' / 'harness' / 'history' / self.ticket_id
+        (folder / 'notes.txt').write_text('a stray file\n')
+        problems = doctoring.report(Repository(self.root), {})['problems']
+        self.assertTrue(any('notes.txt' in problem for problem in problems), problems)

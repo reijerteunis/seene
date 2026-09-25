@@ -152,14 +152,25 @@ class AgentSyncTest(CommandTest):
 
 
 class AgentDefinitionTest(CommandTest):
-    """What the two agents are allowed to do, which is the point of separating them."""
+    """What each agent is allowed to do, which is the point of separating them."""
 
-    def test_neither_agent_may_write(self):
+    def test_neither_reader_may_write(self):
+        """The scout and the reviewer read and nothing else.
+
+        SEEN-105 could say this of every agent because every agent was a reader.
+        SEEN-108 adds one that writes the slice, so the rule is stated of the
+        two it was always about rather than quietly dropped.
+        """
         from harness import agents
-        for agent in agents.AGENTS:
+        for agent in (agents.SCOUT, agents.REVIEWER):
             for forbidden in ('Edit', 'Write', 'NotebookEdit'):
                 self.assertNotIn(forbidden, agent['tools'],
                                  f'{agent["name"]} must not hold {forbidden}')
+
+    def test_the_implementer_is_the_only_agent_that_may_write(self):
+        from harness import agents
+        writers = [agent['name'] for agent in agents.AGENTS if 'Write' in agent['tools']]
+        self.assertEqual(writers, ['seen-implementer'])
 
     def test_the_scout_can_reach_the_graphs_and_the_reviewer_cannot_be_the_implementer(self):
         from harness import agents
@@ -169,7 +180,8 @@ class AgentDefinitionTest(CommandTest):
     def test_the_roster_and_the_brief_cap_are_a_diff_a_person_reviews(self):
         from harness import thresholds
         rules = thresholds.load(self.root)
-        self.assertEqual(sorted(rules['agents']['names']), ['seen-reviewer', 'seen-scout'])
+        self.assertEqual(sorted(rules['agents']['names']),
+                         ['seen-implementer', 'seen-reviewer', 'seen-scout'])
         self.assertEqual(rules['agents']['brief_word_limit'], 400)
 
 
@@ -214,8 +226,10 @@ class ScoutBriefTest(CommandTest):
         self.assertEqual(self.brief(10)['session'], self.records()[-1]['session'])
 
     def test_an_unknown_agent_is_refused_and_the_roster_is_named(self):
+        # A name nobody has a source for. seen-implementer was this fixture's
+        # unknown until SEEN-108 made it one of the three.
         with self.assertRaises(HarnessError) as raised:
-            self.brief(10, agent='seen-implementer')
+            self.brief(10, agent='seen-architect')
         self.assertIn('seen-scout', str(raised.exception))
 
     def test_an_ordinary_note_is_not_capped(self):
@@ -274,3 +288,75 @@ class TheSkillSaysSoTest(unittest.TestCase):
 
     def test_it_names_the_word_cap_on_a_brief(self):
         self.assertIn('400', self.text)
+
+
+IMPLEMENTER_CLAUDE = '.claude/agents/seen-implementer.md'
+IMPLEMENTER_CODEX = '.codex/agents/seen-implementer.toml'
+IMPLEMENTER_BODY = '# The implementer\n\nWork one slice. Red, then green, then stop.\n'
+
+
+class ImplementerTest(CommandTest):
+    """The one agent whose model and effort are not its own to choose.
+
+    The scout and the reviewer carry a model because what they do never changes.
+    The implementer's is the route's, read from the branch's journal, which is
+    why its copies are generated per slice rather than once.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.write('harness/agents/seen-scout.md', SCOUT_BODY)
+        self.write('harness/agents/seen-reviewer.md', REVIEWER_BODY)
+        self.write('harness/agents/seen-implementer.md', IMPLEMENTER_BODY)
+
+    def frontmatter(self):
+        self.run_harness('sync')
+        return (self.root / IMPLEMENTER_CLAUDE).read_text().split('---\n')[1]
+
+    def codex(self):
+        self.run_harness('sync')
+        return tomllib.loads((self.root / IMPLEMENTER_CODEX).read_text())
+
+    def test_sync_writes_both_implementer_copies(self):
+        self.run_harness('sync')
+        for relative in (IMPLEMENTER_CLAUDE, IMPLEMENTER_CODEX):
+            self.assertTrue((self.root / relative).is_file(),
+                            f'{relative} was not written')
+
+    def test_the_implementer_holds_edit_and_write(self):
+        """The first agent that does, because writing the slice is what it is for."""
+        frontmatter = self.frontmatter()
+        self.assertIn('Edit', frontmatter)
+        self.assertIn('Write', frontmatter)
+
+    def test_the_claude_copy_carries_an_effort_key(self):
+        """Claude Code has no per-invocation effort override, so the file is where it goes."""
+        self.assertRegex(self.frontmatter(), r'\neffort: (low|medium|high|max)\n')
+
+    def test_the_codex_copy_carries_a_reasoning_effort(self):
+        self.assertIn('model_reasoning_effort', self.codex())
+
+    def test_a_branch_with_no_route_gets_the_strongest_at_high_effort(self):
+        """Main, a fresh clone and CI all land here, and the safe value is the strong one."""
+        self.assertIn('model: opus', self.frontmatter())
+        self.assertIn('effort: high', self.frontmatter())
+        self.assertEqual(self.codex()['model_reasoning_effort'], 'high')
+
+    def test_the_scout_and_the_reviewer_carry_no_effort_key(self):
+        """An agent with no effort of its own takes the session's, which is what omitting it means."""
+        self.run_harness('sync')
+        for relative in CLAUDE_COPIES:
+            self.assertNotIn('\neffort:', (self.root / relative).read_text())
+
+    def test_doctor_reports_no_drift_after_sync(self):
+        self.run_harness('sync')
+        self.assertEqual(self.problems(), [])
+
+    def problems(self):
+        return doctoring.report(Repository(self.root), {})['problems']
+
+    def test_an_edited_implementer_copy_is_reported_as_drift(self):
+        self.run_harness('sync')
+        path = self.root / IMPLEMENTER_CLAUDE
+        path.write_text(path.read_text().replace('model: opus', 'model: haiku'))
+        self.assertTrue(any('seen-implementer' in problem for problem in self.problems()))

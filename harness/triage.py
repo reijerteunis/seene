@@ -25,7 +25,7 @@ policy gate, and a migration. Any of them is full depth with no request made.
 
 import re
 
-from . import gates, jev, journal, kpi, risk, secrets
+from . import gates, jev, journal, kpi, risk, routing, secrets
 from .errors import HarnessError, require
 from .paths import FINGERPRINT_EXCLUDED
 
@@ -629,7 +629,7 @@ def always_read(records, ticket, root=None):
     return [entry for entry in (path, f'{HISTORY}/{ticket}/') if entry]
 
 
-def reviewer_task(ticket, sequence, depth, focus, results, shadow, always):
+def reviewer_task(ticket, sequence, depth, focus, results, shadow, always, model=None):
     """The task the session hands its reviewer subagent.
 
     Text rather than a call, because the harness runs no model: what it buys is
@@ -656,6 +656,9 @@ def reviewer_task(ticket, sequence, depth, focus, results, shadow, always):
              f'Depth: {depth}, settled by triage record {sequence}'
              + (', in shadow mode, so the focus set is the whole diff and what the narrowing '
                 'would have dropped is recorded rather than acted on' if shadow else ''),
+             '',
+             f'Run the reviewer on {model} by rule: the strongest model at full depth, one tier '
+             'down at spot.' if model else '',
              '',
              'Read these whatever the depth, because they are what a review is against and no '
              'focus set can hold them:']
@@ -779,6 +782,9 @@ def run(repository, records, current, rules, ticket, sequence):
                 jev=requested,
                 criteria_answers=criteria_answers,
                 review_depth=depth,
+                # A rule, like the three that force full depth: the depth the
+                # reviewer is held to is what decides what it has to be.
+                reviewer_model=routing.reviewer_model(depth, rules),
                 # What Jev would have chosen, beside what the rules enforced.
                 model_depth=model_depth,
                 # In shadow the reviewer still reads everything, and what the
@@ -791,7 +797,8 @@ def run(repository, records, current, rules, ticket, sequence):
                 excluded_share=excluded_share(facts, narrowed),
                 always_read=required,
                 reviewer_task=reviewer_task(ticket, sequence, depth, focus, results, shadow,
-                                            required))
+                                            required,
+                                            routing.reviewer_model(depth, rules)))
 
 
 def _ticket_text(repository, records):

@@ -79,6 +79,20 @@ def model_id(rules, tier):
     return rules['routing']['models'].get(tier)
 
 
+def reviewer_model(depth, rules):
+    """Which model reviews, which is a rule and never Jev's to answer.
+
+    A full review holds the whole diff, the journal and the criteria at once,
+    which is the most expensive read in the procedure and the one where a missed
+    defect costs most, so it gets the strongest tier. A spot review reads a
+    narrowed focus set and goes one tier down. The depth it reads is the one the
+    triage enforced, not the one the model would have chosen: what the reviewer
+    is actually asked to read is what decides what it needs to be.
+    """
+    order = tiers(rules)
+    return order[-1] if depth == 'full' else order[max(len(order) - 2, 0)]
+
+
 def path_rule(files, patterns):
     """The first rule a slice's own files trip, and the file that tripped it."""
     for name, globs in patterns.items():
@@ -315,7 +329,13 @@ def for_slice(records, position):
 
 def append(repository, folder, records, current, args, rules):
     """Run the route and keep it. Nothing is refused by what it decides."""
+    from . import agents
     data = run(repository, records, current, rules, args.ticket)
-    return journal.append(folder, records, kind='route', stage=current['stage'],
-                          attempt=current['attempt'], actor=args.actor,
-                          head=repository.head(), ticket=args.ticket, data=data)
+    record = journal.append(folder, records, kind='route', stage=current['stage'],
+                            attempt=current['attempt'], actor=args.actor,
+                            head=repository.head(), ticket=args.ticket, data=data)
+    # The implementer's copies carry the route, so a route that changed them and
+    # did not rewrite them would leave doctor reporting drift and the next
+    # session spawning on the model the last slice was given.
+    agents.sync(repository.root)
+    return record

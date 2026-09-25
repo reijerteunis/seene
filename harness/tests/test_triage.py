@@ -1577,3 +1577,35 @@ class SliceCapTest(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class ReviewerModelTest(FocusSetTest):
+    """The reviewer's model is a rule, and the depth is what decides it.
+
+    A full review holds the whole diff, the journal and the criteria at once,
+    which is the most expensive read in the procedure and the one where a missed
+    defect costs most; a spot review reads a narrowed focus set. So full depth
+    gets the strongest tier and spot depth one tier down. From SEEN-108.
+    """
+
+    def test_full_depth_reviews_on_the_strongest_model(self):
+        self.reach_review()
+        record = self.triage()
+
+        self.assertEqual(record['data']['review_depth'], 'full')
+        self.assertEqual(record['data']['reviewer_model'], 'opus')
+
+    def test_spot_depth_reviews_one_tier_down(self):
+        self.set_shadow(False)
+        jev.TRANSPORT = self.only_thing_is_worth_reading()
+        self.reach_review()
+        record = self.triage()
+
+        self.assertEqual(record['data']['review_depth'], 'spot')
+        self.assertEqual(record['data']['reviewer_model'], 'sonnet')
+
+    def test_the_task_names_the_model_to_run_the_reviewer_on(self):
+        self.reach_review()
+        task = self.triage()['data']['reviewer_task']
+
+        self.assertRegex(task, r'(?i)opus')

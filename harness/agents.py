@@ -1,11 +1,11 @@
-"""Two agents with a context of their own, and the copies each assistant reads.
+"""Three agents with a context of their own, and the copies each assistant reads.
 
-A session fills up with two kinds of reading: the research at clarify and
-solution, and the review, which has to hold the diff, the journal and the
-criteria at once. Both move out into an agent with a context window of its own
-that returns a bounded answer. A subagent is a context boundary and nothing more:
-it is not independence by itself, which is why the review by the other assistant
-stays required where a missed defect costs money.
+A session fills up with three kinds of work: the research at clarify and
+solution, the review, which has to hold the diff, the journal and the criteria
+at once, and the slice itself. Each moves out into an agent with a context
+window of its own that returns a bounded answer. A subagent is a context
+boundary and nothing more: it is not independence by itself, which is why the
+review by the other assistant stays required where a missed defect costs money.
 
 The structure lives here and the prose lives in harness/agents/<name>.md, the way
 harness/skills.py holds the skill's frontmatter and docs/harness/skill.md holds
@@ -15,8 +15,9 @@ no YAML parser and the harness takes no dependency, so a source file carrying it
 own frontmatter would need a hand-rolled parser for five keys; keeping structure
 in code is what avoids it.
 
-Neither agent holds Edit or Write. The scout has no Bash at all, because
-everything it needs is a graph query. The reviewer holds Bash, because it cannot
+Neither reader holds Edit or Write; the implementer holds both, because writing
+the slice is what it is for. The scout has no Bash at all, because everything it
+needs is a graph query. The reviewer holds Bash, because it cannot
 read a diff without it, and that is a real hole rather than a closed one: Claude
 Code has no read-only Bash, so on that side the reviewer is held to reading by its
 instructions and by holding no Edit and no Write, and nothing refuses a write it
@@ -66,10 +67,92 @@ REVIEWER = dict(
     omitClaudeMd=False,
     sandbox_mode='read-only',
 )
-AGENTS = (SCOUT, REVIEWER)
+# The implementer is the one agent whose model is not its own. The scout always
+# researches and the reviewer always reviews, so a fixed model is right for
+# both; what a slice needs depends on the slice, which is what SEEN-108's route
+# decides from the plan. It is also the first agent to hold Edit and Write,
+# because writing the slice is what it is for: the controls that hold are the
+# ones that already hold for the session, the branch check, the RED before the
+# green, the journal, and the fingerprint the review attests.
+IMPLEMENTER = dict(
+    name='seen-implementer',
+    description=('Work one slice of a ticket: the RED first, then the code that turns it green, '
+                 'in the context of that slice alone. Spawned with the model and the effort the '
+                 'route decided, which it never chooses for itself.'),
+    tools=('Read, Edit, Write, Grep, Glob, Bash, mcp__codegraph__codegraph_explore, '
+           'mcp__repowise__get_why, mcp__repowise__get_risk'),
+    # Filled from the route of the slice in hand by `resolved`. Never read from
+    # here: a default that could reach a copy would be a slice worked on a model
+    # nobody chose.
+    model=None,
+    effort=None,
+    permissionMode='default',
+    omitClaudeMd=False,
+    sandbox_mode='workspace-write',
+)
+AGENTS = (SCOUT, REVIEWER, IMPLEMENTER)
 
-CLAUDE_KEYS = ('name', 'description', 'tools', 'model', 'permissionMode', 'omitClaudeMd')
-CODEX_KEYS = ('name', 'description', 'developer_instructions', 'sandbox_mode', 'model')
+# effort is documented by Claude Code as a subagent frontmatter key that
+# overrides the session's, and there is no documented way to override it per
+# invocation, which is why the implementer's copies are generated per slice.
+# An agent that carries no effort takes the session's, which is what leaving the
+# key out means, so it is rendered only when the agent has one.
+CLAUDE_KEYS = ('name', 'description', 'tools', 'model', 'effort', 'permissionMode',
+               'omitClaudeMd')
+CODEX_KEYS = ('name', 'description', 'developer_instructions', 'sandbox_mode', 'model',
+              'model_reasoning_effort')
+
+
+def routed(root):
+    """The model and the effort this checkout's slice in hand is routed to.
+
+    The strongest tier at the highest effort when there is no route to read:
+    main, a fresh clone and CI all land there, and a checkout with no route in
+    it must not hand the work to the cheapest model by accident.
+
+    Read from the branch, which is what makes this deterministic for the three
+    callers that must agree: sync writes it, route rewrites it when the route
+    changes, and doctor compares the copy against what this function gives.
+
+    It never raises. doctor's job is to report a broken chain or a stray file
+    beside the records, and something doctor calls that failed on one would
+    take the report down with it and leave the person with a traceback where a
+    problem list belongs. A journal that cannot be read is a checkout with no
+    route to read, which is what the fallback already means.
+    """
+    from . import handoff, journal, routing, thresholds
+    from .cli import BRANCH
+    from .errors import HarnessError
+    from .paths import HISTORY
+    from .repository import Repository
+    rules = thresholds.load(root)
+    fallback = (routing.strongest(rules), routing.rule_effort(rules))
+    match = BRANCH.match(Repository(root).branch_or_none() or '')
+    if not match:
+        return fallback
+    folder = root / HISTORY / match.group('ticket')
+    try:
+        records = journal.read(folder) if folder.is_dir() else []
+    except HarnessError:
+        return fallback
+    if not records:
+        return fallback
+    slice_now = handoff.current_slice(records, journal.state(records))
+    if not slice_now or not slice_now['entry']:
+        return fallback
+    entry = routing.for_slice(records, slice_now['position'])
+    if entry is None:
+        return fallback
+    return entry['model'], entry['effort']
+
+
+def resolved(root):
+    """Every agent as this checkout defines it, the implementer carrying its route."""
+    model, effort = routed(root)
+    return tuple(dict(agent, model=model, effort=effort) if agent['name'] == IMPLEMENTER['name']
+                 else agent
+                 for agent in AGENTS)
+
 
 GENERATED = ('Generated from {source} by `python3 harness/run.py sync`. Do not edit this '
              'file: `doctor` compares it against the source and refuses when they differ.')
@@ -102,7 +185,9 @@ def render_claude(agent, body):
     """
     lines = ['---']
     for key in CLAUDE_KEYS:
-        value = agent[key]
+        value = agent.get(key)
+        if value is None:
+            continue
         if isinstance(value, bool):
             lines.append(f'{key}: {str(value).lower()}')
         elif key == 'description':
@@ -135,9 +220,11 @@ def render_codex(agent, body):
              '',
              f'name = "{agent["name"]}"',
              f'description = {_toml_string(agent["description"])}',
-             f'model = "{agent["model"]}"',
-             f'sandbox_mode = "{agent["sandbox_mode"]}"',
-             f'developer_instructions = {_toml_string(body)}']
+             f'model = "{agent["model"]}"']
+    if agent.get('effort') is not None:
+        lines.append(f'model_reasoning_effort = "{agent["effort"]}"')
+    lines += [f'sandbox_mode = "{agent["sandbox_mode"]}"',
+              f'developer_instructions = {_toml_string(body)}']
     return '\n'.join(lines) + '\n'
 
 
@@ -152,7 +239,7 @@ def _body(root, agent):
 def sync(root):
     """Write every copy of every agent from its source, and say which were written."""
     written = []
-    for agent in AGENTS:
+    for agent in resolved(root):
         body = _body(root, agent)
         for relative, rendered in ((claude_copy(agent), render_claude(agent, body)),
                                    (codex_copy(agent), render_codex(agent, body))):
@@ -171,7 +258,8 @@ def strays(root):
     was invisible to doctor and, since .codex/agents/ is no longer ignored,
     committable. An agent with no source under harness/agents/ has had no review.
     """
-    generated = {claude_copy(agent) for agent in AGENTS} | {codex_copy(agent) for agent in AGENTS}
+    generated = ({claude_copy(agent) for agent in AGENTS}
+                 | {codex_copy(agent) for agent in AGENTS})
     # Only a file claiming to be one of ours. .claude/agents/ is where a person
     # keeps their own agents, and G7 of SEEN-105's second review found this failing
     # doctor and CI on every ticket for a debugger somebody saved there.
@@ -194,7 +282,7 @@ def strays(root):
 def drift(root):
     """Copies that do not match what their source would generate."""
     problems = []
-    for agent in AGENTS:
+    for agent in resolved(root):
         source = root / source_of(agent)
         if not source.is_file():
             problems.append(f'{source_of(agent)} does not exist, so the {agent["name"]} copies '
