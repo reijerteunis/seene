@@ -27,8 +27,12 @@ Anywhere else it is an untracked file in the tree, so submitting it changes the 
 attested and delivery refuses the ticket for a change the harness itself caused.
 
 **Write the ticket's `## Outcome` before leaving review.** The reviewed-tree fingerprint covers the
-ticket file, so an outcome added afterwards makes `verify-delivery` refuse. Only the receipt hash
-cannot be written earlier, and it belongs in the pull request body.
+ticket file's prose, so an outcome added afterwards makes `verify-delivery` refuse. Three things are
+the exception, because the procedure can only write them once the review has passed: the frontmatter
+`status`, the status row of the header table and the criteria boxes. Delivery compares the ticket
+against the commit the review advance was written at and accepts a change in those three alone,
+recording that it did. The receipt hash is the one thing that cannot be written earlier at all, and
+it belongs in the pull request body.
 
 **Name what only the work can settle.** A clarify record that leaves out an unknown reads as if there
 were none. Write it in `decisions`, as the decision to proceed with the observation that will settle

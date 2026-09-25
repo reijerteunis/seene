@@ -11,6 +11,7 @@ import unittest
 from harness import calibration, gates, journal as journal_module, report, thresholds
 from harness.errors import HarnessError
 from harness.tests.helpers import PROJECT, ProjectTest
+from harness.tests.test_delivery import DeliveryWalk
 from harness.tests.test_lifecycle import CommandTest
 from harness.tests.test_triage import TriageTest
 
@@ -1050,6 +1051,58 @@ class SixthReviewTest(ProjectTest):
         problem = calibration.went_live_problem(self.root, rules)
         self.assertIn('could not be read', problem)
         self.assertNotIn('no such record exists', problem)
+class TicketStatusAfterReviewTest(DeliveryWalk):
+    """The wall a session hits on every ticket, and what delivery accepts through it.
+
+    A session cannot know the review passed until it has passed, and the tree the
+    review attests must already say the ticket is at review, which is what doctor
+    demands and what the skill means by the fingerprint locking. SEEN-108 met that
+    by setting the status before the advance, on the assumption the review would
+    pass. This ticket hit it the other way round at record 76 and closes it: the
+    status, the status row and the criteria boxes are the procedure writing about
+    the review, the way the journal is, and delivery accepts a tree that moved in
+    them alone. Every other word of the ticket, the Outcome above all, stays
+    inside the fingerprint.
+    """
+
+    def mark_reviewed(self):
+        """What the procedure writes once the review has passed."""
+        path = next((self.root / 'docs' / 'tickets').glob(f'{self.ticket_id}-*.md'))
+        text = path.read_text()
+        text = text.replace('status: doing', 'status: review')
+        text = text.replace('- [ ] ', '- [x] ')
+        path.write_text(text)
+        return path
+
+    def test_delivery_accepts_a_ticket_marked_reviewed_after_the_review(self):
+        self.walk_to_deliver()
+        self.mark_reviewed()
+        self.commit_and_push()
+        written = self.verify()['record']
+        self.assertEqual(written['kind'], 'receipt')
+        self.assertTrue(written['data']['evidence']['ticket_marked_after_review'])
+
+    def test_the_receipt_says_the_ticket_moved_after_the_review(self):
+        self.walk_to_deliver()
+        self.commit_and_push()
+        written = self.verify()['record']
+        self.assertFalse(written['data']['evidence']['ticket_marked_after_review'])
+
+    def test_delivery_still_refuses_prose_added_to_the_ticket_after_the_review(self):
+        self.walk_to_deliver()
+        path = self.mark_reviewed()
+        path.write_text(path.read_text() + '\n## Outcome\n\nWritten after the review.\n')
+        self.commit_and_push()
+        with self.assertRaisesRegex(HarnessError, 'changed after review'):
+            self.verify()
+
+    def test_delivery_still_refuses_code_changed_after_the_review(self):
+        self.walk_to_deliver()
+        self.mark_reviewed()
+        self.write('harness/late.py', '# written after the review\n')
+        self.commit_and_push()
+        with self.assertRaisesRegex(HarnessError, 'changed after review'):
+            self.verify()
 
 if __name__ == '__main__':
     unittest.main()

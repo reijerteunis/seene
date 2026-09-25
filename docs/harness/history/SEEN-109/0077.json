@@ -1,0 +1,31 @@
+{
+  "sequence": 77,
+  "ticket": "SEEN-109",
+  "timestamp": "2026-09-25T23:30:18.091610+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 8,
+  "actor": "claude:implementer",
+  "session": "343d37550220",
+  "head": "0681e0bac95c5a22f0798d1ab00a7ed94123e48e",
+  "prev_hash": "4909cdf93611365469068b6de5fc506c75f26e4310abc75981fa0714cadc4768",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_calibration"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "model": "claude-opus-5",
+    "model_declared": "opus",
+    "duration_ms": 14493,
+    "output": "...........................................................................E..E...............\n======================================================================\nERROR: test_delivery_accepts_a_ticket_marked_reviewed_after_the_review (harness.tests.test_calibration.TicketStatusAfterReviewTest.test_delivery_accepts_a_ticket_marked_reviewed_after_the_review)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_calibration.py\", line 1081, in test_delivery_accepts_a_ticket_marked_reviewed_after_the_review\n    record = self.verify()\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_delivery.py\", line 82, in verify\n    return self.run_harness('verify-delivery', self.ticket_id, '--file', relative,\n           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                            '--actor', 'claude:implementer')\n                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_lifecycle.py\", line 21, in run_harness\n    return cli.execute(cli.parse(['--root', str(self.root), *args]))\n           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/cli.py\", line 1079, in execute\n    return delivery.verify(repository, folder, records, args, current)\n           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/delivery.py\", line 29, in verify\n    require(reviewed['tree'] == tree,\n    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n            'The project changed after review; return the ticket to the stage that owns it')\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/errors.py\", line 11, in require\n    raise HarnessError(message)\nharness.errors.HarnessError: The project changed after review; return the ticket to the stage that owns it\n\n======================================================================\nERROR: test_the_receipt_says_the_ticket_moved_after_the_review (harness.tests.test_calibration.TicketStatusAfterReviewTest.test_the_receipt_says_the_ticket_moved_after_the_review)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_calibration.py\", line 1089, in test_the_receipt_says_the_ticket_moved_after_the_review\n    self.assertFalse(record['data']['evidence']['ticket_marked_after_review'])\n                     ~~~~~~^^^^^^^^\nKeyError: 'data'\n\n----------------------------------------------------------------------\nRan 94 tests in 14.437s\n\nFAILED (errors=2)\n",
+    "output_sha256": "d52d1ccff4a875e4ade693dc8ba82700c5de2a7d17e7dcb4a52cb01cc21f133b",
+    "output_truncated": false,
+    "before": "85136ead0024e3535480ffafa832cc90b130ee30dc23da50f82d156bfb4d39fb",
+    "after": "85136ead0024e3535480ffafa832cc90b130ee30dc23da50f82d156bfb4d39fb"
+  }
+}

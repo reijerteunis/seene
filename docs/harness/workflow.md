@@ -173,7 +173,7 @@ not be met as written: branch protection on a free plan, `packages/core` before 
 migrations before a database, a pull request template that `gh pr create` bypasses. Each was amended
 in the ticket with the reason. The clarify gate refuses a record that defers instead of resolving.
 
-**The Outcome is written before review**, because the fingerprint covers the ticket file.
+**The Outcome is written before review**, because the fingerprint covers the ticket file's prose. Three things are the exception, and they are the only ones: the frontmatter `status`, the status row of the header table and the criteria boxes, which the procedure can write only once the review has passed. Delivery compares the ticket against the commit the review advance was written at, accepts a change in those three alone and records in the receipt that it did; SEEN-109 walked into that wall at its own record 76, where the procedure's own write refused the delivery and the remedy was a return.
 
 **Evidence is authored in `.harness-drafts/`**, for the same reason.
 

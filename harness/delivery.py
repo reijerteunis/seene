@@ -8,6 +8,7 @@ rather than passes when it cannot be run.
 """
 
 import json
+import re
 import subprocess
 
 from . import coverage, gates, github, journal, kpi
@@ -26,8 +27,21 @@ def verify(repository, folder, records, args, current):
                 f'The journal has no accepted {stage} record')
 
     tree = repository.fingerprint()
-    require(reviewed['tree'] == tree,
-            'The project changed after review; return the ticket to the stage that owns it')
+    marked = False
+    if reviewed['tree'] != tree:
+        # The one change the procedure itself makes after a review: the ticket's
+        # status, its status row and its criteria boxes. A session cannot know
+        # the review passed until it has passed, and doctor requires the ticket
+        # to say review by the time the journal is at deliver, so every ticket
+        # either writes those three things after the advance or writes them
+        # before it on the assumption the review will pass. This accepts the
+        # first, against the ticket as the reviewed commit had it, and records
+        # that it did. Everything else in the ticket, the Outcome above all,
+        # stays inside the fingerprint, which is what the skill requires.
+        marked = _ticket_marked_after_review(repository, records, reviewed)
+        require(marked,
+                'The project changed after review; return the ticket to the stage that owns it')
+    data['ticket_marked_after_review'] = marked
     _require_committed(repository, folder)
     branch, commit = repository.branch(), repository.head()
     require(repository.tip_is_on_remote(data['remote'], branch, commit),
@@ -116,6 +130,71 @@ def _evidence(repository, args):
     gates.require_template_fields(template, data)
     gates.reject_placeholders(template, data)
     return data
+
+
+STATUS_LINE = re.compile(r'^status:.*$', re.MULTILINE)
+STATUS_ROW = re.compile(r'^\| Status \|.*$', re.MULTILINE)
+
+
+def _procedural(text):
+    """The ticket with the three things the procedure writes about a review removed.
+
+    Substance only: the frontmatter status, the status row of the header table and
+    whether a criterion's box is ticked. Two tickets that differ in nothing else
+    are the same ticket as far as a review is concerned, because a reviewer reads
+    the criteria and never the boxes: an unticked criterion the review found met
+    is what the advance itself records.
+    """
+    text = STATUS_LINE.sub('status:', text)
+    text = STATUS_ROW.sub('| Status |', text)
+    # Trailing newlines go too, because one side of the comparison comes through
+    # `git show`, whose output this repository's helper strips, and a file that
+    # ends with a newline is not a file whose prose changed.
+    return text.replace('- [x]', '- [ ]').rstrip('\n')
+
+
+def _ticket_marked_after_review(repository, records, reviewed):
+    """Whether the only change since the review is the ticket being marked reviewed.
+
+    Read from the commit the review advance was written at, which is git as the
+    notary the journal already treats it as, rather than from a copy of the file
+    in a record. A tree that differs anywhere else, or a ticket that differs in
+    any word of its prose, is not this case.
+    """
+    for record in reversed(records):
+        if record['kind'] == 'advance' and record['data'].get('from_stage') == 'review':
+            head = record.get('head')
+            break
+    else:
+        return False
+    path = _ticket_path(repository, records)
+    if head is None or path is None:
+        return False
+    if repository.fingerprint(excluding=(str(path),)) != _reviewed_without_ticket(reviewed, path):
+        return False
+    was = repository.git('show', f'{head}:{path}')
+    now = (repository.root / path).read_text()
+    return bool(was) and _procedural(was) == _procedural(now)
+
+
+def _reviewed_without_ticket(reviewed, path):
+    """The reviewed tree recomputed without the ticket file.
+
+    The review record holds one number over the whole tree, so the comparison
+    that excludes the ticket has to be made against the reviewed commit rather
+    than against that number. Stored by the review gate from SEEN-109 as
+    `tree_without_ticket`; absent on every review written before it, and an
+    absence refuses rather than passes.
+    """
+    return reviewed.get('tree_without_ticket')
+
+
+def _ticket_path(repository, records):
+    """The ticket file, as the start record named it."""
+    named = records[0]['data'].get('ticket_file') if records else None
+    if named and (repository.root / named).is_file():
+        return named
+    return None
 
 
 def _require_committed(repository, folder):

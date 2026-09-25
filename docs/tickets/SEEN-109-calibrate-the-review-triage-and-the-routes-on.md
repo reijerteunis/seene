@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-107, SEEN-108]
-status: review
+status: doing
 ---
 # SEEN-109: Calibrate the review triage and the routes on ten tickets before either saves a token
 
@@ -23,7 +23,7 @@ status: review
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | review |
+| Status | doing |
 
 ## Description
 
@@ -31,10 +31,10 @@ Both decisions can cost more than they save: a spot review that misses a blockin
 
 ## Acceptance criteria
 
-- [x] harness/thresholds.toml carries a [calibration] section with the shadow window of ten tickets, the escape definition and the go-live rule for the triage and for the routes, committed before the first triage record it counts exists (as amended: SEEN-107 and SEEN-108 wrote triage and route records on their own branches while building the things under calibration, so the literal wording was impossible before this ticket began. The amendment is the exclusion rule in clarify record 4, decision 1: those two and this ticket are excluded by name, and counted_from is the commit that added the section)
-- [x] harness report --calibration shows per ticket the reviewer's findings by severity, the files the triage would have excluded, the escapes, and per slice the recorded route against the returns and findings that followed
-- [x] After ten tickets the report states go-live or stay-shadow for the triage and for the routes separately, by the rule, and the founder's decision is recorded in the journal of the ticket that flips the switch
-- [x] An escape after go-live returns the triage to shadow automatically and the weekly report says so
+- [ ] harness/thresholds.toml carries a [calibration] section with the shadow window of ten tickets, the escape definition and the go-live rule for the triage and for the routes, committed before the first triage record it counts exists (as amended: SEEN-107 and SEEN-108 wrote triage and route records on their own branches while building the things under calibration, so the literal wording was impossible before this ticket began. The amendment is the exclusion rule in clarify record 4, decision 1: those two and this ticket are excluded by name, and counted_from is the commit that added the section)
+- [ ] harness report --calibration shows per ticket the reviewer's findings by severity, the files the triage would have excluded, the escapes, and per slice the recorded route against the returns and findings that followed
+- [ ] After ten tickets the report states go-live or stay-shadow for the triage and for the routes separately, by the rule, and the founder's decision is recorded in the journal of the ticket that flips the switch
+- [ ] An escape after go-live returns the triage to shadow automatically and the weekly report says so
 
 ## Depends on
 
@@ -322,3 +322,26 @@ structurally unreachable for a delivered ticket that was never reopened, which i
 predates this change. And the committed weekly and sprint reports are stale from earlier tickets:
 they state five findings for SEEN-006 where the code computes six and carry no review-triage section,
 which is a delivery-time matter for whichever ticket regenerates them next.
+
+### The wall the procedure itself hit, at record 76
+
+The review passed and the delivery refused. The ticket's status and its criteria boxes were set after
+the review advance, which moved the tree the review attested, and `verify-delivery` said so. That is
+not a defect in this ticket's work but a wall every ticket meets: a session cannot know the review
+passed until it has passed, and `doctor` requires the ticket to say `review` by the time the journal
+is at deliver, so a ticket either writes those things after the advance and refuses its own delivery,
+or writes them before it on the assumption the review will pass. SEEN-108 did the second.
+
+Attempt 8 closes it. The review gate records a second fingerprint, the reviewed tree without the
+ticket file, and delivery uses it: when the tree has moved, it asks whether the only path that moved
+is the ticket, whether the rest of the tree matches that second number, and whether the ticket
+differs from the commit the review advance was written at in nothing but its frontmatter `status`, its
+status row and its criteria boxes, read through `git show` rather than from a copy in a record. If all
+three hold, the delivery proceeds and the receipt carries `ticket_marked_after_review`. Anything else
+refuses exactly as before, which two of the four tests assert: a line of prose added to the ticket
+after the review is refused, and so is a new file.
+
+The Outcome stays inside the fingerprint, which is the point of the skill's rule and the reason the
+exception is three named fields rather than the file. `doctor`'s message, the skill and the workflow
+say so now; the skill's old sentence claimed the whole ticket file was covered, which was true and is
+no longer.

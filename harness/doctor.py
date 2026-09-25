@@ -123,7 +123,8 @@ def status_problems(repository):
                 problems.append(f'{identifier} says {status} but its journal is at '
                                 f'{state["stage"]}'
                                 + ('; it has passed review, so the ticket file has to say '
-                                   'review before the fingerprint locks it'
+                                   'review. Writing it after the review advance is what the '
+                                   'procedure does and delivery accepts that change alone'
                                    if state['stage'] == 'deliver' else ''))
             continue
         receipt = records[-1]

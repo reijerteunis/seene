@@ -1,0 +1,22 @@
+{
+  "sequence": 76,
+  "ticket": "SEEN-109",
+  "timestamp": "2026-09-25T23:27:50.085569+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "deliver",
+  "attempt": 7,
+  "actor": "claude:implementer",
+  "session": "343d37550220",
+  "head": "0681e0bac95c5a22f0798d1ab00a7ed94123e48e",
+  "prev_hash": "d2b6cd676e796508228104e3f94de9e6c2f675c9d3217512d30728d518ff9e1c",
+  "data": {
+    "from_stage": "deliver",
+    "to_stage": "tdd",
+    "to_attempt": 8,
+    "reason": "The ticket file's status and criteria were set after the review advance, which moved the tree the review attested, and verify-delivery refused it. That is the procedure's own wall rather than a defect in the work: a session cannot know the review passed until it has passed, yet the tree the review attests must already say review, which SEEN-108 met by setting the status optimistically before the advance. The wall is what this attempt closes: delivery accepts a tree that moved only in the ticket's status, its status row and its criteria boxes, checks that the ticket's prose is untouched against the commit the review attested, and records that it did; anything else still refuses. The Outcome and every other word of the ticket stay inside the fingerprint, which is what the skill requires them to be.",
+    "findings": [],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}
