@@ -680,16 +680,12 @@ def reviewer_task(ticket, sequence, depth, focus, results, shadow, always):
 
 
 def _why_not(answered, credential_value, answers):
-    """Why pass two produced nothing, or nothing when it produced something."""
-    if answered is not None:
-        return None
-    if not credential_value:
-        return ('No Jev credential on this machine, so no request was made and every answer is '
-                'recorded as an absence')
-    reasons = sorted({answer['fallback_reason'] for answer in answers
-                      if answer['fallback_reason']})
-    said = 'The request was made and Jev did not answer'
-    return f'{said}: {"; ".join(reasons)}' if reasons else said
+    """Why pass two produced nothing, or nothing when it produced something.
+
+    One line, because the route asks the same way and needs the same three
+    things told apart: it lives in jev.py, beside the request that produced them.
+    """
+    return jev.why_not(answered, credential_value, answers)
 
 
 def run(repository, records, current, rules, ticket, sequence):

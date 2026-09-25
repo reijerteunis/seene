@@ -33,7 +33,7 @@ TICKET_COMMANDS = ('start', 'status', 'history', 'draft', 'note', 'check', 'adva
 # command a session runs to see where it stands must not make the journal longer
 # every time it is run.
 WRITING_COMMANDS = ('start', 'note', 'check', 'advance', 'return', 'graph', 'decide', 'coverage',
-                    'handoff', 'reopen', 'review',
+                    'handoff', 'reopen', 'review', 'route',
                     'verify-delivery')
 BRANCH = re.compile(r'^(claude|codex)/(?P<ticket>[A-Z]+-\d+)-')
 
@@ -133,6 +133,9 @@ def build_parser():
                            'that recorded two greens counts twice without this')
 
     ticket_command('budget', "This session's tokens and tool calls against the session budget")
+
+    route = ticket_command('route', 'Decide which model and which effort implement each slice')
+    route.add_argument('--actor', required=True)
 
     reopen = ticket_command('reopen', 'Void a receipt and return the ticket to tdd, before merge')
     reopen.add_argument('--reason', required=True)
@@ -577,6 +580,17 @@ def check(repository, folder, records, args, current, rules):
     return record
 
 
+def route_slices(repository, folder, records, args, current, rules):
+    """Decide which model and which effort implement each slice, and keep it.
+
+    Named for what it does rather than for the command, because `route` is taken
+    here by the parser's own variable and a handler that shadows it is a handler
+    somebody will one day call by mistake.
+    """
+    from . import routing
+    return routing.append(repository, folder, records, current, args, rules)
+
+
 def review(repository, folder, records, args, current, rules):
     """One pass of the review stage. Today there is one: the triage."""
     from . import triage
@@ -975,7 +989,7 @@ def execute(args):
         require(current['stage'] in WORKING_STAGES,
                 f'{args.ticket} is {current["stage"]}; open a follow-up ticket for further work')
         handlers = dict(note=note, check=check, advance=advance, graph=graph, decide=decide,
-                        coverage=coverage, handoff=handoff, review=review)
+                        coverage=coverage, handoff=handoff, review=review, route=route_slices)
         handlers['return'] = go_back
         return handlers[args.command](repository, folder, records, args, current, rules)
     finally:
