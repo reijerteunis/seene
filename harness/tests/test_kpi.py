@@ -631,3 +631,64 @@ class DeliveredCostTest(unittest.TestCase):
         self.assertIsNotNone(entry['output_tokens'], 'the walk must spend, or the cost is null')
         self.assertIsNotNone(entry['ran_on_tier'])
         self.assertIsNotNone(entry['cost_cents'])
+
+
+def journal_with_rework(rework_tokens=105000):
+    """The same two-slice ticket, returned once and proved again.
+
+    The shape F2 of the third review is about: a second accepted tdd advance
+    after a return, with no plan slice left for it to close.
+    """
+    session = 'aaaaaaaaaaaa'
+    # Everything through the first accepted tdd advance, which is record 13.
+    records = list(journal_with_a_route())[:13]
+    return records + [
+        record(14, 'return', 'review', minute=70, session=session,
+               from_stage='review', to_stage='tdd', to_attempt=2, reason='a finding'),
+        record(15, 'check', 'tdd', attempt=2, minute=75, session=session, phase='red',
+               exit_code=1, command=['t'], model='claude-opus-5'),
+        record(16, 'check', 'tdd', attempt=2, minute=80, session=session, phase='green',
+               exit_code=0, command=['t'], model='claude-opus-5'),
+        record(17, 'advance', 'tdd', attempt=2, minute=85, session=session,
+               from_stage='tdd', to_stage='review', decisions=[],
+               figures=dict(session=session, output_tokens=95000 + rework_tokens,
+                            tool_calls=70),
+               evidence=dict(mode='code', slices=[dict(red=15, green=16)])),
+    ]
+
+
+class ReworkWindowTest(DeliveryWalk):
+    """F2 of the third review: what a rework round's tokens are charged to.
+
+    Nothing, which is the honest answer: they belong to no slice of the plan.
+    What must not happen is a window keyed past the end of the plan, whose
+    tokens are silently dropped from a table that then makes a reworked route
+    look cheaper than it was.
+    """
+
+    def windows(self):
+        return kpi.slice_windows(journal_with_rework())
+
+    def test_no_window_is_keyed_past_the_end_of_the_plan(self):
+        self.assertEqual(sorted(self.windows()), [1, 2])
+
+    def test_the_advance_closes_nothing_when_a_handoff_already_closed_the_plan(self):
+        """This fixture ends its plan at a handoff, so the advance has nothing left.
+
+        The advance is the boundary only for a last slice no handoff followed,
+        which is what LastSliceTest covers; here it must not open a window of
+        its own for the rework that comes after it.
+        """
+        window = self.windows()[2]
+        self.assertEqual(window['closed'], 12, 'the handoff that declared done=2 closed it')
+        self.assertEqual(window['spent'], 45000)
+
+    def test_the_ticket_still_counts_what_the_rework_spent(self):
+        """The slices do not carry it; the ticket's own token figure does."""
+        from harness import thresholds
+        measured = kpi.measure(journal_with_rework(), 'SEEN-001', points=3,
+                               rules=thresholds.load(PROJECT),
+                               tokens=dict(output_tokens=200000))
+        charged = sum(entry['output_tokens'] or 0 for entry in measured['execution'])
+        self.assertEqual(charged, 85000)
+        self.assertEqual(measured['tokens']['output_tokens'], 200000)

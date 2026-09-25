@@ -20,10 +20,16 @@ routed to a small model is a slice somebody judged small, not a slice to rush.
 
 1. Write the test first. Its failure must be the one the slice's RED describes,
    in the words of the runner.
-2. Record it: `python3 harness/run.py check <ticket> --phase red --actor
-   <tool>:implementer -- <command>`. The harness refuses a RED that passed, and
-   a RED that could not start proves nothing.
-3. Write only what turns that test green, and record the green the same way.
+2. Record it, declaring the model you were spawned on:
+   `python3 harness/run.py check <ticket> --phase red --actor <tool>:implementer
+   --model <tier> -- <command>`. The tier is the one the spawn instruction gave
+   you, and `--model` is not optional: you inherit the session id of whoever
+   spawned you, so the log records their model and not yours, and without the
+   declaration the tdd gate compares the wrong two names and refuses a slice
+   that ran exactly as routed. The harness refuses a RED that passed, and a RED
+   that could not start proves nothing.
+3. Write only what turns that test green, and record the green the same way,
+   with the same `--model`.
 4. Stop. Do not start the next slice, do not advance the stage, and do not
    widen the scope past what the slice names. If you found something the slice
    does not cover, say so in your answer rather than fixing it.

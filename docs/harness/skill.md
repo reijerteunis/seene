@@ -64,7 +64,10 @@ on, and `sync` writes it into `seen-implementer`'s copies for both assistants. *
 pack and never chosen inside the session**, which is the point: the session that would benefit from
 a stronger model is the last one that should be picking it. `[routing] shadow` is true until
 SEEN-109's window decides, so today the route is recorded and what a slice actually runs on is
-unchanged; with it off, the tdd gate refuses a check recorded under any other model and names both.
+unchanged; with it off, the tdd gate refuses a check recorded under any other model and names both. A
+subagent inherits its parent's session id, so the log cannot tell you what an implementer ran on:
+it declares it with `harness check --model <tier>`, which the spawn instruction spells out and the
+gate compares first.
 
 **One ticket, one branch.** Every writing command refuses unless the branch is `claude/<ticket>-…` or
 `codex/<ticket>-…`, and refuses on `main`. Drifting onto another branch mid-ticket records evidence

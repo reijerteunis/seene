@@ -289,9 +289,14 @@ def implementer_task(ticket, entry):
         '',
         f'Its RED must demonstrate: {entry["red"]}',
         '',
-        'Write the test first, record it with harness check --phase red, write only what turns '
-        'it green, record that, and stop. Do not start the next slice and do not advance the '
-        'stage.',
+        'Write the test first and record it with:',
+        f'  python3 harness/run.py check {ticket} --phase red --actor <tool>:implementer '
+        f'--model {entry["model"]} -- <command>',
+        f'Then write only what turns it green and record that the same way. The `--model '
+        f'{entry["model"]}` is not optional: a subagent inherits its parent\'s session id, so '
+        'the log records the model of the session that spawned you and not yours, and without '
+        'the declaration the tdd gate compares the wrong two names. Then stop: do not start the '
+        'next slice and do not advance the stage.',
     ])
 
 

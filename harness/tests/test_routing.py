@@ -11,10 +11,14 @@ keyed by position. No test here calls the API: a test that could reach Jev would
 be a test that spends money and gives different answers on different days.
 """
 
+from pathlib import Path
+
 from harness import jev
 from harness.errors import HarnessError
 from harness.tests.test_decisions import noul, score
 from harness.tests.test_lifecycle import CommandTest, clarify_evidence, solution_evidence
+
+PROJECT = Path(__file__).resolve().parents[2]
 
 # Jev answers a score by level index, and the levels are the question's options
 # in order: haiku, sonnet, opus and low, medium, high.
@@ -821,3 +825,36 @@ class ReopenedTicketTest(RouteTest):
         self.git('-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', 'reopened')
         self.git('checkout', '-q', '--detach', 'HEAD')
         self.assertEqual(agents.routed(self.root), ('haiku', 'medium'))
+
+
+class DeclarationIsInstructedTest(RouteTest):
+    """The declaration is only worth having if something asks for it.
+
+    F1 of the third review: --model existed in the parser and in a fixture, and
+    in nothing a subagent reads, so the declaration the amended criterion 3
+    rests on was never made and the gate fell back to the log, which reports the
+    parent's model. The gate's half landed and the instruction half did not.
+    """
+
+    def test_the_spawn_text_gives_the_check_command_with_the_tier_in_it(self):
+        self.use(route_stub(model=(0.1, 0.7, 0.2)))
+        self.reach_tdd([PLAIN])
+        task = self.route()['data']['execution'][0]['implementer_task']
+        self.assertIn('--model sonnet', task)
+
+    def test_a_rule_routed_slice_gets_its_own_tier_in_the_command(self):
+        self.reach_tdd([MONEY])
+        self.assertIn('--model opus',
+                      self.route()['data']['execution'][0]['implementer_task'])
+
+    def test_the_implementer_s_own_instructions_name_the_flag(self):
+        from harness import agents
+        source = (PROJECT / agents.source_of(agents.IMPLEMENTER)).read_text()
+        self.assertIn('--model', source)
+
+    def test_the_generated_copies_carry_the_instruction_too(self):
+        from harness import agents
+        for relative in (agents.claude_copy(agents.IMPLEMENTER),
+                         agents.codex_copy(agents.IMPLEMENTER)):
+            self.assertIn('--model', (PROJECT / relative).read_text(),
+                          f'{relative} does not tell the implementer to declare its model')

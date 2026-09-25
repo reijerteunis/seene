@@ -126,9 +126,10 @@ def slice_windows(records):
     session logs records null, and subtracting one from a number would turn an
     absence into a total.
     """
+    planned = len(_evidence(records, 'solution').get('slices') or [])
     windows, opened, previous, last = {}, 0, None, 0
     for record in records:
-        closes = _closes(record, last)
+        closes = _closes(record, last, planned)
         if closes is None:
             continue
         done, figures = closes
@@ -146,21 +147,36 @@ def slice_windows(records):
     return windows
 
 
-def _closes(record, last):
+def _closes(record, last, planned):
     """Which slice this record's boundary closed, and the figures it carried.
 
     A handoff says so itself. The accepted tdd advance closes whatever slice the
     last boundary left open, because the plan ends there and no handoff follows
     the final slice: without it the last slice of every ticket carried nothing,
     which is the fault keying by `done` was supposed to have cured and had not.
-    F3 of this ticket's second review. An advance written before this existed
-    carries no figures and closes nothing, which is an absence and not a zero.
+    F3 of the second review.
+
+    Bounded by the plan, and a boundary whether or not it carries figures. The
+    first version did neither, so a reworked ticket's second advance keyed a
+    window past the end of the plan and its tokens were dropped, which made a
+    reworked route look cheaper than it was; and on this ticket's own journal,
+    where only the last advance carried figures, slice 4's window ran from the
+    last handoff to the end and swallowed all four review rounds: 253,085 output
+    tokens against a two-point slice, 62 per cent of the ticket. F2 of the third
+    review. Rework belongs to no slice of the plan and is charged to none; the
+    ticket's own token figure still counts it, because that is read from the
+    logs over the whole window rather than from these boundaries.
+
+    An advance carrying no figures still closes its slice, with nothing spent:
+    the boundary is where the work stopped, and a missing figure is an absence
+    rather than a reason to let the window run on.
     """
     data = record['data']
     if record['kind'] == 'handoff':
         return (data.get('slice') or {}).get('done'), data.get('figures') or {}
-    if record['kind'] == 'advance' and data.get('from_stage') == 'tdd' and data.get('figures'):
-        return last + 1, data['figures']
+    if record['kind'] == 'advance' and data.get('from_stage') == 'tdd':
+        following = last + 1
+        return (following if following <= planned else 0), data.get('figures') or {}
     return None
 
 
