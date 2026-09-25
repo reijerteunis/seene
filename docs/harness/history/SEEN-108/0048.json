@@ -1,0 +1,19 @@
+{
+  "sequence": 48,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T09:24:36.743841+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 4,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "a740bda3269c66d4e0a0928c050d9fd528a3f5d3",
+  "prev_hash": "7aa63edda92485a7b89d3c34ef29aa2b0b2ef485e8a53c0f041f3f185fda558e",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 5,
+    "reason": "The second review returned six more findings. F1, high: a check run by the implementer subagent records the parent session's model, because a Claude Code subagent inherits CLAUDE_CODE_SESSION_ID and its own entries are not in that log at all; verified from inside the reviewer subagent, and confirmed here by 15,631 log entries of which none carries isSidechain true. With shadow off the gate would refuse a slice that ran exactly as routed. F2: the delivery line that prices the delivered kpi.json is unguarded. F3: no handoff follows the last slice, so every ticket under-reports it. F4: a return to solution leaves the committed copies on the old plan's model and doctor reports drift. F5: record 46's failure reason quotes a figure check 40 does not contain, one record after note 42 corrected the same fault. F6: reopen leaves the receipt in place, so a reopened ticket falls back on a detached HEAD."
+  }
+}

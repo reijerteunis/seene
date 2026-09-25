@@ -237,19 +237,146 @@ def _tdd(data, records, current, repository, thresholds):
     slices = data['slices']
     require(slices, 'Code changes need at least one slice in slices')
     _require_coverage(records, current)
+    _require_the_work_trips_no_unrouted_rule(records, repository, thresholds)
     regression = cited_check(records, data['regression'], 'regression', current)
     previous_green = 0
     for position, slice_ in enumerate(slices, start=1):
         require(isinstance(slice_, dict), f'Slice {position} must be an object')
         for key in ('behaviour', 'failure_reason'):
             require(_filled(slice_.get(key)), f'Slice {position} is missing {key}')
+        require('position' in slice_,
+                f'Slice {position} of this record does not say which slice of the plan it '
+                'proved. Name its position, or null for a round that belongs to no single '
+                'slice, which is a claim on the record rather than a gap in it: left out, it '
+                'skips the route comparison and is indistinguishable from a record written '
+                'before the field existed')
         red = cited_check(records, slice_.get('red'), 'red', current)
         green = cited_check(records, slice_.get('green'), 'green', current)
         require(previous_green < red['sequence'] < green['sequence'] <= regression['sequence'],
                 f'Slice {position} is out of order; each red must precede its green, slices '
                 'must not overlap, and the regression must be the last check')
+        _require_the_routed_slice(records, slice_, position, (red, green), thresholds)
         previous_green = green['sequence']
     return {}
+
+
+def _require_the_routed_slice(records, slice_, order, checks_cited, thresholds):
+    """Which slice of the plan this proved slice is, and then its route.
+
+    The plan position, not the order in this record. They agree only in an
+    attempt that re-proves the whole plan in order: a rework attempt proves the
+    one slice it reworked, so reading the index would have held it to plan slice
+    1's route and, with shadow off, refused work that ran exactly as routed.
+    F1 of this ticket's fourth review.
+
+    A slice may declare no position, as null, for a rework round that belongs to
+    no single slice; it is then held to no route, because the mapping it says it
+    does not have cannot be inferred. The declaration is required and only its
+    value may be empty: left optional, omitting it was a way past the refusal
+    that no reader could tell from a record written before the field existed.
+    F2 of the fifth review.
+    """
+    position = slice_.get('position')
+    if position is None:
+        return
+    planned = len((latest_evidence(records, 'solution') or {}).get('slices') or [])
+    require(isinstance(position, int) and not isinstance(position, bool) and position >= 1,
+            f'Slice {order} of this record names position {position!r}, which is not a slice '
+            'number. The position is which slice of the plan was proved, which is what its '
+            'route is keyed by; a round that proved no single slice declares null')
+    # Only against a plan there is one. A gate evaluated with no accepted
+    # solution record has nothing to range a position against, and refusing
+    # there would be refusing on the absence rather than on the value.
+    require(not planned or position <= planned,
+            f'Slice {order} of this record names position {position}, and the plan has '
+            f'{planned} slices')
+    _require_the_routed_model(records, position, checks_cited, thresholds)
+
+
+def _require_the_routed_model(records, position, checks_cited, thresholds):
+    """A slice is proved on the model it was routed to, or not at all.
+
+    Three ways not to refuse, and each is an absence rather than an agreement:
+    a ticket nobody routed, a check from a machine with no session log, and a
+    tier whose model id nobody wrote down. A comparison with nothing is not a
+    comparison, which is the rule cost.py already applies to tokens.
+
+    Nothing is refused at all while `[routing] shadow` is true, because in
+    shadow every slice still runs on whatever model its session happens to be:
+    a gate that refused then would be the change the window exists to hold back.
+    """
+    from . import routing
+    if routing.shadow(thresholds):
+        return
+    entry = routing.for_slice(records, position)
+    if entry is None:
+        return
+    wanted = routing.model_id(thresholds, entry['model'])
+    for record in checks_cited:
+        data = record['data']
+        # The declaration first, because it is the only thing on a subagent's
+        # side that knows: a Claude Code subagent inherits its parent's session
+        # id, so what the log says of its check is the parent's model. It is a
+        # disclosure and not a proof, and the record carries both so that what
+        # was observed and what was claimed are told apart. F1 of this ticket's
+        # second review.
+        declared = data.get('model_declared')
+        if declared:
+            require(declared == entry['model'],
+                    f'Slice {position} was routed to {entry["model"]} and check '
+                    f'{record["sequence"]}, its {data["phase"]}, declared {declared}. The route '
+                    'is decided at the tdd stage with the plan on record and is read from the '
+                    'handoff pack, never chosen inside the session: spawn the implementer on '
+                    'the model it was routed to, or return to solution and route again')
+            continue
+        ran_on = data.get('model')
+        if not wanted or not ran_on or ran_on == wanted:
+            continue
+        require(False,
+                f'Slice {position} was routed to {entry["model"]} ({wanted}) and check '
+                f'{record["sequence"]}, its {data["phase"]}, was recorded under '
+                f'{ran_on} and declared nothing. The route is decided at the tdd stage with the '
+                'plan on record and is read from the handoff pack, never chosen inside the '
+                'session: work the slice again on the model it was routed to, or return to '
+                'solution and route again')
+
+
+def _require_the_work_trips_no_unrouted_rule(records, repository, thresholds):
+    """Work that trips a routing rule was routed by that rule, or it is refused.
+
+    The rules read a slice's declared files, and a plan cannot foresee every
+    file the work will touch: on SEEN-108 the plan understated its own change by
+    twenty-two files across eight triages, so a plan naming no path under
+    packages/core is the ordinary case rather than the odd one. The route cannot
+    know before the work exists. By the tdd gate it does, because the diff is
+    there, and the one thing worth refusing is money arithmetic, a migration or
+    a credential written under a model Jev chose. F3 of SEEN-108's ninth review.
+
+    Whole-ticket and not per slice, because nothing maps a changed file to the
+    slice that changed it; what it asks is only that if the work trips a rule,
+    some slice was routed by one. Silent while `[routing] shadow` is true, like
+    every other refusal this route adds.
+    """
+    from . import routing, triage
+    if routing.shadow(thresholds):
+        return
+    routed = None
+    for record in reversed(records):
+        if record['kind'] == 'route':
+            routed = record
+            break
+    if routed is None:
+        return
+    if any(entry['source'] == 'rule' for entry in routed['data']['execution']):
+        return
+    patterns = thresholds['routing']['rules']
+    name, path = routing.path_rule(triage.changed_files(repository), patterns)
+    require(name is None,
+            f'This work changed {path}, which is {routing.PATH_RULES.get(name, name)}, and no '
+            f'slice of route {routed["sequence"]} was routed by a rule: every one was Jev\'s '
+            'choice. A plan that did not name the file cannot have been routed for it, so the '
+            'rule the ground rules care most about was never applied. Return to solution, name '
+            'the file in the slice that changes it, and route again')
 
 
 def _require_coverage(records, current):

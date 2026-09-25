@@ -1,5 +1,6 @@
 """Delivery: the stage gate that writes the receipt, and what it refuses."""
 
+import unittest
 import json
 
 from harness.errors import HarnessError
@@ -47,7 +48,7 @@ class DeliveryWalk(CommandTest):
         self.run_harness('coverage', self.ticket_id, '--actor', 'claude:implementer', '--', 'true')
         red, green, regression = 4, 5, 6
         self.submit('tdd', dict(mode='code',
-                                slices=[dict(behaviour='The harness records a delivery',
+                                slices=[dict(position=1, behaviour='The harness records a delivery',
                                              failure_reason='expected 1, got 0',
                                              red=red, green=green)],
                                 regression=regression,
@@ -156,3 +157,6 @@ class DeliveryTest(DeliveryWalk):
         kinds = [record['kind'] for record in self.run_harness('history', self.ticket_id)]
         self.assertEqual(kinds, ['start', 'advance', 'advance', 'check', 'check', 'check',
                                  'check', 'advance', 'check', 'advance', 'receipt'])
+
+if __name__ == '__main__':  # pragma: no cover - a module must run on its own
+    unittest.main()

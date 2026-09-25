@@ -30,6 +30,60 @@ def _per_slice(tickets, field='output_tokens'):
     return round(sum(ticket[field] for ticket in tickets) / counted, 1)
 
 
+UNKNOWN = 'unknown'
+
+
+def cost_by_model(tickets):
+    """What a point cost on each model, from the slices that actually ran on it.
+
+    Grouped by the model the work ran on and never by the one it was routed to.
+    In shadow every slice still runs on whatever model its session is, so a
+    table keyed by the route would price a slice's real tokens at a model that
+    never touched it and print a saving that had not happened, in the very table
+    SEEN-109 decides from. F5 of this ticket's first review. The routed price is
+    carried per slice as `routed_cost_cents` and named a counterfactual there;
+    comparing the two is `report --calibration`, which is SEEN-109's.
+
+    Divided by the points the slices themselves carried rather than by the
+    tickets', because one ticket's slices can run on three models and a division
+    by the ticket would charge all of them to whichever came first.
+
+    A slice with no cost still counts its points and leaves the division null:
+    the honest answer on a machine with no session logs is that nobody knows
+    what it cost, and a mean over the ones that happened to have figures would
+    be a number about the machines rather than about the models. A slice nobody
+    can say ran anywhere gets its own row rather than being dropped.
+    """
+    by_model = {}
+    for ticket in tickets:
+        for entry in ticket.get('execution') or []:
+            found = by_model.setdefault(entry.get('ran_on_tier') or UNKNOWN,
+                                        dict(slices=0, points=0, priced_points=0,
+                                             cost_cents=0, output_tokens=0, priced=0))
+            found['slices'] += 1
+            found['points'] += entry.get('points') or 0
+            if entry.get('cost_cents') is not None:
+                found['cost_cents'] += entry['cost_cents']
+                found['priced'] += 1
+                found['priced_points'] += entry.get('points') or 0
+            if entry.get('output_tokens') is not None:
+                found['output_tokens'] += entry['output_tokens']
+    for found in by_model.values():
+        priced, priced_points = found.pop('priced'), found['priced_points']
+        # Divided by the points it could price and never by all of them: a
+        # numerator covering two slices over a denominator covering three
+        # understates the model, which is what this function's own docstring
+        # says it must not do. On SEEN-108's figures opus read 103.8 cents per
+        # point where its priced slices gave 173.0. F3 of the fourth review.
+        #
+        # A whole number of cents, as the amounts it sums are, and nothing at
+        # all where nothing was priced: zero is a claim that a slice was free.
+        found['cost_cents'] = round(found['cost_cents']) if priced else None
+        found['cost_per_point'] = (round(found['cost_cents'] / priced_points, 2)
+                                   if priced and priced_points else None)
+    return by_model
+
+
 def worked_with_agents(tickets, since=''):
     """Tickets whose journal says both agents were used, after they existed.
 

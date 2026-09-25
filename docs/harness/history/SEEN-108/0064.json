@@ -1,0 +1,37 @@
+{
+  "sequence": 64,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T12:07:41.584699+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 6,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "0aa469b593a0e619d61341725d169361e3c3fe96",
+  "prev_hash": "8d18260000a60bd42507a84d680c1f3e143b066f4c68a91aa444fd15dbb5ec38",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "behaviour": "Everything a subagent reads tells it to declare its model with --model, and a slice window is bounded by the plan and closed at the first advance after it, so a rework round is charged to no slice rather than to the last one.",
+          "failure_reason": "Quoted from check 60's captured output: \"AssertionError: Lists differ: [1, 2, 3, 4] != [1, 2]\" for the windows keyed past the end of the plan; \"AssertionError: 12 != 13 : the first tdd advance is the boundary\", which was this session's own expectation being wrong rather than the code, and is corrected in the test; \"AssertionError: '--model sonnet' not found in 'Work slice 1 of SEEN-001: The status line...'\" and \"AssertionError: '--model opus' not found in 'Work slice 1 of SEEN-001: Fee expectations...'\" for the spawn text; and \"AssertionError: '--model' not found in\" both the implementer's source and its generated copy.",
+          "red": 60,
+          "green": 61
+        }
+      ],
+      "regression": 62,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "710e96458c5b",
+      "output_tokens": 512897,
+      "tool_calls": 298,
+      "unavailable": null
+    }
+  }
+}

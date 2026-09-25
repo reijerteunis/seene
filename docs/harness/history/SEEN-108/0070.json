@@ -1,0 +1,16 @@
+{
+  "sequence": 70,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T12:27:50.220167+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 7,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "270f7f41aefc60e75ebef4acef9fff81e2b773a5",
+  "prev_hash": "bc88ea481d54057085249843ae963d140e5fac69de66d394f831a1b5bb112cf2",
+  "data": {
+    "text": "# Correction to the failure reason recorded for attempt 3 at record 38\n\nF4 of the third review at note 59, and the third instance in this journal of the\nfault notes 42 and 52 corrected for records 23 and 46. The journal is\nappend-only, so record 38 stands as written and this note is the correction.\n\n**What record 38 says.** \"AttributeError: 'dict' object has no attribute\n'ran_on_tier'\".\n\n**What check 34, the RED it cites, actually contains.** `KeyError: 'ran_on_tier'`.\nThe failure is a dict subscript on a key that was not there, not an attribute\naccess, and no AttributeError of any kind appears in that check's output.\n\n**Why it was wrong.** The same reason twice before: the field was filled from\nwhat this session had in mind rather than from the cited check's captured\noutput. The other six failures record 38 names are in check 34 verbatim,\nincluding the count it claims, so the RED did fail for the reasons stated bar\nthe exception type.\n\n**What has changed since.** Records 56 and 70 were written by reading the cited\ncheck's output and quoting from it, and the quotes were checked back against\nthat output before the advance rather than after. That is the only way this\nfield can be filled honestly, and three corrections in one journal is what it\ntook to make the session do it.\n\n**What it does not change.** The RED did fail for the absence of the behaviour\nits slice adds. The slice is not re-proved on this account.\n"
+  }
+}

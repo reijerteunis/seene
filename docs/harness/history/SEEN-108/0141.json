@@ -1,0 +1,19 @@
+{
+  "sequence": 141,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T19:16:12.356080+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 13,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "651e7bcaab238e356f5e05ef4f3a9157ac8cacce",
+  "prev_hash": "47fbb01ff30f5c73de0538378223a426288b677767ad0f0b9144e9e78d5714bb",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 14,
+    "reason": "The triage could see no evidence for: (as amended three times) The implementer subagent is spawned on the routed model in both assistants, from the spawn instruction the route record carries, with the routed effort recorded and reported rather than applied; and a check recorded under a different model is refused by the tdd gate naming both models, reading the model the subagent declares when it declares one and the session log otherwise. A criterion with nothing behind it is answered at the tdd stage, by writing the test or the check that proves it, rather than by a reviewer reading a diff that does not contain it"
+  }
+}

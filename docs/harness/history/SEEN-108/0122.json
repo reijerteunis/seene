@@ -1,0 +1,31 @@
+{
+  "sequence": 122,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T15:13:25.234727+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 12,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "fcdad042cc6ed2489751bdbc3f31323905026ad6",
+  "prev_hash": "c85fb18cf7ef97ebff8b5dcfdfef0d0557e179022fac821a702d92da207025ef",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_routing.FixedCopiesTest"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "model": "claude-opus-5",
+    "model_declared": "opus",
+    "duration_ms": 1653,
+    "output": "FF.FF\n======================================================================\nFAIL: test_a_new_plan_does_not_change_them (harness.tests.test_routing.FixedCopiesTest.test_a_new_plan_does_not_change_them)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_routing.py\", line 921, in test_a_new_plan_does_not_change_them\n    self.assertEqual(self.copy(), before)\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^\nAssertionError: '---\\[380 chars]del: opus\\neffort: high\\npermissionMode: defau[255 chars]y.\\n' != '---\\[380 chars]del: haiku\\neffort: medium\\npermissionMode: de[258 chars]y.\\n'\nDiff is 738 characters long. Set self.maxDiff to None to see it.\n\n======================================================================\nFAIL: test_a_slice_boundary_does_not_change_them (harness.tests.test_routing.FixedCopiesTest.test_a_slice_boundary_does_not_change_them)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_routing.py\", line 910, in test_a_slice_boundary_does_not_change_them\n    self.assertEqual(self.copy(), before)\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^\nAssertionError: '---\\[380 chars]del: haiku\\neffort: medium\\npermissionMode: de[258 chars]y.\\n' != '---\\[380 chars]del: opus\\neffort: high\\npermissionMode: defau[255 chars]y.\\n'\nDiff is 738 characters long. Set self.maxDiff to None to see it.\n\n======================================================================\nFAIL: test_doctor_is_clean_once_the_ticket_has_delivered (harness.tests.test_routing.FixedCopiesTest.test_doctor_is_clean_once_the_ticket_has_delivered)\nThe state F3 of the eighth review found: no slice is in hand at all.\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_routing.py\", line 951, in test_doctor_is_clean_once_the_ticket_has_delivered\n    self.assertEqual(self.problems(), [],\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^\n                     'the commit being merged must not report drift')\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: Lists differ: ['.claude/agents/seen-implementer.md diffe[354 chars]iew'] != []\n\nFirst list contains 3 additional elements.\nFirst extra element 0:\n'.claude/agents/seen-implementer.md differs from harness/agents/seen-implementer.md; it is generated, so edit the source and run python3 harness/run.py sync'\n\n+ []\n- ['.claude/agents/seen-implementer.md differs from '\n-  'harness/agents/seen-implementer.md; it is generated, so edit the source and '\n-  'run python3 harness/run.py sync',\n-  '.codex/agents/seen-implementer.toml differs from '\n-  'harness/agents/seen-implementer.md; it is generated, so edit the source and '\n-  'run python3 harness/run.py sync',\n-  'SEEN-001 says doing but it has delivered and is waiting to merge; it is '\n-  'review'] : the commit being merged must not report drift\n\n======================================================================\nFAIL: test_the_copies_carry_the_strongest_tier_at_high_effort (harness.tests.test_routing.FixedCopiesTest.test_the_copies_carry_the_strongest_tier_at_high_effort)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_routing.py\", line 900, in test_the_copies_carry_the_strongest_tier_at_high_effort\n    self.assertIn('model: opus', self.copy())\n    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 'model: opus' not found in '---\\nname: seen-implementer\\ndescription: >\\n  Work one slice of a ticket: the RED first, then the code that turns it green, in the context of that slice alone. Spawned with the model and the effort the route decided, which it never chooses for itself.\\ntools: Read, Edit, Write, Grep, Glob, Bash, mcp__codegraph__codegraph_explore, mcp__repowise__get_why, mcp__repowise__get_risk\\nmodel: haiku\\neffort: medium\\npermissionMode: default\\nomitClaudeMd: false\\n---\\n\\n<!-- Generated from harness/agents/seen-implementer.md by `python3 harness/run.py sync`. Do not edit this file: `doctor` compares it against the source and refuses when they differ. -->\\n\\n# seen-implementer\\n\\nStand-in body.\\n'\n\n----------------------------------------------------------------------\nRan 5 tests in 1.576s\n\nFAILED (failures=4)\n",
+    "output_sha256": "d91ebc0d1eb1bbbf204f22fb324bdd4ba2a455175c4a9dd57343fe1a040fa0b0",
+    "output_truncated": false,
+    "before": "ea28dfd81b805cea7b7469a46498d5da2dff30d7a67400cd664e6ea11f2ed790",
+    "after": "ea28dfd81b805cea7b7469a46498d5da2dff30d7a67400cd664e6ea11f2ed790"
+  }
+}

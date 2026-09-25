@@ -1,5 +1,6 @@
 """The self-check a session runs before it starts working."""
 
+import unittest
 import json
 
 from harness import doctor, thresholds
@@ -159,7 +160,7 @@ class DeliverStatusTest(DoctorTest):
         self.run_harness('coverage', self.ticket_id, '--actor', 'claude:implementer', '--', 'true')
         self.submit('tdd', dict(mode='code', regression=regression['sequence'],
                                 coverage_delta=None,
-                                slices=[dict(behaviour='The thing', failure_reason='It was absent',
+                                slices=[dict(position=1, behaviour='The thing', failure_reason='It was absent',
                                              red=red['sequence'], green=green['sequence'])]))
         self.submit('review', dict(reviewer='codex:reviewer', independence='independent',
                                    read=['harness/journal.py'],
@@ -195,3 +196,6 @@ class DeliverStatusTest(DoctorTest):
 
         self.assertEqual(doctor.report(Repository(self.root),
                                        thresholds.load(self.root))['problems'], [])
+
+if __name__ == '__main__':  # pragma: no cover - a module must run on its own
+    unittest.main()

@@ -1,0 +1,31 @@
+{
+  "sequence": 3,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T05:26:19.406150+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "14dae1d3aa337e80fb91b8ea31156d415022574e",
+  "prev_hash": "f00a8e5c967489d05372d3105f98698b5c18f5153751eb6236d1b39c4a743839",
+  "data": {
+    "source": "codegraph",
+    "mode": "impact",
+    "command": [
+      "codegraph",
+      "impact",
+      "_tdd"
+    ],
+    "synced": true,
+    "index": {
+      "nodes": 1833,
+      "edges": 5158
+    },
+    "exit_code": 0,
+    "duration_ms": 229,
+    "answer": "\nImpact of changing \"_tdd\" — 8 affected symbols:\n\nharness/gates.py\n  function    _tdd:223\n  file        gates.py:1\n\nharness/tests/test_non_code_mode.py\n  file        test_non_code_mode.py:1\n\nharness/handoff.py\n  file        handoff.py:1\n\nharness/tests/test_stage_gates.py\n  file        test_stage_gates.py:1\n\nharness/delivery.py\n  file        delivery.py:1\n\nharness/cli.py\n  file        cli.py:1\n\nharness/triage.py\n  file        triage.py:1\n\n",
+    "answer_truncated": false
+  }
+}

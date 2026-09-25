@@ -1,0 +1,30 @@
+{
+  "sequence": 8,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T05:42:25.896528+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "9601a43e2e4cd9d40c6feda6eccb6c0388ba2856",
+  "prev_hash": "58698d86248c451e02071eff1c0acc050414a25ba1b3083939442b8c62dd8ae4",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_routing",
+      "-v"
+    ],
+    "phase": "green",
+    "exit_code": 0,
+    "duration_ms": 4849,
+    "output": "test_a_slice_the_reply_left_out_goes_to_the_strongest_as_an_absence (harness.tests.test_routing.JevTest.test_a_slice_the_reply_left_out_goes_to_the_strongest_as_an_absence) ... ok\ntest_a_transport_that_failed_is_an_absence_and_not_a_refusal (harness.tests.test_routing.JevTest.test_a_transport_that_failed_is_an_absence_and_not_a_refusal) ... ok\ntest_an_unruled_slice_is_routed_by_jev_with_its_probabilities (harness.tests.test_routing.JevTest.test_an_unruled_slice_is_routed_by_jev_with_its_probabilities) ... ok\ntest_no_credential_routes_every_slice_to_the_strongest (harness.tests.test_routing.JevTest.test_no_credential_routes_every_slice_to_the_strongest) ... ok\ntest_one_request_carries_every_unruled_slice_keyed_by_position (harness.tests.test_routing.JevTest.test_one_request_carries_every_unruled_slice_keyed_by_position) ... ok\ntest_the_question_carries_the_slice_it_is_about (harness.tests.test_routing.JevTest.test_the_question_carries_the_slice_it_is_about) ... ok\ntest_the_state_carries_what_the_ticket_already_settled (harness.tests.test_routing.JevTest.test_the_state_carries_what_the_ticket_already_settled) ... ok\ntest_both_questions_are_asked_by_the_route_and_by_no_stage (harness.tests.test_routing.QuestionTest.test_both_questions_are_asked_by_the_route_and_by_no_stage) ... ok\ntest_each_option_carries_a_criterion (harness.tests.test_routing.QuestionTest.test_each_option_carries_a_criterion) ... ok\ntest_the_options_are_the_tiers_and_the_efforts_in_order (harness.tests.test_routing.QuestionTest.test_the_options_are_the_tiers_and_the_efforts_in_order) ... ok\ntest_a_non_code_ticket_has_no_slices_to_route (harness.tests.test_routing.RecordTest.test_a_non_code_ticket_has_no_slices_to_route) ... ok\ntest_a_route_after_the_tdd_stage_is_refused (harness.tests.test_routing.RecordTest.test_a_route_after_the_tdd_stage_is_refused) ... ok\ntest_a_route_before_the_plan_is_refused (harness.tests.test_routing.RecordTest.test_a_route_before_the_plan_is_refused) ... ok\ntest_the_record_carries_one_entry_per_planned_slice_in_order (harness.tests.test_routing.RecordTest.test_the_record_carries_one_entry_per_planned_slice_in_order) ... ok\ntest_the_record_carries_the_shadow_flag_it_was_written_under (harness.tests.test_routing.RecordTest.test_the_record_carries_the_shadow_flag_it_was_written_under) ... ok\ntest_the_record_names_the_solution_advance_it_routes (harness.tests.test_routing.RecordTest.test_the_record_names_the_solution_advance_it_routes) ... ok\ntest_a_credentials_slice_is_routed_by_rule (harness.tests.test_routing.RulesTest.test_a_credentials_slice_is_routed_by_rule) ... ok\ntest_a_migration_slice_is_routed_by_rule (harness.tests.test_routing.RulesTest.test_a_migration_slice_is_routed_by_rule) ... ok\ntest_a_money_slice_is_routed_by_rule_and_jev_is_not_asked (harness.tests.test_routing.RulesTest.test_a_money_slice_is_routed_by_rule_and_jev_is_not_asked) ... ok\ntest_a_plan_named_migrations_routes_every_slice_by_rule (harness.tests.test_routing.RulesTest.test_a_plan_named_migrations_routes_every_slice_by_rule) ... ok\ntest_a_ticket_that_changes_an_agent_action_routes_every_slice_by_rule (harness.tests.test_routing.RulesTest.test_a_ticket_that_changes_an_agent_action_routes_every_slice_by_rule) ... ok\ntest_a_ticket_that_touches_billing_routes_every_slice_by_rule (harness.tests.test_routing.RulesTest.test_a_ticket_that_touches_billing_routes_every_slice_by_rule) ... ok\ntest_an_rls_policy_is_the_migration_rule (harness.tests.test_routing.RulesTest.test_an_rls_policy_is_the_migration_rule) ... ok\ntest_only_the_unruled_slice_reaches_the_request (harness.tests.test_routing.RulesTest.test_only_the_unruled_slice_reaches_the_request) ... ok\n\n----------------------------------------------------------------------\nRan 24 tests in 4.753s\n\nOK\n",
+    "output_sha256": "bbb69ad5f648a7c06e1de6a2cf972c056ea32160881ebdfe99bd40bf1b5de010",
+    "output_truncated": false,
+    "before": "8d6c373b61c62e8d297152255db36cb4d74653375bb150675de4c8719bfb6be4",
+    "after": "8d6c373b61c62e8d297152255db36cb4d74653375bb150675de4c8719bfb6be4"
+  }
+}

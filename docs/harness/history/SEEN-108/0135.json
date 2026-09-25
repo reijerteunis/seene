@@ -1,0 +1,31 @@
+{
+  "sequence": 135,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T18:58:47.202985+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 13,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "e613f5413275a042806d539ddd71ac962c666932",
+  "prev_hash": "155cc16c742fc0bdaba43fc7ec3c72271e4e9a680c24d59e69d25d4e56b0677f",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_routing.RuleTrippedByTheWorkTest"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "model": "claude-opus-5",
+    "model_declared": "opus",
+    "duration_ms": 5992,
+    "output": "............F...\n======================================================================\nFAIL: test_money_written_under_a_jev_route_is_refused (harness.tests.test_routing.RuleTrippedByTheWorkTest.test_money_written_under_a_jev_route_is_refused)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_routing.py\", line 1048, in test_money_written_under_a_jev_route_is_refused\n    with self.assertRaises(HarnessError) as raised:\n         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^\nAssertionError: HarnessError not raised\n\n----------------------------------------------------------------------\nRan 16 tests in 5.934s\n\nFAILED (failures=1)\n",
+    "output_sha256": "ab8612d20b05f6db2fb341356f4a343b87ed7ae789b426d34817d47cf1b46986",
+    "output_truncated": false,
+    "before": "3c997b28f534bd872ed8b0a88e8d35b17880b5f22ce285e7eb57debf97fc39f5",
+    "after": "3c997b28f534bd872ed8b0a88e8d35b17880b5f22ce285e7eb57debf97fc39f5"
+  }
+}

@@ -107,6 +107,32 @@ QUESTIONS = {
                           'solution record naming it',
                   'false': 'It is mechanical, small and guarded: a generated copy, a rename, a '
                            'fixture, or a test whose own failure would be the signal'}),
+    # The route, from SEEN-108. Both have stage=None for the reason the four
+    # above do: they are asked by their own command, once per unruled slice, and
+    # questions_for('solution') stays solution_complete and
+    # touches_billing_or_policy_gate. A slice a rule settles is never asked about
+    # at all, so the criteria below describe only what is left over.
+    'implementation_model': dict(
+        # Ordered weakest to strongest, so the harness reads the answer by level
+        # index the way it reads every other score. The options are the tiers in
+        # thresholds.toml [routing] and must stay in that order.
+        type='score', options=('haiku', 'sonnet', 'opus'), stage=None,
+        ask='Which model should implement this slice?',
+        criteria=['Mechanical and well-guarded: a rename, a generated copy, a fixture, or one '
+                  'more case of a pattern the repository already holds, with a test that would '
+                  'catch it being wrong',
+                  'Ordinary work with a shape to follow: a new function or command built the way '
+                  'a neighbouring one is, where the design is settled and the writing is the job',
+                  'A shape nobody has built here yet, or one whose failure the tests would not '
+                  'catch: a new interface others will depend on, a decision left to the '
+                  'implementer, or a change whose blast radius is wide']),
+    'implementation_effort': dict(
+        type='score', options=('low', 'medium', 'high'), stage=None,
+        ask='How much reasoning effort does this slice need?',
+        criteria=['The steps are known before the work starts and nothing has to be weighed',
+                  'A few judgement calls, each with an obvious right answer once looked at',
+                  'The order of the work, the interfaces or the edge cases have to be reasoned '
+                  'about before anything is written']),
     'review_depth': dict(
         # Two levels, so the harness reads it by level index the way it reads
         # every other score. A choice between two is what a two-level score is.
@@ -350,6 +376,26 @@ def ask_batch(root, rules, asked, state, answers=None, confidence=1.0, must_answ
                              passed=_passed(question, result, threshold),
                              fallback_reason=result['fallback_reason']))
     return recorded
+
+
+def why_not(answered, credential_value, answers):
+    """Why a request produced nothing, or nothing when it produced something.
+
+    Here rather than in the two callers, because both the review triage and the
+    route ask with `must_answer=False` and both have to tell three things apart
+    that look alike from the outside: no credential, a transport that failed, and
+    a reply nothing could be read from. Saying a request was made when none left
+    the machine is the overclaim K1 of SEEN-107's sixth review found.
+    """
+    if answered is not None:
+        return None
+    if not credential_value:
+        return ('No Jev credential on this machine, so no request was made and every answer is '
+                'recorded as an absence')
+    reasons = sorted({answer['fallback_reason'] for answer in answers
+                      if answer['fallback_reason']})
+    said = 'The request was made and Jev did not answer'
+    return f'{said}: {"; ".join(reasons)}' if reasons else said
 
 
 def ask_many(root, rules, names, state, answers=None, confidence=1.0):

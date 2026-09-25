@@ -1,0 +1,37 @@
+{
+  "sequence": 56,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T09:38:10.999375+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 5,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "a740bda3269c66d4e0a0928c050d9fd528a3f5d3",
+  "prev_hash": "00aee914eb1a9404dc8c63eeb77d7acfb6750ee05687aebf1b35621bd8baae82",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "behaviour": "The implementer declares the model it was spawned on and the gate compares the declaration, the last slice is charged the window the tdd advance closed, a new plan rewrites the implementer copies, a reopened ticket is still the ticket in hand, and the delivered kpi.json carries a cost per slice.",
+          "failure_reason": "Quoted from check 51's captured output, not from anything this session had been reading: \"KeyError: 'model_declared'\"; \"AssertionError: 'haiku' not found in 'Put the check command after --'\" and \"AssertionError: \\\"haiku\\\" does not match \\\"Put the check command after --\\\"\", because --model was not a flag and argparse left it in the command; \"AssertionError: None != 45000\" and \"AssertionError: None != 'claude-opus-5'\" for the last slice, which no window closed; \"AssertionError: 'model: opus' not found in '---\\nname: seen-implementer...'\" for the copies a new plan leaves behind; and \"AssertionError: Tuples differ: ('opus', 'high') != ('haiku', 'medium')\" for the reopened ticket.",
+          "red": 51,
+          "green": 53
+        }
+      ],
+      "regression": 54,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "710e96458c5b",
+      "output_tokens": 472212,
+      "tool_calls": 278,
+      "unavailable": null
+    }
+  }
+}

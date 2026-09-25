@@ -1,0 +1,16 @@
+{
+  "sequence": 87,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T13:13:57.179653+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "review",
+  "attempt": 8,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "0e5d1be357144714ea7b79a6976a4c87f8851148",
+  "prev_hash": "673ea19d2c6fb081e5a928296cc1b7cda1afa0d209746ff6e85bb1740f199998",
+  "data": {
+    "text": "# Why the fingerprint check fails on this ticket, and what it is not\n\nThe sixth triage, record 84, and the seventh, record 86, both refuse the\nfingerprint: check 80's regression ran against `2c17ec1dff35` and the triage\nreads `454ecfca39d7`. The commit that recorded the qa check blamed\n`repository.fingerprint` for reading blob ids out of the index, and implied the\ncheck measures something it should not. That was wrong, and this note is the\ncorrection.\n\n**The evidence that it was wrong.** SEEN-107 ran eleven triages and the\nfingerprint check passed in every one of them, against the same code. A check\nthat eleven consecutive triages satisfy is not a check that cannot be satisfied.\n\n**What actually caused it, both halves mine.** The first is ordering. The\nprocedure says the outcome is written before the ticket leaves review, and the\nfingerprint compares the tree against the last tdd check; this session wrote the\noutcome after the regression, so the tree moved between them. Written before the\nfinal red, green and regression, as SEEN-107 wrote it, the regression runs\nagainst the tree that carries it and the fingerprint matches. The second is\nstaging. `git ls-files -s` reports the index, so a tracked file edited and not\nstaged hashes as its old content and staging it moves the fingerprint without\nchanging a byte on disk; running the final checks on a committed tree, which is\nwhat SEEN-107 did, leaves nothing to move.\n\n**What stands in its place here.** Check 85 is the whole suite, 820 tests,\nrecorded at the review stage against the tree the reviewer reads, which is the\ntree the receipt will attest. It cannot make the fingerprint check pass, because\nthat check reads only the red, green and regression of the tdd stage, and the\ntdd stage is behind us at record 82. So the failure is carried to the reviewer\nrather than answered, which forces full depth, and full depth is right for a\nticket whose tree moved after its tests.\n\n**What to do next time, and it is a habit rather than a change.** Write the\noutcome, commit, then run the final red, green, regression and coverage, then\nadvance. The harness already reads that order; this session did not.\n"
+  }
+}

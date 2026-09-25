@@ -1,0 +1,37 @@
+{
+  "sequence": 74,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T12:36:06.807239+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 7,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "270f7f41aefc60e75ebef4acef9fff81e2b773a5",
+  "prev_hash": "72c3ab9abe68435655c27d809b3030258f79a6a00af2ea418f60f353e92157f9",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "behaviour": "A rule matches a slice that names a directory as well as one that names a file under it; the stray-agent check is exercised by a name no source generates; the cost table does not claim a command that does not exist yet; and go_back returns what it appends without a local nobody reads.",
+          "failure_reason": "Quoted from check 69's captured output: \"AssertionError: None != 'money'\" for the slices naming packages/core and packages/core/src, and \"AssertionError: None != 'migration'\" for the one naming supabase/migrations, each where rule_for returned no rule at all. The two stray fixtures and the new stray guard could not fail there, because F3's defect was in the tests rather than in the code: they were proven instead by removing `+ strays(root)` from agents.drift, which failed all three, and restoring it. F5's guard was proven the same way by the exception the parser really raises, HarnessError 'Unrecognised arguments: --calibration', which this session had wrong as SystemExit until it ran it.",
+          "red": 69,
+          "green": 71
+        }
+      ],
+      "regression": 72,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "710e96458c5b",
+      "output_tokens": 556005,
+      "tool_calls": 320,
+      "unavailable": null
+    }
+  }
+}

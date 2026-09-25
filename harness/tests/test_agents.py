@@ -120,20 +120,44 @@ class AgentSyncTest(CommandTest):
                         self.problems())
 
     def test_an_agent_file_nobody_generates_is_reported(self):
-        """F10: a file with no source under harness/agents/ has had no review."""
-        self.run_harness('sync')
-        stray = self.root / '.claude' / 'agents' / 'seen-implementer.md'
-        stray.write_text('---\nname: seen-implementer\ntools: Edit, Write, Bash\n---\n')
+        """F10: a file with no source under harness/agents/ has had no review.
 
-        found = [problem for problem in self.problems() if 'seen-implementer' in problem]
+        The name must be one no source generates. Both of these used
+        seen-implementer until SEEN-108 made it the third agent, at which point
+        its name entered the set `strays` skips and `drift` reported the
+        hand-written bytes instead: the assertion still passed and the check it
+        was written for was exercised by nothing. F3 of that ticket's third
+        review.
+        """
+        self.run_harness('sync')
+        stray = self.root / '.claude' / 'agents' / 'seen-architect.md'
+        stray.write_text('---\nname: seen-architect\ntools: Edit, Write, Bash\n---\n')
+
+        found = [problem for problem in self.problems() if 'seen-architect' in problem]
         self.assertTrue(found, self.problems())
 
     def test_a_stray_codex_agent_file_is_reported_too(self):
         self.run_harness('sync')
-        (self.root / '.codex' / 'agents' / 'seen-implementer.toml').write_text('name = "x"\n')
+        (self.root / '.codex' / 'agents' / 'seen-architect.toml').write_text('name = "x"\n')
 
-        self.assertTrue([problem for problem in self.problems() if 'seen-implementer' in problem],
+        self.assertTrue([problem for problem in self.problems() if 'seen-architect' in problem],
                         self.problems())
+
+    def test_only_the_stray_check_can_report_a_file_with_no_source(self):
+        """The guard the two above lost: drift must not be able to stand in for strays.
+
+        A generated copy differs from its rendering, which is what drift reports;
+        a file no source generates has no rendering to differ from, so if this
+        passes with `strays` removed from `drift` the check is decorative.
+        """
+        from harness import agents
+        self.run_harness('sync')
+        (self.root / '.claude' / 'agents' / 'seen-architect.md').write_text(
+            '---\nname: seen-architect\ntools: Edit, Write, Bash\n---\n')
+
+        self.assertEqual(agents.drift(self.root), agents.strays(self.root),
+                         'drift reports this file only because it calls strays')
+        self.assertTrue(agents.strays(self.root))
 
     def test_a_project_agent_of_ones_own_is_left_alone(self):
         """G7: .claude/agents/ belongs to the person; only the seen- names are ours."""
@@ -152,14 +176,25 @@ class AgentSyncTest(CommandTest):
 
 
 class AgentDefinitionTest(CommandTest):
-    """What the two agents are allowed to do, which is the point of separating them."""
+    """What each agent is allowed to do, which is the point of separating them."""
 
-    def test_neither_agent_may_write(self):
+    def test_neither_reader_may_write(self):
+        """The scout and the reviewer read and nothing else.
+
+        SEEN-105 could say this of every agent because every agent was a reader.
+        SEEN-108 adds one that writes the slice, so the rule is stated of the
+        two it was always about rather than quietly dropped.
+        """
         from harness import agents
-        for agent in agents.AGENTS:
+        for agent in (agents.SCOUT, agents.REVIEWER):
             for forbidden in ('Edit', 'Write', 'NotebookEdit'):
                 self.assertNotIn(forbidden, agent['tools'],
                                  f'{agent["name"]} must not hold {forbidden}')
+
+    def test_the_implementer_is_the_only_agent_that_may_write(self):
+        from harness import agents
+        writers = [agent['name'] for agent in agents.AGENTS if 'Write' in agent['tools']]
+        self.assertEqual(writers, ['seen-implementer'])
 
     def test_the_scout_can_reach_the_graphs_and_the_reviewer_cannot_be_the_implementer(self):
         from harness import agents
@@ -169,7 +204,8 @@ class AgentDefinitionTest(CommandTest):
     def test_the_roster_and_the_brief_cap_are_a_diff_a_person_reviews(self):
         from harness import thresholds
         rules = thresholds.load(self.root)
-        self.assertEqual(sorted(rules['agents']['names']), ['seen-reviewer', 'seen-scout'])
+        self.assertEqual(sorted(rules['agents']['names']),
+                         ['seen-implementer', 'seen-reviewer', 'seen-scout'])
         self.assertEqual(rules['agents']['brief_word_limit'], 400)
 
 
@@ -214,8 +250,10 @@ class ScoutBriefTest(CommandTest):
         self.assertEqual(self.brief(10)['session'], self.records()[-1]['session'])
 
     def test_an_unknown_agent_is_refused_and_the_roster_is_named(self):
+        # A name nobody has a source for. seen-implementer was this fixture's
+        # unknown until SEEN-108 made it one of the three.
         with self.assertRaises(HarnessError) as raised:
-            self.brief(10, agent='seen-implementer')
+            self.brief(10, agent='seen-architect')
         self.assertIn('seen-scout', str(raised.exception))
 
     def test_an_ordinary_note_is_not_capped(self):
@@ -274,3 +312,128 @@ class TheSkillSaysSoTest(unittest.TestCase):
 
     def test_it_names_the_word_cap_on_a_brief(self):
         self.assertIn('400', self.text)
+
+
+IMPLEMENTER_CLAUDE = '.claude/agents/seen-implementer.md'
+IMPLEMENTER_CODEX = '.codex/agents/seen-implementer.toml'
+IMPLEMENTER_BODY = '# The implementer\n\nWork one slice. Red, then green, then stop.\n'
+
+
+class ImplementerTest(CommandTest):
+    """The one agent whose model and effort are not its own to choose.
+
+    All three carry a fixed model, from harness/agents.py and thresholds.toml.
+    The implementer's was read from the branch's journal until record 121, which
+    made a generated file depend on the state of a ticket.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.write('harness/agents/seen-scout.md', SCOUT_BODY)
+        self.write('harness/agents/seen-reviewer.md', REVIEWER_BODY)
+        self.write('harness/agents/seen-implementer.md', IMPLEMENTER_BODY)
+
+    def frontmatter(self):
+        self.run_harness('sync')
+        return (self.root / IMPLEMENTER_CLAUDE).read_text().split('---\n')[1]
+
+    def codex(self):
+        self.run_harness('sync')
+        return tomllib.loads((self.root / IMPLEMENTER_CODEX).read_text())
+
+    def test_sync_writes_both_implementer_copies(self):
+        self.run_harness('sync')
+        for relative in (IMPLEMENTER_CLAUDE, IMPLEMENTER_CODEX):
+            self.assertTrue((self.root / relative).is_file(),
+                            f'{relative} was not written')
+
+    def test_the_implementer_holds_edit_and_write(self):
+        """The first agent that does, because writing the slice is what it is for."""
+        frontmatter = self.frontmatter()
+        self.assertIn('Edit', frontmatter)
+        self.assertIn('Write', frontmatter)
+
+    def test_the_claude_copy_carries_an_effort_key(self):
+        """Claude Code has no per-invocation effort override, so the file is where it goes."""
+        self.assertRegex(self.frontmatter(), r'\neffort: (low|medium|high|max)\n')
+
+    def test_the_codex_copy_carries_a_reasoning_effort(self):
+        self.assertIn('model_reasoning_effort', self.codex())
+
+    def test_the_copies_carry_the_strongest_at_high_effort(self):
+        """Always, and not only where a branch carries no route.
+
+        The name and the reason both said branch until record 121 stopped the
+        copies reading one. F5 of the ninth review: a test that describes the
+        design it no longer tests is how the design comes back.
+        """
+        self.assertIn('model: opus', self.frontmatter())
+        self.assertIn('effort: high', self.frontmatter())
+        self.assertEqual(self.codex()['model_reasoning_effort'], 'high')
+
+    def test_the_scout_and_the_reviewer_carry_no_effort_key(self):
+        """An agent with no effort of its own takes the session's, which is what omitting it means."""
+        self.run_harness('sync')
+        for relative in CLAUDE_COPIES:
+            self.assertNotIn('\neffort:', (self.root / relative).read_text())
+
+    def test_doctor_reports_no_drift_after_sync(self):
+        self.run_harness('sync')
+        self.assertEqual(self.problems(), [])
+
+    def problems(self):
+        return doctoring.report(Repository(self.root), {})['problems']
+
+    def test_an_edited_implementer_copy_is_reported_as_drift(self):
+        self.run_harness('sync')
+        path = self.root / IMPLEMENTER_CLAUDE
+        path.write_text(path.read_text().replace('model: opus', 'model: haiku'))
+        self.assertTrue(any('seen-implementer' in problem for problem in self.problems()))
+
+
+class GuardIsLastTest(unittest.TestCase):
+    """A module's own run must collect its own tests.
+
+    F3 of the sixth review: five classes were appended after the
+    `unittest.main()` guard in two modules, so running either file directly
+    reported OK having collected none of them. A developer iterating on
+    report.render_cost that way would have seen green while reintroducing the
+    TypeError that stopped the sprint report being written at all.
+
+    F3 and F5 of the seventh: the first version of this test looked for its own
+    string anywhere in a line, so it would have failed on the module it lives
+    in, which has no guard and does contain that literal; and it skipped every
+    module without a guard, which was sixteen of them, so a direct run of the
+    1,036 lines this ticket added to test_routing.py collected nothing and said
+    so by printing nothing. The guard is found at the start of a line now, and
+    every module must have one.
+    """
+
+    def modules(self):
+        return sorted((PROJECT / 'harness' / 'tests').glob('test_*.py'))
+
+    def guard_of(self, lines):
+        """The guard's line, found at column zero so a quotation is not one."""
+        found = [index for index, line in enumerate(lines)
+                 if line.startswith('if __name__ ==')]
+        return found[0] if found else None
+
+    def test_every_module_can_be_run_on_its_own(self):
+        without = [path.name for path in self.modules()
+                   if self.guard_of(path.read_text().splitlines()) is None]
+        self.assertEqual(without, [], 'a module with no guard runs nothing and says nothing')
+
+    def test_no_test_class_is_defined_after_the_guard(self):
+        stragglers = {}
+        for path in self.modules():
+            lines = path.read_text().splitlines()
+            guard = self.guard_of(lines)
+            if guard is None:
+                continue
+            after = [line for line in lines[guard:] if line.startswith('class ')]
+            if after:
+                stragglers[path.name] = after
+        self.assertEqual(stragglers, {})
+
+if __name__ == '__main__':  # pragma: no cover - a module must run on its own
+    unittest.main()

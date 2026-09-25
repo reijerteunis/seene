@@ -1,0 +1,19 @@
+{
+  "sequence": 58,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T11:57:19.861825+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 5,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "0aa469b593a0e619d61341725d169361e3c3fe96",
+  "prev_hash": "a5b4f6599d982b44fc2e55a78eab3a5f358982167d4e4eed141fbcadcdc287ae",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 6,
+    "reason": "The third review returned six findings. F1, high: nothing tells the implementer to pass --model, so the declaration the amended criterion 3 rests on is never made and the gate falls back to the log, which reports the parent's model; the gate's half landed and the instruction half did not. F2: the tdd advance closes a window at last + 1 with no bound, so slice 4 of this ticket swallows all four review rounds at 253,085 tokens against a 2-point slice, and a reworked ticket's second advance keys a position that does not exist and drops its tokens, which makes a reworked route look cheaper. F3 to F6 are recorded and carried to a follow-up ticket on Ruud's decision."
+  }
+}

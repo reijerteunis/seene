@@ -4,6 +4,7 @@ A receipt is final when the work is merged, not when it is written. Until then a
 ticket can be reopened, and the journal says so rather than hiding it.
 """
 
+import unittest
 import hashlib
 import json
 
@@ -86,7 +87,7 @@ class ReopenTest(DeliveryWalk):
         records = self.run_harness('history', self.ticket_id)
         red, green, regression = [r['sequence'] for r in records[-4:-1]]
         self.submit('tdd', dict(mode='code',
-                                slices=[dict(behaviour='The correction',
+                                slices=[dict(position=1, behaviour='The correction',
                                              failure_reason='still wrong', red=red, green=green)],
                                 regression=regression, coverage_delta=None))
         self.run_harness('check', self.ticket_id, '--phase', 'qa', '--actor', 'codex:reviewer',
@@ -102,3 +103,6 @@ class ReopenTest(DeliveryWalk):
         second = self.verify()
         self.assertNotEqual(second['receipt_sha256'], first['receipt_sha256'])
         self.assertEqual(self.run_harness('status', self.ticket_id)['stage'], 'delivered')
+
+if __name__ == '__main__':  # pragma: no cover - a module must run on its own
+    unittest.main()

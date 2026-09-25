@@ -1,0 +1,19 @@
+{
+  "sequence": 33,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T07:09:19.795560+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "c3ed54f0205e416f7e062668571e01424a2bc119",
+  "prev_hash": "9c1b0d1ab282d5f5f41a00edd246693a7727d03e64522ec09ef512f01dcdb494",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 3,
+    "reason": "The seen-reviewer subagent returned nine findings at note 32, three of them worth the return on their own. F1: routed() reads the branch, and actions/checkout leaves HEAD detached on a pull_request event, so doctor reports drift on the committed implementer copies of any commit routed below opus and CI's self-check fails on the pull request of a commit that is green on push. F2: ran_on reads model off the record envelope rather than record['data'] and indexes the tdd advance by route position, so the column SEEN-109's window is made of is null for every slice. F5: in shadow the work runs on the session's model while cost_cents prices it at the routed model's, so the sprint report SEEN-109 decides from shows a saving that has not happened."
+  }
+}

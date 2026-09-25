@@ -1,0 +1,19 @@
+{
+  "sequence": 88,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T13:21:22.937621+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 8,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "0278197c05589caec2db4be0552f2360faa69d42",
+  "prev_hash": "2011bceda23a1f5390d133f04f4280db7b127d1840c05c018e8c3eaed11954fc",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 9,
+    "reason": "The fifth review returned two findings. F1, high: render_cost sorts the per-model rows by cost_cents, which the previous attempt made None for a row nothing could price, so report --sprint raises TypeError on this ticket's own delivered figures and writes no report at all; the fix for the fourth review's F3 caused it and every test of the section renders only priced rows. F2: the plan position a proved slice is keyed by is optional and its absence silently skips the route comparison, and require_template_fields never recurses into a slice object, so criterion 3's refusal can be avoided by leaving a field out rather than by running on the routed model."
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "sequence": 121,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T15:07:13.476225+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 12,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "fcdad042cc6ed2489751bdbc3f31323905026ad6",
+  "prev_hash": "6d146ab87720f31d8d3be2626e66cc1cf1d85e356af8604a5c06e5d4519b5f04",
+  "data": {
+    "text": "# The decision behind the second amendment to criterion 3\n\n**Asked, on 25 September 2026, after the eighth review at note 120.** The\nimplementer copies are generated per slice, and a file whose correct content\ndepends on which slice is in hand has no correct content once no slice is. After\nthe receipt this ticket is no longer unfinished, `routed` falls back, `doctor`\nreports drift on the commit being merged, and `verify-merge` refuses; the copies\ncannot be re-synced because `.claude/agents/` is not in `DELIVERY_WRITES`. The\nticket as built cannot merge. What should change?\n\n**The options put to him, in the order they were offered.**\n\n1. Stop generating the copies per slice: the committed copies carry the\n   strongest tier at high effort always, and the routed model and effort reach\n   the implementer through the route record's spawn instruction and the\n   per-invocation model override. Removes the class of defect that four of the\n   last five reviews were about, and costs the effort being settable per slice\n   in Claude Code, which criterion 3 must be amended for. Marked as the\n   recommendation.\n2. Exclude the copies from doctor's drift check, comparing only the rest against\n   the source. The smallest change and it keeps the criterion as written, but it\n   gives up the guard that a hand-edited agent file is reported, which is the\n   check SEEN-105 added and this ticket already had to repair once.\n3. Add the copies to `DELIVERY_WRITES`, so a post-receipt commit may re-sync\n   them. Fixes the merge and means an agent definition may change after the tree\n   a receipt attests, which is what the receipt exists to prevent.\n\n**What he chose.** Option 1.\n\n**What it costs, named rather than implied.** Claude Code documents `effort` as\na subagent frontmatter key and documents no per-invocation override for it, so a\nfixed file means the effort a slice is routed to is carried and reported but not\napplied on that side. The model still is, through the per-invocation override\nthe spawn instruction names. Criterion 3 is amended to say so.\n\n**What it buys.** The copies stop depending on state outside their source, which\nis what made them wrong on a detached HEAD, wrong after a replan, wrong the\nmoment a green landed, and wrong after the receipt: four findings across four\nreviews, each patched separately, each a symptom of the same thing. `doctor`\ngoes back to comparing a generated file with its source and nothing else.\n"
+  }
+}

@@ -1,0 +1,302 @@
+{
+  "sequence": 9,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T05:43:06.620209+00:00",
+  "harness_version": "2",
+  "kind": "route",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "9601a43e2e4cd9d40c6feda6eccb6c0388ba2856",
+  "prev_hash": "a6c33c51eff94ae696d0144bd66987094cb10e608af8da4d724b7728682b5bc2",
+  "data": {
+    "solution": 5,
+    "shadow": true,
+    "strongest": "opus",
+    "tiers": [
+      "haiku",
+      "sonnet",
+      "opus"
+    ],
+    "rules": [],
+    "jev": {
+      "asked": true,
+      "model": "jev-1.13.0",
+      "reason": null,
+      "answers": [
+        {
+          "key": "implementation_model#1",
+          "question": "implementation_model",
+          "type": "score",
+          "options": [
+            "haiku",
+            "sonnet",
+            "opus"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "opus",
+          "probabilities": {
+            "haiku": 0.01,
+            "sonnet": 0.06,
+            "opus": 0.9299999999999999
+          },
+          "confidence": 0.9,
+          "score": 1.93,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_effort#1",
+          "question": "implementation_effort",
+          "type": "score",
+          "options": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "high",
+          "probabilities": {
+            "low": 0.01,
+            "medium": 0.08,
+            "high": 0.91
+          },
+          "confidence": 0.85,
+          "score": 1.9,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_model#2",
+          "question": "implementation_model",
+          "type": "score",
+          "options": [
+            "haiku",
+            "sonnet",
+            "opus"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "opus",
+          "probabilities": {
+            "haiku": 0.04,
+            "sonnet": 0.36,
+            "opus": 0.6
+          },
+          "confidence": 0.32,
+          "score": 1.55,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_effort#2",
+          "question": "implementation_effort",
+          "type": "score",
+          "options": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "high",
+          "probabilities": {
+            "low": 0.01,
+            "medium": 0.18,
+            "high": 0.81
+          },
+          "confidence": 0.7,
+          "score": 1.8,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_model#3",
+          "question": "implementation_model",
+          "type": "score",
+          "options": [
+            "haiku",
+            "sonnet",
+            "opus"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "haiku",
+          "probabilities": {
+            "haiku": 0.52,
+            "sonnet": 0.37,
+            "opus": 0.11
+          },
+          "confidence": 0.11,
+          "score": 0.59,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_effort#3",
+          "question": "implementation_effort",
+          "type": "score",
+          "options": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "medium",
+          "probabilities": {
+            "low": 0.09,
+            "medium": 0.64,
+            "high": 0.27
+          },
+          "confidence": 0.47,
+          "score": 1.18,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_model#4",
+          "question": "implementation_model",
+          "type": "score",
+          "options": [
+            "haiku",
+            "sonnet",
+            "opus"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "sonnet",
+          "probabilities": {
+            "haiku": 0.18,
+            "sonnet": 0.46,
+            "opus": 0.36
+          },
+          "confidence": 0.19,
+          "score": 1.19,
+          "threshold": 0.5,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_effort#4",
+          "question": "implementation_effort",
+          "type": "score",
+          "options": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "high",
+          "probabilities": {
+            "low": 0.02,
+            "medium": 0.38,
+            "high": 0.6
+          },
+          "confidence": 0.38,
+          "score": 1.59,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        }
+      ]
+    },
+    "execution": [
+      {
+        "position": 1,
+        "name": "The rules, the questions and the route command",
+        "points": 2,
+        "files": [
+          "harness/thresholds.toml",
+          "harness/routing.py",
+          "harness/jev.py",
+          "harness/paths.py",
+          "harness/cli.py",
+          "harness/tests/test_routing.py"
+        ],
+        "red": "A fixture whose one slice changes packages/core/src/fees.ts expects a route record whose execution entry reads model opus, effort high, source rule, and expects jev.TRANSPORT to have recorded no request. It must fail because there is no route command and no record kind for it to write.",
+        "model": "opus",
+        "effort": "high",
+        "source": "jev",
+        "rule": null,
+        "reason": null,
+        "model_probability": 0.9299999999999999,
+        "effort_probability": 0.91
+      },
+      {
+        "position": 2,
+        "name": "The pack carries it and the tdd gate holds it",
+        "points": 2,
+        "files": [
+          "harness/handoff.py",
+          "harness/checks.py",
+          "harness/sessions.py",
+          "harness/gates.py",
+          "harness/cli.py",
+          "harness/tests/test_routing.py",
+          "harness/tests/test_stage_gates.py"
+        ],
+        "red": "A journal holding a route entry of opus for slice 1 and a green recorded under claude-sonnet-5 is advanced out of tdd with [routing] shadow false. It must fail because the gate accepts it: nothing reads the route, so the advance succeeds where the test expects a refusal naming both models.",
+        "model": "opus",
+        "effort": "high",
+        "source": "jev",
+        "rule": null,
+        "reason": null,
+        "model_probability": 0.6,
+        "effort_probability": 0.81
+      },
+      {
+        "position": 3,
+        "name": "The implementer agent in both assistants, and the reviewer's model rule",
+        "points": 1,
+        "files": [
+          "harness/agents.py",
+          "harness/agents/seen-implementer.md",
+          "harness/triage.py",
+          "harness/tests/test_agents.py",
+          "harness/tests/test_triage.py"
+        ],
+        "red": "sync is run on a tree whose journal routes the slice in hand to sonnet at low effort, and the test reads .claude/agents/seen-implementer.md for `model: sonnet` and `effort: low` and the Codex copy for model_reasoning_effort. It must fail because seen-implementer is not in AGENTS, so neither copy is written.",
+        "model": "haiku",
+        "effort": "medium",
+        "source": "jev",
+        "rule": null,
+        "reason": null,
+        "model_probability": 0.52,
+        "effort_probability": 0.64
+      },
+      {
+        "position": 4,
+        "name": "The cost per slice in the KPI and per point by model in the report",
+        "points": 2,
+        "files": [
+          "harness/kpi.py",
+          "harness/context.py",
+          "harness/report.py",
+          "harness/cli.py",
+          "docs/harness/skill.md",
+          "harness/tests/test_kpi.py",
+          "harness/tests/test_context_budget.py"
+        ],
+        "red": "kpi.measure over a journal holding a route record, two handoff records with figures and a receipt is asked for execution[0]['cost_cents']. It must fail with a KeyError on execution, because the measured record has no such key.",
+        "model": "sonnet",
+        "effort": "high",
+        "source": "jev",
+        "rule": null,
+        "reason": null,
+        "model_probability": 0.46,
+        "effort_probability": 0.6
+      }
+    ]
+  }
+}

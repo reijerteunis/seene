@@ -1,0 +1,31 @@
+{
+  "sequence": 30,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T06:53:36.403200+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "f27dc5de048ac6c4132af3e5f0ee81103429d3d2",
+  "prev_hash": "4e7cf1174f61f34af97cb7e2750444ca3174a4581e8d70f4e2e50ed7a227588f",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "behaviour": "A route is read only for the plan it routed: the route record names the accepted solution advance, and for_slice, the handoff pack and the implementer's copies all fall back when the plan has been replaced and nobody has routed it again.",
+          "failure_reason": "AssertionError: {'position': 1, 'name': 'The status line', ... 'model': 'sonnet', 'effort': 'medium', 'source': 'jev', ...} is not None, and 'No route' not found in the pack, which instead read 'Runs on: sonnet at medium effort, by Jev at 0.7.' for a slice that had become 'Fee expectations' over packages/core/src/fees.ts, which a rule routes to the strongest model at high effort.",
+          "red": 26,
+          "green": 27
+        }
+      ],
+      "regression": 28,
+      "coverage_delta": 0.0
+    },
+    "decisions": []
+  }
+}

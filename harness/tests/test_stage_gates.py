@@ -134,7 +134,7 @@ class SolutionGateTest(GateTest):
                              approach='Add a pure function and call it from the worker.',
                              changes=['packages/core/src/fees.ts: add the detector'],
                              tests_first=['fees.test.ts: expects EUR 0 when the fee is correct'],
-                             slices=[dict(name='The detector',
+                             slices=[dict(position=1, name='The detector',
                                           points=2,
                                           files=['packages/core/src/fees.ts'],
                                           red='No detector exists, so an overcharge reads as correct')],
@@ -172,7 +172,7 @@ class TddGateTest(GateTest):
 
     def code_tdd(self, **changes):
         data = self.template('tdd',
-                             slices=[dict(behaviour='Detects a fee overcharge',
+                             slices=[dict(position=1, behaviour='Detects a fee overcharge',
                                           failure_reason='expected 250, received 0',
                                           red=2, green=3)],
                              regression=4)
@@ -190,7 +190,7 @@ class TddGateTest(GateTest):
 
     def test_a_cited_check_that_does_not_exist_is_refused(self):
         with self.assertRaisesRegex(HarnessError, '9'):
-            self.evaluate('tdd', self.code_tdd(slices=[dict(behaviour='x', failure_reason='y',
+            self.evaluate('tdd', self.code_tdd(slices=[dict(position=1, behaviour='x', failure_reason='y',
                                                             red=9, green=3)], regression=4),
                           records=self.journal_with_checks())
 
@@ -205,19 +205,19 @@ class TddGateTest(GateTest):
     def test_a_green_recorded_before_its_red_is_refused(self):
         records = self.records + [check_record(2, 'green'), check_record(3, 'red'),
                                   check_record(4, 'regression'), coverage_record(5)]
-        data = self.code_tdd(slices=[dict(behaviour='x', failure_reason='y', red=3, green=2)])
+        data = self.code_tdd(slices=[dict(position=1, behaviour='x', failure_reason='y', red=3, green=2)])
         with self.assertRaisesRegex(HarnessError, 'order'):
             self.evaluate('tdd', data, records=records)
 
     def test_citing_a_green_where_a_red_belongs_is_refused(self):
-        data = self.code_tdd(slices=[dict(behaviour='x', failure_reason='y', red=3, green=3)])
+        data = self.code_tdd(slices=[dict(position=1, behaviour='x', failure_reason='y', red=3, green=3)])
         with self.assertRaisesRegex(HarnessError, 'red'):
             self.evaluate('tdd', data, records=self.journal_with_checks())
 
     def test_the_regression_must_run_after_the_last_green(self):
         records = self.records + [check_record(2, 'regression'), check_record(3, 'red'),
                                   check_record(4, 'green'), coverage_record(5)]
-        data = self.code_tdd(slices=[dict(behaviour='x', failure_reason='y', red=3, green=4)],
+        data = self.code_tdd(slices=[dict(position=1, behaviour='x', failure_reason='y', red=3, green=4)],
                              regression=2)
         with self.assertRaisesRegex(HarnessError, 'order'):
             self.evaluate('tdd', data, records=records)
@@ -606,5 +606,37 @@ class TwoReviewerTest(ReviewGateTest):
                       else self.tdd_done())
 
 
-if __name__ == '__main__':
+class TemplatePositionTest(unittest.TestCase):
+    """F1 of the sixth review: what the template teaches about the position.
+
+    Every other field of the tdd template ships instructive prose, and a literal
+    1 taught the one value that is wrong for most rounds after the first. Note
+    83 asked the next ticket touching this file to put the reading in its prose,
+    and the attempt that made the field mandatory did not.
+    """
+
+    def slice_template(self):
+        from harness import gates
+        return gates.load_template(PROJECT, 'tdd')['slices'][0]
+
+    def test_the_template_says_what_the_position_means(self):
+        position = self.slice_template()['position']
+        self.assertIsInstance(position, str, 'a literal number teaches the wrong default')
+        self.assertIn('null', position)
+
+    def test_the_prose_names_the_round_that_belongs_to_no_slice(self):
+        self.assertRegex(self.slice_template()['position'], r'(?i)no single slice')
+
+    def test_a_draft_left_unedited_is_refused_rather_than_routed(self):
+        """The placeholder must not be a value the gate accepts."""
+        from harness import gates
+        from harness.errors import HarnessError
+        template = gates.load_template(PROJECT, 'tdd')
+        # Everything but the position filled in, so the refusal is about the one
+        # field under test rather than the first unedited string in the record.
+        left = dict(self.slice_template(), behaviour='The behaviour', failure_reason='It failed')
+        with self.assertRaisesRegex(HarnessError, 'no single slice'):
+            gates.reject_placeholders(template, dict(slices=[left]))
+
+if __name__ == '__main__':  # pragma: no cover - a module must run on its own
     unittest.main()

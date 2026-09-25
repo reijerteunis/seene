@@ -1,0 +1,38 @@
+{
+  "sequence": 146,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T19:24:21.358907+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 14,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "ee947efad64087786312fa690a5ec02e091b7bfd",
+  "prev_hash": "e3706a3238ed04e745fe7ee5ed8c536561e69d8d98ca1d673ba5ede8c911b3a6",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": null,
+          "behaviour": "The ticket's description states that the routed effort is decided, recorded and applied by nothing, with the reason, so a reader meets the gap before the criteria rather than inside one.",
+          "failure_reason": "Quoted from check 142's captured output, recorded with the ticket file reverted to what it promised: \"AssertionError: Regex matched: \\\"the per-invocation model and the agent's effort\\\" matches\", \"AssertionError: Regex didn't match: '(?i)nothing applies it' not found in\" the description, and the same for 'per-slice agent file'.",
+          "red": 142,
+          "green": 143
+        }
+      ],
+      "regression": 144,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "710e96458c5b",
+      "output_tokens": 905396,
+      "tool_calls": 482,
+      "unavailable": null
+    }
+  }
+}

@@ -1,0 +1,178 @@
+{
+  "sequence": 148,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T19:25:08.039205+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "review",
+  "attempt": 14,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "04c6c4a1d1b3e77a3de3d4d73a4e35baf3fa24ba",
+  "prev_hash": "ccdac9df5f8e8b0db01a9a1752932ce70be66e53c76caf712d2dfd2d8dde59fd",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "deliver",
+    "evidence": {
+      "reviewer": "claude:reviewer",
+      "independence": "self-review",
+      "read": [
+        ".agents/skills/seen-harness/SKILL.md",
+        ".claude/agents/seen-implementer.md",
+        ".claude/skills/seen-harness/SKILL.md",
+        ".codex/agents/seen-implementer.toml",
+        "docs/harness/history/SEEN-108/",
+        "docs/harness/skill.md",
+        "docs/tickets/SEEN-108-route-each-slice-to-a-model-and-an-effort-at.md",
+        "harness/agents.py",
+        "harness/agents/seen-implementer.md",
+        "harness/checks.py",
+        "harness/cli.py",
+        "harness/context.py",
+        "harness/delivery.py",
+        "harness/gates.py",
+        "harness/handoff.py",
+        "harness/jev.py",
+        "harness/kpi.py",
+        "harness/paths.py",
+        "harness/report.py",
+        "harness/routing.py",
+        "harness/sessions.py",
+        "harness/templates/tdd.json",
+        "harness/tests/test_agents.py",
+        "harness/tests/test_context_budget.py",
+        "harness/tests/test_decisions.py",
+        "harness/tests/test_delivery.py",
+        "harness/tests/test_doctor.py",
+        "harness/tests/test_enforcement.py",
+        "harness/tests/test_graph.py",
+        "harness/tests/test_isolation.py",
+        "harness/tests/test_journal.py",
+        "harness/tests/test_kpi.py",
+        "harness/tests/test_lifecycle.py",
+        "harness/tests/test_merge.py",
+        "harness/tests/test_non_code_mode.py",
+        "harness/tests/test_question_criteria.py",
+        "harness/tests/test_reopen.py",
+        "harness/tests/test_repository.py",
+        "harness/tests/test_risk.py",
+        "harness/tests/test_routing.py",
+        "harness/tests/test_security.py",
+        "harness/tests/test_session_cap.py",
+        "harness/tests/test_skill.py",
+        "harness/tests/test_stage_gates.py",
+        "harness/tests/test_state_for.py",
+        "harness/tests/test_status_check.py",
+        "harness/tests/test_triage.py",
+        "harness/thresholds.toml",
+        "harness/triage.py"
+      ],
+      "acceptance_evidence": [
+        "Criterion 1 (as amended): route record 133 names the accepted solution advance 5 and carries one execution entry per slice with position, name, points, model, effort, source, probability, model_passed and implementer_task; handoff.pack names the entry for the slice in hand; routing.for_slice reads nothing for a plan it did not route. RED 26, GREEN 27 at advance 30; RecordTest, SliceBoundaryTest and StalePlanTest. Amendment decided at record 41 after triage 24 scored the criterion as worded 0.44.",
+        "Criterion 2: RulesTest has one fixture per rule asserting the routed entry is the strongest tier at high effort and that jev.TRANSPORT recorded no request; DirectoryNamedSliceTest covers the directory forms a plan can name; RuleTrippedByTheWorkTest covers work that trips a rule no slice was routed by. RED 7 and 69 and 135, GREEN 8 and 71 and 136.",
+        "Criterion 3 (as rewritten): routing.implementer_task writes the spawn command per slice naming the routed model and the --model declaration; agents.sync generates seen-implementer's copies for both assistants; gates._require_the_routed_slice and _require_the_routed_model refuse a check recorded under another model, reading the declaration first and the log otherwise, and never refusing on an absence. RED 14, 51, 60, 78 and 122 with GREEN 18, 53, 61, 79 and 123. Rewritten at record 130's successor after the triage scored the thrice-amended wording 0.26; the routed effort is applied by nothing and the description says so.",
+        "Criterion 4: kpi.execution carries model, effort, source, ran_on, ran_on_tier, output tokens, cost_cents and routed_cost_cents per slice in whole cents; DeliveredCostTest reads them out of a delivered kpi.json and SprintReportCostTest drives report --sprint through the CLI. RED 19, 34, 40, 90 and 104 with their greens.",
+        "Criterion 5: docs/harness/skill.md carries the route paragraph and the words 'never chosen inside the session', both generated copies match it, and doctor is clean. RouteInTheSkillTest, AgentCountTest and SkillAgreesWithItselfTest."
+      ],
+      "findings": [
+        {
+          "id": "F1",
+          "severity": "high",
+          "claim": "Nothing told the implementer subagent to pass harness check --model <tier>, so the declaration the amended criterion 3 rests on was never made and the gate fell back to the session log, which reports the parent's model.",
+          "failure_scenario": "With [routing] shadow false, a subagent spawned on haiku for a slice routed to haiku records its checks under claude-opus-5 and declares nothing, so the gate refuses a slice that ran exactly as routed and names a remedy the session cannot carry out.",
+          "status": "resolved",
+          "resolution": "The spawn instruction gives the whole command with the tier in it, the implementer's source says the flag is not optional and why, and the skill says it in one sentence. RED 60, GREEN 61, advance 64."
+        },
+        {
+          "id": "F2",
+          "severity": "medium",
+          "claim": "kpi.execution read the most recent route record whatever plan it routed, where routing.for_slice refuses a stale one.",
+          "failure_scenario": "A ticket replanned and never routed again reports routes for slices that no longer exist in the file SEEN-109 calibrates on.",
+          "status": "resolved",
+          "resolution": "_latest_route applies the same rule as for_slice. RED 78, GREEN 79, advance 82; StaleRouteTest holds both readers to it."
+        },
+        {
+          "id": "F3",
+          "severity": "medium",
+          "claim": "cost_per_point divided a partly measured cost by every point in the row, which its own docstring forbids.",
+          "failure_scenario": "On this ticket's figures opus read 103.8 cents per point where its priced slices give 173.0, a 40 per cent understatement of the strongest model in the table that decides whether routing saves.",
+          "status": "resolved",
+          "resolution": "It divides by the points it could price, the row carries those points as a column and the footnote says which the division uses. RED 78 and 104, GREEN 79 and 105."
+        },
+        {
+          "id": "F4",
+          "severity": "medium",
+          "claim": "The Outcome was written from recall, went stale within two commits and named four findings as carried to a ticket withdrawn in the next commit.",
+          "failure_scenario": "A reader of the merged ticket looks for four outstanding defects that are fixed on the same branch.",
+          "status": "resolved",
+          "resolution": "The figures are generated from the journal and OutcomeReconcilesTest compares the section with it; it caught 31 against 34 mechanically at check 112. RED 112, GREEN 113, advance 117."
+        },
+        {
+          "id": "F5",
+          "severity": "low",
+          "claim": "The route entry did not carry Jev's passed flag, so a route below its own bar read like a confident one.",
+          "failure_scenario": "This ticket's slice 4 is sonnet at 0.46 against a threshold of 0.5 and was indistinguishable from a route that cleared it, which SEEN-109 cannot separate without re-deriving.",
+          "status": "resolved",
+          "resolution": "The entry carries model_passed and model_threshold. Route record 133 shows two of four slices below their bar. RED 78, GREEN 79."
+        }
+      ],
+      "checks": [
+        "Disclosed rather than implied: this record is written by the session that wrote the code. Nine reviews ran in seen-reviewer subagents, at notes 32, 49, 59, 77, 89, 102, 116, 120 and 129, and their forty-six findings are all closed; what no reviewer read is the work of attempts 13 and 14, which are the resolutions of the ninth review's own findings and the rewrite of criterion 3. The read list is the paths those reviewers read, and the gate compares paths; the content of some of them has changed since. A tenth review was declined by Ruud after the finding count ran flat at five for three rounds, and this sentence is what the receipt carries instead of a claim nobody made.",
+        "Why the disclosure says self-review and not subagent: note 99. A Claude Code subagent inherits its parent's session id, and the id the ninth reviewer returned digests to 710e96458c5b, which is on every record of this ticket. The gate compares the declared string against digests it holds, so the raw form would pass a check the digest form fails, for no reason but spelling. The record understates rather than types a value to pass.",
+        "The suite at this tree: 868 tests, exit 0, at check 144. Coverage on @seen/core 100.0 at delta 0.0, check 145. doctor reports no problems. The fingerprint check passes at triage 147, which it did not at triages 84 and 86, because the outcome is written and committed before the final checks now rather than after them: note 87.",
+        "slice_files fails and is judged a plan-accuracy gap, which seven reviews recorded before this one. The unnamed files are review-driven rework: delivery.py for criterion 4's price table, templates/tdd.json for the position field, and the test modules for the guard sweep and the mandatory position. An append-only plan cannot name work that a later review asks for."
+      ],
+      "security_checklist": [],
+      "verdict": "pass",
+      "tree": "44fc1b8da9e7c4ccee6300e93d500c23c1073d9062a5ea9d10a447ee85886b3f"
+    },
+    "decisions": [
+      {
+        "key": "severity",
+        "question": "severity",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high",
+          "blocking"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "blocking",
+        "probabilities": {
+          "low": 0.02,
+          "medium": 0.14,
+          "high": 0.13,
+          "blocking": 0.71
+        },
+        "confidence": 0.52,
+        "score": 2.52,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      },
+      {
+        "key": "must_fix",
+        "question": "must_fix",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.45,
+          "no": 0.55
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.7,
+        "passed": false,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "sequence": 69,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T12:26:35.526065+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 7,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "270f7f41aefc60e75ebef4acef9fff81e2b773a5",
+  "prev_hash": "482a2e06461cbc0f630a15c69a34d0a62920ec68a51fe503df897a7579109158",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_agents",
+      "harness.tests.test_routing.DirectoryNamedSliceTest"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "model": "claude-opus-5",
+    "model_declared": "opus",
+    "duration_ms": 6297,
+    "output": ".............................................FFF\n======================================================================\nFAIL: test_a_slice_naming_a_migrations_directory_is_the_migration_rule (harness.tests.test_routing.DirectoryNamedSliceTest.test_a_slice_naming_a_migrations_directory_is_the_migration_rule)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_routing.py\", line 884, in test_a_slice_naming_a_migrations_directory_is_the_migration_rule\n    self.assertEqual(self.rule_for(['supabase/migrations'])['rule'], 'migration')\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: None != 'migration'\n\n======================================================================\nFAIL: test_a_slice_naming_the_core_package_is_the_money_rule (harness.tests.test_routing.DirectoryNamedSliceTest.test_a_slice_naming_the_core_package_is_the_money_rule)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_routing.py\", line 878, in test_a_slice_naming_the_core_package_is_the_money_rule\n    self.assertEqual(self.rule_for(['packages/core'])['rule'], 'money')\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: None != 'money'\n\n======================================================================\nFAIL: test_a_slice_naming_the_source_directory_is_too (harness.tests.test_routing.DirectoryNamedSliceTest.test_a_slice_naming_the_source_directory_is_too)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_routing.py\", line 881, in test_a_slice_naming_the_source_directory_is_too\n    self.assertEqual(self.rule_for(['packages/core/src'])['rule'], 'money')\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: None != 'money'\n\n----------------------------------------------------------------------\nRan 48 tests in 6.212s\n\nFAILED (failures=3)\n",
+    "output_sha256": "47ead75fd584d82e526b6ff608a987e5061760b56162c308ad2c3aa5b61ac51a",
+    "output_truncated": false,
+    "before": "cf7c77ec0965f533f0538d419d294a420ec69a4987d1dd944ab81194982f3301",
+    "after": "cf7c77ec0965f533f0538d419d294a420ec69a4987d1dd944ab81194982f3301"
+  }
+}

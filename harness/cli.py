@@ -33,7 +33,7 @@ TICKET_COMMANDS = ('start', 'status', 'history', 'draft', 'note', 'check', 'adva
 # command a session runs to see where it stands must not make the journal longer
 # every time it is run.
 WRITING_COMMANDS = ('start', 'note', 'check', 'advance', 'return', 'graph', 'decide', 'coverage',
-                    'handoff', 'reopen', 'review',
+                    'handoff', 'reopen', 'review', 'route',
                     'verify-delivery')
 BRANCH = re.compile(r'^(claude|codex)/(?P<ticket>[A-Z]+-\d+)-')
 
@@ -97,6 +97,9 @@ def build_parser():
     check = ticket_command('check', 'Run and record a verification command')
     check.add_argument('--phase', required=True)
     check.add_argument('--actor', required=True)
+    check.add_argument('--model', dest='declared',
+                       help='The tier this runner was spawned on, when it is a subagent and '
+                            'knows: a disclosure, recorded beside the model read from the log')
     check.add_argument('--timeout', type=int, help='Seconds before the command is stopped')
 
     advance = ticket_command('advance', 'Pass the current stage gate with completed evidence')
@@ -133,6 +136,9 @@ def build_parser():
                            'that recorded two greens counts twice without this')
 
     ticket_command('budget', "This session's tokens and tool calls against the session budget")
+
+    route = ticket_command('route', 'Decide which model and which effort implement each slice')
+    route.add_argument('--actor', required=True)
 
     reopen = ticket_command('reopen', 'Void a receipt and return the ticket to tdd, before merge')
     reopen.add_argument('--reason', required=True)
@@ -301,15 +307,16 @@ def handoff(repository, folder, records, args, current, rules):
     # Explicit, because the bytes on disk are compared against the hash this
     # record carries, and a ticket title is not guaranteed to be ASCII.
     path.write_text(text, encoding='utf-8')
-    return journal.append(folder, records, kind='handoff', stage=current['stage'],
-                          attempt=current['attempt'], actor=args.actor,
-                          head=repository.head(), ticket=args.ticket,
-                          data=dict(pack=str(path.relative_to(repository.root)),
-                                    sha256=handoff_module.digest(text),
-                                    estimated_tokens=built['estimated_tokens'],
-                                    token_limit=built['token_limit'],
-                                    slice=built['slice'],
-                                    figures=sessions.figures(repository.root)))
+    record = journal.append(folder, records, kind='handoff', stage=current['stage'],
+                            attempt=current['attempt'], actor=args.actor,
+                            head=repository.head(), ticket=args.ticket,
+                            data=dict(pack=str(path.relative_to(repository.root)),
+                                      sha256=handoff_module.digest(text),
+                                      estimated_tokens=built['estimated_tokens'],
+                                      token_limit=built['token_limit'],
+                                      slice=built['slice'],
+                                      figures=sessions.figures(repository.root)))
+    return record
 
 
 def secrets_module():
@@ -563,7 +570,14 @@ def check(repository, folder, records, args, current, rules):
     timeout = args.timeout or limits['default_timeout_seconds']
     require(0 < timeout <= limits['maximum_timeout_seconds'],
             f'A check timeout must be between 1 and {limits["maximum_timeout_seconds"]} seconds')
-    evidence = checks.run(repository, args.argv, phase, timeout, limits['output_limit_bytes'])
+    declared = getattr(args, 'declared', None)
+    if declared is not None:
+        tiers = rules['routing']['tiers']
+        require(declared in tiers,
+                f'{declared!r} is not one of {", ".join(tiers)}. A declared model is a tier from '
+                '[routing] tiers, which is what a route carries and what the gate compares')
+    evidence = checks.run(repository, args.argv, phase, timeout, limits['output_limit_bytes'],
+                          declared=declared)
     record = journal.append(folder, records, kind='check', stage=stage, attempt=current['attempt'],
                             actor=args.actor, head=repository.head(), ticket=args.ticket,
                             data=evidence)
@@ -575,6 +589,17 @@ def check(repository, folder, records, args, current, rules):
             f'{evidence["exit_code"]}. A RED is a test failing for the reason the solution record '
             'predicted, not a command that passed, timed out or could not start')
     return record
+
+
+def route_slices(repository, folder, records, args, current, rules):
+    """Decide which model and which effort implement each slice, and keep it.
+
+    Named for what it does rather than for the command, because `route` is taken
+    here by the parser's own variable and a handler that shadows it is a handler
+    somebody will one day call by mistake.
+    """
+    from . import routing
+    return routing.append(repository, folder, records, current, args, rules)
 
 
 def review(repository, folder, records, args, current, rules):
@@ -678,11 +703,18 @@ def advance(repository, folder, records, args, current, rules):
     answers = stage_decisions(repository, records, args, current, rules, data)
     require_decisions_pass(stage, answers)
     next_stage = STAGES[STAGES.index(stage) + 1]
+    body = dict(from_stage=stage, to_stage=next_stage, evidence=data, decisions=answers)
+    if stage == 'tdd':
+        # The last slice has no handoff after it, because a handoff is written
+        # at a boundary and the plan ends here. Without a figure at this record
+        # the final slice of every ticket carried no tokens, no cost and no
+        # model, which is the window SEEN-109 compares routes on. F3 of this
+        # ticket's second review.
+        body['figures'] = sessions.figures(repository.root)
     record = journal.append(folder, records, kind='advance', stage=stage,
                             attempt=current['attempt'], actor=args.actor,
                             head=repository.head(), ticket=args.ticket,
-                            data=dict(from_stage=stage, to_stage=next_stage, evidence=data,
-                                      decisions=answers))
+                            data=body)
     discard_draft(repository, args.ticket, stage)
     return record
 
@@ -779,7 +811,7 @@ def reopen(repository, folder, records, args, current):
                                     reason=args.reason))
 
 
-def ticket_figures(repository):
+def ticket_figures(repository, rules=None):
     """Every delivered ticket's figures, derived from its journal.
 
     A ticket delivered before kpi.json existed is covered identically, because
@@ -788,6 +820,7 @@ def ticket_figures(repository):
     rather than dropped.
     """
     from . import report as reporting
+    rules = thresholds.load(repository.root) if rules is None else rules
     figures = []
     for path in sorted((repository.root / 'docs' / 'tickets').glob('*.md')):
         header = reporting.frontmatter(path)
@@ -807,6 +840,10 @@ def ticket_figures(repository):
         measured = kpi.measure(records, identifier,
                                points=int(points) if points and points.isdigit() else None,
                                delivered_at=delivered_at,
+                               # The price table and the tier names, so the cost
+                               # per slice is read from a diff a person reviews
+                               # rather than from a constant in code.
+                               rules=rules,
                                # The same call delivery makes, so the report and
                                # the delivered file cannot disagree about it.
                                reviewer_tokens=kpi.reviewer_tokens(repository.root, records))
@@ -828,8 +865,9 @@ UNMEASURABLE = [
     'has been worked, so a figure here would be invented',
     'Escaped defects: counted from tickets whose frontmatter names an earlier one, and none has '
     'been written yet',
-    'Cost in euros: the session logs carry tokens, and a price per token is stale the day it is '
-    'written, so only tokens are reported',
+    'Cost in euros beyond output tokens: a handoff record carries the session\'s output tokens '
+    'and tool calls and nothing about input, so the cost per slice in [routing.prices] covers '
+    'the output side and says so, with the date the prices were read printed beside it',
 ]
 
 
@@ -837,7 +875,7 @@ def write_report(repository, args):
     from . import report as reporting
     require(args.week or args.sprint is not None, 'Ask for --week or --sprint <n>')
     rules = thresholds.load(repository.root)
-    figures = ticket_figures(repository)
+    figures = ticket_figures(repository, rules)
     if args.sprint is not None:
         planned = 0
         for path in sorted((repository.root / 'docs' / 'tickets').glob('*.md')):
@@ -869,6 +907,11 @@ def write_report(repository, args):
                                   budget['minimum_tickets'], budget['tools_available_from'],
                                   agents_from=budget['agents_available_from'])
         section['overlaps'] = context.overlaps(_graph_records(repository.root, covered))
+        # What a point cost on each model, from the routes the slices were given.
+        # Beside the tokens per point rather than instead of it: the tokens are
+        # the measure that does not go stale.
+        section['cost_by_model'] = context.cost_by_model(covered)
+        section['prices'] = rules['routing']['prices']
     payload = dict(name=name, generated_for=name, tickets=covered, totals=totals,
                    unmeasurable=UNMEASURABLE, context=section)
     markdown = reporting.render(title, covered, totals, UNMEASURABLE, section, budget)
@@ -975,7 +1018,7 @@ def execute(args):
         require(current['stage'] in WORKING_STAGES,
                 f'{args.ticket} is {current["stage"]}; open a follow-up ticket for further work')
         handlers = dict(note=note, check=check, advance=advance, graph=graph, decide=decide,
-                        coverage=coverage, handoff=handoff, review=review)
+                        coverage=coverage, handoff=handoff, review=review, route=route_slices)
         handlers['return'] = go_back
         return handlers[args.command](repository, folder, records, args, current, rules)
     finally:

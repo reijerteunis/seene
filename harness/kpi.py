@@ -95,6 +95,195 @@ def slices(records):
     return dict(planned=len(planned), proven=proven)
 
 
+def _latest_route(records):
+    """The route in force, which is the most recent one that routed this plan.
+
+    The most recent, because a plan changed by a return to solution is routed
+    again and the later record describes the plan the work was done against; and
+    only when it routed the accepted plan, which is the rule routing.for_slice
+    applies and this did not. Without it, a ticket replanned and never routed
+    again reported the old plan's slices, names and models in kpi.json, which is
+    the file SEEN-109 calibrates the routes on. F2 of the fourth review.
+    """
+    accepted = None
+    for record in reversed(records):
+        if (accepted is None and record['kind'] == 'advance'
+                and record['data'].get('from_stage') == 'solution'):
+            accepted = record['sequence']
+    if accepted is None:
+        return None
+    for record in reversed(records):
+        if record['kind'] == 'route':
+            return record if record['data'].get('solution') == accepted else None
+    return None
+
+
+def slice_windows(records):
+    """Each slice's window: what it cost and which records fall inside it.
+
+    Keyed by the slice the boundary closed, which is `done` and never
+    `position`: a handoff names the slice in front of you, so keying by position
+    charges every slice the window before it and charges the planning window,
+    which belongs to no slice, to slice 1. On this ticket's own journal that put
+    the 81,880 tokens of clarify and solution on slice 1 and left slice 4, the
+    most expensive of the four, charged to nobody.
+
+    A handoff carries the session's own spending at the moment it stopped, so a
+    slice worked in a session that had already worked another costs the
+    difference between the two boundaries. A boundary in a fresh session costs
+    what that session had spent, because its figure starts from nothing.
+
+    Null rather than zero wherever the figure is missing: a machine with no
+    session logs records null, and subtracting one from a number would turn an
+    absence into a total.
+    """
+    planned = len(_evidence(records, 'solution').get('slices') or [])
+    windows, opened, previous, last = {}, 0, None, 0
+    for record in records:
+        closes = _closes(record, last, planned)
+        if closes is None:
+            continue
+        done, figures = closes
+        output, session = figures.get('output_tokens'), figures.get('session')
+        if done:
+            spent = None
+            if output is not None:
+                spent = (output - previous['output_tokens']
+                         if previous and previous['session'] == session else output)
+            windows[done] = dict(spent=spent, opened=opened, closed=record['sequence'])
+            last = done
+        opened = record['sequence']
+        if output is not None:
+            previous = dict(session=session, output_tokens=output)
+    return windows
+
+
+def _closes(record, last, planned):
+    """Which slice this record's boundary closed, and the figures it carried.
+
+    A handoff says so itself. The accepted tdd advance closes whatever slice the
+    last boundary left open, because the plan ends there and no handoff follows
+    the final slice: without it the last slice of every ticket carried nothing,
+    which is the fault keying by `done` was supposed to have cured and had not.
+    F3 of the second review.
+
+    Bounded by the plan, and a boundary whether or not it carries figures. The
+    first version did neither, so a reworked ticket's second advance keyed a
+    window past the end of the plan and its tokens were dropped, which made a
+    reworked route look cheaper than it was; and on this ticket's own journal,
+    where only the last advance carried figures, slice 4's window ran from the
+    last handoff to the end and swallowed all four review rounds: 253,085 output
+    tokens against a two-point slice, 62 per cent of the ticket. F2 of the third
+    review. Rework belongs to no slice of the plan and is charged to none; the
+    ticket's own token figure still counts it, because that is read from the
+    logs over the whole window rather than from these boundaries.
+
+    An advance carrying no figures still closes its slice, with nothing spent:
+    the boundary is where the work stopped, and a missing figure is an absence
+    rather than a reason to let the window run on.
+    """
+    data = record['data']
+    if record['kind'] == 'handoff':
+        return (data.get('slice') or {}).get('done'), data.get('figures') or {}
+    if record['kind'] == 'advance' and data.get('from_stage') == 'tdd':
+        following = last + 1
+        return (following if following <= planned else 0), data.get('figures') or {}
+    return None
+
+
+def ran_on(records, window):
+    """The model the greens inside a slice's window were actually recorded under.
+
+    From the same windows the tokens come from, because they answer the same
+    question: what happened between this slice's boundary and the one before.
+    The first version read the accepted tdd record's citations instead, took
+    `model` off the record envelope rather than `record['data']`, and indexed
+    that record's slice list by route position, which a return makes mean
+    something else; it was null for every slice of this ticket. F2 of the first
+    review.
+
+    The last green in the window, because that is the one that proved the slice.
+    """
+    if window is None:
+        return None
+    found = None
+    for record in records:
+        if not window['opened'] < record['sequence'] < window['closed']:
+            continue
+        data = record['data']
+        if (record['kind'] == 'check' and data.get('phase') == 'green'
+                and data.get('exit_code') == 0 and data.get('model')):
+            found = data['model']
+    return found
+
+
+def cost_cents(model, tokens, prices):
+    """What those output tokens cost on that model, or that nobody priced it.
+
+    A whole number of cents, because amounts are cents as integers with a
+    currency code and the table these come from says so of itself. A fraction of
+    a cent is below the resolution the ground rule gives an amount, and a sum of
+    rounded floats drifts from the sum of the rows a reader can see. F7 of this
+    ticket's first review.
+
+    Output only, because a handoff record carries output tokens and tool calls
+    and nothing about input: a figure that silently included a guess at the
+    input side would be worse than one that says what it covers.
+    """
+    if not prices or tokens is None:
+        return None
+    price = prices.get(model)
+    if not price:
+        return None
+    return round(tokens * price['output'] / 1_000_000)
+
+
+COST_BASIS = ('output tokens only, at the price of the model the slice ran on: a handoff record '
+              'carries the session\'s output tokens and tool calls and nothing about input. '
+              'routed_cost_cents prices the same tokens at the model the route chose, which in '
+              'shadow is a counterfactual and not a cost')
+
+
+def execution(records, rules=None):
+    """What each slice was routed to, what it ran on and what it cost.
+
+    Null rather than an empty list for a ticket nobody routed, which is every
+    ticket delivered before SEEN-108: no route is not a route to nothing.
+    """
+    routed = _latest_route(records)
+    if routed is None:
+        return None
+    from . import routing
+    prices = ((rules or {}).get('routing') or {}).get('prices')
+    windows = slice_windows(records)
+    found = []
+    for entry in routed['data']['execution']:
+        window = windows.get(entry['position'])
+        tokens = (window or {}).get('spent')
+        actual = ran_on(records, window)
+        tier = routing.tier_of(rules, actual) if rules and actual else None
+        found.append(dict(position=entry['position'],
+                          name=entry.get('name'),
+                          points=entry.get('points'),
+                          model=entry['model'],
+                          effort=entry['effort'],
+                          source=entry['source'],
+                          rule=entry.get('rule'),
+                          # What the route chose, beside what the work actually
+                          # ran on. In shadow they differ, and that is the
+                          # comparison SEEN-109 is for.
+                          ran_on=actual,
+                          ran_on_tier=tier,
+                          output_tokens=tokens,
+                          # What it cost, at the price of the model that ran it.
+                          cost_cents=cost_cents(tier, tokens, prices),
+                          # What the route would have cost. A counterfactual,
+                          # named as one: in shadow nothing ran on it.
+                          routed_cost_cents=cost_cents(entry['model'], tokens, prices),
+                          cost_basis=COST_BASIS))
+    return found
+
+
 def sessions(records):
     """How many sessions wrote this journal, or that nobody can tell.
 
@@ -286,7 +475,7 @@ def first_pass_ci(records):
 
 
 def measure(records, ticket, points=None, delivered_at=None, tokens=None, cost=None,
-            reviewer_tokens=None):
+            reviewer_tokens=None, rules=None):
     """Everything a KPI record carries for one ticket."""
     if not records:
         return dict(ticket=ticket, delivered_at=delivered_at, points=points,
@@ -295,7 +484,7 @@ def measure(records, ticket, points=None, delivered_at=None, tokens=None, cost=N
                     findings=dict(by_severity={}, fixed=0, waived=0),
                     first_pass_ci=None, tokens=tokens, cost=cost, escaped_defects=[],
                     slices=None, sessions=None, output_tokens_per_slice=None,
-                    subagents=None, review_triage=None, harness_version=None,
+                    subagents=None, review_triage=None, execution=None, harness_version=None,
                     note='Measured from the ticket file: this ticket has no journal')
     receipt = _receipt(records)
     rework = sum(1 for record in records if record['kind'] in ('return', 'reopen'))
@@ -319,6 +508,7 @@ def measure(records, ticket, points=None, delivered_at=None, tokens=None, cost=N
                 sessions=sessions(records),
                 subagents=subagents(records),
                 review_triage=review_triage(records, reviewer_tokens),
+                execution=execution(records, rules),
                 output_tokens_per_slice=output_tokens_per_slice(
                     tokens, (cut or {}).get('proven') or (cut or {}).get('planned')),
                 harness_version=records[-1].get('harness_version'),

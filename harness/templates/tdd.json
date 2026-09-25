@@ -2,6 +2,7 @@
   "mode": "code",
   "slices": [
     {
+      "position": "Which slice of the plan this proved, as its number, or null for a round that belongs to no single slice.",
       "behaviour": "The behaviour this slice adds.",
       "failure_reason": "The assertion that failed before the change, in the words of the runner.",
       "red": 0,

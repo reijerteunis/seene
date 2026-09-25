@@ -1,0 +1,38 @@
+{
+  "sequence": 117,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T14:47:20.517578+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 11,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "927f98841d89cd84d6b07cf80e644dbb68daeeef",
+  "prev_hash": "35fc74ce6dc2e0c8909d6fca93d973dbb852e51264fda65014e1b7da9bd28dde",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": null,
+          "behaviour": "The implementer copies follow the declared boundary rather than an inference that moves on a green, the outcome's counts are checked against the journal by a reader, every test module runs its own tests, and the Points priced cell is the priced points.",
+          "failure_reason": "Quoted from check 112's captured output: \"AssertionError: 31 != 34 : [9, 6, 6, 5, 2, 3] sums to 31\", which is the outcome's own arithmetic caught mechanically; \"AssertionError: 10 != 11\" for the attempts; \"AssertionError: Lists differ: ['test_agents.py', 'test_decisions.py', 't[272 chars].py'] != []\" for the sixteen modules with no guard; and \"AssertionError: {'test_context_budget.py': ['class PricedPointsCellTest(unittest.TestCase):']} != {}\", which is this session appending a class after a guard for the third time, caught by its own test.",
+          "red": 112,
+          "green": 113
+        }
+      ],
+      "regression": 114,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "710e96458c5b",
+      "output_tokens": 757142,
+      "tool_calls": 416,
+      "unavailable": null
+    }
+  }
+}

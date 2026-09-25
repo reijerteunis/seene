@@ -1,0 +1,19 @@
+{
+  "sequence": 111,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T14:36:38.868471+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 10,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "c4e983c9784fcfa2c5981bf184540e14b504e454",
+  "prev_hash": "7bbc55490c9300b27ead967da40a7269e9f6b05662e1721f9ab76dda8809d145",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 11,
+    "reason": "The seventh review returned five findings, two medium, so note 110's rule takes another round rather than delivering. F1: agents.routed changes its answer the moment a green lands, because current_slice infers the count from greens, while only route, a boundary and the solution advance rewrite the copies, so doctor reports drift on a tree nobody edited and CI runs doctor on every push. F2: the outcome's counts are wrong in three places, in the paragraph that says they are read from the journal rather than recalled; the list sums to 31 and says 34, four review returns where the journal holds eight, four reviews where there were six. F3: GuardIsLastTest matches its own string literal. F4: the Points priced cell is guarded by no test. F5: test_routing.py has no unittest.main guard and GuardIsLastTest skips exactly the modules that have none."
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "sequence": 23,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T06:45:02.937842+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "6a03b3e4af2c9b4b332da6fd89ec8254339160eb",
+  "prev_hash": "cec26b88814acd4ff02d1a8a67a65cfcb367b088c29e433ec657f66bece3e0ed",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "behaviour": "harness route <ticket> at the tdd stage appends a route record carrying one execution entry per planned slice, by rule first and by one Jev request for the rest.",
+          "failure_reason": "argparse.ArgumentError: argument command: invalid choice: 'route' (choose from 'start', 'status', 'history', 'draft', 'note', 'check', 'advance', 'return', 'coverage', 'decide', 'graph', 'handoff', 'budget', 'reopen', 'discard', 'verify-merge', 'verify-delivery', 'review', 'report', 'sync', 'lint', 'doctor', 'list'), then SystemExit: 2",
+          "red": 7,
+          "green": 8
+        },
+        {
+          "behaviour": "The handoff pack names what the slice in hand runs on, check records the model it ran under, and the tdd gate refuses a cited check recorded under another model once shadow is off.",
+          "failure_reason": "AttributeError: module 'harness.sessions' has no attribute 'model', on every gate fixture, and three pack assertions failing because the pack said nothing about a model. The gate's own refusal could not be reached, because nothing recorded a model for it to compare.",
+          "red": 11,
+          "green": 12
+        },
+        {
+          "behaviour": "sync, route and a slice boundary write seen-implementer's copies for both assistants carrying the routed model and effort, and the reviewer's model is the strongest tier at full depth and one tier down at spot.",
+          "failure_reason": "FileNotFoundError: [Errno 2] No such file or directory: '.../.claude/agents/seen-implementer.md', and 'seen-implementer.md was not written' from the assertion in test_sync_writes_both_implementer_copies. The green cited is the one after both corrections this slice needed: a generator that raised on a damaged journal, and a slice boundary that left the copies at the last slice's model.",
+          "red": 14,
+          "green": 18
+        },
+        {
+          "behaviour": "kpi.json carries an execution list per routed slice with model, effort, the model it ran on, output tokens and cost in cents, and the sprint report renders cost per point by model with the date the prices were read.",
+          "failure_reason": "AttributeError: module 'harness.context' has no attribute 'cost_by_model', with KeyError: 'execution' on the measured record and four skill assertions failing for text that was not there.",
+          "red": 19,
+          "green": 20
+        }
+      ],
+      "regression": 21,
+      "coverage_delta": 0.0
+    },
+    "decisions": []
+  }
+}

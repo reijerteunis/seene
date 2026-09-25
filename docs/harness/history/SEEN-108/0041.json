@@ -1,0 +1,16 @@
+{
+  "sequence": 41,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T07:31:59.823079+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 4,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "2d8da2e8ae66f64ad90a2f91c478fd4cec57da7d",
+  "prev_hash": "92512f6ac700518f9d0bfb46c52b1e6a9050aca054b543b3f3c9011d41e52c07",
+  "data": {
+    "text": "# The decision behind the amendment to criterion 1\n\nRecorded because the amendment in the ticket file is attributed to Ruud and\ndated, and no record carried the decision it names. F3 of the review at note 32:\nSEEN-105's comparable amendment points at the note holding the options offered\nand the one chosen, and this one pointed at nothing.\n\n**Asked, on 25 September 2026, after the review triage at record 24 returned the\nticket to tdd.** Criterion 1 asks for the execution entry to be written into the\nsolution record, which the append-only journal forbids; the route record names\nthat record instead. How should this resolve?\n\n**The options put to him, in the order they were offered.**\n\n1. Amend the criterion, attributed to him: add an `## Amendments` entry saying\n   the route is a record of its own naming the accepted solution advance,\n   because the journal is append-only; cite the clarify record at 4 and the\n   triage at 24; then re-run the triage. Marked as the recommendation.\n2. Leave it and work the return: treat the return as correct and go back to tdd\n   to satisfy the criterion as written, with the session's own view recorded\n   that it saw no way to do so without either rewriting an accepted record or\n   writing a second solution record, both of which break journal integrity.\n3. Amend, and lower nothing else: the same amendment, with the\n   `criterion_evidenced` bar left at 0.6 and the journal recording that the\n   triage was right to refuse the criterion as worded.\n\n**What he chose.** Option 1.\n\n**What was done under it.** The criterion line was rewritten and marked `(as\namended)`, the `## Amendments` section was written, and the amendment added the\nclause that a route is read only for the plan it routed, which was the half of\nthe criterion nothing yet delivered. Nothing else was changed: the\n`criterion_evidenced` threshold stands at 0.6 in thresholds.toml, and the\nrefusal at record 24 stays on the record as a true positive rather than being\ntuned away, which is what option 3 asked for explicitly and option 1 did not\nexclude.\n"
+  }
+}

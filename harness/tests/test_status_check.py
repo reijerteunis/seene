@@ -4,6 +4,7 @@ Two tickets sat at doing for hours after they had delivered and merged, because
 both mark-done commits were lost in a rebase and nothing compared the two.
 """
 
+import unittest
 from harness import doctor, journal
 from harness.repository import Repository
 from harness.tests.test_lifecycle import CommandTest
@@ -104,3 +105,6 @@ class StatusAgainstJournalTest(CommandTest):
 
         text = (self.root / 'docs' / 'tickets' / 'SEEN-308-a-thing.md').read_text()
         self.assertIn('status: doing', text, 'a self-check reports, never repairs')
+
+if __name__ == '__main__':  # pragma: no cover - a module must run on its own
+    unittest.main()

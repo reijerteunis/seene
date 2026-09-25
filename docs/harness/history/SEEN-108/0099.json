@@ -1,0 +1,16 @@
+{
+  "sequence": 99,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T13:51:22.265467+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "review",
+  "attempt": 9,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "32bd66985fab7c9db63f303bd448b0710bb990fb",
+  "prev_hash": "c330550a89e5d6a76ee39b307720f1c699cd5a50eb4ae05ce5a36a108a85c20a",
+  "data": {
+    "text": "# Why the review record on this ticket discloses self-review\n\nFive reviews ran on SEEN-108, each in a `seen-reviewer` subagent spawned fresh\non opus with the triage's task text and nothing else, and none of them had\nwritten a line of this code. By the harness's vocabulary that is `subagent`: a\ncontext boundary, not independence by itself. The record says `self-review`\nanyway, and this note is why.\n\n**What the gate asks of a subagent disclosure.** `gates._require_another_context`\nrequires a `reviewer_session` that is neither one of the sessions which wrote\nthe ticket's records nor the session running the advance. Its docstring is\nexplicit that a Claude Code subagent inherits its parent's session id, that the\nharness therefore cannot derive the value, and that \"a value typed to pass is\nnot detectable and the gate does not pretend to detect it\".\n\n**What the value actually is here.** The fifth reviewer returned a session id in\nits raw form. `sessions.digest` of it is `710e96458c5b`, which is the digest on\nevery record of this ticket: it is the implementer's own session. The gate\ncompares the declared string against the digests it holds, so the raw form would\nhave passed a check that the digest form fails, for no reason except that the\ntwo are spelled differently. Declaring it would have been typing a value to\npass, which is the one thing the docstring names and cannot catch.\n\nThe raw form is not quoted here, and not because of discretion: `journal.append`\nrefused this note while it was, because `secrets.leaked` matches a variable\nnamed like a session and a journal is committed and read by people. The control\nSEEN-104 built for exactly this caught the session writing a session id into the\nrecord, on the first attempt to write it.\n\n**So the record understates rather than overstates.** `self-review` claims less\nthan what happened and nothing the harness cannot support. The reviews were real\nand their findings are in notes 32, 49, 59, 77 and 89, twenty-eight of them, all\nclosed in this ticket; what the record declines to claim is a context boundary\nthe platform gives the harness no way to evidence.\n\n**What this is about the harness, and it is not this ticket's to fix.** The\n`subagent` disclosure requires a session value that Claude Code does not provide,\nso on this side it is reachable only by inventing one. The options are for the\nspawning session to mint and record an identifier for each invocation, which is\nwhat the docstring half describes, or for the escaped-defect figures to stop\ndistinguishing a subagent from a self-review. Either is a decision about SEEN-105's\ndesign and belongs in a ticket that can take it.\n"
+  }
+}

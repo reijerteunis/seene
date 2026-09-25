@@ -549,6 +549,5 @@ class SessionThresholdTest(unittest.TestCase):
         self.assertEqual(section['output_token_budget'], 60000)
         self.assertEqual(section['handoff_token_limit'], 2000)
 
-
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover - a module must run on its own
     unittest.main()

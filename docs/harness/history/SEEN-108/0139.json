@@ -1,0 +1,38 @@
+{
+  "sequence": 139,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T19:16:08.673550+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 13,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "d86f6266172eff6c026d71487f98cbb48d0e2dff",
+  "prev_hash": "7505248ee3f68d3916827bd5661c7edd1001b1c619bd8ff873465db0c5a56090",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": null,
+          "behaviour": "The spawn instruction and the generated copies say the same thing about the effort, which is that it is recorded and not applied; the skill agrees with itself; every route entry carries the keys a reader is told to find; and the tdd gate refuses work that trips a routing rule when no slice was routed by one.",
+          "failure_reason": "Quoted from check 135's captured output: \"AssertionError: HarnessError not raised\", for money arithmetic written under a Jev route, which advanced. The earlier RED at check 132 carries the other four: \"AssertionError: 'model_reasoning_effort' unexpectedly found in\" the spawn text, the regex for 'recorded ... rather than applied' not matching it, and the skill and its generated copies still saying sync rewrites the copies at every slice boundary.",
+          "red": 135,
+          "green": 136
+        }
+      ],
+      "regression": 137,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "710e96458c5b",
+      "output_tokens": 881964,
+      "tool_calls": 473,
+      "unavailable": null
+    }
+  }
+}

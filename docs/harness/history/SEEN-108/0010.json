@@ -1,0 +1,46 @@
+{
+  "sequence": 10,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T05:43:33.105335+00:00",
+  "harness_version": "2",
+  "kind": "handoff",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "b696d21c2b5248cbc9460dff782c999a6a55b937",
+  "prev_hash": "f3e1d9c5cab09dea0b21ef9e04c2f918170aa9d1bbfad139af89a6d489cb48b3",
+  "data": {
+    "pack": ".harness-drafts/SEEN-108-handoff.md",
+    "sha256": "78b33f6699b7ac39829a82d851f67cf2e995ac23f1360f1c2b492bba33a5392a",
+    "estimated_tokens": 1049,
+    "token_limit": 2000,
+    "slice": {
+      "position": 2,
+      "total": 4,
+      "done": 1,
+      "declared": true,
+      "inferred": 1,
+      "entry": {
+        "name": "The pack carries it and the tdd gate holds it",
+        "points": 2,
+        "files": [
+          "harness/handoff.py",
+          "harness/checks.py",
+          "harness/sessions.py",
+          "harness/gates.py",
+          "harness/cli.py",
+          "harness/tests/test_routing.py",
+          "harness/tests/test_stage_gates.py"
+        ],
+        "red": "A journal holding a route entry of opus for slice 1 and a green recorded under claude-sonnet-5 is advanced out of tdd with [routing] shadow false. It must fail because the gate accepts it: nothing reads the route, so the advance succeeds where the test expects a refusal naming both models."
+      }
+    },
+    "figures": {
+      "session": "710e96458c5b",
+      "output_tokens": 149923,
+      "tool_calls": 97,
+      "unavailable": null
+    }
+  }
+}

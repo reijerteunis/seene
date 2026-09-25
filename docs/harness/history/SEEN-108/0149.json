@@ -1,0 +1,67 @@
+{
+  "sequence": 149,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T19:30:29.323386+00:00",
+  "harness_version": "2",
+  "kind": "receipt",
+  "stage": "deliver",
+  "attempt": 14,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "25cfd24470419a8e8d6ec086488446030e78d1f1",
+  "prev_hash": "10d7c25e1ca8886488663712399fbaddf79034b88f71b9e59013edf9c555cf1e",
+  "data": {
+    "from_stage": "deliver",
+    "to_stage": "delivered",
+    "commit": "25cfd24470419a8e8d6ec086488446030e78d1f1",
+    "branch": "claude/SEEN-108-route-each-slice-to-a-model",
+    "remote": "origin",
+    "tree": "44fc1b8da9e7c4ccee6300e93d500c23c1073d9062a5ea9d10a447ee85886b3f",
+    "pull_request": "https://github.com/reijerteunis/seene/pull/24",
+    "limits": [
+      "Nothing applies the routed effort. It is decided, recorded, carried in the pack and written to kpi.json, and the description says so; applying it needs a per-slice agent file, which is what stopped this ticket merging.",
+      "The gate refuses a model mismatch only with [routing] shadow false, which is not the shipped default, so no refusal has ever fired outside a test. SEEN-109's window is what turns it on.",
+      "ran_on is null for slice 1, whose greens predate checks recording a model at all, and for any slice whose boundary carried no figures. Rework rounds are charged to no slice; the ticket's own token figure still counts them.",
+      "The Codex agent keys are unverified against a Codex release, because no Codex session has ever run on this repository. That is SEEN-105's position and this ticket does not improve on it.",
+      "Attempts 13 and 14 were read by no reviewer: they are the resolutions of the ninth review's own findings and the rewrite of criterion 3, and a tenth review was declined after the count ran flat at five for three rounds. The review record says so."
+    ],
+    "evidence": {
+      "remote": "origin",
+      "pull_request": "https://github.com/reijerteunis/seene/pull/24",
+      "limits": [
+        "Nothing applies the routed effort. It is decided, recorded, carried in the pack and written to kpi.json, and the description says so; applying it needs a per-slice agent file, which is what stopped this ticket merging.",
+        "The gate refuses a model mismatch only with [routing] shadow false, which is not the shipped default, so no refusal has ever fired outside a test. SEEN-109's window is what turns it on.",
+        "ran_on is null for slice 1, whose greens predate checks recording a model at all, and for any slice whose boundary carried no figures. Rework rounds are charged to no slice; the ticket's own token figure still counts them.",
+        "The Codex agent keys are unverified against a Codex release, because no Codex session has ever run on this repository. That is SEEN-105's position and this ticket does not improve on it.",
+        "Attempts 13 and 14 were read by no reviewer: they are the resolutions of the ninth review's own findings and the rewrite of criterion 3, and a tenth review was declined after the count ran flat at five for three rounds. The review record says so."
+      ]
+    },
+    "checks": [
+      {
+        "name": "Harness tests (Python 3.12)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Knowledge graph",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Monorepo (Node 24)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Secrets and supply chain",
+        "conclusion": "success",
+        "runs": 1
+      }
+    ],
+    "coverage": {
+      "package": "@seen/core",
+      "lines": 100.0,
+      "delta": 0.0
+    }
+  }
+}

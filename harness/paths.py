@@ -29,8 +29,14 @@ HARNESS_VERSION = '2'
 # a reader that will one day read it wrong. Like handoff it is not in
 # journal.TRANSITIONS: a triage says what the reviewer must read and never moves
 # the ticket. The envelope is unchanged, so HARNESS_VERSION stays at 2.
+# route is its own kind for the reason handoff and triage are, and for one more:
+# the journal is append-only, so the route a slice runs under cannot be written
+# into the solution record that planned it. The record names that record instead.
+# Like both of them it is not in journal.TRANSITIONS: a route says what a slice
+# should run on and never moves the ticket. The envelope is unchanged, so
+# HARNESS_VERSION stays at 2.
 KINDS = ('start', 'note', 'check', 'advance', 'return', 'receipt', 'reopen', 'decision',
-         'handoff', 'triage')
+         'handoff', 'triage', 'route')
 
 # Committed run history: docs/harness/history/<TICKET>/0001.json and onwards.
 HISTORY = Path('docs/harness/history')

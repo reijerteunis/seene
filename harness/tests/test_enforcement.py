@@ -4,6 +4,7 @@ SEEN-086 made evidence addressable and ordered. This is where it starts to mean
 something: a RED that did not fail is not a RED.
 """
 
+import unittest
 from harness.errors import HarnessError
 from harness.tests.test_lifecycle import CommandTest, clarify_evidence, solution_evidence
 
@@ -82,7 +83,7 @@ class CitedRedTest(CommandTest):
         red, green, regression = [r['sequence'] for r in self.records()[-4:-1]]
         with self.assertRaisesRegex(HarnessError, 'did not fail'):
             self.submit('tdd', dict(mode='code',
-                                    slices=[dict(behaviour='x', failure_reason='y',
+                                    slices=[dict(position=1, behaviour='x', failure_reason='y',
                                                  red=red, green=green)],
                                     regression=regression, coverage_delta=None))
 
@@ -165,7 +166,7 @@ class CoverageTest(CommandTest):
         red, green, regression = [r['sequence'] for r in self.records()[-3:]]
         with self.assertRaisesRegex(HarnessError, 'coverage'):
             self.submit('tdd', dict(mode='code',
-                                    slices=[dict(behaviour='x', failure_reason='y',
+                                    slices=[dict(position=1, behaviour='x', failure_reason='y',
                                                  red=red, green=green)],
                                     regression=regression, coverage_delta=None))
 
@@ -182,7 +183,7 @@ class CoverageTest(CommandTest):
         red, green, regression = [r['sequence'] for r in self.records()[-3:]]
         with self.assertRaisesRegex(HarnessError, '-9.0'):
             self.submit('tdd', dict(mode='code',
-                                    slices=[dict(behaviour='x', failure_reason='y',
+                                    slices=[dict(position=1, behaviour='x', failure_reason='y',
                                                  red=red, green=green)],
                                     regression=regression, coverage_delta=None))
 
@@ -234,7 +235,7 @@ class BaselineTest(CommandTest):
         self.run_harness('coverage', self.ticket_id, '--actor', 'claude:implementer', '--', 'true')
         red, green, regression = [r['sequence'] for r in self.records()[-4:-1]]
         self.submit('tdd', dict(mode='code',
-                                slices=[dict(behaviour='x', failure_reason='y',
+                                slices=[dict(position=1, behaviour='x', failure_reason='y',
                                              red=red, green=green)],
                                 regression=regression, coverage_delta=None))
         self.run_harness('check', self.ticket_id, '--phase', 'qa', '--actor',
@@ -273,3 +274,6 @@ class BaselineFingerprintTest(CommandTest):
         self.write('docs/harness/coverage.json',
                    '{"packages": {"@seen/core": {"lines": 91.2}}}')
         self.assertEqual(before, repository.fingerprint())
+
+if __name__ == '__main__':  # pragma: no cover - a module must run on its own
+    unittest.main()

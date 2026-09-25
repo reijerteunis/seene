@@ -72,6 +72,11 @@ criterion_evidenced = 0.6
 diff_matches_solution = 0.6
 reviewer_must_read = 0.5
 review_depth = 0.5
+# The two route questions, from SEEN-108. Neither can refuse anything: a route
+# below its bar is recorded with the probability it came with and read by
+# SEEN-109, which is what decides whether these numbers were ever right.
+implementation_model = 0.5
+implementation_effort = 0.5
 
 # The context budget, from SEEN-099. Three MCP servers put three sets of tool
 # schemas into every session before a ticket is read; these say what that buys.
@@ -123,7 +128,75 @@ handoff_token_limit = 2000
 # legitimate decision that should be a diff a person reviews; what each agent may
 # do is structure and lives in harness/agents.py.
 [agents]
-names = ["seen-scout", "seen-reviewer"]
+# The implementer joins the two readers in SEEN-108. It is the one agent whose
+# model and effort are not its own: they are the route's, read from the branch's
+# route record's spawn instruction, so its generated copies never vary: a file
+# whose content depended on the ticket in hand was wrong four ways and is why
+# SEEN-108 could not merge until record 121.
+names = ["seen-scout", "seen-reviewer", "seen-implementer"]
 # A brief is what crosses back into the session that asked, so it is small enough
 # to be read in full. Four hundred words is about two thirds of the handoff pack.
 brief_word_limit = 400
+
+# The route, from SEEN-108. Which model and which effort implement each slice is
+# decided at the tdd stage with the plan and the risk answers on record, and
+# never inside the session that would benefit from a stronger model.
+[routing]
+# Weakest first. The last one is the strongest, which is what every rule and
+# every absence routes to, so adding a model is a line here and not a change in
+# code. These are the tier names Claude Code and Codex take in an agent file.
+tiers = ["haiku", "sonnet", "opus"]
+efforts = ["low", "medium", "high"]
+# What a rule gives: the strongest tier at the highest effort.
+rule_effort = "high"
+# True until SEEN-109's ten-ticket window says the routes save more than they
+# cost. In shadow the route is computed and recorded while every slice still
+# runs on whatever model the session is, and the tdd gate reports a mismatch
+# rather than refusing it. Turning it off is one line here, which is a diff a
+# person reviews, exactly as [review] triage_shadow is.
+shadow = true
+
+# A tier against the model id a Claude Code session log carries, which is the
+# only way a recorded check can be compared with a route. Verified on 25
+# September 2026: every entry in this project's logs carries message.model. A
+# tier whose id is unknown here is never refused against, because a comparison
+# with nothing is not a comparison.
+[routing.models]
+haiku = "claude-haiku-4-5-20251001"
+sonnet = "claude-sonnet-5"
+opus = "claude-opus-5"
+
+# What Jev is never asked about. A slice matching any of these patterns goes to
+# the strongest tier at high effort, on the same reasoning the review triage
+# takes for full depth: nothing a model could answer would change what these
+# settle. fnmatch patterns, so * crosses directories. Three more rules are
+# ticket-wide and live in code beside the predicate that already reads them:
+# an agent action, billing or the policy gate, and a plan carrying a migration.
+[routing.rules]
+# Money arithmetic: the pure functions the ground rules say reconcile, and the
+# euro arithmetic they do. Everything in core is matching, fee expectations and
+# detectors, so the package is the pattern.
+# The directory forms as well as the files under them: a slice whose files entry
+# reads `packages/core` is the same slice as one naming a file in it, and a rule
+# about money arithmetic is not one a plan's wording should be able to dodge.
+money = ["packages/core", "packages/core/*"]
+# A migration or an RLS policy. Both are expensive to get wrong in the same way
+# and both are named by their extension here rather than by their directory,
+# because a migration lives wherever the tool that runs it puts it.
+migration = ["*.sql", "*/migrations", "*/migrations/*", "*/policies", "*/policies/*"]
+# Credentials, wherever they are read, written or named.
+credentials = ["*credential*", "*secret*", "*/auth", "*/auth/*",
+               "packages/connectors/src/oauth*"]
+
+# What a slice cost, in integer cents per million tokens, by tier. Amounts are
+# cents as integers with a currency code, as the ground rules require, and
+# priced_on is printed beside every figure derived from them: a price per token
+# is stale the day it is written, and the answer to that is to say how old it is
+# rather than to report no figure at all.
+[routing.prices]
+currency = "EUR"
+priced_on = "2026-09-25"
+# input, output
+haiku = { input = 80, output = 400 }
+sonnet = { input = 300, output = 1500 }
+opus = { input = 1500, output = 7500 }

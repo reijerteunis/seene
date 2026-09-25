@@ -1,0 +1,16 @@
+{
+  "sequence": 50,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T09:25:02.358718+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 5,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "a740bda3269c66d4e0a0928c050d9fd528a3f5d3",
+  "prev_hash": "fa89a22d926883c28d24de17850ef2df8a939205923186deacd929d893c08b7b",
+  "data": {
+    "text": "# The decision behind the amendment to criterion 3\n\n**Asked, on 25 September 2026, after the second review at note 49.** Criterion 3\nsays the tdd gate reads the model from the session log. A subagent's model is\nnot in that log: of 15,631 entries in this project's logs, after one scout run\nand two reviewer runs, none carries `isSidechain` true and every model entry\nreads claude-opus-5, and the review subagent verified from inside itself that\n`sessions.model()` resolves to its parent's transcript. How should the gate\nwork?\n\n**The options put to him, in the order they were offered.**\n\n1. The implementer declares it, and the clause is amended: `harness check\n   --model <tier>` records what the subagent was spawned with, disclosed as a\n   declaration and not a proof, beside the value read from the log. The gate\n   compares the declaration when there is one and the log otherwise. Keeps a\n   real gate and follows the harness's own precedent that a reviewer's session\n   id is a disclosure rather than a proof. Marked as the recommendation.\n2. Make the comparison advisory: record both models and never refuse, leaving\n   the route carried and measured and nothing enforced until a subagent's model\n   can be observed. Fully honest, but criterion 3's refusal clause would be\n   amended away rather than satisfied.\n3. Leave it and document the limitation: ship the gate as built, working for\n   checks the main session runs and refusing correct work the moment an\n   implementer subagent runs one. Offered with the session's own view that it\n   would be shipping a gate known to refuse correct work, and not recommended.\n\n**What he chose.** Option 1.\n\n**What follows from it.** Criterion 3's clause \"reading the model from the\nsession log the cost KPI already reads\" is amended: the log is what the harness\ncan observe and the declaration is what the subagent can say, the record carries\nboth, and the gate compares the declaration first. The limitation is named\nrather than closed, exactly as SEEN-105 named the reviewer's session id as a\ndisclosure it cannot refuse a value typed to pass.\n"
+  }
+}

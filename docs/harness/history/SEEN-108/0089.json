@@ -1,0 +1,16 @@
+{
+  "sequence": 89,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T13:21:23.020641+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 9,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "0278197c05589caec2db4be0552f2360faa69d42",
+  "prev_hash": "b98154d187f3f720a72d92ced642fdb8bc349be55207a2b6a538e424d9d254ab",
+  "data": {
+    "text": "# Fifth review of SEEN-108, attempt 8, from the seen-reviewer subagent\n\nSpawned fresh on opus with the task text of triage record 86. Verdict `return`,\ntwo findings, down from nine, six, six and five. It settled the three\npartly-settled checks by reading rather than by count, compared every accepted\ntdd advance's failure reason against its cited check's captured output and found\nall eight agreeing, recomputed the outcome's figures against the journal, and\nrecomputed the tree fingerprint itself.\n\nOn the fingerprint it went further than the harness could: it recomputed\n`Repository.fingerprint()` on the tree it read, got 454ecfca39d7 byte for byte,\nand confirmed the working tree was clean, so the 820 tests of check 85 are the\ntests for this tree. What the harness check cannot say is only that they passed\nat the tdd stage. It judged `slice_files` a plan-accuracy gap for the fourth\ntime.\n\n- **F1, high, harness/report.py:171.** `render_cost` sorts the rows by\n  `cost_cents`, and the previous attempt made that None for a row nothing could\n  price, so `report --sprint` raises `TypeError: '<' not supported between\n  instances of 'NoneType' and 'int'` and writes neither sprint-0.md nor\n  sprint-0.json. It fires on this ticket's own delivered figures: slice 1's\n  greens predate checks recording a model, so its row is `unknown` and unpriced,\n  beside an `opus` row at 519 cents. The fix for the fourth review's F3 caused\n  it, and every test of this section either renders rows that are all priced or\n  builds an unpriced row and never renders it, so all 820 tests stay green. Two\n  unpriced rows fail the same way, and the cell would print a literal None where\n  cost_per_point already prints 'not measured'.\n- **F2, medium, harness/gates.py:269.** The plan position is optional and its\n  absence returns before the comparison, so criterion 3's refusal is avoided by\n  leaving a field out rather than by running on the routed model.\n  `require_template_fields` walks the template's top-level keys and never\n  recurses into the objects inside `slices`, so the `\"position\": 1` added to\n  harness/templates/tdd.json is illustrative and nothing enforces it. The escape\n  is indistinguishable from the legitimate omission it was built for, a record\n  written before the field existed, so nothing later can tell them apart either.\n"
+  }
+}

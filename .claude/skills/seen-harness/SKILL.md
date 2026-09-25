@@ -61,6 +61,26 @@ recorded and the next command. `harness budget <ticket>` says where the session 
 token budget; nothing refuses on it, because only you can end a session. A fresh context is cheaper
 than a compacted one, and compaction is where evidence quietly becomes summary.
 
+**The route is read, never chosen.** Once the solution record is accepted, `harness route <ticket>`
+decides per slice which model and which effort implement it, from the plan and the risk answers on
+record. Rules first, and a rule is never Jev's to answer: a slice that changes an agent action,
+touches billing or the policy gate, does money arithmetic in `packages/core`, carries a migration or
+an RLS policy, or touches credentials goes to the strongest model at high effort with no request
+made. Everything else is one request carrying `implementation_model` and `implementation_effort`
+once per slice, and a slice nobody could answer for goes to the strongest model rather than the
+cheapest. The route lands in a `route` record, the handoff pack names what the slice in hand runs
+on, and the route record carries the command to spawn `seen-implementer` with. The generated
+copies do not vary by slice: a file whose content depended on the ticket in hand was wrong on a
+detached HEAD, after a replan and after the receipt, so the model is given per invocation and the
+effort is carried and reported rather than applied on the Claude Code side. **It is read from the
+pack and never chosen inside the session**, which is the point: the session that would benefit from
+a stronger model is the last one that should be picking it. `[routing] shadow` is true until
+SEEN-109's window decides, so today the route is recorded and what a slice actually runs on is
+unchanged; with it off, the tdd gate refuses a check recorded under any other model and names both. A
+subagent inherits its parent's session id, so the log cannot tell you what an implementer ran on:
+it declares it with `harness check --model <tier>`, which the spawn instruction spells out and the
+gate compares first.
+
 **One ticket, one branch.** Every writing command refuses unless the branch is `claude/<ticket>-…` or
 `codex/<ticket>-…`, and refuses on `main`. Drifting onto another branch mid-ticket records evidence
 about a tree that belongs to different work.
@@ -90,16 +110,20 @@ percentile against this repository's own commits, the tests that may break, the 
 repowise is not installed the decision still happens, with the absence recorded as an absence rather
 than as a low score.
 
-## The two agents
+## The three agents
 
-Two readers fill a session: the research at clarify and solution, and the review,
-which has to hold the diff, the journal and the criteria at once. Both have a
-context of their own.
+Two readers and a writer fill a session: the research at clarify and solution,
+the review, which has to hold the diff, the journal and the criteria at once,
+and the slice itself. Each has a context of its own. The implementer is the one
+agent that holds Edit and Write, and the one whose model and effort are not its
+own: they are the route's, and they reach it through the spawn instruction the route record
+carries rather than through its generated copies, which do not vary by slice.
 
 | Agent | What it is for | What comes back |
 |---|---|---|
 | `seen-scout` | One scoped question, answered from the graphs. Read-only, no Bash | A brief of at most 400 words: what it could not answer, then the answer with its paths, then what it did not check |
 | `seen-reviewer` | The diff against the ticket's criteria and its journal, in a context that did not write the code | Findings in the review record's shape, with a failure scenario each |
+| `seen-implementer` | One slice: the RED first, then the code that turns it green | What changed, with the record numbers of the RED and the GREEN |
 
 `harness/agents.py` holds what each agent may do and `harness/agents/<name>.md`
 holds what each is told. `sync` generates `.claude/agents/<name>.md` and
@@ -188,7 +212,8 @@ baseline captured before any of them existed, with the rule for reading it writt
 
 ## What the harness will refuse
 
-A RED that did not fail. A slice citing a check from another attempt. A solution record with no slice
+A RED that did not fail. A check recorded under a model the route did not choose, once
+`[routing] shadow` is off. A slice citing a check from another attempt. A solution record with no slice
 plan, a slice over 2 points or a plan over 4. Coverage that fell. A record or a handoff pack carrying
 the value of an environment variable. A delivery whose checks are not green on the commit it
 attests. A merge where anything but the journal, the reports, the coverage baseline or the graph

@@ -263,5 +263,287 @@ class OverlapTest(unittest.TestCase):
         self.assertEqual(found, [])
 
 
-if __name__ == '__main__':
+class CostPerPointByModelTest(unittest.TestCase):
+    """What a point cost on each model, beside the tokens per point.
+
+    The point of the route is that a cheaper model on the slices that can take
+    one costs less per point than the strongest on everything. That claim is
+    only worth making with the figure printed beside it, per model, with the
+    date the prices were read.
+    """
+
+    def tickets(self):
+        return [
+            dict(ticket='SEEN-001', points=3, started='2026-09-25T00:00:00+00:00',
+                 output_tokens=60000, tool_calls=40,
+                 execution=[dict(position=1, points=2, model='opus', effort='high',
+                                 ran_on_tier='opus', output_tokens=40000, cost_cents=300.0),
+                            dict(position=2, points=1, model='opus', effort='low',
+                                 ran_on_tier='haiku', output_tokens=20000, cost_cents=8.0)]),
+            dict(ticket='SEEN-002', points=2, started='2026-09-25T00:00:00+00:00',
+                 output_tokens=30000, tool_calls=20,
+                 execution=[dict(position=1, points=2, model='sonnet', effort='medium',
+                                 ran_on_tier='haiku', output_tokens=30000, cost_cents=12.0)]),
+        ]
+
+    def test_it_divides_each_model_s_cost_by_the_points_it_carried(self):
+        from harness import context
+        by_model = context.cost_by_model(self.tickets())
+        self.assertEqual(by_model['opus'], dict(slices=1, points=2, priced_points=2,
+                                                cost_cents=300, cost_per_point=150.0,
+                                                output_tokens=40000))
+        self.assertEqual(by_model['haiku']['points'], 3)
+        self.assertEqual(by_model['haiku']['cost_per_point'], round(20.0 / 3, 2))
+
+    def test_a_ticket_with_no_execution_contributes_nothing(self):
+        from harness import context
+        tickets = self.tickets() + [dict(ticket='SEEN-003', points=5, execution=None)]
+        self.assertEqual(sorted(context.cost_by_model(tickets)), ['haiku', 'opus'])
+
+    def test_it_groups_by_the_model_the_work_ran_on_not_the_one_it_was_routed_to(self):
+        """In shadow those differ, and only one of them cost anything."""
+        from harness import context
+        by_model = context.cost_by_model(self.tickets())
+        self.assertEqual(sorted(by_model), ['haiku', 'opus'])
+        self.assertEqual(by_model['haiku']['slices'], 2)
+        self.assertEqual(by_model['opus']['slices'], 1)
+
+    def test_a_slice_nobody_can_say_ran_where_is_its_own_row(self):
+        from harness import context
+        tickets = [dict(ticket='SEEN-005', points=1, execution=[
+            dict(position=1, points=1, model='opus', effort='high',
+                 ran_on_tier=None, output_tokens=5000, cost_cents=None)])]
+        self.assertEqual(list(context.cost_by_model(tickets)), ['unknown'])
+
+    def test_a_partly_priced_row_divides_by_the_points_it_could_price(self):
+        """F3: dividing a partial cost by every point understates the model.
+
+        On SEEN-108's own figures opus read 103.8 cents per point where its
+        priced slices gave 173.0, in the table that decides whether routing
+        saves money.
+        """
+        from harness import context
+        tickets = [dict(ticket='SEEN-006', points=5, execution=[
+            dict(position=1, points=3, model='opus', effort='high', ran_on_tier='opus',
+                 output_tokens=60000, cost_cents=519),
+            dict(position=2, points=2, model='opus', effort='high', ran_on_tier='opus',
+                 output_tokens=None, cost_cents=None)])]
+        entry = context.cost_by_model(tickets)['opus']
+        self.assertEqual(entry['points'], 5)
+        self.assertEqual(entry['priced_points'], 3)
+        self.assertEqual(entry['cost_per_point'], 173.0)
+
+    def test_a_row_nothing_could_price_reports_no_cost_rather_than_zero(self):
+        from harness import context
+        tickets = [dict(ticket='SEEN-007', points=2, execution=[
+            dict(position=1, points=2, model='opus', effort='high', ran_on_tier=None,
+                 output_tokens=68043, cost_cents=None)])]
+        entry = context.cost_by_model(tickets)['unknown']
+        self.assertIsNone(entry['cost_cents'])
+        self.assertEqual(entry['output_tokens'], 68043)
+
+    def test_a_slice_with_no_cost_still_counts_its_points_and_says_so(self):
+        from harness import context
+        tickets = [dict(ticket='SEEN-004', points=1, execution=[
+            dict(position=1, points=1, model='sonnet', effort='low', ran_on_tier='sonnet',
+                 output_tokens=None, cost_cents=None)])]
+        entry = context.cost_by_model(tickets)['sonnet']
+        self.assertEqual(entry['points'], 1)
+        self.assertIsNone(entry['cost_per_point'])
+
+    def test_the_report_prints_the_row_and_the_date_the_prices_were_read(self):
+        from harness import report as reporting, thresholds
+        rules = thresholds.load(PROJECT)
+        rendered = reporting.render_cost(context.cost_by_model(self.tickets()),
+                                         rules['routing']['prices'])
+        self.assertIn('opus', '\n'.join(rendered))
+        self.assertIn(rules['routing']['prices']['priced_on'], '\n'.join(rendered))
+        self.assertIn('EUR', '\n'.join(rendered))
+
+
+class SprintReportCostTest(ProjectTest):
+    """The cost table, from the command rather than from its helpers.
+
+    F4 of SEEN-108's first review: every test of this section called
+    context.cost_by_model and report.render_cost directly, so the two lines in
+    write_report that populate the section were unguarded and could be deleted
+    with all 751 tests still green.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.write('docs/harness/reports/context-tools-baseline.json', json.dumps(BASELINE))
+        self.write('docs/tickets/SEEN-001-a-ticket-to-work.md',
+                   '---\nid: SEEN-001\nestimate: 2\nsprint: 0\nexecutor: claude-code\n'
+                   'changes_agent_action: false\nstatus: done\n---\n# SEEN-001: A ticket\n\n'
+                   '## Acceptance criteria\n\n- [x] Something observable happens\n')
+        self._write_journal()
+
+    def _write_journal(self):
+        from harness import journal
+        from harness.tests.test_kpi import journal_with_a_route
+        folder = self.root / 'docs' / 'harness' / 'history' / 'SEEN-001'
+        folder.mkdir(parents=True)
+        previous = None
+        for position, record in enumerate(journal_with_a_route(), start=1):
+            path = folder / f'{position:04d}.json'
+            body = dict(record, sequence=position, ticket='SEEN-001', prev_hash=previous)
+            path.write_bytes(journal.serialise(body))
+            previous = journal.digest(path)
+
+    def report(self):
+        from harness import cli
+        cli.execute(cli.parse(['--root', str(self.root), 'report', '--sprint', '0']))
+        return (self.root / 'docs' / 'harness' / 'reports' / 'sprint-0.md').read_text()
+
+    def test_the_sprint_report_carries_the_cost_table(self):
+        rendered = self.report()
+        self.assertIn('Cost per point by the model the work ran on', rendered)
+        self.assertIn('opus', rendered)
+
+    def test_the_report_json_carries_the_figures_the_table_was_drawn_from(self):
+        self.report()
+        payload = json.loads(
+            (self.root / 'docs' / 'harness' / 'reports' / 'sprint-0.json').read_text())
+        self.assertIn('opus', payload['context']['cost_by_model'])
+        self.assertIn('priced_on', payload['context']['prices'])
+
+    def test_the_table_names_the_date_the_prices_were_read(self):
+        rules = thresholds.load(self.root)
+        self.assertIn(rules['routing']['prices']['priced_on'], self.report())
+
+
+class ForwardReferenceTest(unittest.TestCase):
+    """F5 of SEEN-108's third review: what the printed report tells a reader to run.
+
+    `report --calibration` is criterion 2 of SEEN-109 and nothing implements it,
+    so a table that names it in the present tense sends its reader to a command
+    argparse rejects.
+    """
+
+    def rendered(self):
+        from harness import report as reporting
+        rules = thresholds.load(PROJECT)
+        return '\n'.join(reporting.render_cost(
+            dict(opus=dict(slices=1, points=2, priced_points=2, cost_cents=300,
+                           output_tokens=40000, cost_per_point=150.0)),
+            rules['routing']['prices']))
+
+    def test_it_does_not_claim_the_calibration_command_exists_yet(self):
+        rendered = self.rendered()
+        self.assertIn('report --calibration', rendered)
+        self.assertRegex(rendered, r'(?i)SEEN-109')
+
+    def test_the_command_it_names_is_not_one_the_parser_accepts_today(self):
+        """If this ever fails, SEEN-109 has landed and the sentence can lose its tense."""
+        from harness import cli
+        from harness.errors import HarnessError
+        with self.assertRaisesRegex(HarnessError, 'calibration'):
+            cli.parse(['report', '--calibration'])
+
+
+class UnpricedRowTest(unittest.TestCase):
+    """F1 of the fifth review: a row nothing could price must still render.
+
+    The fourth review's F3 made cost_cents None for such a row, because zero is
+    a claim that a slice was free; render_cost sorts by that value, so the
+    sprint report stopped being written at all. Both halves are right and the
+    sort was what had to change.
+    """
+
+    def by_model(self, **rows):
+        return {name: dict(slices=1, points=2, priced_points=2 if cost is not None else 0,
+                           cost_cents=cost, output_tokens=40000,
+                           cost_per_point=150.0 if cost is not None else None)
+                for name, cost in rows.items()}
+
+    def rendered(self, **rows):
+        from harness import report as reporting
+        return '\n'.join(reporting.render_cost(
+            self.by_model(**rows), thresholds.load(PROJECT)['routing']['prices']))
+
+    def test_an_unpriced_row_beside_a_priced_one_renders(self):
+        rendered = self.rendered(unknown=None, opus=519)
+        self.assertIn('opus', rendered)
+        self.assertIn('unknown', rendered)
+
+    def test_rows_nobody_could_price_render_too(self):
+        self.assertIn('unknown', self.rendered(unknown=None, haiku=None))
+
+    def test_the_priced_rows_come_first(self):
+        rendered = self.rendered(unknown=None, opus=519, haiku=12)
+        # The separator starts '|-', so the only header among these is the first.
+        lines = [line for line in rendered.splitlines() if line.startswith('| ')]
+        names = [line.split('|')[1].strip() for line in lines[1:]]
+        self.assertEqual(names, ['opus', 'haiku', 'unknown'])
+
+    def test_an_unpriced_cell_says_what_it_means_rather_than_none(self):
+        rendered = self.rendered(unknown=None)
+        self.assertNotIn('| None |', rendered)
+        self.assertIn('not measured', rendered)
+
+    def test_the_sprint_report_survives_this_ticket_s_own_figures(self):
+        """The shape that raised: one unpriced row beside one priced row."""
+        from harness import report as reporting
+        reporting.render_cost(self.by_model(unknown=None, opus=519),
+                              thresholds.load(PROJECT)['routing']['prices'])
+
+
+class ReconcilingRowTest(unittest.TestCase):
+    """F2 of the sixth review: a row a reader can check.
+
+    Points is every point the model carried and Cost covers only the slices that
+    could be priced, so Cost per point divides by the second and not the first.
+    Printed without the priced points, the row invited an arithmetic that gives a
+    number a third smaller, in the table SEEN-109 judges routing on.
+    """
+
+    def rendered(self):
+        from harness import report as reporting
+        by_model = dict(opus=dict(slices=3, points=5, priced_points=3, cost_cents=519,
+                                  output_tokens=69204, cost_per_point=173.0))
+        return '\n'.join(reporting.render_cost(
+            by_model, thresholds.load(PROJECT)['routing']['prices']))
+
+    def test_the_row_shows_the_points_the_cost_covers(self):
+        row = [line for line in self.rendered().splitlines() if line.startswith('| opus')][0]
+        self.assertIn('| 5 |', row, 'the points the model carried')
+        self.assertIn('| 3 |', row, 'the points its cost could cover')
+
+    def test_the_header_names_the_column(self):
+        self.assertRegex(self.rendered(), r'(?i)\|\s*points priced\s*\|')
+
+    def test_the_footnote_says_which_the_division_uses(self):
+        self.assertRegex(self.rendered(), r'(?i)divided by the points it could price')
+
+
+
+class PricedPointsCellTest(unittest.TestCase):
+    """F4 of the seventh review: the column's value, not just its header.
+
+    Every fixture that rendered the row had priced_points equal to slices, so
+    printing the slice count instead would have passed: the assertion on '| 3 |'
+    was satisfied by either. A row where the two differ is the only one that
+    tells them apart.
+    """
+
+    def row(self, slices, points, priced_points, cost):
+        from harness import report as reporting
+        by_model = dict(opus=dict(slices=slices, points=points, priced_points=priced_points,
+                                  cost_cents=cost, output_tokens=69204,
+                                  cost_per_point=round(cost / priced_points, 2)))
+        rendered = reporting.render_cost(by_model, thresholds.load(PROJECT)['routing']['prices'])
+        return [line for line in rendered if line.startswith('| opus')][0]
+
+    def test_the_cell_is_the_priced_points_and_not_the_slice_count(self):
+        row = self.row(slices=2, points=5, priced_points=3, cost=519)
+        self.assertEqual(row, '| opus | 2 | 5 | 3 | 69204 | 519 | 173.0 |')
+
+    def test_the_printed_cost_per_point_divides_the_cell_beside_it(self):
+        row = self.row(slices=2, points=5, priced_points=3, cost=519)
+        cells = [cell.strip() for cell in row.split('|')[1:-1]]
+        priced_points, cost, per_point = int(cells[3]), int(cells[5]), float(cells[6])
+        self.assertEqual(round(cost / priced_points, 2), per_point)
+
+if __name__ == '__main__':  # pragma: no cover - a module must run on its own
     unittest.main()

@@ -9,7 +9,7 @@ import json
 import os
 import re
 
-from . import secrets
+from . import context, secrets
 from .errors import require
 from .paths import REPORTS
 
@@ -136,6 +136,7 @@ def render_context(section, rules):
     named = section.get('tickets_named_with_agents') or []
     if named:
         lines += ['', f'Worked with the scout and the reviewer: {", ".join(named)}.']
+    lines += render_cost(section.get('cost_by_model') or {}, section.get('prices'))
     lines += ['', f'**The rule, recorded before the numbers.** {rules["decision_rule"]}', '']
     if section['conclusion']:
         lines += [f'**What it points to.** {section["conclusion"]}', '',
@@ -149,6 +150,56 @@ def render_context(section, rules):
         for overlap in section['overlaps']:
             lines.append(f'- {overlap["ticket"]} asked about `{overlap["subject"]}` of both '
                          f'{" and ".join(overlap["tools"])}: one question, two right addressees.')
+    return lines
+
+
+def render_cost(by_model, prices):
+    """What a point cost on each model, with the date the prices were read.
+
+    Printed beside the figure every time rather than in a footnote: a price per
+    token is stale the day it is written, and the answer to that is to say how
+    old it is, not to report no figure at all. That is the amendment SEEN-108
+    made to the line that said euros could not be reported.
+    """
+    if not by_model:
+        return []
+    currency = (prices or {}).get('currency', 'EUR')
+    priced_on = (prices or {}).get('priced_on', 'an unrecorded date')
+    lines = ['', '### Cost per point by the model the work ran on', '',
+             f'| Model | Slices | Points | Points priced | Output tokens '
+             f'| Cost ({currency} cents) | Cost per point |',
+             '|---|---|---|---|---|---|---|']
+    # Dearest first among the rows that could be priced, and the rest after
+    # them. cost_cents is None for a row nothing could price, because zero is a
+    # claim that a slice was free, and sorting on it raised TypeError and wrote
+    # no report at all: the fourth review's F3 made the value right and the
+    # fifth review's F1 found this sort still reading it as a number.
+    def order(name):
+        cost = by_model[name]['cost_cents']
+        return (cost is not None, cost or 0)
+
+    for model in sorted(by_model, key=order, reverse=True):
+        found = by_model[model]
+        per_point = found['cost_per_point']
+        cost = found['cost_cents']
+        lines.append(f'| {model} | {found["slices"]} | {found["points"]} '
+                     f'| {found["priced_points"]} | {found["output_tokens"]} '
+                     f'| {cost if cost is not None else "not measured"} '
+                     f'| {per_point if per_point is not None else "not measured"} |')
+    lines += ['',
+              f'Prices read on {priced_on}, in {currency} cents per million tokens, from '
+              '`[routing.prices]`. Output tokens only: a handoff record carries the session\'s '
+              'output tokens and tool calls and nothing about input, so the figure says what it '
+              'covers rather than guessing at the rest. Cost per point is the cost divided by '
+              'the points it could price, which is the fourth column and not the third: a slice '
+              'whose boundary carried no token figure counts its points and not its cost, so a '
+              'row where the two differ does not divide the way it reads. Rows are the model '
+              'each slice actually '
+              'ran on, which while `[routing] shadow` is true is the session\'s model and not '
+              'the routed one; what the route would have cost is carried per slice in kpi.json '
+              'as `routed_cost_cents`; comparing the two is what `report --calibration` will do when '
+              'SEEN-109 adds it, and no command does it today. A row named '
+              f'`{context.UNKNOWN}` is slices whose session left no log to read a model from.']
     return lines
 
 

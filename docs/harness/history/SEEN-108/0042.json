@@ -1,0 +1,16 @@
+{
+  "sequence": 42,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T07:32:11.029903+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 4,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "2d8da2e8ae66f64ad90a2f91c478fd4cec57da7d",
+  "prev_hash": "81c0372cd496cf9c3027ff1468d790d59184d8f7e7719505d3bc396274f0f3f0",
+  "data": {
+    "text": "# Correction to the failure reason recorded for slice 4 at record 23\n\nF6 of the review at note 32. The tdd record accepted at record 23 states slice\n4's RED as failing \"with KeyError: 'execution' on the measured record\", and\ncheck 19, the RED it cites, contains no KeyError at all. The journal is\nappend-only, so record 23 stands as written and this note is the correction.\n\n**What check 19 actually shows.** Its dominant failure is `TypeError: measure()\ngot an unexpected keyword argument 'rules'`, seven times, which proves the\nsignature was missing rather than that the measured record had no `execution`\nkey. Beside it, and correctly named in record 23: `AttributeError: module\n'harness.context' has no attribute 'cost_by_model'`, and four assertions on\ndocs/harness/skill.md for text that was not there.\n\n**Why it was wrong.** The solution record predicted the KeyError, and the\nfailure reason was written from the prediction rather than from the runner. That\nis the one thing the field exists to prevent: the template asks for \"the\nassertion that failed before the change, in the words of the runner\", and a\nprediction copied forward reads as evidence while proving nothing. The\ndeterministic pass cannot catch it, which is exactly what `red_before_green`\ndiscloses of itself in the triage's partly-settled list, and it took a reader\ncomparing the two to find it.\n\n**What it does not change.** The RED did fail, for reasons that were about the\nabsence of the behaviour the slice adds, and the cited check is the one the\nslice names. The slice is not re-proved on this account; the record is corrected\nso that a reader auditing it, or SEEN-109 calibrating on it, is not looking for\na failure that is not there.\n"
+  }
+}

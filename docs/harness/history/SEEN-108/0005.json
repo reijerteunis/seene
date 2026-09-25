@@ -1,0 +1,169 @@
+{
+  "sequence": 5,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T05:30:21.335137+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "solution",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "024dcbdaaf93c52ee5aaa70fb290e79fa2318116",
+  "prev_hash": "9c2d34ff478c176fe3ca87215bc40c3ebb3dc34fc9d61298093546ef5add438f",
+  "data": {
+    "from_stage": "solution",
+    "to_stage": "tdd",
+    "evidence": {
+      "mode": "code",
+      "approach": "One new module, harness/routing.py, holding the rules, the two Jev questions' state and the execution entries, and one new command `route` that appends a `route` record at the tdd stage. Rules run first over each planned slice's files against the patterns in a new `[routing]` section of thresholds.toml, reusing gates.full_depth_rules for the three that are already ticket-wide (agent action, billing or the policy gate, a migration) and adding path patterns for the per-slice ones (money arithmetic in packages/core, a migration or an RLS policy, credentials); a slice that trips one is routed to the strongest tier at high effort and is left out of the request. Every other slice goes into one ask_batch call keyed `implementation_model#<position>` and `implementation_effort#<position>` with must_answer False, so an absence is recorded as an absence and routed to the strongest tier rather than downgraded. The record carries one execution entry per slice, handoff.pack reads it for the slice in hand, checks.run records the model from the session log, the tdd gate compares each cited red and green against its slice's entry when `[routing] shadow` is false, agents.py gains seen-implementer whose two copies are rendered from the route of the slice in hand, kpi.measure carries execution with tokens and cents, and report renders cost per point by model. Nothing changes what a slice runs on while shadow is true, which is the default.",
+      "changes": [
+        "harness/thresholds.toml: a [routing] section with tiers, the tier-to-model map for the session log and for Codex, the rule patterns, shadow = true, [routing.prices] in integer cents per million tokens with priced_on, and implementation_model and implementation_effort in [jev.thresholds].",
+        "harness/routing.py: new. rules_for(slice), route_entries(records, rules, repository), the Jev state, the implementer copy rendering, and the reviewer model rule.",
+        "harness/jev.py: implementation_model and implementation_effort registered with stage=None, each with its criteria per option.",
+        "harness/paths.py: KINDS gains 'route'.",
+        "harness/cli.py: the route command and its parser entry, the model recorded on a check, and the UNMEASURABLE euro line amended to name the price table and its date.",
+        "harness/checks.py: the check evidence carries the model the run was recorded under.",
+        "harness/sessions.py: model(), the current session's model read from its own log.",
+        "harness/gates.py: the tdd gate compares each cited red and green against its slice's route entry and refuses naming both models when shadow is false.",
+        "harness/handoff.py: the pack's slice section carries the routed model, effort and source.",
+        "harness/agents.py: seen-implementer in AGENTS, the effort key in CLAUDE_KEYS, model_reasoning_effort in CODEX_KEYS, and the per-slice rendering sync, route and doctor all call.",
+        "harness/agents/seen-implementer.md: new, what the implementer subagent is told.",
+        "harness/triage.py: reviewer_model from the depth, carried in the record and in the reviewer task.",
+        "harness/kpi.py: execution per slice with the routed model, the model actually recorded, tokens and cost in cents.",
+        "harness/context.py and harness/report.py: cost per point by model beside output tokens per point, with priced_on printed beside it.",
+        "docs/harness/skill.md: the route is read from the handoff pack and never chosen inside the session; regenerated copies under .claude/skills/seen-harness/ and .codex/.",
+        "harness/tests/test_routing.py: new, the rules, the request, the absences, the gate and the copies.",
+        "harness/tests/test_stage_gates.py, test_agents.py, test_kpi.py, test_doctor.py, test_triage.py: the new refusal, the third agent, the execution figures and the reviewer model."
+      ],
+      "migrations": [],
+      "tests_first": [
+        "A slice whose files are money arithmetic in packages/core is routed to the strongest tier at high effort with no Jev request. `python3 -m unittest harness.tests.test_routing -v`. The RED must demonstrate that the command does not exist: the route record is never written and the assertion on the execution entry's source fails.",
+        "An unruled slice is routed by Jev from one request keyed by position, and a slice the reply left out is recorded as an absence and routed to the strongest tier. `python3 -m unittest harness.tests.test_routing -v`. The RED must demonstrate that no request is built at all.",
+        "The handoff pack carries the routed model, effort and source for the slice in hand. `python3 -m unittest harness.tests.test_session_cap harness.tests.test_routing -v`. The RED must demonstrate that the pack's slice section names the slice and says nothing about a model.",
+        "With shadow false, advancing a tdd record whose cited green was recorded under a model other than its slice's route is refused naming both models; with shadow true the same journal advances. `python3 -m unittest harness.tests.test_stage_gates -v`. The RED must demonstrate that the advance is accepted, because the gate reads no route.",
+        "sync writes .claude/agents/seen-implementer.md and .codex/agents/seen-implementer.toml carrying the routed model and effort of the slice in hand, and doctor reports no drift. `python3 -m unittest harness.tests.test_agents harness.tests.test_doctor -v`. The RED must demonstrate that neither copy exists.",
+        "kpi.json carries execution per slice with model, effort, tokens and cost in cents, and the sprint report renders cost per point by model. `python3 -m unittest harness.tests.test_kpi harness.tests.test_context_budget -v`. The RED must demonstrate that the measured record has no execution key."
+      ],
+      "slices": [
+        {
+          "name": "The rules, the questions and the route command",
+          "points": 2,
+          "files": [
+            "harness/thresholds.toml",
+            "harness/routing.py",
+            "harness/jev.py",
+            "harness/paths.py",
+            "harness/cli.py",
+            "harness/tests/test_routing.py"
+          ],
+          "red": "A fixture whose one slice changes packages/core/src/fees.ts expects a route record whose execution entry reads model opus, effort high, source rule, and expects jev.TRANSPORT to have recorded no request. It must fail because there is no route command and no record kind for it to write."
+        },
+        {
+          "name": "The pack carries it and the tdd gate holds it",
+          "points": 2,
+          "files": [
+            "harness/handoff.py",
+            "harness/checks.py",
+            "harness/sessions.py",
+            "harness/gates.py",
+            "harness/cli.py",
+            "harness/tests/test_routing.py",
+            "harness/tests/test_stage_gates.py"
+          ],
+          "red": "A journal holding a route entry of opus for slice 1 and a green recorded under claude-sonnet-5 is advanced out of tdd with [routing] shadow false. It must fail because the gate accepts it: nothing reads the route, so the advance succeeds where the test expects a refusal naming both models."
+        },
+        {
+          "name": "The implementer agent in both assistants, and the reviewer's model rule",
+          "points": 1,
+          "files": [
+            "harness/agents.py",
+            "harness/agents/seen-implementer.md",
+            "harness/triage.py",
+            "harness/tests/test_agents.py",
+            "harness/tests/test_triage.py"
+          ],
+          "red": "sync is run on a tree whose journal routes the slice in hand to sonnet at low effort, and the test reads .claude/agents/seen-implementer.md for `model: sonnet` and `effort: low` and the Codex copy for model_reasoning_effort. It must fail because seen-implementer is not in AGENTS, so neither copy is written."
+        },
+        {
+          "name": "The cost per slice in the KPI and per point by model in the report",
+          "points": 2,
+          "files": [
+            "harness/kpi.py",
+            "harness/context.py",
+            "harness/report.py",
+            "harness/cli.py",
+            "docs/harness/skill.md",
+            "harness/tests/test_kpi.py",
+            "harness/tests/test_context_budget.py"
+          ],
+          "red": "kpi.measure over a journal holding a route record, two handoff records with figures and a receipt is asked for execution[0]['cost_cents']. It must fail with a KeyError on execution, because the measured record has no such key."
+        }
+      ],
+      "alternatives": [
+        "Writing the execution entries into the solution record itself, which criterion 1's words suggest. Rejected because the journal is append-only: the solution record is written by advance and sealed by the next record's prev_hash, so a route written into it would be either a rewrite of evidence or a second solution record claiming to be the first.",
+        "Deriving the model of a check at the gate rather than recording it at check time. Rejected because the envelope carries a twelve-character digest of the session id and not the id, so a later reader cannot find the log of the session that wrote a record; recording it when it is known is both cheaper and honest.",
+        "Leaving the implementer agent's copies at a fixed model and passing the model per invocation. Rejected because Claude Code documents no per-invocation effort override, so the effort half of every criterion would be unsettable; the per-invocation model override still applies on top and is what the route record's spawn instruction names.",
+        "Making the route take effect immediately. Rejected because docs/harness/workflow.md line 86 gives the ten-ticket window to SEEN-109, and a route that took effect before the window would be the very thing the window exists to measure."
+      ],
+      "risks": [
+        "A generated agent file that varies with the branch makes doctor branch-dependent, so a checkout of main and a checkout of a routed branch disagree about the bytes. Mitigated by one function rendering it for sync, route and doctor alike, with the strongest tier at high effort as the value when no route is on the branch, and by a doctor test on a tree with no journal.",
+        "The tdd gate gains a refusal that could block a ticket for a reason about the machine rather than the work, when a session has no log and the model reads null. Mitigated by refusing only on a model that is known and different, never on an absence, which is the rule cost.py already applies to tokens.",
+        "seen-implementer holds Edit and Write, which no agent has held before. Mitigated by the controls that already hold for the session that writes code: the branch check, the RED before the green, the journal and the fingerprint the review attests; and by the agent source being reviewed like any other file.",
+        "Prices go stale. Mitigated by priced_on being printed beside every figure derived from them, so a reader never has to ask how old the number is.",
+        "The plan is about seven points against a two-point forecast. Mitigated by four slices at or under the cap and by the slice boundary being a session boundary: no session works more than one of them."
+      ],
+      "rollback": "Nothing here runs in production. Set `[routing] shadow = true`, which is the default, and the route is recorded and never acted on; the tdd gate's comparison is skipped, the implementer copies fall back to the strongest tier at high effort, and the KPI's execution list is the only thing left, which nothing reads but a report. Reverting the branch removes the route kind, and journals written with one stay readable because journal.read refuses only an unknown record kind on write.",
+      "new_dependencies": [],
+      "tenant_tables": [
+        "none: the harness writes no database table"
+      ],
+      "buyer_pii": "none",
+      "policy_gate_action": null,
+      "slice_points": 7
+    },
+    "decisions": [
+      {
+        "key": "solution_complete",
+        "question": "solution_complete",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.6,
+          "no": 0.4
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "key": "touches_billing_or_policy_gate",
+        "question": "touches_billing_or_policy_gate",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.45,
+          "no": 0.55
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

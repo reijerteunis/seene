@@ -25,7 +25,7 @@ policy gate, and a migration. Any of them is full depth with no request made.
 
 import re
 
-from . import gates, jev, journal, kpi, risk, secrets
+from . import gates, jev, journal, kpi, risk, routing, secrets
 from .errors import HarnessError, require
 from .paths import FINGERPRINT_EXCLUDED
 
@@ -629,7 +629,7 @@ def always_read(records, ticket, root=None):
     return [entry for entry in (path, f'{HISTORY}/{ticket}/') if entry]
 
 
-def reviewer_task(ticket, sequence, depth, focus, results, shadow, always):
+def reviewer_task(ticket, sequence, depth, focus, results, shadow, always, model=None):
     """The task the session hands its reviewer subagent.
 
     Text rather than a call, because the harness runs no model: what it buys is
@@ -657,6 +657,9 @@ def reviewer_task(ticket, sequence, depth, focus, results, shadow, always):
              + (', in shadow mode, so the focus set is the whole diff and what the narrowing '
                 'would have dropped is recorded rather than acted on' if shadow else ''),
              '',
+             f'Run the reviewer on {model} by rule: the strongest model at full depth, one tier '
+             'down at spot.' if model else '',
+             '',
              'Read these whatever the depth, because they are what a review is against and no '
              'focus set can hold them:']
     lines += [f'- {path}' for path in always]
@@ -680,16 +683,12 @@ def reviewer_task(ticket, sequence, depth, focus, results, shadow, always):
 
 
 def _why_not(answered, credential_value, answers):
-    """Why pass two produced nothing, or nothing when it produced something."""
-    if answered is not None:
-        return None
-    if not credential_value:
-        return ('No Jev credential on this machine, so no request was made and every answer is '
-                'recorded as an absence')
-    reasons = sorted({answer['fallback_reason'] for answer in answers
-                      if answer['fallback_reason']})
-    said = 'The request was made and Jev did not answer'
-    return f'{said}: {"; ".join(reasons)}' if reasons else said
+    """Why pass two produced nothing, or nothing when it produced something.
+
+    One line, because the route asks the same way and needs the same three
+    things told apart: it lives in jev.py, beside the request that produced them.
+    """
+    return jev.why_not(answered, credential_value, answers)
 
 
 def run(repository, records, current, rules, ticket, sequence):
@@ -783,6 +782,9 @@ def run(repository, records, current, rules, ticket, sequence):
                 jev=requested,
                 criteria_answers=criteria_answers,
                 review_depth=depth,
+                # A rule, like the three that force full depth: the depth the
+                # reviewer is held to is what decides what it has to be.
+                reviewer_model=routing.reviewer_model(depth, rules),
                 # What Jev would have chosen, beside what the rules enforced.
                 model_depth=model_depth,
                 # In shadow the reviewer still reads everything, and what the
@@ -795,7 +797,8 @@ def run(repository, records, current, rules, ticket, sequence):
                 excluded_share=excluded_share(facts, narrowed),
                 always_read=required,
                 reviewer_task=reviewer_task(ticket, sequence, depth, focus, results, shadow,
-                                            required))
+                                            required,
+                                            routing.reviewer_model(depth, rules)))
 
 
 def _ticket_text(repository, records):

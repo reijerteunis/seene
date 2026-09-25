@@ -1,0 +1,31 @@
+{
+  "sequence": 46,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T07:41:06.718523+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 4,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "2d8da2e8ae66f64ad90a2f91c478fd4cec57da7d",
+  "prev_hash": "cc0ea5e53d3be932bcd42233ce48dd8a7a7de3e7c2216e2b9f062bf674eb46a9",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "behaviour": "The route record carries the text a session spawns its implementer with, amounts are whole cents, the skill counts its agents, and the sprint report's cost section is guarded by a test of the command rather than of its helpers.",
+          "failure_reason": "Eight failures. F9: KeyError: 'implementer_task' on every execution entry, four times. F7: '614.1 is not an instance of int' from test_every_amount_is_a_whole_number_of_cents, and 0.4 != 0 for a price below one cent. F8: AssertionError: '## The two agents' unexpectedly found in the skill, and the roster's three names not all present under that heading. F4's test passed on arrival, because the wiring worked and nothing guarded it: it was proven to guard by removing the two lines in write_report that populate cost_by_model and prices, which failed all three of its tests, and restoring them.",
+          "red": 40,
+          "green": 43
+        }
+      ],
+      "regression": 44,
+      "coverage_delta": 0.0
+    },
+    "decisions": []
+  }
+}

@@ -355,5 +355,5 @@ class DraftAsksTheGateTest(CommandTest):
         self.assertIn('second_reviewer', asked)
         self.assertIn('security_checklist', asked)
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover - a module must run on its own
     unittest.main()
