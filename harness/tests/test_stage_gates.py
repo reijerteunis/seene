@@ -606,5 +606,39 @@ class TwoReviewerTest(ReviewGateTest):
                       else self.tdd_done())
 
 
+class TemplatePositionTest(unittest.TestCase):
+    """F1 of the sixth review: what the template teaches about the position.
+
+    Every other field of the tdd template ships instructive prose, and a literal
+    1 taught the one value that is wrong for most rounds after the first. Note
+    83 asked the next ticket touching this file to put the reading in its prose,
+    and the attempt that made the field mandatory did not.
+    """
+
+    def slice_template(self):
+        from harness import gates
+        return gates.load_template(PROJECT, 'tdd')['slices'][0]
+
+    def test_the_template_says_what_the_position_means(self):
+        position = self.slice_template()['position']
+        self.assertIsInstance(position, str, 'a literal number teaches the wrong default')
+        self.assertIn('null', position)
+
+    def test_the_prose_names_the_round_that_belongs_to_no_slice(self):
+        self.assertRegex(self.slice_template()['position'], r'(?i)no single slice')
+
+    def test_a_draft_left_unedited_is_refused_rather_than_routed(self):
+        """The placeholder must not be a value the gate accepts."""
+        from harness import gates
+        from harness.errors import HarnessError
+        template = gates.load_template(PROJECT, 'tdd')
+        # Everything but the position filled in, so the refusal is about the one
+        # field under test rather than the first unedited string in the record.
+        left = dict(self.slice_template(), behaviour='The behaviour', failure_reason='It failed')
+        with self.assertRaisesRegex(HarnessError, 'no single slice'):
+            gates.reject_placeholders(template, dict(slices=[left]))
+
+
+
 if __name__ == '__main__':
     unittest.main()

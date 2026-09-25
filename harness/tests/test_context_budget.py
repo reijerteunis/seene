@@ -263,10 +263,6 @@ class OverlapTest(unittest.TestCase):
         self.assertEqual(found, [])
 
 
-if __name__ == '__main__':
-    unittest.main()
-
-
 class CostPerPointByModelTest(unittest.TestCase):
     """What a point cost on each model, beside the tokens per point.
 
@@ -429,8 +425,8 @@ class ForwardReferenceTest(unittest.TestCase):
         from harness import report as reporting
         rules = thresholds.load(PROJECT)
         return '\n'.join(reporting.render_cost(
-            dict(opus=dict(slices=1, points=2, cost_cents=300, output_tokens=40000,
-                           cost_per_point=150.0)),
+            dict(opus=dict(slices=1, points=2, priced_points=2, cost_cents=300,
+                           output_tokens=40000, cost_per_point=150.0)),
             rules['routing']['prices']))
 
     def test_it_does_not_claim_the_calibration_command_exists_yet(self):
@@ -491,3 +487,36 @@ class UnpricedRowTest(unittest.TestCase):
         from harness import report as reporting
         reporting.render_cost(self.by_model(unknown=None, opus=519),
                               thresholds.load(PROJECT)['routing']['prices'])
+
+
+class ReconcilingRowTest(unittest.TestCase):
+    """F2 of the sixth review: a row a reader can check.
+
+    Points is every point the model carried and Cost covers only the slices that
+    could be priced, so Cost per point divides by the second and not the first.
+    Printed without the priced points, the row invited an arithmetic that gives a
+    number a third smaller, in the table SEEN-109 judges routing on.
+    """
+
+    def rendered(self):
+        from harness import report as reporting
+        by_model = dict(opus=dict(slices=3, points=5, priced_points=3, cost_cents=519,
+                                  output_tokens=69204, cost_per_point=173.0))
+        return '\n'.join(reporting.render_cost(
+            by_model, thresholds.load(PROJECT)['routing']['prices']))
+
+    def test_the_row_shows_the_points_the_cost_covers(self):
+        row = [line for line in self.rendered().splitlines() if line.startswith('| opus')][0]
+        self.assertIn('| 5 |', row, 'the points the model carried')
+        self.assertIn('| 3 |', row, 'the points its cost could cover')
+
+    def test_the_header_names_the_column(self):
+        self.assertRegex(self.rendered(), r'(?i)\|\s*points priced\s*\|')
+
+    def test_the_footnote_says_which_the_division_uses(self):
+        self.assertRegex(self.rendered(), r'(?i)divided by the points it could price')
+
+
+
+if __name__ == '__main__':
+    unittest.main()

@@ -1,0 +1,19 @@
+{
+  "sequence": 101,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T14:09:47.658380+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 9,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "ba918b92817618065db689d13eb98b1e366bb76f",
+  "prev_hash": "105548c638f2798758fb19bc1bdafc012103b7a815f0f6cbc2aa157f998cd563",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 10,
+    "reason": "The sixth review returned three findings. F1: the tdd template ships a literal position of 1 where every other field ships instructive prose, so a rework round drafting from it inherits the one value that is wrong for most rounds after the first, and the gate then refuses work that ran exactly as routed. Note 83 asked the next ticket touching that file to put the reading in its prose; attempt 9 touched it one attempt later and added the value without the prose. F2: the cost table's row does not reconcile, printing every point the model carried beside a cost covering only the priced slices, with priced_points reaching the JSON and dropped from the markdown. F3: five test classes are defined after the unittest.main guard in test_context_budget.py and test_triage.py, so running either file directly collects none of them."
+  }
+}

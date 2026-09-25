@@ -166,8 +166,9 @@ def render_cost(by_model, prices):
     currency = (prices or {}).get('currency', 'EUR')
     priced_on = (prices or {}).get('priced_on', 'an unrecorded date')
     lines = ['', '### Cost per point by the model the work ran on', '',
-             f'| Model | Slices | Points | Output tokens | Cost ({currency} cents) '
-             f'| Cost per point |', '|---|---|---|---|---|---|']
+             f'| Model | Slices | Points | Points priced | Output tokens '
+             f'| Cost ({currency} cents) | Cost per point |',
+             '|---|---|---|---|---|---|---|']
     # Dearest first among the rows that could be priced, and the rest after
     # them. cost_cents is None for a row nothing could price, because zero is a
     # claim that a slice was free, and sorting on it raised TypeError and wrote
@@ -182,14 +183,18 @@ def render_cost(by_model, prices):
         per_point = found['cost_per_point']
         cost = found['cost_cents']
         lines.append(f'| {model} | {found["slices"]} | {found["points"]} '
-                     f'| {found["output_tokens"]} '
+                     f'| {found["priced_points"]} | {found["output_tokens"]} '
                      f'| {cost if cost is not None else "not measured"} '
                      f'| {per_point if per_point is not None else "not measured"} |')
     lines += ['',
               f'Prices read on {priced_on}, in {currency} cents per million tokens, from '
               '`[routing.prices]`. Output tokens only: a handoff record carries the session\'s '
               'output tokens and tool calls and nothing about input, so the figure says what it '
-              'covers rather than guessing at the rest. Rows are the model each slice actually '
+              'covers rather than guessing at the rest. Cost per point is the cost divided by '
+              'the points it could price, which is the fourth column and not the third: a slice '
+              'whose boundary carried no token figure counts its points and not its cost, so a '
+              'row where the two differ does not divide the way it reads. Rows are the model '
+              'each slice actually '
               'ran on, which while `[routing] shadow` is true is the session\'s model and not '
               'the routed one; what the route would have cost is carried per slice in kpi.json '
               'as `routed_cost_cents`; comparing the two is what `report --calibration` will do when '

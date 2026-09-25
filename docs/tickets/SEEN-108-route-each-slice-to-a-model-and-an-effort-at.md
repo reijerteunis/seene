@@ -39,8 +39,8 @@ Every slice runs on the session's model at the session's effort today, whatever 
 
 ## Outcome
 
-Worked in one session by the digest `710e96458c5b`: 9 attempts, 8 returns,
-12 slices proved against four planned, counting the tdd advance
+Worked in one session by the digest `710e96458c5b`: 10 attempts, 9 returns,
+13 slices proved against four planned, counting the tdd advance
 this section was written for. Four of the returns came from a review and each
 found something real; one came from the review triage before any model read the
 diff, which is what SEEN-107 was built to do; two were this ticket's own, to take
@@ -77,8 +77,8 @@ of 15,631 entries in this project's logs after three subagent runs none carries
 disclosure and not a proof, the same position SEEN-105 took for the reviewer's
 session id. The decisions are at records 41 and 50 with the options offered.
 
-**What the reviews found that the tests did not.** Twenty-eight findings over five
-reviews, falling nine, six, six, five, two, and the pattern in them is worth more than the count. Three were the
+**What the reviews found that the tests did not.** Thirty-four findings over six
+reviews, falling nine, six, six, five, two, three, and the pattern in them is worth more than the count. Three were the
 same fault in different clothes: a figure attributed to the wrong thing. The
 tokens of a slice were keyed by the handoff's `position` rather than its `done`,
 so every slice was charged the window before it and the planning window was
@@ -106,6 +106,15 @@ a delivery with open findings and says not to relabel one; SEEN-111 was withdraw
 in the same commit that closed them. Every finding of all four reviews is closed
 in this ticket, and none of them is an escaped defect, because every one was
 found by a review before delivery rather than after it.
+
+**What the sixth review found, which is the pattern in one sentence.** Note 83
+asked the next ticket that touched `harness/templates/tdd.json` to put the
+reading of the position field into the template's own prose. One attempt later
+this ticket touched that file, made the field mandatory, shipped a literal `1`
+where every other field ships instruction, and so taught a rework round the one
+value that is wrong for it: the mistake record 82 made, turned into the default.
+Advice written to a future ticket by the ticket still holding the file is advice
+to nobody.
 
 **What the journal owns.** Four corrections, at records 42, 52, 70 and 83, and a
 fifth thing worth naming beside them: the fingerprint check refused the sixth

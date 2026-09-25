@@ -1,0 +1,16 @@
+{
+  "sequence": 102,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T14:09:47.730765+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 10,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "ba918b92817618065db689d13eb98b1e366bb76f",
+  "prev_hash": "767c34cfdd5af2ab00c7f160042565d1b7c0d8abd83a452fc64f6be29b765666",
+  "data": {
+    "text": "# Sixth review of SEEN-108, attempt 9, from the seen-reviewer subagent\n\nSpawned fresh on opus with the task text of triage record 98, and told which six\ntest modules no earlier review had read in their current state. Verdict\n`return`, three findings, none high. It verified rather than took on trust:\n`agents.routed` and `agents.drift` on this checkout, both SKILL copies\nbyte-identical, `triage.procedure_paths` excluding the implementer copies so the\nper-slice regeneration cannot move the reviewed fingerprint, and `kpi.measure`\nover this journal reproducing the four slice costs the outcome quotes. It\ncompared every accepted tdd advance's failure reason against its cited check and\nconfirmed the three the journal already corrects. It judged `slice_files` a\nplan-accuracy gap for the fifth time.\n\n- **F1, medium, harness/templates/tdd.json:5.** The template ships a literal\n  `\"position\": 1` where every other field ships instructive prose, so a session\n  drafting a rework round inherits the one value that is wrong for most rounds\n  after the first. An integer passes `require_template_fields`, which reads only\n  top-level keys, and `reject_placeholders`, which compares strings. With shadow\n  false, slice 3's rework declaring its own routed model is then refused against\n  slice 1's route, which is the mistake this ticket made at record 82. Note 83\n  asked the next ticket touching this file to put the reading in its own prose;\n  attempt 9 touched it one attempt later, added the value without the prose, and\n  turned the remedy note 83 names, leaving the field out, into one the gate now\n  refuses.\n- **F2, medium, harness/report.py:184.** The row does not reconcile: Points is\n  every point the model carried, Cost covers only the slices that could be\n  priced, and Cost per point divides by the priced points. On this ticket's own\n  figures the row reads `| opus | 3 | 5 | 69204 | 519 | 173.0 |`, and a reader\n  computing 519 over 5 gets 103.8. `priced_points` reaches the JSON payload and\n  is dropped from the markdown, and the footnote is what tells the reader this\n  row is what routing is judged on.\n- **F3, low, harness/tests/test_context_budget.py:270 and test_triage.py:1582.**\n  Five test classes are defined after the module's `unittest.main()` guard, so\n  running either file directly reports OK having collected none of them. A\n  developer iterating on `report.render_cost` that way reintroduces the fifth\n  review's F1, the TypeError that stopped the sprint report being written, and\n  sees a green run. Every other module in the directory keeps the guard last.\n"
+  }
+}

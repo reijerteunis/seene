@@ -1575,10 +1575,6 @@ class SliceCapTest(unittest.TestCase):
         self.assertTrue(all(entry['red']['output'] for entry in excerpts['slices']))
 
 
-if __name__ == '__main__':
-    unittest.main()
-
-
 class ReviewerModelTest(FocusSetTest):
     """The reviewer's model is a rule, and the depth is what decides it.
 
@@ -1609,3 +1605,8 @@ class ReviewerModelTest(FocusSetTest):
         task = self.triage()['data']['reviewer_task']
 
         self.assertRegex(task, r'(?i)opus')
+
+
+
+if __name__ == '__main__':
+    unittest.main()

@@ -384,3 +384,27 @@ class ImplementerTest(CommandTest):
         path = self.root / IMPLEMENTER_CLAUDE
         path.write_text(path.read_text().replace('model: opus', 'model: haiku'))
         self.assertTrue(any('seen-implementer' in problem for problem in self.problems()))
+
+
+class GuardIsLastTest(unittest.TestCase):
+    """F3 of the sixth review: a module's own run must collect its own tests.
+
+    Five classes were appended after the `unittest.main()` guard in two modules,
+    so running either file directly reported OK having collected none of them.
+    A developer iterating on report.render_cost that way would have seen green
+    while reintroducing the TypeError that stopped the sprint report being
+    written at all.
+    """
+
+    def test_no_test_class_is_defined_after_the_guard(self):
+        stragglers = {}
+        for path in sorted((PROJECT / 'harness' / 'tests').glob('test_*.py')):
+            lines = path.read_text().splitlines()
+            guards = [index for index, line in enumerate(lines)
+                      if "if __name__ == '__main__':" in line]
+            if not guards:
+                continue
+            after = [line for line in lines[guards[0]:] if line.startswith('class ')]
+            if after:
+                stragglers[path.name] = after
+        self.assertEqual(stragglers, {})

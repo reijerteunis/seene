@@ -120,10 +120,6 @@ class RiskTest(ProjectTest):
         self.assertIn('unavailable', answer)
 
 
-if __name__ == '__main__':
-    unittest.main()
-
-
 class ElidedBlastRadiusTest(RiskTest):
     """repowise elides a large payload and leaves a marker in its place.
 
@@ -229,3 +225,8 @@ class RiskInTheDecisionTest(RiskTest):
                              root=Repository(self.root).root, question='clarified')
 
         self.assertNotIn('change_risk', state)
+
+
+
+if __name__ == '__main__':
+    unittest.main()
