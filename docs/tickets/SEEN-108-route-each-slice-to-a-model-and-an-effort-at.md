@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-104, SEEN-105, SEEN-098]
-status: review
+status: done
 ---
 # SEEN-108: Route each slice to a model and an effort at solution, by rule first and by Jev second
 
@@ -23,7 +23,7 @@ status: review
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | review |
+| Status | done |
 
 ## Description
 
