@@ -312,14 +312,29 @@ def solution_record(records):
 
 
 def for_slice(records, position):
-    """The route the most recent record gives one slice, or nothing.
+    """The route the plan in hand gives one slice, or nothing.
 
-    The most recent, because a plan changed by a return to solution is routed
-    again and the later record is the one that describes the plan in hand.
+    The most recent route record, because a plan changed by a return to solution
+    is routed again and the later record describes the plan in hand. And only
+    when it routed *this* plan: the record names the solution advance it routes,
+    and this is where that name is used rather than only stored.
+
+    A slice is matched by position, which survives a return to solution intact
+    while meaning something else entirely. Without the check the pack hands the
+    next session a model chosen for a slice that no longer exists: on the
+    fixture that found it, a route of sonnet at medium effort for what had
+    become money arithmetic in packages/core, which a rule sends to the
+    strongest model at high effort. Nothing is read rather than the wrong thing,
+    and the pack says to run the route again.
     """
+    accepted = solution_record(records)
+    if accepted is None:
+        return None
     for record in reversed(records):
         if record['kind'] != 'route':
             continue
+        if record['data'].get('solution') != accepted['sequence']:
+            return None
         for entry in record['data']['execution']:
             if entry['position'] == position:
                 return entry

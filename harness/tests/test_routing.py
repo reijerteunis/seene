@@ -554,3 +554,55 @@ class DamagedJournalTest(CommandTest):
         (folder / 'notes.txt').write_text('a stray file\n')
         problems = doctoring.report(Repository(self.root), {})['problems']
         self.assertTrue(any('notes.txt' in problem for problem in problems), problems)
+
+
+class StalePlanTest(RouteTest):
+    """A route is read only for the plan it routed.
+
+    The record names the solution advance it routes, and the amendment to
+    criterion 1 is that the name is used rather than only stored. Matching a
+    slice by position alone survives a return to solution: the plan changes,
+    nobody routes it again, and the pack hands the next session a model chosen
+    for a slice that no longer exists.
+    """
+
+    def replan(self, slices):
+        """Back to solution, a different plan accepted, and no new route."""
+        self.run_harness('return', self.ticket_id, '--to', 'solution',
+                         '--reason', 'The plan was wrong', '--actor', 'claude:implementer')
+        self.submit('solution', solution_evidence(slices=slices))
+
+    def test_a_route_from_a_replaced_plan_is_not_read(self):
+        from harness import journal, routing
+        self.reach_tdd([PLAIN])
+        self.route()
+        self.replan([MONEY, SECOND_PLAIN])
+        records = journal.read(self.root / 'docs' / 'harness' / 'history' / self.ticket_id)
+        self.assertIsNone(routing.for_slice(records, 1))
+
+    def test_the_pack_says_the_new_plan_has_no_route_yet(self):
+        self.reach_tdd([PLAIN])
+        self.route()
+        self.replan([MONEY, SECOND_PLAIN])
+        self.run_harness('handoff', self.ticket_id, '--actor', 'claude:implementer')
+        pack = (self.root / '.harness-drafts' / f'{self.ticket_id}-handoff.md').read_text()
+        self.assertIn('No route', pack)
+
+    def test_routing_the_new_plan_again_is_read(self):
+        from harness import journal, routing
+        self.reach_tdd([PLAIN])
+        self.route()
+        self.replan([MONEY, SECOND_PLAIN])
+        self.route()
+        records = journal.read(self.root / 'docs' / 'harness' / 'history' / self.ticket_id)
+        entry = routing.for_slice(records, 1)
+        self.assertEqual((entry['source'], entry['rule']), ('rule', 'money'))
+
+    def test_the_implementer_copies_fall_back_while_the_plan_is_unrouted(self):
+        from harness import agents
+        self.use(route_stub(model=(0.7, 0.2, 0.1)))
+        self.reach_tdd([PLAIN])
+        self.route()
+        self.assertEqual(agents.routed(self.root), ('haiku', 'medium'))
+        self.replan([MONEY, SECOND_PLAIN])
+        self.assertEqual(agents.routed(self.root), ('opus', 'high'))

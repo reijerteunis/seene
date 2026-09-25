@@ -1,0 +1,19 @@
+{
+  "sequence": 25,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T06:46:27.042782+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "f27dc5de048ac6c4132af3e5f0ee81103429d3d2",
+  "prev_hash": "fceff1e00a64be42d2d8fbf5fb502f7c7ebff025a5e9cf2e830f4dfacc10edf1",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 2,
+    "reason": "The triage could see no evidence for: harness route <ticket> writes an execution entry per slice with model, effort, source and probability into the solution record, and the handoff pack carries it. A criterion with nothing behind it is answered at the tdd stage, by writing the test or the check that proves it, rather than by a reviewer reading a diff that does not contain it"
+  }
+}

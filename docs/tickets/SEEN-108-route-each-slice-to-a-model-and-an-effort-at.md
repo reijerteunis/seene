@@ -31,11 +31,29 @@ Every slice runs on the session's model at the session's effort today, whatever 
 
 ## Acceptance criteria
 
-- [ ] harness route <ticket> writes an execution entry per slice with model, effort, source and probability into the solution record, and the handoff pack carries it
+- [ ] (as amended) harness route <ticket> writes an execution entry per slice with model, effort, source and probability into a route record naming the accepted solution record it routes, the handoff pack carries the entry for the slice in hand, and a route is read only for the plan it routed
 - [ ] A slice matching a routing rule (agent action, billing or policy gate, money arithmetic in packages/core, migration or RLS, credentials) is routed to the strongest model at high effort without a Jev call, proven with a fixture
 - [ ] The implementer subagent is spawned with the routed model and effort in Claude Code and in Codex, and a check recorded under a different model is refused by the tdd gate naming both models
 - [ ] kpi.json carries model, effort, output tokens and cost per slice, and harness report --sprint shows cost per point by model beside the tokens per point it already shows
 - [ ] docs/harness/skill.md says the route is read from the handoff pack and never chosen inside the session, and sync regenerates both copies
+
+## Amendments
+
+- **25 September 2026, Ruud: criterion 1 is amended.** The entry per slice is
+  written into a `route` record of its own, which names the sequence of the
+  accepted solution advance it routes, rather than into the solution record
+  itself. The journal is append-only and every record is sealed by the next
+  record's `prev_hash`, so writing into an accepted record is either a rewrite of
+  evidence or a second record claiming to be the first; that is the decision in
+  docs/adr/0001-journal-integrity-file-bytes-and-git-as-notary.md, and it is the
+  same call SEEN-104 made for `handoff` and SEEN-107 for `triage`. The ticket's
+  own description already said the route is decided after the solution record is
+  accepted, so the two halves could not both be true. Raised by the review triage
+  at record 24, which scored the criterion as worded 0.44 against a bar of 0.6
+  and returned the ticket to tdd before any model read the diff; the reasoning
+  was recorded in advance in the clarify record at record 4. What the criterion
+  asks for is delivered in substance: one entry per slice with model, effort,
+  source and probability, carried in the handoff pack. Only its location moves.
 
 ## Depends on
 

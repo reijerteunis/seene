@@ -1,0 +1,31 @@
+{
+  "sequence": 26,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T06:48:45.509424+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "f27dc5de048ac6c4132af3e5f0ee81103429d3d2",
+  "prev_hash": "f7152e5a91e6dc764c92fdcbb3ffb8429a962a6f6f004e3c116de063b938e2fb",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_routing.StalePlanTest",
+      "-v"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "model": "claude-opus-5",
+    "duration_ms": 1438,
+    "output": "test_a_route_from_a_replaced_plan_is_not_read (harness.tests.test_routing.StalePlanTest.test_a_route_from_a_replaced_plan_is_not_read) ... FAIL\ntest_routing_the_new_plan_again_is_read (harness.tests.test_routing.StalePlanTest.test_routing_the_new_plan_again_is_read) ... ok\ntest_the_implementer_copies_fall_back_while_the_plan_is_unrouted (harness.tests.test_routing.StalePlanTest.test_the_implementer_copies_fall_back_while_the_plan_is_unrouted) ... FAIL\ntest_the_pack_says_the_new_plan_has_no_route_yet (harness.tests.test_routing.StalePlanTest.test_the_pack_says_the_new_plan_has_no_route_yet) ... FAIL\n\n======================================================================\nFAIL: test_a_route_from_a_replaced_plan_is_not_read (harness.tests.test_routing.StalePlanTest.test_a_route_from_a_replaced_plan_is_not_read)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_routing.py\", line 581, in test_a_route_from_a_replaced_plan_is_not_read\n    self.assertIsNone(routing.for_slice(records, 1))\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: {'position': 1, 'name': 'The status line', 'points': 1, 'files': ['apps/web/src/status.tsx'], 'red': 'The status line shows nothing', 'model': 'sonnet', 'effort': 'medium', 'source': 'jev', 'rule': None, 'reason': None, 'model_probability': 0.7, 'effort_probability': 0.6} is not None\n\n======================================================================\nFAIL: test_the_implementer_copies_fall_back_while_the_plan_is_unrouted (harness.tests.test_routing.StalePlanTest.test_the_implementer_copies_fall_back_while_the_plan_is_unrouted)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_routing.py\", line 606, in test_the_implementer_copies_fall_back_while_the_plan_is_unrouted\n    self.assertEqual(agents.routed(self.root), ('haiku', 'low'))\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: Tuples differ: ('haiku', 'medium') != ('haiku', 'low')\n\nFirst differing element 1:\n'medium'\n'low'\n\n- ('haiku', 'medium')\n+ ('haiku', 'low')\n\n======================================================================\nFAIL: test_the_pack_says_the_new_plan_has_no_route_yet (harness.tests.test_routing.StalePlanTest.test_the_pack_says_the_new_plan_has_no_route_yet)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_routing.py\", line 589, in test_the_pack_says_the_new_plan_has_no_route_yet\n    self.assertIn('No route', pack)\n    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^\nAssertionError: 'No route' not found in '# SEEN-001 handoff pack\\n\\n| | |\\n|---|---|\\n| Ticket | SEEN-001: A ticket to work |\\n| Stage | tdd, attempt 2 |\\n| Branch | claude/SEEN-001-a-ticket-to-work |\\n| Records | 6, the last at 2026-09-25T06:48:45.424326+00:00 |\\n| Ticket file | docs/tickets/SEEN-001-a-ticket-to-work.md |\\n\\n## The slice in front of you\\n\\nSlice 1 of 2, 0 of 2 done, 2 point(s): Fee expectations\\n\\nIts RED must demonstrate: No fee expectation is computed for an order line\\n\\nFiles: packages/core/src/fees.ts, packages/core/src/fees.test.ts\\n\\nRuns on: sonnet at medium effort, by Jev at 0.7.\\n\\n## The criteria, as checks\\n\\n- The journal holds one record per stage\\n\\n## Decisions already taken\\n\\n- Recorded by the harness itself, per SEEN-086\\n\\n## The next command\\n\\nharness check --phase red, then green per slice, then regression, then harness advance\\n\\nEverything above came from the journal. Read the ticket file and the records this pack names; nothing else is needed to work the slice.\\n'\n\n----------------------------------------------------------------------\nRan 4 tests in 1.370s\n\nFAILED (failures=3)\n",
+    "output_sha256": "8b21518293dcfb314486c3deb74b4470d2813388fa085f3524a92044b48124b0",
+    "output_truncated": false,
+    "before": "66094f6e3bd5bd216080bfbab300c43f6e15920a2c62b63f569c32d63719dcbd",
+    "after": "66094f6e3bd5bd216080bfbab300c43f6e15920a2c62b63f569c32d63719dcbd"
+  }
+}
