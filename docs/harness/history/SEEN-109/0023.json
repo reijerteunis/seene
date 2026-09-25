@@ -1,0 +1,38 @@
+{
+  "sequence": 23,
+  "ticket": "SEEN-109",
+  "timestamp": "2026-09-25T20:50:25.762059+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "343d37550220",
+  "head": "5120468a28dba120e858958cda9260ba5556c41e",
+  "prev_hash": "4da9a7a770f62b4985c7b825b63b144a8d943abd8106387aab56ddb497bb495f",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": null,
+          "behaviour": "The four findings of the first review: a finding placed by its path rather than by lstrip, with an absolute path placed nowhere; the weekly shadow line tested in the branch that can see an escape; harness return --unmet given tests of its own; and a review return naming no criterion placed nowhere rather than counted clean, with the triage's own return carrying the numbers it could see no evidence for.",
+          "failure_reason": "AssertionError: Lists differ: [] != ['finding_in_excluded_file'], on a blocking finding at .claude/agents/seen-reviewer.md:84 in a triage that would have excluded that file; with three further failures on the leading ./ , on an absolute path and on a return naming no criterion, and a KeyError: 'unmet_criteria' on the triage's own return",
+          "red": 19,
+          "green": 20
+        }
+      ],
+      "regression": 21,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "343d37550220",
+      "output_tokens": 200782,
+      "tool_calls": 121,
+      "unavailable": null
+    }
+  }
+}
