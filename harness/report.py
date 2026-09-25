@@ -341,9 +341,11 @@ def render_calibration(section, rules):
         lines.append('- nothing')
     lines += ['', '**The rule, recorded before the numbers.** Both rules above are '
               '`[calibration]` in `harness/thresholds.toml`, committed before the first ticket '
-              'this report counts was started. Neither verdict flips a switch: going live is one '
-              "line in that file and the founder's decision, recorded in the journal of the "
-              'ticket that makes it. The return to shadow is the one thing that happens without '
+              'this report counts was started. Neither verdict flips a switch. Going live is the '
+              "founder's, and for the triage it is two lines in that file: `[review] "
+              'triage_shadow` goes false and `[calibration] went_live` names the ticket and the '
+              'record number of the decision, which `doctor` checks exists and CI runs. '
+              'The return to shadow is the one thing that happens without '
               'a person, because an escape in the window makes the verdict stay-shadow and the '
               'triage reads the verdict.', '']
     return '\n'.join(lines) + '\n'

@@ -101,7 +101,7 @@
   "slices": [],
   "triage": {
     "state": "stay_shadow",
-    "rule": "With no escape in the most recent ten counted tickets, spot depth can go live: the founder sets [review] triage_shadow to false and records the decision in the journal of the ticket that flips it. It stays live until the first escape, which returns the triage to shadow with nobody editing a file, for another ten tickets.",
+    "rule": "With no escape in the most recent ten counted tickets, and nothing in them that could not be placed, spot depth can go live. It takes two lines: the founder sets [review] triage_shadow to false and fills [calibration] went_live with the ticket and the record number of the decision, which doctor checks exists. Evidence nobody can place holds the verdict rather than passing it, because counted neither way cannot mean counted as clean. Spot depth stays live until the first escape, which returns the triage to shadow with nobody editing a file, for another ten tickets.",
     "window": [],
     "escapes": [],
     "reason": "0 of 10 counted tickets carry a triage, so the evidence is reported and nothing is concluded from it"

@@ -6,7 +6,7 @@ The window is the most recent 10 counted tickets. A ticket counts when it was st
 
 ## The triage
 
-**The rule.** With no escape in the most recent ten counted tickets, spot depth can go live: the founder sets [review] triage_shadow to false and records the decision in the journal of the ticket that flips it. It stays live until the first escape, which returns the triage to shadow with nobody editing a file, for another ten tickets.
+**The rule.** With no escape in the most recent ten counted tickets, and nothing in them that could not be placed, spot depth can go live. It takes two lines: the founder sets [review] triage_shadow to false and fills [calibration] went_live with the ticket and the record number of the decision, which doctor checks exists. Evidence nobody can place holds the verdict rather than passing it, because counted neither way cannot mean counted as clean. Spot depth stays live until the first escape, which returns the triage to shadow with nobody editing a file, for another ten tickets.
 
 **Where the switch stands.** The triage is in shadow: [review] triage_shadow is true.
 
@@ -54,5 +54,5 @@ What this table cannot see, recorded here rather than left to be discovered: onc
 - SEEN-108: Built the triage, the routes or this window, so it was not worked under them
 - SEEN-109: Built the triage, the routes or this window, so it was not worked under them
 
-**The rule, recorded before the numbers.** Both rules above are `[calibration]` in `harness/thresholds.toml`, committed before the first ticket this report counts was started. Neither verdict flips a switch: going live is one line in that file and the founder's decision, recorded in the journal of the ticket that makes it. The return to shadow is the one thing that happens without a person, because an escape in the window makes the verdict stay-shadow and the triage reads the verdict.
+**The rule, recorded before the numbers.** Both rules above are `[calibration]` in `harness/thresholds.toml`, committed before the first ticket this report counts was started. Neither verdict flips a switch. Going live is the founder's, and for the triage it is two lines in that file: `[review] triage_shadow` goes false and `[calibration] went_live` names the ticket and the record number of the decision, which `doctor` checks exists and CI runs. The return to shadow is the one thing that happens without a person, because an escape in the window makes the verdict stay-shadow and the triage reads the verdict.
 

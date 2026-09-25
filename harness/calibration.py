@@ -18,6 +18,7 @@ back in shadow with nothing edited and no race between a report and a rule.
 import re
 
 from . import journal, report
+from .errors import HarnessError
 from .paths import HISTORY, TICKETS
 
 # The severities a missed finding is measured at. A low or a medium finding in a
@@ -27,18 +28,42 @@ ESCAPING_SEVERITIES = ('high', 'blocking')
 
 
 def journals(root):
-    """Every ticket's records, by ticket id."""
+    """Every ticket's records, by ticket id, and what could not be read.
+
+    A journal that refuses to be read is excluded and named rather than raised.
+    This runs inside the triage of whichever ticket is in hand, and a stray file
+    in one journal refusing the review stage of every other ticket would be a
+    repository-wide stop for a fault nobody working here caused. `doctor` is
+    where a damaged journal is reported, and it reports every one of them. F6 of
+    the third review.
+    """
     directory = root / HISTORY
     if not directory.is_dir():
-        return {}
-    return {folder.name: journal.read(folder)
-            for folder in sorted(directory.iterdir()) if folder.is_dir()}
+        return {}, {}
+    found, unreadable = {}, {}
+    for folder in sorted(directory.iterdir()):
+        if not folder.is_dir():
+            continue
+        try:
+            found[folder.name] = journal.read(folder)
+        except HarnessError as error:
+            unreadable[folder.name] = str(error)
+    return found, unreadable
 
 
-def _receipt(records):
+def delivered_at(records):
+    """When this ticket delivered, or nothing when it has not.
+
+    A receipt voided by `harness reopen` is not a delivery: the ticket went back
+    to being worked, and a ticket being worked has no window to be in, which is
+    what the exclusion reason already said in words while the code asked only
+    whether a receipt record existed. F3 of the third review.
+    """
     for record in reversed(records):
+        if record['kind'] == 'reopen':
+            return None
         if record['kind'] == 'receipt':
-            return record
+            return record['timestamp']
     return None
 
 
@@ -147,7 +172,7 @@ def escapes(records):
             answers = {answer.get('key'): answer
                        for answer in (triaged or {}).get('data', {}).get('criteria_answers') or []}
             named = data.get('unmet_criteria')
-            if not named:
+            if not named and not data.get('no_findings') and not data.get('findings'):
                 # F4 of this ticket's first review. Nothing requires the flag,
                 # so a review that returned a ticket for an unmet criterion and
                 # did not name it would read exactly like one that returned it
@@ -313,8 +338,9 @@ def _excluded_reason(ticket, records, settings):
         return settings['excluded_reason']
     if not records:
         return 'The journal is empty'
-    if _receipt(records) is None:
-        return 'Not delivered: a ticket still being worked has no window to be in'
+    if delivered_at(records) is None:
+        return ('Not delivered, or delivered and reopened: a ticket still being worked has no '
+                'window to be in')
     started = records[0]['timestamp']
     if started < settings['counted_from']:
         return (f'Started {started}, before the calibration rule existed at '
@@ -353,7 +379,7 @@ def ticket_evidence(root, ticket, records, rules, escaped=None):
         severity = finding.get('severity', 'unknown')
         by_severity[severity] = by_severity.get(severity, 0) + 1
     return dict(ticket=ticket,
-                delivered_at=(_receipt(records) or {}).get('timestamp'),
+                delivered_at=delivered_at(records),
                 findings_by_severity=by_severity,
                 triage=None if triaged is None else dict(
                     record=triaged['sequence'],
@@ -388,6 +414,17 @@ def verdict_triage(rows, rules):
     window = rows[-size:]
     found = [escape for row in window for escape in row['escapes']]
     names = [row['ticket'] for row in window]
+    unplaced = [row['ticket'] for row in window if row['unattributable']]
+    if not found and unplaced:
+        # Counted neither way has to mean the verdict waits. Counting it as no
+        # escape is the silent pass the escape definition was written against,
+        # and it is what let an optional flag decide a go-live. F1 of the third
+        # review.
+        return dict(state='stay_shadow', rule=rule, window=names, escapes=[],
+                    reason=f'No escape in the last {size} counted tickets, but evidence in '
+                           f'{", ".join(unplaced)} could not be placed, and evidence nobody can '
+                           'place is not evidence of no escape. The window states go-live only '
+                           'when every ticket in it can be read')
     if found:
         # Named from the rows rather than from the escapes, because the row is
         # what the window is made of and an escape is only evidence inside one.
@@ -396,20 +433,28 @@ def verdict_triage(rows, rules):
                     reason=f'{len(found)} escape(s) in the last {size} counted tickets, in '
                            f'{named}. The triage stays in shadow until ten tickets carry none')
     return dict(state='go_live', rule=rule, window=names, escapes=[],
-                reason=f'No escape in the last {size} counted tickets ({", ".join(names)}). '
-                       'Spot depth can go live: set [review] triage_shadow to false, which is '
-                       "the founder's decision and belongs in the journal of the ticket that "
-                       'makes it')
+                reason=f'No escape in the last {size} counted tickets ({", ".join(names)}), '
+                       'and every ticket in them could be read. Spot depth can go live, in two '
+                       'lines: set [review] triage_shadow to false and fill [calibration] '
+                       'went_live with the ticket and the record number of the decision. Both '
+                       "are the founder's, and doctor refuses the first without the second")
 
 
 def verdict_routes(rows, tickets, rules):
-    """Go-live or stay-shadow for the routes: the downgraded slices against the rest."""
+    """Go-live or stay-shadow for the routes: the downgraded slices against the rest.
+
+    The window reported is the window the rates came from, which is the most
+    recent ten and not every route-carrying ticket: a founder auditing the
+    decision recomputes over the list the record names, and it has to be the
+    list the verdict was taken on. F4 of the third review.
+    """
     settings = rules['calibration']
     size = settings['window']
     rule = settings['route_rule']
     empty = dict(slices=0, points=0, rework=0, rate=None)
+    tickets = list(tickets)[-size:] if len(tickets) >= size else list(tickets)
     if len(tickets) < size:
-        return dict(state='stay_shadow', rule=rule, window=list(tickets),
+        return dict(state='stay_shadow', rule=rule, window=tickets,
                     downgraded=empty, strongest=empty,
                     reason=f'{len(tickets)} of {size} counted tickets carry a route, so the '
                            'evidence is reported and nothing is concluded from it')
@@ -423,24 +468,24 @@ def verdict_routes(rows, tickets, rules):
 
     downgraded, strongest = group('downgraded'), group('strongest')
     if downgraded['rate'] is None:
-        return dict(state='stay_shadow', rule=rule, window=list(tickets),
+        return dict(state='stay_shadow', rule=rule, window=tickets,
                     downgraded=downgraded, strongest=strongest,
                     reason=f'In the last {size} counted tickets no slice was routed below the '
                            'strongest tier, so there is nothing to compare and a rate of zero '
                            'against zero would read as a pass')
     if strongest['rate'] is None:
-        return dict(state='stay_shadow', rule=rule, window=list(tickets),
+        return dict(state='stay_shadow', rule=rule, window=tickets,
                     downgraded=downgraded, strongest=strongest,
                     reason=f'In the last {size} counted tickets every slice was routed below the '
                            'strongest tier, so there is nothing to compare it with')
     if downgraded['rate'] <= strongest['rate']:
-        return dict(state='go_live', rule=rule, window=list(tickets),
+        return dict(state='go_live', rule=rule, window=tickets,
                     downgraded=downgraded, strongest=strongest,
                     reason=f'The downgraded slices rework at {downgraded["rate"]} per point '
                            f'against {strongest["rate"]} on the strongest model, so the routes '
-                           'can go live: set [routing] shadow to false, which is the founder\'s '
+                           "can go live: set [routing] shadow to false. It is the founder's "
                            'decision and belongs in the journal of the ticket that makes it')
-    return dict(state='stay_shadow', rule=rule, window=list(tickets),
+    return dict(state='stay_shadow', rule=rule, window=tickets,
                 downgraded=downgraded, strongest=strongest,
                 reason=f'The downgraded slices rework at {downgraded["rate"]} per point against '
                        f'{strongest["rate"]} on the strongest model, so a cheaper model is '
@@ -451,13 +496,16 @@ def evidence(root, rules):
     """Every counted ticket's row, every routed slice, and the two verdicts."""
     settings = rules['calibration']
     counted, excluded = [], []
-    for ticket, records in sorted(journals(root).items()):
+    readable, unreadable = journals(root)
+    for ticket, reason in sorted(unreadable.items()):
+        excluded.append(dict(ticket=ticket, reason=f'The journal could not be read: {reason}'))
+    for ticket, records in sorted(readable.items()):
         reason = _excluded_reason(ticket, records, settings)
         if reason:
             excluded.append(dict(ticket=ticket, reason=reason))
             continue
         counted.append((ticket, records))
-    counted.sort(key=lambda pair: (_receipt(pair[1]) or {}).get('timestamp') or '')
+    counted.sort(key=lambda pair: delivered_at(pair[1]) or '')
     fixes = fixes_index(root)
     tickets = [ticket_evidence(root, ticket, records, rules, fixes.get(ticket, []))
                for ticket, records in counted]
@@ -496,7 +544,10 @@ def went_live_problem(root, rules):
                 'so nothing on the record says who took it or on what evidence. Name the ticket '
                 'and the record number of the decision, or set the threshold back to true')
     folder = root / HISTORY / ticket
-    records = journal.read(folder) if folder.is_dir() else []
+    try:
+        records = journal.read(folder) if folder.is_dir() else []
+    except HarnessError:
+        records = []
     if not any(record['sequence'] == sequence for record in records):
         return (f'[calibration] went_live names record {sequence} of {ticket} as the go-live '
                 'decision and no such record exists, so the switch is flipped on a reference to '

@@ -1,0 +1,21 @@
+{
+  "sequence": 37,
+  "ticket": "SEEN-109",
+  "timestamp": "2026-09-25T21:30:24.464574+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "session": "343d37550220",
+  "head": "ce2394ab622e7072e300ad96c611bd86f2a14a15",
+  "prev_hash": "8980b671767e772e7837b898611f5b4f581f26c3af401f635c501fc66def3d12",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 4,
+    "reason": "The review at note 36 returns the ticket on F1 and F2. F1: the only channel a returning round's findings reach the window through is optional, and an omission writes an unattributable row that the verdict counts neither way, so the window reads clean. Taken by requiring a return from review to declare itself, and by holding the verdict at stay-shadow while anything in the window is unattributable, which is the rule as it was written rather than a new one. F2: four printed instructions still send the founder to flip one line while the harness demands two. F3 to F8 are taken in the same attempt: a voided receipt is not a delivery, the routes report the window their rates came from, the earliest round's triage is what a repeated finding is charged to and a test now says so, a damaged journal elsewhere no longer refuses this ticket's review, criterion 1 is marked as amended, and the sentence starts with a capital.",
+    "findings": [],
+    "unmet_criteria": []
+  }
+}

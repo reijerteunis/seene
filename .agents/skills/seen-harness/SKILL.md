@@ -157,17 +157,19 @@ in thresholds.toml carries the window of ten tickets, what an escape is and both
 go-live rules, written before the first number existed. In shadow the reviewer still
 reads everything and every slice still runs on the session's model, while what the
 narrowing and the route would have done is recorded. `harness report --calibration`
-states go-live or stay-shadow for each, by the rule; going live is one line in
-thresholds.toml and the founder's, recorded in the journal of the ticket that flips
-it. The return to shadow needs nobody: an escape in the window makes the verdict
+states go-live or stay-shadow for each, by the rule; going live is the founder's, and
+for the triage it is two lines in thresholds.toml, the switch and the record its
+decision is in. The return to shadow needs nobody: an escape in the window makes the verdict
 stay-shadow and the triage reads the verdict, so a triage record says which shadow
 it is in and what put it there. Three things the evidence needs from you: a finding at
 high or blocking severity must name the file it is in; a review that sends a ticket
 back records what it found with `harness return --findings <file>`, because a round
 that returned a ticket is a round whose findings the window reads; and one that sends
-it back for a criterion it found unmet names it with `harness return --unmet <n>`.
-Without any of the three, an escape reads as no escape, which is a silent pass in
-favour of the thing being measured. Going live takes two lines rather than one:
+it back for a criterion it found unmet names it with `harness return --unmet <n>`. A
+return from review that is none of those says `--no-findings`, and the harness refuses
+one that says nothing at all: an absence nobody declared cannot be told from a flag
+somebody forgot, and evidence nobody can place holds the verdict at stay-shadow rather
+than passing it. Going live takes two lines rather than one:
 `[review] triage_shadow` and `[calibration] went_live`, which names the ticket and
 the record number of the decision. `doctor` refuses a switch flipped with nothing
 named, because a threshold on its own cannot tell a decision from an edit.

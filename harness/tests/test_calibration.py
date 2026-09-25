@@ -712,5 +712,114 @@ class ReturningFindingsTest(CommandTest):
         record = self.run_harness('return', self.ticket_id, '--to', 'clarify',
                                   '--actor', 'claude:implementer', '--reason', 'Replanning')
         self.assertEqual(record['data']['findings'], [])
+
+
+class ThirdReviewTest(ProjectTest):
+    """The findings of the third review, at note 36."""
+
+    def setUp(self):
+        super().setUp()
+        self.rules = thresholds.load(self.root)
+
+    def rows(self, count, unattributable_on=()):
+        return [dict(ticket=f'SEEN-A{index:02d}', escapes=[],
+                     unattributable=[dict(kind='return', reason='nothing can say')]
+                     if index in unattributable_on else [])
+                for index in range(count)]
+
+    def test_a_window_carrying_anything_unattributable_cannot_state_go_live(self):
+        """F1: counted neither way must mean the verdict waits, not that it passes."""
+        verdict = calibration.verdict_triage(self.rows(10, unattributable_on=[3]), self.rules)
+        self.assertEqual(verdict['state'], 'stay_shadow')
+        self.assertIn('SEEN-A03', verdict['reason'])
+
+    def test_a_clean_window_still_states_go_live(self):
+        self.assertEqual(calibration.verdict_triage(self.rows(10), self.rules)['state'],
+                         'go_live')
+
+    def test_a_ticket_whose_receipt_was_voided_is_not_delivered(self):
+        """F3: reopen voids the receipt, so the ticket is being worked again."""
+        records = journal(ticket='SEEN-A10', day=1)
+        records.append(record(len(records) + 1, 'reopen', 'deliver', day=1, minute=40,
+                              ticket='SEEN-A10', voided_receipt=len(records),
+                              voided_commit='b' * 40, reason='A defect was found'))
+        self.assertIsNone(calibration.delivered_at(records))
+
+    def test_the_routes_report_the_window_their_rates_came_from(self):
+        """F4: a founder auditing the decision must recompute over the same list."""
+        tickets = [f'SEEN-A{index:02d}' for index in range(13)]
+        verdict = calibration.verdict_routes([dict(group='downgraded', points=1, rework=0)],
+                                             tickets, self.rules)
+        self.assertEqual(len(verdict['window']), self.rules['calibration']['window'])
+        self.assertEqual(verdict['window'][0], 'SEEN-A03')
+
+    def test_a_repeated_finding_is_charged_to_the_round_that_first_raised_it(self):
+        """F5: the earliest round's triage is the one that would have dropped the file."""
+        raised = finding('F1', 'blocking', 'harness/skipped.py:2')
+        records = journal(triage=['harness/skipped.py'], returned_findings=[raised])
+        # The second triage, the one before the passing round, excludes nothing.
+        records[-3]['data']['would_exclude'] = []
+        records[-2]['data']['evidence']['findings'] = [dict(raised, status='resolved',
+                                                            resolution='Fixed')]
+        found = calibration.escapes(records)
+        self.assertEqual([entry['kind'] for entry in found['escapes']],
+                         ['finding_in_excluded_file'])
+
+    def test_a_damaged_journal_elsewhere_does_not_refuse_this_ticket(self):
+        """F6: a stray file in one journal must not block every other review."""
+        plant(self.root, 'SEEN-A20', 1)
+        (self.root / 'docs' / 'harness' / 'history' / 'SEEN-A21').mkdir(parents=True)
+        (self.root / 'docs' / 'harness' / 'history' / 'SEEN-A21' / '.DS_Store').write_text('x')
+        section = calibration.evidence(self.root, self.rules)
+        self.assertEqual([entry['ticket'] for entry in section['tickets']], ['SEEN-A20'])
+        self.assertTrue(any(entry['ticket'] == 'SEEN-A21' and 'journal' in entry['reason']
+                            for entry in section['excluded']))
+
+
+class ReviewReturnDeclarationTest(CommandTest):
+    """F1: a return from review says what it found, or says it found nothing."""
+
+    def reach_tdd(self):
+        from harness.tests.test_lifecycle import clarify_evidence, solution_evidence
+        self.start()
+        self.submit('clarify', clarify_evidence())
+        self.submit('solution', solution_evidence())
+
+    def send_back(self, *extra, stage='review'):
+        from harness import journal as journal_module
+        folder = self.root / 'docs' / 'harness' / 'history' / self.ticket_id
+        records = journal_module.read(folder)
+        if stage == 'review':
+            journal_module.append(folder, records, kind='advance', stage='tdd', attempt=1,
+                                  actor='claude:implementer', head=self.git('rev-parse', 'HEAD'),
+                                  ticket=self.ticket_id,
+                                  data=dict(from_stage='tdd', to_stage='review', evidence={},
+                                            decisions=[]))
+        return self.run_harness('return', self.ticket_id, '--to', 'tdd',
+                                '--actor', 'claude:reviewer', '--reason', 'Sent back', *extra)
+
+    def test_a_return_from_review_declaring_nothing_is_refused(self):
+        self.reach_tdd()
+        with self.assertRaisesRegex(HarnessError, '--no-findings'):
+            self.send_back()
+
+    def test_a_return_from_review_that_declares_no_findings_is_accepted(self):
+        self.reach_tdd()
+        record = self.send_back('--no-findings')
+        self.assertTrue(record['data']['no_findings'])
+
+    def test_a_declared_empty_return_is_neither_an_escape_nor_unattributable(self):
+        self.reach_tdd()
+        self.send_back('--no-findings')
+        from harness import journal as journal_module
+        records = journal_module.read(self.root / 'docs' / 'harness' / 'history' / self.ticket_id)
+        found = calibration.escapes(records)
+        self.assertEqual(found['unattributable'], [])
+
+    def test_a_return_from_an_earlier_stage_declares_nothing(self):
+        self.reach_tdd()
+        record = self.run_harness('return', self.ticket_id, '--to', 'clarify',
+                                  '--actor', 'claude:implementer', '--reason', 'Replanning')
+        self.assertEqual(record['data']['findings'], [])
 if __name__ == '__main__':
     unittest.main()

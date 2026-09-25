@@ -31,7 +31,7 @@ Both decisions can cost more than they save: a spot review that misses a blockin
 
 ## Acceptance criteria
 
-- [ ] harness/thresholds.toml carries a [calibration] section with the shadow window of ten tickets, the escape definition and the go-live rule for the triage and for the routes, committed before the first triage record exists
+- [ ] harness/thresholds.toml carries a [calibration] section with the shadow window of ten tickets, the escape definition and the go-live rule for the triage and for the routes, committed before the first triage record it counts exists (as amended: SEEN-107 and SEEN-108 wrote triage and route records on their own branches while building the things under calibration, so the literal wording was impossible before this ticket began. The amendment is the exclusion rule in clarify record 4, decision 1: those two and this ticket are excluded by name, and counted_from is the commit that added the section)
 - [ ] harness report --calibration shows per ticket the reviewer's findings by severity, the files the triage would have excluded, the escapes, and per slice the recorded route against the returns and findings that followed
 - [ ] After ten tickets the report states go-live or stay-shadow for the triage and for the routes separately, by the rule, and the founder's decision is recorded in the journal of the ticket that flips the switch
 - [ ] An escape after go-live returns the triage to shadow automatically and the weekly report says so
@@ -164,3 +164,34 @@ produces, so it proves the module was absent and not that the review gate was pe
 recorded now would have to be produced by removing the requirement and running against a tree nobody
 worked in, which is a check written to pass a gate. The behaviour is covered and the diff proves the
 change; the journal does not prove the order, and note 28 is where a reader finds that out.
+
+### What the third review found
+
+Two mediums and six lows, the mediums both about the gap between what the harness now demands and
+what a person is told or required to do.
+
+The first was the one that mattered. A returning round's findings reached the window only if the
+session remembered `--findings`, and the omission wrote an unattributable row that the verdict
+counted neither way, so the ticket still read clean. Counted neither way had to mean the verdict
+waits: a window carrying anything nobody can place now states stay-shadow rather than go-live,
+naming the tickets, which is the escape definition as it was written rather than a new rule. And a
+return from review must now declare itself, with `--findings`, with `--unmet` or with
+`--no-findings`; the harness refuses one that says nothing, because an absence nobody declared
+cannot be told from a flag somebody forgot.
+
+The second was that every printed go-live instruction still said one line while the implementation
+demanded two, including the `triage_rule` the report prints verbatim. A founder following the report
+would have set `triage_shadow` false, turned CI red on every branch and got nothing live. Four
+places now say two lines and name what `doctor` checks.
+
+The six lows, in the same attempt. A receipt voided by `harness reopen` counted as a delivery, so a
+ticket being worked could join the window and a verdict be taken on a review round that had not
+happened; `delivered_at` reads the reopen. `verdict_routes` reported every route-carrying ticket
+while its rates came from the last ten, so an audit would have recomputed over the wrong list.
+Nothing distinguished charging a repeated finding to the earliest round's triage from charging it
+to the latest, and a test now plants different exclusions in the two triages so the behaviour
+cannot be removed quietly. Reading every journal was unguarded from inside the triage, so a stray
+file in one journal would have refused the review stage of every other ticket; a journal that
+refuses to be read is now excluded and named, and `doctor` remains where a damaged journal is
+reported. Criterion 1 is marked `(as amended)`, the way this repository marks a criterion a ticket
+deliberately did not meet. And a sentence in the workflow paragraph starts with a capital.

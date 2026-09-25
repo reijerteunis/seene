@@ -1148,8 +1148,10 @@ class TriageAcrossAttemptsTest(FocusSetTest):
         return self.submit('review', review_evidence(read), actor='codex:reviewer')
 
     def return_and_reach_review_again(self):
+        # SEEN-109: a return from review declares what it found, and these
+        # fixtures are about the triage rather than about a defect.
         self.run_harness('return', self.ticket_id, '--to', 'tdd', '--reason',
-                         'A finding', '--actor', 'codex:reviewer')
+                         'A finding', '--actor', 'codex:reviewer', '--no-findings')
         red = self.run_check('red', exit_code=1)
         green = self.run_check('green')
         regression = self.run_check('regression')
@@ -1476,8 +1478,10 @@ class EveryAttemptsEvidenceTest(ThreeCriteriaTest):
 
     def prove_another_slice(self):
         """A return, then one more slice proved, the way rework goes."""
+        # SEEN-109: a return from review declares what it found, and these
+        # fixtures are about the triage rather than about a defect.
         self.run_harness('return', self.ticket_id, '--to', 'tdd', '--reason',
-                         'A finding', '--actor', 'codex:reviewer')
+                         'A finding', '--actor', 'codex:reviewer', '--no-findings')
         red = self.run_check('red', exit_code=1)
         green = self.run_check('green')
         regression = self.run_check('regression')

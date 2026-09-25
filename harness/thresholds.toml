@@ -231,10 +231,13 @@ severity is never an escape: the saving is that such a finding is not looked for
 blocking finding naming no file, and a criterion the triage never answered, are reported as \
 unattributable and counted neither way, because counting them as no escape would be a silent pass \
 in favour of the narrowing being measured."""
-triage_rule = """With no escape in the most recent ten counted tickets, spot depth can go live: \
-the founder sets [review] triage_shadow to false and records the decision in the journal of the \
-ticket that flips it. It stays live until the first escape, which returns the triage to shadow \
-with nobody editing a file, for another ten tickets."""
+triage_rule = """With no escape in the most recent ten counted tickets, and nothing in them that \
+could not be placed, spot depth can go live. It takes two lines: the founder sets [review] \
+triage_shadow to false and fills [calibration] went_live with the ticket and the record number of \
+the decision, which doctor checks exists. Evidence nobody can place holds the verdict rather than \
+passing it, because counted neither way cannot mean counted as clean. Spot depth stays live until \
+the first escape, which returns the triage to shadow with nobody editing a file, for another ten \
+tickets."""
 # Where the founder's decision to go live is written down. Empty until [review]
 # triage_shadow goes false, and then the ticket and the record number of the
 # decision: a threshold read on its own cannot tell a decision from an edit, so

@@ -1,0 +1,31 @@
+{
+  "sequence": 41,
+  "ticket": "SEEN-109",
+  "timestamp": "2026-09-25T21:39:49.775921+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 4,
+  "actor": "claude:implementer",
+  "session": "343d37550220",
+  "head": "ce2394ab622e7072e300ad96c611bd86f2a14a15",
+  "prev_hash": "5834ea596ccc800d56cf85e2cc2d2d2c382d939979751fd9a7332a2ca6470c1c",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_calibration"
+    ],
+    "phase": "green",
+    "exit_code": 0,
+    "model": "claude-opus-5",
+    "model_declared": "opus",
+    "duration_ms": 9120,
+    "output": "......................................................................\n----------------------------------------------------------------------\nRan 70 tests in 9.021s\n\nOK\n",
+    "output_sha256": "2080e1698ede7e6691af580e1da46dfce6c6e61fc64c0573b29f353461cc24c0",
+    "output_truncated": false,
+    "before": "f08119bc9d663dd9f118091d6187e93dac3d8bba60e2be83a4654bd9620c61f6",
+    "after": "f08119bc9d663dd9f118091d6187e93dac3d8bba60e2be83a4654bd9620c61f6"
+  }
+}
