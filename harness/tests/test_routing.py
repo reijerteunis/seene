@@ -1,4 +1,3 @@
-import unittest
 """The route: which model and which effort implement each slice.
 
 Rules first, and a rule is never Jev's to answer. A slice that changes an agent
@@ -12,6 +11,7 @@ keyed by position. No test here calls the API: a test that could reach Jev would
 be a test that spends money and gives different answers on different days.
 """
 
+import unittest
 from pathlib import Path
 
 from harness import jev
@@ -469,15 +469,6 @@ class ImplementerCopyTest(RouteTest):
         return tomllib.loads(
             (self.root / '.codex/agents/seen-implementer.toml').read_text())
 
-    def test_the_copies_carry_the_route_of_the_slice_in_hand(self):
-        self.use(route_stub(model=(0.1, 0.7, 0.2), effort=(0.7, 0.2, 0.1)))
-        self.reach_tdd([PLAIN])
-        self.route()
-        self.assertIn('model: sonnet', self.frontmatter())
-        self.assertIn('effort: low', self.frontmatter())
-        self.assertEqual(self.codex()['model'], 'sonnet')
-        self.assertEqual(self.codex()['model_reasoning_effort'], 'low')
-
     def written(self):
         """The copy as it sits on disk, with no sync of our own first.
 
@@ -487,40 +478,6 @@ class ImplementerCopyTest(RouteTest):
         file at the last slice's model and doctor reporting drift.
         """
         return (self.root / '.claude/agents/seen-implementer.md').read_text()
-
-    def test_the_copies_follow_the_slice_boundary(self):
-        from harness import doctor as doctoring
-        from harness.repository import Repository
-        self.use(route_stub(model=(0.7, 0.2, 0.1)))
-        self.reach_tdd([MONEY, PLAIN])
-        self.route()
-        # Slice 1 is a rule, so the strongest; slice 2 is Jev's, so haiku.
-        self.assertIn('model: opus', self.written())
-        self.run_harness('handoff', self.ticket_id, '--actor', 'claude:implementer',
-                         '--slice-done', '1')
-        self.assertIn('model: haiku', self.written())
-        self.assertEqual(doctoring.report(Repository(self.root), {})['problems'], [])
-
-    def test_a_plan_worked_through_falls_back_to_the_strongest(self):
-        self.use(route_stub(model=(0.7, 0.2, 0.1)))
-        self.reach_tdd([PLAIN])
-        self.route()
-        self.run_harness('handoff', self.ticket_id, '--actor', 'claude:implementer',
-                         '--slice-done', '1')
-        self.assertIn('model: opus', self.frontmatter())
-
-    def test_route_writes_the_copies_so_doctor_is_not_left_behind(self):
-        from harness import doctor as doctoring
-        from harness.repository import Repository
-        self.use(route_stub(model=(0.1, 0.7, 0.2)))
-        self.reach_tdd([PLAIN])
-        self.run_harness('sync')
-        self.route()
-        self.assertEqual(doctoring.report(Repository(self.root), {})['problems'], [])
-
-
-class QuestionTest(CommandTest):
-    """The two questions, registered the way the triage's four are."""
 
     def test_both_questions_are_asked_by_the_route_and_by_no_stage(self):
         for name in ('implementation_model', 'implementation_effort'):
@@ -548,13 +505,6 @@ class DamagedJournalTest(CommandTest):
     a damaged journal would take the report down with it and hand the person a
     traceback where the problem list belongs.
     """
-
-    def test_a_broken_chain_leaves_the_copies_at_the_strongest(self):
-        from harness import agents
-        self.start()
-        record = self.root / 'docs' / 'harness' / 'history' / self.ticket_id / '0001.json'
-        record.write_text(record.read_text().replace('"attempt": 1', '"attempt": 2'))
-        self.assertEqual(agents.routed(self.root), ('opus', 'high'))
 
     def test_doctor_still_reports_the_broken_chain(self):
         from harness import doctor as doctoring
@@ -607,76 +557,6 @@ class StalePlanTest(RouteTest):
         records = journal.read(self.root / 'docs' / 'harness' / 'history' / self.ticket_id)
         entry = routing.for_slice(records, 1)
         self.assertEqual((entry['source'], entry['rule']), ('rule', 'money'))
-
-    def test_the_implementer_copies_fall_back_while_the_plan_is_unrouted(self):
-        from harness import agents
-        self.use(route_stub(model=(0.7, 0.2, 0.1)))
-        self.reach_tdd([PLAIN])
-        self.route()
-        self.assertEqual(agents.routed(self.root), ('haiku', 'medium'))
-        self.replan([MONEY, SECOND_PLAIN])
-        self.assertEqual(agents.routed(self.root), ('opus', 'high'))
-
-
-class DetachedHeadTest(RouteTest):
-    """The route a checkout carries when there is no branch to read it from.
-
-    actions/checkout leaves HEAD detached on every pull_request event, so a
-    generator that could only read the branch reported drift on the committed
-    copies of any commit routed below the strongest tier: the same commit green
-    on push and red on its own pull request. F1 of this ticket's first review.
-    """
-
-    def detach(self):
-        self.git('add', '-A')
-        self.git('-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', 'the slice')
-        self.git('checkout', '-q', '--detach', 'HEAD')
-
-    def test_a_detached_head_reads_the_route_from_the_journal(self):
-        from harness import agents
-        from harness.repository import Repository
-        self.use(route_stub(model=(0.7, 0.2, 0.1)))
-        self.reach_tdd([PLAIN])
-        self.route()
-        self.detach()
-        self.assertIsNone(Repository(self.root).branch_or_none(),
-                          'the fixture must detach, or this proves nothing')
-        self.assertEqual(agents.routed(self.root), ('haiku', 'medium'))
-
-    def test_doctor_is_clean_on_a_detached_head_of_a_routed_commit(self):
-        from harness import doctor as doctoring
-        from harness.repository import Repository
-        self.use(route_stub(model=(0.7, 0.2, 0.1)))
-        self.reach_tdd([PLAIN])
-        self.route()
-        self.detach()
-        self.assertEqual(doctoring.report(Repository(self.root), {})['problems'], [])
-
-    def test_a_journal_that_has_delivered_is_not_the_ticket_in_hand(self):
-        """A receipt says the work is done, so its route is not this checkout's."""
-        from harness import agents, journal
-        self.use(route_stub(model=(0.7, 0.2, 0.1)))
-        self.reach_tdd([PLAIN])
-        self.route()
-        folder = self.root / 'docs' / 'harness' / 'history' / self.ticket_id
-        journal.append(folder, journal.read(folder), kind='receipt', stage='deliver', attempt=1,
-                       actor='claude:implementer', head=self.git('rev-parse', 'HEAD'),
-                       ticket=self.ticket_id,
-                       data=dict(from_stage='deliver', to_stage='delivered',
-                                 commit='b' * 40, tree='c' * 64))
-        self.detach()
-        self.assertEqual(agents.routed(self.root), ('opus', 'high'))
-
-
-class SpawnInstructionTest(RouteTest):
-    """What the record hands the session to spawn the implementer with.
-
-    F9 of this ticket's first review: the clarify record's own restatement of
-    criterion 3 promised the route record would carry the spawn instruction, and
-    it carried the tier and the effort with nothing saying what to do with them.
-    The triage does the same thing for the reviewer, and for the same reason: the
-    harness runs no model, so what it can do is hand the session the exact text.
-    """
 
     def task(self, position=1):
         return self.route()['data']['execution'][position - 1]['implementer_task']
@@ -778,56 +658,6 @@ class DeclaredModelTest(GateTest):
         self.assertIn('haiku', message)
         self.assertIn('opus', message)
         self.assertIn('declared', message)
-
-
-class StaleCopyTest(RouteTest):
-    """F4: a new plan leaves the copies on the plan that is gone.
-
-    The return is not the moment: the plan it went back to is still the accepted
-    one until a new solution record advances, and the route is still the route
-    for it. The moment is the advance that replaces the plan, which is where the
-    route becomes one for slices that no longer exist.
-    """
-
-    def copy(self):
-        return (self.root / '.claude/agents/seen-implementer.md').read_text()
-
-    def test_a_new_plan_rewrites_the_implementer_copies(self):
-        from harness import doctor as doctoring
-        from harness.repository import Repository
-        self.use(route_stub(model=(0.7, 0.2, 0.1)))
-        self.reach_tdd([PLAIN])
-        self.route()
-        self.assertIn('model: haiku', self.copy())
-        self.run_harness('return', self.ticket_id, '--to', 'solution',
-                         '--reason', 'The plan was wrong', '--actor', 'claude:implementer')
-        self.assertIn('model: haiku', self.copy(),
-                      'the return alone does not replace the plan')
-        self.submit('solution', solution_evidence(slices=[MONEY, SECOND_PLAIN]))
-        self.assertIn('model: opus', self.copy())
-        self.assertEqual(doctoring.report(Repository(self.root), {})['problems'], [])
-
-
-class ReopenedTicketTest(RouteTest):
-    """F6: a receipt that has been voided is not a ticket that has delivered."""
-
-    def test_a_reopened_ticket_is_still_the_ticket_in_hand(self):
-        from harness import agents, journal
-        self.use(route_stub(model=(0.7, 0.2, 0.1)))
-        self.reach_tdd([PLAIN])
-        self.route()
-        folder = self.root / 'docs' / 'harness' / 'history' / self.ticket_id
-        for kind, data in (('receipt', dict(from_stage='deliver', to_stage='delivered',
-                                            commit='b' * 40, tree='c' * 64)),
-                           ('reopen', dict(from_stage='delivered', to_stage='tdd',
-                                           to_attempt=2, reason='a defect after delivery'))):
-            journal.append(folder, journal.read(folder), kind=kind, stage='deliver', attempt=1,
-                           actor='claude:implementer', head=self.git('rev-parse', 'HEAD'),
-                           ticket=self.ticket_id, data=data)
-        self.git('add', '-A')
-        self.git('-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', 'reopened')
-        self.git('checkout', '-q', '--detach', 'HEAD')
-        self.assertEqual(agents.routed(self.root), ('haiku', 'medium'))
 
 
 class DeclarationIsInstructedTest(RouteTest):
@@ -1035,6 +865,97 @@ class PositionIsDeclaredTest(GateTest):
         self.set_shadow(False)
         with self.assertRaisesRegex(HarnessError, 'Slice 1'):
             self.submit('tdd', self.evidence(dict(self.base(), position=1)))
+
+class FixedCopiesTest(RouteTest):
+    """The copies say the same thing whatever the ticket is doing.
+
+    Generated per slice, they were wrong on a detached HEAD, wrong after a
+    replan, wrong the moment a green landed and wrong after the receipt, where
+    doctor reported drift on the commit being merged and verify-merge refused
+    with no way to re-sync: F1 of the first review, F4 of the second, F1 of the
+    seventh and F3 of the eighth, one design behind all four. They carry the
+    strongest tier at high effort now, from thresholds.toml and nothing else,
+    and the routed model reaches the implementer through the spawn instruction.
+    Decided at record 121.
+    """
+
+    def setUp(self):
+        super().setUp()
+        for name in ('seen-scout', 'seen-reviewer', 'seen-implementer'):
+            self.write(f'harness/agents/{name}.md', f'# {name}\n\nStand-in body.\n')
+
+    def copy(self):
+        self.run_harness('sync')
+        return (self.root / '.claude/agents/seen-implementer.md').read_text()
+
+    def problems(self):
+        from harness import doctor as doctoring
+        from harness.repository import Repository
+        return doctoring.report(Repository(self.root), {})['problems']
+
+    def test_the_copies_carry_the_strongest_tier_at_high_effort(self):
+        self.use(route_stub(model=(0.7, 0.2, 0.1)))
+        self.reach_tdd([PLAIN])
+        self.route()
+        self.assertIn('model: opus', self.copy())
+        self.assertIn('effort: high', self.copy())
+
+    def test_a_slice_boundary_does_not_change_them(self):
+        self.use(route_stub(model=(0.7, 0.2, 0.1)))
+        self.reach_tdd([MONEY, PLAIN])
+        self.route()
+        before = self.copy()
+        self.run_harness('handoff', self.ticket_id, '--actor', 'claude:implementer',
+                         '--slice-done', '1')
+        self.assertEqual(self.copy(), before)
+        self.assertEqual(self.problems(), [])
+
+    def test_a_new_plan_does_not_change_them(self):
+        self.use(route_stub(model=(0.7, 0.2, 0.1)))
+        self.reach_tdd([PLAIN])
+        self.route()
+        before = self.copy()
+        self.run_harness('return', self.ticket_id, '--to', 'solution',
+                         '--reason', 'The plan was wrong', '--actor', 'claude:implementer')
+        self.submit('solution', solution_evidence(slices=[MONEY, SECOND_PLAIN]))
+        self.assertEqual(self.copy(), before)
+        self.assertEqual(self.problems(), [])
+
+    def test_doctor_is_clean_on_a_detached_head(self):
+        """Which is what actions/checkout gives on every pull_request event."""
+        self.use(route_stub(model=(0.7, 0.2, 0.1)))
+        self.reach_tdd([PLAIN])
+        self.route()
+        self.run_harness('sync')
+        self.git('add', '-A')
+        self.git('-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', 'the slice')
+        self.git('checkout', '-q', '--detach', 'HEAD')
+        self.assertEqual(self.problems(), [])
+
+    def test_doctor_is_clean_once_the_ticket_has_delivered(self):
+        """The state F3 of the eighth review found: no slice is in hand at all."""
+        from harness import journal
+        self.use(route_stub(model=(0.7, 0.2, 0.1)))
+        self.reach_tdd([PLAIN])
+        self.route()
+        self.run_harness('sync')
+        folder = self.root / 'docs' / 'harness' / 'history' / self.ticket_id
+        journal.append(folder, journal.read(folder), kind='receipt', stage='deliver', attempt=1,
+                       actor='claude:implementer', head=self.git('rev-parse', 'HEAD'),
+                       ticket=self.ticket_id,
+                       data=dict(from_stage='deliver', to_stage='delivered',
+                                 commit='b' * 40, tree='c' * 64))
+        # A delivered ticket says review until it merges, which doctor checks
+        # separately; without it the fixture fails on its own paperwork rather
+        # than on the drift it is about.
+        ticket = self.root / self.ticket_file
+        ticket.write_text(ticket.read_text().replace('status: doing', 'status: review'))
+        self.git('add', '-A')
+        self.git('-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', 'delivered')
+        self.git('checkout', '-q', '--detach', 'HEAD')
+        self.assertEqual(self.problems(), [],
+                         'the commit being merged must not report drift')
+
 
 if __name__ == '__main__':  # pragma: no cover - a module must run on its own
     unittest.main()

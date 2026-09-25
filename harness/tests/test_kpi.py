@@ -11,16 +11,17 @@ from harness.tests.test_delivery import DeliveryWalk
 
 PROJECT = Path(__file__).resolve().parents[2]
 
-# The Outcome section is prose, so its figures are words. Only the range a
-# ticket's counts can reach is needed.
-WORDS = {word: number for number, word in enumerate(
-    'zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen '
-    'fifteen sixteen seventeen eighteen nineteen twenty'.split())}
-WORDS.update({f'twenty-{word}': 20 + number for number, word in enumerate(
-    'zero one two three four five six seven eight nine'.split())})
-WORDS.update({f'thirty-{word}': 30 + number for number, word in enumerate(
-    'zero one two three four five six seven eight nine'.split())})
-WORDS['thirty'] = 30
+# The Outcome section is prose, so its figures are words. Built rather than
+# listed, because the first version stopped at thirty-nine and a ticket that
+# reached forty-one findings raised KeyError inside its own guard.
+_UNITS = ('zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen '
+          'fifteen sixteen seventeen eighteen nineteen twenty').split()
+_TENS = ('twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety')
+WORDS = {word: number for number, word in enumerate(_UNITS)}
+for _index, _ten in enumerate(_TENS):
+    WORDS[_ten] = (_index + 2) * 10
+    for _unit in range(1, 10):
+        WORDS[f'{_ten}-{_UNITS[_unit]}'] = (_index + 2) * 10 + _unit
 
 
 def at(minute):
@@ -739,71 +740,71 @@ class StaleRouteTest(DeliveryWalk):
 
 
 class OutcomeReconcilesTest(unittest.TestCase):
-    """The Outcome's counts against the journal that is supposed to supply them.
+    """The Outcome's findings against the journal that is supposed to supply them.
 
     F4 of the fourth review and F2 of the seventh: the section was written from
-    recall, went stale, and then, in the paragraph that says the counts are read
-    from the journal rather than recalled, said thirty-four where its own list
-    summed to thirty-one and four review-driven returns where there were eight.
-    Three corrections in this journal are about a field filled from memory; this
-    is the fourth, so the numbers are checked by a reader rather than by a
-    resolution to read more carefully.
+    recall and said thirty-four where its own list summed to thirty-one. The
+    first version of this test also compared the attempts, the returns and the
+    slices against the journal, asserting the section was exactly one ahead of
+    it, which is true when the section is written and false the moment the
+    advance it anticipates is recorded: F1 of the eighth review, where the suite
+    was red at HEAD and no delivered tree could have satisfied it. A guard
+    against stale counts that is itself a ratchet is worse than none.
+
+    What is checked here is what stays true as the journal grows: the total is
+    the sum of the list beside it, the list has one figure per review it claims,
+    and each figure is the count of findings in the reviewer note it refers to.
+    Those hold whatever happens next, because the journal is append-only and an
+    earlier note never changes. The moving counts are generated from the journal
+    when the section is written and are not asserted here, because a number that
+    must be one ahead of a growing list cannot be right for long.
     """
 
     TICKET = 'SEEN-108'
 
     def outcome(self):
-        import re
-        from harness import report as reporting
         path = next((PROJECT / 'docs' / 'tickets').glob(f'{self.TICKET}-*.md'))
         text = path.read_text()
         start = text.index('## Outcome')
         return text[start:text.index('\n## ', start + 1)]
 
-    def records(self):
+    def reviews(self):
+        """Every reviewer note, in the order they were written."""
         from harness import journal
-        return journal.read(PROJECT / 'docs' / 'harness' / 'history' / self.TICKET)
+        records = journal.read(PROJECT / 'docs' / 'harness' / 'history' / self.TICKET)
+        return [record for record in records
+                if record['kind'] == 'note'
+                and 'from the seen-reviewer subagent' in (record['data'].get('text') or '')]
 
-    def stated(self, pattern):
+    def stated(self):
         import re
-        found = re.search(pattern, self.outcome(), re.IGNORECASE)
-        self.assertIsNotNone(found, f'the outcome does not state {pattern!r}')
-        return found
-
-    def test_the_attempts_returns_and_slices_are_the_journal_s(self):
-        import re
-        records = self.records()
-        advances = [r for r in records
-                    if r['kind'] == 'advance' and r['data'].get('from_stage') == 'tdd']
-        returns = [r for r in records if r['kind'] == 'return']
-        proved = sum(len(r['data'].get('evidence', {}).get('slices') or []) for r in advances)
-        found = self.stated(r'(\d+) attempts, (\d+) returns,\s*\n?(\d+) slices proved')
-        # The section is written for the advance that follows it, so it counts
-        # one more of each than the journal holds when it is written.
-        self.assertEqual(int(found.group(1)), len(advances) + 1)
-        self.assertEqual(int(found.group(2)), len(returns))
-        self.assertEqual(int(found.group(3)), proved + 1)
-
-    def test_the_findings_total_is_the_sum_of_the_list_beside_it(self):
-        import re
-        from harness.tests.test_kpi import WORDS
         # To the full stop, not to the last comma: a greedy match ending in a
         # comma drops the final figure, which is the one most likely to be new.
-        found = self.stated(r'([A-Za-z-]+) findings over ([a-z]+)\s*\n?reviews, falling ([^.]+)\.')
-        total, reviews = WORDS[found.group(1).lower()], WORDS[found.group(2).lower()]
-        per_review = [WORDS[word.strip().lower()] for word in found.group(3).split(',')
-                      if word.strip().lower() in WORDS]
-        self.assertEqual(len(per_review), reviews, 'one figure per review')
+        found = re.search(r'([A-Za-z-]+) findings over ([a-z-]+)\s*\n?reviews, falling ([^.]+)\.',
+                          self.outcome(), re.IGNORECASE)
+        self.assertIsNotNone(found, 'the outcome does not state its findings')
+        return (WORDS[found.group(1).lower()], WORDS[found.group(2).lower()],
+                [WORDS[word.strip().lower()] for word in found.group(3).split(',')
+                 if word.strip().lower() in WORDS])
+
+    def test_the_total_is_the_sum_of_the_list_beside_it(self):
+        total, _, per_review = self.stated()
         self.assertEqual(sum(per_review), total, f'{per_review} sums to {sum(per_review)}')
 
-    def test_the_reviews_counted_are_the_review_notes_in_the_journal(self):
+    def test_the_list_has_one_figure_for_each_review_it_claims(self):
+        _, reviews, per_review = self.stated()
+        self.assertEqual(len(per_review), reviews)
+
+    def test_each_figure_is_the_findings_in_the_review_it_refers_to(self):
         import re
-        from harness.tests.test_kpi import WORDS
-        reviews = sum(1 for r in self.records()
-                      if r['kind'] == 'note'
-                      and 'from the seen-reviewer subagent' in (r['data'].get('text') or ''))
-        found = self.stated(r'findings over ([a-z]+)\s*\nreviews')
-        self.assertEqual(WORDS[found.group(1).lower()], reviews)
+        _, _, per_review = self.stated()
+        notes = self.reviews()
+        self.assertGreaterEqual(len(notes), len(per_review),
+                                'the outcome claims more reviews than the journal holds')
+        counted = [len(re.findall(r'^- \*\*F\d+,', note['data']['text'], re.MULTILINE))
+                   for note in notes[:len(per_review)]]
+        self.assertEqual(per_review, counted)
+
 
 if __name__ == '__main__':  # pragma: no cover - a module must run on its own
     unittest.main()

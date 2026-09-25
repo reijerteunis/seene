@@ -33,15 +33,15 @@ Every slice runs on the session's model at the session's effort today, whatever 
 
 - [x] (as amended) harness route <ticket> writes an execution entry per slice with model, effort, source and probability into a route record naming the accepted solution record it routes, the handoff pack carries the entry for the slice in hand, and a route is read only for the plan it routed
 - [x] A slice matching a routing rule (agent action, billing or policy gate, money arithmetic in packages/core, migration or RLS, credentials) is routed to the strongest model at high effort without a Jev call, proven with a fixture
-- [x] (as amended) The implementer subagent is spawned with the routed model and effort in Claude Code and in Codex, and a check recorded under a different model is refused by the tdd gate naming both models, reading the model the subagent declares when it declares one and the session log otherwise
+- [x] (as amended twice) The implementer subagent is spawned with the routed model in Claude Code and with the routed model and effort in Codex, from the spawn instruction the route record carries, and a check recorded under a different model is refused by the tdd gate naming both models, reading the model the subagent declares when it declares one and the session log otherwise
 - [x] kpi.json carries model, effort, output tokens and cost per slice, and harness report --sprint shows cost per point by model beside the tokens per point it already shows
 - [x] docs/harness/skill.md says the route is read from the handoff pack and never chosen inside the session, and sync regenerates both copies
 
 ## Outcome
 
-Worked in one session by the digest `710e96458c5b`: 11 attempts, 10 returns,
-14 slices proved against four planned, counting the tdd advance
-this section was written for. Nine of the returns came from a review and each
+Worked in one session by the digest `710e96458c5b`: 12 attempts, 11 returns,
+15 slices proved against four planned, counting the tdd advance
+this section was written for. Ten of the returns came from a review and each
 found something real; one came from the review triage before any model read the
 diff, which is what SEEN-107 was built to do; two were this ticket's own, to take
 a review's findings. The counts are read from the journal rather than recalled,
@@ -77,8 +77,8 @@ of 15,631 entries in this project's logs after three subagent runs none carries
 disclosure and not a proof, the same position SEEN-105 took for the reviewer's
 session id. The decisions are at records 41 and 50 with the options offered.
 
-**What the reviews found that the tests did not.** Thirty-one findings over six
-reviews, falling nine, six, six, five, two, three. Three were the
+**What the reviews found that the tests did not.** Forty-one findings over eight
+reviews, falling nine, six, six, five, two, three, five, five. Three were the
 same fault in different clothes: a figure attributed to the wrong thing. The
 tokens of a slice were keyed by the handoff's `position` rather than its `done`,
 so every slice was charged the window before it and the planning window was
@@ -103,7 +103,7 @@ would have credited to haiku as a saving nothing on haiku ever earned.
 **What is carried.** Nothing. Four findings of the third review were carried to a
 follow-up, SEEN-111, and then fixed here instead, because the review gate refuses
 a delivery with open findings and says not to relabel one; SEEN-111 was withdrawn
-in the same commit that closed them. Every finding of all six reviews is closed
+in the same commit that closed them. Every finding of all eight reviews is closed
 in this ticket, and none of them is an escaped defect, because every one was
 found by a review before delivery rather than after it.
 
@@ -115,6 +115,20 @@ where every other field ships instruction, and so taught a rework round the one
 value that is wrong for it: the mistake record 82 made, turned into the default.
 Advice written to a future ticket by the ticket still holding the file is advice
 to nobody.
+
+**What the design cost, and what finally changed it.** The implementer's
+generated copies were built to vary with the slice in hand, because Claude Code
+documents no per-invocation override for the effort and the file was the only
+place a routed effort could go. A file whose correct content depends on the
+state of a ticket was then wrong on a detached HEAD, wrong after a replan, wrong
+the moment a green landed and wrong after the receipt, where doctor reported
+drift on the commit being merged and verify-merge refused with no way to
+re-sync: four findings across four reviews, each patched separately, one design
+behind all of them. The copies are fixed now, at the strongest tier and high
+effort, and the routed model reaches the implementer through the spawn
+instruction. The effort is carried and reported rather than applied in Claude
+Code, which is what the second amendment to criterion 3 says and what record 121
+decided.
 
 **What the journal owns.** Four corrections, at records 42, 52, 70 and 83, and a
 fifth thing worth naming beside them: the fingerprint check refused the sixth
@@ -174,6 +188,20 @@ and this ticket does not improve on.
   proof, which is the position SEEN-105 already took for the reviewer's session
   id, and the record carries both values so that what was observed and what was
   claimed are told apart.
+
+- **25 September 2026, Ruud: criterion 3 is amended a second time.** The
+  generated agent copies no longer vary by slice, so in Claude Code the routed
+  model reaches the implementer through the per-invocation override the spawn
+  instruction names, and the routed effort is carried and reported but not
+  applied there, because Claude Code documents `effort` only as a frontmatter
+  key and documents no per-invocation override for it. In Codex both still
+  reach it, through the agent TOML. The reason is F3 of the eighth review at
+  note 120: a file whose correct content depends on which slice is in hand has
+  no correct content once no slice is, so after the receipt `doctor` reported
+  drift on the commit being merged and `verify-merge` refused, and the copies
+  could not be re-synced without changing a tree the receipt attests. Four
+  findings across four reviews were symptoms of the same thing. The decision,
+  with the three options put to him and the one he chose, is at record 121.
 
 ## Depends on
 

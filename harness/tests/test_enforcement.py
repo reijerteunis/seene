@@ -1,10 +1,10 @@
-import unittest
 """What the harness refuses once it stops merely recording.
 
 SEEN-086 made evidence addressable and ordered. This is where it starts to mean
 something: a RED that did not fail is not a RED.
 """
 
+import unittest
 from harness.errors import HarnessError
 from harness.tests.test_lifecycle import CommandTest, clarify_evidence, solution_evidence
 

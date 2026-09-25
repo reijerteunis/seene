@@ -16,7 +16,11 @@ own frontmatter would need a hand-rolled parser for five keys; keeping structure
 in code is what avoids it.
 
 Neither reader holds Edit or Write; the implementer holds both, because writing
-the slice is what it is for. The scout has no Bash at all, because everything it
+the slice is what it is for. No copy depends on anything but its source and
+thresholds.toml: a generated file whose content varied with the ticket in hand
+was wrong on a detached HEAD, after a replan, the moment a green landed and
+after the receipt, which is F1 of this ticket's first review, F4 of its second,
+F1 of its seventh and F3 of its eighth. The scout has no Bash at all, because everything it
 needs is a graph query. The reviewer holds Bash, because it cannot
 read a diff without it, and that is a real hole rather than a closed one: Claude
 Code has no read-only Bash, so on that side the reviewer is held to reading by its
@@ -77,8 +81,8 @@ REVIEWER = dict(
 IMPLEMENTER = dict(
     name='seen-implementer',
     description=('Work one slice of a ticket: the RED first, then the code that turns it green, '
-                 'in the context of that slice alone. Spawned with the model and the effort the '
-                 'route decided, which it never chooses for itself.'),
+                 'in the context of that slice alone. Spawned on the model the route decided, '
+                 'which it never chooses for itself.'),
     tools=('Read, Edit, Write, Grep, Glob, Bash, mcp__codegraph__codegraph_explore, '
            'mcp__repowise__get_why, mcp__repowise__get_risk'),
     # Filled from the route of the slice in hand by `resolved`. Never read from
@@ -103,117 +107,32 @@ CODEX_KEYS = ('name', 'description', 'developer_instructions', 'sandbox_mode', '
               'model_reasoning_effort')
 
 
-def routed(root):
-    """The model and the effort this checkout's slice in hand is routed to.
+def implementer_default(root):
+    """The model and effort the implementer's copies carry, which never vary.
 
-    The strongest tier at the highest effort when there is no route to read:
-    main, a fresh clone and CI all land there, and a checkout with no route in
-    it must not hand the work to the cheapest model by accident.
+    The strongest tier at the highest effort, from thresholds.toml, and not the
+    route of whichever slice is in hand. A file whose correct content depends on
+    the state of a ticket has no correct content once the ticket is delivered:
+    after the receipt no slice was in hand, the generator fell back, `doctor`
+    reported drift on the commit being merged and `verify-merge` refused, and
+    the copies could not be re-synced without changing a tree the receipt
+    attests. It was wrong on a detached HEAD, wrong after a replan, wrong the
+    moment a green landed and wrong after delivery: four findings across four
+    reviews, one design. F3 of the eighth review, decided at record 121.
 
-    Read from the branch, which is what makes this deterministic for the three
-    callers that must agree: sync writes it, route rewrites it when the route
-    changes, and doctor compares the copy against what this function gives.
-
-    It never raises. doctor's job is to report a broken chain or a stray file
-    beside the records, and something doctor calls that failed on one would
-    take the report down with it and leave the person with a traceback where a
-    problem list belongs. A journal that cannot be read is a checkout with no
-    route to read, which is what the fallback already means.
+    The routed model reaches the implementer through the per-invocation override
+    the route record's spawn instruction names, and the routed effort through
+    the Codex agent TOML; criterion 3 is amended to say what that does and does
+    not give on each side.
     """
-    from . import handoff, journal, routing, thresholds
-    from .paths import HISTORY
+    from . import routing, thresholds
     rules = thresholds.load(root)
-    fallback = (routing.strongest(rules), routing.rule_effort(rules))
-    ticket = ticket_in_hand(root)
-    if ticket is None:
-        return fallback
-    records = _records(root / HISTORY / ticket)
-    if not records:
-        return fallback
-    # The declared boundary, and never the count inferred from greens. Three
-    # commands rewrite these copies, and all three write a record: route, a
-    # handoff and the advance out of solution. `current_slice` also moves on a
-    # green, which no command syncs, so the copies went stale the moment a slice
-    # was proved and doctor reported drift on a tree nobody had edited, on every
-    # push, for the rest of the ticket. F1 of the seventh review, and it had
-    # already happened on this branch at commit adbdb4c.
-    slices = handoff.plan_of(records)
-    if not slices:
-        return fallback
-    done, _ = handoff.last_declaration(records, handoff.plan_accepted_at(records))
-    if done >= len(slices):
-        return fallback
-    entry = routing.for_slice(records, done + 1)
-    if entry is None:
-        return fallback
-    return entry['model'], entry['effort']
-
-
-def _records(folder):
-    """One journal, or nothing at all. Never raises, for the reason routed does not."""
-    from . import journal
-    from .errors import HarnessError
-    if not folder.is_dir():
-        return []
-    try:
-        return journal.read(folder)
-    except HarnessError:
-        return []
-
-
-def _delivered(records):
-    """Whether this journal's work is finished, which a voided receipt is not.
-
-    `reopen` leaves the receipt in place by design, so a receipt alone would
-    read a reopened ticket as delivered and send the detached checkout back to
-    the fallback that F1 of the first review was fixed for. F6 of the second.
-    """
-    for record in reversed(records):
-        if record['kind'] == 'receipt':
-            return True
-        if record['kind'] == 'reopen':
-            return False
-    return False
-
-
-def ticket_in_hand(root):
-    """Which ticket this checkout is working, from the branch or from the journals.
-
-    The branch first, because a session sets it deliberately and it is the one
-    thing that is right even mid-merge. When HEAD is detached there is no branch
-    to read, and actions/checkout leaves it detached on every pull_request
-    event: without the second half, doctor re-rendered the implementer copies at
-    the fallback and reported drift on any commit routed below the strongest
-    tier, so the same commit was green on push and red on its own pull request.
-    F1 of this ticket's first review.
-
-    The second half asks the committed content instead, which is what a detached
-    checkout still has: exactly one ticket has a journal with records and no
-    receipt while it is being worked. Nothing when none or several do, because a
-    guess between two unfinished tickets is worse than the fallback.
-    """
-    from .cli import BRANCH
-    from .paths import HISTORY
-    from .repository import Repository
-    match = BRANCH.match(Repository(root).branch_or_none() or '')
-    if match:
-        return match.group('ticket')
-    history = root / HISTORY
-    if not history.is_dir():
-        return None
-    unfinished = []
-    for folder in sorted(history.iterdir()):
-        if not folder.is_dir():
-            continue
-        records = _records(folder)
-        if records and not _delivered(records):
-            unfinished.append(folder.name)
-    return unfinished[0] if len(unfinished) == 1 else None
+    return routing.strongest(rules), routing.rule_effort(rules)
 
 
 def resolved(root):
-    """Every agent as this checkout defines it, the implementer carrying its route."""
-    model, effort = routed(root)
+    """Every agent as this repository defines it, from its source and one table."""
+    model, effort = implementer_default(root)
     return tuple(dict(agent, model=model, effort=effort) if agent['name'] == IMPLEMENTER['name']
                  else agent
                  for agent in AGENTS)

@@ -316,13 +316,6 @@ def handoff(repository, folder, records, args, current, rules):
                                       token_limit=built['token_limit'],
                                       slice=built['slice'],
                                       figures=sessions.figures(repository.root)))
-    # A boundary changes which slice is in hand, so it changes the implementer's
-    # model and effort. The copies are rewritten here for the reason route
-    # rewrites them: a boundary that left them behind would spawn the next slice
-    # on the model the last one was given, and leave doctor reporting drift
-    # nobody caused.
-    from . import agents
-    agents.sync(repository.root)
     return record
 
 
@@ -723,15 +716,6 @@ def advance(repository, folder, records, args, current, rules):
                             head=repository.head(), ticket=args.ticket,
                             data=body)
     discard_draft(repository, args.ticket, stage)
-    if stage == 'solution':
-        # A new plan makes the route stale: routing.for_slice reads nothing for
-        # a plan it did not route, so the committed implementer copies would
-        # still hold the old plan's model while the generator gives the
-        # fallback, and doctor would report drift on a tree nobody edited. The
-        # three places that can change what the copies say now all rewrite them:
-        # route, a slice boundary, and here. F4 of this ticket's second review.
-        from . import agents
-        agents.sync(repository.root)
     return record
 
 

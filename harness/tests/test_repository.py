@@ -1,6 +1,6 @@
-import unittest
 """Git access, and the fingerprint that decides whether evidence is still current."""
 
+import unittest
 from harness.errors import HarnessError
 from harness.repository import Repository
 from harness.tests.helpers import ProjectTest

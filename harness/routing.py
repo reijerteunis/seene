@@ -409,13 +409,8 @@ def for_slice(records, position):
 
 def append(repository, folder, records, current, args, rules):
     """Run the route and keep it. Nothing is refused by what it decides."""
-    from . import agents
     data = run(repository, records, current, rules, args.ticket)
     record = journal.append(folder, records, kind='route', stage=current['stage'],
                             attempt=current['attempt'], actor=args.actor,
                             head=repository.head(), ticket=args.ticket, data=data)
-    # The implementer's copies carry the route, so a route that changed them and
-    # did not rewrite them would leave doctor reporting drift and the next
-    # session spawning on the model the last slice was given.
-    agents.sync(repository.root)
     return record

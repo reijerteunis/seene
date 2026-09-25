@@ -60,7 +60,10 @@ an RLS policy, or touches credentials goes to the strongest model at high effort
 made. Everything else is one request carrying `implementation_model` and `implementation_effort`
 once per slice, and a slice nobody could answer for goes to the strongest model rather than the
 cheapest. The route lands in a `route` record, the handoff pack names what the slice in hand runs
-on, and `sync` writes it into `seen-implementer`'s copies for both assistants. **It is read from the
+on, and the route record carries the command to spawn `seen-implementer` with. The generated
+copies do not vary by slice: a file whose content depended on the ticket in hand was wrong on a
+detached HEAD, after a replan and after the receipt, so the model is given per invocation and the
+effort is carried and reported rather than applied on the Claude Code side. **It is read from the
 pack and never chosen inside the session**, which is the point: the session that would benefit from
 a stronger model is the last one that should be picking it. `[routing] shadow` is true until
 SEEN-109's window decides, so today the route is recorded and what a slice actually runs on is

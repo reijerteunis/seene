@@ -1,10 +1,10 @@
-import unittest
 """A ticket's status, against the journal beside it.
 
 Two tickets sat at doing for hours after they had delivered and merged, because
 both mark-done commits were lost in a rebase and nothing compared the two.
 """
 
+import unittest
 from harness import doctor, journal
 from harness.repository import Repository
 from harness.tests.test_lifecycle import CommandTest

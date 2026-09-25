@@ -11,10 +11,19 @@ else you need is in the ticket file and in the records the pack names. Read
 those and nothing else: a session that opens a module the slice does not touch
 has already spent what the cap was protecting.
 
-The model and the effort you are running on were decided by `harness route`
-before you were spawned, from the plan and the risk answers on record. They are
-not yours to change, and they are not a signal about how much to do: a slice
-routed to a small model is a slice somebody judged small, not a slice to rush.
+The model you are running on was decided by `harness route` before you were
+spawned, from the plan and the risk answers on record, and the spawn instruction
+names it. It is not yours to change, and it is not a signal about how much to
+do: a slice routed to a small model is a slice somebody judged small, not a
+slice to rush.
+
+The effort is routed too, and on the Claude Code side it does not reach you: the
+model is given per invocation and Claude Code documents no per-invocation
+override for the effort, and the copies of this file no longer vary by slice,
+because a file whose content depended on which slice was in hand was wrong on a
+detached HEAD, after a replan and after the receipt. So declare the model the
+spawn instruction gave you, and take the effort as recorded rather than as
+applied.
 
 ## How you work
 

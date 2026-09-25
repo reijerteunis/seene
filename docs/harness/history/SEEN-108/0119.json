@@ -1,0 +1,19 @@
+{
+  "sequence": 119,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T15:06:53.052868+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 11,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "fcdad042cc6ed2489751bdbc3f31323905026ad6",
+  "prev_hash": "5424276da578327ddb0165e2fb346f19bf05ddd91e0cec0e28dac6a19b3fd3d1",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 12,
+    "reason": "The eighth review returned three blocking findings, one medium and one low. F1: OutcomeReconcilesTest asserts the outcome is exactly one ahead of the journal, which the advance it anticipates destroys, so the suite is red at HEAD and no delivered tree can satisfy it. F2: the outcome is stale again because notes were appended after the regression, and the fingerprint check cannot see it because the journal is outside the fingerprint. F3: the committed implementer copies carry slice 4's route, and after the receipt no slice is in hand, so routed falls back, doctor reports drift and verify-merge refuses; the copies cannot be re-synced because .claude/agents is not in DELIVERY_WRITES. This ticket as built cannot merge. F4: the pack and the copies disagree when a boundary is recorded without --slice-done. F5: the import sweep put unittest above the docstring in four modules. Ruud's decision on F3 is to stop generating the copies per slice."
+  }
+}
