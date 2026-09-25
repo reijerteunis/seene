@@ -1,0 +1,157 @@
+{
+  "sequence": 75,
+  "ticket": "SEEN-109",
+  "timestamp": "2026-09-25T23:24:18.895647+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "review",
+  "attempt": 7,
+  "actor": "claude:implementer",
+  "session": "343d37550220",
+  "head": "46eacd191d0cb3ad3f5adf85d3ca66aabc690ebc",
+  "prev_hash": "bfd8454350b54631502ec11f944ccc285b6691bba4d25f4f5718ff1aac938721",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "deliver",
+    "evidence": {
+      "reviewer": "claude:reviewer",
+      "independence": "self-review",
+      "read": [
+        "docs/tickets/SEEN-109-calibrate-the-review-triage-and-the-routes-on.md",
+        "docs/harness/history/SEEN-109/",
+        ".agents/skills/seen-harness/SKILL.md",
+        ".claude/agents/seen-reviewer.md",
+        ".claude/skills/seen-harness/SKILL.md",
+        ".codex/agents/seen-reviewer.toml",
+        "docs/harness/skill.md",
+        "docs/harness/workflow.md",
+        "harness/agents/seen-reviewer.md",
+        "harness/calibration.py",
+        "harness/cli.py",
+        "harness/doctor.py",
+        "harness/gates.py",
+        "harness/kpi.py",
+        "harness/report.py",
+        "harness/tests/test_calibration.py",
+        "harness/tests/test_context_budget.py",
+        "harness/tests/test_triage.py",
+        "harness/thresholds.py",
+        "harness/thresholds.toml",
+        "harness/triage.py",
+        "docs/harness/reports/calibration.md",
+        "docs/harness/reports/calibration.json",
+        "docs/harness/reports/2026-W39.md",
+        "docs/harness/reports/sprint-0.md",
+        "harness/tests/test_kpi.py",
+        "CLAUDE.md"
+      ],
+      "acceptance_evidence": [
+        "Criterion 1, [calibration] committed before the first triage record it counts (as amended): clarify record 4 decision 1 carries the amendment; tdd record 15 slice 1, RED 7, GREEN 8. The reviewer verified counted_from against the commit that added the section rather than taking it on trust, and thresholds.py EXPECTED lists all eight keys so a half-written rule is fatal.",
+        "Criterion 2, report --calibration shows the per-ticket and per-slice evidence: tdd record 15 slice 2, RED 10, GREEN 11. The reviewer rendered the report in memory and found both committed files byte-identical.",
+        "Criterion 3, both verdicts stated separately by the rule after ten tickets, with the founder's decision on the record: tdd record 15 GREEN 11 for the nine-against-ten fixtures, records 34 and 44 for the two-line go-live and its doctor check. doctor runs green with calibration in its checked list.",
+        "Criterion 4, an escape after go-live returns the triage to shadow automatically and the weekly report says so: tdd record 23, RED 19, GREEN 20 for the escape branch; records 44 and 54 for the triage reading the escapes and the unplaceable evidence. The reviewer ran effective_shadow against the real tree and read shadow true from the threshold."
+      ],
+      "findings": [
+        {
+          "id": "F1",
+          "severity": "low",
+          "file": "harness/kpi.py:461",
+          "claim": "The justification for calling a returning round's finding fixed is not what the review gate guarantees: the gate checks only the findings the advance itself carries, so nothing checks that this finding was the one that got fixed.",
+          "failure_scenario": "A review returns a ticket on a blocking finding, the session fixes something else, the next round does not read that file and passes, and the figure states one more fix than happened.",
+          "status": "resolved",
+          "resolution": "The figure says closed rather than fixed, in the comment, in what the key means and in the weekly report, which now reads \"N closed, M open\". Closed is what a later advance proves and closed is what is claimed."
+        },
+        {
+          "id": "F2",
+          "severity": "low",
+          "file": "docs/tickets/SEEN-109-calibrate-the-review-triage-and-the-routes-on.md:81",
+          "claim": "Two places still say going live is one line, which is the claim the third review returned the ticket on: the Outcome's decision paragraph and the comment in harness/triage.py.",
+          "failure_scenario": "A reader takes the Outcome at its word, sets triage_shadow false, and doctor turns CI red on every branch while nothing is live.",
+          "status": "resolved",
+          "resolution": "Both say two lines now and name both of them. The Outcome also records that the instruction was one line when the paragraph was written and changed at attempt 3, so the history reads straight."
+        },
+        {
+          "id": "F3",
+          "severity": "low",
+          "file": "docs/tickets/SEEN-109-calibrate-the-review-triage-and-the-routes-on.md:102",
+          "claim": "The deviations paragraph attempt 7 rewrote repeats its own clause and classes a deviation about which file a test went into as one about how the tests were run.",
+          "failure_scenario": "A reader auditing the failed slice_files check cannot tell whether a fifth changed file went undisclosed.",
+          "status": "resolved",
+          "resolution": "The paragraph is rewritten: four files named, and the other two described as the command that runs the tests and which existing file two of them went into."
+        }
+      ],
+      "checks": [
+        "Seven review rounds, each from a seen-reviewer subagent spawned on opus with the triage record's task text and nothing else, in a context that had not written the code. Disclosed as self-review all the same: a Claude Code subagent inherits its parent session id, so the only reviewer_session this record could name truthfully is the session that wrote the work, and the gate is right to refuse a session that vouches for itself. Notes 17, 25, 36, 46, 56 and 65 record the first six rounds in full, and records 47, 57 and 66 carry their findings structurally. Where a missed defect costs money the harness requires the other assistant, and this ticket touches neither billing nor an agent action.",
+        "The seventh review verified attempt 7 by running it: it reverted the closed reading in memory and watched the test fail with the tuple RED 67 recorded, and it read the real journals, where SEEN-099, SEEN-104, SEEN-105, SEEN-107 and SEEN-108 carry nothing open and the severities agree between kpi.findings and the calibration report.",
+        "red_before_green, its own judgement: the cited failures match the stated reasons line for line for every attempt but slice 1, whose second predicted RED was never run and is disowned at note 28 rather than reconstructed.",
+        "tests_added: every behaviour has a test that fails without it. The exceptions are recorded: slice 1's gate requirement, covered but not RED-proved, and the three low findings of this round, which are prose and a rendered string.",
+        "acceptance_entries: the four clarify checks map one to one onto the four criteria, matched rather than counted.",
+        "slice_files: fails on four files the plan did not name, all four named in the Outcome and all four forced by an earlier review or by the change propagating into fixtures.",
+        "pull_request: unavailable at triage; the receipt hash is checked again at merge.",
+        "Ground rules, checked by codepoint over the whole diff: no euro sign, no em dash or en dash, no curly quote, no browser automation, no live marketplace host, no table, no credential, no buyer PII, no agent action, no euro arithmetic. British spelling throughout.",
+        "The path-comparison class is closed on both sides, settled by the sixth review running fourteen path shapes through both comparisons, and unmoved by attempts 7 and 8.",
+        "Two things the review left standing, recorded rather than fixed: waived is structurally unreachable for a delivered ticket nobody reopened, which predates this change, and the committed weekly and sprint reports are stale from earlier tickets.",
+        "What this round contributes to the shadow window: the triage would have excluded 13 of 20 files, 57.81 per cent. One low finding lands in a file the narrowing kept and two in the ticket file, which it would have dropped; all three are below high, so by the ticket's own definition none is an escape, and the ticket is excluded from the window by name in any case."
+      ],
+      "verdict": "pass",
+      "security_checklist": [
+        "No credential, token or environment value enters a record or a report: report.write already refuses one through secrets.leaked, and the new calibration report goes through the same function. The reviewer checked the whole diff by codepoint and found none.",
+        "No tenant table, no row-level security policy and no migration is touched: the change is confined to harness/ and docs/, and the solution record answers tenant_tables as none.",
+        "No buyer PII is read, written or persisted anywhere in the change.",
+        "No agent action is added or altered, so no policy gate decision and no audit event is involved. The ticket's frontmatter says changes_agent_action: false and the clarify record agrees.",
+        "No marketplace is called and no marketplace host is named in code: doctor's marketplace_hosts check runs green on this tree.",
+        "No new dependency: the solution record answers new_dependencies as empty, and the change imports only re, the standard library and modules already in harness/.",
+        "The new file reading is confined to docs/harness/history and docs/tickets under the repository root, and a journal that refuses to be read is excluded and named rather than raised, so nothing outside the repository is opened and no other ticket's review can be blocked by a fault in a journal nobody was working on."
+      ],
+      "tree": "0e5a6bf36078e17d72bec50953f818875604cd3a3aa6f217167cb3d4f27998b6"
+    },
+    "decisions": [
+      {
+        "key": "severity",
+        "question": "severity",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high",
+          "blocking"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "medium",
+        "probabilities": {
+          "low": 0.07,
+          "medium": 0.5599999999999999,
+          "high": 0.22,
+          "blocking": 0.15
+        },
+        "confidence": 0.42,
+        "score": 1.44,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      },
+      {
+        "key": "must_fix",
+        "question": "must_fix",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.31,
+          "no": 0.69
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.7,
+        "passed": false,
+        "fallback_reason": null
+      }
+    ]
+  }
+}
