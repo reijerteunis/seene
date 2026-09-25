@@ -132,3 +132,35 @@ leans on that. An escaped defect is computed per ticket and shown in the report,
 escape by the ticket's own two-kind definition, and making it one would change the rule this ticket
 exists to commit before the numbers. The limit is printed in the report and written into
 `docs/harness/workflow.md` rather than left to be discovered.
+
+### What the second review found
+
+It returned the ticket again, and it was right to: the fix had stopped one line short. `_covers`
+still stripped the characters `.` and `/` from a slice's planned files, one function below the
+docstring written to explain why that is wrong, on the other side of the same comparison, where it
+decides the route verdict rather than the triage one. A finding in a dot directory was charged to no
+slice, so a downgraded slice that produced one read as having produced nothing, and findings are the
+only per-slice measure the route rule has. Both sides now go through `normalise` and a test
+exercises a slice whose files sit in a dot directory, which is what was missing the first time.
+
+Three more, taken in the same attempt. Findings were read only from the record that passes, so a
+blocking finding that returned a ticket counted only if the next round repeated it, which nothing
+requires and three tickets happened to do; a returning round now records what it found with
+`harness return --findings`, `escapes` reads both, and a finding is the same finding when its id,
+its claim and its file agree, keyed at the earliest round that carried it because that is the round
+whose triage would or would not have dropped the file. Going live was one line anybody could
+change with no record anywhere of the decision; it now takes two, `[review] triage_shadow` and
+`[calibration] went_live` naming the ticket and the record number, and `doctor` refuses a switch
+flipped with nothing named. The check is in `effective_shadow` and in `doctor`, which CI runs, so a
+branch that flips the switch with nothing named cannot go green; the harness's own triage tests flip
+both lines now, which is the change propagating rather than a workaround and is the second
+disclosed deviation from the slice plan, after `test_context_budget.py`. And `counted_from` was eight minutes earlier than the commit that added
+the section, which is eight minutes in which a ticket could have been counted against a rule that
+did not exist; it is read from the commit now.
+
+The fifth is an evidence gap and is disowned in note 28 rather than reconstructed. Slice 1 planned
+two REDs and record 7 is the first: it fails with the ImportError every test in the new file
+produces, so it proves the module was absent and not that the review gate was permissive. A RED
+recorded now would have to be produced by removing the requirement and running against a tree nobody
+worked in, which is a check written to pass a gate. The behaviour is covered and the diff proves the
+change; the journal does not prove the order, and note 28 is where a reader finds that out.

@@ -272,6 +272,7 @@ def render_calibration(section, rules):
              '**What an escape is, recorded before the first one.** ' + settings['escape'], '',
              '## The triage', '',
              f'**The rule.** {triage["rule"]}', '',
+             f'**Where the switch stands.** {section["went_live"]}', '',
              f'**The verdict: {triage["state"].replace("_", "-")}.** {triage["reason"]}', '',
              '| Ticket | Findings | Would have excluded | Share of the diff | Escapes '
              '| Unattributable | Escaped defects |', '|---|---|---|---|---|---|---|']

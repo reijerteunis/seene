@@ -18,7 +18,7 @@ EXPECTED = {
     'review': ('severities',),
     'non_code': ('change_types',),
     'calibration': ('window', 'counted_from', 'excluded', 'excluded_reason', 'escape',
-                    'triage_rule', 'route_rule'),
+                    'triage_rule', 'route_rule', 'went_live'),
 }
 
 

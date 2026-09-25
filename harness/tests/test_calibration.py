@@ -73,7 +73,7 @@ def slice_entry(position, model, source='jev', points=1, files=('harness/a.py',)
 
 
 def journal(ticket='SEEN-001', day=1, triage=None, findings=(), returns=(), execution=None,
-            answers=()):
+            answers=(), returned_findings=None):
     """A delivered ticket's journal: start, plan, route, triage, review, receipt."""
     records = [
         record(1, 'start', 'clarify', day=day, ticket=ticket, ticket_file='docs/tickets/x.md',
@@ -90,8 +90,15 @@ def journal(ticket='SEEN-001', day=1, triage=None, findings=(), returns=(), exec
         records.append(route_record(4, execution, day=day, ticket=ticket))
     records.append(triage_record(len(records) + 1, day=day,
                                  would_exclude=triage or (), answers=answers, ticket=ticket))
+    if returned_findings is not None:
+        records.append(record(len(records) + 1, 'return', 'review', day=day, minute=14,
+                              ticket=ticket, from_stage='review', to_stage='tdd', to_attempt=2,
+                              reason='The review found a defect', unmet_criteria=[],
+                              findings=list(returned_findings)))
+        records.append(triage_record(len(records) + 1, day=day, minute=16,
+                                     would_exclude=triage or (), answers=answers, ticket=ticket))
     for position, unmet in enumerate(returns):
-        records.append(record(len(records) + 1, 'return', 'review', day=day, minute=15 + position,
+        records.append(record(len(records) + 1, 'return', 'review', day=day, minute=17 + position,
                               ticket=ticket, from_stage='review', to_stage='tdd', to_attempt=2,
                               reason='Sent back', unmet_criteria=list(unmet)))
     records.append(review_advance(len(records) + 1, list(findings), day=day, ticket=ticket))
@@ -332,15 +339,21 @@ class EffectiveShadowTest(ProjectTest):
         self.assertTrue(answer['shadow'])
         self.assertIn('triage_shadow', answer['reason'])
 
+    def live(self):
+        """The switch and the decision it names, which is what going live takes."""
+        return dict(self.rules, review=dict(self.rules['review'], triage_shadow=False),
+                    calibration=dict(self.rules['calibration'],
+                                     went_live=dict(ticket='SEEN-601', record=4,
+                                                    on='2026-11-01')))
+
     def test_with_the_threshold_off_and_ten_clean_tickets_the_triage_is_live(self):
-        rules = dict(self.rules, review=dict(self.rules['review'], triage_shadow=False))
         for day in range(1, 11):
             self.plant(f'SEEN-6{day:02d}', day)
-        answer = calibration.effective_shadow(self.root, rules)
+        answer = calibration.effective_shadow(self.root, self.live())
         self.assertFalse(answer['shadow'])
 
     def test_an_escape_after_go_live_returns_the_triage_to_shadow(self):
-        rules = dict(self.rules, review=dict(self.rules['review'], triage_shadow=False))
+        rules = self.live()
         for day in range(1, 11):
             self.plant(f'SEEN-6{day:02d}', day)
         self.plant('SEEN-620', 11, triage=['harness/skipped.py'],
@@ -447,7 +460,10 @@ class ReportTest(CommandTest):
         that cannot see an escape, so deleting the escape branch left it green.
         """
         path = self.root / 'harness' / 'thresholds.toml'
-        path.write_text(path.read_text().replace('triage_shadow = true', 'triage_shadow = false'))
+        text = path.read_text().replace('triage_shadow = true', 'triage_shadow = false')
+        path.write_text(text.replace(
+            'went_live = {}',
+            'went_live = { ticket = "SEEN-701", record = 4, on = "2026-11-01" }'))
         self.plant_window(triage=['harness/skipped.py'],
                           findings=[finding('F1', 'blocking', 'harness/skipped.py:2')])
         written = self.run_harness('report', '--week', '--date', '2026-10-05')
@@ -469,10 +485,13 @@ class ReportTest(CommandTest):
 class TriageShadowTest(TriageTest):
     """The one thing that happens without a person: the return to shadow."""
 
-    def loosen(self):
-        """Go live, the way the founder would: one line in thresholds.toml."""
+    def loosen(self, ticket='SEEN-801', record=4):
+        """Go live the way the founder must: the switch and the decision it names."""
         path = self.root / 'harness' / 'thresholds.toml'
-        path.write_text(path.read_text().replace('triage_shadow = true', 'triage_shadow = false'))
+        text = path.read_text().replace('triage_shadow = true', 'triage_shadow = false')
+        path.write_text(text.replace(
+            'went_live = {}',
+            f'went_live = {{ ticket = "{ticket}", record = {record}, on = "2026-11-01" }}'))
 
     def plant_window(self, count=10, **kwargs):
         for day in range(1, count + 1):
@@ -564,5 +583,134 @@ class TriageReturnTest(TriageTest):
         found = calibration.escapes(self.records())
         self.assertEqual(found['escapes'], [])
         self.assertEqual(found['unattributable'], [])
+
+
+class SecondReviewTest(ProjectTest):
+    """The four findings of the second review, at note 25."""
+
+    def setUp(self):
+        super().setUp()
+        self.rules = thresholds.load(self.root)
+
+    def test_a_finding_is_charged_to_a_slice_whose_files_sit_in_a_dot_directory(self):
+        """F1: the same character-stripping, one function below the one that was fixed."""
+        rows = calibration.slice_rows(
+            'SEEN-900',
+            journal(execution=[slice_entry(1, 'sonnet', files=['.claude/agents/x.md']),
+                               slice_entry(2, 'opus', files=['harness/b.py'])],
+                    findings=[finding('F1', 'blocking', '.claude/agents/x.md:84')]),
+            escaped=[], rules=self.rules)
+        self.assertEqual([row['findings'] for row in rows], [1, 0])
+
+    def test_a_slice_naming_a_directory_still_covers_the_files_under_it(self):
+        rows = calibration.slice_rows(
+            'SEEN-900',
+            journal(execution=[slice_entry(1, 'sonnet', files=['.codex/'])],
+                    findings=[finding('F1', 'high', '.codex/agents/x.toml:3')]),
+            escaped=[], rules=self.rules)
+        self.assertEqual(rows[0]['findings'], 1)
+
+    def test_a_finding_that_returned_a_ticket_is_read_from_the_return(self):
+        """F2: findings read only from the advance meant a returning round vanished."""
+        records = journal(triage=['harness/skipped.py'],
+                          returned_findings=[finding('F1', 'blocking', 'harness/skipped.py:2')])
+        found = calibration.escapes(records)
+        self.assertEqual([entry['kind'] for entry in found['escapes']],
+                         ['finding_in_excluded_file'])
+
+    def test_a_finding_carried_forward_into_the_passing_record_is_one_finding(self):
+        carried = finding('F1', 'blocking', 'harness/skipped.py:2')
+        records = journal(triage=['harness/skipped.py'], returned_findings=[carried],
+                          findings=[dict(carried, status='resolved', resolution='Fixed')])
+        self.assertEqual(len(calibration.latest_findings(records)), 1)
+        self.assertEqual(len(calibration.escapes(records)['escapes']), 1)
+
+    def test_two_findings_sharing_an_id_but_not_a_file_are_two_findings(self):
+        records = journal(triage=['harness/skipped.py'],
+                          returned_findings=[finding('F1', 'blocking', 'harness/skipped.py:2')],
+                          findings=[finding('F1', 'high', 'harness/other.py:9')])
+        self.assertEqual(len(calibration.latest_findings(records)), 2)
+
+
+class GoLiveDecisionTest(ProjectTest):
+    """F3: going live must name the record the decision is in, or it is an edit."""
+
+    def setUp(self):
+        super().setUp()
+        self.rules = thresholds.load(self.root)
+
+    def live(self, **went_live):
+        return dict(self.rules,
+                    review=dict(self.rules['review'], triage_shadow=False),
+                    calibration=dict(self.rules['calibration'], went_live=went_live))
+
+    def test_the_threshold_off_with_no_decision_named_stays_in_shadow(self):
+        answer = calibration.effective_shadow(self.root, self.live())
+        self.assertTrue(answer['shadow'])
+        self.assertIn('went_live', answer['reason'])
+
+    def test_a_decision_naming_a_record_that_does_not_exist_stays_in_shadow(self):
+        answer = calibration.effective_shadow(self.root,
+                                              self.live(ticket='SEEN-900', record=4, on='2026-11-01'))
+        self.assertTrue(answer['shadow'])
+        self.assertIn('SEEN-900', answer['reason'])
+
+    def test_a_decision_naming_a_record_that_exists_goes_live(self):
+        plant(self.root, 'SEEN-900', 1)
+        answer = calibration.effective_shadow(self.root,
+                                              self.live(ticket='SEEN-900', record=4, on='2026-11-01'))
+        self.assertFalse(answer['shadow'])
+        self.assertIn('SEEN-900', answer['reason'])
+
+    def test_doctor_reports_a_switch_flipped_with_no_decision_on_the_record(self):
+        path = self.root / 'harness' / 'thresholds.toml'
+        path.write_text(path.read_text().replace('triage_shadow = true', 'triage_shadow = false'))
+        from harness import doctor
+        from harness.repository import Repository
+        found = doctor.report(Repository(self.root), thresholds.load(self.root))
+        self.assertFalse(found['ok'])
+        self.assertTrue(any('went_live' in problem for problem in found['problems']))
+
+
+class ReturningFindingsTest(CommandTest):
+    """A review that returns a ticket records what it found, or the window cannot read it."""
+
+    def reach_tdd(self):
+        from harness.tests.test_lifecycle import clarify_evidence, solution_evidence
+        self.start()
+        self.submit('clarify', clarify_evidence())
+        self.submit('solution', solution_evidence())
+
+    def send_back(self, findings):
+        relative = f'.harness-drafts/{self.ticket_id}-findings.json'
+        self.write(relative, json.dumps(findings))
+        return self.run_harness('return', self.ticket_id, '--to', 'clarify',
+                                '--actor', 'claude:reviewer', '--reason', 'A defect',
+                                '--findings', relative)
+
+    def test_the_return_carries_the_findings_it_names(self):
+        self.reach_tdd()
+        record = self.send_back([dict(finding('F1', 'blocking', 'harness/a.py:2'),
+                                      status='open', resolution='')])
+        self.assertEqual([entry['id'] for entry in record['data']['findings']], ['F1'])
+
+    def test_a_returning_finding_needs_no_resolution(self):
+        self.reach_tdd()
+        record = self.send_back([dict(id='F1', severity='medium', claim='It breaks',
+                                      failure_scenario='Like this', status='open',
+                                      resolution='')])
+        self.assertEqual(record['data']['findings'][0]['status'], 'open')
+
+    def test_a_returning_blocking_finding_still_has_to_name_its_file(self):
+        self.reach_tdd()
+        with self.assertRaisesRegex(HarnessError, 'names no file'):
+            self.send_back([dict(id='F1', severity='blocking', claim='It breaks',
+                                 failure_scenario='Like this', status='open', resolution='')])
+
+    def test_a_return_with_no_findings_file_records_an_empty_list(self):
+        self.reach_tdd()
+        record = self.run_harness('return', self.ticket_id, '--to', 'clarify',
+                                  '--actor', 'claude:implementer', '--reason', 'Replanning')
+        self.assertEqual(record['data']['findings'], [])
 if __name__ == '__main__':
     unittest.main()

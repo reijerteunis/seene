@@ -1,0 +1,20 @@
+{
+  "sequence": 26,
+  "ticket": "SEEN-109",
+  "timestamp": "2026-09-25T21:00:34.033074+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "343d37550220",
+  "head": "d5dc423c76c915d6ea9a4ed8ce22e36fe7737ba2",
+  "prev_hash": "95052a1768e40906b7c1627682039df1795bf92f6ece97d4102ca078efdade7a",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 3,
+    "reason": "The review at note 25 returns the ticket on F1: _covers still strips the characters dot and slash from a slice's planned files rather than the prefix, which is the bug of record 18 surviving one function below the docstring written to explain it, on the other side of the same comparison, where it decides the route verdict. F2, F3 and F4 are taken in the same attempt: findings are read from a returning round as well as from the record that passes, going live has to name the record its decision is in, and counted_from is corrected to the commit that added the section. F5 is an evidence gap in slice 1's second RED and is disowned in a note rather than reconstructed.",
+    "unmet_criteria": []
+  }
+}

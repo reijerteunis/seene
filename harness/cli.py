@@ -110,6 +110,11 @@ def build_parser():
     back.add_argument('--to', required=True)
     back.add_argument('--reason', required=True)
     back.add_argument('--actor', required=True)
+    back.add_argument('--findings', metavar='FILE',
+                      help='JSON array of the findings this review returns the ticket on. A '
+                           'review that returned a ticket is a review, and its findings are what '
+                           'the calibration window reads: without them an escape counts only if '
+                           'the round that finally passes repeats it')
     back.add_argument('--unmet', type=int, action='append', metavar='N',
                       help='The number of an acceptance criterion this return found unmet, '
                            'repeatable. A criterion the triage answered evidenced and a review '
@@ -739,6 +744,20 @@ def go_back(repository, folder, records, args, current, rules):
     require(STAGES.index(args.to) < STAGES.index(stage),
             f'A return must target a stage before {stage}')
     require(args.reason.strip(), 'A return needs a recorded reason')
+    findings = []
+    named = getattr(args, 'findings', None)
+    if named:
+        path = repository.root / named
+        require(path.is_file(), f'No such findings file: {named}')
+        try:
+            findings = json.loads(path.read_text())
+        except json.JSONDecodeError as error:
+            require(False, f'{named} is not readable JSON: {error}')
+        require(isinstance(findings, list), f'{named} must hold a JSON array of findings')
+        # The same shape the review gate demands, minus the resolution: a finding
+        # that returned a ticket is open by definition, and it must still name
+        # the file it is in when it is serious enough to be an escape.
+        gates.check_findings(findings, rules['review']['severities'], resolved=False)
     unmet = sorted(set(getattr(args, 'unmet', None) or []))
     require(all(position >= 1 for position in unmet),
             'An unmet criterion is named by its number in the ticket, counting from 1')
@@ -747,6 +766,7 @@ def go_back(repository, folder, records, args, current, rules):
                           head=repository.head(), ticket=args.ticket,
                           data=dict(from_stage=stage, to_stage=args.to,
                                     to_attempt=current['attempt'] + 1, reason=args.reason,
+                                    findings=findings,
                                     # Which criteria this return says are unmet, by their
                                     # number in the ticket. SEEN-109's second escape kind
                                     # is a criterion the triage answered evidenced and a

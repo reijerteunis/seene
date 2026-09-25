@@ -207,6 +207,17 @@ def link_problems(repository):
     return problems
 
 
+def calibration_problems(repository, rules):
+    """Whether the go-live on record names a decision a reader can open."""
+    from . import calibration
+    if (rules.get('review') or {}).get('triage_shadow', True):
+        return []
+    if not rules.get('calibration'):
+        return []
+    problem = calibration.went_live_problem(repository.root, rules)
+    return [problem] if problem else []
+
+
 def report(repository, rules):
     """Run every check and collect what is wrong."""
     sections = {
@@ -223,6 +234,12 @@ def report(repository, rules):
         'marketplace_hosts': [f'{entry["path"]}:{entry["line"]} names {entry["host"]}'
                               for entry in secrets.marketplace_hosts(repository.root)],
         'links': link_problems(repository),
+        # A switch flipped with no decision named is an edit, not a decision.
+        # Here rather than in front of every triage, because the harness's own
+        # tests flip the threshold to exercise spot depth and a refusal there
+        # would make the narrowing untestable: doctor is where the repository
+        # is held to being in order. F3 of SEEN-109's second review.
+        'calibration': calibration_problems(repository, rules),
     }
     problems = [problem for found in sections.values() for problem in found]
     return dict(ok=not problems, checked=list(sections), problems=problems)

@@ -1,0 +1,16 @@
+{
+  "sequence": 28,
+  "ticket": "SEEN-109",
+  "timestamp": "2026-09-25T21:04:07.230988+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "session": "343d37550220",
+  "head": "d5dc423c76c915d6ea9a4ed8ce22e36fe7737ba2",
+  "prev_hash": "af710208b75cc2e7ef607773725fcd34b79f5151fb7d8e3edb94feae3892d3d1",
+  "data": {
+    "text": "# The second RED slice 1 predicted and the journal does not carry\n\nF5 of the second review, at note 25. The solution record planned two REDs for\nslice 1: the module missing, and the review gate accepting a blocking finding\nthat names no file. Record 7 is the first. It fails with `ImportError: cannot\nimport name 'calibration' from 'harness'`, which every test in the new file\nproduces, `FindingFileTest` included, so it proves the module was absent and not\nthat the gate was permissive. There is no record of the second.\n\nThis is disowned rather than reconstructed. A RED recorded now would have to be\nproduced by removing the requirement from `gates.check_findings` and running the\ntest against a tree nobody worked in, which is a check written to pass a gate\nrather than a check that failed. The claim in record 23's slice 1 entry is\ntherefore narrower than it reads, and this record is where a reader finds that\nout.\n\nWhat can be said honestly: the behaviour is covered, because deleting the\n`require` in `check_findings` fails\n`FindingFileTest.test_a_blocking_finding_with_no_file_is_refused`; and the\nrequirement is not vacuous, because the gate it replaced validated\n`FINDING_KEYS[:-1]`, a tuple `file` is not in. The diff proves the change, and\nthe journal does not prove the order.\n"
+  }
+}

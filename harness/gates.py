@@ -701,7 +701,7 @@ def evaluate(stage, data, records, current, repository, thresholds):
     return gate(data, records, current, repository, thresholds)
 
 
-def check_findings(findings, severities):
+def check_findings(findings, severities, resolved=True):
     """What a finding must carry, and why a serious one must name its file.
 
     SEEN-109 measures the review triage by asking whether anything expensive got
@@ -717,10 +717,12 @@ def check_findings(findings, severities):
             require(_filled(finding.get(key)), f'A finding is missing {key}')
         require(finding['severity'] in severities,
                 f'Unknown severity: {finding["severity"]!r}; use one of {", ".join(severities)}')
-        require(finding['status'] == 'resolved',
-                f'Finding {finding["id"]} is {finding["status"]}; resolve every finding or '
-                'return the ticket, and do not relabel it')
-        require(_filled(finding.get('resolution')), f'Finding {finding["id"]} is missing resolution')
+        if resolved:
+            require(finding['status'] == 'resolved',
+                    f'Finding {finding["id"]} is {finding["status"]}; resolve every finding or '
+                    'return the ticket, and do not relabel it')
+            require(_filled(finding.get('resolution')),
+                    f'Finding {finding["id"]} is missing resolution')
         if finding['severity'] in ESCAPING_SEVERITIES:
             require(_filled(finding.get('file')),
                     f'Finding {finding["id"]} is {finding["severity"]} and names no file. A '

@@ -111,17 +111,25 @@ def escapes(records):
     finding naming no file might have landed anywhere, and counting it as no
     escape would be a silent pass in favour of the narrowing being measured.
     """
-    found, unplaced = [], []
+    found, unplaced, seen = [], [], set()
     for record in records:
         data = record['data']
-        if record['kind'] == 'advance' and data.get('from_stage') == 'review':
+        if data.get('from_stage') == 'review' and _review_findings(record):
             triaged = _preceding_triage(records, record['sequence'])
             excluded = {normalise(path)
                         for path in (triaged or {}).get('data', {}).get('would_exclude') or []}
             excluded.discard(None)
-            for finding in data.get('evidence', {}).get('findings') or []:
+            for position, finding in enumerate(_review_findings(record)):
                 if finding.get('severity') not in ESCAPING_SEVERITIES:
                     continue
+                # The earliest round that carried it, not the latest: a finding
+                # repeated in the record that finally passes was found when it
+                # was first written down, and it is that round's triage that
+                # would or would not have dropped the file it is in.
+                key = finding_key(finding, record, position)
+                if key in seen:
+                    continue
+                seen.add(key)
                 path = path_of(finding.get('file'))
                 if path is None:
                     unplaced.append(dict(kind='finding', ticket=record['ticket'],
@@ -195,29 +203,72 @@ def latest_route(records):
     return None
 
 
-def latest_findings(records):
-    """Every review finding, deduplicated by id, most recent record winning.
+def _review_findings(record):
+    """The findings one record carries, whether it passed the ticket or returned it.
 
-    The rule kpi.findings already applies to the counts, applied here to the
-    findings themselves: a ticket reviewed twice lists the same finding twice
-    and it is one finding.
+    Both, because a review that returned a ticket is a review: its findings were
+    read from the diff exactly as the passing round's were. Reading only the
+    advance made a blocking finding that sent a ticket back count only if the
+    session repeated it in the record that finally passed, which no gate
+    requires and which three tickets happened to do by convention. F2 of the
+    second review.
+    """
+    data = record['data']
+    if data.get('from_stage') != 'review':
+        return []
+    if record['kind'] == 'advance':
+        return data.get('evidence', {}).get('findings') or []
+    if record['kind'] == 'return':
+        return data.get('findings') or []
+    return []
+
+
+def finding_key(finding, record, position):
+    """What makes two review findings the same finding.
+
+    The id, the claim and the file, rather than the id alone. A finding carried
+    forward into the round that passes keeps all three and is one finding, which
+    is the rule kpi.findings already applies to the counts; two different
+    findings that happen to be F1 of two rounds differ in at least one of them
+    and are two, which keying by id alone would have silently merged now that a
+    returning round is read as well as the one that passed.
+    """
+    return (finding.get('id') or f'{record["sequence"]}-{position}',
+            finding.get('claim'), path_of(finding.get('file')))
+
+
+def latest_findings(records):
+    """Every review finding, deduplicated, most recent record winning.
+
+    Most recent, because a finding whose severity was revised between rounds is
+    one finding at the severity it ended at. `escapes` takes the earliest
+    instead, for the reason written there.
     """
     latest = {}
     for record in records:
-        if record['kind'] != 'advance' or record['data'].get('from_stage') != 'review':
-            continue
-        for position, finding in enumerate(record['data'].get('evidence', {}).get('findings') or []):
-            latest[finding.get('id') or f'{record["sequence"]}-{position}'] = finding
+        for position, finding in enumerate(_review_findings(record)):
+            latest[finding_key(finding, record, position)] = finding
     return list(latest.values())
 
 
 def _covers(path, files):
-    """Whether a slice's planned files contain this path, directories included."""
+    """Whether a slice's planned files contain this path, directories included.
+
+    Through `normalise`, like every other path comparison here. The first
+    version repeated the `lstrip('./')` this module's docstring was written to
+    explain, one function below it and on the other side of the same
+    comparison, where it decides the route verdict rather than the triage one: a
+    finding in a dot directory was charged to no slice, so a downgraded slice
+    that produced it read as having produced nothing, and findings are the only
+    per-slice measure the route rule has. F1 of the second review, on a
+    repository where SEEN-104 and SEEN-105 planned slices over `.claude/`,
+    `.codex/` and `.agents/`.
+    """
     if path is None:
         return False
     for named in files:
-        named = str(named).strip().lstrip('./').rstrip('/')
-        if path == named or path.startswith(named + '/'):
+        named = normalise(named)
+        if named is not None and (path == named or path.startswith(named + '/')):
             return True
     return False
 
@@ -416,6 +467,7 @@ def evidence(root, rules):
     in_window = with_route[-size:] if len(with_route) >= size else with_route
     return dict(window=size,
                 counted_from=settings['counted_from'],
+                went_live=went_live_line(root, rules),
                 escape=settings['escape'],
                 tickets=tickets,
                 excluded=excluded,
@@ -423,6 +475,45 @@ def evidence(root, rules):
                 triage=verdict_triage(with_triage, rules),
                 routes=verdict_routes([row for entry in in_window for row in entry['slices']],
                                       [entry['ticket'] for entry in with_route], rules))
+
+
+def went_live_problem(root, rules):
+    """Why the go-live on record is not one, or nothing when it is.
+
+    The criterion asks for the founder's decision to be in the journal of the
+    ticket that flips the switch, and a threshold read on its own cannot tell a
+    decision from an edit: anyone could set `triage_shadow = false` and the next
+    triage would narrow with nothing anywhere saying who decided or on what.
+    `[calibration] went_live` names the ticket and the record, and this checks
+    that the record exists. It does not read what the record says, which is a
+    person's job; what it refuses is a switch flipped with nothing named at all.
+    F3 of the second review.
+    """
+    named = rules['calibration'].get('went_live') or {}
+    ticket, sequence = named.get('ticket'), named.get('record')
+    if not ticket or not sequence:
+        return ('[review] triage_shadow is false but [calibration] went_live names no decision, '
+                'so nothing on the record says who took it or on what evidence. Name the ticket '
+                'and the record number of the decision, or set the threshold back to true')
+    folder = root / HISTORY / ticket
+    records = journal.read(folder) if folder.is_dir() else []
+    if not any(record['sequence'] == sequence for record in records):
+        return (f'[calibration] went_live names record {sequence} of {ticket} as the go-live '
+                'decision and no such record exists, so the switch is flipped on a reference to '
+                'nothing')
+    return None
+
+
+def went_live_line(root, rules):
+    """What a report says about the switch, live or not."""
+    if rules['review']['triage_shadow']:
+        return 'The triage is in shadow: [review] triage_shadow is true.'
+    problem = went_live_problem(root, rules)
+    if problem:
+        return f'The switch is flipped and the decision is not on the record. {problem}'
+    named = rules['calibration']['went_live']
+    return (f'Spot depth went live on {named.get("on", "an unrecorded date")}, by the decision at '
+            f'record {named["record"]} of {named["ticket"]}.')
 
 
 def effective_shadow(root, rules):
@@ -435,14 +526,17 @@ def effective_shadow(root, rules):
     if rules['review']['triage_shadow']:
         return dict(shadow=True, source='threshold',
                     reason='[review] triage_shadow is true in harness/thresholds.toml')
+    named = went_live_problem(root, rules)
+    if named is not None:
+        return dict(shadow=True, source='threshold', reason=named)
     verdict = evidence(root, rules)['triage']
     # An escape, and nothing else. A window that is not full yet is a reason for
     # the report to conclude nothing, never a reason to override the line the
     # founder changed: that would make going live impossible rather than early.
     if not verdict['escapes']:
         return dict(shadow=False, source='calibration',
-                    reason='[review] triage_shadow is false and no escape sits in the window of '
-                           f'{len(verdict["window"])} counted ticket(s)')
+                    reason=went_live_line(root, rules) + ' No escape sits in the window of '
+                           f'{len(verdict["window"])} counted ticket(s).')
     named = ', '.join(sorted({escape['ticket'] for escape in verdict['escapes']}))
     return dict(shadow=True, source='calibration',
                 reason=f'Returned to shadow by the calibration rule: {len(verdict["escapes"])} '

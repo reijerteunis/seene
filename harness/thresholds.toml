@@ -212,10 +212,13 @@ opus = { input = 1500, output = 7500 }
 # itself: the escape holds the verdict until ten further tickets have pushed it
 # out of the window, which is the ticket's "another ten".
 window = 10
-# The moment this rule was committed. A ticket started before it was not worked
-# under the thing being calibrated, which is the rule [context]
-# tools_available_from already carries.
-counted_from = "2026-09-25T20:00:00+00:00"
+# The commit that added this section, ea499b1, to the second. A ticket started
+# before it was not worked under the thing being calibrated, which is the rule
+# [context] tools_available_from already carries. Read from the commit rather
+# than rounded to the minute: the first value was eight minutes early, which is
+# eight minutes in which a ticket could have been counted against a rule that
+# did not exist. F4 of the second review.
+counted_from = "2026-09-25T20:08:27+00:00"
 # The three tickets that built the triage, the routes and this window. A ticket
 # that built a tool was not worked with it, which is the rule SEEN-098 wrote for
 # itself and SEEN-105 repeated; all three wrote triage or route records on their
@@ -232,6 +235,13 @@ triage_rule = """With no escape in the most recent ten counted tickets, spot dep
 the founder sets [review] triage_shadow to false and records the decision in the journal of the \
 ticket that flips it. It stays live until the first escape, which returns the triage to shadow \
 with nobody editing a file, for another ten tickets."""
+# Where the founder's decision to go live is written down. Empty until [review]
+# triage_shadow goes false, and then the ticket and the record number of the
+# decision: a threshold read on its own cannot tell a decision from an edit, so
+# the harness refuses to narrow a review until the switch names the record a
+# reader can open. What the record says is a person's job; what this refuses is
+# a switch flipped with nothing named at all. F3 of the second review.
+went_live = {}
 route_rule = """Each routed slice is charged the returns of its ticket, the findings at high or \
 blocking severity landing in the files it planned to change, and its ticket's escaped defects. A \
 return sends the whole ticket back and no record says which slice caused it, so every slice of the \
