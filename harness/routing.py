@@ -252,13 +252,21 @@ def _from_answers(entry, by_key, rules):
                            + ', '.join(key(name, entry['position']) for name in missing)
                            + ' was not answered'
                            + (f': {"; ".join(reasons)}' if reasons else ''),
-                    model_probability=None, effort_probability=None)
+                    model_probability=None, effort_probability=None,
+                    model_passed=None, model_threshold=None)
     return dict(entry,
                 model=model['outcome'], effort=effort['outcome'],
                 source='jev', rule=None,
                 reason=None,
                 model_probability=model['probabilities'].get(model['outcome']),
-                effort_probability=effort['probabilities'].get(effort['outcome']))
+                effort_probability=effort['probabilities'].get(effort['outcome']),
+                # Whether the answer cleared the bar thresholds.toml sets for
+                # it. These questions refuse nothing, so a route below its bar
+                # still routes; carrying the flag is what lets SEEN-109 tell a
+                # confident route from one the harness itself scored as not
+                # having cleared. F5 of the fourth review.
+                model_passed=model['passed'],
+                model_threshold=model['threshold'])
 
 
 def implementer_task(ticket, entry):
@@ -323,7 +331,9 @@ def run(repository, records, current, rules, ticket):
             continue
         routed.append(dict(entry, model=strongest(rules), effort=rule_effort(rules),
                            source='rule', rule=name, reason=reason,
-                           model_probability=None, effort_probability=None))
+                           model_probability=None, effort_probability=None,
+                           # A rule has no bar to clear, which is the point of it.
+                           model_passed=None, model_threshold=None))
 
     answers, requested = [], dict(asked=False, model=None, answers=[],
                                   reason='Every slice was settled by rule, so no request was made')

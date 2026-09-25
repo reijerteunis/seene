@@ -96,14 +96,25 @@ def slices(records):
 
 
 def _latest_route(records):
-    """The route in force, which is the most recent one written.
+    """The route in force, which is the most recent one that routed this plan.
 
     The most recent, because a plan changed by a return to solution is routed
-    again and the later record describes the plan the work was done against.
+    again and the later record describes the plan the work was done against; and
+    only when it routed the accepted plan, which is the rule routing.for_slice
+    applies and this did not. Without it, a ticket replanned and never routed
+    again reported the old plan's slices, names and models in kpi.json, which is
+    the file SEEN-109 calibrates the routes on. F2 of the fourth review.
     """
+    accepted = None
+    for record in reversed(records):
+        if (accepted is None and record['kind'] == 'advance'
+                and record['data'].get('from_stage') == 'solution'):
+            accepted = record['sequence']
+    if accepted is None:
+        return None
     for record in reversed(records):
         if record['kind'] == 'route':
-            return record
+            return record if record['data'].get('solution') == accepted else None
     return None
 
 

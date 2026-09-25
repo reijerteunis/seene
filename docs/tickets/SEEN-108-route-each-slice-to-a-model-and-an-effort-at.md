@@ -39,11 +39,16 @@ Every slice runs on the session's model at the session's effort today, whatever 
 
 ## Outcome
 
-Worked in one session by the digest `710e96458c5b`, in six attempts with five
-returns, nine slices proved against four planned. Three of the returns came from
-the review and each found something real; one came from the review triage before
-any model read the diff, which is what SEEN-107 was built to do; one was this
-ticket's own doing, to take the second review's findings.
+Worked in one session by the digest `710e96458c5b`: eight attempts, seven
+returns, eleven slices proved against four planned, counting the tdd advance
+this section was written for. Four of the returns came from a review and each
+found something real; one came from the review triage before any model read the
+diff, which is what SEEN-107 was built to do; two were this ticket's own, to take
+a review's findings. The counts are read from the journal rather than recalled,
+because the first version of this section was recalled, went stale within two
+commits and said four findings were outstanding that were fixed on this branch.
+The fourth review found that, and it is the reason this paragraph says where its
+numbers come from.
 
 **What it delivers.** `harness route <ticket>` decides per slice which model and
 which effort implement it, at the tdd stage with the plan and the risk answers on
@@ -72,7 +77,7 @@ of 15,631 entries in this project's logs after three subagent runs none carries
 disclosure and not a proof, the same position SEEN-105 took for the reviewer's
 session id. The decisions are at records 41 and 50 with the options offered.
 
-**What the reviews found that the tests did not.** Twenty-one findings over three
+**What the reviews found that the tests did not.** Twenty-six findings over four
 reviews, and the pattern in them is worth more than the count. Three were the
 same fault in different clothes: a figure attributed to the wrong thing. The
 tokens of a slice were keyed by the handoff's `position` rather than its `done`,
@@ -85,11 +90,7 @@ where a `pull_request` checkout has none, and it fell back while the committed
 copies held the old plan's model. Two were mine in the plainest sense: the
 `failure_reason` field, which asks for the runner's words, was filled three times
 from what this session had been reading, and a correcting note written after the
-first was not enough to stop the second or the third. Records 42, 52 and 70 correct all three, and record 70 has a slip of its own:
-it cites "records 56 and 70" for the two failure reasons written by quoting the
-runner, where it means 56 and 64, because 70 is that note. The journal is
-append-only and a fourth correcting note about a citation inside the third is
-not worth a record, so it is named here.
+first was not enough to stop the second or the third. Records 42, 52 and 70 correct all three, and the corrections are listed below.
 
 **What it cost, on its own figures.** Slice 1 68,043 output tokens, slice 2
 23,659, slice 3 45,545, slice 4 unknown because no figure was recorded at the
@@ -99,13 +100,21 @@ the number the whole ticket is about: routed haiku at a counterfactual 18 cents,
 run on opus at 342, an eighteenfold gap that the first version of the cost table
 would have credited to haiku as a saving nothing on haiku ever earned.
 
-**What is carried.** Four findings of the third review go to SEEN-111 with the
-reviewer's evidence for each in note 59: the stray-agent check that
-`seen-implementer` hid by becoming a generated agent, a report sentence pointing
-at a command SEEN-109 adds, a money rule a slice naming a directory would slip
-past, and the correction record 38 still needs. They are not escaped defects:
-every one was found by review before delivery, so SEEN-111 does not name this
-ticket in a `fixes` field.
+**What is carried.** Nothing. Four findings of the third review were carried to a
+follow-up, SEEN-111, and then fixed here instead, because the review gate refuses
+a delivery with open findings and says not to relabel one; SEEN-111 was withdrawn
+in the same commit that closed them. Every finding of all four reviews is closed
+in this ticket, and none of them is an escaped defect, because every one was
+found by a review before delivery rather than after it.
+
+**What the journal owns.** Four corrections, at records 42, 52, 70 and 83. Three
+are the same fault: the `failure_reason` field asks for the runner's words and
+was filled from what the session had been reading, at records 23, 46 and 38. The
+fourth is record 82 naming a plan position for a rework round that spans three
+slices' files, one attempt after adding the field so that nothing would be
+guessed. Record 70 has a slip of its own, citing 70 where it means 64. None of
+them changes a slice's proof; all of them are what an append-only journal does
+instead of an edit.
 
 **What is not closed.** The gate refuses a mismatch only when `[routing] shadow`
 is false, and nothing has run under that yet. `ran_on` is null for slice 1,

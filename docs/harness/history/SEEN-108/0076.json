@@ -1,0 +1,19 @@
+{
+  "sequence": 76,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T12:50:32.097118+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 7,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "823bafcaa9f0ba8ef5499f7d70b8d057bc7a14b3",
+  "prev_hash": "e1a0c67e75a45445ecabb9ca806bdc7bbf727f592902a409ef10f702962d5a5c",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 8,
+    "reason": "The fourth review returned five findings. F1, high: the tdd gate keys a proved slice by its index in the tdd record while a route is keyed by plan position, so a rework attempt that proves one slice reads the wrong slice's route and, with shadow off, would refuse work that ran exactly as routed. Ruud's decision is that the tdd record names the position. F2: kpi.execution reads the latest route whatever plan it routed, where routing.for_slice refuses a stale one. F3: cost_per_point divides a partly measured cost by every point in the row, understating opus by 40 per cent on this ticket's own figures. F4: the outcome is stale and says four findings go to SEEN-111, a ticket withdrawn two commits later. F5: the route entry does not carry Jev's passed flag, so a route below its own bar reads like a confident one."
+  }
+}

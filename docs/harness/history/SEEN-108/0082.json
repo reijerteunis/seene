@@ -1,0 +1,38 @@
+{
+  "sequence": 82,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T13:02:22.002153+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 8,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "823bafcaa9f0ba8ef5499f7d70b8d057bc7a14b3",
+  "prev_hash": "fc8e27b5f44e39db0433d69dbba3ce6f980542182cfab5d22c691df767637859",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": 4,
+          "behaviour": "A proved slice names which slice of the plan it is and the gate holds it to that slice's route, the KPI reads a route only for the plan it routed, a per-model cost is divided by the points it could price, and a route entry says whether the answer cleared its own bar.",
+          "failure_reason": "Quoted from check 78's captured output: \"KeyError: 'model_passed'\" and \"KeyError: 'priced_points'\" for the two fields that did not exist; \"AssertionError: HarnessError not raised\" twice, for a rework declaring the wrong slice's model and for a position outside the plan, both of which the gate accepted; \"AssertionError: [{'position': 1, 'name': 'One', 'points': 1, 'model': 'haiku', 'effort': 'low', 'source': 'jev', 'rule': ...}] is not None\" for the KPI still reading a route whose plan had been replaced; and \"AssertionError: 0 is not None\" for the row nothing could price reporting a cost of zero.",
+          "red": 78,
+          "green": 79
+        }
+      ],
+      "regression": 80,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "710e96458c5b",
+      "output_tokens": 592713,
+      "tool_calls": 336,
+      "unavailable": null
+    }
+  }
+}

@@ -382,7 +382,8 @@ class GateTest(RouteTest):
         regression = self.run_check('regression', model=model)
         self.record_coverage()
         return dict(mode='code', regression=regression['sequence'], coverage_delta=0.0,
-                    slices=[dict(behaviour='The status line shows the stage',
+                    slices=[dict(position=1,
+                                 behaviour='The status line shows the stage',
                                  failure_reason='AssertionError: the status line is empty',
                                  red=red['sequence'], green=green['sequence'])])
 
@@ -749,7 +750,8 @@ class DeclaredModelTest(GateTest):
         regression = self.declared_check('regression', model=model, declared=declared)
         self.record_coverage()
         return dict(mode='code', regression=regression['sequence'], coverage_delta=0.0,
-                    slices=[dict(behaviour='The status line shows the stage',
+                    slices=[dict(position=1,
+                                 behaviour='The status line shows the stage',
                                  failure_reason='AssertionError: the status line is empty',
                                  red=red['sequence'], green=green['sequence'])])
 
@@ -887,3 +889,98 @@ class DirectoryNamedSliceTest(RouteTest):
         """`packages/core-utils` is a different package, not money arithmetic."""
         entry = self.rule_for(['packages/core-utils/src/format.ts'])
         self.assertEqual(entry['source'], 'jev')
+
+
+class SlicePositionTest(GateTest):
+    """Which route a proved slice is held to.
+
+    F1 of the fourth review: the gate read the slice's index in the tdd record
+    and a route is keyed by plan position, so a rework attempt proving one slice
+    read plan slice 1's route. The tdd record names the position now, and an
+    older record that cannot is not refused on a mapping it never had.
+    """
+
+    def plan(self):
+        return [dict(PLAIN, name='The status line'), dict(MONEY, name='Fee expectations')]
+
+    def rework_of(self, position, declared, model='claude-opus-5'):
+        """One slice proved on its own, the way a rework attempt proves one."""
+        red = self.declared_check('red', exit_code=1, model=model, declared=declared)
+        green = self.declared_check('green', model=model, declared=declared)
+        regression = self.declared_check('regression', model=model, declared=declared)
+        self.record_coverage()
+        entry = dict(behaviour='The reworked behaviour',
+                     failure_reason='AssertionError: the reworked behaviour is absent',
+                     red=red['sequence'], green=green['sequence'])
+        if position is not None:
+            entry['position'] = position
+        return dict(mode='code', regression=regression['sequence'], coverage_delta=0.0,
+                    slices=[entry])
+
+    def declared_check(self, phase, exit_code=0, model=None, declared=None):
+        from harness import sessions
+        original = sessions.model
+        sessions.model = lambda root, identity=None: model
+        try:
+            arguments = ['check', self.ticket_id, '--phase', phase,
+                         '--actor', 'claude:implementer']
+            if declared is not None:
+                arguments += ['--model', declared]
+            return self.run_harness(*arguments, '--', 'sh', '-c', f'exit {exit_code}')
+        finally:
+            sessions.model = original
+
+    def test_a_rework_of_slice_two_is_held_to_slice_two_s_route(self):
+        """Slice 1 is Jev's haiku, slice 2 is the money rule's opus."""
+        self.use(route_stub(model=(0.7, 0.2, 0.1)))
+        self.reach_tdd(self.plan())
+        self.route()
+        self.set_shadow(False)
+        record = self.submit('tdd', self.rework_of(2, declared='opus'))
+        self.assertEqual(record['data']['to_stage'], 'review')
+
+    def test_a_rework_declaring_the_wrong_slice_s_model_is_refused(self):
+        self.use(route_stub(model=(0.7, 0.2, 0.1)))
+        self.reach_tdd(self.plan())
+        self.route()
+        self.set_shadow(False)
+        with self.assertRaises(HarnessError) as raised:
+            self.submit('tdd', self.rework_of(2, declared='haiku'))
+        self.assertIn('Slice 2', str(raised.exception))
+
+    def test_a_record_that_names_no_position_is_not_refused(self):
+        """Every tdd record written before the field exists is one of these."""
+        self.use(route_stub(model=(0.7, 0.2, 0.1)))
+        self.reach_tdd(self.plan())
+        self.route()
+        self.set_shadow(False)
+        record = self.submit('tdd', self.rework_of(None, declared='haiku'))
+        self.assertEqual(record['data']['to_stage'], 'review')
+
+    def test_a_position_outside_the_plan_is_refused(self):
+        self.use(route_stub(model=(0.7, 0.2, 0.1)))
+        self.reach_tdd(self.plan())
+        self.route()
+        with self.assertRaisesRegex(HarnessError, '2 slices'):
+            self.submit('tdd', self.rework_of(3, declared='opus'))
+
+
+class RouteBelowItsBarTest(RouteTest):
+    """F5: a route that did not clear its own threshold says so."""
+
+    def test_the_entry_carries_whether_the_answer_cleared_its_bar(self):
+        self.use(route_stub(model=(0.3, 0.46, 0.24)))
+        self.reach_tdd([PLAIN])
+        entry = self.route()['data']['execution'][0]
+        self.assertEqual(entry['model'], 'sonnet')
+        self.assertFalse(entry['model_passed'])
+        self.assertEqual(entry['model_threshold'], 0.5)
+
+    def test_a_route_that_cleared_its_bar_says_that_too(self):
+        self.use(route_stub(model=(0.1, 0.7, 0.2)))
+        self.reach_tdd([PLAIN])
+        self.assertTrue(self.route()['data']['execution'][0]['model_passed'])
+
+    def test_a_rule_routed_slice_has_no_bar_to_clear(self):
+        self.reach_tdd([MONEY])
+        self.assertIsNone(self.route()['data']['execution'][0]['model_passed'])

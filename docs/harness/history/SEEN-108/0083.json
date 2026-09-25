@@ -1,0 +1,16 @@
+{
+  "sequence": 83,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T13:02:51.384514+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "review",
+  "attempt": 8,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "823bafcaa9f0ba8ef5499f7d70b8d057bc7a14b3",
+  "prev_hash": "369636f13e265859ea392937967aa94775fd7197e803ba36815a646332371c7e",
+  "data": {
+    "text": "# Correction to the position recorded for attempt 8 at record 82\n\nThe field this attempt added says which slice of the plan a proved slice is, so\nthat the tdd gate holds it to that slice's route rather than to whichever slice\nhappens to sit at the same index. Record 82 names position 4, and attempt 8 does\nnot belong to slice 4.\n\n**What attempt 8 actually reworked.** The gate's mapping in harness/gates.py,\nwhich is slice 2's file; the stale-route read in harness/kpi.py and the division\nin harness/context.py, which are slice 4's; and the route entry in\nharness/routing.py, which is slice 1's. Four findings of the fourth review\nacross three slices' files.\n\n**What the record should have said.** Nothing. The field is omittable, and the\ngate is explicit that a record naming no position is held to no route, because\nthe mapping it never carried cannot be inferred. A rework round that spans\nslices is exactly the case omission is for, and the session wrote a number\nanyway, one attempt after adding the field for the sake of not guessing.\n\n**What follows from it.** With `[routing] shadow` true nothing compares, so no\ncheck was held to the wrong route and no advance turned on the value. Had shadow\nbeen false, the three checks of this attempt declared `--model opus` and slice 4\nis routed sonnet, so the gate would have refused them: the value would have\ncaused the refusal the field exists to prevent, on this ticket's own record.\n\n**What it says about the field.** A rework round having no single position is\nnot an edge case, it is most rounds after the first, and the harness has one\nanswer for it: leave the field out. That reading belongs in the template's own\nprose rather than in a note, and it is not in this ticket's scope to add. The\nnext ticket that touches harness/templates/tdd.json should say it there.\n"
+  }
+}

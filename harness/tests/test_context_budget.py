@@ -293,8 +293,9 @@ class CostPerPointByModelTest(unittest.TestCase):
     def test_it_divides_each_model_s_cost_by_the_points_it_carried(self):
         from harness import context
         by_model = context.cost_by_model(self.tickets())
-        self.assertEqual(by_model['opus'], dict(slices=1, points=2, cost_cents=300.0,
-                                                cost_per_point=150.0, output_tokens=40000))
+        self.assertEqual(by_model['opus'], dict(slices=1, points=2, priced_points=2,
+                                                cost_cents=300, cost_per_point=150.0,
+                                                output_tokens=40000))
         self.assertEqual(by_model['haiku']['points'], 3)
         self.assertEqual(by_model['haiku']['cost_per_point'], round(20.0 / 3, 2))
 
@@ -317,6 +318,33 @@ class CostPerPointByModelTest(unittest.TestCase):
             dict(position=1, points=1, model='opus', effort='high',
                  ran_on_tier=None, output_tokens=5000, cost_cents=None)])]
         self.assertEqual(list(context.cost_by_model(tickets)), ['unknown'])
+
+    def test_a_partly_priced_row_divides_by_the_points_it_could_price(self):
+        """F3: dividing a partial cost by every point understates the model.
+
+        On SEEN-108's own figures opus read 103.8 cents per point where its
+        priced slices gave 173.0, in the table that decides whether routing
+        saves money.
+        """
+        from harness import context
+        tickets = [dict(ticket='SEEN-006', points=5, execution=[
+            dict(position=1, points=3, model='opus', effort='high', ran_on_tier='opus',
+                 output_tokens=60000, cost_cents=519),
+            dict(position=2, points=2, model='opus', effort='high', ran_on_tier='opus',
+                 output_tokens=None, cost_cents=None)])]
+        entry = context.cost_by_model(tickets)['opus']
+        self.assertEqual(entry['points'], 5)
+        self.assertEqual(entry['priced_points'], 3)
+        self.assertEqual(entry['cost_per_point'], 173.0)
+
+    def test_a_row_nothing_could_price_reports_no_cost_rather_than_zero(self):
+        from harness import context
+        tickets = [dict(ticket='SEEN-007', points=2, execution=[
+            dict(position=1, points=2, model='opus', effort='high', ran_on_tier=None,
+                 output_tokens=68043, cost_cents=None)])]
+        entry = context.cost_by_model(tickets)['unknown']
+        self.assertIsNone(entry['cost_cents'])
+        self.assertEqual(entry['output_tokens'], 68043)
 
     def test_a_slice_with_no_cost_still_counts_its_points_and_says_so(self):
         from harness import context

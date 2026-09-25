@@ -248,9 +248,34 @@ def _tdd(data, records, current, repository, thresholds):
         require(previous_green < red['sequence'] < green['sequence'] <= regression['sequence'],
                 f'Slice {position} is out of order; each red must precede its green, slices '
                 'must not overlap, and the regression must be the last check')
-        _require_the_routed_model(records, position, (red, green), thresholds)
+        _require_the_routed_slice(records, slice_, position, (red, green), thresholds)
         previous_green = green['sequence']
     return {}
+
+
+def _require_the_routed_slice(records, slice_, order, checks_cited, thresholds):
+    """Which slice of the plan this proved slice is, and then its route.
+
+    The plan position, not the order in this record. They agree only in an
+    attempt that re-proves the whole plan in order: a rework attempt proves the
+    one slice it reworked, so reading the index would have held it to plan slice
+    1's route and, with shadow off, refused work that ran exactly as routed.
+    F1 of this ticket's fourth review.
+
+    A record written before the field existed names no position, and is held to
+    no route: the mapping it never carried cannot be inferred, and refusing on a
+    guess is the fault this replaced.
+    """
+    position = slice_.get('position')
+    if position is None:
+        return
+    planned = len((latest_evidence(records, 'solution') or {}).get('slices') or [])
+    require(isinstance(position, int) and not isinstance(position, bool)
+            and 1 <= position <= planned,
+            f'Slice {order} of this record names position {position!r}, and the plan has '
+            f'{planned} slices. The position is which slice of the plan was proved, which is '
+            'what its route is keyed by')
+    _require_the_routed_model(records, position, checks_cited, thresholds)
 
 
 def _require_the_routed_model(records, position, checks_cited, thresholds):

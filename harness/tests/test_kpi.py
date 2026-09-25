@@ -692,3 +692,36 @@ class ReworkWindowTest(DeliveryWalk):
         charged = sum(entry['output_tokens'] or 0 for entry in measured['execution'])
         self.assertEqual(charged, 85000)
         self.assertEqual(measured['tokens']['output_tokens'], 200000)
+
+
+class StaleRouteTest(DeliveryWalk):
+    """F2 of the fourth review: the KPI reads a route for the plan it routed.
+
+    routing.for_slice refuses a route whose solution is not the accepted advance,
+    and kpi.execution did not, so after a replan nobody routed again the KPI
+    reported routes for slices that no longer exist.
+    """
+
+    def replanned(self):
+        records = list(journal_with_a_route())
+        return records + [
+            record(16, 'return', 'review', minute=70, session='aaaaaaaaaaaa',
+                   from_stage='review', to_stage='solution', to_attempt=2, reason='a finding'),
+            record(17, 'advance', 'solution', minute=75, session='aaaaaaaaaaaa',
+                   from_stage='solution', to_stage='tdd', decisions=[],
+                   evidence=dict(mode='code',
+                                 slices=[dict(name='Something else', points=1, files=['c'],
+                                              red='z')])),
+        ]
+
+    def test_a_route_that_routed_a_replaced_plan_is_not_read(self):
+        from harness import thresholds
+        measured = kpi.measure(self.replanned(), 'SEEN-001', points=1,
+                               rules=thresholds.load(PROJECT))
+        self.assertIsNone(measured['execution'])
+
+    def test_the_two_readers_agree_about_a_stale_route(self):
+        from harness import routing
+        records = self.replanned()
+        self.assertIsNone(routing.for_slice(records, 1))
+        self.assertIsNone(kpi.execution(records))

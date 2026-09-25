@@ -58,22 +58,29 @@ def cost_by_model(tickets):
     for ticket in tickets:
         for entry in ticket.get('execution') or []:
             found = by_model.setdefault(entry.get('ran_on_tier') or UNKNOWN,
-                                        dict(slices=0, points=0, cost_cents=0,
-                                             output_tokens=0, priced=0))
+                                        dict(slices=0, points=0, priced_points=0,
+                                             cost_cents=0, output_tokens=0, priced=0))
             found['slices'] += 1
             found['points'] += entry.get('points') or 0
             if entry.get('cost_cents') is not None:
                 found['cost_cents'] += entry['cost_cents']
                 found['priced'] += 1
+                found['priced_points'] += entry.get('points') or 0
             if entry.get('output_tokens') is not None:
                 found['output_tokens'] += entry['output_tokens']
     for found in by_model.values():
-        priced, points = found.pop('priced'), found['points']
-        # A whole number of cents, as the amounts it sums are. The division
-        # below is a rate rather than an amount, so it keeps its decimals.
-        found['cost_cents'] = round(found['cost_cents'])
-        found['cost_per_point'] = (round(found['cost_cents'] / points, 2)
-                                   if priced and points else None)
+        priced, priced_points = found.pop('priced'), found['priced_points']
+        # Divided by the points it could price and never by all of them: a
+        # numerator covering two slices over a denominator covering three
+        # understates the model, which is what this function's own docstring
+        # says it must not do. On SEEN-108's figures opus read 103.8 cents per
+        # point where its priced slices gave 173.0. F3 of the fourth review.
+        #
+        # A whole number of cents, as the amounts it sums are, and nothing at
+        # all where nothing was priced: zero is a claim that a slice was free.
+        found['cost_cents'] = round(found['cost_cents']) if priced else None
+        found['cost_per_point'] = (round(found['cost_cents'] / priced_points, 2)
+                                   if priced and priced_points else None)
     return by_model
 
 
