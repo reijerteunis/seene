@@ -25,11 +25,18 @@ def record(sequence, kind, stage, day=1, minute=0, ticket='SEEN-001', attempt=1,
                 session='a' * 12, head='0' * 40, prev_hash=None, data=data)
 
 
-def triage_record(sequence, day=1, minute=10, would_exclude=(), answers=(), ticket='SEEN-001'):
+def triage_record(sequence, day=1, minute=10, would_exclude=(), answers=(), ticket='SEEN-001',
+                  files=None):
     """A triage as SEEN-107 writes one: what it would have dropped, and its answers."""
     return record(sequence, 'triage', 'review', day=day, minute=minute, ticket=ticket,
                   fingerprint='f' * 64, code_fingerprint='c' * 64,
-                  files=[], criteria=[], deterministic=[], rules=[],
+                  files=[dict(path=path, added=1, removed=0)
+                         for path in (files if files is not None
+                                      else ['harness/skipped.py', 'harness/read.py',
+                                            'harness/a.py', 'harness/b.py', 'harness/other.py',
+                                            '.claude/agents/seen-reviewer.md',
+                                            '.claude/agents/x.md', '.codex/agents/x.toml'])],
+                  criteria=[], deterministic=[], rules=[],
                   jev=dict(asked=True, model='jev-1.13.0', reason=None, answers=[]),
                   criteria_answers=[dict(key=f'criterion_evidenced#{position}',
                                          criterion=criterion, passed=passed,
@@ -911,5 +918,77 @@ class FourthReviewTest(ProjectTest):
         self.assertIn('went_live', reason)
         self.assertIn('triage_shadow', self.rules['calibration']['triage_rule'])
         self.assertIn('went_live', self.rules['calibration']['triage_rule'])
+class FifthReviewTest(ProjectTest):
+    """The findings of the fifth review, at note 56."""
+
+    def setUp(self):
+        super().setUp()
+        self.rules = thresholds.load(self.root)
+
+    def unclaimed(self):
+        """A ticket whose blocking finding lands in a file no slice named."""
+        return journal(execution=[slice_entry(1, 'sonnet', files=['harness/a.py']),
+                                  slice_entry(2, 'opus', files=['harness/b.py'])],
+                       findings=[finding('F1', 'blocking', 'harness/unclaimed.py:12')])
+
+    def test_a_finding_no_slice_can_be_compared_with_is_charged_to_every_slice(self):
+        """F1: nothing says which slice caused it, which is what route_rule already
+        says of a return and of an escaped defect."""
+        rows = calibration.slice_rows('SEEN-C01', self.unclaimed(), escaped=[],
+                                      rules=self.rules)
+        self.assertEqual([row['unchargeable'] for row in rows], [1, 1])
+        self.assertEqual([row['rework'] for row in rows], [1, 1])
+
+    def test_a_finding_a_slice_owns_is_charged_to_that_slice_alone(self):
+        rows = calibration.slice_rows(
+            'SEEN-C01',
+            journal(execution=[slice_entry(1, 'sonnet', files=['harness/a.py']),
+                               slice_entry(2, 'opus', files=['harness/b.py'])],
+                    findings=[finding('F1', 'blocking', 'harness/b.py:4')]),
+            escaped=[], rules=self.rules)
+        self.assertEqual([row['findings'] for row in rows], [0, 1])
+        self.assertEqual([row['unchargeable'] for row in rows], [0, 0])
+
+    def test_the_routes_cannot_state_go_live_while_a_finding_could_not_be_charged(self):
+        rows = [dict(group='downgraded', points=1, rework=1, unchargeable=1, ticket='SEEN-C01'),
+                dict(group='strongest', points=1, rework=1, unchargeable=1, ticket='SEEN-C01')]
+        verdict = calibration.verdict_routes(rows, [f'SEEN-C{n:02d}' for n in range(10)],
+                                             self.rules)
+        self.assertEqual(verdict['state'], 'stay_shadow')
+        self.assertIn('could not be charged', verdict['reason'])
+
+    def test_the_routes_still_state_go_live_when_every_finding_was_charged(self):
+        rows = [dict(group='downgraded', points=1, rework=0, unchargeable=0, ticket='SEEN-C01'),
+                dict(group='strongest', points=1, rework=1, unchargeable=0, ticket='SEEN-C02')]
+        verdict = calibration.verdict_routes(rows, [f'SEEN-C{n:02d}' for n in range(10)],
+                                             self.rules)
+        self.assertEqual(verdict['state'], 'go_live')
+
+    def test_the_report_names_the_findings_no_slice_could_be_compared_with(self):
+        plant(self.root, 'SEEN-C10', 1,
+              execution=[slice_entry(1, 'sonnet', files=['harness/a.py'])],
+              findings=[finding('F1', 'blocking', 'harness/unclaimed.py:12')])
+        section = calibration.evidence(self.root, self.rules)
+        markdown = report.render_calibration(section, self.rules)
+        self.assertIn('could not be charged to a slice', markdown)
+        self.assertIn('harness/unclaimed.py', markdown)
+
+    def test_the_weekly_report_reads_a_returning_round_s_findings_too(self):
+        """F2: two committed reports must not state different findings for one ticket."""
+        from harness import kpi
+        records = journal(returned_findings=[finding('F1', 'high', 'harness/a.py:2')])
+        self.assertEqual(kpi.findings(records)['by_severity'], {'high': 1})
+
+    def test_a_triage_that_recorded_no_files_places_an_unknown_path_nowhere(self):
+        """F3: the fallback restored the merge the fourth review removed."""
+        records = journal(triage=['harness/skipped.py'],
+                          findings=[finding('F1', 'blocking', 'harness/nowhere.py:3')])
+        for entry in records:
+            if entry['kind'] == 'triage':
+                entry['data']['files'] = []
+        found = calibration.escapes(records)
+        self.assertEqual(found['escapes'], [])
+        self.assertEqual([entry['id'] for entry in found['unattributable']], ['F1'])
+
 if __name__ == '__main__':
     unittest.main()

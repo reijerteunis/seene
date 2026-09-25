@@ -333,16 +333,28 @@ def render_calibration(section, rules):
         group = routes[name]
         lines.append(f'| {name} | {group["slices"]} | {group["points"]} | {group["rework"]} '
                      f'| {group["rate"] if group["rate"] is not None else "not measurable"} |')
+    unchargeable = sorted({path for row in section['slices']
+                           for path in row.get('unchargeable_files') or []})
+    if unchargeable:
+        lines += ['', '### Findings that could not be charged to a slice', '',
+                  'A finding at high or blocking severity in a file no slice of its ticket '
+                  'named. Nothing says which slice caused it, so every slice of the plan '
+                  'carries it, the way a return and an escaped defect already are, and the '
+                  'verdict above says so rather than taking a rate over a comparison that could '
+                  'see none of them.', '']
+        lines += [f'- `{path}`' for path in unchargeable]
     if section['slices']:
         lines += ['', '### Every routed slice', '',
                   '| Ticket | Slice | Points | Routed to | Chosen by | Group | Returns '
-                  '| Findings | Escaped defects |', '|---|---|---|---|---|---|---|---|---|']
+                  '| Findings | Uncharged | Escaped defects |',
+                  '|---|---|---|---|---|---|---|---|---|---|']
         for row in section['slices']:
             lines.append(
                 f'| {row["ticket"]} | {row["position"]} {row["name"] or ""} | {row["points"]} '
                 f'| {row["model"]} at {row["effort"]} | {row["source"]}'
                 f'{" (" + row["rule"] + ")" if row.get("rule") else ""} | {row["group"]} '
-                f'| {row["returns"]} | {row["findings"]} | {row["escaped_defects"]} |')
+                f'| {row["returns"]} | {row["findings"]} | {row.get("unchargeable", 0)} '
+                f'| {row["escaped_defects"]} |')
     lines += ['', '## Not in the window', '']
     if section['excluded']:
         lines += [f'- {entry["ticket"]}: {entry["reason"]}' for entry in section['excluded']]

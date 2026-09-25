@@ -96,13 +96,20 @@ says which slice caused it, so every slice of the plan carries it and an escaped
 the same way; findings are the one per-slice measure. That is written into `route_rule` so nobody
 reads a per-slice rate as a per-slice cause.
 
-Three deviations from the solution record. The tests were named there as `pytest` commands and this
+Four deviations from the solution record, all disclosed here because `slice_files` fails on three
+files the plan did not name and a reader auditing that check should find every one of them. The tests were named there as `pytest` commands and this
 repository runs `unittest`, which is what the checks record. The gate tests for the finding file
 went into `test_calibration.py` rather than `test_stage_gates.py`, because that is the file slice 1
 declared. And `harness/tests/test_context_budget.py` changed although no slice named it: SEEN-108
 left a guard there asserting `report --calibration` is not a command the parser accepts, with a note
 saying the ticket that lands it may lose the tense. This is that ticket, so the sentence in
-`render_cost` is in the present now and the guard holds the other direction.
+`render_cost` is in the present now and the guard holds the other direction. `harness/tests/test_triage.py`
+is the third: the two helpers that flip the go-live switch flip both of its lines from attempt 3, and
+two fixtures that return a ticket from review declare `--no-findings` from attempt 4. `harness/doctor.py`
+is the fourth: F3 of the second review asked for the go-live decision to be checked, and `doctor` is
+where the check belongs, because CI runs it and a refusal in front of every triage would make spot
+depth untestable. `harness/kpi.py` joins them at attempt 6, for F2 of the fifth review: two committed
+reports must not state different findings for one ticket.
 
 ### What the review found
 
@@ -224,3 +231,30 @@ three should have done.
 The fourth is a test: the printed go-live instruction is now pinned to naming both lines, in the
 verdict's reason and in the rule the report prints verbatim, so the one-line instruction the third
 review returned the ticket on cannot come back green.
+
+### What the fifth review found
+
+It was asked to settle whether the path-comparison defect three reviews had found three ways was
+closed as a class, and it answered by running the module against planted records and against the
+real journals of SEEN-105, SEEN-107, SEEN-108 and SEEN-109 rather than by reading it. Closed on the
+triage side. Open on the route side, which is the fourth time the same shape appeared: `slice_rows`
+charged a finding only to a slice whose planned files contained it, so a finding in a changed file
+no slice named was charged to nobody, and `verdict_routes` had nowhere to put what it could not
+charge. Ten counted tickets each carrying a blocking finding in an unnamed file produced a
+downgraded rate of zero against a strongest rate of zero and a printed go-live.
+
+Such a finding is now charged to every slice of the ticket, which is what `route_rule` already says
+of a return and of an escaped defect and for the same reason: nothing says which slice caused it.
+And the route verdict stays shadow while any finding in the window could not be charged, which is
+what the triage verdict already does with evidence nobody can place. That is an amendment to
+`route_rule`, taken while the window still counts nothing, so it is still a rule written before the
+first number rather than after it. It is one line to reverse if the founder disagrees.
+
+Three more with it. `kpi.findings` still read findings only from the review advance, so the weekly
+report and the calibration report would have stated different findings for the same ticket in the
+same commit; both read them the same way now, through the one function that knows a returning round
+records its own. The `seen_by_triage` guard restored the merge the fourth review removed whenever a
+triage record carried no files, and every `EscapeTest` fixture ran through that fallback rather than
+through the real record shape; the guard is gone and the fixtures carry the shape. And the Outcome
+now names all four files no slice planned, `harness/kpi.py` included, rather than three with one
+described only in substance.

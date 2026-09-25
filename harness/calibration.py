@@ -196,7 +196,7 @@ def escapes(records):
                                          id=finding.get('id'), severity=finding['severity'],
                                          reason='The finding names no file, so nothing can say '
                                                 'whether the triage would have excluded it'))
-                elif path not in excluded and seen_by_triage and path not in seen_by_triage:
+                elif path not in excluded and path not in seen_by_triage:
                     unplaced.append(dict(kind='finding', ticket=record['ticket'],
                                          id=finding.get('id'), severity=finding['severity'],
                                          file=path,
@@ -357,6 +357,16 @@ def slice_rows(ticket, records, escaped, rules):
     returns = sum(1 for record in records if record['kind'] in ('return', 'reopen'))
     findings = [finding for finding in latest_findings(records)
                 if finding.get('severity') in ESCAPING_SEVERITIES]
+    planned = [normalise(path) for entry in routed['data']['execution']
+               for path in entry.get('files') or []]
+    # A finding in a file no slice named. Nothing says which slice caused it, so
+    # every slice carries it, exactly as route_rule already says of a return and
+    # of an escaped defect; and it is counted separately, because a comparison
+    # that could place none of the findings must not read as a comparison that
+    # found none. F1 of the fifth review, where ten blocking findings produced a
+    # rate of zero against a rate of zero and a printed go-live.
+    unchargeable = [finding for finding in findings
+                    if not _covers(path_of(finding.get('file')), planned)]
     rows = []
     for entry in routed['data']['execution']:
         charged = sum(1 for finding in findings
@@ -371,7 +381,10 @@ def slice_rows(ticket, records, escaped, rules):
                          source=entry['source'], rule=entry.get('rule'),
                          group='downgraded' if downgraded else 'strongest',
                          returns=returns, findings=charged, escaped_defects=len(escaped),
-                         rework=returns + charged + len(escaped)))
+                         unchargeable=len(unchargeable),
+                         unchargeable_files=sorted({path_of(finding.get('file')) or 'unnamed'
+                                                    for finding in unchargeable}),
+                         rework=returns + charged + len(escaped) + len(unchargeable)))
     return rows
 
 
@@ -514,6 +527,17 @@ def verdict_routes(rows, tickets, rules):
                     rate=round(rework / points, 4) if points else None)
 
     downgraded, strongest = group('downgraded'), group('strongest')
+    unplaced = sorted({row['ticket'] for row in rows if row.get('unchargeable')})
+    if unplaced:
+        # The same answer the triage verdict gives evidence nobody can place: a
+        # rate taken over findings it could not see is not evidence that there
+        # were none. F1 of the fifth review.
+        return dict(state='stay_shadow', rule=rule, window=tickets,
+                    downgraded=downgraded, strongest=strongest,
+                    reason=f'In {", ".join(unplaced)} a finding could not be charged to any '
+                           'slice, because no slice named the file it is in, so the comparison '
+                           'saw less than the window contains and a rate taken over it is not '
+                           'evidence')
     if downgraded['rate'] is None:
         return dict(state='stay_shadow', rule=rule, window=tickets,
                     downgraded=downgraded, strongest=strongest,

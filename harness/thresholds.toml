@@ -253,4 +253,7 @@ measure, so a per-slice rate is evidence about a group and never about a cause. 
 routed below the strongest tier are one group and every other slice, rule-routed ones included, \
 is the other. The routes go live when the downgraded group's rework per point is at or below the \
 other group's over the window; with no slice in either group there is nothing to compare and the \
-verdict stays shadow."""
+verdict stays shadow. A finding no slice's files can be compared with is charged to every slice \
+for the same reason a return is, and the verdict stays shadow while any such finding sits in the \
+window: a rate taken over findings the comparison could not see is not evidence that there were \
+none, which is what evidence nobody can place already means on the triage side."""
