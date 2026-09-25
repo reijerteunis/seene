@@ -1,0 +1,16 @@
+{
+  "sequence": 52,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T09:29:51.150538+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 5,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "a740bda3269c66d4e0a0928c050d9fd528a3f5d3",
+  "prev_hash": "123a767838e03872c5193fe8b4718a489d46fb78dbceece32dc9867dcf445f14",
+  "data": {
+    "text": "# Correction to the failure reason recorded for attempt 4 at record 46\n\nF5 of the second review at note 49, and the same fault note 42 corrected for\nrecord 23, one record later. The journal is append-only, so record 46 stands as\nwritten and this note is the correction.\n\n**What record 46 says.** \"F7: '614.1 is not an instance of int' from\ntest_every_amount_is_a_whole_number_of_cents\".\n\n**What check 40, the RED it cites, actually contains.** \"AssertionError: 300.0\nis not an instance of <class 'int'> : cost_cents is 300.0\". The string 614.1\nappears in no check output anywhere in this journal.\n\n**Why it was wrong, and why it is worse than the first one.** 614.1 is a real\nfigure: it is what `kpi.execution` returned for slice 1 of this ticket's own\njournal when the session ran it by hand, minutes before writing the record. It\nwas copied from what the session had been looking at rather than from the\nrunner, which is the same class of fault as record 23's, where the figure came\nfrom the solution record's prediction. Note 42 called that \"the one thing the\nfield exists to prevent\" and this record repeated it in the next attempt, which\nsays the correction was written and not learned. The field is a quotation, and\nthe only safe way to fill it is to read the cited check's captured output and\ncopy from there.\n\n**What it does not change.** The RED did fail, and the other three failures\nrecord 46 names are in check 40 verbatim: the KeyError on `implementer_task`\nfour times, \"0.4 != 0\", and the assertion on \"## The two agents\". The slice is\nnot re-proved on this account; the record is corrected so that a reader auditing\nit, or SEEN-109 calibrating red_before_green on it, is not looking for a figure\nthat is not there.\n"
+  }
+}

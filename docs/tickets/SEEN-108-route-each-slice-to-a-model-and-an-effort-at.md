@@ -33,7 +33,7 @@ Every slice runs on the session's model at the session's effort today, whatever 
 
 - [ ] (as amended) harness route <ticket> writes an execution entry per slice with model, effort, source and probability into a route record naming the accepted solution record it routes, the handoff pack carries the entry for the slice in hand, and a route is read only for the plan it routed
 - [ ] A slice matching a routing rule (agent action, billing or policy gate, money arithmetic in packages/core, migration or RLS, credentials) is routed to the strongest model at high effort without a Jev call, proven with a fixture
-- [ ] The implementer subagent is spawned with the routed model and effort in Claude Code and in Codex, and a check recorded under a different model is refused by the tdd gate naming both models
+- [ ] (as amended) The implementer subagent is spawned with the routed model and effort in Claude Code and in Codex, and a check recorded under a different model is refused by the tdd gate naming both models, reading the model the subagent declares when it declares one and the session log otherwise
 - [ ] kpi.json carries model, effort, output tokens and cost per slice, and harness report --sprint shows cost per point by model beside the tokens per point it already shows
 - [ ] docs/harness/skill.md says the route is read from the handoff pack and never chosen inside the session, and sync regenerates both copies
 
@@ -56,6 +56,21 @@ Every slice runs on the session's model at the session's effort today, whatever 
   41. What the criterion
   asks for is delivered in substance: one entry per slice with model, effort,
   source and probability, carried in the handoff pack. Only its location moves.
+
+- **25 September 2026, Ruud: criterion 3 is amended.** The gate reads the model
+  the implementer declares when it declares one, and the session log otherwise.
+  The criterion asked for the log alone, and a subagent's model is not in it: a
+  Claude Code subagent inherits CLAUDE_CODE_SESSION_ID, so its checks resolve to
+  the parent's transcript, and of the 15,631 entries in this project's logs after
+  one scout run and two reviewer runs, none carries `isSidechain` true and every
+  model entry reads claude-opus-5. Left as written, the gate would refuse a slice
+  that ran exactly as routed and name a remedy the session cannot carry out.
+  Raised as F1 of the second review at note 49, verified by that reviewer from
+  inside its own subagent; the decision, with the three options put to him and
+  the one he chose, is at record 50. A declaration is a disclosure and not a
+  proof, which is the position SEEN-105 already took for the reviewer's session
+  id, and the record carries both values so that what was observed and what was
+  claimed are told apart.
 
 ## Depends on
 

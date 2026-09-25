@@ -126,24 +126,42 @@ def slice_windows(records):
     session logs records null, and subtracting one from a number would turn an
     absence into a total.
     """
-    windows, opened, previous = {}, 0, None
+    windows, opened, previous, last = {}, 0, None, 0
     for record in records:
-        if record['kind'] != 'handoff':
+        closes = _closes(record, last)
+        if closes is None:
             continue
-        cut = record['data'].get('slice') or {}
-        figures = record['data'].get('figures') or {}
-        done, output = cut.get('done'), figures.get('output_tokens')
-        session = figures.get('session')
+        done, figures = closes
+        output, session = figures.get('output_tokens'), figures.get('session')
         if done:
             spent = None
             if output is not None:
                 spent = (output - previous['output_tokens']
                          if previous and previous['session'] == session else output)
             windows[done] = dict(spent=spent, opened=opened, closed=record['sequence'])
+            last = done
         opened = record['sequence']
         if output is not None:
             previous = dict(session=session, output_tokens=output)
     return windows
+
+
+def _closes(record, last):
+    """Which slice this record's boundary closed, and the figures it carried.
+
+    A handoff says so itself. The accepted tdd advance closes whatever slice the
+    last boundary left open, because the plan ends there and no handoff follows
+    the final slice: without it the last slice of every ticket carried nothing,
+    which is the fault keying by `done` was supposed to have cured and had not.
+    F3 of this ticket's second review. An advance written before this existed
+    carries no figures and closes nothing, which is an absence and not a zero.
+    """
+    data = record['data']
+    if record['kind'] == 'handoff':
+        return (data.get('slice') or {}).get('done'), data.get('figures') or {}
+    if record['kind'] == 'advance' and data.get('from_stage') == 'tdd' and data.get('figures'):
+        return last + 1, data['figures']
+    return None
 
 
 def ran_on(records, window):

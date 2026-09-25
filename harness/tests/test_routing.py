@@ -38,7 +38,7 @@ SECOND_PLAIN = dict(name='The empty state', points=1,
                     red='The empty state is not rendered')
 
 
-def route_stub(model=SONNET, effort=MEDIUM, billing=0.1, leave_out=()):
+def route_stub(model=SONNET, effort=MEDIUM, billing=0.1, must_fix=0.05, leave_out=()):
     """A transport answering the two route questions, keyed by slice position.
 
     `leave_out` names keys the reply drops, which is how a well-formed answer
@@ -60,6 +60,10 @@ def route_stub(model=SONNET, effort=MEDIUM, billing=0.1, leave_out=()):
                 replies[key] = score(list(effort))
             elif name == 'touches_billing_or_policy_gate':
                 replies[key] = noul(billing)
+            elif name == 'must_fix':
+                # A stage gate refuses a must_fix that clears its bar, so a stub
+                # answering every noul at 0.9 cannot walk a ticket to delivered.
+                replies[key] = noul(must_fix)
             elif question['type'] == 'score':
                 replies[key] = score([0.2, 0.7, 0.1])
             else:
@@ -695,3 +699,125 @@ class SpawnInstructionTest(RouteTest):
     def test_a_rule_routed_slice_says_which_rule_sent_it_there(self):
         self.reach_tdd([MONEY])
         self.assertIn('money', self.task())
+
+
+class DeclaredModelTest(GateTest):
+    """What a subagent can say about itself, because the log cannot say it.
+
+    A Claude Code subagent inherits CLAUDE_CODE_SESSION_ID, so a check it runs
+    resolves to its parent's transcript and records the parent's model. F1 of
+    this ticket's second review. A declaration is a disclosure and not a proof,
+    which is the position SEEN-105 already took for the reviewer's session id.
+    """
+
+    def declared_check(self, phase, exit_code=0, model=None, declared=None):
+        from harness import sessions
+        original = sessions.model
+        sessions.model = lambda root, identity=None: model
+        try:
+            arguments = ['check', self.ticket_id, '--phase', phase,
+                         '--actor', 'claude:implementer']
+            if declared is not None:
+                arguments += ['--model', declared]
+            return self.run_harness(*arguments, '--', 'sh', '-c', f'exit {exit_code}')
+        finally:
+            sessions.model = original
+
+    def test_a_check_records_what_was_declared_beside_what_was_observed(self):
+        self.reach_tdd([PLAIN])
+        record = self.declared_check('green', model='claude-opus-5', declared='haiku')
+        self.assertEqual(record['data']['model'], 'claude-opus-5')
+        self.assertEqual(record['data']['model_declared'], 'haiku')
+
+    def test_a_check_that_declares_nothing_says_so(self):
+        self.reach_tdd([PLAIN])
+        self.assertIsNone(
+            self.declared_check('green', model='claude-opus-5')['data']['model_declared'])
+
+    def test_an_unknown_tier_is_refused_rather_than_recorded(self):
+        self.reach_tdd([PLAIN])
+        with self.assertRaisesRegex(HarnessError, 'haiku'):
+            self.declared_check('green', declared='gpt-4')
+
+    def prove_declared(self, model=None, declared=None):
+        red = self.declared_check('red', exit_code=1, model=model, declared=declared)
+        green = self.declared_check('green', model=model, declared=declared)
+        regression = self.declared_check('regression', model=model, declared=declared)
+        self.record_coverage()
+        return dict(mode='code', regression=regression['sequence'], coverage_delta=0.0,
+                    slices=[dict(behaviour='The status line shows the stage',
+                                 failure_reason='AssertionError: the status line is empty',
+                                 red=red['sequence'], green=green['sequence'])])
+
+    def test_the_declaration_is_what_the_gate_compares(self):
+        """The subagent ran on the routed model; the log says the parent's."""
+        self.use(route_stub(model=(0.7, 0.2, 0.1)))
+        self.reach_tdd([PLAIN])
+        self.route()
+        self.set_shadow(False)
+        record = self.submit('tdd', self.prove_declared(model='claude-opus-5',
+                                                        declared='haiku'))
+        self.assertEqual(record['data']['to_stage'], 'review')
+
+    def test_a_declaration_that_disagrees_with_the_route_is_refused(self):
+        self.use(route_stub(model=(0.7, 0.2, 0.1)))
+        self.reach_tdd([PLAIN])
+        self.route()
+        self.set_shadow(False)
+        with self.assertRaises(HarnessError) as raised:
+            self.submit('tdd', self.prove_declared(model='claude-haiku-4-5-20251001',
+                                                   declared='opus'))
+        message = str(raised.exception)
+        self.assertIn('haiku', message)
+        self.assertIn('opus', message)
+        self.assertIn('declared', message)
+
+
+class StaleCopyTest(RouteTest):
+    """F4: a new plan leaves the copies on the plan that is gone.
+
+    The return is not the moment: the plan it went back to is still the accepted
+    one until a new solution record advances, and the route is still the route
+    for it. The moment is the advance that replaces the plan, which is where the
+    route becomes one for slices that no longer exist.
+    """
+
+    def copy(self):
+        return (self.root / '.claude/agents/seen-implementer.md').read_text()
+
+    def test_a_new_plan_rewrites_the_implementer_copies(self):
+        from harness import doctor as doctoring
+        from harness.repository import Repository
+        self.use(route_stub(model=(0.7, 0.2, 0.1)))
+        self.reach_tdd([PLAIN])
+        self.route()
+        self.assertIn('model: haiku', self.copy())
+        self.run_harness('return', self.ticket_id, '--to', 'solution',
+                         '--reason', 'The plan was wrong', '--actor', 'claude:implementer')
+        self.assertIn('model: haiku', self.copy(),
+                      'the return alone does not replace the plan')
+        self.submit('solution', solution_evidence(slices=[MONEY, SECOND_PLAIN]))
+        self.assertIn('model: opus', self.copy())
+        self.assertEqual(doctoring.report(Repository(self.root), {})['problems'], [])
+
+
+class ReopenedTicketTest(RouteTest):
+    """F6: a receipt that has been voided is not a ticket that has delivered."""
+
+    def test_a_reopened_ticket_is_still_the_ticket_in_hand(self):
+        from harness import agents, journal
+        self.use(route_stub(model=(0.7, 0.2, 0.1)))
+        self.reach_tdd([PLAIN])
+        self.route()
+        folder = self.root / 'docs' / 'harness' / 'history' / self.ticket_id
+        for kind, data in (('receipt', dict(from_stage='deliver', to_stage='delivered',
+                                            commit='b' * 40, tree='c' * 64)),
+                           ('reopen', dict(from_stage='delivered', to_stage='tdd',
+                                           to_attempt=2, reason='a defect after delivery'))):
+            journal.append(folder, journal.read(folder), kind=kind, stage='deliver', attempt=1,
+                           actor='claude:implementer', head=self.git('rev-parse', 'HEAD'),
+                           ticket=self.ticket_id, data=data)
+        self.git('add', '-A')
+        self.git('-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', 'reopened')
+        self.git('checkout', '-q', '--detach', 'HEAD')
+        self.assertEqual(agents.routed(self.root), ('haiku', 'medium'))

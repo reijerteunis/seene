@@ -272,18 +272,33 @@ def _require_the_routed_model(records, position, checks_cited, thresholds):
     if entry is None:
         return
     wanted = routing.model_id(thresholds, entry['model'])
-    if not wanted:
-        return
     for record in checks_cited:
-        ran_on = record['data'].get('model')
-        if not ran_on or ran_on == wanted:
+        data = record['data']
+        # The declaration first, because it is the only thing on a subagent's
+        # side that knows: a Claude Code subagent inherits its parent's session
+        # id, so what the log says of its check is the parent's model. It is a
+        # disclosure and not a proof, and the record carries both so that what
+        # was observed and what was claimed are told apart. F1 of this ticket's
+        # second review.
+        declared = data.get('model_declared')
+        if declared:
+            require(declared == entry['model'],
+                    f'Slice {position} was routed to {entry["model"]} and check '
+                    f'{record["sequence"]}, its {data["phase"]}, declared {declared}. The route '
+                    'is decided at the tdd stage with the plan on record and is read from the '
+                    'handoff pack, never chosen inside the session: spawn the implementer on '
+                    'the model it was routed to, or return to solution and route again')
+            continue
+        ran_on = data.get('model')
+        if not wanted or not ran_on or ran_on == wanted:
             continue
         require(False,
                 f'Slice {position} was routed to {entry["model"]} ({wanted}) and check '
-                f'{record["sequence"]}, its {record["data"]["phase"]}, was recorded under '
-                f'{ran_on}. The route is decided at the tdd stage with the plan on record and '
-                'is read from the handoff pack, never chosen inside the session: work the slice '
-                'again on the model it was routed to, or return to solution and route again')
+                f'{record["sequence"]}, its {data["phase"]}, was recorded under '
+                f'{ran_on} and declared nothing. The route is decided at the tdd stage with the '
+                'plan on record and is read from the handoff pack, never chosen inside the '
+                'session: work the slice again on the model it was routed to, or return to '
+                'solution and route again')
 
 
 def _require_coverage(records, current):

@@ -37,8 +37,17 @@ def demonstrates_failure(evidence):
     return 0 < evidence['exit_code'] < TIMEOUT_EXIT
 
 
-def run(repository, command, phase, timeout, limit):
-    """Run one check and return the evidence to record."""
+def run(repository, command, phase, timeout, limit, declared=None):
+    """Run one check and return the evidence to record.
+
+    `declared` is the tier the runner says it was spawned on. It is a
+    disclosure and not a proof, which is why it is recorded beside the model
+    read from the log rather than instead of it: a Claude Code subagent
+    inherits its parent's session id, so a check an implementer subagent runs
+    resolves to the parent's transcript and observes the parent's model. F1 of
+    SEEN-108's second review, and the same position SEEN-105 took for the
+    reviewer's session id.
+    """
     require(bool(command), 'Supply the check command after --')
     before = repository.fingerprint()
     started = time.monotonic()
@@ -64,6 +73,10 @@ def run(repository, command, phase, timeout, limit):
                 # here: the record carries the digest of its session and not
                 # the id, so nobody later can find this session's log.
                 model=sessions.model(repository.root),
+                # What the runner says it was spawned on, when it says anything.
+                # The gate compares this first, because it is the only thing on
+                # a subagent's side that knows.
+                model_declared=declared,
                 duration_ms=duration_ms,
                 output=captured[:limit].decode(errors='replace'),
                 output_sha256=hashlib.sha256(captured).hexdigest(),

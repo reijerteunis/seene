@@ -151,6 +151,21 @@ def _records(folder):
         return []
 
 
+def _delivered(records):
+    """Whether this journal's work is finished, which a voided receipt is not.
+
+    `reopen` leaves the receipt in place by design, so a receipt alone would
+    read a reopened ticket as delivered and send the detached checkout back to
+    the fallback that F1 of the first review was fixed for. F6 of the second.
+    """
+    for record in reversed(records):
+        if record['kind'] == 'receipt':
+            return True
+        if record['kind'] == 'reopen':
+            return False
+    return False
+
+
 def ticket_in_hand(root):
     """Which ticket this checkout is working, from the branch or from the journals.
 
@@ -181,7 +196,7 @@ def ticket_in_hand(root):
         if not folder.is_dir():
             continue
         records = _records(folder)
-        if records and not any(record['kind'] == 'receipt' for record in records):
+        if records and not _delivered(records):
             unfinished.append(folder.name)
     return unfinished[0] if len(unfinished) == 1 else None
 

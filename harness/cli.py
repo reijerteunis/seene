@@ -97,6 +97,9 @@ def build_parser():
     check = ticket_command('check', 'Run and record a verification command')
     check.add_argument('--phase', required=True)
     check.add_argument('--actor', required=True)
+    check.add_argument('--model', dest='declared',
+                       help='The tier this runner was spawned on, when it is a subagent and '
+                            'knows: a disclosure, recorded beside the model read from the log')
     check.add_argument('--timeout', type=int, help='Seconds before the command is stopped')
 
     advance = ticket_command('advance', 'Pass the current stage gate with completed evidence')
@@ -574,7 +577,14 @@ def check(repository, folder, records, args, current, rules):
     timeout = args.timeout or limits['default_timeout_seconds']
     require(0 < timeout <= limits['maximum_timeout_seconds'],
             f'A check timeout must be between 1 and {limits["maximum_timeout_seconds"]} seconds')
-    evidence = checks.run(repository, args.argv, phase, timeout, limits['output_limit_bytes'])
+    declared = getattr(args, 'declared', None)
+    if declared is not None:
+        tiers = rules['routing']['tiers']
+        require(declared in tiers,
+                f'{declared!r} is not one of {", ".join(tiers)}. A declared model is a tier from '
+                '[routing] tiers, which is what a route carries and what the gate compares')
+    evidence = checks.run(repository, args.argv, phase, timeout, limits['output_limit_bytes'],
+                          declared=declared)
     record = journal.append(folder, records, kind='check', stage=stage, attempt=current['attempt'],
                             actor=args.actor, head=repository.head(), ticket=args.ticket,
                             data=evidence)
@@ -700,12 +710,28 @@ def advance(repository, folder, records, args, current, rules):
     answers = stage_decisions(repository, records, args, current, rules, data)
     require_decisions_pass(stage, answers)
     next_stage = STAGES[STAGES.index(stage) + 1]
+    body = dict(from_stage=stage, to_stage=next_stage, evidence=data, decisions=answers)
+    if stage == 'tdd':
+        # The last slice has no handoff after it, because a handoff is written
+        # at a boundary and the plan ends here. Without a figure at this record
+        # the final slice of every ticket carried no tokens, no cost and no
+        # model, which is the window SEEN-109 compares routes on. F3 of this
+        # ticket's second review.
+        body['figures'] = sessions.figures(repository.root)
     record = journal.append(folder, records, kind='advance', stage=stage,
                             attempt=current['attempt'], actor=args.actor,
                             head=repository.head(), ticket=args.ticket,
-                            data=dict(from_stage=stage, to_stage=next_stage, evidence=data,
-                                      decisions=answers))
+                            data=body)
     discard_draft(repository, args.ticket, stage)
+    if stage == 'solution':
+        # A new plan makes the route stale: routing.for_slice reads nothing for
+        # a plan it did not route, so the committed implementer copies would
+        # still hold the old plan's model while the generator gives the
+        # fallback, and doctor would report drift on a tree nobody edited. The
+        # three places that can change what the copies say now all rewrite them:
+        # route, a slice boundary, and here. F4 of this ticket's second review.
+        from . import agents
+        agents.sync(repository.root)
     return record
 
 
@@ -721,11 +747,12 @@ def go_back(repository, folder, records, args, current, rules):
     require(STAGES.index(args.to) < STAGES.index(stage),
             f'A return must target a stage before {stage}')
     require(args.reason.strip(), 'A return needs a recorded reason')
-    return journal.append(folder, records, kind='return', stage=stage,
-                          attempt=current['attempt'], actor=args.actor,
-                          head=repository.head(), ticket=args.ticket,
-                          data=dict(from_stage=stage, to_stage=args.to,
-                                    to_attempt=current['attempt'] + 1, reason=args.reason))
+    record = journal.append(folder, records, kind='return', stage=stage,
+                            attempt=current['attempt'], actor=args.actor,
+                            head=repository.head(), ticket=args.ticket,
+                            data=dict(from_stage=stage, to_stage=args.to,
+                                      to_attempt=current['attempt'] + 1, reason=args.reason))
+    return record
 
 
 DISCARDED = Path('docs/harness/discarded.jsonl')
