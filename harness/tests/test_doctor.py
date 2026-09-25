@@ -159,7 +159,7 @@ class DeliverStatusTest(DoctorTest):
         self.run_harness('coverage', self.ticket_id, '--actor', 'claude:implementer', '--', 'true')
         self.submit('tdd', dict(mode='code', regression=regression['sequence'],
                                 coverage_delta=None,
-                                slices=[dict(behaviour='The thing', failure_reason='It was absent',
+                                slices=[dict(position=1, behaviour='The thing', failure_reason='It was absent',
                                              red=red['sequence'], green=green['sequence'])]))
         self.submit('review', dict(reviewer='codex:reviewer', independence='independent',
                                    read=['harness/journal.py'],

@@ -47,7 +47,7 @@ class DeliveryWalk(CommandTest):
         self.run_harness('coverage', self.ticket_id, '--actor', 'claude:implementer', '--', 'true')
         red, green, regression = 4, 5, 6
         self.submit('tdd', dict(mode='code',
-                                slices=[dict(behaviour='The harness records a delivery',
+                                slices=[dict(position=1, behaviour='The harness records a delivery',
                                              failure_reason='expected 1, got 0',
                                              red=red, green=green)],
                                 regression=regression,

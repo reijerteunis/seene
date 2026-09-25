@@ -86,7 +86,7 @@ class ReopenTest(DeliveryWalk):
         records = self.run_harness('history', self.ticket_id)
         red, green, regression = [r['sequence'] for r in records[-4:-1]]
         self.submit('tdd', dict(mode='code',
-                                slices=[dict(behaviour='The correction',
+                                slices=[dict(position=1, behaviour='The correction',
                                              failure_reason='still wrong', red=red, green=green)],
                                 regression=regression, coverage_delta=None))
         self.run_harness('check', self.ticket_id, '--phase', 'qa', '--actor', 'codex:reviewer',

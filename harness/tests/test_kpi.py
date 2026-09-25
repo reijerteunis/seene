@@ -35,7 +35,7 @@ def journal_worked_in_two_sessions():
                to_stage='solution', evidence={}, decisions=[]),
         record(3, 'advance', 'solution', minute=10, session=first, from_stage='solution',
                to_stage='tdd', decisions=[],
-               evidence=dict(mode='code', slices=[dict(name='One', points=1, files=['a'], red='x'),
+               evidence=dict(mode='code', slices=[dict(position=1, name='One', points=1, files=['a'], red='x'),
                                                   dict(name='Two', points=1, files=['b'], red='y')])),
         record(4, 'check', 'tdd', minute=12, session=first, phase='red', exit_code=1, command=['t']),
         record(5, 'check', 'tdd', minute=14, session=first, phase='green', exit_code=0,
@@ -51,7 +51,7 @@ def journal_worked_in_two_sessions():
                command=['c'], package='@seen/core', lines=91.0, baseline=90.0, delta=1.0),
         record(10, 'advance', 'tdd', minute=40, session=second, from_stage='tdd',
                to_stage='review', decisions=[],
-               evidence=dict(mode='code', slices=[dict(red=4, green=5), dict(red=7, green=8)])),
+               evidence=dict(mode='code', slices=[dict(position=1, red=4, green=5), dict(red=7, green=8)])),
         record(11, 'advance', 'review', minute=50, session=second, actor='codex:reviewer',
                from_stage='review', to_stage='deliver', decisions=[], evidence=dict(findings=[])),
         record(12, 'receipt', 'deliver', minute=60, session=second, from_stage='deliver',
@@ -71,7 +71,7 @@ def journal_with_a_return():
         record(4, 'check', 'tdd', minute=12, phase='red', exit_code=1, command=['t']),
         record(5, 'check', 'tdd', minute=14, phase='green', exit_code=0, command=['t']),
         record(6, 'advance', 'tdd', minute=20, from_stage='tdd', to_stage='review',
-               evidence=dict(mode='code', slices=[dict(red=4, green=5)]), decisions=[]),
+               evidence=dict(mode='code', slices=[dict(position=1, red=4, green=5)]), decisions=[]),
         record(7, 'return', 'review', minute=25, from_stage='review', to_stage='tdd',
                to_attempt=2, reason='not right'),
         record(8, 'check', 'tdd', attempt=2, minute=30, phase='red', exit_code=1, command=['t']),
@@ -79,7 +79,7 @@ def journal_with_a_return():
         record(10, 'check', 'tdd', attempt=2, minute=33, phase='coverage', exit_code=0,
                command=['c'], package='@seen/core', lines=91.0, baseline=90.0, delta=1.0),
         record(11, 'advance', 'tdd', attempt=2, minute=40, from_stage='tdd', to_stage='review',
-               evidence=dict(mode='code', slices=[dict(red=8, green=9)]), decisions=[]),
+               evidence=dict(mode='code', slices=[dict(position=1, red=8, green=9)]), decisions=[]),
         record(12, 'advance', 'review', attempt=2, minute=50, actor='codex:reviewer',
                from_stage='review', to_stage='deliver', decisions=[],
                evidence=dict(findings=[
@@ -359,7 +359,7 @@ def journal_with_a_route(ran_under='claude-opus-5'):
                to_stage='solution', evidence={}, decisions=[]),
         record(3, 'advance', 'solution', minute=10, session=session, from_stage='solution',
                to_stage='tdd', decisions=[],
-               evidence=dict(mode='code', slices=[dict(name='One', points=1, files=['a'], red='x'),
+               evidence=dict(mode='code', slices=[dict(position=1, name='One', points=1, files=['a'], red='x'),
                                                   dict(name='Two', points=2, files=['b'],
                                                        red='y')])),
         route_record(4, session, 12, [
@@ -386,7 +386,7 @@ def journal_with_a_route(ran_under='claude-opus-5'):
         record(13, 'advance', 'tdd', minute=40, session=session, from_stage='tdd',
                to_stage='review', decisions=[],
                figures=dict(session=session, output_tokens=95000, tool_calls=40),
-               evidence=dict(mode='code', slices=[dict(red=6, green=7), dict(red=9, green=10)])),
+               evidence=dict(mode='code', slices=[dict(position=1, red=6, green=7), dict(red=9, green=10)])),
         record(14, 'advance', 'review', minute=50, session=session, actor='codex:reviewer',
                from_stage='review', to_stage='deliver', decisions=[], evidence=dict(findings=[])),
         record(15, 'receipt', 'deliver', minute=60, session=session, from_stage='deliver',
@@ -606,7 +606,7 @@ class DeliveredCostTest(unittest.TestCase):
             walk.run_harness('coverage', walk.ticket_id, '--actor', 'claude:implementer',
                              '--', 'true')
             walk.submit('tdd', dict(mode='code',
-                                    slices=[dict(behaviour='The harness records a delivery',
+                                    slices=[dict(position=1, behaviour='The harness records a delivery',
                                                  failure_reason='expected 1, got 0',
                                                  red=5, green=6)],
                                     regression=7, coverage_delta=None))
@@ -653,7 +653,7 @@ def journal_with_rework(rework_tokens=105000):
                from_stage='tdd', to_stage='review', decisions=[],
                figures=dict(session=session, output_tokens=95000 + rework_tokens,
                             tool_calls=70),
-               evidence=dict(mode='code', slices=[dict(red=15, green=16)])),
+               evidence=dict(mode='code', slices=[dict(position=1, red=15, green=16)])),
     ]
 
 
@@ -710,7 +710,7 @@ class StaleRouteTest(DeliveryWalk):
             record(17, 'advance', 'solution', minute=75, session='aaaaaaaaaaaa',
                    from_stage='solution', to_stage='tdd', decisions=[],
                    evidence=dict(mode='code',
-                                 slices=[dict(name='Something else', points=1, files=['c'],
+                                 slices=[dict(position=1, name='Something else', points=1, files=['c'],
                                               red='z')])),
         ]
 

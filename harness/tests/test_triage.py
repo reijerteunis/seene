@@ -76,7 +76,7 @@ class TriageTest(CommandTest):
         self.submit('clarify', clarify_evidence(acceptance=TICKET_CRITERIA))
         self.submit('solution', solution if solution is not None else solution_evidence(
             changes=['harness/thing.py: the behaviour'],
-            slices=[dict(name='The behaviour', points=1,
+            slices=[dict(position=1, name='The behaviour', points=1,
                          files=['harness/thing.py', 'harness/tests/test_thing.py'],
                          red='The behaviour is absent')]))
         self.write('harness/thing.py', 'def thing():\n    return 1\n')
@@ -87,7 +87,7 @@ class TriageTest(CommandTest):
         self.record_coverage(coverage_delta)
         self.submit('tdd', dict(mode='code', regression=regression['sequence'],
                                 coverage_delta=coverage_delta,
-                                slices=[dict(behaviour='The behaviour',
+                                slices=[dict(position=1, behaviour='The behaviour',
                                              failure_reason='It was absent',
                                              red=red['sequence'], green=green['sequence'])]))
 
@@ -248,7 +248,7 @@ class DepthByRuleTest(TriageTest):
         self.reach_review(solution=solution_evidence(
             migrations=['0003_add_triage.sql: a column'],
             changes=['harness/thing.py: the behaviour'],
-            slices=[dict(name='The behaviour', points=1,
+            slices=[dict(position=1, name='The behaviour', points=1,
                          files=['harness/thing.py', 'harness/tests/test_thing.py'],
                          red='The behaviour is absent')]))
         self.assert_full_by_rule(self.triage(), 'migration')
@@ -258,7 +258,7 @@ class DepthByRuleTest(TriageTest):
                                                 changes_agent_action=True))
         self.submit('solution', solution_evidence(
             changes=['harness/thing.py: the behaviour'],
-            slices=[dict(name='The behaviour', points=1,
+            slices=[dict(position=1, name='The behaviour', points=1,
                          files=['harness/thing.py', 'harness/tests/test_thing.py'],
                          red='The behaviour is absent')],
             policy_gate_action=dict(reversibility='reversible', action_type='message',
@@ -271,7 +271,7 @@ class DepthByRuleTest(TriageTest):
         self.record_coverage(0.0)
         self.submit('tdd', dict(mode='code', regression=regression['sequence'],
                                 coverage_delta=0.0,
-                                slices=[dict(behaviour='The behaviour',
+                                slices=[dict(position=1, behaviour='The behaviour',
                                              failure_reason='It was absent',
                                              red=red['sequence'], green=green['sequence'])]))
         self.assert_full_by_rule(self.triage(), 'agent action')
@@ -330,7 +330,7 @@ class ThreeCriteriaTest(TriageTest):
         self.submit('solution', solution if solution is not None else solution_evidence(
             changes=['harness/thing.py: the behaviour',
                      'harness/thresholds.toml: the settings these tests vary'],
-            slices=[dict(name='The behaviour', points=1,
+            slices=[dict(position=1, name='The behaviour', points=1,
                          files=['harness/thing.py', 'harness/tests/test_thing.py'],
                          red='The behaviour is absent')]))
         self.write('harness/thing.py', 'def thing():\n    return 1\n')
@@ -341,7 +341,7 @@ class ThreeCriteriaTest(TriageTest):
         self.record_coverage(coverage_delta)
         self.submit('tdd', dict(mode='code', regression=regression['sequence'],
                                 coverage_delta=coverage_delta,
-                                slices=[dict(behaviour='The behaviour',
+                                slices=[dict(position=1, behaviour='The behaviour',
                                              failure_reason='It was absent',
                                              red=red['sequence'], green=green['sequence'])]))
 
@@ -980,7 +980,7 @@ class DeliveredFiguresTest(unittest.TestCase):
                 self.run_harness('coverage', self.ticket_id, '--actor', 'claude:implementer',
                                  '--', 'true')
                 self.submit('tdd', dict(mode='code',
-                                        slices=[dict(behaviour='The harness records a delivery',
+                                        slices=[dict(position=1, behaviour='The harness records a delivery',
                                                      failure_reason='expected 1, got 0',
                                                      red=4, green=5)],
                                         regression=6,
@@ -1144,7 +1144,7 @@ class TriageAcrossAttemptsTest(FocusSetTest):
         self.record_coverage(0.0, attempt=2)
         self.submit('tdd', dict(mode='code', regression=regression['sequence'],
                                 coverage_delta=0.0,
-                                slices=[dict(behaviour='The correction',
+                                slices=[dict(position=1, behaviour='The correction',
                                              failure_reason='It was wrong',
                                              red=red['sequence'], green=green['sequence'])]))
 
@@ -1328,7 +1328,7 @@ class FailedCheckStillAsksTest(ThreeCriteriaTest):
             migrations=['0003_add_triage.sql: a column'],
             changes=['harness/thing.py: the behaviour',
                      'harness/thresholds.toml: the settings these tests vary'],
-            slices=[dict(name='The behaviour', points=1,
+            slices=[dict(position=1, name='The behaviour', points=1,
                          files=['harness/thing.py', 'harness/tests/test_thing.py'],
                          red='The behaviour is absent')]))
         record = self.triage()
@@ -1428,7 +1428,7 @@ class AskedHonestlyTest(ThreeCriteriaTest):
             migrations=['0003_add_triage.sql: a column'],
             changes=['harness/thing.py: the behaviour',
                      'harness/thresholds.toml: the settings these tests vary'],
-            slices=[dict(name='The behaviour', points=1,
+            slices=[dict(position=1, name='The behaviour', points=1,
                          files=['harness/thing.py', 'harness/tests/test_thing.py'],
                          red='The behaviour is absent')]))
         asked = self.triage()['data']['jev']
@@ -1472,7 +1472,7 @@ class EveryAttemptsEvidenceTest(ThreeCriteriaTest):
         self.record_coverage(0.0, attempt=2)
         self.submit('tdd', dict(mode='code', regression=regression['sequence'],
                                 coverage_delta=0.0,
-                                slices=[dict(behaviour='The correction',
+                                slices=[dict(position=1, behaviour='The correction',
                                              failure_reason='It was wrong',
                                              red=red['sequence'], green=green['sequence'])]))
 
@@ -1539,7 +1539,7 @@ class SliceCapTest(unittest.TestCase):
             records.append(record(green + 1, 'advance', 'tdd', attempt=position + 1,
                                   minute=position * 10 + 2, from_stage='tdd', to_stage='review',
                                   decisions=[],
-                                  evidence=dict(slices=[dict(behaviour=f'slice {position}',
+                                  evidence=dict(slices=[dict(position=1, behaviour=f'slice {position}',
                                                              failure_reason=f'reason {position}',
                                                              red=red, green=green)])))
             sequence += 3

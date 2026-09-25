@@ -83,7 +83,7 @@ class ModesMustAgreeTest(CommandTest):
         """With a well-formed slice, so it is the disagreement that refuses."""
         self.reach_tdd('non-code')
         code_tdd = dict(mode='code', regression=3, coverage_delta=0.0,
-                        slices=[dict(behaviour='something observable',
+                        slices=[dict(position=1, behaviour='something observable',
                                      failure_reason='AssertionError: it did not',
                                      red=1, green=2)])
 

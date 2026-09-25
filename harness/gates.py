@@ -279,11 +279,16 @@ def _require_the_routed_slice(records, slice_, order, checks_cited, thresholds):
     if position is None:
         return
     planned = len((latest_evidence(records, 'solution') or {}).get('slices') or [])
-    require(isinstance(position, int) and not isinstance(position, bool)
-            and 1 <= position <= planned,
-            f'Slice {order} of this record names position {position!r}, and the plan has '
-            f'{planned} slices. The position is which slice of the plan was proved, which is '
-            'what its route is keyed by')
+    require(isinstance(position, int) and not isinstance(position, bool) and position >= 1,
+            f'Slice {order} of this record names position {position!r}, which is not a slice '
+            'number. The position is which slice of the plan was proved, which is what its '
+            'route is keyed by; a round that proved no single slice declares null')
+    # Only against a plan there is one. A gate evaluated with no accepted
+    # solution record has nothing to range a position against, and refusing
+    # there would be refusing on the absence rather than on the value.
+    require(not planned or position <= planned,
+            f'Slice {order} of this record names position {position}, and the plan has '
+            f'{planned} slices')
     _require_the_routed_model(records, position, checks_cited, thresholds)
 
 
