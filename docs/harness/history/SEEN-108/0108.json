@@ -1,0 +1,38 @@
+{
+  "sequence": 108,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T14:21:42.939182+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 10,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "366949538f467ebf8e0f700d4bddc465fef9ea82",
+  "prev_hash": "e5263587954872f5cbedf8426d77b1211a8076990f517fc687312ebf4e1a8ae3",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": null,
+          "behaviour": "The tdd template teaches what the position field means rather than a value, the sprint cost row carries the points its cost covers, and no test class is defined after a module's unittest.main guard.",
+          "failure_reason": "Quoted from check 104's captured output: \"AssertionError: 1 is not an instance of <class 'str'> : a literal number teaches the wrong default\"; \"AssertionError: Regex didn't match: '(?i)\\\\|\\\\s*points priced\\\\s*\\\\|' not found in\" the rendered table, and the same for \"divided by the points it could price\"; and \"AssertionError: {'test_risk.py': ['class ElidedBlastRadius[130 chars]):']} != {}\", which is a third module the review did not reach.",
+          "red": 104,
+          "green": 105
+        }
+      ],
+      "regression": 106,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "710e96458c5b",
+      "output_tokens": 708141,
+      "tool_calls": 395,
+      "unavailable": null
+    }
+  }
+}
