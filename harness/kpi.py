@@ -175,6 +175,12 @@ def ran_on(records, window):
 def cost_cents(model, tokens, prices):
     """What those output tokens cost on that model, or that nobody priced it.
 
+    A whole number of cents, because amounts are cents as integers with a
+    currency code and the table these come from says so of itself. A fraction of
+    a cent is below the resolution the ground rule gives an amount, and a sum of
+    rounded floats drifts from the sum of the rows a reader can see. F7 of this
+    ticket's first review.
+
     Output only, because a handoff record carries output tokens and tool calls
     and nothing about input: a figure that silently included a guess at the
     input side would be worse than one that says what it covers.
@@ -184,7 +190,7 @@ def cost_cents(model, tokens, prices):
     price = prices.get(model)
     if not price:
         return None
-    return round(tokens * price['output'] / 1_000_000, 2)
+    return round(tokens * price['output'] / 1_000_000)
 
 
 COST_BASIS = ('output tokens only, at the price of the model the slice ran on: a handoff record '

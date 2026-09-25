@@ -1,0 +1,19 @@
+{
+  "sequence": 39,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T07:29:53.481450+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "2d8da2e8ae66f64ad90a2f91c478fd4cec57da7d",
+  "prev_hash": "6d0b39ce2232f05b21fdc19b5f755049f4c77fe132ff6b6906487f3e60d0cc62",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 4,
+    "reason": "The remaining six findings of the review at note 32: F3 the amendment names a decision no record carries, F4 the report wiring is proven only at helper level, F6 slice 4's recorded failure reason names a KeyError that is not in its RED, F7 cost_cents is a float against the ground rule that amounts are integer cents, F8 the skill heading still says two agents above three, F9 the route record carries no spawn instruction though the clarify record promised one."
+  }
+}

@@ -335,3 +335,55 @@ class CostPerPointByModelTest(unittest.TestCase):
         self.assertIn('opus', '\n'.join(rendered))
         self.assertIn(rules['routing']['prices']['priced_on'], '\n'.join(rendered))
         self.assertIn('EUR', '\n'.join(rendered))
+
+
+class SprintReportCostTest(ProjectTest):
+    """The cost table, from the command rather than from its helpers.
+
+    F4 of SEEN-108's first review: every test of this section called
+    context.cost_by_model and report.render_cost directly, so the two lines in
+    write_report that populate the section were unguarded and could be deleted
+    with all 751 tests still green.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.write('docs/harness/reports/context-tools-baseline.json', json.dumps(BASELINE))
+        self.write('docs/tickets/SEEN-001-a-ticket-to-work.md',
+                   '---\nid: SEEN-001\nestimate: 2\nsprint: 0\nexecutor: claude-code\n'
+                   'changes_agent_action: false\nstatus: done\n---\n# SEEN-001: A ticket\n\n'
+                   '## Acceptance criteria\n\n- [x] Something observable happens\n')
+        self._write_journal()
+
+    def _write_journal(self):
+        from harness import journal
+        from harness.tests.test_kpi import journal_with_a_route
+        folder = self.root / 'docs' / 'harness' / 'history' / 'SEEN-001'
+        folder.mkdir(parents=True)
+        previous = None
+        for position, record in enumerate(journal_with_a_route(), start=1):
+            path = folder / f'{position:04d}.json'
+            body = dict(record, sequence=position, ticket='SEEN-001', prev_hash=previous)
+            path.write_bytes(journal.serialise(body))
+            previous = journal.digest(path)
+
+    def report(self):
+        from harness import cli
+        cli.execute(cli.parse(['--root', str(self.root), 'report', '--sprint', '0']))
+        return (self.root / 'docs' / 'harness' / 'reports' / 'sprint-0.md').read_text()
+
+    def test_the_sprint_report_carries_the_cost_table(self):
+        rendered = self.report()
+        self.assertIn('Cost per point by the model the work ran on', rendered)
+        self.assertIn('opus', rendered)
+
+    def test_the_report_json_carries_the_figures_the_table_was_drawn_from(self):
+        self.report()
+        payload = json.loads(
+            (self.root / 'docs' / 'harness' / 'reports' / 'sprint-0.json').read_text())
+        self.assertIn('opus', payload['context']['cost_by_model'])
+        self.assertIn('priced_on', payload['context']['prices'])
+
+    def test_the_table_names_the_date_the_prices_were_read(self):
+        rules = thresholds.load(self.root)
+        self.assertIn(rules['routing']['prices']['priced_on'], self.report())

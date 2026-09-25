@@ -95,7 +95,7 @@ percentile against this repository's own commits, the tests that may break, the 
 repowise is not installed the decision still happens, with the absence recorded as an absence rather
 than as a low score.
 
-## The two agents
+## The three agents
 
 Two readers and a writer fill a session: the research at clarify and solution,
 the review, which has to hold the diff, the journal and the criteria at once,

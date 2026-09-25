@@ -58,7 +58,7 @@ def cost_by_model(tickets):
     for ticket in tickets:
         for entry in ticket.get('execution') or []:
             found = by_model.setdefault(entry.get('ran_on_tier') or UNKNOWN,
-                                        dict(slices=0, points=0, cost_cents=0.0,
+                                        dict(slices=0, points=0, cost_cents=0,
                                              output_tokens=0, priced=0))
             found['slices'] += 1
             found['points'] += entry.get('points') or 0
@@ -69,7 +69,9 @@ def cost_by_model(tickets):
                 found['output_tokens'] += entry['output_tokens']
     for found in by_model.values():
         priced, points = found.pop('priced'), found['points']
-        found['cost_cents'] = round(found['cost_cents'], 2)
+        # A whole number of cents, as the amounts it sums are. The division
+        # below is a rate rather than an amount, so it keeps its decimals.
+        found['cost_cents'] = round(found['cost_cents'])
         found['cost_per_point'] = (round(found['cost_cents'] / points, 2)
                                    if priced and points else None)
     return by_model

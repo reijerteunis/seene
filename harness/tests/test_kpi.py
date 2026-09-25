@@ -471,3 +471,31 @@ class ExecutionFiguresTest(DeliveryWalk):
         from harness import thresholds
         self.assertIsNone(kpi.measure(journal_worked_in_two_sessions(), 'SEEN-001', points=2,
                                       rules=thresholds.load(PROJECT))['execution'])
+
+
+class IntegerCentsTest(DeliveryWalk):
+    """Amounts are cents as integers with a currency code, which is a ground rule.
+
+    F7 of SEEN-108's first review: cost_cents returned fractional cents as a
+    float, so a consumer reading it as the integer the table promises either
+    truncates or fails on the type, and a long sum of rounded floats drifts from
+    the sum of the printed rows.
+    """
+
+    def execution(self):
+        from harness import thresholds
+        return kpi.measure(journal_with_a_route(), 'SEEN-001', points=3,
+                           rules=thresholds.load(PROJECT))['execution']
+
+    def test_every_amount_is_a_whole_number_of_cents(self):
+        for entry in self.execution():
+            for field in ('cost_cents', 'routed_cost_cents'):
+                value = entry[field]
+                if value is not None:
+                    self.assertIsInstance(value, int, f'{field} is {value!r}')
+
+    def test_a_price_below_one_cent_rounds_rather_than_disappearing(self):
+        from harness import thresholds
+        prices = thresholds.load(PROJECT)['routing']['prices']
+        self.assertEqual(kpi.cost_cents('haiku', 1000, prices), 0)
+        self.assertEqual(kpi.cost_cents('haiku', 2000, prices), 1)

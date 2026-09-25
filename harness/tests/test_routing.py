@@ -656,3 +656,42 @@ class DetachedHeadTest(RouteTest):
                                  commit='b' * 40, tree='c' * 64))
         self.detach()
         self.assertEqual(agents.routed(self.root), ('opus', 'high'))
+
+
+class SpawnInstructionTest(RouteTest):
+    """What the record hands the session to spawn the implementer with.
+
+    F9 of this ticket's first review: the clarify record's own restatement of
+    criterion 3 promised the route record would carry the spawn instruction, and
+    it carried the tier and the effort with nothing saying what to do with them.
+    The triage does the same thing for the reviewer, and for the same reason: the
+    harness runs no model, so what it can do is hand the session the exact text.
+    """
+
+    def task(self, position=1):
+        return self.route()['data']['execution'][position - 1]['implementer_task']
+
+    def test_the_entry_carries_a_task_naming_the_model_and_the_effort(self):
+        self.use(route_stub(model=(0.1, 0.7, 0.2), effort=(0.7, 0.2, 0.1)))
+        self.reach_tdd([PLAIN])
+        task = self.task()
+        self.assertIn('sonnet', task)
+        self.assertIn('low', task)
+        self.assertIn('seen-implementer', task)
+
+    def test_the_task_names_the_slice_and_what_its_red_must_demonstrate(self):
+        self.reach_tdd([PLAIN])
+        task = self.task()
+        self.assertIn(PLAIN['name'], task)
+        self.assertIn(PLAIN['red'], task)
+        self.assertIn('apps/web/src/status.tsx', task)
+
+    def test_the_task_says_how_each_assistant_is_given_the_model(self):
+        self.reach_tdd([PLAIN])
+        task = self.task()
+        self.assertIn('Claude Code', task)
+        self.assertIn('Codex', task)
+
+    def test_a_rule_routed_slice_says_which_rule_sent_it_there(self):
+        self.reach_tdd([MONEY])
+        self.assertIn('money', self.task())

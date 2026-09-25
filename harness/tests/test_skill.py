@@ -98,3 +98,21 @@ class RouteInTheSkillTest(unittest.TestCase):
 
     def test_it_names_the_implementer_agent(self):
         self.assertIn('seen-implementer', self.text)
+
+
+class AgentCountTest(unittest.TestCase):
+    """F8 of SEEN-108's first review: the heading counted two of three."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.text = (PROJECT / 'docs' / 'harness' / 'skill.md').read_text()
+
+    def test_the_heading_counts_the_agents_the_roster_holds(self):
+        self.assertNotIn('## The two agents', self.text)
+        self.assertIn('## The three agents', self.text)
+
+    def test_every_agent_in_the_roster_is_named_under_it(self):
+        from harness import thresholds
+        section = self.text.split('## The three agents')[1]
+        for name in thresholds.load(PROJECT)['agents']['names']:
+            self.assertIn(name, section)

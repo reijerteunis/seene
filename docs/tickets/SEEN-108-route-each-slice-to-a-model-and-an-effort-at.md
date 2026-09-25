@@ -51,7 +51,9 @@ Every slice runs on the session's model at the session's effort today, whatever 
   accepted, so the two halves could not both be true. Raised by the review triage
   at record 24, which scored the criterion as worded 0.44 against a bar of 0.6
   and returned the ticket to tdd before any model read the diff; the reasoning
-  was recorded in advance in the clarify record at record 4. What the criterion
+  was recorded in advance in the clarify record at record 4, and the decision
+  itself, with the three options put to him and the one he chose, is at record
+  41. What the criterion
   asks for is delivered in substance: one entry per slice with model, effort,
   source and probability, carried in the handoff pack. Only its location moves.
 

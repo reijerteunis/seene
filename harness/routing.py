@@ -261,6 +261,40 @@ def _from_answers(entry, by_key, rules):
                 effort_probability=effort['probabilities'].get(effort['outcome']))
 
 
+def implementer_task(ticket, entry):
+    """The text a session hands its implementer subagent, model and all.
+
+    Text rather than a call, for the reason the review triage's task is text:
+    the harness runs no model. What it buys is that the model the route decided
+    and the model the slice is spawned on are the same word, read from the same
+    record, rather than two things a session has to keep in step. The clarify
+    record promised this and the first record shipped without it, which is F9 of
+    this ticket's first review.
+    """
+    how = (f'a rule sent it there ({entry["rule"]}): {entry["reason"]}'
+           if entry['source'] == 'rule'
+           else f'Jev chose it at {entry["model_probability"]}' if entry['source'] == 'jev'
+           else f'nobody could answer, so it goes to the strongest: {entry["reason"]}')
+    return '\n'.join([
+        f'Work slice {entry["position"]} of {ticket}: {entry["name"]}.',
+        '',
+        f'Run it on {entry["model"]} at {entry["effort"]} effort, because {how}.',
+        'In Claude Code that is the per-invocation model on the seen-implementer agent, whose '
+        'generated copy already carries this model and this effort. In Codex it is the model '
+        'and model_reasoning_effort in .codex/agents/seen-implementer.toml, which harness sync '
+        'writes for the slice in hand. Neither is yours to change.',
+        '',
+        f'Points: {entry["points"]}.',
+        'Files: ' + (', '.join(entry['files']) or 'none named'),
+        '',
+        f'Its RED must demonstrate: {entry["red"]}',
+        '',
+        'Write the test first, record it with harness check --phase red, write only what turns '
+        'it green, record that, and stop. Do not start the next slice and do not advance the '
+        'stage.',
+    ])
+
+
 def run(repository, records, current, rules, ticket):
     """The whole route, as the data a `route` record carries."""
     require(current['stage'] == 'tdd',
@@ -301,6 +335,8 @@ def run(repository, records, current, rules, ticket):
     by_key = {answer['key']: answer for answer in answers}
     execution = [entry if entry is not None else _from_answers(unruled.pop(0), by_key, rules)
                  for entry in routed]
+    execution = [dict(entry, implementer_task=implementer_task(ticket, entry))
+                 for entry in execution]
     return dict(solution=(solution_record(records) or {}).get('sequence'),
                 # What the record was written under, so a reader never has to
                 # ask whether the route took effect: in shadow it did not.
