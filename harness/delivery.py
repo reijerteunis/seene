@@ -71,8 +71,12 @@ def verify(repository, folder, records, args, current):
     # names kpi.json and this is its only writer. Null where there are no logs,
     # so the file still reads the same everywhere; it simply carries more where
     # it can. F3 of that ticket's review.
+    from . import thresholds
     figures = kpi.measure(written, record['ticket'],
-                          reviewer_tokens=kpi.reviewer_tokens(repository.root, written))
+                          reviewer_tokens=kpi.reviewer_tokens(repository.root, written),
+                          # The price table, so the delivered file carries what
+                          # each slice cost on the model it was routed to.
+                          rules=thresholds.load(repository.root))
     (folder / 'kpi.json').write_text(json.dumps(figures, indent=2, ensure_ascii=False) + '\n')
 
     path = folder / f'{record["sequence"]:04d}.json'

@@ -136,6 +136,7 @@ def render_context(section, rules):
     named = section.get('tickets_named_with_agents') or []
     if named:
         lines += ['', f'Worked with the scout and the reviewer: {", ".join(named)}.']
+    lines += render_cost(section.get('cost_by_model') or {}, section.get('prices'))
     lines += ['', f'**The rule, recorded before the numbers.** {rules["decision_rule"]}', '']
     if section['conclusion']:
         lines += [f'**What it points to.** {section["conclusion"]}', '',
@@ -149,6 +150,35 @@ def render_context(section, rules):
         for overlap in section['overlaps']:
             lines.append(f'- {overlap["ticket"]} asked about `{overlap["subject"]}` of both '
                          f'{" and ".join(overlap["tools"])}: one question, two right addressees.')
+    return lines
+
+
+def render_cost(by_model, prices):
+    """What a point cost on each model, with the date the prices were read.
+
+    Printed beside the figure every time rather than in a footnote: a price per
+    token is stale the day it is written, and the answer to that is to say how
+    old it is, not to report no figure at all. That is the amendment SEEN-108
+    made to the line that said euros could not be reported.
+    """
+    if not by_model:
+        return []
+    currency = (prices or {}).get('currency', 'EUR')
+    priced_on = (prices or {}).get('priced_on', 'an unrecorded date')
+    lines = ['', '### Cost per point by model', '',
+             f'| Model | Slices | Points | Output tokens | Cost ({currency} cents) '
+             f'| Cost per point |', '|---|---|---|---|---|---|']
+    for model in sorted(by_model, key=lambda name: by_model[name]['cost_cents'], reverse=True):
+        found = by_model[model]
+        per_point = found['cost_per_point']
+        lines.append(f'| {model} | {found["slices"]} | {found["points"]} '
+                     f'| {found["output_tokens"]} | {found["cost_cents"]} '
+                     f'| {per_point if per_point is not None else "not measured"} |')
+    lines += ['',
+              f'Prices read on {priced_on}, in {currency} cents per million tokens, from '
+              '`[routing.prices]`. Output tokens only: a handoff record carries the session\'s '
+              'output tokens and tool calls and nothing about input, so the figure says what it '
+              'covers rather than guessing at the rest.']
     return lines
 
 

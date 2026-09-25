@@ -1,7 +1,12 @@
 """One maintained skill, two generated copies, neither edited by hand."""
 
+import unittest
+from pathlib import Path
+
 from harness import skills
 from harness.tests.test_lifecycle import CommandTest
+
+PROJECT = Path(__file__).resolve().parents[2]
 
 
 class SyncTest(CommandTest):
@@ -66,3 +71,30 @@ class SyncTest(CommandTest):
         from harness.repository import Repository
         problems = doctoring.skill_problems(Repository(self.root))
         self.assertTrue(any('skill.md' in problem for problem in problems), problems)
+
+
+class RouteInTheSkillTest(unittest.TestCase):
+    """What the skill says about where a slice's model comes from.
+
+    The whole point of the route is that it is decided where the information is
+    and never inside the session that would benefit from a stronger model, so
+    the document both assistants read has to say so.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.text = (PROJECT / 'docs' / 'harness' / 'skill.md').read_text()
+
+    def test_it_names_the_command(self):
+        self.assertIn('harness route', self.text)
+
+    def test_it_says_the_route_is_read_from_the_pack_and_never_chosen_in_the_session(self):
+        self.assertRegex(self.text, r'(?i)never chosen inside the session')
+        self.assertRegex(self.text, r'(?i)handoff pack')
+
+    def test_it_names_the_rules_that_are_never_jev_s_to_answer(self):
+        for word in ('money', 'credential', 'migration'):
+            self.assertRegex(self.text, rf'(?i){word}')
+
+    def test_it_names_the_implementer_agent(self):
+        self.assertIn('seen-implementer', self.text)

@@ -30,6 +30,39 @@ def _per_slice(tickets, field='output_tokens'):
     return round(sum(ticket[field] for ticket in tickets) / counted, 1)
 
 
+def cost_by_model(tickets):
+    """What a point cost on each model, from the slices routed to it.
+
+    Divided by the points the slices themselves carried rather than by the
+    tickets', because one ticket's slices can run on three models and a division
+    by the ticket would charge all of them to whichever came first.
+
+    A slice with no cost still counts its points and leaves the division null:
+    the honest answer on a machine with no session logs is that nobody knows
+    what it cost, and a mean over the ones that happened to have figures would
+    be a number about the machines rather than about the models.
+    """
+    by_model = {}
+    for ticket in tickets:
+        for entry in ticket.get('execution') or []:
+            found = by_model.setdefault(entry['model'],
+                                        dict(slices=0, points=0, cost_cents=0.0,
+                                             output_tokens=0, priced=0))
+            found['slices'] += 1
+            found['points'] += entry.get('points') or 0
+            if entry.get('cost_cents') is not None:
+                found['cost_cents'] += entry['cost_cents']
+                found['priced'] += 1
+            if entry.get('output_tokens') is not None:
+                found['output_tokens'] += entry['output_tokens']
+    for found in by_model.values():
+        priced, points = found.pop('priced'), found['points']
+        found['cost_cents'] = round(found['cost_cents'], 2)
+        found['cost_per_point'] = (round(found['cost_cents'] / points, 2)
+                                   if priced and points else None)
+    return by_model
+
+
 def worked_with_agents(tickets, since=''):
     """Tickets whose journal says both agents were used, after they existed.
 

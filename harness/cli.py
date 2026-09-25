@@ -801,7 +801,7 @@ def reopen(repository, folder, records, args, current):
                                     reason=args.reason))
 
 
-def ticket_figures(repository):
+def ticket_figures(repository, rules=None):
     """Every delivered ticket's figures, derived from its journal.
 
     A ticket delivered before kpi.json existed is covered identically, because
@@ -810,6 +810,7 @@ def ticket_figures(repository):
     rather than dropped.
     """
     from . import report as reporting
+    rules = thresholds.load(repository.root) if rules is None else rules
     figures = []
     for path in sorted((repository.root / 'docs' / 'tickets').glob('*.md')):
         header = reporting.frontmatter(path)
@@ -829,6 +830,10 @@ def ticket_figures(repository):
         measured = kpi.measure(records, identifier,
                                points=int(points) if points and points.isdigit() else None,
                                delivered_at=delivered_at,
+                               # The price table and the tier names, so the cost
+                               # per slice is read from a diff a person reviews
+                               # rather than from a constant in code.
+                               rules=rules,
                                # The same call delivery makes, so the report and
                                # the delivered file cannot disagree about it.
                                reviewer_tokens=kpi.reviewer_tokens(repository.root, records))
@@ -850,8 +855,9 @@ UNMEASURABLE = [
     'has been worked, so a figure here would be invented',
     'Escaped defects: counted from tickets whose frontmatter names an earlier one, and none has '
     'been written yet',
-    'Cost in euros: the session logs carry tokens, and a price per token is stale the day it is '
-    'written, so only tokens are reported',
+    'Cost in euros beyond output tokens: a handoff record carries the session\'s output tokens '
+    'and tool calls and nothing about input, so the cost per slice in [routing.prices] covers '
+    'the output side and says so, with the date the prices were read printed beside it',
 ]
 
 
@@ -859,7 +865,7 @@ def write_report(repository, args):
     from . import report as reporting
     require(args.week or args.sprint is not None, 'Ask for --week or --sprint <n>')
     rules = thresholds.load(repository.root)
-    figures = ticket_figures(repository)
+    figures = ticket_figures(repository, rules)
     if args.sprint is not None:
         planned = 0
         for path in sorted((repository.root / 'docs' / 'tickets').glob('*.md')):
@@ -891,6 +897,11 @@ def write_report(repository, args):
                                   budget['minimum_tickets'], budget['tools_available_from'],
                                   agents_from=budget['agents_available_from'])
         section['overlaps'] = context.overlaps(_graph_records(repository.root, covered))
+        # What a point cost on each model, from the routes the slices were given.
+        # Beside the tokens per point rather than instead of it: the tokens are
+        # the measure that does not go stale.
+        section['cost_by_model'] = context.cost_by_model(covered)
+        section['prices'] = rules['routing']['prices']
     payload = dict(name=name, generated_for=name, tickets=covered, totals=totals,
                    unmeasurable=UNMEASURABLE, context=section)
     markdown = reporting.render(title, covered, totals, UNMEASURABLE, section, budget)

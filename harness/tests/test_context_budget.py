@@ -265,3 +265,58 @@ class OverlapTest(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class CostPerPointByModelTest(unittest.TestCase):
+    """What a point cost on each model, beside the tokens per point.
+
+    The point of the route is that a cheaper model on the slices that can take
+    one costs less per point than the strongest on everything. That claim is
+    only worth making with the figure printed beside it, per model, with the
+    date the prices were read.
+    """
+
+    def tickets(self):
+        return [
+            dict(ticket='SEEN-001', points=3, started='2026-09-25T00:00:00+00:00',
+                 output_tokens=60000, tool_calls=40,
+                 execution=[dict(position=1, points=2, model='opus', effort='high',
+                                 output_tokens=40000, cost_cents=300.0),
+                            dict(position=2, points=1, model='haiku', effort='low',
+                                 output_tokens=20000, cost_cents=8.0)]),
+            dict(ticket='SEEN-002', points=2, started='2026-09-25T00:00:00+00:00',
+                 output_tokens=30000, tool_calls=20,
+                 execution=[dict(position=1, points=2, model='haiku', effort='medium',
+                                 output_tokens=30000, cost_cents=12.0)]),
+        ]
+
+    def test_it_divides_each_model_s_cost_by_the_points_it_carried(self):
+        from harness import context
+        by_model = context.cost_by_model(self.tickets())
+        self.assertEqual(by_model['opus'], dict(slices=1, points=2, cost_cents=300.0,
+                                                cost_per_point=150.0, output_tokens=40000))
+        self.assertEqual(by_model['haiku']['points'], 3)
+        self.assertEqual(by_model['haiku']['cost_per_point'], round(20.0 / 3, 2))
+
+    def test_a_ticket_with_no_execution_contributes_nothing(self):
+        from harness import context
+        tickets = self.tickets() + [dict(ticket='SEEN-003', points=5, execution=None)]
+        self.assertEqual(sorted(context.cost_by_model(tickets)), ['haiku', 'opus'])
+
+    def test_a_slice_with_no_cost_still_counts_its_points_and_says_so(self):
+        from harness import context
+        tickets = [dict(ticket='SEEN-004', points=1, execution=[
+            dict(position=1, points=1, model='sonnet', effort='low',
+                 output_tokens=None, cost_cents=None)])]
+        entry = context.cost_by_model(tickets)['sonnet']
+        self.assertEqual(entry['points'], 1)
+        self.assertIsNone(entry['cost_per_point'])
+
+    def test_the_report_prints_the_row_and_the_date_the_prices_were_read(self):
+        from harness import report as reporting, thresholds
+        rules = thresholds.load(PROJECT)
+        rendered = reporting.render_cost(context.cost_by_model(self.tickets()),
+                                         rules['routing']['prices'])
+        self.assertIn('opus', '\n'.join(rendered))
+        self.assertIn(rules['routing']['prices']['priced_on'], '\n'.join(rendered))
+        self.assertIn('EUR', '\n'.join(rendered))

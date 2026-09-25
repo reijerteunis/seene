@@ -95,6 +95,121 @@ def slices(records):
     return dict(planned=len(planned), proven=proven)
 
 
+def _latest_route(records):
+    """The route in force, which is the most recent one written.
+
+    The most recent, because a plan changed by a return to solution is routed
+    again and the later record describes the plan the work was done against.
+    """
+    for record in reversed(records):
+        if record['kind'] == 'route':
+            return record
+    return None
+
+
+def slice_tokens(records):
+    """What each slice boundary cost, from the handoff records and nothing else.
+
+    A handoff carries the session's own spending at the moment it stopped, so a
+    slice worked in a session that had already worked another costs the
+    difference between the two boundaries. A boundary in a fresh session costs
+    what that session had spent, because its figure starts from nothing.
+
+    Null rather than zero wherever the figure is missing: a machine with no
+    session logs records null, and subtracting one from a number would turn an
+    absence into a total.
+    """
+    spent, previous = {}, None
+    for record in records:
+        if record['kind'] != 'handoff':
+            continue
+        cut = record['data'].get('slice') or {}
+        figures = record['data'].get('figures') or {}
+        position = cut.get('position')
+        output = figures.get('output_tokens')
+        if position is None:
+            continue
+        if output is None:
+            spent[position] = None
+        elif previous and previous['session'] == figures.get('session'):
+            spent[position] = output - previous['output_tokens']
+        else:
+            spent[position] = output
+        if output is not None:
+            previous = dict(session=figures.get('session'), output_tokens=output)
+    return spent
+
+
+def ran_on(records, position):
+    """The model the checks for this slice were actually recorded under.
+
+    Read from the accepted tdd record's own citations, because those are the
+    checks that proved the slice. In shadow this differs from the route as
+    often as not, and the difference is what SEEN-109's window reads.
+    """
+    for record in reversed(records):
+        if record['kind'] != 'advance' or record['data'].get('from_stage') != 'tdd':
+            continue
+        proved = record['data'].get('evidence', {}).get('slices') or []
+        if position > len(proved):
+            return None
+        cited = proved[position - 1].get('green')
+        check = _check(records, cited) if cited else None
+        return (check or {}).get('model')
+    return None
+
+
+def cost_cents(model, tokens, prices):
+    """What those output tokens cost on that model, or that nobody priced it.
+
+    Output only, because a handoff record carries output tokens and tool calls
+    and nothing about input: a figure that silently included a guess at the
+    input side would be worse than one that says what it covers.
+    """
+    if not prices or tokens is None:
+        return None
+    price = prices.get(model)
+    if not price:
+        return None
+    return round(tokens * price['output'] / 1_000_000, 2)
+
+
+COST_BASIS = ('output tokens only, at the routed model\'s price: a handoff record carries the '
+              'session\'s output tokens and tool calls and nothing about input')
+
+
+def execution(records, rules=None):
+    """What each slice was routed to, what it ran on and what it cost.
+
+    Null rather than an empty list for a ticket nobody routed, which is every
+    ticket delivered before SEEN-108: no route is not a route to nothing.
+    """
+    routed = _latest_route(records)
+    if routed is None:
+        return None
+    prices = ((rules or {}).get('routing') or {}).get('prices')
+    spent = slice_tokens(records)
+    found = []
+    for entry in routed['data']['execution']:
+        position = entry['position']
+        tokens = spent.get(position)
+        found.append(dict(position=position,
+                          name=entry.get('name'),
+                          points=entry.get('points'),
+                          model=entry['model'],
+                          effort=entry['effort'],
+                          source=entry['source'],
+                          rule=entry.get('rule'),
+                          # What the route chose, beside what the work actually
+                          # ran on. In shadow they differ, and that is the
+                          # comparison SEEN-109 is for.
+                          ran_on=ran_on(records, position),
+                          output_tokens=tokens,
+                          cost_cents=cost_cents(entry['model'], tokens, prices),
+                          cost_basis=COST_BASIS))
+    return found
+
+
 def sessions(records):
     """How many sessions wrote this journal, or that nobody can tell.
 
@@ -286,7 +401,7 @@ def first_pass_ci(records):
 
 
 def measure(records, ticket, points=None, delivered_at=None, tokens=None, cost=None,
-            reviewer_tokens=None):
+            reviewer_tokens=None, rules=None):
     """Everything a KPI record carries for one ticket."""
     if not records:
         return dict(ticket=ticket, delivered_at=delivered_at, points=points,
@@ -295,7 +410,7 @@ def measure(records, ticket, points=None, delivered_at=None, tokens=None, cost=N
                     findings=dict(by_severity={}, fixed=0, waived=0),
                     first_pass_ci=None, tokens=tokens, cost=cost, escaped_defects=[],
                     slices=None, sessions=None, output_tokens_per_slice=None,
-                    subagents=None, review_triage=None, harness_version=None,
+                    subagents=None, review_triage=None, execution=None, harness_version=None,
                     note='Measured from the ticket file: this ticket has no journal')
     receipt = _receipt(records)
     rework = sum(1 for record in records if record['kind'] in ('return', 'reopen'))
@@ -319,6 +434,7 @@ def measure(records, ticket, points=None, delivered_at=None, tokens=None, cost=N
                 sessions=sessions(records),
                 subagents=subagents(records),
                 review_triage=review_triage(records, reviewer_tokens),
+                execution=execution(records, rules),
                 output_tokens_per_slice=output_tokens_per_slice(
                     tokens, (cut or {}).get('proven') or (cut or {}).get('planned')),
                 harness_version=records[-1].get('harness_version'),
