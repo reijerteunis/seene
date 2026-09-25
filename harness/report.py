@@ -168,11 +168,22 @@ def render_cost(by_model, prices):
     lines = ['', '### Cost per point by the model the work ran on', '',
              f'| Model | Slices | Points | Output tokens | Cost ({currency} cents) '
              f'| Cost per point |', '|---|---|---|---|---|---|']
-    for model in sorted(by_model, key=lambda name: by_model[name]['cost_cents'], reverse=True):
+    # Dearest first among the rows that could be priced, and the rest after
+    # them. cost_cents is None for a row nothing could price, because zero is a
+    # claim that a slice was free, and sorting on it raised TypeError and wrote
+    # no report at all: the fourth review's F3 made the value right and the
+    # fifth review's F1 found this sort still reading it as a number.
+    def order(name):
+        cost = by_model[name]['cost_cents']
+        return (cost is not None, cost or 0)
+
+    for model in sorted(by_model, key=order, reverse=True):
         found = by_model[model]
         per_point = found['cost_per_point']
+        cost = found['cost_cents']
         lines.append(f'| {model} | {found["slices"]} | {found["points"]} '
-                     f'| {found["output_tokens"]} | {found["cost_cents"]} '
+                     f'| {found["output_tokens"]} '
+                     f'| {cost if cost is not None else "not measured"} '
                      f'| {per_point if per_point is not None else "not measured"} |')
     lines += ['',
               f'Prices read on {priced_on}, in {currency} cents per million tokens, from '

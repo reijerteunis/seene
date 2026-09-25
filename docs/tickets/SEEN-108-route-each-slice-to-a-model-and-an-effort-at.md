@@ -39,8 +39,8 @@ Every slice runs on the session's model at the session's effort today, whatever 
 
 ## Outcome
 
-Worked in one session by the digest `710e96458c5b`: eight attempts, seven
-returns, eleven slices proved against four planned, counting the tdd advance
+Worked in one session by the digest `710e96458c5b`: 9 attempts, 8 returns,
+12 slices proved against four planned, counting the tdd advance
 this section was written for. Four of the returns came from a review and each
 found something real; one came from the review triage before any model read the
 diff, which is what SEEN-107 was built to do; two were this ticket's own, to take
@@ -77,8 +77,8 @@ of 15,631 entries in this project's logs after three subagent runs none carries
 disclosure and not a proof, the same position SEEN-105 took for the reviewer's
 session id. The decisions are at records 41 and 50 with the options offered.
 
-**What the reviews found that the tests did not.** Twenty-six findings over four
-reviews, and the pattern in them is worth more than the count. Three were the
+**What the reviews found that the tests did not.** Twenty-eight findings over five
+reviews, falling nine, six, six, five, two, and the pattern in them is worth more than the count. Three were the
 same fault in different clothes: a figure attributed to the wrong thing. The
 tokens of a slice were keyed by the handoff's `position` rather than its `done`,
 so every slice was charged the window before it and the planning window was
@@ -107,7 +107,14 @@ in the same commit that closed them. Every finding of all four reviews is closed
 in this ticket, and none of them is an escaped defect, because every one was
 found by a review before delivery rather than after it.
 
-**What the journal owns.** Four corrections, at records 42, 52, 70 and 83. Three
+**What the journal owns.** Four corrections, at records 42, 52, 70 and 83, and a
+fifth thing worth naming beside them: the fingerprint check refused the sixth
+and seventh triages, because this session wrote the outcome after the final
+regression and ran those checks with the fixes unstaged. SEEN-107 passed that
+check eleven times on the same code, so it was the order of work and not the
+check; note 87 records it and check 85 stands in its place. The order the
+harness reads is outcome, commit, then the final checks, and this section was
+written that way on the ninth attempt. Three
 are the same fault: the `failure_reason` field asks for the runner's words and
 was filled from what the session had been reading, at records 23, 46 and 38. The
 fourth is record 82 naming a plan position for a rework round that spans three

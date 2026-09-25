@@ -444,3 +444,50 @@ class ForwardReferenceTest(unittest.TestCase):
         from harness.errors import HarnessError
         with self.assertRaisesRegex(HarnessError, 'calibration'):
             cli.parse(['report', '--calibration'])
+
+
+class UnpricedRowTest(unittest.TestCase):
+    """F1 of the fifth review: a row nothing could price must still render.
+
+    The fourth review's F3 made cost_cents None for such a row, because zero is
+    a claim that a slice was free; render_cost sorts by that value, so the
+    sprint report stopped being written at all. Both halves are right and the
+    sort was what had to change.
+    """
+
+    def by_model(self, **rows):
+        return {name: dict(slices=1, points=2, priced_points=2 if cost is not None else 0,
+                           cost_cents=cost, output_tokens=40000,
+                           cost_per_point=150.0 if cost is not None else None)
+                for name, cost in rows.items()}
+
+    def rendered(self, **rows):
+        from harness import report as reporting
+        return '\n'.join(reporting.render_cost(
+            self.by_model(**rows), thresholds.load(PROJECT)['routing']['prices']))
+
+    def test_an_unpriced_row_beside_a_priced_one_renders(self):
+        rendered = self.rendered(unknown=None, opus=519)
+        self.assertIn('opus', rendered)
+        self.assertIn('unknown', rendered)
+
+    def test_rows_nobody_could_price_render_too(self):
+        self.assertIn('unknown', self.rendered(unknown=None, haiku=None))
+
+    def test_the_priced_rows_come_first(self):
+        rendered = self.rendered(unknown=None, opus=519, haiku=12)
+        # The separator starts '|-', so the only header among these is the first.
+        lines = [line for line in rendered.splitlines() if line.startswith('| ')]
+        names = [line.split('|')[1].strip() for line in lines[1:]]
+        self.assertEqual(names, ['opus', 'haiku', 'unknown'])
+
+    def test_an_unpriced_cell_says_what_it_means_rather_than_none(self):
+        rendered = self.rendered(unknown=None)
+        self.assertNotIn('| None |', rendered)
+        self.assertIn('not measured', rendered)
+
+    def test_the_sprint_report_survives_this_ticket_s_own_figures(self):
+        """The shape that raised: one unpriced row beside one priced row."""
+        from harness import report as reporting
+        reporting.render_cost(self.by_model(unknown=None, opus=519),
+                              thresholds.load(PROJECT)['routing']['prices'])

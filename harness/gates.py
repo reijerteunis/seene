@@ -243,6 +243,12 @@ def _tdd(data, records, current, repository, thresholds):
         require(isinstance(slice_, dict), f'Slice {position} must be an object')
         for key in ('behaviour', 'failure_reason'):
             require(_filled(slice_.get(key)), f'Slice {position} is missing {key}')
+        require('position' in slice_,
+                f'Slice {position} of this record does not say which slice of the plan it '
+                'proved. Name its position, or null for a round that belongs to no single '
+                'slice, which is a claim on the record rather than a gap in it: left out, it '
+                'skips the route comparison and is indistinguishable from a record written '
+                'before the field existed')
         red = cited_check(records, slice_.get('red'), 'red', current)
         green = cited_check(records, slice_.get('green'), 'green', current)
         require(previous_green < red['sequence'] < green['sequence'] <= regression['sequence'],
@@ -262,9 +268,12 @@ def _require_the_routed_slice(records, slice_, order, checks_cited, thresholds):
     1's route and, with shadow off, refused work that ran exactly as routed.
     F1 of this ticket's fourth review.
 
-    A record written before the field existed names no position, and is held to
-    no route: the mapping it never carried cannot be inferred, and refusing on a
-    guess is the fault this replaced.
+    A slice may declare no position, as null, for a rework round that belongs to
+    no single slice; it is then held to no route, because the mapping it says it
+    does not have cannot be inferred. The declaration is required and only its
+    value may be empty: left optional, omitting it was a way past the refusal
+    that no reader could tell from a record written before the field existed.
+    F2 of the fifth review.
     """
     position = slice_.get('position')
     if position is None:

@@ -909,13 +909,12 @@ class SlicePositionTest(GateTest):
         green = self.declared_check('green', model=model, declared=declared)
         regression = self.declared_check('regression', model=model, declared=declared)
         self.record_coverage()
-        entry = dict(behaviour='The reworked behaviour',
-                     failure_reason='AssertionError: the reworked behaviour is absent',
-                     red=red['sequence'], green=green['sequence'])
-        if position is not None:
-            entry['position'] = position
         return dict(mode='code', regression=regression['sequence'], coverage_delta=0.0,
-                    slices=[entry])
+                    slices=[dict(position=position,
+                                 behaviour='The reworked behaviour',
+                                 failure_reason='AssertionError: the reworked behaviour is '
+                                                'absent',
+                                 red=red['sequence'], green=green['sequence'])])
 
     def declared_check(self, phase, exit_code=0, model=None, declared=None):
         from harness import sessions
@@ -948,8 +947,14 @@ class SlicePositionTest(GateTest):
             self.submit('tdd', self.rework_of(2, declared='haiku'))
         self.assertIn('Slice 2', str(raised.exception))
 
-    def test_a_record_that_names_no_position_is_not_refused(self):
-        """Every tdd record written before the field exists is one of these."""
+    def test_a_declared_absence_is_not_refused(self):
+        """A round that belongs to no single slice says so, and is held to no route.
+
+        This asserted that an omitted field was not refused until F2 of the
+        fifth review found that omitting it was a way past the refusal nobody
+        could tell from a record written before the field existed. The absence
+        is declared now, and only the declaration is required.
+        """
         self.use(route_stub(model=(0.7, 0.2, 0.1)))
         self.reach_tdd(self.plan())
         self.route()
@@ -984,3 +989,48 @@ class RouteBelowItsBarTest(RouteTest):
     def test_a_rule_routed_slice_has_no_bar_to_clear(self):
         self.reach_tdd([MONEY])
         self.assertIsNone(self.route()['data']['execution'][0]['model_passed'])
+
+
+class PositionIsDeclaredTest(GateTest):
+    """F2 of the fifth review: the route comparison is not skipped by omission.
+
+    The field was optional so that a record written before it existed would not
+    be refused, and that made leaving it out a way past the refusal
+    indistinguishable from the case it was built for. It is declared now: an
+    integer the plan has, or null for a round that belongs to no single slice,
+    which is a claim on the record rather than a gap in it.
+    """
+
+    def evidence(self, slice_entry):
+        red = self.run_check('red', exit_code=1, model='claude-opus-5')
+        green = self.run_check('green', model='claude-opus-5')
+        regression = self.run_check('regression', model='claude-opus-5')
+        self.record_coverage()
+        return dict(mode='code', regression=regression['sequence'], coverage_delta=0.0,
+                    slices=[dict(slice_entry, red=red['sequence'], green=green['sequence'])])
+
+    def base(self):
+        return dict(behaviour='The status line shows the stage',
+                    failure_reason='AssertionError: the status line is empty')
+
+    def test_a_slice_that_names_no_position_at_all_is_refused(self):
+        self.reach_tdd([PLAIN])
+        self.route()
+        with self.assertRaisesRegex(HarnessError, 'position'):
+            self.submit('tdd', self.evidence(self.base()))
+
+    def test_a_slice_may_declare_no_position_by_saying_so(self):
+        """A rework round spanning slices belongs to none of them, and says null."""
+        self.reach_tdd([PLAIN])
+        self.route()
+        self.set_shadow(False)
+        record = self.submit('tdd', self.evidence(dict(self.base(), position=None)))
+        self.assertEqual(record['data']['to_stage'], 'review')
+
+    def test_a_declared_position_is_still_held_to_its_route(self):
+        self.use(route_stub(model=(0.7, 0.2, 0.1)))
+        self.reach_tdd([PLAIN])
+        self.route()
+        self.set_shadow(False)
+        with self.assertRaisesRegex(HarnessError, 'Slice 1'):
+            self.submit('tdd', self.evidence(dict(self.base(), position=1)))
