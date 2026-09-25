@@ -1,0 +1,38 @@
+{
+  "sequence": 126,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T15:26:11.687059+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 12,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "4da517ea084ca15c6a6fa0bdcb4a33dfe315fb66",
+  "prev_hash": "c5bf8d1efe051542ccfd22ebacd393183be849d03345ab372d2d531396b18792",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": null,
+          "behaviour": "The implementer's generated copies carry the strongest tier at high effort and never vary with the ticket, so doctor is clean on a detached head and on the commit being merged; the outcome's guard checks what stays true as the journal grows; and four module docstrings are documentation again.",
+          "failure_reason": "Quoted from check 122's captured output, recorded against the per-slice design with the source reverted for it: \"AssertionError: 'model: opus' not found in\" the copy, which read model haiku and effort medium; \"AssertionError: Lists differ: ['.claude/agents/seen-implementer.md diffe[354 chars]iew'] != []\" for doctor on a ticket that has delivered, which is the blocker F3 named; and two assertions that a slice boundary and a new plan left the copies unchanged, each differing on model and effort.",
+          "red": 122,
+          "green": 123
+        }
+      ],
+      "regression": 124,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "710e96458c5b",
+      "output_tokens": 817973,
+      "tool_calls": 446,
+      "unavailable": null
+    }
+  }
+}
