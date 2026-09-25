@@ -200,3 +200,44 @@ priced_on = "2026-09-25"
 haiku = { input = 80, output = 400 }
 sonnet = { input = 300, output = 1500 }
 opus = { input = 1500, output = 7500 }
+
+# The calibration window, from SEEN-109. Neither the narrowed review of SEEN-107
+# nor the cheaper model of SEEN-108 takes effect on a guess: both run in shadow
+# while the evidence accumulates, and the rule for reading the numbers is here
+# before the first number exists, exactly as [context] decision_rule was written
+# before the context tools had produced one.
+[calibration]
+# Ten tickets, and the window is the most recent ten rather than a counter
+# somebody keeps. That is what makes an escape return the triage to shadow by
+# itself: the escape holds the verdict until ten further tickets have pushed it
+# out of the window, which is the ticket's "another ten".
+window = 10
+# The moment this rule was committed. A ticket started before it was not worked
+# under the thing being calibrated, which is the rule [context]
+# tools_available_from already carries.
+counted_from = "2026-09-25T20:00:00+00:00"
+# The three tickets that built the triage, the routes and this window. A ticket
+# that built a tool was not worked with it, which is the rule SEEN-098 wrote for
+# itself and SEEN-105 repeated; all three wrote triage or route records on their
+# own branches while the thing under calibration was being written.
+excluded = ["SEEN-107", "SEEN-108", "SEEN-109"]
+excluded_reason = "Built the triage, the routes or this window, so it was not worked under them"
+escape = """A finding at high or blocking severity in a file the triage would have excluded, or a \
+criterion the triage answered evidenced that the review found unmet. A finding at low or medium \
+severity is never an escape: the saving is that such a finding is not looked for. A high or \
+blocking finding naming no file, and a criterion the triage never answered, are reported as \
+unattributable and counted neither way, because counting them as no escape would be a silent pass \
+in favour of the narrowing being measured."""
+triage_rule = """With no escape in the most recent ten counted tickets, spot depth can go live: \
+the founder sets [review] triage_shadow to false and records the decision in the journal of the \
+ticket that flips it. It stays live until the first escape, which returns the triage to shadow \
+with nobody editing a file, for another ten tickets."""
+route_rule = """Each routed slice is charged the returns of its ticket, the findings at high or \
+blocking severity landing in the files it planned to change, and its ticket's escaped defects. A \
+return sends the whole ticket back and no record says which slice caused it, so every slice of the \
+plan carries it, and an escaped defect is charged the same way; findings are the only per-slice \
+measure, so a per-slice rate is evidence about a group and never about a cause. The slices Jev \
+routed below the strongest tier are one group and every other slice, rule-routed ones included, \
+is the other. The routes go live when the downgraded group's rework per point is at or below the \
+other group's over the window; with no slice in either group there is nothing to compare and the \
+verdict stays shadow."""

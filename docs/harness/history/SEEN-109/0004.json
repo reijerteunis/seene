@@ -1,0 +1,85 @@
+{
+  "sequence": 4,
+  "ticket": "SEEN-109",
+  "timestamp": "2026-09-25T19:57:08.014098+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "343d37550220",
+  "head": "47d47222e139f4ed0debbe098d8c3d429e4acdf3",
+  "prev_hash": "25fc34c1328f682df95658fdd19646a6bdf808446f1f63a428dbfa9637f19089",
+  "data": {
+    "from_stage": "clarify",
+    "to_stage": "solution",
+    "evidence": {
+      "scope": "The calibration layer over SEEN-107's triage and SEEN-108's routes: a [calibration] section in harness/thresholds.toml carrying the ten-ticket window, the escape definition and the two go-live rules, written before the first measurement; harness/calibration.py deriving the evidence per ticket and per slice from the journals; harness report --calibration printing that evidence and stating go-live or stay-shadow for the triage and for the routes separately by the rule; and an escape after go-live putting the triage back in shadow without anybody editing a file. Its edge: this ticket flips no switch and changes no ticket's triage or route behaviour. [review] triage_shadow and [routing] shadow stay true, and the go-live decision is the founder's, recorded in the journal of the ticket that makes it.",
+      "acceptance": [
+        "harness/thresholds.toml carries [calibration] with window = 10, the escape definition, the triage go-live rule and the route go-live rule, and counted_from naming the boundary after which a ticket's triage and route records count. The evidence: the section is committed in this ticket's first code commit, before any triage record it counts exists, and test_calibration asserts the loader demands every key so a harness with a half-written rule refuses rather than defaults.",
+        "harness report --calibration writes docs/harness/reports/calibration.{md,json} showing, per ticket: the reviewer's findings by severity, the files the triage would have excluded, and the escapes; and per slice: the recorded route, the model it ran on, and the returns and findings that followed. The evidence: a test builds journals with a triage, a route and a review and asserts each column comes out of the records, and the report is generated on this repository's own journals and committed.",
+        "With ten counted tickets the report states go-live or stay-shadow for the triage and for the routes separately, by the rule and not by a reading of the numbers, and names the founder decision that would flip the switch. The evidence: tests over fixtures of nine and of ten counted tickets, with and without an escape, assert the stated verdict; below ten the report states stay-shadow and says how many are missing rather than concluding.",
+        "An escape recorded after a go-live returns the triage to shadow automatically: harness review triage reads the escape from the journals and runs in shadow whatever [review] triage_shadow says, and the weekly report carries the line naming the escape that did it. The evidence: a test flips triage_shadow to false, plants an escape after the go-live decision and asserts the next triage record carries shadow true with the escape named, and asserts the weekly report renders the line."
+      ],
+      "decisions": [
+        "The window counts tickets whose triage and route records were written after this ticket's own delivery, recorded as [calibration] counted_from. The criterion's literal wording, committed before the first triage record exists, is already impossible: SEEN-107 and SEEN-108 wrote triage and route records on their own branches while building the two things being calibrated, and a ticket that built a tool was not worked with it. That is the rule SEEN-098 wrote for itself in [context] tools_available_from and SEEN-105 repeated in agents_available_from, applied here. On the founder's authority through this record. What settles it: report --calibration lists the tickets it counted and, beside them, the ones it excluded with the reason, so a reader never has to take the count on trust.",
+        "An escape needs a finding attributed to a file, and today the review gate does not ask for one: seen-reviewer already emits file as path:line in every finding, but a hand-written review record can omit it, and a high or blocking finding nobody can place reads as no escape, which is a silent pass in favour of the thing being calibrated. So the review gate will require file on a finding at high or blocking severity, where low and medium never can be escapes and are left alone. Findings already in journals predate the requirement and are reported as unattributable, counted neither as escapes nor against them.",
+        "The automatic return to shadow is computed from the journals and never written to thresholds.toml. Nothing in the harness rewrites its own rules: [review] triage_shadow stays the founder's line and the diff a person reviews, and the effective shadow is that line or an escape recorded after the most recent go-live decision. An escape therefore puts the next triage back in shadow with no file edited and no race between a report and a rule.",
+        "The route's rework rate is measured per slice over the window: the slices Jev routed below the strongest tier against every other slice, on returns that followed the slice inside its ticket, findings at high or blocking severity in the slice's files, and escaped defects on its ticket, divided by the points those slices carried. The comparison is the downgraded group against the strongest-model group, and the routes go live when the downgraded rate is at or below the strongest group's. Rules-routed slices are in the strongest group because that is what a rule gives them.",
+        "This ticket is code, not non-code: it adds a module, a command, a gate requirement and a change to what triage records carry, all of which have behaviour to prove."
+      ],
+      "open_questions": [],
+      "changes_agent_action": false,
+      "graph_impact": [
+        "repowise risk, record 2: below typical, 24th percentile of recent commits by size and spread, with no bug-fix history in the files the working tree touches. The change lands in harness/, which is the subsystem this repository has changed most and where the tests are densest.",
+        "repowise why on triage_shadow and routing shadow, record 3: nothing recorded for that query. The reasoning is not in the index, so it was read from the comments in harness/thresholds.toml and the docstrings in harness/triage.py and harness/routing.py, which carry it in full."
+      ]
+    },
+    "decisions": [
+      {
+        "key": "clarified",
+        "question": "clarified",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.83,
+          "no": 0.17
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.8,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "key": "risk",
+        "question": "risk",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "medium",
+        "probabilities": {
+          "low": 0.39,
+          "medium": 0.61,
+          "high": 0.0
+        },
+        "confidence": 0.41,
+        "score": 0.61,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

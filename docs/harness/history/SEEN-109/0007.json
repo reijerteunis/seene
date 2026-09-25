@@ -1,0 +1,31 @@
+{
+  "sequence": 7,
+  "ticket": "SEEN-109",
+  "timestamp": "2026-09-25T20:02:09.578374+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "343d37550220",
+  "head": "47d47222e139f4ed0debbe098d8c3d429e4acdf3",
+  "prev_hash": "afa61791f010ca46e1d02c39d7c9eef75f5e377ab94fcbc5840ba09f536f8fde",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_calibration"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "model": "claude-opus-5",
+    "model_declared": "opus",
+    "duration_ms": 41,
+    "output": "E\n======================================================================\nERROR: test_calibration (unittest.loader._FailedTest.test_calibration)\n----------------------------------------------------------------------\nImportError: Failed to import test module: test_calibration\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/.local/share/mise/installs/python/3.14.5/lib/python3.14/unittest/loader.py\", line 137, in loadTestsFromName\n    module = __import__(module_name)\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_calibration.py\", line 11, in <module>\n    from harness import calibration, gates, thresholds\nImportError: cannot import name 'calibration' from 'harness' (/Users/ruudvanengelenhoven/Development/seene/harness/__init__.py)\n\n\n----------------------------------------------------------------------\nRan 1 test in 0.000s\n\nFAILED (errors=1)\n",
+    "output_sha256": "a6411b44456f65747dfd54964253c9c8aae2aa17c825cf8dbafe6b0d6ad7b898",
+    "output_truncated": false,
+    "before": "167fdb4e00ea331bd035e2112724c16c30766457033b1dcc524242dd440da792",
+    "after": "167fdb4e00ea331bd035e2112724c16c30766457033b1dcc524242dd440da792"
+  }
+}

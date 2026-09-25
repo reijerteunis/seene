@@ -110,6 +110,11 @@ def build_parser():
     back.add_argument('--to', required=True)
     back.add_argument('--reason', required=True)
     back.add_argument('--actor', required=True)
+    back.add_argument('--unmet', type=int, action='append', metavar='N',
+                      help='The number of an acceptance criterion this return found unmet, '
+                           'repeatable. A criterion the triage answered evidenced and a review '
+                           'found unmet is an escape, and its number is the only thing that '
+                           'tells such a return from an ordinary one')
 
     measure = ticket_command('coverage', 'Measure coverage on the gated package and record the delta')
     measure.add_argument('--actor', required=True)
@@ -731,11 +736,19 @@ def go_back(repository, folder, records, args, current, rules):
     require(STAGES.index(args.to) < STAGES.index(stage),
             f'A return must target a stage before {stage}')
     require(args.reason.strip(), 'A return needs a recorded reason')
+    unmet = sorted(set(getattr(args, 'unmet', None) or []))
+    require(all(position >= 1 for position in unmet),
+            'An unmet criterion is named by its number in the ticket, counting from 1')
     return journal.append(folder, records, kind='return', stage=stage,
                           attempt=current['attempt'], actor=args.actor,
                           head=repository.head(), ticket=args.ticket,
                           data=dict(from_stage=stage, to_stage=args.to,
-                                    to_attempt=current['attempt'] + 1, reason=args.reason))
+                                    to_attempt=current['attempt'] + 1, reason=args.reason,
+                                    # Which criteria this return says are unmet, by their
+                                    # number in the ticket. SEEN-109's second escape kind
+                                    # is a criterion the triage answered evidenced and a
+                                    # review found unmet, and prose cannot be read for it.
+                                    unmet_criteria=unmet))
 
 
 DISCARDED = Path('docs/harness/discarded.jsonl')

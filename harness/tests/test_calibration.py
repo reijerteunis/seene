@@ -1,0 +1,360 @@
+"""The window, the escapes and the two verdicts, by a rule written before them.
+
+The figures these tests derive decide whether a narrowed review and a cheaper
+model ever take effect, so what is asserted here is that the rule is applied as
+written rather than that a number came out favourable.
+"""
+
+import json
+import unittest
+
+from harness import calibration, gates, journal as journal_module, thresholds
+from harness.errors import HarnessError
+from harness.tests.helpers import PROJECT, ProjectTest
+
+
+def at(day, minute=0):
+    return f'2026-10-{day:02d}T10:{minute:02d}:00+00:00'
+
+
+def record(sequence, kind, stage, day=1, minute=0, ticket='SEEN-001', attempt=1, **data):
+    return dict(sequence=sequence, ticket=ticket, timestamp=at(day, minute), harness_version='2',
+                kind=kind, stage=stage, attempt=attempt, actor='claude:implementer',
+                session='a' * 12, head='0' * 40, prev_hash=None, data=data)
+
+
+def triage_record(sequence, day=1, minute=10, would_exclude=(), answers=(), ticket='SEEN-001'):
+    """A triage as SEEN-107 writes one: what it would have dropped, and its answers."""
+    return record(sequence, 'triage', 'review', day=day, minute=minute, ticket=ticket,
+                  fingerprint='f' * 64, code_fingerprint='c' * 64,
+                  files=[], criteria=[], deterministic=[], rules=[],
+                  jev=dict(asked=True, model='jev-1.13.0', reason=None, answers=[]),
+                  criteria_answers=[dict(key=f'criterion_evidenced#{position}',
+                                         criterion=criterion, passed=passed,
+                                         outcome='yes' if passed else 'no',
+                                         probabilities={}, threshold=0.6)
+                                    for position, criterion, passed in answers],
+                  review_depth='spot', model_depth='spot', reviewer_model='sonnet',
+                  focus=[], shadow=True, would_exclude=list(would_exclude),
+                  excluded_share=0.4, always_read=[], reviewer_task='read it')
+
+
+def review_advance(sequence, findings, day=1, minute=20, ticket='SEEN-001'):
+    return record(sequence, 'advance', 'review', day=day, minute=minute, ticket=ticket,
+                  from_stage='review', to_stage='deliver', decisions=[],
+                  evidence=dict(reviewer='codex:reviewer', independence='subagent',
+                                read=[], findings=findings, verdict='pass'))
+
+
+def finding(identifier, severity, file=None):
+    body = dict(id=identifier, severity=severity, claim='It breaks',
+                failure_scenario='It breaks like this', status='resolved',
+                resolution='Fixed')
+    if file is not None:
+        body['file'] = file
+    return body
+
+
+def route_record(sequence, execution, day=1, minute=5, ticket='SEEN-001', solution=3):
+    return record(sequence, 'route', 'tdd', day=day, minute=minute, ticket=ticket,
+                  solution=solution, shadow=True, strongest='opus',
+                  tiers=['haiku', 'sonnet', 'opus'], rules=[],
+                  jev=dict(asked=True, model='jev-1.13.0', reason=None, answers=[]),
+                  execution=execution)
+
+
+def slice_entry(position, model, source='jev', points=1, files=('harness/a.py',), name='A slice'):
+    return dict(position=position, name=name, points=points, files=list(files), red='x',
+                model=model, effort='high' if model == 'opus' else 'medium', source=source,
+                rule=None, reason=None, model_probability=0.7, effort_probability=0.6,
+                model_passed=True, model_threshold=0.5)
+
+
+def journal(ticket='SEEN-001', day=1, triage=None, findings=(), returns=(), execution=None,
+            answers=()):
+    """A delivered ticket's journal: start, plan, route, triage, review, receipt."""
+    records = [
+        record(1, 'start', 'clarify', day=day, ticket=ticket, ticket_file='docs/tickets/x.md',
+               ticket_snapshot='# x', base_commit='a' * 40),
+        record(2, 'advance', 'clarify', day=day, minute=1, ticket=ticket, from_stage='clarify',
+               to_stage='solution', evidence={}, decisions=[]),
+        record(3, 'advance', 'solution', day=day, minute=2, ticket=ticket, from_stage='solution',
+               to_stage='tdd', decisions=[],
+               evidence=dict(mode='code',
+                             slices=[dict(position=1, name='A slice', points=1,
+                                          files=['harness/a.py'], red='x')])),
+    ]
+    if execution is not None:
+        records.append(route_record(4, execution, day=day, ticket=ticket))
+    records.append(triage_record(len(records) + 1, day=day,
+                                 would_exclude=triage or (), answers=answers, ticket=ticket))
+    for position, unmet in enumerate(returns):
+        records.append(record(len(records) + 1, 'return', 'review', day=day, minute=15 + position,
+                              ticket=ticket, from_stage='review', to_stage='tdd', to_attempt=2,
+                              reason='Sent back', unmet_criteria=list(unmet)))
+    records.append(review_advance(len(records) + 1, list(findings), day=day, ticket=ticket))
+    records.append(record(len(records) + 1, 'receipt', 'deliver', day=day, minute=30,
+                          ticket=ticket, from_stage='deliver', to_stage='delivered',
+                          commit='b' * 40, tree='c' * 64))
+    return records
+
+
+def plant(root, ticket, day, **kwargs):
+    """Write a journal to disk, chained the way journal.append chains one."""
+    folder = root / 'docs' / 'harness' / 'history' / ticket
+    folder.mkdir(parents=True, exist_ok=True)
+    previous = None
+    for entry in journal(ticket=ticket, day=day, **kwargs):
+        path = folder / f'{entry["sequence"]:04d}.json'
+        path.write_bytes(journal_module.serialise(dict(entry, prev_hash=previous)))
+        previous = journal_module.digest(path)
+    return folder
+
+
+class EscapeTest(unittest.TestCase):
+    """What counts as an escape, and what the rule refuses to count either way."""
+
+    def test_a_blocking_finding_in_an_excluded_file_is_an_escape(self):
+        found = calibration.escapes(journal(triage=['harness/skipped.py'],
+                                            findings=[finding('F1', 'blocking',
+                                                              'harness/skipped.py:12')]))
+        self.assertEqual([entry['kind'] for entry in found['escapes']],
+                         ['finding_in_excluded_file'])
+        self.assertEqual(found['escapes'][0]['file'], 'harness/skipped.py')
+
+    def test_a_finding_in_a_file_the_triage_kept_is_not_an_escape(self):
+        found = calibration.escapes(journal(triage=['harness/skipped.py'],
+                                            findings=[finding('F1', 'blocking',
+                                                              'harness/read.py:3')]))
+        self.assertEqual(found['escapes'], [])
+        self.assertEqual(found['unattributable'], [])
+
+    def test_a_medium_finding_in_an_excluded_file_is_not_an_escape(self):
+        found = calibration.escapes(journal(triage=['harness/skipped.py'],
+                                            findings=[finding('F1', 'medium',
+                                                              'harness/skipped.py:12')]))
+        self.assertEqual(found['escapes'], [])
+
+    def test_a_high_finding_naming_no_file_is_unattributable(self):
+        found = calibration.escapes(journal(triage=['harness/skipped.py'],
+                                            findings=[finding('F1', 'high')]))
+        self.assertEqual(found['escapes'], [])
+        self.assertEqual([entry['id'] for entry in found['unattributable']], ['F1'])
+
+    def test_a_criterion_the_triage_evidenced_and_the_review_found_unmet_is_an_escape(self):
+        found = calibration.escapes(journal(answers=[(1, 'Something observable happens', True)],
+                                            returns=[[1]]))
+        self.assertEqual([entry['kind'] for entry in found['escapes']], ['unmet_criterion'])
+        self.assertEqual(found['escapes'][0]['criterion'], 'Something observable happens')
+
+    def test_a_criterion_the_triage_found_unevidenced_is_not_an_escape(self):
+        """The triage said so itself and returned the ticket; it missed nothing."""
+        found = calibration.escapes(journal(answers=[(1, 'Something observable happens', False)],
+                                            returns=[[1]]))
+        self.assertEqual(found['escapes'], [])
+        self.assertEqual(found['unattributable'], [])
+
+    def test_a_criterion_the_triage_never_answered_is_unattributable(self):
+        found = calibration.escapes(journal(returns=[[1]]))
+        self.assertEqual(found['escapes'], [])
+        self.assertEqual([entry['position'] for entry in found['unattributable']], [1])
+
+    def test_a_return_naming_no_criterion_is_neither(self):
+        found = calibration.escapes(journal(answers=[(1, 'A criterion', True)], returns=[[]]))
+        self.assertEqual(found['escapes'], [])
+        self.assertEqual(found['unattributable'], [])
+
+
+class WindowTest(ProjectTest):
+    """Which tickets the window counts, and which it names as excluded and why."""
+
+    def setUp(self):
+        super().setUp()
+        self.rules = thresholds.load(self.root)
+
+    def plant(self, ticket, day, **kwargs):
+        plant(self.root, ticket, day, **kwargs)
+
+    def test_a_ticket_that_built_the_thing_under_calibration_is_excluded_by_name(self):
+        for excluded in self.rules['calibration']['excluded']:
+            self.plant(excluded, 2)
+        self.plant('SEEN-200', 2)
+        section = calibration.evidence(self.root, self.rules)
+        self.assertEqual([entry['ticket'] for entry in section['tickets']], ['SEEN-200'])
+        self.assertEqual(sorted(entry['ticket'] for entry in section['excluded']),
+                         sorted(self.rules['calibration']['excluded']))
+
+    def test_a_ticket_delivered_before_the_rule_existed_is_excluded_with_its_date(self):
+        rules = dict(self.rules, calibration=dict(self.rules['calibration'],
+                                                  counted_from='2026-10-05T00:00:00+00:00'))
+        self.plant('SEEN-200', 2)
+        self.plant('SEEN-201', 6)
+        section = calibration.evidence(self.root, rules)
+        self.assertEqual([entry['ticket'] for entry in section['tickets']], ['SEEN-201'])
+        self.assertEqual([entry['ticket'] for entry in section['excluded']], ['SEEN-200'])
+
+    def test_the_window_is_the_most_recent_ten_counted_tickets(self):
+        for day in range(1, 14):
+            self.plant(f'SEEN-3{day:02d}', day)
+        section = calibration.evidence(self.root, self.rules)
+        self.assertEqual(len(section['tickets']), 13)
+        self.assertEqual(len(section['triage']['window']), 10)
+        self.assertEqual(section['triage']['window'][0], 'SEEN-304')
+
+
+class TriageVerdictTest(unittest.TestCase):
+    """Go-live or stay-shadow for the triage, stated by the rule and not by a reading."""
+
+    def setUp(self):
+        self.rules = thresholds.load(PROJECT)
+
+    def rows(self, count, escapes_on=()):
+        rows = []
+        for index in range(count):
+            ticket = f'SEEN-4{index:02d}'
+            rows.append(dict(ticket=ticket,
+                             escapes=[dict(kind='finding_in_excluded_file', id='F1',
+                                           file='harness/a.py', severity='blocking',
+                                           detail='left out')] if index in escapes_on else [],
+                             unattributable=[]))
+        return rows
+
+    def test_nine_counted_tickets_state_stay_shadow_and_name_the_shortfall(self):
+        verdict = calibration.verdict_triage(self.rows(9), self.rules)
+        self.assertEqual(verdict['state'], 'stay_shadow')
+        self.assertIn('9 of 10', verdict['reason'])
+
+    def test_ten_clean_tickets_state_go_live(self):
+        verdict = calibration.verdict_triage(self.rows(10), self.rules)
+        self.assertEqual(verdict['state'], 'go_live')
+
+    def test_one_escape_in_the_window_states_stay_shadow_and_names_it(self):
+        verdict = calibration.verdict_triage(self.rows(10, escapes_on=[4]), self.rules)
+        self.assertEqual(verdict['state'], 'stay_shadow')
+        self.assertIn('SEEN-404', verdict['reason'])
+
+    def test_an_escape_that_has_dropped_out_of_the_window_no_longer_holds_it(self):
+        """The ticket's another ten: ten clean tickets after the escape."""
+        verdict = calibration.verdict_triage(self.rows(21, escapes_on=[4]), self.rules)
+        self.assertEqual(verdict['state'], 'go_live')
+
+
+class RouteVerdictTest(unittest.TestCase):
+    """The downgraded slices against the rest, on the charges the rule names."""
+
+    def setUp(self):
+        self.rules = thresholds.load(PROJECT)
+
+    def test_a_slice_jev_sent_below_the_strongest_is_the_downgraded_group(self):
+        rows = calibration.slice_rows('SEEN-500',
+                                      journal(execution=[slice_entry(1, 'sonnet'),
+                                                         slice_entry(2, 'opus')]),
+                                      escaped=[], rules=self.rules)
+        self.assertEqual([row['group'] for row in rows], ['downgraded', 'strongest'])
+
+    def test_a_rule_routed_slice_is_in_the_strongest_group(self):
+        rows = calibration.slice_rows('SEEN-500',
+                                      journal(execution=[slice_entry(1, 'opus', source='rule')]),
+                                      escaped=[], rules=self.rules)
+        self.assertEqual(rows[0]['group'], 'strongest')
+
+    def test_a_finding_is_charged_to_the_slice_whose_files_it_lands_in(self):
+        rows = calibration.slice_rows(
+            'SEEN-500',
+            journal(execution=[slice_entry(1, 'sonnet', files=['harness/a.py']),
+                               slice_entry(2, 'opus', files=['harness/b.py'])],
+                    findings=[finding('F1', 'high', 'harness/b.py:4')]),
+            escaped=[], rules=self.rules)
+        self.assertEqual([row['findings'] for row in rows], [0, 1])
+
+    def test_the_routes_go_live_when_the_downgraded_rate_is_at_or_below_the_rest(self):
+        rows = [dict(group='downgraded', points=1, rework=0),
+                dict(group='strongest', points=1, rework=1)]
+        verdict = calibration.verdict_routes(rows, ['SEEN-%03d' % n for n in range(10)],
+                                             self.rules)
+        self.assertEqual(verdict['state'], 'go_live')
+
+    def test_the_routes_stay_in_shadow_when_the_downgraded_rate_is_worse(self):
+        rows = [dict(group='downgraded', points=1, rework=2),
+                dict(group='strongest', points=1, rework=1)]
+        verdict = calibration.verdict_routes(rows, ['SEEN-%03d' % n for n in range(10)],
+                                             self.rules)
+        self.assertEqual(verdict['state'], 'stay_shadow')
+
+    def test_no_downgraded_slice_is_not_measurable_rather_than_a_pass(self):
+        rows = [dict(group='strongest', points=1, rework=0)]
+        verdict = calibration.verdict_routes(rows, ['SEEN-%03d' % n for n in range(10)],
+                                             self.rules)
+        self.assertEqual(verdict['state'], 'stay_shadow')
+        self.assertIn('no slice', verdict['reason'])
+
+
+class EffectiveShadowTest(ProjectTest):
+    """The one question a triage asks: which shadow am I in, and what put me there."""
+
+    def setUp(self):
+        super().setUp()
+        self.rules = thresholds.load(self.root)
+
+    def plant(self, ticket, day, **kwargs):
+        plant(self.root, ticket, day, **kwargs)
+
+    def test_the_threshold_alone_keeps_the_triage_in_shadow(self):
+        answer = calibration.effective_shadow(self.root, self.rules)
+        self.assertTrue(answer['shadow'])
+        self.assertIn('triage_shadow', answer['reason'])
+
+    def test_with_the_threshold_off_and_ten_clean_tickets_the_triage_is_live(self):
+        rules = dict(self.rules, review=dict(self.rules['review'], triage_shadow=False))
+        for day in range(1, 11):
+            self.plant(f'SEEN-6{day:02d}', day)
+        answer = calibration.effective_shadow(self.root, rules)
+        self.assertFalse(answer['shadow'])
+
+    def test_an_escape_after_go_live_returns_the_triage_to_shadow(self):
+        rules = dict(self.rules, review=dict(self.rules['review'], triage_shadow=False))
+        for day in range(1, 11):
+            self.plant(f'SEEN-6{day:02d}', day)
+        self.plant('SEEN-620', 11, triage=['harness/skipped.py'],
+                   findings=[finding('F1', 'blocking', 'harness/skipped.py:2')])
+        answer = calibration.effective_shadow(self.root, rules)
+        self.assertTrue(answer['shadow'])
+        self.assertIn('SEEN-620', answer['reason'])
+
+
+class FindingFileTest(unittest.TestCase):
+    """A finding nobody can place is a silent pass in favour of the narrowing."""
+
+    severities = ['low', 'medium', 'high', 'blocking']
+
+    def test_a_blocking_finding_with_no_file_is_refused(self):
+        with self.assertRaises(HarnessError) as raised:
+            gates.check_findings([finding('F1', 'blocking')], self.severities)
+        self.assertIn('file', str(raised.exception))
+
+    def test_a_high_finding_with_no_file_is_refused(self):
+        with self.assertRaises(HarnessError):
+            gates.check_findings([finding('F1', 'high')], self.severities)
+
+    def test_a_medium_finding_needs_no_file(self):
+        gates.check_findings([finding('F1', 'medium')], self.severities)
+
+    def test_a_blocking_finding_naming_its_file_is_accepted(self):
+        gates.check_findings([finding('F1', 'blocking', 'harness/a.py:12')], self.severities)
+
+
+class CalibrationRulesTest(ProjectTest):
+    """The rule is fatal when half-written, like every other rule in the file."""
+
+    def test_the_loader_demands_every_calibration_key(self):
+        path = self.root / 'harness' / 'thresholds.toml'
+        text = path.read_text()
+        self.assertIn('[calibration]', text)
+        path.write_text(text.replace('window = 10', ''))
+        with self.assertRaises(HarnessError) as raised:
+            thresholds.load(self.root)
+        self.assertIn('calibration.window', str(raised.exception))
+
+
+if __name__ == '__main__':
+    unittest.main()
