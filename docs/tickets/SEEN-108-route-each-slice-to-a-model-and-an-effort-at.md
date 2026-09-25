@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-104, SEEN-105, SEEN-098]
-status: doing
+status: review
 ---
 # SEEN-108: Route each slice to a model and an effort at solution, by rule first and by Jev second
 
@@ -23,7 +23,7 @@ status: doing
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | doing |
+| Status | review |
 
 ## Description
 
@@ -31,11 +31,86 @@ Every slice runs on the session's model at the session's effort today, whatever 
 
 ## Acceptance criteria
 
-- [ ] (as amended) harness route <ticket> writes an execution entry per slice with model, effort, source and probability into a route record naming the accepted solution record it routes, the handoff pack carries the entry for the slice in hand, and a route is read only for the plan it routed
-- [ ] A slice matching a routing rule (agent action, billing or policy gate, money arithmetic in packages/core, migration or RLS, credentials) is routed to the strongest model at high effort without a Jev call, proven with a fixture
-- [ ] (as amended) The implementer subagent is spawned with the routed model and effort in Claude Code and in Codex, and a check recorded under a different model is refused by the tdd gate naming both models, reading the model the subagent declares when it declares one and the session log otherwise
-- [ ] kpi.json carries model, effort, output tokens and cost per slice, and harness report --sprint shows cost per point by model beside the tokens per point it already shows
-- [ ] docs/harness/skill.md says the route is read from the handoff pack and never chosen inside the session, and sync regenerates both copies
+- [x] (as amended) harness route <ticket> writes an execution entry per slice with model, effort, source and probability into a route record naming the accepted solution record it routes, the handoff pack carries the entry for the slice in hand, and a route is read only for the plan it routed
+- [x] A slice matching a routing rule (agent action, billing or policy gate, money arithmetic in packages/core, migration or RLS, credentials) is routed to the strongest model at high effort without a Jev call, proven with a fixture
+- [x] (as amended) The implementer subagent is spawned with the routed model and effort in Claude Code and in Codex, and a check recorded under a different model is refused by the tdd gate naming both models, reading the model the subagent declares when it declares one and the session log otherwise
+- [x] kpi.json carries model, effort, output tokens and cost per slice, and harness report --sprint shows cost per point by model beside the tokens per point it already shows
+- [x] docs/harness/skill.md says the route is read from the handoff pack and never chosen inside the session, and sync regenerates both copies
+
+## Outcome
+
+Worked in one session by the digest `710e96458c5b`, in six attempts with five
+returns, nine slices proved against four planned. Three of the returns came from
+the review and each found something real; one came from the review triage before
+any model read the diff, which is what SEEN-107 was built to do; one was this
+ticket's own doing, to take the second review's findings.
+
+**What it delivers.** `harness route <ticket>` decides per slice which model and
+which effort implement it, at the tdd stage with the plan and the risk answers on
+record. Rules run first over the slice's own files and are never Jev's to answer;
+what no rule settles is one request carrying `implementation_model` and
+`implementation_effort` once per slice, and a slice nobody could answer for goes
+to the strongest model rather than the cheapest. The route lands in a `route`
+record, the handoff pack names what the slice in hand runs on, `sync` writes it
+into `seen-implementer`'s copies for both assistants, and `kpi.json` carries what
+each slice was routed to, what it ran on and what it cost. `[routing] shadow` is
+true, so nothing here yet changes what a slice runs on: SEEN-109's window
+decides.
+
+**What the criteria could not be given as written.** Two were amended, each on a
+decision recorded before the amendment and each because the criterion named a
+mechanism the harness forbids. Criterion 1 asked for the entry to be written into
+the solution record, which an append-only journal cannot do: the route record
+names that record instead, and a route is read only for the plan it routed, which
+was the half nothing yet delivered. The triage found it, scoring the criterion as
+worded 0.44 against a bar of 0.6 and returning the ticket before a reviewer was
+spawned. Criterion 3 asked the gate to read the model from the session log, and a
+subagent's model is not in it: a Claude Code subagent inherits
+`CLAUDE_CODE_SESSION_ID`, so its checks resolve to the parent's transcript, and
+of 15,631 entries in this project's logs after three subagent runs none carries
+`isSidechain` true. The implementer declares its model instead, which is a
+disclosure and not a proof, the same position SEEN-105 took for the reviewer's
+session id. The decisions are at records 41 and 50 with the options offered.
+
+**What the reviews found that the tests did not.** Twenty-one findings over three
+reviews, and the pattern in them is worth more than the count. Three were the
+same fault in different clothes: a figure attributed to the wrong thing. The
+tokens of a slice were keyed by the handoff's `position` rather than its `done`,
+so every slice was charged the window before it and the planning window was
+charged to slice 1; the fix left the last slice charged to nobody; the fix for
+that let slice 4 swallow all four review rounds, 253,085 output tokens against a
+two-point slice. Three more were a generator that could not answer: it raised on
+a damaged journal and took `doctor`'s report down with it, it read the branch
+where a `pull_request` checkout has none, and it fell back while the committed
+copies held the old plan's model. Two were mine in the plainest sense: the
+`failure_reason` field, which asks for the runner's words, was filled three times
+from what this session had been reading, and a correcting note written after the
+first was not enough to stop the second or the third. Records 42 and 52 correct
+two of them; the third is carried.
+
+**What it cost, on its own figures.** Slice 1 68,043 output tokens, slice 2
+23,659, slice 3 45,545, slice 4 unknown because no figure was recorded at the
+boundary that closed it. Routed opus, opus, haiku and sonnet; run on opus
+throughout, because in shadow a slice runs on whatever the session is. Slice 3 is
+the number the whole ticket is about: routed haiku at a counterfactual 18 cents,
+run on opus at 342, an eighteenfold gap that the first version of the cost table
+would have credited to haiku as a saving nothing on haiku ever earned.
+
+**What is carried.** Four findings of the third review go to SEEN-111 with the
+reviewer's evidence for each in note 59: the stray-agent check that
+`seen-implementer` hid by becoming a generated agent, a report sentence pointing
+at a command SEEN-109 adds, a money rule a slice naming a directory would slip
+past, and the correction record 38 still needs. They are not escaped defects:
+every one was found by review before delivery, so SEEN-111 does not name this
+ticket in a `fixes` field.
+
+**What is not closed.** The gate refuses a mismatch only when `[routing] shadow`
+is false, and nothing has run under that yet. `ran_on` is null for slice 1,
+whose green predates checks recording a model at all, and for any slice whose
+boundary carried no figures. The Codex agent keys `model` and
+`model_reasoning_effort` are unverified against a Codex release, because no Codex
+session has ever run on this repository, which is the position SEEN-105 recorded
+and this ticket does not improve on.
 
 ## Amendments
 
