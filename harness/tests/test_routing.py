@@ -447,11 +447,18 @@ class GateTest(RouteTest):
 
 
 class ImplementerCopyTest(RouteTest):
-    """The agent the slice is worked by, carrying the route it was given.
+    """The agent the slice is worked by, and the keys its copies carry.
 
-    Generated per slice rather than once, because Claude Code documents no
-    per-invocation effort override: the file is the only place a routed effort
-    can be put, so the file follows the slice in hand.
+    They were generated per slice once, on the reasoning that the file was the
+    only place a routed effort could go. That made a generated file depend on
+    the state of a ticket, which was wrong on a detached HEAD, after a replan,
+    the moment a green landed and after the receipt, and is why this ticket
+    could not merge; record 121 removed it and record 130 amended criterion 3 to
+    say the effort is recorded rather than applied. What is left here is that
+    both copies exist and carry the keys each assistant reads. That the values
+    never vary is FixedCopiesTest, and this docstring says so because F5 of the
+    ninth review found the abandoned design still documented as current in the
+    tests that were about it.
     """
 
     def setUp(self):
@@ -468,16 +475,6 @@ class ImplementerCopyTest(RouteTest):
         self.run_harness('sync')
         return tomllib.loads(
             (self.root / '.codex/agents/seen-implementer.toml').read_text())
-
-    def written(self):
-        """The copy as it sits on disk, with no sync of our own first.
-
-        The first version of this test read it through `frontmatter`, which runs
-        sync, so it proved the rendering followed the boundary and never that
-        the boundary rewrote anything. It passed while a real handoff left the
-        file at the last slice's model and doctor reporting drift.
-        """
-        return (self.root / '.claude/agents/seen-implementer.md').read_text()
 
     def test_both_questions_are_asked_by_the_route_and_by_no_stage(self):
         for name in ('implementation_model', 'implementation_effort'):
@@ -955,6 +952,130 @@ class FixedCopiesTest(RouteTest):
         self.git('checkout', '-q', '--detach', 'HEAD')
         self.assertEqual(self.problems(), [],
                          'the commit being merged must not report drift')
+
+
+class CarriedNotAppliedTest(RouteTest):
+    """What the spawn instruction may promise about the effort, which is nothing.
+
+    F1 of the ninth review: record 121's fix took the route out of the Codex
+    agent TOML as well as the Claude Code copy, and three places still said the
+    TOML carried it. The route decides the effort and nothing applies it, on
+    either assistant; record 130 amends criterion 3 to say so rather than have
+    the code described as doing more.
+    """
+
+    def task(self):
+        self.use(route_stub(model=(0.1, 0.7, 0.2), effort=(0.7, 0.2, 0.1)))
+        self.reach_tdd([PLAIN])
+        return self.route()['data']['execution'][0]['implementer_task']
+
+    def test_the_spawn_text_does_not_send_a_codex_session_to_the_toml(self):
+        task = self.task()
+        self.assertNotIn('model_reasoning_effort', task)
+        self.assertNotIn('.codex/agents/seen-implementer.toml', task)
+
+    def test_it_still_names_the_model_for_both_assistants(self):
+        task = self.task()
+        self.assertIn('--model sonnet', task)
+        self.assertIn('Claude Code', task)
+        self.assertIn('Codex', task)
+
+    def test_it_says_the_effort_is_recorded_rather_than_applied(self):
+        self.assertRegex(self.task(), r'(?is)recorded\b.*rather than applied')
+
+    def test_neither_generated_copy_carries_a_routed_effort(self):
+        import tomllib
+        self.use(route_stub(model=(0.7, 0.2, 0.1), effort=(0.7, 0.2, 0.1)))
+        self.reach_tdd([PLAIN])
+        self.route()
+        for name in ('seen-scout', 'seen-reviewer', 'seen-implementer'):
+            self.write(f'harness/agents/{name}.md', f'# {name}\n\nStand-in body.\n')
+        self.run_harness('sync')
+        codex = tomllib.loads(
+            (self.root / '.codex/agents/seen-implementer.toml').read_text())
+        self.assertEqual(codex['model'], 'opus')
+        self.assertEqual(codex['model_reasoning_effort'], 'high')
+
+
+class RouteRecordIsCurrentTest(RouteTest):
+    """F4: a route record that predates the fields the skill says it carries.
+
+    The only one in this repository was written before implementer_task and
+    model_passed existed, so criterion 3's spawn instruction had no instance on
+    the branch delivering it, and nothing indexed the keys so nothing noticed.
+    """
+
+    def test_every_entry_carries_the_keys_a_reader_is_told_to_find(self):
+        self.reach_tdd([MONEY, PLAIN])
+        for entry in self.route()['data']['execution']:
+            for key in ('implementer_task', 'model_passed', 'model_threshold'):
+                self.assertIn(key, entry, f'slice {entry["position"]} is missing {key}')
+
+
+
+class RuleTrippedByTheWorkTest(SlicePositionTest):
+    """F3 of the ninth review: a rule a plan can miss by not naming a file.
+
+    The rules match a slice's declared files, and a plan that does not foresee
+    packages/core sends money arithmetic into the Jev request like any other
+    slice. On this ticket slice_files diverged by 22 files across eight triages,
+    so a plan understating its change is the normal case rather than the odd
+    one. The route cannot know before the work exists; the tdd gate can, because
+    by then the diff does.
+    """
+
+    def evidence(self, position=1, declared='haiku'):
+        """Checks that declare the routed model, so the rule is what is under test.
+
+        Without the declaration the model comparison refuses first and the test
+        passes on the wrong refusal, which is what its first version did.
+        """
+        red = self.declared_check('red', exit_code=1, model='claude-opus-5', declared=declared)
+        green = self.declared_check('green', model='claude-opus-5', declared=declared)
+        regression = self.declared_check('regression', model='claude-opus-5', declared=declared)
+        self.record_coverage()
+        return dict(mode='code', regression=regression['sequence'], coverage_delta=0.0,
+                    slices=[dict(position=position, behaviour='The behaviour',
+                                 failure_reason='AssertionError: it was absent',
+                                 red=red['sequence'], green=green['sequence'])])
+
+    def test_money_written_under_a_jev_route_is_refused(self):
+        self.use(route_stub(model=(0.7, 0.2, 0.1)))
+        self.reach_tdd([PLAIN])
+        self.route()
+        self.set_shadow(False)
+        self.write('packages/core/src/fees.ts', 'export const fee = 1;\n')
+        with self.assertRaises(HarnessError) as raised:
+            self.submit('tdd', self.evidence())
+        message = str(raised.exception)
+        self.assertIn('money', message)
+        self.assertIn('packages/core/src/fees.ts', message)
+
+    def test_the_same_work_under_a_rule_route_advances(self):
+        self.reach_tdd([MONEY])
+        self.route()
+        self.set_shadow(False)
+        self.write('packages/core/src/fees.ts', 'export const fee = 1;\n')
+        record = self.submit('tdd', self.evidence(declared='opus'))
+        self.assertEqual(record['data']['to_stage'], 'review')
+
+    def test_work_that_trips_no_rule_advances(self):
+        self.use(route_stub(model=(0.7, 0.2, 0.1)))
+        self.reach_tdd([PLAIN])
+        self.route()
+        self.set_shadow(False)
+        self.write('apps/web/src/status.tsx', 'export const status = 1;\n')
+        record = self.submit('tdd', self.evidence())
+        self.assertEqual(record['data']['to_stage'], 'review')
+
+    def test_in_shadow_it_is_not_refused(self):
+        self.use(route_stub(model=(0.7, 0.2, 0.1)))
+        self.reach_tdd([PLAIN])
+        self.route()
+        self.write('packages/core/src/fees.ts', 'export const fee = 1;\n')
+        record = self.submit('tdd', self.evidence())
+        self.assertEqual(record['data']['to_stage'], 'review')
+
 
 
 if __name__ == '__main__':  # pragma: no cover - a module must run on its own

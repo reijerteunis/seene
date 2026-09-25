@@ -107,8 +107,8 @@ Two readers and a writer fill a session: the research at clarify and solution,
 the review, which has to hold the diff, the journal and the criteria at once,
 and the slice itself. Each has a context of its own. The implementer is the one
 agent that holds Edit and Write, and the one whose model and effort are not its
-own: they are the route's, which is why `sync` rewrites its copies at every
-slice boundary and `doctor` compares them.
+own: they are the route's, and they reach it through the spawn instruction the route record
+carries rather than through its generated copies, which do not vary by slice.
 
 | Agent | What it is for | What comes back |
 |---|---|---|

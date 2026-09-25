@@ -117,5 +117,45 @@ class AgentCountTest(unittest.TestCase):
         for name in thresholds.load(PROJECT)['agents']['names']:
             self.assertIn(name, section)
 
+class SkillAgreesWithItselfTest(unittest.TestCase):
+    """F2 of the ninth review: one document, two accounts of the same file.
+
+    The skill said the implementer's copies do not vary by slice and, two
+    sections later, that sync rewrites them at every slice boundary. A session
+    that believed the second would edit the file by hand and doctor would report
+    the edit as drift, which is the loop record 121 was decided to end.
+    """
+
+    CLAIM = r'(?i)rewrites its copies at every slice boundary'
+
+    @classmethod
+    def setUpClass(cls):
+        # Wrapped prose, so the sentence under test spans a line break: the
+        # first version of this regex read the file as it sits and matched
+        # nothing, which is a test passing because it was looking in the wrong
+        # shape rather than because the claim was gone.
+        cls.text = ' '.join((PROJECT / 'docs' / 'harness' / 'skill.md').read_text().split())
+
+    def test_it_does_not_say_a_boundary_rewrites_the_copies(self):
+        self.assertNotRegex(self.text, self.CLAIM)
+
+    def test_it_says_once_that_the_copies_do_not_vary(self):
+        self.assertRegex(self.text, r'(?i)do not vary by slice')
+
+    def test_the_generated_copies_say_the_same(self):
+        from harness import skills
+        for relative in skills.COMMITTED:
+            path = PROJECT / relative
+            if not path.is_file():
+                continue
+            self.assertNotRegex(' '.join(path.read_text().split()), self.CLAIM,
+                                f'{relative} repeats the abandoned claim')
+
+    def test_the_thresholds_comment_does_not_repeat_it_either(self):
+        text = ' '.join((PROJECT / 'harness' / 'thresholds.toml').read_text().split())
+        self.assertNotRegex(text, r'(?i)generated copies change with the slice in hand')
+
+
+
 if __name__ == '__main__':  # pragma: no cover - a module must run on its own
     unittest.main()

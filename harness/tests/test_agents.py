@@ -322,9 +322,9 @@ IMPLEMENTER_BODY = '# The implementer\n\nWork one slice. Red, then green, then s
 class ImplementerTest(CommandTest):
     """The one agent whose model and effort are not its own to choose.
 
-    The scout and the reviewer carry a model because what they do never changes.
-    The implementer's is the route's, read from the branch's journal, which is
-    why its copies are generated per slice rather than once.
+    All three carry a fixed model, from harness/agents.py and thresholds.toml.
+    The implementer's was read from the branch's journal until record 121, which
+    made a generated file depend on the state of a ticket.
     """
 
     def setUp(self):
@@ -360,8 +360,13 @@ class ImplementerTest(CommandTest):
     def test_the_codex_copy_carries_a_reasoning_effort(self):
         self.assertIn('model_reasoning_effort', self.codex())
 
-    def test_a_branch_with_no_route_gets_the_strongest_at_high_effort(self):
-        """Main, a fresh clone and CI all land here, and the safe value is the strong one."""
+    def test_the_copies_carry_the_strongest_at_high_effort(self):
+        """Always, and not only where a branch carries no route.
+
+        The name and the reason both said branch until record 121 stopped the
+        copies reading one. F5 of the ninth review: a test that describes the
+        design it no longer tests is how the design comes back.
+        """
         self.assertIn('model: opus', self.frontmatter())
         self.assertIn('effort: high', self.frontmatter())
         self.assertEqual(self.codex()['model_reasoning_effort'], 'high')

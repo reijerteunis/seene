@@ -237,6 +237,7 @@ def _tdd(data, records, current, repository, thresholds):
     slices = data['slices']
     require(slices, 'Code changes need at least one slice in slices')
     _require_coverage(records, current)
+    _require_the_work_trips_no_unrouted_rule(records, repository, thresholds)
     regression = cited_check(records, data['regression'], 'regression', current)
     previous_green = 0
     for position, slice_ in enumerate(slices, start=1):
@@ -338,6 +339,44 @@ def _require_the_routed_model(records, position, checks_cited, thresholds):
                 'plan on record and is read from the handoff pack, never chosen inside the '
                 'session: work the slice again on the model it was routed to, or return to '
                 'solution and route again')
+
+
+def _require_the_work_trips_no_unrouted_rule(records, repository, thresholds):
+    """Work that trips a routing rule was routed by that rule, or it is refused.
+
+    The rules read a slice's declared files, and a plan cannot foresee every
+    file the work will touch: on SEEN-108 the plan understated its own change by
+    twenty-two files across eight triages, so a plan naming no path under
+    packages/core is the ordinary case rather than the odd one. The route cannot
+    know before the work exists. By the tdd gate it does, because the diff is
+    there, and the one thing worth refusing is money arithmetic, a migration or
+    a credential written under a model Jev chose. F3 of SEEN-108's ninth review.
+
+    Whole-ticket and not per slice, because nothing maps a changed file to the
+    slice that changed it; what it asks is only that if the work trips a rule,
+    some slice was routed by one. Silent while `[routing] shadow` is true, like
+    every other refusal this route adds.
+    """
+    from . import routing, triage
+    if routing.shadow(thresholds):
+        return
+    routed = None
+    for record in reversed(records):
+        if record['kind'] == 'route':
+            routed = record
+            break
+    if routed is None:
+        return
+    if any(entry['source'] == 'rule' for entry in routed['data']['execution']):
+        return
+    patterns = thresholds['routing']['rules']
+    name, path = routing.path_rule(triage.changed_files(repository), patterns)
+    require(name is None,
+            f'This work changed {path}, which is {routing.PATH_RULES.get(name, name)}, and no '
+            f'slice of route {routed["sequence"]} was routed by a rule: every one was Jev\'s '
+            'choice. A plan that did not name the file cannot have been routed for it, so the '
+            'rule the ground rules care most about was never applied. Return to solution, name '
+            'the file in the slice that changes it, and route again')
 
 
 def _require_coverage(records, current):

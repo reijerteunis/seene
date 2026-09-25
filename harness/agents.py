@@ -120,10 +120,13 @@ def implementer_default(root):
     moment a green landed and wrong after delivery: four findings across four
     reviews, one design. F3 of the eighth review, decided at record 121.
 
-    The routed model reaches the implementer through the per-invocation override
-    the route record's spawn instruction names, and the routed effort through
-    the Codex agent TOML; criterion 3 is amended to say what that does and does
-    not give on each side.
+    The routed model reaches the implementer through the spawn instruction the
+    route record carries, per invocation in Claude Code and by name in Codex.
+    The routed effort reaches neither: it is decided, recorded, carried in the
+    pack and read by SEEN-109, and applied by nothing. Taking the route out of
+    these copies took it out of the Codex TOML too, which the second amendment
+    had not accounted for; criterion 3 is amended a third time to say so, at
+    record 130.
     """
     from . import routing, thresholds
     rules = thresholds.load(root)

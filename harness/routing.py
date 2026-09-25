@@ -287,10 +287,12 @@ def implementer_task(ticket, entry):
         f'Work slice {entry["position"]} of {ticket}: {entry["name"]}.',
         '',
         f'Run it on {entry["model"]} at {entry["effort"]} effort, because {how}.',
-        'In Claude Code that is the per-invocation model on the seen-implementer agent, whose '
-        'generated copy already carries this model and this effort. In Codex it is the model '
-        'and model_reasoning_effort in .codex/agents/seen-implementer.toml, which harness sync '
-        'writes for the slice in hand. Neither is yours to change.',
+        'The model is what reaches the work: in Claude Code as the per-invocation model on the '
+        'seen-implementer agent, and in Codex as the model this instruction names when you spawn '
+        'it. The effort is recorded, carried and reported rather than applied, on either '
+        'assistant: the generated copies do not vary by slice, because a file whose content '
+        'depended on the ticket in hand was wrong on a detached HEAD, after a replan and after '
+        'the receipt. Neither is yours to change.',
         '',
         f'Points: {entry["points"]}.',
         'Files: ' + (', '.join(entry['files']) or 'none named'),

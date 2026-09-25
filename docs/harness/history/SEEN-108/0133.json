@@ -1,0 +1,314 @@
+{
+  "sequence": 133,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T18:57:33.451515+00:00",
+  "harness_version": "2",
+  "kind": "route",
+  "stage": "tdd",
+  "attempt": 13,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "e613f5413275a042806d539ddd71ac962c666932",
+  "prev_hash": "f2dc422b4d1f684e5f5e26e2256697d86ffffeb0b23caa27046da05d19ace478",
+  "data": {
+    "solution": 5,
+    "shadow": true,
+    "strongest": "opus",
+    "tiers": [
+      "haiku",
+      "sonnet",
+      "opus"
+    ],
+    "rules": [],
+    "jev": {
+      "asked": true,
+      "model": "jev-1.13.0",
+      "reason": null,
+      "answers": [
+        {
+          "key": "implementation_model#1",
+          "question": "implementation_model",
+          "type": "score",
+          "options": [
+            "haiku",
+            "sonnet",
+            "opus"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "opus",
+          "probabilities": {
+            "haiku": 0.01,
+            "sonnet": 0.05,
+            "opus": 0.94
+          },
+          "confidence": 0.9,
+          "score": 1.94,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_effort#1",
+          "question": "implementation_effort",
+          "type": "score",
+          "options": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "high",
+          "probabilities": {
+            "low": 0.01,
+            "medium": 0.08,
+            "high": 0.91
+          },
+          "confidence": 0.85,
+          "score": 1.9,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_model#2",
+          "question": "implementation_model",
+          "type": "score",
+          "options": [
+            "haiku",
+            "sonnet",
+            "opus"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "opus",
+          "probabilities": {
+            "haiku": 0.06,
+            "sonnet": 0.4,
+            "opus": 0.54
+          },
+          "confidence": 0.23,
+          "score": 1.49,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_effort#2",
+          "question": "implementation_effort",
+          "type": "score",
+          "options": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "high",
+          "probabilities": {
+            "low": 0.01,
+            "medium": 0.17,
+            "high": 0.82
+          },
+          "confidence": 0.71,
+          "score": 1.81,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_model#3",
+          "question": "implementation_model",
+          "type": "score",
+          "options": [
+            "haiku",
+            "sonnet",
+            "opus"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "haiku",
+          "probabilities": {
+            "haiku": 0.46,
+            "sonnet": 0.39,
+            "opus": 0.15
+          },
+          "confidence": 0.0,
+          "score": 0.69,
+          "threshold": 0.5,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_effort#3",
+          "question": "implementation_effort",
+          "type": "score",
+          "options": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "medium",
+          "probabilities": {
+            "low": 0.08,
+            "medium": 0.64,
+            "high": 0.28
+          },
+          "confidence": 0.45,
+          "score": 1.2,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_model#4",
+          "question": "implementation_model",
+          "type": "score",
+          "options": [
+            "haiku",
+            "sonnet",
+            "opus"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "sonnet",
+          "probabilities": {
+            "haiku": 0.19,
+            "sonnet": 0.48,
+            "opus": 0.33
+          },
+          "confidence": 0.22,
+          "score": 1.14,
+          "threshold": 0.5,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_effort#4",
+          "question": "implementation_effort",
+          "type": "score",
+          "options": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "high",
+          "probabilities": {
+            "low": 0.02,
+            "medium": 0.41,
+            "high": 0.57
+          },
+          "confidence": 0.33,
+          "score": 1.55,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        }
+      ]
+    },
+    "execution": [
+      {
+        "position": 1,
+        "name": "The rules, the questions and the route command",
+        "points": 2,
+        "files": [
+          "harness/thresholds.toml",
+          "harness/routing.py",
+          "harness/jev.py",
+          "harness/paths.py",
+          "harness/cli.py",
+          "harness/tests/test_routing.py"
+        ],
+        "red": "A fixture whose one slice changes packages/core/src/fees.ts expects a route record whose execution entry reads model opus, effort high, source rule, and expects jev.TRANSPORT to have recorded no request. It must fail because there is no route command and no record kind for it to write.",
+        "model": "opus",
+        "effort": "high",
+        "source": "jev",
+        "rule": null,
+        "reason": null,
+        "model_probability": 0.94,
+        "effort_probability": 0.91,
+        "model_passed": true,
+        "model_threshold": 0.5,
+        "implementer_task": "Work slice 1 of SEEN-108: The rules, the questions and the route command.\n\nRun it on opus at high effort, because Jev chose it at 0.94.\nThe model is what reaches the work: in Claude Code as the per-invocation model on the seen-implementer agent, and in Codex as the model this instruction names when you spawn it. The effort is recorded, carried and reported rather than applied, on either assistant: the generated copies do not vary by slice, because a file whose content depended on the ticket in hand was wrong on a detached HEAD, after a replan and after the receipt. Neither is yours to change.\n\nPoints: 2.\nFiles: harness/thresholds.toml, harness/routing.py, harness/jev.py, harness/paths.py, harness/cli.py, harness/tests/test_routing.py\n\nIts RED must demonstrate: A fixture whose one slice changes packages/core/src/fees.ts expects a route record whose execution entry reads model opus, effort high, source rule, and expects jev.TRANSPORT to have recorded no request. It must fail because there is no route command and no record kind for it to write.\n\nWrite the test first and record it with:\n  python3 harness/run.py check SEEN-108 --phase red --actor <tool>:implementer --model opus -- <command>\nThen write only what turns it green and record that the same way. The `--model opus` is not optional: a subagent inherits its parent's session id, so the log records the model of the session that spawned you and not yours, and without the declaration the tdd gate compares the wrong two names. Then stop: do not start the next slice and do not advance the stage."
+      },
+      {
+        "position": 2,
+        "name": "The pack carries it and the tdd gate holds it",
+        "points": 2,
+        "files": [
+          "harness/handoff.py",
+          "harness/checks.py",
+          "harness/sessions.py",
+          "harness/gates.py",
+          "harness/cli.py",
+          "harness/tests/test_routing.py",
+          "harness/tests/test_stage_gates.py"
+        ],
+        "red": "A journal holding a route entry of opus for slice 1 and a green recorded under claude-sonnet-5 is advanced out of tdd with [routing] shadow false. It must fail because the gate accepts it: nothing reads the route, so the advance succeeds where the test expects a refusal naming both models.",
+        "model": "opus",
+        "effort": "high",
+        "source": "jev",
+        "rule": null,
+        "reason": null,
+        "model_probability": 0.54,
+        "effort_probability": 0.82,
+        "model_passed": true,
+        "model_threshold": 0.5,
+        "implementer_task": "Work slice 2 of SEEN-108: The pack carries it and the tdd gate holds it.\n\nRun it on opus at high effort, because Jev chose it at 0.54.\nThe model is what reaches the work: in Claude Code as the per-invocation model on the seen-implementer agent, and in Codex as the model this instruction names when you spawn it. The effort is recorded, carried and reported rather than applied, on either assistant: the generated copies do not vary by slice, because a file whose content depended on the ticket in hand was wrong on a detached HEAD, after a replan and after the receipt. Neither is yours to change.\n\nPoints: 2.\nFiles: harness/handoff.py, harness/checks.py, harness/sessions.py, harness/gates.py, harness/cli.py, harness/tests/test_routing.py, harness/tests/test_stage_gates.py\n\nIts RED must demonstrate: A journal holding a route entry of opus for slice 1 and a green recorded under claude-sonnet-5 is advanced out of tdd with [routing] shadow false. It must fail because the gate accepts it: nothing reads the route, so the advance succeeds where the test expects a refusal naming both models.\n\nWrite the test first and record it with:\n  python3 harness/run.py check SEEN-108 --phase red --actor <tool>:implementer --model opus -- <command>\nThen write only what turns it green and record that the same way. The `--model opus` is not optional: a subagent inherits its parent's session id, so the log records the model of the session that spawned you and not yours, and without the declaration the tdd gate compares the wrong two names. Then stop: do not start the next slice and do not advance the stage."
+      },
+      {
+        "position": 3,
+        "name": "The implementer agent in both assistants, and the reviewer's model rule",
+        "points": 1,
+        "files": [
+          "harness/agents.py",
+          "harness/agents/seen-implementer.md",
+          "harness/triage.py",
+          "harness/tests/test_agents.py",
+          "harness/tests/test_triage.py"
+        ],
+        "red": "sync is run on a tree whose journal routes the slice in hand to sonnet at low effort, and the test reads .claude/agents/seen-implementer.md for `model: sonnet` and `effort: low` and the Codex copy for model_reasoning_effort. It must fail because seen-implementer is not in AGENTS, so neither copy is written.",
+        "model": "haiku",
+        "effort": "medium",
+        "source": "jev",
+        "rule": null,
+        "reason": null,
+        "model_probability": 0.46,
+        "effort_probability": 0.64,
+        "model_passed": false,
+        "model_threshold": 0.5,
+        "implementer_task": "Work slice 3 of SEEN-108: The implementer agent in both assistants, and the reviewer's model rule.\n\nRun it on haiku at medium effort, because Jev chose it at 0.46.\nThe model is what reaches the work: in Claude Code as the per-invocation model on the seen-implementer agent, and in Codex as the model this instruction names when you spawn it. The effort is recorded, carried and reported rather than applied, on either assistant: the generated copies do not vary by slice, because a file whose content depended on the ticket in hand was wrong on a detached HEAD, after a replan and after the receipt. Neither is yours to change.\n\nPoints: 1.\nFiles: harness/agents.py, harness/agents/seen-implementer.md, harness/triage.py, harness/tests/test_agents.py, harness/tests/test_triage.py\n\nIts RED must demonstrate: sync is run on a tree whose journal routes the slice in hand to sonnet at low effort, and the test reads .claude/agents/seen-implementer.md for `model: sonnet` and `effort: low` and the Codex copy for model_reasoning_effort. It must fail because seen-implementer is not in AGENTS, so neither copy is written.\n\nWrite the test first and record it with:\n  python3 harness/run.py check SEEN-108 --phase red --actor <tool>:implementer --model haiku -- <command>\nThen write only what turns it green and record that the same way. The `--model haiku` is not optional: a subagent inherits its parent's session id, so the log records the model of the session that spawned you and not yours, and without the declaration the tdd gate compares the wrong two names. Then stop: do not start the next slice and do not advance the stage."
+      },
+      {
+        "position": 4,
+        "name": "The cost per slice in the KPI and per point by model in the report",
+        "points": 2,
+        "files": [
+          "harness/kpi.py",
+          "harness/context.py",
+          "harness/report.py",
+          "harness/cli.py",
+          "docs/harness/skill.md",
+          "harness/tests/test_kpi.py",
+          "harness/tests/test_context_budget.py"
+        ],
+        "red": "kpi.measure over a journal holding a route record, two handoff records with figures and a receipt is asked for execution[0]['cost_cents']. It must fail with a KeyError on execution, because the measured record has no such key.",
+        "model": "sonnet",
+        "effort": "high",
+        "source": "jev",
+        "rule": null,
+        "reason": null,
+        "model_probability": 0.48,
+        "effort_probability": 0.57,
+        "model_passed": false,
+        "model_threshold": 0.5,
+        "implementer_task": "Work slice 4 of SEEN-108: The cost per slice in the KPI and per point by model in the report.\n\nRun it on sonnet at high effort, because Jev chose it at 0.48.\nThe model is what reaches the work: in Claude Code as the per-invocation model on the seen-implementer agent, and in Codex as the model this instruction names when you spawn it. The effort is recorded, carried and reported rather than applied, on either assistant: the generated copies do not vary by slice, because a file whose content depended on the ticket in hand was wrong on a detached HEAD, after a replan and after the receipt. Neither is yours to change.\n\nPoints: 2.\nFiles: harness/kpi.py, harness/context.py, harness/report.py, harness/cli.py, docs/harness/skill.md, harness/tests/test_kpi.py, harness/tests/test_context_budget.py\n\nIts RED must demonstrate: kpi.measure over a journal holding a route record, two handoff records with figures and a receipt is asked for execution[0]['cost_cents']. It must fail with a KeyError on execution, because the measured record has no such key.\n\nWrite the test first and record it with:\n  python3 harness/run.py check SEEN-108 --phase red --actor <tool>:implementer --model sonnet -- <command>\nThen write only what turns it green and record that the same way. The `--model sonnet` is not optional: a subagent inherits its parent's session id, so the log records the model of the session that spawned you and not yours, and without the declaration the tdd gate compares the wrong two names. Then stop: do not start the next slice and do not advance the stage."
+      }
+    ]
+  }
+}

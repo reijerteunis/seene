@@ -33,15 +33,15 @@ Every slice runs on the session's model at the session's effort today, whatever 
 
 - [x] (as amended) harness route <ticket> writes an execution entry per slice with model, effort, source and probability into a route record naming the accepted solution record it routes, the handoff pack carries the entry for the slice in hand, and a route is read only for the plan it routed
 - [x] A slice matching a routing rule (agent action, billing or policy gate, money arithmetic in packages/core, migration or RLS, credentials) is routed to the strongest model at high effort without a Jev call, proven with a fixture
-- [x] (as amended twice) The implementer subagent is spawned with the routed model in Claude Code and with the routed model and effort in Codex, from the spawn instruction the route record carries, and a check recorded under a different model is refused by the tdd gate naming both models, reading the model the subagent declares when it declares one and the session log otherwise
+- [x] (as amended three times) The implementer subagent is spawned on the routed model in both assistants, from the spawn instruction the route record carries, with the routed effort recorded and reported rather than applied; and a check recorded under a different model is refused by the tdd gate naming both models, reading the model the subagent declares when it declares one and the session log otherwise
 - [x] kpi.json carries model, effort, output tokens and cost per slice, and harness report --sprint shows cost per point by model beside the tokens per point it already shows
 - [x] docs/harness/skill.md says the route is read from the handoff pack and never chosen inside the session, and sync regenerates both copies
 
 ## Outcome
 
-Worked in one session by the digest `710e96458c5b`: 12 attempts, 11 returns,
-15 slices proved against four planned, counting the tdd advance
-this section was written for. Ten of the returns came from a review and each
+Worked in one session by the digest `710e96458c5b`: 13 attempts, 12 returns,
+16 slices proved against four planned, counting the tdd advance
+this section was written for. Eleven of the returns came from a review and each
 found something real; one came from the review triage before any model read the
 diff, which is what SEEN-107 was built to do; two were this ticket's own, to take
 a review's findings. The counts are read from the journal rather than recalled,
@@ -77,8 +77,8 @@ of 15,631 entries in this project's logs after three subagent runs none carries
 disclosure and not a proof, the same position SEEN-105 took for the reviewer's
 session id. The decisions are at records 41 and 50 with the options offered.
 
-**What the reviews found that the tests did not.** Forty-one findings over eight
-reviews, falling nine, six, six, five, two, three, five, five. Three were the
+**What the reviews found that the tests did not.** Forty-six findings over nine
+reviews, falling nine, six, six, five, two, three, five, five, five. Three were the
 same fault in different clothes: a figure attributed to the wrong thing. The
 tokens of a slice were keyed by the handoff's `position` rather than its `done`,
 so every slice was charged the window before it and the planning window was
@@ -103,7 +103,7 @@ would have credited to haiku as a saving nothing on haiku ever earned.
 **What is carried.** Nothing. Four findings of the third review were carried to a
 follow-up, SEEN-111, and then fixed here instead, because the review gate refuses
 a delivery with open findings and says not to relabel one; SEEN-111 was withdrawn
-in the same commit that closed them. Every finding of all eight reviews is closed
+in the same commit that closed them. Every finding of all nine reviews is closed
 in this ticket, and none of them is an escaped defect, because every one was
 found by a review before delivery rather than after it.
 
@@ -145,6 +145,14 @@ slices' files, one attempt after adding the field so that nothing would be
 guessed. Record 70 has a slip of its own, citing 70 where it means 64. None of
 them changes a slice's proof; all of them are what an append-only journal does
 instead of an edit.
+
+**What the routes say about themselves.** Record 133 is the route this branch
+carries, and two of its four slices are marked as not having cleared their own
+bar: slice 3 haiku at 0.52 and slice 4 sonnet at 0.46 against a threshold of
+0.5. The flag exists because the seventh review asked for it, and the first
+thing it says is that half this ticket's routes were decided on a judgement the
+harness itself scored as short. That is the figure SEEN-109 calibrates on, and
+it is visible rather than derived.
 
 **What is not closed.** The gate refuses a mismatch only when `[routing] shadow`
 is false, and nothing has run under that yet. `ran_on` is null for slice 1,
@@ -202,6 +210,23 @@ and this ticket does not improve on.
   could not be re-synced without changing a tree the receipt attests. Four
   findings across four reviews were symptoms of the same thing. The decision,
   with the three options put to him and the one he chose, is at record 121.
+
+- **25 September 2026, Ruud: criterion 3 is amended a third time.** The routed
+  effort is recorded and reported rather than applied, on both assistants, and
+  the routed model reaches the implementer through the spawn instruction on
+  both. The second amendment said the Codex agent TOML still carried both, and
+  it does not: record 121 stopped the copies varying by slice, which took the
+  route out of the Codex file as well as the Claude Code one, and the cost that
+  decision was offered named only the Claude Code effort. F1 of the ninth review
+  at note 129 found the spawn instruction, the generator's docstring and the
+  amendment itself all still claiming otherwise, which would have let a Codex
+  slice run on the strongest model while its checks declared the routed one and
+  the gate compared a declaration with itself. Putting the route back into one
+  assistant's file was refused rather than deferred: that file was wrong on a
+  detached HEAD, after a replan, the moment a green landed and after the
+  receipt, and rebuilding it to satisfy a criterion is not satisfying it. The
+  decision, with the three options put to him and the one he chose, is at record
+  130.
 
 ## Depends on
 

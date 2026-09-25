@@ -1,0 +1,16 @@
+{
+  "sequence": 130,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T18:53:46.570807+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 13,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "e613f5413275a042806d539ddd71ac962c666932",
+  "prev_hash": "96aeed712eafdbe7a792ffb0ba03e31f775e301851e5821d94d435784b89310d",
+  "data": {
+    "text": "# The decision behind the third amendment to criterion 3\n\n**Asked, on 25 September 2026, after the ninth review at note 129.** Record 121\nstopped the implementer's copies varying by slice, and that removed the routed\nmodel and effort from the Codex agent TOML as well as the Claude Code copy, so\nnothing now carries a route to a Codex implementer; three places still say the\nTOML does. The cost that decision was offered named only the Claude Code effort,\nand as built it is both keys on both assistants. Which way?\n\n**The options put to him, in the order they were offered.**\n\n1. Say the effort is carried and not applied on both: amend criterion 3 a third\n   time to state that the routed model reaches the implementer through the spawn\n   instruction on both assistants and the routed effort is recorded and reported\n   rather than applied on either, and fix the spawn text, the generator docstring\n   and the amendment to match. Keeps the copies stateless, which is what stopped\n   the ticket merging; costs the effort being applied anywhere until a later\n   ticket can carry it. Marked as the recommendation.\n2. Put the route back into the Codex TOML alone, leaving the Claude Code copy\n   fixed. Delivers criterion 3's Codex half as amended and reintroduces a\n   generated file whose content depends on which slice is in hand, on one\n   assistant, which is the state-dependence behind four findings and the blocked\n   merge.\n3. Give the spawn instruction the whole job on both, with neither generated file\n   carrying a route. Honest and uniform, and it rests entirely on a Codex\n   mechanism no session has ever exercised on this repository, so it would ship\n   unverified.\n\n**What he chose.** Option 1.\n\n**What it settles, and what it admits.** The route decides the model and the\neffort, and the model is what reaches the work: through the per-invocation\noverride in Claude Code and through the spawn instruction in Codex. The effort\nis decided, recorded, carried in the pack, written into kpi.json and read by\nSEEN-109, and applied by nothing. That is less than the ticket's description\npromised and it is what was built; the criterion says so rather than the code\nbeing described as if it did more.\n\n**Why the alternative was refused rather than deferred.** Option 2 would have\ndelivered the letter of the amendment by putting a ticket's state back into a\ngenerated file, on one assistant. That file was wrong on a detached HEAD, after\na replan, the moment a green landed and after the receipt, and it is why this\nticket could not merge. Delivering a criterion by rebuilding the thing that\nblocked delivery is not delivering it.\n"
+  }
+}
