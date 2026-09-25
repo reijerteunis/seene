@@ -9,7 +9,7 @@ import json
 import os
 import re
 
-from . import secrets
+from . import context, secrets
 from .errors import require
 from .paths import REPORTS
 
@@ -165,7 +165,7 @@ def render_cost(by_model, prices):
         return []
     currency = (prices or {}).get('currency', 'EUR')
     priced_on = (prices or {}).get('priced_on', 'an unrecorded date')
-    lines = ['', '### Cost per point by model', '',
+    lines = ['', '### Cost per point by the model the work ran on', '',
              f'| Model | Slices | Points | Output tokens | Cost ({currency} cents) '
              f'| Cost per point |', '|---|---|---|---|---|---|']
     for model in sorted(by_model, key=lambda name: by_model[name]['cost_cents'], reverse=True):
@@ -178,7 +178,11 @@ def render_cost(by_model, prices):
               f'Prices read on {priced_on}, in {currency} cents per million tokens, from '
               '`[routing.prices]`. Output tokens only: a handoff record carries the session\'s '
               'output tokens and tool calls and nothing about input, so the figure says what it '
-              'covers rather than guessing at the rest.']
+              'covers rather than guessing at the rest. Rows are the model each slice actually '
+              'ran on, which while `[routing] shadow` is true is the session\'s model and not '
+              'the routed one; what the route would have cost is carried per slice in kpi.json '
+              'as `routed_cost_cents` and compared by `report --calibration`. A row named '
+              f'`{context.UNKNOWN}` is slices whose session left no log to read a model from.']
     return lines
 
 

@@ -121,20 +121,13 @@ def routed(root):
     route to read, which is what the fallback already means.
     """
     from . import handoff, journal, routing, thresholds
-    from .cli import BRANCH
-    from .errors import HarnessError
     from .paths import HISTORY
-    from .repository import Repository
     rules = thresholds.load(root)
     fallback = (routing.strongest(rules), routing.rule_effort(rules))
-    match = BRANCH.match(Repository(root).branch_or_none() or '')
-    if not match:
+    ticket = ticket_in_hand(root)
+    if ticket is None:
         return fallback
-    folder = root / HISTORY / match.group('ticket')
-    try:
-        records = journal.read(folder) if folder.is_dir() else []
-    except HarnessError:
-        return fallback
+    records = _records(root / HISTORY / ticket)
     if not records:
         return fallback
     slice_now = handoff.current_slice(records, journal.state(records))
@@ -144,6 +137,53 @@ def routed(root):
     if entry is None:
         return fallback
     return entry['model'], entry['effort']
+
+
+def _records(folder):
+    """One journal, or nothing at all. Never raises, for the reason routed does not."""
+    from . import journal
+    from .errors import HarnessError
+    if not folder.is_dir():
+        return []
+    try:
+        return journal.read(folder)
+    except HarnessError:
+        return []
+
+
+def ticket_in_hand(root):
+    """Which ticket this checkout is working, from the branch or from the journals.
+
+    The branch first, because a session sets it deliberately and it is the one
+    thing that is right even mid-merge. When HEAD is detached there is no branch
+    to read, and actions/checkout leaves it detached on every pull_request
+    event: without the second half, doctor re-rendered the implementer copies at
+    the fallback and reported drift on any commit routed below the strongest
+    tier, so the same commit was green on push and red on its own pull request.
+    F1 of this ticket's first review.
+
+    The second half asks the committed content instead, which is what a detached
+    checkout still has: exactly one ticket has a journal with records and no
+    receipt while it is being worked. Nothing when none or several do, because a
+    guess between two unfinished tickets is worse than the fallback.
+    """
+    from .cli import BRANCH
+    from .paths import HISTORY
+    from .repository import Repository
+    match = BRANCH.match(Repository(root).branch_or_none() or '')
+    if match:
+        return match.group('ticket')
+    history = root / HISTORY
+    if not history.is_dir():
+        return None
+    unfinished = []
+    for folder in sorted(history.iterdir()):
+        if not folder.is_dir():
+            continue
+        records = _records(folder)
+        if records and not any(record['kind'] == 'receipt' for record in records):
+            unfinished.append(folder.name)
+    return unfinished[0] if len(unfinished) == 1 else None
 
 
 def resolved(root):

@@ -79,6 +79,20 @@ def model_id(rules, tier):
     return rules['routing']['models'].get(tier)
 
 
+def tier_of(rules, model):
+    """The tier a session-log model id belongs to, or nothing.
+
+    The reverse of model_id, and the reason both exist: a route stores a tier
+    and a check records the id its session ran under, so pricing what a slice
+    actually cost needs the journey back. Nothing rather than a guess, because
+    an id nobody wrote down is an id nobody can price.
+    """
+    for tier, identifier in rules['routing']['models'].items():
+        if identifier and identifier == model:
+            return tier
+    return None
+
+
 def reviewer_model(depth, rules):
     """Which model reviews, which is a rule and never Jev's to answer.
 

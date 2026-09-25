@@ -606,3 +606,53 @@ class StalePlanTest(RouteTest):
         self.assertEqual(agents.routed(self.root), ('haiku', 'medium'))
         self.replan([MONEY, SECOND_PLAIN])
         self.assertEqual(agents.routed(self.root), ('opus', 'high'))
+
+
+class DetachedHeadTest(RouteTest):
+    """The route a checkout carries when there is no branch to read it from.
+
+    actions/checkout leaves HEAD detached on every pull_request event, so a
+    generator that could only read the branch reported drift on the committed
+    copies of any commit routed below the strongest tier: the same commit green
+    on push and red on its own pull request. F1 of this ticket's first review.
+    """
+
+    def detach(self):
+        self.git('add', '-A')
+        self.git('-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', 'the slice')
+        self.git('checkout', '-q', '--detach', 'HEAD')
+
+    def test_a_detached_head_reads_the_route_from_the_journal(self):
+        from harness import agents
+        from harness.repository import Repository
+        self.use(route_stub(model=(0.7, 0.2, 0.1)))
+        self.reach_tdd([PLAIN])
+        self.route()
+        self.detach()
+        self.assertIsNone(Repository(self.root).branch_or_none(),
+                          'the fixture must detach, or this proves nothing')
+        self.assertEqual(agents.routed(self.root), ('haiku', 'medium'))
+
+    def test_doctor_is_clean_on_a_detached_head_of_a_routed_commit(self):
+        from harness import doctor as doctoring
+        from harness.repository import Repository
+        self.use(route_stub(model=(0.7, 0.2, 0.1)))
+        self.reach_tdd([PLAIN])
+        self.route()
+        self.detach()
+        self.assertEqual(doctoring.report(Repository(self.root), {})['problems'], [])
+
+    def test_a_journal_that_has_delivered_is_not_the_ticket_in_hand(self):
+        """A receipt says the work is done, so its route is not this checkout's."""
+        from harness import agents, journal
+        self.use(route_stub(model=(0.7, 0.2, 0.1)))
+        self.reach_tdd([PLAIN])
+        self.route()
+        folder = self.root / 'docs' / 'harness' / 'history' / self.ticket_id
+        journal.append(folder, journal.read(folder), kind='receipt', stage='deliver', attempt=1,
+                       actor='claude:implementer', head=self.git('rev-parse', 'HEAD'),
+                       ticket=self.ticket_id,
+                       data=dict(from_stage='deliver', to_stage='delivered',
+                                 commit='b' * 40, tree='c' * 64))
+        self.detach()
+        self.assertEqual(agents.routed(self.root), ('opus', 'high'))

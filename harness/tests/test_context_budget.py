@@ -281,13 +281,13 @@ class CostPerPointByModelTest(unittest.TestCase):
             dict(ticket='SEEN-001', points=3, started='2026-09-25T00:00:00+00:00',
                  output_tokens=60000, tool_calls=40,
                  execution=[dict(position=1, points=2, model='opus', effort='high',
-                                 output_tokens=40000, cost_cents=300.0),
-                            dict(position=2, points=1, model='haiku', effort='low',
-                                 output_tokens=20000, cost_cents=8.0)]),
+                                 ran_on_tier='opus', output_tokens=40000, cost_cents=300.0),
+                            dict(position=2, points=1, model='opus', effort='low',
+                                 ran_on_tier='haiku', output_tokens=20000, cost_cents=8.0)]),
             dict(ticket='SEEN-002', points=2, started='2026-09-25T00:00:00+00:00',
                  output_tokens=30000, tool_calls=20,
-                 execution=[dict(position=1, points=2, model='haiku', effort='medium',
-                                 output_tokens=30000, cost_cents=12.0)]),
+                 execution=[dict(position=1, points=2, model='sonnet', effort='medium',
+                                 ran_on_tier='haiku', output_tokens=30000, cost_cents=12.0)]),
         ]
 
     def test_it_divides_each_model_s_cost_by_the_points_it_carried(self):
@@ -303,10 +303,25 @@ class CostPerPointByModelTest(unittest.TestCase):
         tickets = self.tickets() + [dict(ticket='SEEN-003', points=5, execution=None)]
         self.assertEqual(sorted(context.cost_by_model(tickets)), ['haiku', 'opus'])
 
+    def test_it_groups_by_the_model_the_work_ran_on_not_the_one_it_was_routed_to(self):
+        """In shadow those differ, and only one of them cost anything."""
+        from harness import context
+        by_model = context.cost_by_model(self.tickets())
+        self.assertEqual(sorted(by_model), ['haiku', 'opus'])
+        self.assertEqual(by_model['haiku']['slices'], 2)
+        self.assertEqual(by_model['opus']['slices'], 1)
+
+    def test_a_slice_nobody_can_say_ran_where_is_its_own_row(self):
+        from harness import context
+        tickets = [dict(ticket='SEEN-005', points=1, execution=[
+            dict(position=1, points=1, model='opus', effort='high',
+                 ran_on_tier=None, output_tokens=5000, cost_cents=None)])]
+        self.assertEqual(list(context.cost_by_model(tickets)), ['unknown'])
+
     def test_a_slice_with_no_cost_still_counts_its_points_and_says_so(self):
         from harness import context
         tickets = [dict(ticket='SEEN-004', points=1, execution=[
-            dict(position=1, points=1, model='sonnet', effort='low',
+            dict(position=1, points=1, model='sonnet', effort='low', ran_on_tier='sonnet',
                  output_tokens=None, cost_cents=None)])]
         entry = context.cost_by_model(tickets)['sonnet']
         self.assertEqual(entry['points'], 1)

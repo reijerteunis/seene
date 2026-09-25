@@ -1,0 +1,31 @@
+{
+  "sequence": 38,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T07:21:53.909842+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "c3ed54f0205e416f7e062668571e01424a2bc119",
+  "prev_hash": "ea32f0310d350aca143c18290c89497b497d49d6e81bf5cdc6bdeee7ffd651cc",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "behaviour": "The route is found without a branch, the window each slice is charged is the one its own boundary closed, the model a slice ran on is read from the greens in that window, and the cost is priced at that model with the routed price carried separately as a counterfactual.",
+          "failure_reason": "Thirteen failures across the three findings. F1: AssertionError: Tuples differ: ('opus', 'high') != ('haiku', 'medium') from agents.routed on a detached HEAD, and doctor reporting both implementer copies as drift on the same tree. F2: AssertionError: Lists differ: [None, None] != ['claude-opus-5', 'claude-opus-5'], and 10000 != 40000 for the window a slice is charged. F5: AttributeError: 'dict' object has no attribute 'ran_on_tier' and KeyError: 'routed_cost_cents', with cost_by_model still keyed by the routed model.",
+          "red": 34,
+          "green": 35
+        }
+      ],
+      "regression": 36,
+      "coverage_delta": 0.0
+    },
+    "decisions": []
+  }
+}

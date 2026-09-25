@@ -331,57 +331,84 @@ def route_record(sequence, session, minute, execution):
                   execution=execution)
 
 
-def journal_with_a_route():
-    """Two slices, routed, worked in one session, with a handoff closing each.
+def journal_with_a_route(ran_under='claude-opus-5'):
+    """Two slices, routed, each closed by its own handoff boundary.
 
     One session, so its figures are cumulative and a slice costs the difference
-    between the two handoffs. That is the case this repository's own tickets are
-    in, and the one a division by slices got wrong.
+    between the boundary that closed it and the one before. The first handoff
+    closes nothing: it is written after the plan is accepted and before any
+    slice is worked, and the planning window belongs to no slice.
     """
     session = 'aaaaaaaaaaaa'
-    records = journal_worked_in_two_sessions()
-    # Both handoffs in one session, so the second carries the running total.
-    records[5] = record(6, 'handoff', 'tdd', minute=20, session=session,
-                        pack='.harness-drafts/x.md', sha256='d' * 64, estimated_tokens=900,
-                        slice=dict(position=1, total=2, done=1, declared=True, inferred=1),
-                        figures=dict(session=session, output_tokens=40000, tool_calls=30))
-    for position in (0, 1, 2, 3, 4):
-        records[position] = dict(records[position], session=session)
-    for position in range(6, len(records)):
-        records[position] = dict(records[position], session=session)
-    tail = records[6:]
-    routed = route_record(6, session, 18, [
-        dict(position=1, name='One', points=1, files=['a'], red='x',
-             model='haiku', effort='low', source='jev', rule=None, reason=None,
-             model_probability=0.7, effort_probability=0.6),
-        dict(position=2, name='Two', points=1, files=['b'], red='y',
-             model='opus', effort='high', source='rule', rule='money',
-             reason='b is money arithmetic', model_probability=None, effort_probability=None),
-    ])
-    handoff_one = dict(records[5], sequence=7)
-    rest = []
-    for offset, item in enumerate(tail):
-        rest.append(dict(item, sequence=8 + offset))
-    second = record(8 + len(tail), 'handoff', 'tdd', minute=45, session=session,
-                    pack='.harness-drafts/x.md', sha256='e' * 64, estimated_tokens=900,
-                    slice=dict(position=2, total=2, done=2, declared=True, inferred=2),
-                    figures=dict(session=session, output_tokens=95000, tool_calls=60))
-    return records[:5] + [routed, handoff_one] + rest + [second]
+
+    def handoff(sequence, minute, done, position, output):
+        return record(sequence, 'handoff', 'tdd', minute=minute, session=session,
+                      pack='.harness-drafts/x.md', sha256='d' * 64, estimated_tokens=900,
+                      slice=dict(position=position, total=2, done=done, declared=True,
+                                 inferred=done),
+                      figures=dict(session=session, output_tokens=output, tool_calls=done * 20))
+
+    def check(sequence, minute, phase, exit_code, model=ran_under):
+        return record(sequence, 'check', 'tdd', minute=minute, session=session, phase=phase,
+                      exit_code=exit_code, command=['t'], model=model)
+
+    return [
+        record(1, 'start', 'clarify', minute=0, session=session, ticket_file='docs/tickets/x.md',
+               ticket_snapshot='# x', base_commit='a' * 40),
+        record(2, 'advance', 'clarify', minute=5, session=session, from_stage='clarify',
+               to_stage='solution', evidence={}, decisions=[]),
+        record(3, 'advance', 'solution', minute=10, session=session, from_stage='solution',
+               to_stage='tdd', decisions=[],
+               evidence=dict(mode='code', slices=[dict(name='One', points=1, files=['a'], red='x'),
+                                                  dict(name='Two', points=2, files=['b'],
+                                                       red='y')])),
+        route_record(4, session, 12, [
+            dict(position=1, name='One', points=1, files=['a'], red='x',
+                 model='haiku', effort='low', source='jev', rule=None, reason=None,
+                 model_probability=0.7, effort_probability=0.6),
+            dict(position=2, name='Two', points=2, files=['b'], red='y',
+                 model='opus', effort='high', source='rule', rule='money',
+                 reason='b is money arithmetic', model_probability=None,
+                 effort_probability=None),
+        ]),
+        # The planning window: 10,000 tokens spent before any slice was worked.
+        handoff(5, 14, done=0, position=1, output=10000),
+        check(6, 16, 'red', 1),
+        check(7, 18, 'green', 0),
+        handoff(8, 20, done=1, position=2, output=50000),
+        check(9, 30, 'red', 1),
+        check(10, 32, 'green', 0),
+        record(11, 'check', 'tdd', minute=33, session=session, phase='coverage', exit_code=0,
+               command=['c'], package='@seen/core', lines=91.0, baseline=90.0, delta=1.0),
+        handoff(12, 35, done=2, position=None, output=95000),
+        record(13, 'advance', 'tdd', minute=40, session=session, from_stage='tdd',
+               to_stage='review', decisions=[],
+               evidence=dict(mode='code', slices=[dict(red=6, green=7), dict(red=9, green=10)])),
+        record(14, 'advance', 'review', minute=50, session=session, actor='codex:reviewer',
+               from_stage='review', to_stage='deliver', decisions=[], evidence=dict(findings=[])),
+        record(15, 'receipt', 'deliver', minute=60, session=session, from_stage='deliver',
+               to_stage='delivered', commit='b' * 40, tree='c' * 64),
+    ]
 
 
 class ExecutionFiguresTest(DeliveryWalk):
     """What each slice was routed to, what it ran on, and what it cost.
 
-    From the journal and the price table and nothing else: a handoff record
+    From the journal and the price table and nothing else. A handoff record
     carries the session's own spending at the moment it stopped, so a slice
-    costs the difference between the boundary that closed it and the one before.
+    costs the difference between the boundary that closed it and the one before,
+    and the boundary that closed it is the one whose `done` names it.
     """
 
-    def measure(self, **changes):
+    def measure(self, records=None, **changes):
         from harness import thresholds
-        arguments = dict(points=2, rules=thresholds.load(PROJECT))
+        arguments = dict(points=3, rules=thresholds.load(PROJECT))
         arguments.update(changes)
-        return kpi.measure(journal_with_a_route(), 'SEEN-001', **arguments)
+        return kpi.measure(records or journal_with_a_route(), 'SEEN-001', **arguments)
+
+    def prices(self):
+        from harness import thresholds
+        return thresholds.load(PROJECT)['routing']['prices']
 
     def test_one_entry_per_routed_slice_with_its_model_and_effort(self):
         execution = self.measure()['execution']
@@ -389,24 +416,51 @@ class ExecutionFiguresTest(DeliveryWalk):
         self.assertEqual([entry['effort'] for entry in execution], ['low', 'high'])
         self.assertEqual([entry['source'] for entry in execution], ['jev', 'rule'])
 
-    def test_a_slice_costs_the_tokens_between_its_boundary_and_the_one_before(self):
+    def test_a_slice_is_charged_the_window_its_own_boundary_closed(self):
+        """Keyed by `done` and not `position`.
+
+        A handoff names the slice in front of you, so keying by position charges
+        every slice the window before it and charges the planning window, which
+        belongs to no slice, to slice 1.
+        """
         execution = self.measure()['execution']
         self.assertEqual(execution[0]['output_tokens'], 40000)
-        self.assertEqual(execution[1]['output_tokens'], 55000)
+        self.assertEqual(execution[1]['output_tokens'], 45000)
 
-    def test_the_cost_is_the_routed_model_s_price_for_those_tokens(self):
-        from harness import thresholds
-        prices = thresholds.load(PROJECT)['routing']['prices']
+    def test_ran_on_is_the_model_the_greens_in_its_window_were_recorded_under(self):
         execution = self.measure()['execution']
-        self.assertEqual(execution[0]['cost_cents'],
-                         round(40000 * prices['haiku']['output'] / 1_000_000, 2))
-        self.assertEqual(execution[1]['cost_cents'],
-                         round(55000 * prices['opus']['output'] / 1_000_000, 2))
+        self.assertEqual([entry['ran_on'] for entry in execution],
+                         ['claude-opus-5', 'claude-opus-5'])
+        self.assertEqual([entry['ran_on_tier'] for entry in execution], ['opus', 'opus'])
 
-    def test_the_cost_says_what_it_covers(self):
-        """Output tokens only, because that is all a handoff record carries."""
+    def test_the_cost_is_priced_at_the_model_the_work_ran_on(self):
+        """In shadow a slice runs on the session's model, whatever it was routed to.
+
+        Pricing the actual tokens at the routed model's price would put a
+        counterfactual in the column SEEN-109 decides from, and show a saving
+        that has not happened.
+        """
         entry = self.measure()['execution'][0]
+        self.assertEqual(entry['ran_on_tier'], 'opus')
+        self.assertEqual(entry['cost_cents'],
+                         round(40000 * self.prices()['opus']['output'] / 1_000_000, 2))
+
+    def test_the_routed_price_is_carried_separately_as_the_counterfactual(self):
+        entry = self.measure()['execution'][0]
+        self.assertEqual(entry['routed_cost_cents'],
+                         round(40000 * self.prices()['haiku']['output'] / 1_000_000, 2))
+        self.assertNotEqual(entry['cost_cents'], entry['routed_cost_cents'])
+
+    def test_the_cost_says_which_of_the_two_it_is(self):
+        entry = self.measure()['execution'][0]
+        self.assertIn('ran on', entry['cost_basis'])
         self.assertIn('output', entry['cost_basis'])
+
+    def test_a_check_that_names_no_model_leaves_the_cost_unpriced(self):
+        execution = self.measure(journal_with_a_route(ran_under=None))['execution']
+        self.assertIsNone(execution[0]['ran_on'])
+        self.assertIsNone(execution[0]['cost_cents'])
+        self.assertEqual(execution[0]['output_tokens'], 40000)
 
     def test_without_a_price_table_the_cost_is_null_and_the_tokens_are_not(self):
         execution = self.measure(rules=None)['execution']
@@ -417,8 +471,3 @@ class ExecutionFiguresTest(DeliveryWalk):
         from harness import thresholds
         self.assertIsNone(kpi.measure(journal_worked_in_two_sessions(), 'SEEN-001', points=2,
                                       rules=thresholds.load(PROJECT))['execution'])
-
-    def test_the_model_the_checks_actually_ran_under_is_carried_beside_the_route(self):
-        """In shadow the two differ, and the difference is what SEEN-109 reads."""
-        entry = self.measure()['execution'][0]
-        self.assertIn('ran_on', entry)

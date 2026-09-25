@@ -107,8 +107,15 @@ def _latest_route(records):
     return None
 
 
-def slice_tokens(records):
-    """What each slice boundary cost, from the handoff records and nothing else.
+def slice_windows(records):
+    """Each slice's window: what it cost and which records fall inside it.
+
+    Keyed by the slice the boundary closed, which is `done` and never
+    `position`: a handoff names the slice in front of you, so keying by position
+    charges every slice the window before it and charges the planning window,
+    which belongs to no slice, to slice 1. On this ticket's own journal that put
+    the 81,880 tokens of clarify and solution on slice 1 and left slice 4, the
+    most expensive of the four, charged to nobody.
 
     A handoff carries the session's own spending at the moment it stopped, so a
     slice worked in a session that had already worked another costs the
@@ -119,44 +126,50 @@ def slice_tokens(records):
     session logs records null, and subtracting one from a number would turn an
     absence into a total.
     """
-    spent, previous = {}, None
+    windows, opened, previous = {}, 0, None
     for record in records:
         if record['kind'] != 'handoff':
             continue
         cut = record['data'].get('slice') or {}
         figures = record['data'].get('figures') or {}
-        position = cut.get('position')
-        output = figures.get('output_tokens')
-        if position is None:
-            continue
-        if output is None:
-            spent[position] = None
-        elif previous and previous['session'] == figures.get('session'):
-            spent[position] = output - previous['output_tokens']
-        else:
-            spent[position] = output
+        done, output = cut.get('done'), figures.get('output_tokens')
+        session = figures.get('session')
+        if done:
+            spent = None
+            if output is not None:
+                spent = (output - previous['output_tokens']
+                         if previous and previous['session'] == session else output)
+            windows[done] = dict(spent=spent, opened=opened, closed=record['sequence'])
+        opened = record['sequence']
         if output is not None:
-            previous = dict(session=figures.get('session'), output_tokens=output)
-    return spent
+            previous = dict(session=session, output_tokens=output)
+    return windows
 
 
-def ran_on(records, position):
-    """The model the checks for this slice were actually recorded under.
+def ran_on(records, window):
+    """The model the greens inside a slice's window were actually recorded under.
 
-    Read from the accepted tdd record's own citations, because those are the
-    checks that proved the slice. In shadow this differs from the route as
-    often as not, and the difference is what SEEN-109's window reads.
+    From the same windows the tokens come from, because they answer the same
+    question: what happened between this slice's boundary and the one before.
+    The first version read the accepted tdd record's citations instead, took
+    `model` off the record envelope rather than `record['data']`, and indexed
+    that record's slice list by route position, which a return makes mean
+    something else; it was null for every slice of this ticket. F2 of the first
+    review.
+
+    The last green in the window, because that is the one that proved the slice.
     """
-    for record in reversed(records):
-        if record['kind'] != 'advance' or record['data'].get('from_stage') != 'tdd':
+    if window is None:
+        return None
+    found = None
+    for record in records:
+        if not window['opened'] < record['sequence'] < window['closed']:
             continue
-        proved = record['data'].get('evidence', {}).get('slices') or []
-        if position > len(proved):
-            return None
-        cited = proved[position - 1].get('green')
-        check = _check(records, cited) if cited else None
-        return (check or {}).get('model')
-    return None
+        data = record['data']
+        if (record['kind'] == 'check' and data.get('phase') == 'green'
+                and data.get('exit_code') == 0 and data.get('model')):
+            found = data['model']
+    return found
 
 
 def cost_cents(model, tokens, prices):
@@ -174,8 +187,10 @@ def cost_cents(model, tokens, prices):
     return round(tokens * price['output'] / 1_000_000, 2)
 
 
-COST_BASIS = ('output tokens only, at the routed model\'s price: a handoff record carries the '
-              'session\'s output tokens and tool calls and nothing about input')
+COST_BASIS = ('output tokens only, at the price of the model the slice ran on: a handoff record '
+              'carries the session\'s output tokens and tool calls and nothing about input. '
+              'routed_cost_cents prices the same tokens at the model the route chose, which in '
+              'shadow is a counterfactual and not a cost')
 
 
 def execution(records, rules=None):
@@ -187,13 +202,16 @@ def execution(records, rules=None):
     routed = _latest_route(records)
     if routed is None:
         return None
+    from . import routing
     prices = ((rules or {}).get('routing') or {}).get('prices')
-    spent = slice_tokens(records)
+    windows = slice_windows(records)
     found = []
     for entry in routed['data']['execution']:
-        position = entry['position']
-        tokens = spent.get(position)
-        found.append(dict(position=position,
+        window = windows.get(entry['position'])
+        tokens = (window or {}).get('spent')
+        actual = ran_on(records, window)
+        tier = routing.tier_of(rules, actual) if rules and actual else None
+        found.append(dict(position=entry['position'],
                           name=entry.get('name'),
                           points=entry.get('points'),
                           model=entry['model'],
@@ -203,9 +221,14 @@ def execution(records, rules=None):
                           # What the route chose, beside what the work actually
                           # ran on. In shadow they differ, and that is the
                           # comparison SEEN-109 is for.
-                          ran_on=ran_on(records, position),
+                          ran_on=actual,
+                          ran_on_tier=tier,
                           output_tokens=tokens,
-                          cost_cents=cost_cents(entry['model'], tokens, prices),
+                          # What it cost, at the price of the model that ran it.
+                          cost_cents=cost_cents(tier, tokens, prices),
+                          # What the route would have cost. A counterfactual,
+                          # named as one: in shadow nothing ran on it.
+                          routed_cost_cents=cost_cents(entry['model'], tokens, prices),
                           cost_basis=COST_BASIS))
     return found
 
