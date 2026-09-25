@@ -1,0 +1,45 @@
+{
+  "sequence": 6,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T05:30:37.492979+00:00",
+  "harness_version": "2",
+  "kind": "handoff",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "617dde75060fab8334965f3458771fde1ee1163b",
+  "prev_hash": "caef24ffbe9e443438cdf1b1075f25de0e2b45456325ee7ec88a3ffa7a9b2582",
+  "data": {
+    "pack": ".harness-drafts/SEEN-108-handoff.md",
+    "sha256": "40d25e6c4af2f8ca5bd5dd178ccca051a0f603b775fe827517fa34973ebbf578",
+    "estimated_tokens": 1040,
+    "token_limit": 2000,
+    "slice": {
+      "position": 1,
+      "total": 4,
+      "done": 0,
+      "declared": false,
+      "inferred": 0,
+      "entry": {
+        "name": "The rules, the questions and the route command",
+        "points": 2,
+        "files": [
+          "harness/thresholds.toml",
+          "harness/routing.py",
+          "harness/jev.py",
+          "harness/paths.py",
+          "harness/cli.py",
+          "harness/tests/test_routing.py"
+        ],
+        "red": "A fixture whose one slice changes packages/core/src/fees.ts expects a route record whose execution entry reads model opus, effort high, source rule, and expects jev.TRANSPORT to have recorded no request. It must fail because there is no route command and no record kind for it to write."
+      }
+    },
+    "figures": {
+      "session": "710e96458c5b",
+      "output_tokens": 81880,
+      "tool_calls": 61,
+      "unavailable": null
+    }
+  }
+}
