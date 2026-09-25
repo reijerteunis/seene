@@ -51,3 +51,55 @@ Both decisions can cost more than they save: a spot review that misses a blockin
 - Architecture: [docs/architecture.md](../architecture.md)
 - Development plan and gates: [docs/development-plan.md](../development-plan.md)
 - Epic goal: Give every ticket one fast, evidence-recording procedure across Claude Code and Codex, with graphify for context, Jev for typed gate decisions, CI as the definition of done, security controls built into the stages, and a KPI record per ticket.
+
+## Outcome
+
+The rule is on the record before the numbers exist. `[calibration]` in `harness/thresholds.toml`
+carries the window of ten, `counted_from`, the three excluded tickets and why, the escape
+definition and both go-live rules, and the loader treats a missing key as fatal like every other
+rule in that file. `harness/calibration.py` derives the evidence from records that already exist:
+the triage's `would_exclude` and `criteria_answers`, the review's findings, the route's `execution`
+and the returns. `harness report --calibration` writes `docs/harness/reports/calibration.{md,json}`
+with the evidence per ticket and per slice and states go-live or stay-shadow for each, by the rule;
+a weekly report carries one line saying which shadow the triage is in and what put it there. On the
+day it landed the report counts nothing: every ticket delivered so far started before the rule
+existed, and the report says so ticket by ticket rather than showing an empty table.
+
+Four judgement calls, all in the clarify record:
+
+The criterion asks for the section to be committed before the first triage record exists, which was
+already impossible: SEEN-107 and SEEN-108 wrote triage and route records on their own branches while
+building the things under calibration. The rule SEEN-098 wrote for itself applies, so those two and
+this ticket are excluded by name and `counted_from` is the moment the section was committed.
+
+The window is the most recent ten counted tickets rather than a counter somebody keeps. That is
+what makes the fourth criterion fall out of the rule instead of needing state: an escape holds the
+verdict at stay-shadow until ten further tickets have pushed it out, which is the ticket's another
+ten.
+
+The return to shadow is computed and never written. Nothing rewrites `thresholds.toml`: going live
+stays one line a person changes, and the triage asks `effective_shadow` rather than reading the
+threshold alone. It returns to shadow on an escape and on nothing else. The first version returned
+on any stay-shadow verdict, including a window that was not full yet, which overrode the founder's
+own line and would have made going live impossible rather than early; twenty-four triage tests said
+so.
+
+Two record shapes had to change first, because without them the evidence is silently favourable to
+the thing being measured. A finding at high or blocking severity must name the file it is in, which
+`seen-reviewer` already emitted and the gate now requires; low and medium are left alone, because
+neither can ever be an escape. And `harness return --unmet <n>` names the criteria a review found
+unmet, which is the only thing that tells the second kind of escape from an ordinary return. A
+finding or a criterion nothing can place is reported as unattributable and counted neither way.
+
+What the route rule cannot do is name a cause. A return sends the whole ticket back and no record
+says which slice caused it, so every slice of the plan carries it and an escaped defect is charged
+the same way; findings are the one per-slice measure. That is written into `route_rule` so nobody
+reads a per-slice rate as a per-slice cause.
+
+Three deviations from the solution record. The tests were named there as `pytest` commands and this
+repository runs `unittest`, which is what the checks record. The gate tests for the finding file
+went into `test_calibration.py` rather than `test_stage_gates.py`, because that is the file slice 1
+declared. And `harness/tests/test_context_budget.py` changed although no slice named it: SEEN-108
+left a guard there asserting `report --calibration` is not a command the parser accepts, with a note
+saying the ticket that lands it may lose the tense. This is that ticket, so the sentence in
+`render_cost` is in the present now and the guard holds the other direction.

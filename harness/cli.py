@@ -175,6 +175,9 @@ def build_parser():
     report.add_argument('--week', action='store_true', help='The ISO week of --date, or today')
     report.add_argument('--sprint', type=int, help='Planned against delivered for one sprint')
     report.add_argument('--date', help='The date whose week to report, YYYY-MM-DD')
+    report.add_argument('--calibration', action='store_true',
+                        help='The evidence the review triage and the routes will be decided on, '
+                             'per ticket and per slice, with the rule printed beside it')
 
     commands.add_parser('sync', help='Generate the skill copies from docs/harness/skill.md')
     commands.add_parser('lint', help='Refuse live marketplace hosts in test code')
@@ -885,9 +888,16 @@ UNMEASURABLE = [
 
 
 def write_report(repository, args):
-    from . import report as reporting
-    require(args.week or args.sprint is not None, 'Ask for --week or --sprint <n>')
+    from . import calibration as calibrating, report as reporting
+    require(args.week or args.sprint is not None or args.calibration,
+            'Ask for --week, --sprint <n> or --calibration')
     rules = thresholds.load(repository.root)
+    if args.calibration:
+        section = calibrating.evidence(repository.root, rules)
+        markdown = reporting.render_calibration(section, rules)
+        written = reporting.write(repository.root, 'calibration', markdown, section)
+        return dict(written, tickets=len(section['tickets']),
+                    triage=section['triage']['state'], routes=section['routes']['state'])
     figures = ticket_figures(repository, rules)
     if args.sprint is not None:
         planned = 0
@@ -925,9 +935,14 @@ def write_report(repository, args):
         # the measure that does not go stale.
         section['cost_by_model'] = context.cost_by_model(covered)
         section['prices'] = rules['routing']['prices']
+    # Which shadow the review triage is in, and what put it there. In a weekly
+    # report rather than only in the calibration one, because an escape returns
+    # the triage to shadow with nobody editing a file, and a change nobody made
+    # is the one a reader most needs told.
+    shadow = calibrating.effective_shadow(repository.root, rules)
     payload = dict(name=name, generated_for=name, tickets=covered, totals=totals,
-                   unmeasurable=UNMEASURABLE, context=section)
-    markdown = reporting.render(title, covered, totals, UNMEASURABLE, section, budget)
+                   unmeasurable=UNMEASURABLE, context=section, review_triage_shadow=shadow)
+    markdown = reporting.render(title, covered, totals, UNMEASURABLE, section, budget, shadow)
     written = reporting.write(repository.root, name, markdown, payload)
     return dict(written, tickets=len(covered), totals=totals)
 

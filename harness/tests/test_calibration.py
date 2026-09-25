@@ -11,6 +11,8 @@ import unittest
 from harness import calibration, gates, journal as journal_module, thresholds
 from harness.errors import HarnessError
 from harness.tests.helpers import PROJECT, ProjectTest
+from harness.tests.test_lifecycle import CommandTest
+from harness.tests.test_triage import TriageTest
 
 
 def at(day, minute=0):
@@ -184,7 +186,7 @@ class WindowTest(ProjectTest):
         self.assertEqual(sorted(entry['ticket'] for entry in section['excluded']),
                          sorted(self.rules['calibration']['excluded']))
 
-    def test_a_ticket_delivered_before_the_rule_existed_is_excluded_with_its_date(self):
+    def test_a_ticket_started_before_the_rule_existed_is_excluded_with_its_date(self):
         rules = dict(self.rules, calibration=dict(self.rules['calibration'],
                                                   counted_from='2026-10-05T00:00:00+00:00'))
         self.plant('SEEN-200', 2)
@@ -356,5 +358,109 @@ class CalibrationRulesTest(ProjectTest):
         self.assertIn('calibration.window', str(raised.exception))
 
 
+
+
+class ReportTest(CommandTest):
+    """The evidence per ticket and per slice, with the rule printed beside it."""
+
+    def setUp(self):
+        super().setUp()
+        self.rules = thresholds.load(self.root)
+
+    def plant_window(self, count=10, **kwargs):
+        for day in range(1, count + 1):
+            plant(self.root, f'SEEN-7{day:02d}', day,
+                  execution=[slice_entry(1, 'sonnet'), slice_entry(2, 'opus', files=['harness/b.py'])],
+                  **kwargs)
+
+    def report(self):
+        written = self.run_harness('report', '--calibration')
+        return ((self.root / written['report']).read_text(),
+                json.loads((self.root / written['data']).read_text()))
+
+    def test_the_report_states_a_verdict_for_the_triage_and_for_the_routes(self):
+        self.plant_window()
+        markdown, payload = self.report()
+        self.assertEqual(payload['triage']['state'], 'go_live')
+        self.assertIn(payload['routes']['state'], ('go_live', 'stay_shadow'))
+        self.assertIn('The rule, recorded before the numbers', markdown)
+
+    def test_the_report_names_the_tickets_it_excluded_and_why(self):
+        self.plant_window()
+        plant(self.root, 'SEEN-107', 1)
+        markdown, payload = self.report()
+        excluded = {entry['ticket']: entry['reason'] for entry in payload['excluded']}
+        self.assertIn('SEEN-107', excluded)
+        self.assertIn('SEEN-107', markdown)
+
+    def test_the_report_shows_the_excluded_files_and_the_escapes_per_ticket(self):
+        self.plant_window(triage=['harness/skipped.py'],
+                          findings=[finding('F1', 'blocking', 'harness/skipped.py:2')])
+        markdown, payload = self.report()
+        self.assertEqual(payload['triage']['state'], 'stay_shadow')
+        self.assertTrue(all(entry['escapes'] for entry in payload['tickets']))
+        self.assertIn('harness/skipped.py', markdown)
+
+    def test_the_report_shows_each_slice_s_route_against_what_followed(self):
+        self.plant_window(findings=[finding('F1', 'high', 'harness/b.py:7')])
+        markdown, payload = self.report()
+        rows = [row for row in payload['slices'] if row['ticket'] == 'SEEN-701']
+        self.assertEqual([row['model'] for row in rows], ['sonnet', 'opus'])
+        self.assertEqual([row['findings'] for row in rows], [0, 1])
+        self.assertIn('| sonnet at medium |', markdown)
+
+    def test_below_the_window_the_report_concludes_nothing(self):
+        self.plant_window(count=3)
+        markdown, payload = self.report()
+        self.assertEqual(payload['triage']['state'], 'stay_shadow')
+        self.assertIn('3 of 10', payload['triage']['reason'])
+
+    def test_the_weekly_report_says_which_shadow_the_triage_is_in(self):
+        self.plant_window(triage=['harness/skipped.py'],
+                          findings=[finding('F1', 'blocking', 'harness/skipped.py:2')])
+        written = self.run_harness('report', '--week', '--date', '2026-10-05')
+        markdown = (self.root / written['report']).read_text()
+        self.assertIn('The review triage', markdown)
+        self.assertIn('shadow', markdown)
+
+
+class TriageShadowTest(TriageTest):
+    """The one thing that happens without a person: the return to shadow."""
+
+    def loosen(self):
+        """Go live, the way the founder would: one line in thresholds.toml."""
+        path = self.root / 'harness' / 'thresholds.toml'
+        path.write_text(path.read_text().replace('triage_shadow = true', 'triage_shadow = false'))
+
+    def plant_window(self, count=10, **kwargs):
+        for day in range(1, count + 1):
+            plant(self.root, f'SEEN-8{day:02d}', day, **kwargs)
+        self.git('add', '-A')
+        self.git('-c', 'core.hooksPath=/dev/null', 'commit', '-m', 'chore: window')
+
+    def test_with_the_threshold_off_and_a_clean_window_the_triage_narrows(self):
+        self.loosen()
+        self.plant_window()
+        self.reach_review()
+        record = self.triage()
+        self.assertFalse(record['data']['shadow'])
+        self.assertEqual(record['data']['shadow_source'], 'calibration')
+
+    def test_an_escape_in_the_window_puts_the_triage_back_in_shadow(self):
+        self.loosen()
+        self.plant_window(triage=['harness/skipped.py'],
+                          findings=[finding('F1', 'blocking', 'harness/skipped.py:2')])
+        self.reach_review()
+        record = self.triage()
+        self.assertTrue(record['data']['shadow'])
+        self.assertEqual(record['data']['shadow_source'], 'calibration')
+        self.assertIn('SEEN-801', record['data']['shadow_reason'])
+
+    def test_the_threshold_alone_still_says_why_the_triage_is_in_shadow(self):
+        self.reach_review()
+        record = self.triage()
+        self.assertTrue(record['data']['shadow'])
+        self.assertEqual(record['data']['shadow_source'], 'threshold')
+        self.assertIn('triage_shadow', record['data']['shadow_reason'])
 if __name__ == '__main__':
     unittest.main()

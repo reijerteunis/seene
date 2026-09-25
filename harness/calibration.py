@@ -291,7 +291,7 @@ def verdict_triage(rows, rules):
     rule = settings['triage_rule']
     if len(rows) < size:
         return dict(state='stay_shadow', rule=rule, window=[row['ticket'] for row in rows],
-                    escapes=[],
+                    escapes=[escape for row in rows for escape in row['escapes']],
                     reason=f'{len(rows)} of {size} counted tickets carry a triage, so the '
                            'evidence is reported and nothing is concluded from it')
     window = rows[-size:]
@@ -396,7 +396,15 @@ def effective_shadow(root, rules):
         return dict(shadow=True, source='threshold',
                     reason='[review] triage_shadow is true in harness/thresholds.toml')
     verdict = evidence(root, rules)['triage']
-    if verdict['state'] == 'go_live':
-        return dict(shadow=False, source='calibration', reason=verdict['reason'])
+    # An escape, and nothing else. A window that is not full yet is a reason for
+    # the report to conclude nothing, never a reason to override the line the
+    # founder changed: that would make going live impossible rather than early.
+    if not verdict['escapes']:
+        return dict(shadow=False, source='calibration',
+                    reason='[review] triage_shadow is false and no escape sits in the window of '
+                           f'{len(verdict["window"])} counted ticket(s)')
+    named = ', '.join(sorted({escape['ticket'] for escape in verdict['escapes']}))
     return dict(shadow=True, source='calibration',
-                reason='Returned to shadow by the calibration rule: ' + verdict['reason'])
+                reason=f'Returned to shadow by the calibration rule: {len(verdict["escapes"])} '
+                       f'escape(s) in the window, in {named}. The triage stays in shadow until '
+                       'ten counted tickets carry none')

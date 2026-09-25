@@ -197,13 +197,14 @@ def render_cost(by_model, prices):
               'each slice actually '
               'ran on, which while `[routing] shadow` is true is the session\'s model and not '
               'the routed one; what the route would have cost is carried per slice in kpi.json '
-              'as `routed_cost_cents`; comparing the two is what `report --calibration` will do when '
-              'SEEN-109 adds it, and no command does it today. A row named '
+              'as `routed_cost_cents`; `report --calibration`, which SEEN-109 added, compares the '
+              'two beside the returns and the findings each slice was followed by. A row named '
               f'`{context.UNKNOWN}` is slices whose session left no log to read a model from.']
     return lines
 
 
-def render(title, tickets, figures, unmeasurable, context_section=None, context_rules=None):
+def render(title, tickets, figures, unmeasurable, context_section=None, context_rules=None,
+           shadow=None):
     """A report anyone can read without opening a journal.
 
     The last section names what could not be measured and why, because a report
@@ -241,6 +242,8 @@ def render(title, tickets, figures, unmeasurable, context_section=None, context_
             lines.append(f'- {severity}: {count}')
     else:
         lines.append('- none recorded')
+    if shadow is not None:
+        lines += calibration_line(shadow)
     if context_section is not None:
         lines += render_context(context_section, context_rules)
     lines += ['', '## Not measurable yet', '']
@@ -249,3 +252,95 @@ def render(title, tickets, figures, unmeasurable, context_section=None, context_
         reasons.append(context_section['not_measurable'])
     lines += [f'- {reason}' for reason in reasons] or ['- nothing']
     return '\n'.join(lines) + '\n'
+
+
+def render_calibration(section, rules):
+    """The evidence the two switches will be decided on, with the rule beside it.
+
+    The rule is printed above the numbers every time, for the reason SEEN-099
+    gave: a reader must never have to take on trust that it was chosen before
+    them. Both verdicts are stated by the rule, and neither flips anything: the
+    switch is a line in thresholds.toml and the decision behind it belongs in
+    the journal of the ticket that makes it.
+    """
+    settings = rules['calibration']
+    triage, routes = section['triage'], section['routes']
+    lines = ['# The calibration window', '',
+             f'The window is the most recent {section["window"]} counted tickets. A ticket counts '
+             f'when it was started after {section["counted_from"]}, when it has delivered, and '
+             'when it is not one of the tickets that built the thing under calibration.', '',
+             '**What an escape is, recorded before the first one.** ' + settings['escape'], '',
+             '## The triage', '',
+             f'**The rule.** {triage["rule"]}', '',
+             f'**The verdict: {triage["state"].replace("_", "-")}.** {triage["reason"]}', '',
+             '| Ticket | Findings | Would have excluded | Share of the diff | Escapes '
+             '| Unattributable |', '|---|---|---|---|---|---|']
+    for entry in section['tickets']:
+        triaged = entry['triage'] or {}
+        severities = ', '.join(f'{count} {name}'
+                               for name, count in sorted(entry['findings_by_severity'].items()))
+        excluded = triaged.get('would_exclude') or []
+        share = triaged.get('excluded_share')
+        lines.append(
+            f'| {entry["ticket"]} | {severities or "none"} '
+            f'| {", ".join(excluded) if excluded else ("none" if entry["triage"] else "no triage")} '
+            f'| {f"{round(share * 100)}%" if share is not None else "-"} '
+            f'| {len(entry["escapes"])} | {len(entry["unattributable"])} |')
+    escapes = [escape for entry in section['tickets'] for escape in entry['escapes']]
+    if escapes:
+        lines += ['', '### The escapes', '']
+        for escape in escapes:
+            if escape['kind'] == 'finding_in_excluded_file':
+                lines.append(f'- {escape["ticket"]}: {escape["severity"]} finding '
+                             f'{escape["id"]} in `{escape["file"]}`, which triage record '
+                             f'{escape["triage"]} would have excluded. {escape.get("claim")}')
+            else:
+                lines.append(f'- {escape["ticket"]}: criterion {escape["position"]}, which '
+                             f'triage record {escape["triage"]} answered evidenced and the '
+                             f'review found unmet. {escape.get("criterion")}')
+    unplaced = [entry for ticket in section['tickets'] for entry in ticket['unattributable']]
+    if unplaced:
+        lines += ['', '### What nothing could place', '',
+                  'Counted neither as escapes nor against them, because counting them as no '
+                  'escape would be a silent pass in favour of the narrowing.', '']
+        for entry in unplaced:
+            named = entry.get('id') or f'criterion {entry.get("position")}'
+            lines.append(f'- {entry["ticket"]}: {named}. {entry["reason"]}')
+    lines += ['', '## The routes', '', f'**The rule.** {routes["rule"]}', '',
+              f'**The verdict: {routes["state"].replace("_", "-")}.** {routes["reason"]}', '',
+              '| Group | Slices | Points | Rework charged | Rework per point |',
+              '|---|---|---|---|---|']
+    for name in ('downgraded', 'strongest'):
+        group = routes[name]
+        lines.append(f'| {name} | {group["slices"]} | {group["points"]} | {group["rework"]} '
+                     f'| {group["rate"] if group["rate"] is not None else "not measurable"} |')
+    if section['slices']:
+        lines += ['', '### Every routed slice', '',
+                  '| Ticket | Slice | Points | Routed to | Chosen by | Group | Returns '
+                  '| Findings | Escaped defects |', '|---|---|---|---|---|---|---|---|---|']
+        for row in section['slices']:
+            lines.append(
+                f'| {row["ticket"]} | {row["position"]} {row["name"] or ""} | {row["points"]} '
+                f'| {row["model"]} at {row["effort"]} | {row["source"]}'
+                f'{" (" + row["rule"] + ")" if row.get("rule") else ""} | {row["group"]} '
+                f'| {row["returns"]} | {row["findings"]} | {row["escaped_defects"]} |')
+    lines += ['', '## Not in the window', '']
+    if section['excluded']:
+        lines += [f'- {entry["ticket"]}: {entry["reason"]}' for entry in section['excluded']]
+    else:
+        lines.append('- nothing')
+    lines += ['', '**The rule, recorded before the numbers.** Both rules above are '
+              '`[calibration]` in `harness/thresholds.toml`, committed before the first ticket '
+              'this report counts was started. Neither verdict flips a switch: going live is one '
+              "line in that file and the founder's decision, recorded in the journal of the "
+              'ticket that makes it. The return to shadow is the one thing that happens without '
+              'a person, because an escape in the window makes the verdict stay-shadow and the '
+              'triage reads the verdict.', '']
+    return '\n'.join(lines) + '\n'
+
+
+def calibration_line(shadow):
+    """One line for the weekly report: which shadow the triage is in, and why."""
+    return ['', '## The review triage', '',
+            f'In shadow: {"yes" if shadow["shadow"] else "no"}, by the {shadow["source"]}. '
+            f'{shadow["reason"]}', '']

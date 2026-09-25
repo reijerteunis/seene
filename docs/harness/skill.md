@@ -143,6 +143,21 @@ and refuses, before any model reads the diff. The review record's `read` list is
 what the reviewer actually read, and the gate refuses one that does not cover the
 focus set; reading more than the focus set is never refused.
 
+**Neither the narrowing nor a cheaper model takes effect on a guess.** `[calibration]`
+in thresholds.toml carries the window of ten tickets, what an escape is and both
+go-live rules, written before the first number existed. In shadow the reviewer still
+reads everything and every slice still runs on the session's model, while what the
+narrowing and the route would have done is recorded. `harness report --calibration`
+states go-live or stay-shadow for each, by the rule; going live is one line in
+thresholds.toml and the founder's, recorded in the journal of the ticket that flips
+it. The return to shadow needs nobody: an escape in the window makes the verdict
+stay-shadow and the triage reads the verdict, so a triage record says which shadow
+it is in and what put it there. Two things the evidence needs from you: a finding at
+high or blocking severity must name the file it is in, and a review that sends a
+ticket back for a criterion it found unmet names it with `harness return --unmet
+<n>`. Without either, an escape reads as no escape, which is a silent pass in favour
+of the thing being measured.
+
 **A subagent is a context boundary, not independence by itself.** A review from one
 is disclosed as `subagent` and names the `reviewer_session` it came from, and the
 gate refuses a session that wrote any record on the ticket, whichever attempt it
@@ -203,8 +218,8 @@ baseline captured before any of them existed, with the rule for reading it writt
 
 ## What the harness will refuse
 
-A RED that did not fail. A check recorded under a model the route did not choose, once
-`[routing] shadow` is off. A slice citing a check from another attempt. A solution record with no slice
+A RED that did not fail. A finding at high or blocking severity that names no file. A
+check recorded under a model the route did not choose, once `[routing] shadow` is off. A slice citing a check from another attempt. A solution record with no slice
 plan, a slice over 2 points or a plan over 4. Coverage that fell. A record or a handoff pack carrying
 the value of an environment variable. A delivery whose checks are not green on the commit it
 attests. A merge where anything but the journal, the reports, the coverage baseline or the graph

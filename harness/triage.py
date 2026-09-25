@@ -25,7 +25,7 @@ policy gate, and a migration. Any of them is full depth with no request made.
 
 import re
 
-from . import gates, jev, journal, kpi, risk, routing, secrets
+from . import calibration, gates, jev, journal, kpi, risk, routing, secrets
 from .errors import HarnessError, require
 from .paths import FINGERPRINT_EXCLUDED
 
@@ -764,7 +764,12 @@ def run(repository, records, current, rules, ticket, sequence):
     depth = 'full' if reasons else model_depth
     enforced = focus_set(facts, by_key, depth, rules)
     narrowed = focus_set(facts, by_key, model_depth, rules)
-    shadow = bool(rules['review']['triage_shadow'])
+    # Not the threshold alone: SEEN-109's rule returns the triage to shadow when
+    # an escape lands in the window, and it does that without anybody editing a
+    # file. Going live is still one line in thresholds.toml and nothing here
+    # writes to it.
+    in_shadow = calibration.effective_shadow(repository.root, rules)
+    shadow = in_shadow['shadow']
     focus = [entry['path'] for entry in facts] if shadow else list(enforced)
     required = always_read(records, ticket, repository.root)
     return dict(fingerprint=fingerprint,
@@ -793,6 +798,10 @@ def run(repository, records, current, rules, ticket, sequence):
                 # anything is decided by it.
                 focus=focus,
                 shadow=shadow,
+                # Which of the two put it there, and in its own words, so a
+                # record read later says whether a person or the window decided.
+                shadow_source=in_shadow['source'],
+                shadow_reason=in_shadow['reason'],
                 would_exclude=sorted({entry['path'] for entry in facts} - set(narrowed)),
                 excluded_share=excluded_share(facts, narrowed),
                 always_read=required,
