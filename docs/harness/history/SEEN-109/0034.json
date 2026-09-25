@@ -1,0 +1,38 @@
+{
+  "sequence": 34,
+  "ticket": "SEEN-109",
+  "timestamp": "2026-09-25T21:15:51.913253+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "session": "343d37550220",
+  "head": "150b26932156f0a435e267875f91b59504c11df0",
+  "prev_hash": "4ca02d078043d26cb3ee73d31135f00ed22e6b8e8ccb22729f102536f7a410cb",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": null,
+          "behaviour": "The five findings of the second review: a slice's planned files placed through the same normalise, a returning review round's findings read and recorded with harness return --findings, a go-live that has to name the record its decision is in and that doctor checks, and counted_from read from the commit that added the section. The fifth is an evidence gap, disowned at note 28 rather than reconstructed.",
+          "failure_reason": "AssertionError: Lists differ: [0, 0] != [1, 0], on a blocking finding at .claude/agents/x.md:84 charged to a slice whose files name that path; with seven further failures, among them a blocking finding that returned a ticket found nowhere, and effective_shadow going live with [calibration] went_live naming no decision at all",
+          "red": 27,
+          "green": 31
+        }
+      ],
+      "regression": 32,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "343d37550220",
+      "output_tokens": 264002,
+      "tool_calls": 155,
+      "unavailable": null
+    }
+  }
+}
