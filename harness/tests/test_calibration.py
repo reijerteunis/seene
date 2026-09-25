@@ -161,10 +161,36 @@ class EscapeTest(unittest.TestCase):
         self.assertEqual(found['escapes'], [])
         self.assertEqual([entry['position'] for entry in found['unattributable']], [1])
 
-    def test_a_return_naming_no_criterion_is_neither(self):
+    def test_a_return_naming_no_criterion_is_unattributable(self):
+        """F4 of the first review: nothing requires the flag, so a forgotten one
+
+        would hide an escape in exactly the direction the rule forbids.
+        """
         found = calibration.escapes(journal(answers=[(1, 'A criterion', True)], returns=[[]]))
         self.assertEqual(found['escapes'], [])
-        self.assertEqual(found['unattributable'], [])
+        self.assertEqual([entry['kind'] for entry in found['unattributable']], ['return'])
+
+    def test_a_finding_in_a_dot_directory_the_triage_excluded_is_an_escape(self):
+        """F1 of the first review: lstrip strips characters, not a prefix."""
+        found = calibration.escapes(journal(triage=['.claude/agents/seen-reviewer.md'],
+                                            findings=[finding('F1', 'blocking',
+                                                              '.claude/agents/seen-reviewer.md:84')]))
+        self.assertEqual([entry['kind'] for entry in found['escapes']],
+                         ['finding_in_excluded_file'])
+        self.assertEqual(found['escapes'][0]['file'], '.claude/agents/seen-reviewer.md')
+
+    def test_a_finding_and_an_exclusion_written_with_a_leading_dot_slash_still_meet(self):
+        found = calibration.escapes(journal(triage=['./harness/a.py'],
+                                            findings=[finding('F1', 'high', 'harness/a.py:2')]))
+        self.assertEqual(len(found['escapes']), 1)
+
+    def test_a_finding_at_an_absolute_path_is_unattributable(self):
+        """Nothing repository-relative can be compared with it, so it is placed nowhere."""
+        found = calibration.escapes(journal(triage=['harness/a.py'],
+                                            findings=[finding('F1', 'blocking',
+                                                              '/Users/x/seene/harness/a.py:2')]))
+        self.assertEqual(found['escapes'], [])
+        self.assertEqual([entry['id'] for entry in found['unattributable']], ['F1'])
 
 
 class WindowTest(ProjectTest):
@@ -415,13 +441,29 @@ class ReportTest(CommandTest):
         self.assertEqual(payload['triage']['state'], 'stay_shadow')
         self.assertIn('3 of 10', payload['triage']['reason'])
 
-    def test_the_weekly_report_says_which_shadow_the_triage_is_in(self):
+    def test_the_weekly_report_names_the_escape_that_returned_the_triage_to_shadow(self):
+        """F2 of the first review: the only test for this line exercised the branch
+
+        that cannot see an escape, so deleting the escape branch left it green.
+        """
+        path = self.root / 'harness' / 'thresholds.toml'
+        path.write_text(path.read_text().replace('triage_shadow = true', 'triage_shadow = false'))
         self.plant_window(triage=['harness/skipped.py'],
                           findings=[finding('F1', 'blocking', 'harness/skipped.py:2')])
         written = self.run_harness('report', '--week', '--date', '2026-10-05')
         markdown = (self.root / written['report']).read_text()
+        payload = json.loads((self.root / written['data']).read_text())
         self.assertIn('The review triage', markdown)
-        self.assertIn('shadow', markdown)
+        self.assertIn('Returned to shadow by the calibration rule', markdown)
+        self.assertIn('SEEN-701', markdown)
+        self.assertTrue(payload['review_triage_shadow']['shadow'])
+        self.assertEqual(payload['review_triage_shadow']['source'], 'calibration')
+
+    def test_the_weekly_report_says_when_the_threshold_alone_holds_the_shadow(self):
+        self.plant_window()
+        written = self.run_harness('report', '--week', '--date', '2026-10-05')
+        markdown = (self.root / written['report']).read_text()
+        self.assertIn('triage_shadow', markdown)
 
 
 class TriageShadowTest(TriageTest):
@@ -462,5 +504,65 @@ class TriageShadowTest(TriageTest):
         self.assertTrue(record['data']['shadow'])
         self.assertEqual(record['data']['shadow_source'], 'threshold')
         self.assertIn('triage_shadow', record['data']['shadow_reason'])
+class UnmetCriteriaTest(CommandTest):
+    """F3 of the first review: the flag the second escape kind is read from."""
+
+    def reach_tdd(self):
+        from harness.tests.test_lifecycle import clarify_evidence, solution_evidence
+        self.start()
+        self.submit('clarify', clarify_evidence())
+        self.submit('solution', solution_evidence())
+
+    def test_a_return_records_the_criteria_it_names(self):
+        self.reach_tdd()
+        record = self.run_harness('return', self.ticket_id, '--to', 'clarify',
+                                  '--actor', 'claude:implementer',
+                                  '--reason', 'Criterion 2 has nothing behind it',
+                                  '--unmet', '2', '--unmet', '2', '--unmet', '1')
+        self.assertEqual(record['data']['unmet_criteria'], [1, 2])
+
+    def test_a_return_that_names_none_records_an_empty_list(self):
+        self.reach_tdd()
+        record = self.run_harness('return', self.ticket_id, '--to', 'clarify',
+                                  '--actor', 'claude:implementer', '--reason', 'Replanning')
+        self.assertEqual(record['data']['unmet_criteria'], [])
+
+    def test_a_criterion_number_below_one_is_refused(self):
+        self.reach_tdd()
+        with self.assertRaisesRegex(HarnessError, 'counting from 1'):
+            self.run_harness('return', self.ticket_id, '--to', 'clarify',
+                             '--actor', 'claude:implementer', '--reason', 'Wrong number',
+                             '--unmet', '0')
+
+
+class TriageReturnTest(TriageTest):
+    """The triage's own return names what it could see no evidence for.
+
+    Without the numbers on it, F4's rule would read every one of them as a
+    review that forgot the flag, which is the opposite of what happened: the
+    triage caught the criterion itself, before any model read the diff.
+    """
+
+    def setUp(self):
+        super().setUp()
+        from harness import jev
+        from harness.tests.test_triage import triage_stub
+        jev.TRANSPORT = triage_stub(criterion=0.1)
+
+    def test_the_triage_return_carries_the_unevidenced_criteria_by_number(self):
+        self.reach_review()
+        with self.assertRaises(HarnessError):
+            self.triage()
+        returned = self.records()[-1]
+        self.assertEqual(returned['kind'], 'return')
+        self.assertEqual(returned['data']['unmet_criteria'], [1])
+
+    def test_the_calibration_reads_it_as_neither_an_escape_nor_unattributable(self):
+        self.reach_review()
+        with self.assertRaises(HarnessError):
+            self.triage()
+        found = calibration.escapes(self.records())
+        self.assertEqual(found['escapes'], [])
+        self.assertEqual(found['unattributable'], [])
 if __name__ == '__main__':
     unittest.main()

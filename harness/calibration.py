@@ -42,6 +42,31 @@ def _receipt(records):
     return None
 
 
+def normalise(path):
+    """One spelling of a repository-relative path, or nothing for one that is not.
+
+    Both sides of the comparison come through here, because a finding and a
+    triage's `would_exclude` are written by different hands. The `./` prefix is
+    removed as a prefix and not as a set of characters: `str.lstrip('./')`
+    strips every leading `.` and `/`, which turned `.claude/agents/x.md` into
+    `claude/agents/x.md` and made a finding in any dot directory match nothing
+    while looking like a path that had been read. F1 of this ticket's first
+    review, on a list where four of the thirteen excluded files were dot
+    directories.
+
+    An absolute path returns nothing. It cannot be compared with anything a
+    triage records, so it is placed nowhere rather than silently placed outside.
+    """
+    if not path:
+        return None
+    path = str(path).strip()
+    while path.startswith('./'):
+        path = path[2:]
+    if not path or path.startswith('/'):
+        return None
+    return path.rstrip('/') or None
+
+
 def path_of(reference):
     """The file a finding names, which seen-reviewer writes as `path:line`.
 
@@ -55,7 +80,7 @@ def path_of(reference):
     head, separator, tail = str(reference).rpartition(':')
     if separator and tail.isdigit():
         reference = head
-    return str(reference).strip().lstrip('./') or None
+    return normalise(reference)
 
 
 def _preceding_triage(records, sequence):
@@ -91,7 +116,9 @@ def escapes(records):
         data = record['data']
         if record['kind'] == 'advance' and data.get('from_stage') == 'review':
             triaged = _preceding_triage(records, record['sequence'])
-            excluded = set((triaged or {}).get('data', {}).get('would_exclude') or [])
+            excluded = {normalise(path)
+                        for path in (triaged or {}).get('data', {}).get('would_exclude') or []}
+            excluded.discard(None)
             for finding in data.get('evidence', {}).get('findings') or []:
                 if finding.get('severity') not in ESCAPING_SEVERITIES:
                     continue
@@ -111,7 +138,20 @@ def escapes(records):
             triaged = _preceding_triage(records, record['sequence'])
             answers = {answer.get('key'): answer
                        for answer in (triaged or {}).get('data', {}).get('criteria_answers') or []}
-            for position in data.get('unmet_criteria') or []:
+            named = data.get('unmet_criteria')
+            if not named:
+                # F4 of this ticket's first review. Nothing requires the flag,
+                # so a review that returned a ticket for an unmet criterion and
+                # did not name it would read exactly like one that returned it
+                # for a finding. Placed nowhere rather than counted clean, which
+                # is the rule this whole module is written to.
+                unplaced.append(dict(kind='return', ticket=record['ticket'],
+                                     record=record['sequence'],
+                                     reason='This return from review names no criterion, so '
+                                            'nothing can say whether a criterion the triage '
+                                            'called evidenced was found unmet. Name it with '
+                                            'harness return --unmet <n>'))
+            for position in named or []:
                 answer = answers.get(f'criterion_evidenced#{position}')
                 if answer is None or answer.get('passed') is None:
                     unplaced.append(dict(kind='criterion', ticket=record['ticket'],

@@ -1,0 +1,31 @@
+{
+  "sequence": 19,
+  "ticket": "SEEN-109",
+  "timestamp": "2026-09-25T20:44:33.967307+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "343d37550220",
+  "head": "04de3e6455022759347fc692adc46072cab567fd",
+  "prev_hash": "8e74abc588c99e04a3ec4691663aac3c2cff0bd49192f0d608fc530cd98bcac2",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_calibration"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "model": "claude-opus-5",
+    "model_declared": "opus",
+    "duration_ms": 5297,
+    "output": "........FFF...F..................E.............\n======================================================================\nERROR: test_the_triage_return_carries_the_unevidenced_criteria_by_number (harness.tests.test_calibration.TriageReturnTest.test_the_triage_return_carries_the_unevidenced_criteria_by_number)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_calibration.py\", line 562, in test_the_triage_return_carries_the_unevidenced_criteria_by_number\n    self.assertEqual(returned['data']['unmet_criteria'], [1])\n                     ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^\nKeyError: 'unmet_criteria'\n\n======================================================================\nFAIL: test_a_finding_and_an_exclusion_written_with_a_leading_dot_slash_still_meet (harness.tests.test_calibration.EscapeTest.test_a_finding_and_an_exclusion_written_with_a_leading_dot_slash_still_meet)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_calibration.py\", line 185, in test_a_finding_and_an_exclusion_written_with_a_leading_dot_slash_still_meet\n    self.assertEqual(len(found['escapes']), 1)\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 0 != 1\n\n======================================================================\nFAIL: test_a_finding_at_an_absolute_path_is_unattributable (harness.tests.test_calibration.EscapeTest.test_a_finding_at_an_absolute_path_is_unattributable)\nNothing repository-relative can be compared with it, so it is placed nowhere.\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_calibration.py\", line 193, in test_a_finding_at_an_absolute_path_is_unattributable\n    self.assertEqual([entry['id'] for entry in found['unattributable']], ['F1'])\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: Lists differ: [] != ['F1']\n\nSecond list contains 1 additional elements.\nFirst extra element 0:\n'F1'\n\n- []\n+ ['F1']\n\n======================================================================\nFAIL: test_a_finding_in_a_dot_directory_the_triage_excluded_is_an_escape (harness.tests.test_calibration.EscapeTest.test_a_finding_in_a_dot_directory_the_triage_excluded_is_an_escape)\nF1 of the first review: lstrip strips characters, not a prefix.\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_calibration.py\", line 178, in test_a_finding_in_a_dot_directory_the_triage_excluded_is_an_escape\n    self.assertEqual([entry['kind'] for entry in found['escapes']],\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                     ['finding_in_excluded_file'])\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: Lists differ: [] != ['finding_in_excluded_file']\n\nSecond list contains 1 additional elements.\nFirst extra element 0:\n'finding_in_excluded_file'\n\n- []\n+ ['finding_in_excluded_file']\n\n======================================================================\nFAIL: test_a_return_naming_no_criterion_is_unattributable (harness.tests.test_calibration.EscapeTest.test_a_return_naming_no_criterion_is_unattributable)\nF4 of the first review: nothing requires the flag, so a forgotten one\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_calibration.py\", line 171, in test_a_return_naming_no_criterion_is_unattributable\n    self.assertEqual([entry['kind'] for entry in found['unattributable']], ['return'])\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: Lists differ: [] != ['return']\n\nSecond list contains 1 additional elements.\nFirst extra element 0:\n'return'\n\n- []\n+ ['return']\n\n----------------------------------------------------------------------\nRan 47 tests in 5.244s\n\nFAILED (failures=4, errors=1)\n",
+    "output_sha256": "130936ce30138f8d0f46c12cf9a585523c935accb658534d77c435f4da66b109",
+    "output_truncated": false,
+    "before": "202597c93ab127133e7d3b1e37cfe1b6518aa4595c2a379aaacff1d33eb69b3a",
+    "after": "202597c93ab127133e7d3b1e37cfe1b6518aa4595c2a379aaacff1d33eb69b3a"
+  }
+}

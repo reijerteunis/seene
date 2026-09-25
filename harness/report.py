@@ -274,7 +274,7 @@ def render_calibration(section, rules):
              f'**The rule.** {triage["rule"]}', '',
              f'**The verdict: {triage["state"].replace("_", "-")}.** {triage["reason"]}', '',
              '| Ticket | Findings | Would have excluded | Share of the diff | Escapes '
-             '| Unattributable |', '|---|---|---|---|---|---|']
+             '| Unattributable | Escaped defects |', '|---|---|---|---|---|---|---|']
     for entry in section['tickets']:
         triaged = entry['triage'] or {}
         severities = ', '.join(f'{count} {name}'
@@ -285,7 +285,16 @@ def render_calibration(section, rules):
             f'| {entry["ticket"]} | {severities or "none"} '
             f'| {", ".join(excluded) if excluded else ("none" if entry["triage"] else "no triage")} '
             f'| {f"{round(share * 100)}%" if share is not None else "-"} '
-            f'| {len(entry["escapes"])} | {len(entry["unattributable"])} |')
+            f'| {len(entry["escapes"])} | {len(entry["unattributable"])} '
+            f'| {", ".join(entry["escaped_defects"]) if entry["escaped_defects"] else "none"} |')
+    lines += ['', 'What this table cannot see, recorded here rather than left to be discovered: '
+              'once spot depth is live a reviewer no longer reads the files the narrowing drops, '
+              'so a defect in one of them can only become a finding if the reviewer reads beyond '
+              'its focus set. The escaped-defects column is shown for that reason and is not an '
+              'escape by the definition above, which is the ticket\'s own two kinds. Whether a '
+              'defect found after delivery should return the triage to shadow by itself is a '
+              "question for the founder, raised by F5 of SEEN-109's first review and not settled "
+              'by it.']
     escapes = [escape for entry in section['tickets'] for escape in entry['escapes']]
     if escapes:
         lines += ['', '### The escapes', '']

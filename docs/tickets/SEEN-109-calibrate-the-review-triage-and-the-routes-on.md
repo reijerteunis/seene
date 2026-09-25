@@ -103,3 +103,32 @@ declared. And `harness/tests/test_context_budget.py` changed although no slice n
 left a guard there asserting `report --calibration` is not a command the parser accepts, with a note
 saying the ticket that lands it may lose the tense. This is that ticket, so the sentence in
 `render_cost` is in the present now and the guard holds the other direction.
+
+### What the review found
+
+The `seen-reviewer` subagent returned the ticket on one high finding, recorded in full at note 17.
+`path_of` stripped the characters `.` and `/` rather than the prefix `./`, so a finding in a dot
+directory became a path nothing held: `.claude/agents/seen-reviewer.md` was compared as
+`claude/agents/seen-reviewer.md`, matched no exclusion, and because the result was not empty no
+unattributable row was written either. A high or blocking finding in any dot directory therefore
+read as no escape at all, which is precisely the silent pass the recorded rule forbids, and this
+ticket's own triage listed four such files among the thirteen it would have dropped. Both sides of
+the comparison now come through one `normalise`, the prefix is removed as a prefix, and an absolute
+path is placed nowhere rather than silently placed outside the exclusions.
+
+Three more were taken in the same attempt. The weekly report's shadow line was tested only in the
+branch that cannot see an escape, so deleting the escape branch left it green. `harness return
+--unmet` had no test of its own, so removing the flag would have left the suite green while the
+second escape kind became permanently undetectable. And a review return that named no criterion was
+counted clean rather than unattributable, which left the rule depending on an operator remembering
+a flag; it is now placed nowhere, and the triage's own return carries the numbers of the criteria
+it could see no evidence for, so the one return that caught a criterion itself is not read as one
+that forgot to say so.
+
+The fifth finding is not implemented and is a question for the founder. Once spot depth is live a
+reviewer no longer reads the files the narrowing drops, so a defect in one of them becomes a
+finding only if the reviewer reads beyond its focus set; the safety net the ticket describes then
+leans on that. An escaped defect is computed per ticket and shown in the report, but it is not an
+escape by the ticket's own two-kind definition, and making it one would change the rule this ticket
+exists to commit before the numbers. The limit is printed in the report and written into
+`docs/harness/workflow.md` rather than left to be discovered.

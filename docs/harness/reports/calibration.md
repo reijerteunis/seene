@@ -10,8 +10,10 @@ The window is the most recent 10 counted tickets. A ticket counts when it was st
 
 **The verdict: stay-shadow.** 0 of 10 counted tickets carry a triage, so the evidence is reported and nothing is concluded from it
 
-| Ticket | Findings | Would have excluded | Share of the diff | Escapes | Unattributable |
-|---|---|---|---|---|---|
+| Ticket | Findings | Would have excluded | Share of the diff | Escapes | Unattributable | Escaped defects |
+|---|---|---|---|---|---|---|
+
+What this table cannot see, recorded here rather than left to be discovered: once spot depth is live a reviewer no longer reads the files the narrowing drops, so a defect in one of them can only become a finding if the reviewer reads beyond its focus set. The escaped-defects column is shown for that reason and is not an escape by the definition above, which is the ticket's own two kinds. Whether a defect found after delivery should return the triage to shadow by itself is a question for the founder, raised by F5 of SEEN-109's first review and not settled by it.
 
 ## The routes
 

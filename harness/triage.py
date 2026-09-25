@@ -818,6 +818,18 @@ def _ticket_text(repository, records):
     return text
 
 
+def unevidenced_positions(data):
+    """The numbers of the criteria the model could see no evidence for.
+
+    The triage's own return carries them for the reason SEEN-109 gives: a return
+    from review that names no criterion cannot be told from one that found a
+    criterion unmet and forgot to say so, and this one found it itself.
+    """
+    return sorted(int(answer['key'].rpartition('#')[2])
+                  for answer in data['criteria_answers']
+                  if answer['passed'] is False and answer['key'].rpartition('#')[2].isdigit())
+
+
 def unevidenced(data):
     """The criteria the model could see no evidence for.
 
@@ -856,7 +868,8 @@ def append(repository, folder, records, current, args, rules):
                    attempt=current['attempt'], actor=args.actor, head=repository.head(),
                    ticket=args.ticket,
                    data=dict(from_stage='review', to_stage='tdd',
-                             to_attempt=current['attempt'] + 1, reason=reason))
+                             to_attempt=current['attempt'] + 1, reason=reason,
+                             unmet_criteria=unevidenced_positions(data)))
     raise HarnessError(
         f'{reason}. Recorded as triage {record["sequence"]} and returned to tdd; no reviewer '
         'was spawned, so nothing has read the diff yet')
