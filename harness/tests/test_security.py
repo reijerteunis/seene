@@ -4,6 +4,7 @@ Each one sits at the single place it applies: the record writer, the source
 tree, the git hook. A control with six call sites has six ways to be forgotten.
 """
 
+import unittest
 import json
 import os
 
@@ -217,3 +218,6 @@ class FalsePositiveTest(CommandTest):
         self.addCleanup(os.environ.pop, 'SEEN_TEST_OPAQUE', None)
         with self.assertRaisesRegex(HarnessError, 'SEEN_TEST_OPAQUE'):
             self.append('it was Xk29fJq8Lm4zPw7bTn5cRv3y')
+
+if __name__ == '__main__':  # pragma: no cover - a module must run on its own
+    unittest.main()

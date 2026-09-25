@@ -226,7 +226,5 @@ class RiskInTheDecisionTest(RiskTest):
 
         self.assertNotIn('change_risk', state)
 
-
-
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover - a module must run on its own
     unittest.main()

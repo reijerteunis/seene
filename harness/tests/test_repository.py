@@ -1,3 +1,4 @@
+import unittest
 """Git access, and the fingerprint that decides whether evidence is still current."""
 
 from harness.errors import HarnessError
@@ -57,3 +58,6 @@ class RepositoryTest(ProjectTest):
     def test_it_refuses_to_run_from_a_subdirectory(self):
         with self.assertRaisesRegex(HarnessError, 'root'):
             Repository(self.root / 'docs').require_is_root()
+
+if __name__ == '__main__':  # pragma: no cover - a module must run on its own
+    unittest.main()

@@ -71,3 +71,6 @@ class ClarifiedCriteriaTest(unittest.TestCase):
         for name, question in jev.QUESTIONS.items():
             with self.subTest(question=name):
                 self.assertTrue(question.get('criteria'), f'{name} has no criteria')
+
+if __name__ == '__main__':  # pragma: no cover - a module must run on its own
+    unittest.main()

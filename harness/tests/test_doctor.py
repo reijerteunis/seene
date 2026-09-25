@@ -1,5 +1,6 @@
 """The self-check a session runs before it starts working."""
 
+import unittest
 import json
 
 from harness import doctor, thresholds
@@ -195,3 +196,6 @@ class DeliverStatusTest(DoctorTest):
 
         self.assertEqual(doctor.report(Repository(self.root),
                                        thresholds.load(self.root))['problems'], [])
+
+if __name__ == '__main__':  # pragma: no cover - a module must run on its own
+    unittest.main()

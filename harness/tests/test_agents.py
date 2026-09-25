@@ -387,24 +387,48 @@ class ImplementerTest(CommandTest):
 
 
 class GuardIsLastTest(unittest.TestCase):
-    """F3 of the sixth review: a module's own run must collect its own tests.
+    """A module's own run must collect its own tests.
 
-    Five classes were appended after the `unittest.main()` guard in two modules,
-    so running either file directly reported OK having collected none of them.
-    A developer iterating on report.render_cost that way would have seen green
-    while reintroducing the TypeError that stopped the sprint report being
-    written at all.
+    F3 of the sixth review: five classes were appended after the
+    `unittest.main()` guard in two modules, so running either file directly
+    reported OK having collected none of them. A developer iterating on
+    report.render_cost that way would have seen green while reintroducing the
+    TypeError that stopped the sprint report being written at all.
+
+    F3 and F5 of the seventh: the first version of this test looked for its own
+    string anywhere in a line, so it would have failed on the module it lives
+    in, which has no guard and does contain that literal; and it skipped every
+    module without a guard, which was sixteen of them, so a direct run of the
+    1,036 lines this ticket added to test_routing.py collected nothing and said
+    so by printing nothing. The guard is found at the start of a line now, and
+    every module must have one.
     """
+
+    def modules(self):
+        return sorted((PROJECT / 'harness' / 'tests').glob('test_*.py'))
+
+    def guard_of(self, lines):
+        """The guard's line, found at column zero so a quotation is not one."""
+        found = [index for index, line in enumerate(lines)
+                 if line.startswith('if __name__ ==')]
+        return found[0] if found else None
+
+    def test_every_module_can_be_run_on_its_own(self):
+        without = [path.name for path in self.modules()
+                   if self.guard_of(path.read_text().splitlines()) is None]
+        self.assertEqual(without, [], 'a module with no guard runs nothing and says nothing')
 
     def test_no_test_class_is_defined_after_the_guard(self):
         stragglers = {}
-        for path in sorted((PROJECT / 'harness' / 'tests').glob('test_*.py')):
+        for path in self.modules():
             lines = path.read_text().splitlines()
-            guards = [index for index, line in enumerate(lines)
-                      if "if __name__ == '__main__':" in line]
-            if not guards:
+            guard = self.guard_of(lines)
+            if guard is None:
                 continue
-            after = [line for line in lines[guards[0]:] if line.startswith('class ')]
+            after = [line for line in lines[guard:] if line.startswith('class ')]
             if after:
                 stragglers[path.name] = after
         self.assertEqual(stragglers, {})
+
+if __name__ == '__main__':  # pragma: no cover - a module must run on its own
+    unittest.main()

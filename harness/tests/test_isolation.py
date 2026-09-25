@@ -52,3 +52,6 @@ class EntryPointTest(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertEqual(result.stdout, '', 'a refusal must not print a result object')
         self.assertIn('Harness:', result.stderr)
+
+if __name__ == '__main__':  # pragma: no cover - a module must run on its own
+    unittest.main()

@@ -116,3 +116,6 @@ class AgentCountTest(unittest.TestCase):
         section = self.text.split('## The three agents')[1]
         for name in thresholds.load(PROJECT)['agents']['names']:
             self.assertIn(name, section)
+
+if __name__ == '__main__':  # pragma: no cover - a module must run on its own
+    unittest.main()

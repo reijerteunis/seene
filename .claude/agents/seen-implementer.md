@@ -3,7 +3,7 @@ name: seen-implementer
 description: >
   Work one slice of a ticket: the RED first, then the code that turns it green, in the context of that slice alone. Spawned with the model and the effort the route decided, which it never chooses for itself.
 tools: Read, Edit, Write, Grep, Glob, Bash, mcp__codegraph__codegraph_explore, mcp__repowise__get_why, mcp__repowise__get_risk
-model: opus
+model: sonnet
 effort: high
 permissionMode: default
 omitClaudeMd: false

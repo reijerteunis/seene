@@ -4,6 +4,7 @@ A receipt is final when the work is merged, not when it is written. Until then a
 ticket can be reopened, and the journal says so rather than hiding it.
 """
 
+import unittest
 import hashlib
 import json
 
@@ -102,3 +103,6 @@ class ReopenTest(DeliveryWalk):
         second = self.verify()
         self.assertNotEqual(second['receipt_sha256'], first['receipt_sha256'])
         self.assertEqual(self.run_harness('status', self.ticket_id)['stage'], 'delivered')
+
+if __name__ == '__main__':  # pragma: no cover - a module must run on its own
+    unittest.main()

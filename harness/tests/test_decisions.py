@@ -4,6 +4,7 @@ Jev answers questions about the procedure, never about the product. Every test
 here runs against a stub transport: no test calls the API.
 """
 
+import unittest
 import json
 import os
 
@@ -335,3 +336,6 @@ class StateTest(QuestionTest):
         state = cli.state_for(records, dict(stage='clarify', attempt=1), {}, self.root)
 
         self.assertIn('Something observable happens', state['ticket_text'])
+
+if __name__ == '__main__':  # pragma: no cover - a module must run on its own
+    unittest.main()

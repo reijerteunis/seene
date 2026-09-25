@@ -518,5 +518,32 @@ class ReconcilingRowTest(unittest.TestCase):
 
 
 
-if __name__ == '__main__':
+class PricedPointsCellTest(unittest.TestCase):
+    """F4 of the seventh review: the column's value, not just its header.
+
+    Every fixture that rendered the row had priced_points equal to slices, so
+    printing the slice count instead would have passed: the assertion on '| 3 |'
+    was satisfied by either. A row where the two differ is the only one that
+    tells them apart.
+    """
+
+    def row(self, slices, points, priced_points, cost):
+        from harness import report as reporting
+        by_model = dict(opus=dict(slices=slices, points=points, priced_points=priced_points,
+                                  cost_cents=cost, output_tokens=69204,
+                                  cost_per_point=round(cost / priced_points, 2)))
+        rendered = reporting.render_cost(by_model, thresholds.load(PROJECT)['routing']['prices'])
+        return [line for line in rendered if line.startswith('| opus')][0]
+
+    def test_the_cell_is_the_priced_points_and_not_the_slice_count(self):
+        row = self.row(slices=2, points=5, priced_points=3, cost=519)
+        self.assertEqual(row, '| opus | 2 | 5 | 3 | 69204 | 519 | 173.0 |')
+
+    def test_the_printed_cost_per_point_divides_the_cell_beside_it(self):
+        row = self.row(slices=2, points=5, priced_points=3, cost=519)
+        cells = [cell.strip() for cell in row.split('|')[1:-1]]
+        priced_points, cost, per_point = int(cells[3]), int(cells[5]), float(cells[6])
+        self.assertEqual(round(cost / priced_points, 2), per_point)
+
+if __name__ == '__main__':  # pragma: no cover - a module must run on its own
     unittest.main()

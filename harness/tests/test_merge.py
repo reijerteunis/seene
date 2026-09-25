@@ -4,6 +4,7 @@ No test here talks to GitHub: both readers are module-level names the tests
 replace, the same way the Jev transport is replaced.
 """
 
+import unittest
 import json
 
 from harness import github
@@ -184,3 +185,6 @@ class BookkeepingAfterReceiptTest(DeliveryWalk):
         self.commit_file('packages/core/src/late.ts', 'export const late = true;\n')
         with self.assertRaisesRegex(HarnessError, 'late.ts'):
             self.run_harness('verify-merge', self.ticket_id)
+
+if __name__ == '__main__':  # pragma: no cover - a module must run on its own
+    unittest.main()

@@ -1,3 +1,4 @@
+import unittest
 """What the harness refuses once it stops merely recording.
 
 SEEN-086 made evidence addressable and ordered. This is where it starts to mean
@@ -273,3 +274,6 @@ class BaselineFingerprintTest(CommandTest):
         self.write('docs/harness/coverage.json',
                    '{"packages": {"@seen/core": {"lines": 91.2}}}')
         self.assertEqual(before, repository.fingerprint())
+
+if __name__ == '__main__':  # pragma: no cover - a module must run on its own
+    unittest.main()

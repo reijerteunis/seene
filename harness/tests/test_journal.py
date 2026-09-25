@@ -124,6 +124,5 @@ class RecordTest(unittest.TestCase):
         self.assertEqual(journal.state(journal.read(self.folder)),
                          dict(stage='tdd', attempt=2, records=2))
 
-
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover - a module must run on its own
     unittest.main()

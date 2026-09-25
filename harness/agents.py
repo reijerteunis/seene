@@ -130,10 +130,20 @@ def routed(root):
     records = _records(root / HISTORY / ticket)
     if not records:
         return fallback
-    slice_now = handoff.current_slice(records, journal.state(records))
-    if not slice_now or not slice_now['entry']:
+    # The declared boundary, and never the count inferred from greens. Three
+    # commands rewrite these copies, and all three write a record: route, a
+    # handoff and the advance out of solution. `current_slice` also moves on a
+    # green, which no command syncs, so the copies went stale the moment a slice
+    # was proved and doctor reported drift on a tree nobody had edited, on every
+    # push, for the rest of the ticket. F1 of the seventh review, and it had
+    # already happened on this branch at commit adbdb4c.
+    slices = handoff.plan_of(records)
+    if not slices:
         return fallback
-    entry = routing.for_slice(records, slice_now['position'])
+    done, _ = handoff.last_declaration(records, handoff.plan_accepted_at(records))
+    if done >= len(slices):
+        return fallback
+    entry = routing.for_slice(records, done + 1)
     if entry is None:
         return fallback
     return entry['model'], entry['effort']

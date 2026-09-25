@@ -1,5 +1,6 @@
 """Delivery: the stage gate that writes the receipt, and what it refuses."""
 
+import unittest
 import json
 
 from harness.errors import HarnessError
@@ -156,3 +157,6 @@ class DeliveryTest(DeliveryWalk):
         kinds = [record['kind'] for record in self.run_harness('history', self.ticket_id)]
         self.assertEqual(kinds, ['start', 'advance', 'advance', 'check', 'check', 'check',
                                  'check', 'advance', 'check', 'advance', 'receipt'])
+
+if __name__ == '__main__':  # pragma: no cover - a module must run on its own
+    unittest.main()

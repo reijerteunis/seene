@@ -93,6 +93,5 @@ class StateForTest(ProjectTest):
 
         self.assertEqual(state['ticket_source'], 'found by id')
 
-
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover - a module must run on its own
     unittest.main()

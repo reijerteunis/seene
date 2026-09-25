@@ -1606,7 +1606,5 @@ class ReviewerModelTest(FocusSetTest):
 
         self.assertRegex(task, r'(?i)opus')
 
-
-
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover - a module must run on its own
     unittest.main()

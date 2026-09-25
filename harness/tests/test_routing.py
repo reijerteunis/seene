@@ -1,3 +1,4 @@
+import unittest
 """The route: which model and which effort implement each slice.
 
 Rules first, and a rule is never Jev's to answer. A slice that changes an agent
@@ -1034,3 +1035,6 @@ class PositionIsDeclaredTest(GateTest):
         self.set_shadow(False)
         with self.assertRaisesRegex(HarnessError, 'Slice 1'):
             self.submit('tdd', self.evidence(dict(self.base(), position=1)))
+
+if __name__ == '__main__':  # pragma: no cover - a module must run on its own
+    unittest.main()

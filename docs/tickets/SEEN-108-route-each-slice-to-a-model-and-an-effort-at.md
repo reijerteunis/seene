@@ -39,9 +39,9 @@ Every slice runs on the session's model at the session's effort today, whatever 
 
 ## Outcome
 
-Worked in one session by the digest `710e96458c5b`: 10 attempts, 9 returns,
-13 slices proved against four planned, counting the tdd advance
-this section was written for. Four of the returns came from a review and each
+Worked in one session by the digest `710e96458c5b`: 11 attempts, 10 returns,
+14 slices proved against four planned, counting the tdd advance
+this section was written for. Nine of the returns came from a review and each
 found something real; one came from the review triage before any model read the
 diff, which is what SEEN-107 was built to do; two were this ticket's own, to take
 a review's findings. The counts are read from the journal rather than recalled,
@@ -77,8 +77,8 @@ of 15,631 entries in this project's logs after three subagent runs none carries
 disclosure and not a proof, the same position SEEN-105 took for the reviewer's
 session id. The decisions are at records 41 and 50 with the options offered.
 
-**What the reviews found that the tests did not.** Thirty-four findings over six
-reviews, falling nine, six, six, five, two, three, and the pattern in them is worth more than the count. Three were the
+**What the reviews found that the tests did not.** Thirty-one findings over six
+reviews, falling nine, six, six, five, two, three. Three were the
 same fault in different clothes: a figure attributed to the wrong thing. The
 tokens of a slice were keyed by the handoff's `position` rather than its `done`,
 so every slice was charged the window before it and the planning window was
@@ -103,7 +103,7 @@ would have credited to haiku as a saving nothing on haiku ever earned.
 **What is carried.** Nothing. Four findings of the third review were carried to a
 follow-up, SEEN-111, and then fixed here instead, because the review gate refuses
 a delivery with open findings and says not to relabel one; SEEN-111 was withdrawn
-in the same commit that closed them. Every finding of all four reviews is closed
+in the same commit that closed them. Every finding of all six reviews is closed
 in this ticket, and none of them is an escaped defect, because every one was
 found by a review before delivery rather than after it.
 

@@ -5,6 +5,7 @@ the answer in the journal with the hash of the graph that produced it, and stays
 out of the way.
 """
 
+import unittest
 import json
 import os
 import stat
@@ -237,3 +238,6 @@ class RepowiseRoutingTest(GraphFixture):
         self.stub_repowise()
         with self.assertRaisesRegex(HarnessError, 'about'):
             self.graph('why')
+
+if __name__ == '__main__':  # pragma: no cover - a module must run on its own
+    unittest.main()

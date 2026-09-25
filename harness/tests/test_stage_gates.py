@@ -638,7 +638,5 @@ class TemplatePositionTest(unittest.TestCase):
         with self.assertRaisesRegex(HarnessError, 'no single slice'):
             gates.reject_placeholders(template, dict(slices=[left]))
 
-
-
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover - a module must run on its own
     unittest.main()
