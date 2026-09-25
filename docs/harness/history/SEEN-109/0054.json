@@ -1,0 +1,38 @@
+{
+  "sequence": 54,
+  "ticket": "SEEN-109",
+  "timestamp": "2026-09-25T22:06:07.300221+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 5,
+  "actor": "claude:implementer",
+  "session": "343d37550220",
+  "head": "6447fe57f27851c9226fc3941b76873424c0aa29",
+  "prev_hash": "ea63400f314bc47ed2727cfe5e0dd0ed8500ad72b3e8bcd1a6c4a47b6ede3b45",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": null,
+          "behaviour": "The four findings of the fourth review: a reference's tail stripped whether it is a line, a hunk or a line and a column, and a path in neither the exclusions nor the files the triage saw placed nowhere rather than counted clean; a live triage returned to shadow by evidence nobody can place as well as by an escape, with the four documents saying so; every round that declared it found nothing named in the report with its record, its actor and its reason; and the printed go-live instruction pinned by test to naming both lines.",
+          "failure_reason": "AssertionError: Lists differ: [] != ['finding_in_excluded_file'], on a blocking finding at harness/skipped.py:12-20 in a triage that would have excluded that file; with four further failures, among them a path the triage never saw counted as neither an escape nor unattributable, and effective_shadow returning shadow False on a window carrying a round that declared nothing at all",
+          "red": 48,
+          "green": 51
+        }
+      ],
+      "regression": 52,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "343d37550220",
+      "output_tokens": 328950,
+      "tool_calls": 203,
+      "unavailable": null
+    }
+  }
+}
