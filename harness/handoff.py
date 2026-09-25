@@ -14,7 +14,7 @@ at exactly the moment a session needs to hand off.
 
 import hashlib
 
-from . import gates
+from . import gates, routing
 
 # Four characters to a token. The harness is standard library only and has no
 # tokeniser; at a two thousand token limit the error in this estimate is smaller
@@ -146,6 +146,24 @@ def current_slice(records, state, declared=None):
                 entry=entry)
 
 
+def _route_line(records, position):
+    """What this slice runs on, which the session is never to decide for itself.
+
+    The pack is the only thing that crosses a slice boundary, so this is the one
+    place the route reaches the session that works it.
+    """
+    entry = routing.for_slice(records, position)
+    if entry is None:
+        return ('No route for this slice yet: run harness route <ticket> before working it, so '
+                'the model and the effort are decided from the plan rather than inside the '
+                'session that benefits from the answer.')
+    source = entry['source']
+    how = (f'by rule ({entry["rule"]})' if source == 'rule'
+           else f'by Jev at {entry["model_probability"]}' if source == 'jev'
+           else 'by neither: routed to the strongest because nobody answered')
+    return f'Runs on: {entry["model"]} at {entry["effort"]} effort, {how}.'
+
+
 def _graph_answers(records):
     """What has already been asked of the graphs, so it is not asked twice."""
     found = []
@@ -228,7 +246,8 @@ def pack(records, state, thresholds, branch=None, next_command='', slice_done=No
                   f'{slice_now["done"]} of {slice_now["total"]} done, '
                   f'{entry.get("points")} point(s): {entry.get("name")}', '',
                   f'Its RED must demonstrate: {_one_line(entry.get("red"), 400)}', '',
-                  'Files: ' + ', '.join(str(name) for name in entry.get('files') or [])]
+                  'Files: ' + ', '.join(str(name) for name in entry.get('files') or []), '',
+                  _route_line(records, slice_now['position'])]
     tail = ['', '## The next command', '', next_command or 'harness status <ticket>', '',
             'Everything above came from the journal. Read the ticket file and the records this '
             'pack names; nothing else is needed to work the slice.']

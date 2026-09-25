@@ -248,8 +248,42 @@ def _tdd(data, records, current, repository, thresholds):
         require(previous_green < red['sequence'] < green['sequence'] <= regression['sequence'],
                 f'Slice {position} is out of order; each red must precede its green, slices '
                 'must not overlap, and the regression must be the last check')
+        _require_the_routed_model(records, position, (red, green), thresholds)
         previous_green = green['sequence']
     return {}
+
+
+def _require_the_routed_model(records, position, checks_cited, thresholds):
+    """A slice is proved on the model it was routed to, or not at all.
+
+    Three ways not to refuse, and each is an absence rather than an agreement:
+    a ticket nobody routed, a check from a machine with no session log, and a
+    tier whose model id nobody wrote down. A comparison with nothing is not a
+    comparison, which is the rule cost.py already applies to tokens.
+
+    Nothing is refused at all while `[routing] shadow` is true, because in
+    shadow every slice still runs on whatever model its session happens to be:
+    a gate that refused then would be the change the window exists to hold back.
+    """
+    from . import routing
+    if routing.shadow(thresholds):
+        return
+    entry = routing.for_slice(records, position)
+    if entry is None:
+        return
+    wanted = routing.model_id(thresholds, entry['model'])
+    if not wanted:
+        return
+    for record in checks_cited:
+        ran_on = record['data'].get('model')
+        if not ran_on or ran_on == wanted:
+            continue
+        require(False,
+                f'Slice {position} was routed to {entry["model"]} ({wanted}) and check '
+                f'{record["sequence"]}, its {record["data"]["phase"]}, was recorded under '
+                f'{ran_on}. The route is decided at the tdd stage with the plan on record and '
+                'is read from the handoff pack, never chosen inside the session: work the slice '
+                'again on the model it was routed to, or return to solution and route again')
 
 
 def _require_coverage(records, current):

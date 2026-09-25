@@ -65,6 +65,35 @@ def log(root, identity=None):
     return path if path.is_file() else None
 
 
+def model(root, identity=None):
+    """The model this session is running on, from its own log, or nothing.
+
+    Read when a check is recorded rather than derived later, because a record
+    carries the digest of its session and not the id, so no later reader can
+    find the log of the session that wrote one. The last entry wins: it is the
+    model in effect when the command ran, and a session whose model changed
+    halfway is a session whose later work is what a check is evidence of.
+
+    Null when there is no log, and null is never compared against: a machine
+    whose logs are elsewhere must not have its checks refused for it.
+    """
+    path = log(root, identity)
+    if path is None:
+        return None
+    found = None
+    for line in path.read_text(errors='replace').splitlines():
+        try:
+            entry = json.loads(line)
+        except (json.JSONDecodeError, ValueError):
+            continue
+        name = (entry.get('message') or {}).get('model')
+        # Claude Code writes `<synthetic>` on an entry it generated itself,
+        # which is not a model anybody routed a slice to.
+        if name and not name.startswith('<'):
+            found = name
+    return found
+
+
 def figures(root, identity=None):
     """Output tokens and tool calls this session has spent, or that nobody knows.
 

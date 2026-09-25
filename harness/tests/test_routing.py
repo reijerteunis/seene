@@ -290,6 +290,152 @@ class RecordTest(RouteTest):
             self.route()
 
 
+class SliceBoundaryTest(RouteTest):
+    """What the session that picks up the next slice is told to run it on."""
+
+    def pack(self):
+        self.run_harness('handoff', self.ticket_id, '--actor', 'claude:implementer')
+        return (self.root / '.harness-drafts' / f'{self.ticket_id}-handoff.md').read_text()
+
+    def test_the_pack_names_the_model_and_the_effort_of_the_slice_in_hand(self):
+        self.reach_tdd([PLAIN, SECOND_PLAIN])
+        self.route()
+        text = self.pack()
+        self.assertIn('sonnet', text)
+        self.assertIn('medium', text)
+
+    def test_the_pack_names_the_rule_when_a_rule_decided_it(self):
+        self.reach_tdd([MONEY])
+        self.route()
+        self.assertIn('rule', self.pack())
+
+    def test_a_pack_written_before_the_route_says_the_route_is_not_decided(self):
+        self.reach_tdd([PLAIN])
+        self.assertIn('No route', self.pack())
+
+
+class GateTest(RouteTest):
+    """A check recorded under a model the route did not choose.
+
+    Refused only with shadow off, because in shadow every slice still runs on
+    whatever model the session is and a gate that refused would be the change
+    the shadow window exists to hold back.
+    """
+
+    def set_shadow(self, on):
+        """The one line in the project's own thresholds, and only that line.
+
+        Written precisely because `triage_shadow = true` ends in the same five
+        words: a looser replacement would turn off the review triage's shadow
+        as well and the test would be about two things.
+        """
+        path = self.root / 'harness' / 'thresholds.toml'
+        text = path.read_text()
+        wanted = f'\nshadow = {"true" if on else "false"}\n'
+        for value in ('\nshadow = true\n', '\nshadow = false\n'):
+            if value in text:
+                path.write_text(text.replace(value, wanted))
+                return
+        raise AssertionError('no [routing] shadow line to set')
+
+    def run_check(self, phase, exit_code=0, model=None):
+        """A check, recorded under a model, which is what a session log gives.
+
+        The tests have no session log, so what would be read from one is
+        substituted here: it is the value that reaches the record either way.
+        """
+        from harness import sessions
+        original = sessions.model
+        sessions.model = lambda root, identity=None: model
+        try:
+            return self.run_harness('check', self.ticket_id, '--phase', phase,
+                                    '--actor', 'claude:implementer', '--',
+                                    'sh', '-c', f'exit {exit_code}')
+        finally:
+            sessions.model = original
+
+    def record_coverage(self, delta=0.0, attempt=1):
+        from harness import journal
+        folder = self.root / 'docs' / 'harness' / 'history' / self.ticket_id
+        records = journal.read(folder)
+        return journal.append(folder, records, kind='check', stage='tdd', attempt=attempt,
+                              actor='claude:implementer', head=self.git('rev-parse', 'HEAD'),
+                              ticket=self.ticket_id,
+                              data=dict(command=['pnpm', 'test'], phase='coverage', exit_code=0,
+                                        duration_ms=1, output='', output_sha256='0' * 64,
+                                        output_truncated=False, before='a', after='b',
+                                        package='@seen/core', lines=80.0, baseline=80.0 - delta,
+                                        delta=delta))
+
+    def prove(self, model=None):
+        """One slice proved red then green, both recorded under one model."""
+        red = self.run_check('red', exit_code=1, model=model)
+        green = self.run_check('green', model=model)
+        regression = self.run_check('regression', model=model)
+        self.record_coverage()
+        return dict(mode='code', regression=regression['sequence'], coverage_delta=0.0,
+                    slices=[dict(behaviour='The status line shows the stage',
+                                 failure_reason='AssertionError: the status line is empty',
+                                 red=red['sequence'], green=green['sequence'])])
+
+    def test_a_check_records_the_model_it_ran_under(self):
+        self.reach_tdd([PLAIN])
+        record = self.run_check('green', model='claude-opus-5')
+        self.assertEqual(record['data']['model'], 'claude-opus-5')
+
+    def test_a_check_with_no_session_log_records_no_model(self):
+        self.reach_tdd([PLAIN])
+        self.assertIsNone(self.run_check('green')['data']['model'])
+
+    def test_a_green_under_another_model_is_refused_naming_both(self):
+        self.use(route_stub(model=(0.1, 0.7, 0.2)))
+        self.reach_tdd([PLAIN])
+        self.route()
+        self.set_shadow(False)
+        evidence = self.prove(model='claude-opus-5')
+        with self.assertRaises(HarnessError) as raised:
+            self.submit('tdd', evidence)
+        message = str(raised.exception)
+        self.assertIn('sonnet', message)
+        self.assertIn('claude-opus-5', message)
+
+    def test_the_routed_model_advances(self):
+        self.use(route_stub(model=(0.1, 0.2, 0.7)))
+        self.reach_tdd([PLAIN])
+        self.route()
+        self.set_shadow(False)
+        record = self.submit('tdd', self.prove(model='claude-opus-5'))
+        self.assertEqual(record['data']['to_stage'], 'review')
+
+    def test_in_shadow_the_same_mismatch_advances(self):
+        self.reach_tdd([PLAIN])
+        self.route()
+        record = self.submit('tdd', self.prove(model='claude-opus-5'))
+        self.assertEqual(record['data']['to_stage'], 'review')
+
+    def test_a_check_that_names_no_model_is_not_refused(self):
+        self.reach_tdd([PLAIN])
+        self.route()
+        self.set_shadow(False)
+        record = self.submit('tdd', self.prove(model=None))
+        self.assertEqual(record['data']['to_stage'], 'review')
+
+    def test_an_unrouted_ticket_is_not_refused(self):
+        self.reach_tdd([PLAIN])
+        self.set_shadow(False)
+        record = self.submit('tdd', self.prove(model='claude-haiku-4-5-20251001'))
+        self.assertEqual(record['data']['to_stage'], 'review')
+
+    def test_a_tier_whose_model_id_is_unknown_is_not_refused(self):
+        self.reach_tdd([PLAIN])
+        self.route()
+        self.set_shadow(False)
+        path = self.root / 'harness' / 'thresholds.toml'
+        path.write_text(path.read_text().replace('sonnet = "claude-sonnet-5"', 'sonnet = ""'))
+        record = self.submit('tdd', self.prove(model='claude-opus-5'))
+        self.assertEqual(record['data']['to_stage'], 'review')
+
+
 class QuestionTest(CommandTest):
     """The two questions, registered the way the triage's four are."""
 

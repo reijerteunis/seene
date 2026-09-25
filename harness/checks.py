@@ -14,6 +14,7 @@ import subprocess
 import tempfile
 import time
 
+from . import sessions
 from .errors import require
 
 PHASES_FOR_STAGE = {'tdd': ('red', 'green', 'regression', 'coverage'), 'review': ('qa',)}
@@ -58,6 +59,11 @@ def run(repository, command, phase, timeout, limit):
     return dict(command=list(command),
                 phase=phase,
                 exit_code=exit_code,
+                # Which model ran it, so the tdd gate can hold a slice to the
+                # route it was given. Read here because it can only be read
+                # here: the record carries the digest of its session and not
+                # the id, so nobody later can find this session's log.
+                model=sessions.model(repository.root),
                 duration_ms=duration_ms,
                 output=captured[:limit].decode(errors='replace'),
                 output_sha256=hashlib.sha256(captured).hexdigest(),
