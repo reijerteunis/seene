@@ -1,0 +1,38 @@
+{
+  "sequence": 63,
+  "ticket": "SEEN-109",
+  "timestamp": "2026-09-25T22:25:51.857211+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 6,
+  "actor": "claude:implementer",
+  "session": "343d37550220",
+  "head": "e51fe430595ba6ac5cc6a21c6173a4777a5ff669",
+  "prev_hash": "934177a93109d2463091c769c8a19a072e45b61d74eecb9db655117cf156feb6",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": null,
+          "behaviour": "The four findings of the fifth review: a finding no slice's files can be compared with charged to every slice of the ticket and counted, with the route verdict staying shadow while one sits in the window and the report naming them; kpi.findings reading a returning round's findings the way the calibration report does; the fallback that restored the merge removed and the fixtures carrying the real triage record shape; and the Outcome naming all four files no slice planned.",
+          "failure_reason": "KeyError: 'unchargeable', on a slice row for a ticket whose blocking finding lands in a file no slice named; with five further failures, among them verdict_routes stating go-live on a window carrying an uncharged finding, kpi.findings reporting no severities for a round that recorded its findings on the return, and a triage with an empty files list placing an unknown path as neither",
+          "red": 59,
+          "green": 60
+        }
+      ],
+      "regression": 61,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "343d37550220",
+      "output_tokens": 359366,
+      "tool_calls": 217,
+      "unavailable": null
+    }
+  }
+}
