@@ -1,0 +1,44 @@
+{
+  "sequence": 13,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T05:56:17.000782+00:00",
+  "harness_version": "2",
+  "kind": "handoff",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "4adff3d80a9a32bede8c18e1b59d0dd4a207b198",
+  "prev_hash": "2d44bdd46c3b9f420b890df7e4fe6f74c4982a792b4ba62d966db13926948066",
+  "data": {
+    "pack": ".harness-drafts/SEEN-108-handoff.md",
+    "sha256": "c3ac56a6fe832b5ea1564c46be866c45fd487dc83d08aba4345c7bba0a7c3f6a",
+    "estimated_tokens": 1067,
+    "token_limit": 2000,
+    "slice": {
+      "position": 3,
+      "total": 4,
+      "done": 2,
+      "declared": true,
+      "inferred": 2,
+      "entry": {
+        "name": "The implementer agent in both assistants, and the reviewer's model rule",
+        "points": 1,
+        "files": [
+          "harness/agents.py",
+          "harness/agents/seen-implementer.md",
+          "harness/triage.py",
+          "harness/tests/test_agents.py",
+          "harness/tests/test_triage.py"
+        ],
+        "red": "sync is run on a tree whose journal routes the slice in hand to sonnet at low effort, and the test reads .claude/agents/seen-implementer.md for `model: sonnet` and `effort: low` and the Codex copy for model_reasoning_effort. It must fail because seen-implementer is not in AGENTS, so neither copy is written."
+      }
+    },
+    "figures": {
+      "session": "710e96458c5b",
+      "output_tokens": 173582,
+      "tool_calls": 115,
+      "unavailable": null
+    }
+  }
+}
