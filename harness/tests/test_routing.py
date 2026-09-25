@@ -468,15 +468,28 @@ class ImplementerCopyTest(RouteTest):
         self.assertEqual(self.codex()['model'], 'sonnet')
         self.assertEqual(self.codex()['model_reasoning_effort'], 'low')
 
+    def written(self):
+        """The copy as it sits on disk, with no sync of our own first.
+
+        The first version of this test read it through `frontmatter`, which runs
+        sync, so it proved the rendering followed the boundary and never that
+        the boundary rewrote anything. It passed while a real handoff left the
+        file at the last slice's model and doctor reporting drift.
+        """
+        return (self.root / '.claude/agents/seen-implementer.md').read_text()
+
     def test_the_copies_follow_the_slice_boundary(self):
+        from harness import doctor as doctoring
+        from harness.repository import Repository
         self.use(route_stub(model=(0.7, 0.2, 0.1)))
         self.reach_tdd([MONEY, PLAIN])
         self.route()
         # Slice 1 is a rule, so the strongest; slice 2 is Jev's, so haiku.
-        self.assertIn('model: opus', self.frontmatter())
+        self.assertIn('model: opus', self.written())
         self.run_harness('handoff', self.ticket_id, '--actor', 'claude:implementer',
                          '--slice-done', '1')
-        self.assertIn('model: haiku', self.frontmatter())
+        self.assertIn('model: haiku', self.written())
+        self.assertEqual(doctoring.report(Repository(self.root), {})['problems'], [])
 
     def test_a_plan_worked_through_falls_back_to_the_strongest(self):
         self.use(route_stub(model=(0.7, 0.2, 0.1)))

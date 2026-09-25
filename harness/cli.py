@@ -304,15 +304,23 @@ def handoff(repository, folder, records, args, current, rules):
     # Explicit, because the bytes on disk are compared against the hash this
     # record carries, and a ticket title is not guaranteed to be ASCII.
     path.write_text(text, encoding='utf-8')
-    return journal.append(folder, records, kind='handoff', stage=current['stage'],
-                          attempt=current['attempt'], actor=args.actor,
-                          head=repository.head(), ticket=args.ticket,
-                          data=dict(pack=str(path.relative_to(repository.root)),
-                                    sha256=handoff_module.digest(text),
-                                    estimated_tokens=built['estimated_tokens'],
-                                    token_limit=built['token_limit'],
-                                    slice=built['slice'],
-                                    figures=sessions.figures(repository.root)))
+    record = journal.append(folder, records, kind='handoff', stage=current['stage'],
+                            attempt=current['attempt'], actor=args.actor,
+                            head=repository.head(), ticket=args.ticket,
+                            data=dict(pack=str(path.relative_to(repository.root)),
+                                      sha256=handoff_module.digest(text),
+                                      estimated_tokens=built['estimated_tokens'],
+                                      token_limit=built['token_limit'],
+                                      slice=built['slice'],
+                                      figures=sessions.figures(repository.root)))
+    # A boundary changes which slice is in hand, so it changes the implementer's
+    # model and effort. The copies are rewritten here for the reason route
+    # rewrites them: a boundary that left them behind would spawn the next slice
+    # on the model the last one was given, and leave doctor reporting drift
+    # nobody caused.
+    from . import agents
+    agents.sync(repository.root)
+    return record
 
 
 def secrets_module():

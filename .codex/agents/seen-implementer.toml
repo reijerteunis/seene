@@ -3,8 +3,8 @@
 name = "seen-implementer"
 description = """
 Work one slice of a ticket: the RED first, then the code that turns it green, in the context of that slice alone. Spawned with the model and the effort the route decided, which it never chooses for itself."""
-model = "haiku"
-model_reasoning_effort = "medium"
+model = "sonnet"
+model_reasoning_effort = "high"
 sandbox_mode = "workspace-write"
 developer_instructions = """
 # The implementer
