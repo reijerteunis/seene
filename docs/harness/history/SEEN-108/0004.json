@@ -1,0 +1,96 @@
+{
+  "sequence": 4,
+  "ticket": "SEEN-108",
+  "timestamp": "2026-09-25T05:29:03.086996+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "710e96458c5b",
+  "head": "14dae1d3aa337e80fb91b8ea31156d415022574e",
+  "prev_hash": "3f8d731363ad59abfa2050ea2b234b0d63ecdf6d001319836d2dfd1b876e0e1d",
+  "data": {
+    "from_stage": "clarify",
+    "to_stage": "solution",
+    "evidence": {
+      "scope": "Decide per slice which model and which effort implement it, where the information is, behind one new command `harness route <ticket>`: rules in a `[routing]` section of harness/thresholds.toml first, one Jev request for the rest, the answer recorded as a `route` record, carried in the handoff pack and written into the implementer agent's generated copies; the edge is that nothing here changes what a slice actually runs on until SEEN-109's window says the routes save more than they cost, because `[routing] shadow` starts true the way `[review] triage_shadow` does.",
+      "acceptance": [
+        "`python3 harness/run.py route <ticket> --actor <actor>` at the tdd stage appends a `route` record naming the accepted solution record it routes and carrying one execution entry per planned slice: position, name, points, model, effort, source (`rule`, `jev` or `unavailable`), the rule name where source is rule, and the probabilities Jev returned where it is jev; `harness handoff` and `status --brief` carry the entry for the slice in hand. Proven by a test over a journal with an accepted three-slice plan asserting the record's shape and the pack's line, and by a test that the command refuses at any other stage.",
+        "A slice whose files match one of the `[routing]` rule patterns (an agent action, billing or the policy gate, money arithmetic in packages/core, a migration or an RLS policy, credentials) is routed to the strongest tier at high effort with `jev.TRANSPORT` never called and the entry naming the rule: proven by one fixture per rule asserting the stub recorded no request, plus a fixture where one slice trips a rule and another does not, so the request carries only the unruled slice.",
+        "`sync` generates `.claude/agents/seen-implementer.md` and `.codex/agents/seen-implementer.toml` from harness/agents/seen-implementer.md carrying the routed model and effort of the slice in hand (Claude Code `model` and `effort`, Codex `model` and `model_reasoning_effort`), and the route record carries the spawn instruction naming both; and with `[routing] shadow = false` the tdd gate refuses an advance whose cited red or green was recorded under a model other than its slice's route, naming both models: proven by a fixture asserting the refusal and one asserting that in shadow the same journal advances.",
+        "kpi.json carries an `execution` list: per slice the routed model, effort and source, the model the checks were actually recorded under, the output tokens attributed to the slice and the cost in cents from `[routing.prices]`; and `harness report --sprint <n>` renders cost per point by model beside the output tokens per point it already shows, with the price table's date printed beside it. Proven by a test over a journal holding a route record, handoff figures and a receipt, and by a test of the rendered table.",
+        "docs/harness/skill.md says the route is read from the handoff pack and never chosen inside the session, `sync` regenerates .claude/skills/seen-harness/SKILL.md and the Codex copy from it, and `doctor` passes on both copies and on the three agent copies: proven by running sync and doctor in the regression check."
+      ],
+      "decisions": [
+        "The route is its own journal kind rather than a field written into the solution record, on the reasoning SEEN-104 used for `handoff` and SEEN-107 for `triage`: the journal is append-only, so nothing can be written into an accepted record, and the gate, the pack and the KPI have to find the route without parsing prose. Criterion 1's words `into the solution record` are met in substance by a record that names the sequence of the solution advance it routes. KINDS gains `route`; the envelope does not change, so HARNESS_VERSION stays at 2.",
+        "The command runs at the tdd stage, because that is where a ticket stands once the solution record is accepted, and it refuses anywhere else the way `review triage` refuses outside review. A route asked for before the plan exists would route slices nobody had planned.",
+        "`[routing] shadow = true` by default, so the route is computed and recorded while every slice still runs on whatever model the session is: docs/harness/workflow.md line 86 makes the ten-ticket window SEEN-109's, and a route that took effect before the window would be the thing the window exists to measure. The tdd gate's refusal is built and proven with shadow off; in shadow the mismatch is recorded and carried, which is what SEEN-109 reads per slice.",
+        "The route stores a tier (haiku, sonnet, opus) and `[routing.models]` maps each tier to the model id the session log carries and to the name Codex is given, because `claude-opus-5` is what a log holds and `opus` is what an agent file takes. The strongest tier is the last entry in `[routing.tiers]`, so adding a model is a line in thresholds.toml rather than a change in code.",
+        "The model a check ran under is recorded by `check` at the moment it runs, read from this session's own log by sessions.py, rather than derived later by the gate: the envelope carries only a twelve-character digest of the session id, so a later reader cannot find the log of the session that wrote a record. Verified on this machine on 25 September 2026: all 14,131 entries in this project's logs carry `message.model`, every one reading `claude-opus-5` bar two synthetic entries. A check with no log records the model as null, and a null is not refused, which is the rule cost.py already applies to tokens.",
+        "The gate enforces the model and never the effort, because a session log carries `message.model` and nothing that names an effort. The effort is routed, written into the agent copies, carried in the pack and reported; nothing refuses on it. Saying so here rather than discovering it at tdd, because criterion 3 asks for a refusal naming both models and an effort could not be one of them.",
+        "The implementer's two copies are generated from the route of the slice in hand by one function that `sync`, `route` and `doctor` all call, with the strongest tier at high effort when the branch carries no route (a fresh clone, main, CI). This is what makes the effort settable at all: Claude Code documents `effort` (low, medium, high, max) as a subagent frontmatter key that overrides the session's, and documents a per-invocation model override but no per-invocation effort override (https://code.claude.com/docs/en/sub-agents.md, read 25 September 2026). The cost is a committed file that changes at each slice boundary and a doctor that reads the branch; the alternative was an effort nobody could set.",
+        "`seen-implementer` is the first agent to hold Edit and Write, which is a real widening of SEEN-105's position that neither agent holds either. It is what an implementer subagent is for, and the controls that hold are the ones that already hold for the session: the branch check, the journal, the RED before the green, and the fingerprint the review attests. The stray check in agents.py names `.claude/agents/seen-implementer.md` as the example of an ungenerated agent file; this one has a source under harness/agents/ and a review, which is exactly the difference that check was written to draw.",
+        "Two Jev questions, `implementation_model` (score over haiku, sonnet, opus) and `implementation_effort` (score over low, medium, high), both registered with `stage=None` the way the four triage questions are, so `questions_for('solution')` keeps returning solution_complete and touches_billing_or_policy_gate and the solution advance does not start asking them. `route` asks them explicitly, once per unruled slice, through `ask_batch` with keys `implementation_model#<position>`, which is the shape SEEN-107 added for exactly this.",
+        "A slice Jev could not answer for (no credential, a transport that failed, a reply missing that key) is routed to the strongest tier at high effort with source `unavailable` and the reason recorded, rather than to the cheapest or to the session's own model. `must_answer=False`, as the triage does: an absence is recorded as an absence, and the safe reading of a judgement nobody made is not a downgrade nobody decided.",
+        "The reviewer's model is a rule that lands in the triage record, not in the route record, because the depth it reads from is only known at triage: `reviewer_model` is the strongest tier at full depth and one tier down at spot depth, carried into the reviewer task text. agents.py keeps opus as the reviewer's committed default, which is what the rule gives at full depth.",
+        "Prices go in `[routing.prices]` as integer cents per million input and output tokens per tier with a `priced_on` date, and the UNMEASURABLE line in cli.py that says euros are not reported is amended to name the table and its date rather than deleted: the objection it records, that a price per token is stale the day it is written, is answered by printing the date beside the figure and not by pretending it is fresh.",
+        "The ticket forecasts 2 points and the work is about 7 across four slices, which is the cap `max_slices_per_ticket` allows and not a ticket to split: the five criteria are one mechanism with one record at its centre, and splitting them would give two tickets that both have to add the `route` kind. Recorded now so the solution stage adopts it rather than discovers it; the gate reports the disagreement and allows it.",
+        "Codex's agent TOML keys `model` and `model_reasoning_effort` are unverified against a Codex release, because no Codex session has ever run on this repository. That is the position SEEN-105 already recorded for the keys it wrote, and this ticket does not improve on it: doctor checks that the copy matches its source, not that Codex accepts it, and the first Codex session settles it."
+      ],
+      "open_questions": [],
+      "changes_agent_action": false,
+      "graph_impact": [
+        "repowise risk, record 2: 24th percentile of recent commits by size and spread, no bug-fix history in the files it touches, diff-size 5.1/10. It scored the commit at HEAD, which is this ticket's own status change, not the change the ticket describes, so it is evidence about the branch as it stands rather than about the work; the index was resynced with `repowise update` first, because the session opened 133 files behind HEAD.",
+        "codegraph impact on `_tdd`, record 3: eight affected symbols, the gate function itself plus cli.py, delivery.py, triage.py, handoff.py and the two test modules test_stage_gates.py and test_non_code_mode.py. The refusal criterion 3 asks for lands in one function that two test modules already cover.",
+        "The shape is settled by docs/harness/workflow.md lines 19, 84, 86 and 102, which already specify the command, the rules, the two Jev questions, the ten-ticket shadow window and the cost-per-point-by-model row: this ticket implements that paragraph rather than choosing a design."
+      ]
+    },
+    "decisions": [
+      {
+        "key": "clarified",
+        "question": "clarified",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.85,
+          "no": 0.15
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.8,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "key": "risk",
+        "question": "risk",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "medium",
+        "probabilities": {
+          "low": 0.04,
+          "medium": 0.88,
+          "high": 0.08
+        },
+        "confidence": 0.81,
+        "score": 1.05,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}
