@@ -1,0 +1,38 @@
+{
+  "sequence": 44,
+  "ticket": "SEEN-109",
+  "timestamp": "2026-09-25T21:44:06.663190+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 4,
+  "actor": "claude:implementer",
+  "session": "343d37550220",
+  "head": "5f3b27644445647cd037bf2538018dc133e8a245",
+  "prev_hash": "8109f6829ec45d119e63287cf788b9c1aef802de49d2603978490fc301eb83a2",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": null,
+          "behaviour": "The eight findings of the third review: a window carrying anything unattributable states stay-shadow rather than go-live; a return from review declares itself with --findings, --unmet or --no-findings and is refused when it says nothing; four printed go-live instructions say two lines; a receipt voided by reopen is not a delivery; the routes report the window their rates came from; a repeated finding is pinned by test to the round that first raised it; a journal that refuses to be read is excluded and named rather than raised from inside another ticket's triage; criterion 1 is marked as amended and a sentence starts with a capital.",
+          "failure_reason": "AssertionError: 'go_live' != 'stay_shadow', on a window of ten clean tickets one of which carried an unattributable row; with six further failures, among them a return from review accepted with nothing declared, a voided receipt counted as a delivery, and verdict_routes reporting thirteen tickets for rates taken over ten",
+          "red": 38,
+          "green": 41
+        }
+      ],
+      "regression": 42,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "343d37550220",
+      "output_tokens": 300990,
+      "tool_calls": 183,
+      "unavailable": null
+    }
+  }
+}
