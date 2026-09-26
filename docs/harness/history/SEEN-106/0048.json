@@ -1,0 +1,22 @@
+{
+  "sequence": 48,
+  "ticket": "SEEN-106",
+  "timestamp": "2026-09-26T13:19:23.461463+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 5,
+  "actor": "claude:implementer",
+  "session": "90d87d9d4058",
+  "head": "9d771f9a6208570984d2b8f12728f1c94968caf4",
+  "prev_hash": "8d61a9b4100ee010e9a91dbfc403f4cfcaeec1fa507300a39239098d14a1ee8a",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "solution",
+    "to_attempt": 6,
+    "reason": "Not a defect in the work and not an unmet criterion, so there is nothing for the calibration window to read: the third triage's slice_files check flags six files that are all written in the accepted record's changes list, because four entries name two or three paths each while solution_paths reads the path as the text before the first colon, one per entry, which is what the template's 'Path, and what changes in it' says. Those four entries declare a path that is a comma list and match nothing. The check is right and the record is wrong. Returning to split them rather than delivering with a deterministic check failing, with the corrected list verified against solution_paths, slice_exempt_paths and the real diff before the gate is asked.",
+    "findings": [],
+    "no_findings": true,
+    "unmet_criteria": []
+  }
+}
