@@ -132,48 +132,20 @@ the journal rather than an argument. This section says nothing at all about how 
 review the ticket took, neither a count nor a comparison, for the reason the next paragraph
 explains.
 
-One last thing about this section, because it is the defect it kept producing. Review after review
-found a stale count or a stale cross-reference in this Outcome, each time in a summary rather than
-in the statement it summarised: the opening paragraph at F9, the workflow document's row at F10,
-the closing note at F11, the attributions of the split at F12, the counts themselves at F13, and
-this paragraph's own count of those reviews at F16. The cause was the same every time, which is that a
-summary written from memory goes stale the moment the thing it summarises moves, and an
-amendment moves things by definition. What finally fixed it was deriving the figures from the
-journal instead of restating them, which is the same discipline the harness applies to every
-other number it reports.
+One last thing, because it is what this ticket mostly spent itself on. F9, F10, F11, F12, F13, F16
+and F17 are all one defect in this section's account of its own review history, and not one of
+them touched the built behaviour. Some were introduced by the fix for the one before. What that established is general rather than particular to this ticket, so it
+is written down where it applies to every ticket:
+[docs/adr/0004-an-outcome-cannot-count-its-own-review-rounds.md](../adr/0004-an-outcome-cannot-count-its-own-review-rounds.md).
+This section therefore says nothing about how many attempts, returns or review rounds the ticket
+took, and nothing comparing them with any other ticket's. `docs/harness/history/SEEN-106/` is where
+those are correct by construction.
 
-A later review found the gap that discipline still left. The counts were derived and
-correct, but the attributions were not: three sentences placed the split at "the fourth
-attempt's solution stage", and the journal's own `attempt` field puts records 41 to 44 at
-attempt 5, while attempt 4 is records 39 and 40, a handoff and a return with no solution stage
-at all. An audit that checked counts and not attributions could not see it. Both now cite record
-numbers rather than attempt ordinals, because a record number is an identifier the journal fixes
-and an attempt ordinal is something a reader has to reconstruct and a writer kept getting wrong.
-
-A later review found the one claim no audit of mine could have caught, and its diagnosis is
-the thing worth keeping out of all of this. The harness requires this section to be written
-before the review that decides whether another round is needed. So a count of how many rounds
-the ticket took is, at the moment it is written, a claim about the future: it can only be right
-if the review it is about to face passes. This ticket needed one more round again and again, so
-the count was wrong each time, and once it was wrong in the very sentence written to correct it. No amount of care fixes that, because the defect is in the shape of the claim
-and not in the care taken over it. The counts are therefore gone rather than corrected, and this
-section points at the journal for them. That first removal was still too narrow: it took out the
-counts of attempts, returns and records and left the paragraph above counting the reviews, which
-is the same claim about the same future wearing a different noun, and a later review found it at
-F16. Then a later review found F17, and found it in the sentence written to fix F13: the count of
-rounds had been replaced by a comparison of rounds, "more rounds of review than any other ticket
-in this epic", which is the same claim about the same future in a different grammatical form and
-was false besides. Counting `return` records across this epic gives SEEN-108 thirteen, SEEN-106
-ten and SEEN-107 ten, so the superlative was wrong on the day it was written. Every count, every
-ordinal and every comparison of this ticket's own rounds is now gone.
-The reviewer recommended shortening over patching and
-was right about the counts; the reasoning here is not self-referential and stays, because it is
-the most useful thing the ticket produced.
-
-One last honesty, which cannot be repaired. The journal record written to prove the ordinal fix,
-record 66, narrates this ticket's history in attempt ordinals and is off by one in exactly the
-way it claims to have eliminated. The journal is append-only, so it stands. A record that proves
-a habit was broken while displaying the habit is the most accurate thing in this file.
+One thing in that account cannot be repaired and is named rather than hidden. The journal record
+written to prove the ordinal fix, record 66, narrates this ticket's history in attempt ordinals and
+is off by one in exactly the way it claims to have eliminated. The journal is append-only, so it
+stands. A record that proves a habit was broken while displaying the habit is the most accurate
+thing in this file.
 
 ## Amendments
 

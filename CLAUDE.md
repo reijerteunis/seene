@@ -54,7 +54,7 @@ call; it is not a command to run by hand.
 | [docs/harness/workflow.md](docs/harness/workflow.md) | The development harness as built: why, principles, the five stages and their stage gates, graphify, CodeGraph and Repowise with one role each, the context per session (slices, handoff packs, subagents, hooks), how the harness meets Claude Code and Codex, Jev AI, CI, the eleven KPIs, security controls, commands, repository layout, what the building settled, the harness tickets |
 | [docs/tickets/README.md](docs/tickets/README.md) | Ticket index by sprint with points, executors, status and dependencies, plus the epic table |
 | [CONTEXT.md](CONTEXT.md) | Glossary: the harness terms, the product terms they collide with, and the resolution of the three meanings of gate |
-| [docs/adr/](docs/adr/) | Architecture decision records: journal integrity, the delivery receipt, the SEEN-086 bootstrap exemption |
+| [docs/adr/](docs/adr/) | Architecture decision records: journal integrity, the delivery receipt, the SEEN-086 bootstrap exemption, why an Outcome cannot count its own review rounds |
 
 ### Tickets (110, 353 build points)
 

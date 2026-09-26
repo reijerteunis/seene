@@ -1,0 +1,32 @@
+{
+  "sequence": 76,
+  "ticket": "SEEN-106",
+  "timestamp": "2026-09-26T15:33:23.377781+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 11,
+  "actor": "claude:reviewer",
+  "session": "90d87d9d4058",
+  "head": "baafa3465bb9d22796e9d24f043db2fe375ca1b2",
+  "prev_hash": "a9acc6719be36a659d30d1c52818d56c79f728bd7ef962e214b8e1a5fa010d1f",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 12,
+    "reason": "The review returned on F17 at high severity, and it is right. The commit that removed the round counts to close the stale-summary class replaced them with a superlative about rounds, which is the same self-reference in a different grammatical form and was false besides: return records give SEEN-108 thirteen, SEEN-106 ten and SEEN-107 ten. Verified before accepting. Fixed by deletion with no replacement claim, and the check now covers comparatives and superlatives as well as counts and ordinals.",
+    "findings": [
+      {
+        "id": "F17",
+        "severity": "high",
+        "file": "docs/tickets/SEEN-106-enforce-the-harness-with-hooks-in-both.md:130",
+        "claim": "The Outcome's closing note said 'more rounds of review than any other ticket in this epic'. It is false, and it is a fresh instance of the class F9 to F13 and F16 covered, introduced by the very commit that removed the counts to close that class.",
+        "failure_scenario": "Counting return records across the epic gives SEEN-108 thirteen, SEEN-106 ten and SEEN-107 ten, so the superlative was wrong on the day it was written. A reader, or SEEN-109's calibration reading this ticket's own account, takes SEEN-106 for the epic's worst case when two siblings tie or exceed it, both already delivered.",
+        "status": "fixed",
+        "resolution": "Verified independently before accepting: return records give SEEN-108 thirteen, SEEN-106 ten, SEEN-107 ten, so the claim was false. Fixed by deletion with no replacement claim. The lesson the earlier fix missed is that removing a count and writing a comparison in its place is the same self-reference in a different grammatical form, and a superlative is worse than a count because it can be false on the day it is written as well as stale afterwards. The check now covers comparatives and superlatives as well as counts and ordinals, and the Outcome states plainly that it says nothing about how many rounds the ticket took, neither a count nor a comparison."
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}
