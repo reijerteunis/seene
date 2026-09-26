@@ -1,0 +1,137 @@
+{
+  "sequence": 8,
+  "ticket": "SEEN-112",
+  "timestamp": "2026-09-26T22:30:06.228951+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "solution",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "8a58b1bac504f819ea87ef47623ed90952871f9d",
+  "prev_hash": "0e3c97c55b8cd92e7b9ec6686e0b021dcd548fbd31005ac98c60b47d6453cb54",
+  "data": {
+    "from_stage": "solution",
+    "to_stage": "tdd",
+    "evidence": {
+      "mode": "code",
+      "approach": "One new module, `harness/loop.py`, and one new command, `harness run <ticket>`, that answers a single question from the journal, the ticket file and the thresholds: what is the next action, exactly. The action is a dict carrying the stage, an action kind (`command`, `spawn`, `ask`, `stop` or `merge`), the runnable argv, the agent to spawn and that agent's task text where there is one, why this action and the named stops that end the run. The assistant is what executes it. This follows the decision Ruud settled at record 4 and it is the one thing in this ticket that had to be settled first: the opening of the Principles section of docs/harness/workflow.md says \"The harness is a procedure, not an orchestrator: it runs inside the current assistant session, launches no other model, bypasses no tool permission, and never claims an independent review when the implementing session reviewed its own work.\" So `harness loop` composes what already exists rather than replacing it: the spawn instruction is `routing.implementer_task()`, the reviewer's task is `triage.reviewer_task()`, and the prose in `NEXT_COMMAND` stays where the pack reads it while the action carries argv beside it. The loop writes exactly two kinds of record, `stop` and `authorisation`, and both are appended by the same journal path everything else uses.",
+      "changes": [
+        "harness/loop.py, new: `action(repository, ticket, records, thresholds)` returning the next action; `refuse_human_executor(ticket_file)` raising before any record exists; `summary(repository, ticket, records)` listing every criterion with what each unmet one waits on; `stop(reason, stage, record, resume)` building a stop and the idempotence rule that appends at most one per reason and record.",
+        "harness/cli.py, the `run` subcommand (`--summary` for the summary, the action as JSON otherwise) and the `authorise` subcommand (`--merge --by <who>`), both registered in the parser beside the others and dispatched in `execute`; NEXT_COMMAND is left as it is, because the pack reads it and the action carries argv rather than replacing prose.",
+        "harness/paths.py, KINDS gains `stop` and `authorisation`, with the comment saying why neither is in journal.TRANSITIONS: a stop says the run halted and an authorisation says a person allowed the merge, and neither moves the ticket, exactly as handoff, triage and route do not. The envelope is unchanged, so HARNESS_VERSION stays at 2.",
+        "harness/thresholds.toml, a new `[run]` section carrying `stops`, the six named reasons, so adding one is a diff a person reviews rather than a string in code.",
+        "harness/tests/test_loop.py, new: the REDs for both slices.",
+        "docs/harness/skill.md and docs/harness/workflow.md, the run described as what an assistant follows, with the principle quoted and unamended; `harness sync` regenerates .claude/skills/seen-harness/SKILL.md and .agents/skills/seen-harness/SKILL.md, which doctor compares against the source."
+      ],
+      "migrations": [],
+      "tests_first": [
+        "The loop answers every stage with runnable argv. `python3 -m pytest harness/tests/test_loop.py::LoopTest -q`. The RED must fail because harness/loop.py does not exist and `run` is not a subcommand: it drives a fixture journal from clarify to the receipt and asserts an action at every step, each carrying argv that starts with the harness entry point and the ticket, and asserts no step returns a stop that is not in `[run] stops`.",
+        "Every named stop reports stage, record and resume, and none is retried. `python3 -m pytest harness/tests/test_loop.py::StopTest -q`. The RED must demonstrate, per reason in `[run] stops`, that the stop names the stage, the record number it points at and one resume argv, and that a second call while the same stop stands reports the same stop and appends no second `stop` record.",
+        "A human-executor ticket is refused at the start. `python3 -m pytest harness/tests/test_loop.py::HumanExecutorTest -q`. The RED reads SEEN-110's real ticket file and must show `harness run` exiting non-zero, naming the criteria that wait on an interactive session, and writing no record: the journal folder for the ticket must not exist afterwards.",
+        "The questions are asked once and the run resumes when the answer is recorded. `python3 -m pytest harness/tests/test_loop.py::QuestionBatchTest -q`. The RED must show one `ask` action carrying every question the clarify record would leave open, a stop with reason `question_open` pointing at it, an action rather than a stop once a note answers them and `clarified` clears its threshold, and the summary naming a second question batch as a defect of the run, counted from the `stop` records.",
+        "The merge is never taken without authorisation. `python3 -m pytest harness/tests/test_loop.py::MergeAuthorisationTest -q`. The RED must show the run stopping at `awaiting_authorisation` with a green verify-merge and the receipt hash in the pull request body and offering no merge action, then offering it only after an `authorisation` record for this ticket carrying `by`, with the record's timestamp as when; and it must show the loop never invoking a merge itself.",
+        "The summary widens nothing. `python3 -m pytest harness/tests/test_loop.py::SummaryTest -q`. The RED must show every criterion of the ticket listed with its box state read from the ticket file, and every unmet one carrying what it waits on, for a fixture where one criterion is unticked."
+      ],
+      "slices": [
+        {
+          "name": "The loop over the five stages, every stop named and none retried, and the human-executor refusal",
+          "points": 2,
+          "files": [
+            "harness/loop.py",
+            "harness/cli.py",
+            "harness/paths.py",
+            "harness/thresholds.toml",
+            "harness/tests/test_loop.py"
+          ],
+          "red": "LoopTest, StopTest and HumanExecutorTest fail because harness/loop.py does not exist, `run` is not a subcommand and `stop` is not a record kind: no action is returned for any stage, no stop names a resume argv, and nothing refuses SEEN-110 before its journal would be created."
+        },
+        {
+          "name": "The single question batch, the resume once clarified clears, the merge authorisation and the summary",
+          "points": 1,
+          "files": [
+            "harness/loop.py",
+            "harness/cli.py",
+            "harness/paths.py",
+            "harness/tests/test_loop.py",
+            "docs/harness/skill.md",
+            "docs/harness/workflow.md",
+            ".claude/skills/seen-harness/SKILL.md",
+            ".agents/skills/seen-harness/SKILL.md"
+          ],
+          "red": "QuestionBatchTest, MergeAuthorisationTest and SummaryTest fail because the loop asks nothing, `authorise` is not a subcommand, `authorisation` is not a record kind and there is no summary: an open question yields no `ask` action carrying every question at once, a green verify-merge offers a merge action with no authorisation on record, and no criterion is listed with what it waits on."
+        }
+      ],
+      "alternatives": [
+        "A command that spawns the implementer and the reviewer itself, which is the second shape the ticket names. Rejected by Ruud at record 4: it contradicts the line quoted above, it would make the harness depend on which assistant is installed, and it would put a model launch behind a command whose output a person is meant to be able to read.",
+        "Extending `status --brief` rather than adding a command, so the pack itself carried the argv. Rejected because the pack is capped at 2,000 tokens and is read by a person as much as by a session: the action's argv, task text and stop list would either break the cap or crowd out the slice, and a pack that changed shape per stage is harder to read than one command that answers one question.",
+        "Deriving the stops from a counter the loop keeps, rather than from the journal. Rejected because a fresh session would then read a different run from the same journal, which is the one property the harness has kept since SEEN-086.",
+        "One record kind for both the stop and the authorisation. Rejected because the summary counts question batches from the stop records and an authorisation is not a halt: collapsing them would make a person's permission look like a failure in the same list."
+      ],
+      "risks": [
+        "The loop could read a stage it cannot decide and guess. Mitigated by making `ask` an action of its own: a stage the records cannot settle returns a question rather than a command, which is what criterion 2's test asserts.",
+        "A stop written on every call would spam the journal and read as retrying. Mitigated by the idempotence rule in StopTest: at most one stop record per reason and record number, with a second call reporting the same stop and appending nothing.",
+        "`harness run` writes records, so it must refuse off-branch like every other writing command. Mitigated by registering it as a writing command, which the existing branch check then covers; the summary is read-only and takes no actor.",
+        "Adding to KINDS touches the file every journal read goes through. Mitigated by following handoff, triage and route exactly: additions to KINDS only, nothing in journal.TRANSITIONS, no change to the envelope or HARNESS_VERSION, and the full regression is the check that says so.",
+        "The skill and the workflow document could drift from the code, which doctor refuses. Mitigated by editing docs/harness/skill.md and running `harness sync` inside slice 2, whose files name both generated copies."
+      ],
+      "rollback": "Nothing here runs in production: the harness is a development tool with no runtime in apps/ or packages/. The change is undone by reverting the branch's commits, which removes harness/loop.py, the two subcommands, the two entries in KINDS and the `[run]` section, and by running `harness sync` to restore the generated skill copies. Journals already written keep their `stop` and `authorisation` records, which a reverted KINDS would refuse to read, so a revert after any ticket has used the loop also reverts paths.py's two entries only if no journal carries them; doctor names the ticket if one does.",
+      "new_dependencies": [],
+      "tenant_tables": [
+        "none: this ticket touches no database table and no tenant data. It changes harness/ and docs/ only."
+      ],
+      "buyer_pii": "none",
+      "policy_gate_action": null,
+      "slice_points": 3,
+      "forecast": {
+        "available": false,
+        "observed_tickets": 3,
+        "required": 10
+      }
+    },
+    "decisions": [
+      {
+        "key": "solution_complete",
+        "question": "solution_complete",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.76,
+          "no": 0.24
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "key": "touches_billing_or_policy_gate",
+        "question": "touches_billing_or_policy_gate",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.17,
+          "no": 0.83
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

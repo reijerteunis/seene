@@ -35,8 +35,14 @@ HARNESS_VERSION = '2'
 # Like both of them it is not in journal.TRANSITIONS: a route says what a slice
 # should run on and never moves the ticket. The envelope is unchanged, so
 # HARNESS_VERSION stays at 2.
+# stop is its own kind for the reason handoff, triage and route are, and it is
+# not in journal.TRANSITIONS either: a stop says the run halted and where, and a
+# halt never moves the ticket. It is what makes "none is retried" a property of
+# the journal rather than a promise: at most one stop per reason and record
+# number, so a run asked ten times about one refused gate leaves one record. The
+# envelope is unchanged, so HARNESS_VERSION stays at 2.
 KINDS = ('start', 'note', 'check', 'advance', 'return', 'receipt', 'reopen', 'decision',
-         'handoff', 'triage', 'route')
+         'handoff', 'triage', 'route', 'stop')
 
 # Committed run history: docs/harness/history/<TICKET>/0001.json and onwards.
 HISTORY = Path('docs/harness/history')

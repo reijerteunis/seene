@@ -1,0 +1,16 @@
+{
+  "sequence": 12,
+  "ticket": "SEEN-112",
+  "timestamp": "2026-09-26T22:52:29.598537+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "8a58b1bac504f819ea87ef47623ed90952871f9d",
+  "prev_hash": "52a5aa49dd64d14de682305d4e78e6a60e46e91316b0df4271204e69ee665a12",
+  "data": {
+    "text": "# Slice 1, worked by seen-implementer on opus, and two gaps it named rather than walked into\n\nRED is record 10 and GREEN is record 11. `harness/loop.py` is new and answers one question,\n`action(repository, ticket, records, rules, actor)`: the next action as a dict carrying the stage, the\nkind (`command`, `spawn`, `ask`, `stop`, `merge`), runnable argv beginning `python3 harness/run.py`,\nthe agent and its task text where there is one, why, and the named stops. It starts nothing, which is\nrecord 4's decision holding in the code: the implementer's task text is the one `routing.for_slice()`\nalready stored and the reviewer's is the one the triage record already carries, so the loop composes\nwhat exists rather than launching anything.\n\nThe RED was one recorded command with three probes, because a bare import error would have hidden two\nthirds of the slice: `ImportError: cannot import name 'loop' from 'harness'`, then `argument command:\ninvalid choice: 'run'`, then `stop is not a record kind`. `LoopTest` walks a ticket from nothing to\nthe receipt and asserts the sequence start, draft, advance, draft, advance, route, spawn\nseen-implementer, coverage, regression, draft, advance, review triage, draft, verify-delivery,\nverify-merge, with every argv's shape and vocabulary checked and no stop written anywhere along it.\n`StopTest` covers all six reasons, the idempotence that is what not retrying means in a journal, and\nthe refusal of a reason that is not in `[run] stops`. `HumanExecutorTest` reads SEEN-110's real ticket\nfile. Twelve tests and six subtests, green.\n\nTwo stop detectors read the journal and nothing else, which is the property that makes a stop\nsurvive a fresh session: `_failed_check` reads the latest must-pass phase of the attempt, so a\nfailing RED is a RED and not a stop, and `_second_return` counts returns since the accepted solution\nadvance.\n\nTwo gaps the slice named and left, both deliberately outside its files:\n\n1. `harness/thresholds.py`'s `EXPECTED` does not list `run.stops`, so a thresholds file missing the\n   new section raises a `KeyError` from `loop.stops` instead of the clear refusal that module exists\n   to give. `thresholds.py` is not in slice 1's accepted files. Slice 2's files do not name it\n   either, so it is carried here as a known hole rather than fixed quietly: the guard would have\n   refused the edit, and an edit the slice plan did not anticipate is a plan to amend, not a wall to\n   work around.\n2. At `delivered` the action is `verify-merge` every time it is asked, and the resume argv for\n   `awaiting_authorisation` names `verify-merge` rather than the `authorise` command that does not\n   exist yet. Both are slice 2's, and the code says so at `resume()`.\n"
+  }
+}

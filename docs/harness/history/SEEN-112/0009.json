@@ -1,0 +1,174 @@
+{
+  "sequence": 9,
+  "ticket": "SEEN-112",
+  "timestamp": "2026-09-26T22:30:12.480591+00:00",
+  "harness_version": "2",
+  "kind": "route",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "8a58b1bac504f819ea87ef47623ed90952871f9d",
+  "prev_hash": "ec11c24e5e61c48cfae9452549b4061c9e69d338909eace6a93b16d1b91986ad",
+  "data": {
+    "solution": 8,
+    "shadow": true,
+    "strongest": "opus",
+    "tiers": [
+      "haiku",
+      "sonnet",
+      "opus"
+    ],
+    "rules": [],
+    "jev": {
+      "asked": true,
+      "model": "jev-1.13.0",
+      "reason": null,
+      "answers": [
+        {
+          "key": "implementation_model#1",
+          "question": "implementation_model",
+          "type": "score",
+          "options": [
+            "haiku",
+            "sonnet",
+            "opus"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "opus",
+          "probabilities": {
+            "haiku": 0.0,
+            "sonnet": 0.29,
+            "opus": 0.71
+          },
+          "confidence": 0.55,
+          "score": 1.7,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_effort#1",
+          "question": "implementation_effort",
+          "type": "score",
+          "options": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "high",
+          "probabilities": {
+            "low": 0.02,
+            "medium": 0.08,
+            "high": 0.9
+          },
+          "confidence": 0.83,
+          "score": 1.88,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_model#2",
+          "question": "implementation_model",
+          "type": "score",
+          "options": [
+            "haiku",
+            "sonnet",
+            "opus"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "opus",
+          "probabilities": {
+            "haiku": 0.01,
+            "sonnet": 0.49,
+            "opus": 0.5
+          },
+          "confidence": 0.24,
+          "score": 1.49,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_effort#2",
+          "question": "implementation_effort",
+          "type": "score",
+          "options": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "high",
+          "probabilities": {
+            "low": 0.02,
+            "medium": 0.25,
+            "high": 0.73
+          },
+          "confidence": 0.56,
+          "score": 1.7,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        }
+      ]
+    },
+    "execution": [
+      {
+        "position": 1,
+        "name": "The loop over the five stages, every stop named and none retried, and the human-executor refusal",
+        "points": 2,
+        "files": [
+          "harness/loop.py",
+          "harness/cli.py",
+          "harness/paths.py",
+          "harness/thresholds.toml",
+          "harness/tests/test_loop.py"
+        ],
+        "red": "LoopTest, StopTest and HumanExecutorTest fail because harness/loop.py does not exist, `run` is not a subcommand and `stop` is not a record kind: no action is returned for any stage, no stop names a resume argv, and nothing refuses SEEN-110 before its journal would be created.",
+        "model": "opus",
+        "effort": "high",
+        "source": "jev",
+        "rule": null,
+        "reason": null,
+        "model_probability": 0.71,
+        "effort_probability": 0.9,
+        "model_passed": true,
+        "model_threshold": 0.5,
+        "implementer_task": "Work slice 1 of SEEN-112: The loop over the five stages, every stop named and none retried, and the human-executor refusal.\n\nRun it on opus at high effort, because Jev chose it at 0.71.\nThe model is what reaches the work: in Claude Code as the per-invocation model on the seen-implementer agent, and in Codex as the model this instruction names when you spawn it. The effort is recorded, carried and reported rather than applied, on either assistant: the generated copies do not vary by slice, because a file whose content depended on the ticket in hand was wrong on a detached HEAD, after a replan and after the receipt. Neither is yours to change.\n\nPoints: 2.\nFiles: harness/loop.py, harness/cli.py, harness/paths.py, harness/thresholds.toml, harness/tests/test_loop.py\n\nIts RED must demonstrate: LoopTest, StopTest and HumanExecutorTest fail because harness/loop.py does not exist, `run` is not a subcommand and `stop` is not a record kind: no action is returned for any stage, no stop names a resume argv, and nothing refuses SEEN-110 before its journal would be created.\n\nWrite the test first and record it with:\n  python3 harness/run.py check SEEN-112 --phase red --actor <tool>:implementer --model opus -- <command>\nThen write only what turns it green and record that the same way. The `--model opus` is not optional: a subagent inherits its parent's session id, so the log records the model of the session that spawned you and not yours, and without the declaration the tdd gate compares the wrong two names. Then stop: do not start the next slice and do not advance the stage."
+      },
+      {
+        "position": 2,
+        "name": "The single question batch, the resume once clarified clears, the merge authorisation and the summary",
+        "points": 1,
+        "files": [
+          "harness/loop.py",
+          "harness/cli.py",
+          "harness/paths.py",
+          "harness/tests/test_loop.py",
+          "docs/harness/skill.md",
+          "docs/harness/workflow.md",
+          ".claude/skills/seen-harness/SKILL.md",
+          ".agents/skills/seen-harness/SKILL.md"
+        ],
+        "red": "QuestionBatchTest, MergeAuthorisationTest and SummaryTest fail because the loop asks nothing, `authorise` is not a subcommand, `authorisation` is not a record kind and there is no summary: an open question yields no `ask` action carrying every question at once, a green verify-merge offers a merge action with no authorisation on record, and no criterion is listed with what it waits on.",
+        "model": "opus",
+        "effort": "high",
+        "source": "jev",
+        "rule": null,
+        "reason": null,
+        "model_probability": 0.5,
+        "effort_probability": 0.73,
+        "model_passed": true,
+        "model_threshold": 0.5,
+        "implementer_task": "Work slice 2 of SEEN-112: The single question batch, the resume once clarified clears, the merge authorisation and the summary.\n\nRun it on opus at high effort, because Jev chose it at 0.5.\nThe model is what reaches the work: in Claude Code as the per-invocation model on the seen-implementer agent, and in Codex as the model this instruction names when you spawn it. The effort is recorded, carried and reported rather than applied, on either assistant: the generated copies do not vary by slice, because a file whose content depended on the ticket in hand was wrong on a detached HEAD, after a replan and after the receipt. Neither is yours to change.\n\nPoints: 1.\nFiles: harness/loop.py, harness/cli.py, harness/paths.py, harness/tests/test_loop.py, docs/harness/skill.md, docs/harness/workflow.md, .claude/skills/seen-harness/SKILL.md, .agents/skills/seen-harness/SKILL.md\n\nIts RED must demonstrate: QuestionBatchTest, MergeAuthorisationTest and SummaryTest fail because the loop asks nothing, `authorise` is not a subcommand, `authorisation` is not a record kind and there is no summary: an open question yields no `ask` action carrying every question at once, a green verify-merge offers a merge action with no authorisation on record, and no criterion is listed with what it waits on.\n\nWrite the test first and record it with:\n  python3 harness/run.py check SEEN-112 --phase red --actor <tool>:implementer --model opus -- <command>\nThen write only what turns it green and record that the same way. The `--model opus` is not optional: a subagent inherits its parent's session id, so the log records the model of the session that spawned you and not yours, and without the declaration the tdd gate compares the wrong two names. Then stop: do not start the next slice and do not advance the stage."
+      }
+    ]
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "sequence": 3,
+  "ticket": "SEEN-112",
+  "timestamp": "2026-09-26T22:24:11.097640+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "8a58b1bac504f819ea87ef47623ed90952871f9d",
+  "prev_hash": "2bb28383e461c19c6b1ee10fa7243421b139075e50156f1eee71fa5182d38440",
+  "data": {
+    "text": "# seen-scout: what the harness already says about the next action\n\nCould not answer: the exit-code dispatch itself (where `HarnessError` and `GuardRefusal` map to\nconcrete codes) and `guard.decide()`'s reason text were not seen in the source it read.\n\n`NEXT_COMMAND`, `harness/cli.py:63-73`: a dict from stage (`clarify`, `solution`, `tdd`, `review`,\n`deliver`, `delivered`) to one prose sentence, for example `harness draft <ticket>, fill in the scope\nand the acceptance checks, then harness advance`. It names commands inside prose, with no ticket\nsubstituted and no argument list. Read by `start()` (cli.py:333), `build_pack()` (cli.py:336-341)\nand `brief()` (cli.py:431).\n\n`status --brief`, `brief()` at `harness/cli.py:406-431`: returns `ticket`, `stage`, `attempt`,\n`records`, `pack` (the markdown), `estimated_tokens`, `pack_file`, `recorded_at`,\n`pack_matches_record` and `next_command`, the same prose. The pack itself is `handoff.pack()`\n(`harness/handoff.py:234-284`): title, stage and attempt, branch, record count, ticket file, then\nthe slice in front of you (position of total, points, name, its RED at line 264, its files, a route\nline from `_route_line`), then the next command as that prose string, then capped sections for the\ncriteria, the decisions and the graph answers.\n\n`harness route`: `route_slices()` (cli.py:706-714) appends via `routing.append`, state from\n`routing.state()` (routing.py:209-233): stage, attempt, a `slices` entry per slice carrying model,\neffort, source, rule, reason, probabilities and threshold (`_from_answers`, routing.py:235-269),\nthe solution mode and approach, the risk outcome, a change-risk excerpt, the graph answers and the\nmarketplaces. The spawn text is `implementer_task()` (routing.py:272-306), free prose: `Work slice\n{position} of {ticket}: {name}.`, `Run it on {model} at {effort} effort, because {how}`, the files,\nthe RED text and a literal `harness check ... --phase red` line at 302-303.\n\n`harness review triage`: the task text is `reviewer_task()` (`harness/triage.py:678-728`), carrying\nthe depth, the triage sequence, the model, the always-read files, the focus set, the settled,\npartly-settled and outstanding checks, and the shape to return. The record's fields are read back by\n`kpi.review_triage()` (`harness/kpi.py:401-439`): `record`, `depth`, `model_depth`, `shadow`,\n`asked`, `rules`, `files`, `focus`, `excluded`, `excluded_share`, `reviewer_output_tokens`.\n\nRefusals: `GuardRefusal(HarnessError)` at `harness/cli.py:28-37`, kept distinct so its exit code can\ndiffer from a plain `HarnessError` (argparse already exits 2 on an unknown command). Messages do name\nthe stage and the record, for example `gates.py:141`, `Record {number} is not in this journal`.\n\nNot checked: the exit codes themselves, `harness/guard.py`, and whether any refusal message already\ncarries a resume command.\n",
+    "agent": "seen-scout",
+    "words": 371
+  }
+}

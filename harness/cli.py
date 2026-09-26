@@ -41,13 +41,16 @@ class GuardRefusal(HarnessError):
 DEFAULT_ROOT = Path(__file__).resolve().parents[1]
 TICKET_COMMANDS = ('start', 'status', 'history', 'draft', 'note', 'check', 'advance',
                    'return', 'graph', 'decide', 'coverage', 'mutation', 'handoff', 'budget',
-                   'reopen', 'discard', 'verify-delivery', 'verify-merge', 'review')
+                   'reopen', 'discard', 'verify-delivery', 'verify-merge', 'review', 'run')
 # handoff writes a record, so it is bound to the ticket's own branch like every
 # other writing command. status --brief is not here and neither is budget: a
 # command a session runs to see where it stands must not make the journal longer
 # every time it is run.
+# run is here for the one thing it writes: a stop. Asking what to do next makes
+# no record, exactly as status and budget make none, but the halt that ends a run
+# is evidence about this ticket's own work and belongs on its own branch.
 WRITING_COMMANDS = ('start', 'note', 'check', 'advance', 'return', 'graph', 'decide', 'coverage',
-                    'mutation', 'handoff', 'reopen', 'review', 'route',
+                    'mutation', 'handoff', 'reopen', 'review', 'route', 'run',
                     'verify-delivery')
 BRANCH = re.compile(r'^(claude|codex)/(?P<ticket>[A-Z]+-\d+)-')
 
@@ -186,6 +189,13 @@ def build_parser():
 
     route = ticket_command('route', 'Decide which model and which effort implement each slice')
     route.add_argument('--actor', required=True)
+
+    loop_command = ticket_command('run', 'Say what the next action is, exactly, and where it stops')
+    loop_command.add_argument('--actor', required=True)
+    loop_command.add_argument('--stop', help='Record the named stop the action just taken ran '
+                                             'into, when only the command that failed knows: a '
+                                             'refused gate and red CI are told to the run, and '
+                                             'the rest it reads from the journal')
 
     reopen = ticket_command('reopen', 'Void a receipt and return the ticket to tdd, before merge')
     reopen.add_argument('--reason', required=True)
@@ -461,6 +471,29 @@ def budget(repository, ticket, rules):
     return dict(ticket=ticket,
                **sessions.against_budget(spent, limits['output_token_budget'],
                                          subagents=subagents))
+
+
+def run_loop(repository, folder, records, args, rules):
+    """The next action, and the stop when there is one.
+
+    Read-only in the ordinary case, for the reason status and budget are: a
+    command a session runs after every step must not make the journal longer
+    every time it is run. A stop is the exception, because "none is retried" is a
+    claim about the journal and so has to be in it.
+
+    Dispatched before the journal is read for a stage, because a run begins
+    before the first record exists: with no journal the next action is to start
+    the ticket, and a human-executor ticket is refused there rather than after a
+    record is written about it.
+    """
+    from . import loop
+    if getattr(args, 'stop', None):
+        return loop.halt(repository, folder, records, args.ticket, args.actor, args.stop, rules)
+    action = loop.action(repository, args.ticket, records, rules, actor=args.actor)
+    if action['kind'] != 'stop':
+        return action
+    return loop.halt(repository, folder, records, args.ticket, args.actor,
+                     action['reason'], rules)
 
 
 def draft(repository, records, args):
@@ -1293,6 +1326,8 @@ def execute(args):
             return describe(repository, args.ticket, records, folder)
         if args.command == 'draft':
             return draft(repository, records, args)
+        if args.command == 'run':
+            return run_loop(repository, folder, records, args, rules)
 
         if args.command == 'discard':
             return discard_journal(repository, folder, records, args, rules)
