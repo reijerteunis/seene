@@ -1,0 +1,148 @@
+{
+  "sequence": 7,
+  "ticket": "SEEN-111",
+  "timestamp": "2026-09-26T20:55:45.363468+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "solution",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "ed286b2c2c3a",
+  "head": "d88d33a7ccd39d58d960fe1bf2a610be5520f76f",
+  "prev_hash": "d5d8e85e5f0dcbb28b2df1214ccc72874a9d8e841c85c03e885acd6831ca767a",
+  "data": {
+    "from_stage": "solution",
+    "to_stage": "tdd",
+    "evidence": {
+      "mode": "code",
+      "approach": "Three small additions to modules that already exist, in the order the ticket names, and nothing that refuses on a figure.\n\n(1) The declaration and the gate. `checks.run` gains an `agent` parameter beside the `declared` tier it already takes and records it as `agent_declared`; `harness check --agent <name>` supplies it and refuses a name that is not in `[agents] names`, so a typo cannot pass as a delegation. A new sibling in the tdd gate, `_require_a_context_of_its_own(records, position, checks_cited, thresholds)`, is called from `_require_the_routed_slice` immediately after `_require_the_routed_model`, so it inherits that function's three absences for free: it returns at once while `[routing] shadow` is true, and it needs a route entry to name. It refuses when neither cited check declares an agent, which is the criterion's case exactly: the slice was worked in the orchestrating session's own context. One of the two declaring an agent is a delegated slice and is not refused; widening it to both would refuse a case the criterion does not describe, and is named as an alternative below rather than taken. The message names the slice position, the sequence of the route record and the sequences of the RED and the GREEN. Like `--model`, `--agent` is a disclosure and not a proof, and for the same reason: the settled finding below shows a Claude Code subagent's entries carry the parent's `sessionId`, so the digest a record already holds cannot tell the two apart and nothing but the declaration can.\n\n(2) The parent's spending and its subagents'. `sessions.subagent_figures(root, identity)` reads `cost.log_directory(root)/<identity>/subagents/agent-*.jsonl`, which is where this session's own scout landed, and the `.meta.json` beside each for its `agentType`. It returns one entry per subagent with its agent name, its output tokens, its tool calls and the model its entries carry, plus a total. `sessions.figures` keeps reading the parent's own log and nothing else, so no existing figure moves; `against_budget` carries the new block through and `harness budget` prints `subagents` beside `output_tokens`. Null rather than zero when the directory does not exist, which is the rule `cost.py` already applies.\n\n(3) The price before the work. A new `harness/forecast.py` reads every `docs/harness/history/*/kpi.json`, takes each `execution` entry's `output_tokens`, and reports the median and the highest of the delivered slices against this plan's slices. The key is the delivered distribution and never this plan's points, which is the ticket's whole point: SEEN-110 planned two points and spent 140,000 against 60,000, and SEEN-109's own kpi.json records one one-point slice at 121,398. `gates._solution` calls it and returns the answer as the advance record's evidence, so the figure is written where the ticket's own journal keeps it. It refuses in no case and has no path that can: `forecast.predict` returns a dict and the gate never passes it to `require`. With fewer delivered tickets than `[calibration] window`, it returns `available: false` with the count it has and the count it needs, which is an absence and not a low figure.\n\n(4) The quiet check. `harness check --quiet` post-processes the record `journal.append` returns, on a copy, replacing `data.output` with `output_omitted`, `output_lines`, `output_bytes` and `output_tail`, the last `[checks] quiet_tail_lines` lines. The journal file is written first and untouched, so the evidence is byte for byte what it would have been. `coverage` is left alone: the criterion names `check`, and a coverage run's output is already small.",
+      "changes": [
+        "harness/checks.py: `run` gains an `agent` parameter and records `agent_declared` beside `model_declared`.",
+        "harness/cli.py: `check --agent` and `check --quiet`; `--agent` validated against `[agents] names`; `budget` carries the subagents block; the quiet payload is built from a copy of the appended record.",
+        "harness/gates.py: `_require_a_context_of_its_own`, called from `_require_the_routed_slice`; `_solution` returns the forecast as evidence.",
+        "harness/sessions.py: `subagent_figures`, and `against_budget` carrying it through.",
+        "harness/forecast.py: new. Reads the delivered kpi.json records and predicts a plan of this shape, reporting and never refusing.",
+        "harness/thresholds.toml: `[checks] quiet_tail_lines`.",
+        "harness/tests/test_session_cap.py: the budget's two figures apart, and the quiet check.",
+        "harness/tests/test_routing.py: the gate that holds a slice to a context of its own.",
+        "harness/tests/test_forecast.py: new. The prediction, the split named, and the absence reported as an absence.",
+        "docs/harness/workflow.md and docs/harness/skill.md: what a check now declares, what budget reports, what the solution stage predicts, the quiet flag, and the open question about running slices in parallel.",
+        ".claude/skills/seen-harness/SKILL.md and .agents/skills/seen-harness/SKILL.md: regenerated by `harness sync`, never edited.",
+        "docs/tickets/SEEN-111-hold-a-slice-to-the-context-it-was-routed-to.md: the Outcome, the status and the ticks."
+      ],
+      "migrations": [],
+      "tests_first": [
+        "Slice 1 RED, `python3 -m pytest harness/tests/test_routing.py -k context_of_its_own`: with `[routing] shadow` false, an accepted solution plan and a route record, a tdd advance citing a RED and a GREEN that declare no agent must be refused with a message naming the slice position, the route record's sequence and both check sequences. It fails today because `harness check` takes no `--agent`, so the record has no field to read and the gate has no sibling to call.",
+        "Slice 1 RED, `python3 -m pytest harness/tests/test_session_cap.py -k subagents_apart`: a session log with a `<session>/subagents/agent-x.jsonl` beside it must make `harness budget` report the parent's output tokens and the subagent's separately, naming the agent from its meta file. It fails today because `sessions.figures` reads `<session>.jsonl` alone and nothing descends into the directory.",
+        "Slice 2 RED, `python3 -m pytest harness/tests/test_forecast.py`: with ten delivered kpi.json records the solution advance must carry a forecast whose per-slice figure is the median of their delivered slices and which names the split when that figure exceeds `[session] output_token_budget`; with fewer than `[calibration] window` it must carry `available: false` with both counts and no figure. It fails today because harness/forecast.py does not exist.",
+        "Slice 3 RED, `python3 -m pytest harness/tests/test_session_cap.py -k quiet`: `harness check --quiet` must return a payload with no `output` key and with `output_tail`, while the journal file it wrote is byte for byte identical to the one written without the flag. It fails today because `check` takes no `--quiet`."
+      ],
+      "slices": [
+        {
+          "name": "The agent declaration, the gate that holds a slice to a context of its own, and the budget that tells a parent from its subagents",
+          "points": 2,
+          "files": [
+            "harness/checks.py",
+            "harness/cli.py",
+            "harness/gates.py",
+            "harness/sessions.py",
+            "harness/tests/test_routing.py",
+            "harness/tests/test_session_cap.py"
+          ],
+          "red": "A tdd advance with `[routing] shadow` false, citing a RED and a GREEN that declare no agent, is refused with the slice position, the route record's sequence and both check sequences named; and `harness budget` reports a subagent's output tokens apart from the parent's rather than reading only the parent's log."
+        },
+        {
+          "name": "The predicted cost at the solution stage, read from the delivered kpi.json records, reporting and never refusing",
+          "points": 1,
+          "files": [
+            "harness/forecast.py",
+            "harness/gates.py",
+            "harness/tests/test_forecast.py"
+          ],
+          "red": "A solution advance carries a forecast whose per-slice figure comes from the delivered slices' output tokens and not from the plan's points, names the split when it exceeds the session budget, and reports `available: false` with both counts rather than a low figure when fewer tickets have delivered than `[calibration] window`."
+        },
+        {
+          "name": "The quiet check, and the two documents that describe all of it",
+          "points": 1,
+          "files": [
+            "harness/cli.py",
+            "harness/thresholds.toml",
+            "harness/tests/test_session_cap.py",
+            "docs/harness/workflow.md",
+            "docs/harness/skill.md",
+            ".claude/skills/seen-harness/SKILL.md",
+            ".agents/skills/seen-harness/SKILL.md",
+            "docs/tickets/SEEN-111-hold-a-slice-to-the-context-it-was-routed-to.md"
+          ],
+          "red": "`harness check --quiet` returns a payload holding no captured output but holding the exit code, the size counts and the tail, while the journal file it wrote is byte for byte the file written without the flag."
+        }
+      ],
+      "alternatives": [
+        "Refusing a slice unless BOTH its RED and its GREEN declare an agent. Rejected: the criterion describes a slice 'recorded in the orchestrating session's own context', which is the case where neither declares one. A slice whose RED came back from an implementer and whose GREEN was recorded by the session that spawned it is a delegated slice, and refusing it would be widening the ticket at the gate rather than in the criteria.",
+        "Fixing `cost.log_directory(...).glob('*.jsonl')` to descend into `<session>/subagents/`, which would make `kpi.reviewer_tokens` work for the first time. Rejected here: it changes every delivered ticket's figures and the calibration numbers SEEN-109's window is read from, which is a ticket of its own. The cause is recorded in the clarify record so the next reader does not have to find it again.",
+        "Keying the prediction on the number of files a slice names rather than on the delivered per-slice distribution. Rejected: a delivered kpi.json execution entry carries position, name, points, model, effort, source, rule, ran_on and output tokens, and no file list, so a file-count key would have to be read from the journals rather than from the KPI records the criterion names.",
+        "Refusing at solution when the prediction exceeds the budget. Rejected by the ticket's own closing paragraph and by the comment on `[session] output_token_budget`: only the person at the keyboard can end a session, and a refusal mid-slice leaves work done and unrecorded.",
+        "Relaxing the ordering at harness/gates.py:258 so slices on disjoint files can be proved concurrently. Out of scope by the ticket's wording; recorded as an open question with the line quoted, and not answered."
+      ],
+      "risks": [
+        "The gate refuses real work if a session forgets `--agent` after shadow goes off. Mitigated by it doing nothing at all while `[routing] shadow` is true, which it is, and by the message naming the two checks and the route record so the fix is obvious; the switch is a diff a person reviews, exactly as `[review] triage_shadow` is.",
+        "`--agent` is a disclosure and can be typed to pass, exactly as `--model` can. Not mitigable from this side and not pretended otherwise: a Claude Code subagent carries the parent's sessionId, which this ticket's clarify record settles from a real log. Validating the name against `[agents] names` catches a typo and nothing else, and the documents say so.",
+        "Adding a field to the check record could break a reader that assumes the old shape. Mitigated by `agent_declared` being additive and null by default, which is how `model_declared` was added by SEEN-108.",
+        "The forecast reads files under docs/harness/history that a fresh clone may not have. Mitigated by the absence path: no kpi.json is `available: false` with a count of zero, which is the same answer as too few.",
+        "`--quiet` could be read as the journal recording less. Mitigated by the test that compares the journal file written with and without the flag byte for byte, and by the flag's help text saying the journal is unchanged."
+      ],
+      "rollback": "Nothing here is deployed and nothing writes to a marketplace. Reverting the branch restores the previous behaviour exactly: `agent_declared` is additive and null on every record written before it, the gate it feeds does nothing while `[routing] shadow` is true, the forecast is evidence on an advance record that later readers may ignore, and `--quiet` changes only what is printed to a caller. The journals already written are unaffected because no existing field changes meaning.",
+      "new_dependencies": [],
+      "tenant_tables": [
+        "none"
+      ],
+      "buyer_pii": "none",
+      "policy_gate_action": null,
+      "slice_points": 4
+    },
+    "decisions": [
+      {
+        "key": "solution_complete",
+        "question": "solution_complete",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.68,
+          "no": 0.32
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "key": "touches_billing_or_policy_gate",
+        "question": "touches_billing_or_policy_gate",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.13,
+          "no": 0.87
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

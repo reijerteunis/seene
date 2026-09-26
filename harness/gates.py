@@ -294,6 +294,7 @@ def _require_the_routed_slice(records, slice_, order, checks_cited, thresholds):
             f'Slice {order} of this record names position {position}, and the plan has '
             f'{planned} slices')
     _require_the_routed_model(records, position, checks_cited, thresholds)
+    _require_a_context_of_its_own(records, position, checks_cited, thresholds)
 
 
 def _require_the_routed_model(records, position, checks_cited, thresholds):
@@ -342,6 +343,59 @@ def _require_the_routed_model(records, position, checks_cited, thresholds):
                 'plan on record and is read from the handoff pack, never chosen inside the '
                 'session: work the slice again on the model it was routed to, or return to '
                 'solution and route again')
+
+
+def _require_a_context_of_its_own(records, position, checks_cited, thresholds):
+    """A slice was worked in a context of its own, or neither check says so.
+
+    Called immediately after `_require_the_routed_model`, which it mirrors: the
+    same three absences excuse it from refusing at all. Nothing is refused
+    while `[routing] shadow` is true, for the reason that gate already gives:
+    a refusal then would be the change the shadow window exists to hold back.
+    Nothing is refused without a route entry to name, because a comparison
+    with nothing is not a comparison. And nothing here reads a token figure,
+    which `harness budget` reports and refuses nothing about.
+
+    Whether a check ran in a context of its own is nowhere the session log
+    says: a Claude Code subagent inherits its parent's session id (settled in
+    this ticket's clarify record, from a real log), so the digest a record
+    already carries cannot tell a slice handed to an implementer subagent from
+    one worked in the orchestrating session's own context. Only `--agent`
+    can, and like `--model` on the gate above, it is a disclosure and not a
+    proof: it is checked against `[agents] names` and nothing more.
+
+    Refused only when NEITHER cited check declares an agent, which is the
+    criterion's own case: the slice was recorded in the orchestrating
+    session's own context. One of the two declaring an agent is a delegated
+    slice, whose RED came back from a context of its own even if its GREEN was
+    recorded by the session that spawned it, or the other way about, and is
+    not refused: widening the refusal to both would refuse a case the
+    criterion does not describe.
+    """
+    from . import routing
+    if routing.shadow(thresholds):
+        return
+    entry = routing.for_slice(records, position)
+    if entry is None:
+        return
+    if any(record['data'].get('agent_declared') for record in checks_cited):
+        return
+    route_record = None
+    for record in records:
+        if record['kind'] != 'route':
+            continue
+        for candidate in record['data'].get('execution', []):
+            if candidate is entry:
+                route_record = record
+                break
+    check_names = ' nor '.join(f'check {record["sequence"]} ({record["data"]["phase"]})'
+                               for record in checks_cited)
+    require(False,
+            f'Slice {position} was routed by record {route_record["sequence"] if route_record else "?"} '
+            f'to a context of its own, and neither {check_names} declares an agent. It was '
+            'recorded in the orchestrating session\'s own context rather than handed to one of '
+            'its own: run the implementer as a subagent and pass its check command --agent '
+            '<name>, or if a subagent worked it, declare which check is theirs')
 
 
 def _require_the_work_trips_no_unrouted_rule(records, repository, thresholds):

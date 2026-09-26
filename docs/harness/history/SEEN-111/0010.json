@@ -1,0 +1,34 @@
+{
+  "sequence": 10,
+  "ticket": "SEEN-111",
+  "timestamp": "2026-09-26T21:08:24.934424+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "ed286b2c2c3a",
+  "head": "d88d33a7ccd39d58d960fe1bf2a610be5520f76f",
+  "prev_hash": "a4665465b1eccc1b75465f922f638d95466a83857f72591cd8507c8522d118ee",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "pytest",
+      "harness/tests/test_routing.py::ContextOfItsOwnTest",
+      "harness/tests/test_session_cap.py::BudgetTest",
+      "-q"
+    ],
+    "phase": "green",
+    "exit_code": 0,
+    "model": "claude-opus-5",
+    "model_declared": "sonnet",
+    "agent_declared": null,
+    "duration_ms": 3695,
+    "output": "..............                                                           [100%]\n14 passed in 3.51s\n",
+    "output_sha256": "962d015132dc908aab6b2a64a88c655cafc4a22de627989fe0a451a0d5d67e85",
+    "output_truncated": false,
+    "before": "ac5709608d96fc84eb4b0cfd3407beb288644042dbae44068f4661114744cf18",
+    "after": "ac5709608d96fc84eb4b0cfd3407beb288644042dbae44068f4661114744cf18"
+  }
+}

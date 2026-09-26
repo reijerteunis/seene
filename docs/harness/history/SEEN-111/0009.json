@@ -1,0 +1,33 @@
+{
+  "sequence": 9,
+  "ticket": "SEEN-111",
+  "timestamp": "2026-09-26T21:03:34.808062+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "ed286b2c2c3a",
+  "head": "d88d33a7ccd39d58d960fe1bf2a610be5520f76f",
+  "prev_hash": "42763c45a708605a1381abc7018102705b3bbf555a50c7bbbe76701c173a7760",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "pytest",
+      "harness/tests/test_routing.py::ContextOfItsOwnTest::test_neither_check_declaring_an_agent_is_refused_without_a_context_of_its_own",
+      "harness/tests/test_session_cap.py::BudgetTest::test_the_budget_reports_subagents_apart_from_the_parent",
+      "-q"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "model": "claude-opus-5",
+    "model_declared": "sonnet",
+    "duration_ms": 830,
+    "output": "FF                                                                       [100%]\n=================================== FAILURES ===================================\n_ ContextOfItsOwnTest.test_neither_check_declaring_an_agent_is_refused_without_a_context_of_its_own _\n\nself = <harness.tests.test_routing.ContextOfItsOwnTest testMethod=test_neither_check_declaring_an_agent_is_refused_without_a_context_of_its_own>\n\n    def test_neither_check_declaring_an_agent_is_refused_without_a_context_of_its_own(self):\n        self.use(route_stub(model=(0.1, 0.2, 0.7)))\n        self.reach_tdd([PLAIN])\n        route_record = self.route()\n        self.set_shadow(False)\n        evidence, red, green = self.prove()\n>       with self.assertRaises(HarnessError) as raised:\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       AssertionError: HarnessError not raised\n\nharness/tests/test_routing.py:703: AssertionError\n______ BudgetTest.test_the_budget_reports_subagents_apart_from_the_parent ______\n\nself = <harness.tests.test_session_cap.BudgetTest testMethod=test_the_budget_reports_subagents_apart_from_the_parent>\n\n    def test_the_budget_reports_subagents_apart_from_the_parent(self):\n        self.write_log(1000, tool_calls=3)\n        self.write_subagent_log('x', 'seen-implementer', 500, tool_calls=2)\n        answer = self.budget()\n        # The parent's own figures do not move for a subagent's spending.\n        self.assertEqual(answer['output_tokens'], 1000)\n        self.assertEqual(answer['tool_calls'], 3)\n>       subagents = answer['subagents']\n                    ^^^^^^^^^^^^^^^^^^^\nE       KeyError: 'subagents'\n\nharness/tests/test_session_cap.py:512: KeyError\n=========================== short test summary info ============================\nFAILED harness/tests/test_routing.py::ContextOfItsOwnTest::test_neither_check_declaring_an_agent_is_refused_without_a_context_of_its_own\nFAILED harness/tests/test_session_cap.py::BudgetTest::test_the_budget_reports_subagents_apart_from_the_parent\n2 failed in 0.69s\n",
+    "output_sha256": "d5bd3e60b8a5484ca0ac91e19ffc7f7ed178f38e21a5a9dcd8a3b21190059ccf",
+    "output_truncated": false,
+    "before": "04fc941a38d122a9d2db7bb135cefe19c250492452d2945cc9db8bcba7b1f99d",
+    "after": "04fc941a38d122a9d2db7bb135cefe19c250492452d2945cc9db8bcba7b1f99d"
+  }
+}

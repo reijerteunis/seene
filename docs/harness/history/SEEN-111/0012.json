@@ -1,0 +1,16 @@
+{
+  "sequence": 12,
+  "ticket": "SEEN-111",
+  "timestamp": "2026-09-26T21:13:19.863819+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "ed286b2c2c3a",
+  "head": "d88d33a7ccd39d58d960fe1bf2a610be5520f76f",
+  "prev_hash": "c2b6adfa4cbf8efd7e6c59d5915daccb27ae1d7459f5604aaae293b0bf672f5c",
+  "data": {
+    "text": "# Slice 1, worked by seen-implementer on sonnet, and one thing to carry forward\n\nSlice 1 was delegated, as its route record said: `seen-implementer` on sonnet at high effort wrote\nthe RED at record 9, the code, and the GREEN at record 11. Record 10 is a GREEN it superseded with a\nwording fix to the refusal message and re-ran, which is why two greens sit beside one red.\n\nTwo things the next session needs and cannot infer.\n\n**The checks of slice 1 declare no agent.** The spawn instruction this session wrote gave the check\ncommand without `--agent`, because `--agent` is the flag slice 1 adds and did not exist when the\ninstruction was written. Nothing refuses on it: `[routing] shadow` is true, so\n`_require_a_context_of_its_own` returns before it reads anything. It is recorded here rather than\ncorrected, because correcting it would mean this session re-running a check a subagent ran and\ndeclaring an agent it was not: the flag is a disclosure, and a disclosure typed by the wrong party is\nthe one thing it must never be. Slices 2 and 3 pass `--agent seen-implementer`, which is honest\nbecause their implementer runs them.\n\n**The session that planned this ticket was over budget before a line was written.** 61,432 output\ntokens against 60,000 at the moment slice 1 was handed over, all of it clarify and solution. That is\nthe ticket's own thesis measured on the ticket itself, and it is the figure slice 2's forecast should\nbe read against: a plan whose planning alone exceeds the budget is not a plan a per-slice prediction\ncan rescue. Worth a line in the Outcome.\n"
+  }
+}

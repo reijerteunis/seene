@@ -1,0 +1,89 @@
+{
+  "sequence": 4,
+  "ticket": "SEEN-111",
+  "timestamp": "2026-09-26T20:52:06.402577+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "ed286b2c2c3a",
+  "head": "d88d33a7ccd39d58d960fe1bf2a610be5520f76f",
+  "prev_hash": "33116bcf7ad844d45c66feaeb80e7524aee95015009b2dba25ced16fa5268062",
+  "data": {
+    "from_stage": "clarify",
+    "to_stage": "solution",
+    "evidence": {
+      "scope": "Make the delegation the harness already plans answerable for itself: a check declares the agent it ran under and the tdd gate refuses a slice worked in the orchestrating session's own context once routing shadow is off; the solution stage reports what a plan of this shape has cost from the delivered KPI records; harness check can return without its captured output; and budget tells a parent's spending from its subagents'. The edge is that nothing in it refuses on the budget, and whether the tdd gate's ordering should be relaxed so slices can run in parallel is named and not answered.",
+      "acceptance": [
+        "Criterion 1: `harness check --agent <name>` records the agent beside the tier it already records, and `gates._require_the_routed_model` (or a sibling beside it) refuses a slice whose cited RED and GREEN both declare no agent, or declare the orchestrating session, once `[routing] shadow` is false. Evidence: a RED in harness/tests/ that advances the tdd gate with shadow off and two undelegated checks and asserts the refusal names the slice position, the route record's sequence and the two check sequences; then the GREEN.",
+        "Criterion 2: settled from this session's own logs, recorded at clarify with the evidence quoted, and `harness budget` reports `subagents` beside the parent's figure. Evidence: the finding in this record's decisions, and a test that builds a session log plus a `<session>/subagents/agent-*.jsonl` beside it and asserts budget reports the two apart rather than summing them silently.",
+        "Criterion 3: `harness advance` out of solution (and the solution draft) carries a predicted cost read from the delivered tickets in docs/harness/reports, keyed on the plan's shape rather than on its points, naming the split when the prediction exceeds `[session] output_token_budget`, reporting `unavailable` with the count when fewer than `[calibration] window` tickets have delivered under the comparison, and refusing in no case. Evidence: three tests, one for the prediction, one for the split being named, one for the absence being an absence and not a low figure.",
+        "Criterion 4: `harness check --quiet` returns the record with the captured output replaced by its exit code, its size counts and its last lines, while the record written to the journal is byte for byte what it would have been without the flag. Evidence: a test comparing the journal file written with and without the flag, and a test that the returned payload holds no full output but does hold the tail.",
+        "Criterion 5: no command added or changed in this ticket exits non-zero on a budget figure, and the ticket's Outcome says why rather than leaving it to be rediscovered. Evidence: a test that budget over its limit still exits zero, and the Outcome section.",
+        "Criterion 6: the gate's own line, `harness/gates.py:258`, is quoted in the ticket's Outcome and in docs/harness/workflow.md as an open question about running slices in parallel, and no code in this ticket relaxes that ordering. Evidence: the quoted line in both documents and the absence of any change to the ordering require()."
+      ],
+      "decisions": [
+        "Settled now, from this session's own logs, because criterion 1's refusal message depends on which figure is readable: a Claude Code subagent's output tokens do NOT land in the parent's figure. This session (04fb488c, Claude Code 2.1.274) spawned one seen-scout. Its transcript went to ~/.claude/projects/<project>/04fb488c-.../subagents/agent-a096dc5acb99c04e8.jsonl, 211 KB, with agent-a096dc5acb99c04e8.meta.json beside it carrying {\"agentType\":\"seen-scout\",\"spawnDepth\":1}. The parent's own log, 04fb488c-....jsonl, went 112 to 170 lines across the parent's own turns only. The subagent's entries carry isSidechain true and sessionId equal to the PARENT's id; every one of the 15,941 entries in the top-level logs reads isSidechain false. So the inherited session id is confirmed, and SEEN-107's clarify note that the field has never read true is explained: cost.log_directory(root).glob('*.jsonl') matches top-level files only and never descends into <session>/subagents/, so the harness has never read a subagent entry. Consequence taken as a decision: budget can and therefore must report the two apart, reading <session>.jsonl for the parent and <session>/subagents/*.jsonl for the subagents, rather than declaring that it cannot tell them apart.",
+        "The scout's own figures from that same file, as the scale of what was invisible: 2,601 output tokens and 4 tool calls on claude-sonnet-5, while the parent runs opus. That is also why the agent declaration is needed and cannot be derived: sessions.model() reads the parent's top-level log, so a check an implementer subagent ran resolves to the parent's model. --agent joins --model as a disclosure, not a proof, for the reason SEEN-108's F1 and SEEN-105 already recorded.",
+        "kpi.reviewer_tokens asks cost.tokens_between(sidechain=True) over the same top-level glob, so it has always returned null. Fixing the glob would change delivered KPI figures and the calibration numbers read off them, so it is NOT done here: this ticket reads the subagents directory in budget only, and the KPI side is left as it is with the cause now recorded. Widening it is a ticket of its own, which is the observation that will settle whether it should be.",
+        "Whether to relax the tdd gate's ordering so slices on disjoint files can run in parallel is out of scope by the ticket's own wording. It is recorded as an open question rather than answered, quoting harness/gates.py:258 verbatim. What will settle it is a ticket that has two slices genuinely on disjoint files and a reason to want them concurrent; nothing in the plan so far has had one, so there is no evidence to decide on.",
+        "The prediction at criterion 3 is reported and never enforced, on the same reasoning [session] output_token_budget already carries in thresholds.toml: only the person at the keyboard can end a session, and a refusal mid-slice leaves work done and unrecorded. Authority: the threshold's own comment, and the ticket's closing paragraph.",
+        "Which shape the prediction is keyed on is a solution-stage choice and is named there, not here. What clarify fixes is that it may not be the plan's points, because SEEN-110's two-point plan cost 140,000 against 60,000 and a detector reading points would have passed it. The observation that will settle the shape is the spread of output tokens per slice across the delivered tickets, which harness/kpi.py output_tokens_per_slice already records.",
+        "Scope held to the ticket's three slices in the order it names, because slice 1's refusal message depends on the token finding and slice 3's documents describe all of it. No renumbering, no widening: the ordering require() is not touched, the KPI glob is not touched, and nothing gains a refusal on a budget."
+      ],
+      "open_questions": [],
+      "changes_agent_action": false,
+      "graph_impact": [
+        "repowise risk, recorded at record 2: below typical, 25th percentile by size and spread, no bug-fix history in the files it touches. Scored against the working tree at the time, which held only this ticket's journal, so it is a floor and not a forecast; the files the plan actually names are harness/checks.py, harness/cli.py, harness/gates.py, harness/sessions.py and their tests, all of which the same repowise run has no bug-fix history for.",
+        "seen-scout, one brief, recorded separately: gates._require_the_routed_model at harness/gates.py:299-341 is the comparison routing.shadow(thresholds) switches off at line 312; it compares data['model_declared'] against the slice's routed tier first (line 328) and falls back to the model read from the log against routing.model_id (lines 335-341). A route record's execution entry carries position, name, points, files, red, model, effort, source, rule, reason, model_probability, effort_probability, model_passed, model_threshold and implementer_task. The ordering rule is one require() at harness/gates.py:258, previous_green seeded at 245 and advanced at 262."
+      ]
+    },
+    "decisions": [
+      {
+        "key": "clarified",
+        "question": "clarified",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.82,
+          "no": 0.18
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.8,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "key": "risk",
+        "question": "risk",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "medium",
+        "probabilities": {
+          "low": 0.22,
+          "medium": 0.78,
+          "high": 0.0
+        },
+        "confidence": 0.66,
+        "score": 0.78,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

@@ -127,14 +127,81 @@ def figures(root, identity=None):
     return dict(answer, output_tokens=output, tool_calls=calls)
 
 
-def against_budget(spent, limit):
+def subagent_figures(root, identity=None):
+    """Each subagent's own spending, apart from the parent that spawned it.
+
+    A Claude Code subagent inherits its parent's session id (settled in
+    SEEN-111's clarify record from a real log), so nothing in the parent's own
+    log tells a subagent's spending from its own: it writes a subagent's
+    transcript to `<session>/subagents/agent-*.jsonl` beside the parent's, and
+    that directory is the only place the split exists to read. One entry per
+    file found there, named from the `.meta.json` Claude Code writes beside
+    it, which is the only place that says what kind of agent it was.
+
+    Null rather than zero when the directory does not exist, the rule cost.py
+    already applies to a session with no log at all: an absence and a low
+    figure must not read the same.
+    """
+    identity = identifier() if identity is None else identity
+    answer = dict(agents=None, output_tokens=None, tool_calls=None, unavailable=None)
+    if not identity:
+        return dict(answer, unavailable='No session to look for subagents beside, so their '
+                                        'spending cannot be read; null is not zero')
+    directory = cost.log_directory(root) / identity / 'subagents'
+    if not directory.is_dir():
+        return dict(answer, unavailable='No subagents directory for this session, so their '
+                                        'spending cannot be read; null is not zero')
+    agents = []
+    total_output, total_calls = 0, 0
+    for path in sorted(directory.glob('agent-*.jsonl')):
+        output, calls, model = 0, 0, None
+        for line in path.read_text(errors='replace').splitlines():
+            try:
+                entry = json.loads(line)
+            except (json.JSONDecodeError, ValueError):
+                continue
+            message = entry.get('message') or {}
+            usage = message.get('usage') or {}
+            output += usage.get('output_tokens', 0) or 0
+            content = message.get('content')
+            if isinstance(content, list):
+                calls += sum(1 for block in content
+                             if isinstance(block, dict) and block.get('type') == 'tool_use')
+            name = message.get('model')
+            # Claude Code writes `<synthetic>` on an entry it generated itself,
+            # the same convention `model()` above already reads.
+            if name and not name.startswith('<'):
+                model = name
+        meta = path.with_suffix('.meta.json')
+        agent_type = None
+        if meta.is_file():
+            try:
+                agent_type = json.loads(meta.read_text()).get('agentType')
+            except (json.JSONDecodeError, ValueError):
+                agent_type = None
+        agents.append(dict(agent=agent_type, agent_id=path.stem, output_tokens=output,
+                           tool_calls=calls, model=model))
+        total_output += output
+        total_calls += calls
+    return dict(agents=agents, output_tokens=total_output, tool_calls=total_calls,
+               unavailable=None)
+
+
+def against_budget(spent, limit, subagents=None):
     """This session's spending set beside the budget for one slice.
 
     It reports and refuses nothing. Only the person at the keyboard can end a
     session, so the honest thing a command can do is say where the session
     stands and name the stop, which is the slice boundary and not the ticket.
+
+    `subagents` is carried through rather than folded into `output_tokens`,
+    because it is a different session's spending told apart from this one's,
+    read separately by `subagent_figures`; folding it in would make a
+    delegated slice's cost count twice against a budget that is this
+    session's own.
     """
-    answer = dict(spent, budget=limit, over=None, remaining=None, next_stop=None)
+    answer = dict(spent, budget=limit, over=None, remaining=None, next_stop=None,
+                  subagents=subagents)
     if spent.get('output_tokens') is None:
         return answer
     over = spent['output_tokens'] > limit

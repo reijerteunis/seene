@@ -113,6 +113,11 @@ def build_parser():
     check.add_argument('--model', dest='declared',
                        help='The tier this runner was spawned on, when it is a subagent and '
                             'knows: a disclosure, recorded beside the model read from the log')
+    check.add_argument('--agent', dest='agent_declared',
+                       help='The agent this runner was spawned as, when it is a subagent and '
+                            'knows: a disclosure, checked against [agents] names and not a '
+                            'proof, because a Claude Code subagent inherits its parent\'s '
+                            'session id and the log cannot say it either')
     check.add_argument('--timeout', type=int, help='Seconds before the command is stopped')
 
     advance = ticket_command('advance', 'Pass the current stage gate with completed evidence')
@@ -432,7 +437,10 @@ def budget(repository, ticket, rules):
     """
     limits = rules['session']
     spent = sessions.figures(repository.root)
-    return dict(ticket=ticket, **sessions.against_budget(spent, limits['output_token_budget']))
+    subagents = sessions.subagent_figures(repository.root)
+    return dict(ticket=ticket,
+               **sessions.against_budget(spent, limits['output_token_budget'],
+                                         subagents=subagents))
 
 
 def draft(repository, records, args):
@@ -646,8 +654,15 @@ def check(repository, folder, records, args, current, rules):
         require(declared in tiers,
                 f'{declared!r} is not one of {", ".join(tiers)}. A declared model is a tier from '
                 '[routing] tiers, which is what a route carries and what the gate compares')
+    agent_declared = getattr(args, 'agent_declared', None)
+    if agent_declared is not None:
+        roster = rules['agents']['names']
+        require(agent_declared in roster,
+                f'{agent_declared!r} is not one of the agents this repository generates: '
+                f'{", ".join(roster)}. A declared agent is a name from [agents] names, which '
+                'is what a check can honestly claim and nothing more')
     evidence = checks.run(repository, args.argv, phase, timeout, limits['output_limit_bytes'],
-                          declared=declared)
+                          declared=declared, agent=agent_declared)
     record = journal.append(folder, records, kind='check', stage=stage, attempt=current['attempt'],
                             actor=args.actor, head=repository.head(), ticket=args.ticket,
                             data=evidence)

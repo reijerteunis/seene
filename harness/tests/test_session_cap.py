@@ -456,6 +456,18 @@ class BudgetTest(SessionEnvironment):
                                   content=[dict(type='tool_use')] * tool_calls))
         (directory / f'{SESSION_ID}.jsonl').write_text(json.dumps(entry) + '\n')
 
+    def write_subagent_log(self, agent_id, agent_type, output_tokens, tool_calls=0):
+        """A subagent's own transcript, beside the parent's, the way Claude Code writes it."""
+        from harness import cost
+        directory = cost.log_directory(self.root) / SESSION_ID / 'subagents'
+        directory.mkdir(parents=True, exist_ok=True)
+        entry = dict(timestamp='2026-09-24T10:00:00Z',
+                     message=dict(usage=dict(output_tokens=output_tokens),
+                                  content=[dict(type='tool_use')] * tool_calls))
+        (directory / f'agent-{agent_id}.jsonl').write_text(json.dumps(entry) + '\n')
+        (directory / f'agent-{agent_id}.meta.json').write_text(
+            json.dumps(dict(agentType=agent_type)))
+
     def budget(self):
         return self.run_harness('budget', self.ticket_id)
 
@@ -489,6 +501,29 @@ class BudgetTest(SessionEnvironment):
         before = len(self.records())
         self.budget()
         self.assertEqual(len(self.records()), before)
+
+    def test_the_budget_reports_subagents_apart_from_the_parent(self):
+        self.write_log(1000, tool_calls=3)
+        self.write_subagent_log('x', 'seen-implementer', 500, tool_calls=2)
+        answer = self.budget()
+        # The parent's own figures do not move for a subagent's spending.
+        self.assertEqual(answer['output_tokens'], 1000)
+        self.assertEqual(answer['tool_calls'], 3)
+        subagents = answer['subagents']
+        self.assertEqual(subagents['output_tokens'], 500)
+        self.assertEqual(subagents['tool_calls'], 2)
+        self.assertEqual(len(subagents['agents']), 1)
+        entry = subagents['agents'][0]
+        self.assertEqual(entry['agent'], 'seen-implementer')
+        self.assertEqual(entry['output_tokens'], 500)
+        self.assertEqual(entry['tool_calls'], 2)
+
+    def test_no_subagents_directory_is_null_rather_than_zero(self):
+        self.write_log(10)
+        subagents = self.budget()['subagents']
+        self.assertIsNone(subagents['agents'])
+        self.assertIsNone(subagents['output_tokens'])
+        self.assertIn('null is not zero', subagents['unavailable'])
 
     def test_budget_carries_the_budget_it_judged_against(self):
         self.write_log(10)

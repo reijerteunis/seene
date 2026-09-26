@@ -37,7 +37,7 @@ def demonstrates_failure(evidence):
     return 0 < evidence['exit_code'] < TIMEOUT_EXIT
 
 
-def run(repository, command, phase, timeout, limit, declared=None):
+def run(repository, command, phase, timeout, limit, declared=None, agent=None):
     """Run one check and return the evidence to record.
 
     `declared` is the tier the runner says it was spawned on. It is a
@@ -47,6 +47,15 @@ def run(repository, command, phase, timeout, limit, declared=None):
     resolves to the parent's transcript and observes the parent's model. F1 of
     SEEN-108's second review, and the same position SEEN-105 took for the
     reviewer's session id.
+
+    `agent` is the same kind of disclosure, for the same reason, one level up:
+    whether this check was run by a subagent at all. A Claude Code subagent
+    inherits its parent's session id too (settled in SEEN-111's clarify record
+    from a real log), so the digest a record already carries cannot tell a
+    slice worked in a context of its own from one worked in the orchestrating
+    session's own, and nothing but the declaration can. Additive and null by
+    default, recorded beside `model_declared` rather than instead of anything,
+    exactly as SEEN-108 added that field.
     """
     require(bool(command), 'Supply the check command after --')
     before = repository.fingerprint()
@@ -77,6 +86,12 @@ def run(repository, command, phase, timeout, limit, declared=None):
                 # The gate compares this first, because it is the only thing on
                 # a subagent's side that knows.
                 model_declared=declared,
+                # What the runner says ran it, when it says anything: whether
+                # this check came from a context of its own rather than the
+                # orchestrating session's. Read no further than the argument,
+                # for the same reason model_declared is: nothing else on a
+                # subagent's side knows.
+                agent_declared=agent,
                 duration_ms=duration_ms,
                 output=captured[:limit].decode(errors='replace'),
                 output_sha256=hashlib.sha256(captured).hexdigest(),
