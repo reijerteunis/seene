@@ -250,7 +250,11 @@ solution, not a wall to work around. At the start of a session the pack is injec
 figure is; before a compaction the pack is written; when the reviewer stops its findings are held to
 the rule the review gate will apply, so a finding that gate would refuse costs one more answer
 rather than a whole round; and at the end of a turn `harness doctor --quick` runs. Every hook calls
-a command you can run yourself, and none of them is a rule that exists only in a hook.
+a command you can run yourself, and none of them is a rule that exists only in a hook. All six
+events go to both copies: codex-cli 0.156.1 carries a JSON Schema for each of them, so a compacting
+Codex session writes its pack and a Codex reviewer is held to the findings rule too. The one thing
+still unsettled is whether Codex reads a project-level `.codex/hooks.json` at all, which only a live
+Codex session answers.
 
 ## The worked example
 

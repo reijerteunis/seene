@@ -41,12 +41,13 @@
       "matcher": "manual|auto",
       "command": "hook pre-compact",
       "timeout": 30,
-      "clients": ["claude"],
+      "clients": ["claude", "codex"],
       "why": [
-        "Claude Code's alone: Codex documents no compaction hook, and an entry",
-        "naming one would be a command nothing ever runs. Both triggers, because",
-        "the automatic one is the one nobody chose and so the one that loses",
-        "the context."
+        "Both, because both compact: codex-cli 0.156.1 carries a JSON Schema for",
+        "this event, so a Codex session that compacts can write its pack too, and",
+        "a session losing the pack is what this event exists to prevent. Both",
+        "triggers, because the automatic one is the one nobody chose and so the",
+        "one that loses the context."
       ]
     },
     {
@@ -54,12 +55,12 @@
       "matcher": null,
       "command": "hook subagent-stop",
       "timeout": 20,
-      "clients": ["claude"],
+      "clients": ["claude", "codex"],
       "why": [
-        "Claude Code's alone, for the reason PreCompact is: Codex has no",
-        "subagent-stop event. Which agent stopped is read from the payload rather",
-        "than from a matcher, because the matcher on this event is not documented",
-        "as matching an agent name."
+        "Both, for the reason PreCompact is: the same schemas name this event, so",
+        "a Codex reviewer is held to the findings rule as well. Which agent",
+        "stopped is read from the payload rather than from a matcher, because the",
+        "matcher on this event is not documented as matching an agent name."
       ]
     },
     {

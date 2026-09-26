@@ -273,63 +273,103 @@ def _fingerprint_check(repository, records, attempt, now):
 
 
 def generated_paths():
-    """Every file `sync` writes from a source, which a record names by its source.
+    """Every file `sync` writes into, whether it writes the whole of it or a part.
 
-    A generated copy has no review surface of its own: `doctor` refuses one that
-    does not match what its source would generate, so naming the source is naming
-    the copy. Counting them as unplanned is the mistake the ticket file already
-    taught, one layer out, and it was found by running this triage on SEEN-107's
-    own branch: the four copies were flagged while both their sources were named,
-    which would have forced full depth on every harness ticket that runs sync.
+    What this set answers is the slice check's question: is a change here an
+    unplanned change. It is not, because a generated entry has no review surface
+    of its own: `doctor` refuses a copy whose generated part does not match what
+    its source would generate, so naming the source is naming that part. Counting
+    them as unplanned is the mistake the ticket file already taught, one layer
+    out, and it was found by running this triage on SEEN-107's own branch: the
+    four copies were flagged while both their sources were named, which would have
+    forced full depth on every harness ticket that runs sync.
 
     The Codex home copy is not here, because it lives outside the repository and
     can never be in a diff.
 
-    The two hook copies are here for the same reason as the rest, with one
-    difference a reviewer should know: neither is wholly generated, so what
-    `doctor` refuses is a hand edit to the entries the harness owns, and the
-    permissions block and another tool's entries in the same file are nobody's
-    generated output. A change there is a change to read.
+    The fingerprint asks a different question of the same files and gets a
+    different answer, which is why `wholly_generated_paths` exists beside this.
     """
-    from . import agents, hooks, skills
+    from . import hooks
+    return wholly_generated_paths() | {str(relative) for relative in hooks.COPIES.values()}
+
+
+def wholly_generated_paths():
+    """The copies `sync` writes end to end, and so the only ones a comparison may drop.
+
+    F1 of this ticket's first review: one list answered two questions. The slice
+    check asks whether a change is unplanned; the code fingerprint the review gate
+    compares asks whether a change is evidence about the work, which is a claim
+    only a wholly generated copy supports. `doctor` compares the skill copies and
+    the agent copies against their whole text, so a change in one either matches
+    the source or is already refused.
+
+    Neither hook copy is wholly generated. .claude/settings.json carries the
+    permission allowlist and `defaultMode` and .codex/hooks.json carries another
+    tool's entries, all of which nothing generates and `hooks.drift` cannot see,
+    so dropping them from the fingerprint let a permission widen between the
+    triage and the review advance with nothing refusing it. They stay in the
+    fingerprint, and the cost of that is a `sync` between the two needing the
+    triage run again, which is the cheaper of the two failures by far.
+    """
+    from . import agents, skills
     paths = {str(relative) for relative in skills.COMMITTED}
     for agent in agents.AGENTS:
         paths.add(str(agents.claude_copy(agent)))
         paths.add(str(agents.codex_copy(agent)))
-    return paths | {str(relative) for relative in hooks.COPIES.values()}
+    return paths
 
 
 def procedure_paths(records, root=None):
-    """Paths a solution record cannot plan and a comparison must not fire on.
+    """Paths the procedure itself writes between the triage and the advance.
 
     The ticket file, which the procedure writes: `status: doing` with the first
     commit, the `## Outcome` before review is left, the boxes ticked after the
-    reviewer has read. And the copies `sync` generates, for the reason
-    `generated_paths` gives. Neither is left out of the diff, only out of the
-    slice check and out of the code fingerprint the review gate compares: they
-    changed, and a reviewer can still be sent to them.
+    reviewer has read. And the copies `sync` generates whole, for the reason
+    `wholly_generated_paths` gives. This is what the code fingerprint leaves out,
+    here and in the review gate, and it is the narrower of the two sets: a file
+    only partly generated is evidence about the work in the part nothing
+    generates.
+
+    Nothing here is left out of the diff: they changed, and a reviewer can still
+    be sent to them.
     """
+    return _with_the_ticket_file(wholly_generated_paths(), records, root)
+
+
+def slice_exempt_paths(records, root=None):
+    """Paths no solution record plans, which is the wider of the two sets.
+
+    The slice check's question, answered by `generated_paths`: a copy `sync` wrote
+    is not an unplanned change even where only part of it is generated, because
+    the alternative is `slice_files` failing on every ticket that runs sync and
+    SEEN-109 having nothing left to calibrate.
+    """
+    return _with_the_ticket_file(generated_paths(), records, root)
+
+
+def _with_the_ticket_file(paths, records, root):
     if not records:
-        return generated_paths()
+        return paths
     from .cli import ticket_file
     path, _ = ticket_file(records[0]['data'],
                           records[0]['data'].get('ticket_id', records[0]['ticket']), root)
-    return ({path} - {None}) | generated_paths()
+    return ({path} - {None}) | paths
 
 
-def _slice_files_check(files, named, procedure):
+def _slice_files_check(files, named, exempt):
     """Every changed file is one the solution record planned, bar what it cannot plan.
 
     The ticket file is excluded because the procedure writes it and no solution
     record plans it: `status: doing` goes in with the first commit and the
     `## Outcome` section before review is left. A check that failed on the harness's
     own writing would fail on every ticket and mean nothing. Generated copies are
-    excluded for the reason `generated_paths` gives. Neither is excluded from the
-    diff, only from this check: they changed, and the reviewer can still be sent
-    to them.
+    excluded for the reason `generated_paths` gives, which is a wider set than the
+    fingerprint's. Neither is excluded from the diff, only from this check: they
+    changed, and the reviewer can still be sent to them.
     """
-    procedure = set(procedure)
-    outside = sorted(path for path in files if path not in named and path not in procedure)
+    exempt = set(exempt)
+    outside = sorted(path for path in files if path not in named and path not in exempt)
     if not outside:
         return _entry('slice_files', PASS,
                       f'All {len(files)} changed files are named by the accepted slice plan, '
@@ -415,7 +455,7 @@ def deterministic(repository, records, current, files, named, criteria, ticket, 
             _lint_check(repository.root),
             _gitleaks_check(repository),
             _fingerprint_check(repository, records, attempt, fingerprint),
-            _slice_files_check(files, named, procedure_paths(records, repository.root)),
+            _slice_files_check(files, named, slice_exempt_paths(records, repository.root)),
             _red_check(records),
             _tests_check(files),
             _acceptance_check(records, criteria),

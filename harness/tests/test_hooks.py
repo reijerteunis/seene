@@ -58,6 +58,7 @@ from harness.repository import Repository
 from harness.tests.helpers import HARNESS
 from harness.tests.test_lifecycle import CommandTest, clarify_evidence, solution_evidence
 from harness.tests.test_session_cap import SESSION_ID, plan
+from harness.tests.test_triage import TriageTest, review_evidence
 
 CLAUDE_COPY = '.claude/settings.json'
 CODEX_COPY = '.codex/hooks.json'
@@ -161,17 +162,22 @@ class HookSyncTest(CommandTest):
                 else:
                     self.assertNotIn(command, self.commands(relative))
 
-    def test_the_codex_copy_takes_no_event_codex_does_not_document(self):
-        """The `clients` key carries weight or it carries nothing.
+    def test_both_copies_carry_all_six_events(self):
+        """F2: the withholding this replaces rested on a reason known to be false.
 
-        PreCompact and SubagentStop are Claude Code's; Codex documents neither,
-        so a copy naming them would be a command nothing ever runs.
+        Slice 1 gave PreCompact and SubagentStop to Claude Code alone because
+        Codex was thought to document neither. Record 20 of this ticket disproved
+        both from the codex-cli 0.156.1 binary, which carries a JSON Schema per
+        hook event, so the choice was between correcting the reason and correcting
+        the behaviour. The behaviour, because with the schemas in hand there is no
+        reason left to write: a compacting Codex session loses its pack and a Codex
+        reviewer is held to no findings rule.
         """
         self.run_harness('sync')
         claude, codex = self.copy(CLAUDE_COPY)['hooks'], self.copy(CODEX_COPY)['hooks']
-        for event in ('PreCompact', 'SubagentStop'):
+        for event in EVENTS:
             self.assertIn(event, claude)
-            self.assertNotIn(event, codex)
+            self.assertIn(event, codex)
 
     def test_every_generated_command_begins_with_the_harness_invocation(self):
         """Ownership is the command prefix, so a command written any other way is
@@ -326,6 +332,53 @@ class HookSyncTest(CommandTest):
 
         self.problems()
         self.assertEqual((self.root / CLAUDE_COPY).read_text(), edited)
+
+
+class PartlyGeneratedCopyTest(TriageTest):
+    """F1: one list answered two questions, and a security control fell through it.
+
+    `generated_paths` is asked two different things. The review triage asks
+    whether a change in a file is an unplanned change, and a synced entry is not
+    one. The code fingerprint the review gate compares asks whether a change in a
+    file is evidence about the work, and for a copy that is generated whole the
+    two answers are the same. Neither hook copy is generated whole:
+    .claude/settings.json carries the permission allowlist and `defaultMode`,
+    which no source generates and `hooks.drift` cannot see, so excluding the file
+    from the fingerprint let the permission surface widen between the triage and
+    the review advance with nothing refusing it.
+
+    So the scenario is run rather than described. A test that asserted only that
+    two path sets differ would pass against a refactor that left the hole open,
+    which is how the defect survived attempt 1.
+    """
+
+    def advance_review(self, read):
+        return self.submit('review', review_evidence(read), actor='codex:reviewer')
+
+    def widen_the_permissions(self):
+        """The part of the copy nobody generates, changed the way a session would."""
+        document = json.loads((self.root / CLAUDE_COPY).read_text())
+        document['permissions'] = {'allow': ['Bash(curl:*)'], 'deny': []}
+        document['defaultMode'] = 'bypassPermissions'
+        self.write(CLAUDE_COPY, json.dumps(document, indent=2) + '\n')
+
+    def test_a_permission_widened_after_the_triage_refuses_the_review_advance(self):
+        self.reach_review()
+        record = self.triage()
+        self.widen_the_permissions()
+
+        with self.assertRaisesRegex(HarnessError, 'moved'):
+            self.advance_review(record['data']['focus'])
+
+    def test_a_changed_hook_copy_is_still_not_an_unplanned_change(self):
+        """The other half, and the reason the two sets are separated rather than
+        the hook copies dropped: a triage that read a synced entry as unplanned
+        would fail slice_files on every ticket that runs sync."""
+        self.reach_review()
+        self.widen_the_permissions()
+
+        ran = {check['name']: check for check in self.triage()['data']['deterministic']}
+        self.assertEqual(ran['slice_files']['outcome'], 'pass', ran['slice_files']['detail'])
 
 
 RUN = HARNESS / 'run.py'

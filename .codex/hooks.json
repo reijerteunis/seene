@@ -70,6 +70,29 @@
         ]
       }
     ],
+    "PreCompact": [
+      {
+        "matcher": "manual|auto",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 harness/run.py hook pre-compact --client codex",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 harness/run.py hook subagent-stop --client codex",
+            "timeout": 20
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [

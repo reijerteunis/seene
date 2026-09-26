@@ -1,0 +1,139 @@
+{
+  "sequence": 27,
+  "ticket": "SEEN-106",
+  "timestamp": "2026-09-26T11:03:08.476718+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "solution",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "session": "90d87d9d4058",
+  "head": "3a8efe64cb12548a6f1518a6a6583f09625004de",
+  "prev_hash": "74950fcf2f601cab6e34bb0668b51687533a0859af58174a40b6fd4e644a4168",
+  "data": {
+    "from_stage": "solution",
+    "to_stage": "tdd",
+    "evidence": {
+      "mode": "code",
+      "approach": "Attempt 1's shape stands and is not reopened: one source, a merge that owns only the harness's entries, a guard that is one pure decision, and a dispatcher that adds no rule. This amendment is the plan for the eight findings the review returned, and it corrects the one thing attempt 1 got structurally wrong. That is F1, and it is a distinction attempt 1 collapsed: `generated_paths()` answers two different questions with one list. For the review triage it answers 'is this file generated, so a change in it is not an unplanned change', and for the fingerprint in `gates._require_the_diff_has_not_moved` it answers 'is this file generated, so a change in it is not evidence about the work'. Those answers coincide for a wholly generated copy and diverge exactly where a copy is partly generated, which is what both hook copies are. `.claude/settings.json` carries the permission allowlist and `defaultMode`, which nothing generates and `hooks.drift` cannot see, so excluding it from the fingerprint lets a security control move between the triage and the review advance with nothing refusing it. So the two sets are separated: the triage keeps the hook copies, and the fingerprint exclusion holds only what is generated whole. The rest is repair with a test each, and one decision that is not repair: F2 asks which of a false reason and a withheld behaviour to correct, and the answer is the behaviour, because the schemas read out of the codex-cli binary in record 20 are evidence that Codex supports both events and there is then no reason left to state.",
+      "changes": [
+        "harness/triage.py: `generated_paths()` keeps both hook copies, so the triage still does not read a synced entry as an unplanned change, and a new narrower set holds only the wholly generated copies for `procedure_paths()` to exclude from the fingerprint. The docstring already says a change in a partly generated file is a change to read; this makes the code agree with it. F1.",
+        "harness/hooks.json: `clients` gives PreCompact and SubagentStop to Codex as well, and the `why` lines that said Codex documents neither are replaced by what the schemas actually show. F2.",
+        "harness/tests/test_hooks.py: the test asserting the withholding is replaced by one asserting both copies carry all six events, and the fixtures F7 asks for: the stage rule, the branch rule and the two allowances driven through each assistant's PreToolUse payload, and an assertion naming which side of a rename is judged. F2 and F7.",
+        "harness/kpi.py: `_closes` ignores a handoff record carrying `auto: true` when it keys a slice window, so an automatic pack no longer overwrites a declared boundary's figures, and the open cursor is left where the declared boundary put it. F3, and the cause of F6.",
+        "harness/hooks.py: `_subagent_stop` fails open on an absent `last_assistant_message`, the way `paths_in`, `_agent_that_stopped` and `_pre_compact` already do on the same class of absence, and refuses only an answer that carried something which was not a review record. The docstring's count of Codex events is corrected to what the journal's evidence supports. F4 and F8.",
+        "docs/harness/workflow.md: the hooks row's event count corrected from thirteen to the twelve the schemas name, and the Codex column corrected to say Codex takes all six harness events. F8 and F2.",
+        "CLAUDE.md: `guard` and `hook` added to the harness command list, which enumerates every command and names neither. F8.",
+        "docs/harness/skill.md: the two commands and the corrected Codex position, with `sync` regenerating the three skill copies. F2 and F8.",
+        "harness/tests/helpers.py and harness/guard.py: named by this plan rather than by a note, which is F5's remedy and the reason this amendment exists. Their content is unchanged by it.",
+        "docs/tickets/SEEN-106-enforce-the-harness-with-hooks-in-both.md: the Outcome, the status and the ticks, written before the review gate. Criterion 5 is not ticked until the Codex verification is in the journal."
+      ],
+      "migrations": [],
+      "tests_first": [
+        "The fingerprint covers .claude/settings.json while the triage still does not read it as unplanned. `python3 -m unittest harness.tests.test_triage harness.tests.test_hooks -v`. The RED must show a permissions change between a triage and a review advance passing the diff-has-not-moved check, which is F1's failure scenario executed rather than described: a test that only asserts the two sets differ would pass on a refactor that fixed nothing.",
+        "Both copies carry all six events. `python3 -m unittest harness.tests.test_hooks -v`. The RED is the existing test asserting the withholding, which must be seen to fail against the corrected source before it is replaced, so the replacement is recorded as a decision and not as a tidy-up.",
+        "An automatic pack does not overwrite a declared boundary's slice window. `python3 -m unittest harness.tests.test_kpi -v`. The RED must show windows[1] holding the figures of the auto record rather than of the declared boundary, with the two token counts different enough to tell apart; a test asserting only that `auto` is read would pass without the overwrite being fixed.",
+        "A SubagentStop payload with no last_assistant_message allows rather than blocks. `python3 -m unittest harness.tests.test_hooks -v`. The RED must show the block and quote the reason, so the fix is visible as fail-open rather than as a message change.",
+        "Each of the guard's three refusals and both allowances through each assistant's own PreToolUse payload, and a rename asserting which side is judged. `python3 -m unittest harness.tests.test_guard -v`. The RED must fail per rule rather than once, so a single shared helper cannot make one assertion stand for five.",
+        "The regression: `python3 -m unittest discover -s harness/tests` and `python3 harness/run.py doctor`, the second because the corrected source changes both generated copies and a doctor that refuses its own repository is the failure that matters."
+      ],
+      "slices": [
+        {
+          "name": "The fingerprint and the Codex events: F1 and F2",
+          "points": 2,
+          "files": [
+            "harness/triage.py",
+            "harness/hooks.json",
+            "harness/tests/test_hooks.py",
+            "docs/harness/workflow.md",
+            "docs/harness/skill.md",
+            ".claude/settings.json",
+            ".codex/hooks.json",
+            ".claude/skills/seen-harness/SKILL.md",
+            ".agents/skills/seen-harness/SKILL.md"
+          ],
+          "red": "A permissions change made between a triage and a review advance passes the diff-has-not-moved check, which is F1's scenario run rather than restated; and the existing test asserting Codex takes neither PreCompact nor SubagentStop fails against the corrected source, so its replacement is recorded as a decision."
+        },
+        {
+          "name": "The measurement and the two fail-open repairs: F3, F4, F7 and F8",
+          "points": 2,
+          "files": [
+            "harness/kpi.py",
+            "harness/hooks.py",
+            "harness/tests/test_kpi.py",
+            "harness/tests/test_hooks.py",
+            "harness/tests/test_guard.py",
+            "harness/guard.py",
+            "harness/tests/helpers.py",
+            "CLAUDE.md"
+          ],
+          "red": "windows[1] holds the auto record's figures instead of the declared boundary's, with the two counts far enough apart to tell apart; a SubagentStop payload with no last_assistant_message blocks and the reason is quoted; and each of the guard's five rules fails separately through each assistant's payload rather than once through a shared helper."
+        }
+      ],
+      "alternatives": [
+        "F1: drop both hook copies from `generated_paths()` altogether. Rejected because it answers the fingerprint's question correctly and the triage's question wrongly: every `sync` would then show as a change no slice named, `slice_files` would fail on every ticket that runs it, and the calibration window would record the narrowing as never able to save anything, which is F5's consequence arriving by a second route.",
+        "F2: keep the withholding and correct only the stated reason. Rejected. Once the schemas are the evidence there is no reason left to write, so the honest version of that option is a withholding with no reason at all, and the behaviour it withholds is the pack a compacting Codex session loses and the findings rule a Codex reviewer is never held to.",
+        "F3: have `current_slice` never infer a boundary mid-slice, so an auto record cannot carry a misleading `done`. Rejected as the wrong layer: the inference is right for the pack, whose job is to describe where the work stands, and it is `kpi.py` reading a pack as a boundary that is wrong. Fixing the writer to suit one reader would break the reader that is correct.",
+        "F6: add the missing boundary between slices 2 and 3. Refused rather than rejected. The journal is append-only and a boundary that did not happen cannot be written into it afterwards; that is the falsification the ADR on journal integrity exists to prevent. Its cause is fixed with F3 and the unrecoverable half is stated in the Outcome, where a reader of the sprint report can find it."
+      ],
+      "risks": [
+        "F1's test has to execute the failure rather than assert the shape of the fix, and it is the harder of the two to write: it needs a triage, then a permissions edit, then a review advance, in one temporary project. A test that asserts only that the two path sets differ would pass against a refactor that left the hole open, which is how this defect survived attempt 1 in the first place.",
+        "Giving Codex PreCompact and SubagentStop adds two entries whose live behaviour nobody has observed, because criterion 5's session has not run. The fixtures cover the generation and the dispatch; what stays unverified is the same thing that was unverified before, whether Codex loads this file at all, and it is now unverified for six events rather than four.",
+        "Attempt 2 is four points over two slices against a three-point estimate, on top of attempt 1's four. The ticket is past its estimate and the honest reading is that the hooks were two tickets; that call is Ruud's and the evidence for it is the two attempts rather than an argument.",
+        "The session working this is already far past the output token budget, so both slices go to implementers in their own contexts and each boundary writes a pack, which is F6's cause not being repeated while the ticket that found it is still open."
+      ],
+      "rollback": "Unchanged from attempt 1 and still local: `git revert` the commits, then `python3 harness/run.py sync`, which rewrites both copies from the reverted source and leaves the graphify entries, the repowise entries and the permissions block where they were. The one new consideration is that F1 changes what the fingerprint covers, so a revert restores the narrower coverage; that is a weakening rather than a break, and it is the state every ticket before this one delivered under.",
+      "new_dependencies": [],
+      "tenant_tables": [
+        "none: no database is touched. Harness tooling, two generated configuration files and documentation."
+      ],
+      "buyer_pii": "none. No buyer field is read, written or passed. The payloads carry file paths, a prompt, a compaction trigger and an agent's last message; the secrets check that refuses an environment value in a record is what guards the pack these hooks print.",
+      "policy_gate_action": null,
+      "slice_points": 4
+    },
+    "decisions": [
+      {
+        "key": "solution_complete",
+        "question": "solution_complete",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.67,
+          "no": 0.33
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "key": "touches_billing_or_policy_gate",
+        "question": "touches_billing_or_policy_gate",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.22,
+          "no": 0.78
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

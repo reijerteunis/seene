@@ -1,0 +1,32 @@
+{
+  "sequence": 29,
+  "ticket": "SEEN-106",
+  "timestamp": "2026-09-26T11:10:12.048178+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "session": "90d87d9d4058",
+  "head": "3a8efe64cb12548a6f1518a6a6583f09625004de",
+  "prev_hash": "8f103ab3664f77056ba1cb6dbec6d067b587cd62dc3e4e2ba484b758e8e111a7",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_triage",
+      "harness.tests.test_hooks"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "model": "claude-opus-5",
+    "model_declared": "opus",
+    "duration_ms": 84138,
+    "output": ".......................................................................................................................................................................................F...F..................................\n======================================================================\nFAIL: test_the_codex_copy_takes_no_event_codex_does_not_document (harness.tests.test_hooks.HookSyncTest.test_the_codex_copy_takes_no_event_codex_does_not_document)\nThe `clients` key carries weight or it carries nothing.\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_hooks.py\", line 175, in test_the_codex_copy_takes_no_event_codex_does_not_document\n    self.assertNotIn(event, codex)\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^\nAssertionError: 'PreCompact' unexpectedly found in {'SessionStart': [{'matcher': 'startup|resume|clear', 'hooks': [{'type': 'command', 'command': 'repowise-augment --client codex', 'timeout': 10, 'statusMessage': 'Loading repowise context...'}]}, {'matcher': 'startup|resume|clear', 'hooks': [{'type': 'command', 'command': 'python3 harness/run.py hook session-start --client codex', 'timeout': 20}]}], 'PostToolUse': [{'matcher': 'Bash|shell_command', 'hooks': [{'type': 'command', 'command': 'repowise-augment --client codex', 'timeout': 10, 'statusMessage': 'Checking repowise freshness...'}]}], 'UserPromptSubmit': [{'hooks': [{'type': 'command', 'command': 'python3 harness/run.py hook user-prompt-submit --client codex', 'timeout': 10}]}], 'PreToolUse': [{'matcher': 'Edit|Write|MultiEdit|apply_patch', 'hooks': [{'type': 'command', 'command': 'python3 harness/run.py hook pre-tool-use --client codex', 'timeout': 10}]}], 'PreCompact': [{'matcher': 'manual|auto', 'hooks': [{'type': 'command', 'command': 'python3 harness/run.py hook pre-compact --client codex', 'timeout': 30}]}], 'SubagentStop': [{'hooks': [{'type': 'command', 'command': 'python3 harness/run.py hook subagent-stop --client codex', 'timeout': 20}]}], 'Stop': [{'hooks': [{'type': 'command', 'command': 'python3 harness/run.py hook stop --client codex', 'timeout': 30}]}]}\n\n======================================================================\nFAIL: test_a_permission_widened_after_the_triage_refuses_the_review_advance (harness.tests.test_hooks.PartlyGeneratedCopyTest.test_a_permission_widened_after_the_triage_refuses_the_review_advance)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_hooks.py\", line 365, in test_a_permission_widened_after_the_triage_refuses_the_review_advance\n    with self.assertRaisesRegex(HarnessError, 'moved'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: HarnessError not raised\n\n----------------------------------------------------------------------\nRan 222 tests in 84.066s\n\nFAILED (failures=2)\n",
+    "output_sha256": "e9720d0087aff147ad08ad3e913bebf1cb7d8e02323938f8804dcd7e905411da",
+    "output_truncated": false,
+    "before": "7f5089888dec108d5844951614394a93dbef2efd70f3324bf57f57966fda0468",
+    "after": "7f5089888dec108d5844951614394a93dbef2efd70f3324bf57f57966fda0468"
+  }
+}
