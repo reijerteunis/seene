@@ -24,6 +24,19 @@ from .paths import (DRAFTS, HANDOFF_PACK, HISTORY, KINDS, LOCK, NON_CODE_TEMPLAT
                     TEMPLATES, TEMPLATE_FOR_STAGE, TICKETS, WORKING_STAGES)
 from .repository import Repository
 
+
+class GuardRefusal(HarnessError):
+    """A refusal from the edit guard, which blocks in both assistants.
+
+    A distinct exception rather than the plain HarnessError every other
+    command raises, because argparse itself exits 2 on an unknown command:
+    if a guard refusal also mapped to exit 1, main could not tell the two
+    apart, and a hook watching for exit 2 would treat every other harness
+    refusal as a block too. HarnessError still covers it for `require` and
+    for any caller that only wants to know something failed.
+    """
+
+
 DEFAULT_ROOT = Path(__file__).resolve().parents[1]
 TICKET_COMMANDS = ('start', 'status', 'history', 'draft', 'note', 'check', 'advance',
                    'return', 'graph', 'decide', 'coverage', 'handoff', 'budget', 'reopen',
@@ -188,6 +201,10 @@ def build_parser():
     report.add_argument('--calibration', action='store_true',
                         help='The evidence the review triage and the routes will be decided on, '
                              'per ticket and per slice, with the rule printed beside it')
+
+    guard = commands.add_parser(
+        'guard', help='Refuse an edit the stage or the accepted slice does not allow')
+    guard.add_argument('path', help='The path about to be written, project-relative or absolute')
 
     commands.add_parser('sync', help='Generate the skill copies from docs/harness/skill.md')
     commands.add_parser('lint', help='Refuse live marketplace hosts in test code')
@@ -1013,6 +1030,23 @@ def list_tickets(repository):
     return dict(tickets=tickets)
 
 
+def guard_command(repository, args, rules):
+    """Whether `args.path` may be written now, from the current branch's own ticket.
+
+    Neither writes a record nor takes an actor: it answers a question a hook
+    asks before every edit, and a journal entry for every keystroke a session
+    considers making would make the journal the thing that grows fastest.
+    """
+    from . import guard as guard_module
+    branch = repository.branch_or_none()
+    match = BRANCH.match(branch or '')
+    records = journal.read(journal_folder(repository, match.group('ticket'))) if match else []
+    decision = guard_module.decide(repository.root, records, branch, args.path, rules)
+    if not decision['allowed']:
+        raise GuardRefusal(decision['reason'])
+    return decision
+
+
 def execute(args):
     repository = Repository(args.root)
     repository.require_is_root()
@@ -1044,6 +1078,8 @@ def execute(args):
         return dict(ok=True, checked='test code', hosts=list(secrets.MARKETPLACE_HOSTS))
     if args.command == 'list':
         return list_tickets(repository)
+    if args.command == 'guard':
+        return guard_command(repository, args, rules)
 
     require_ticket_id(args.ticket, rules)
     if args.command in WRITING_COMMANDS:
@@ -1094,6 +1130,13 @@ def main(argv=None):
     try:
         args = parse(sys.argv[1:] if argv is None else argv)
         result = execute(args)
+    except GuardRefusal as error:
+        # Its own path to exit 2, checked before the general HarnessError
+        # below: argparse already exits 2 on a command it does not recognise,
+        # which is the reason every guard test asserts the reason text and
+        # not the code alone.
+        print(f'Harness: {error}', file=sys.stderr)
+        return 2
     except (HarnessError, OSError, ValueError, KeyError, TypeError,
             subprocess.TimeoutExpired) as error:
         print(f'Harness: {error}', file=sys.stderr)
