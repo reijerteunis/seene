@@ -39,8 +39,8 @@ The skill tells a session what to do; a hook makes the assistant unable to do ot
 ## Outcome
 
 Delivered after several rounds, which `docs/harness/history/SEEN-106/` counts and this paragraph
-deliberately does not: the code was written in the first three attempts and every round after
-them carried the split or a correction to the evidence. All four of this ticket's criteria are
+deliberately does not: the code was written before the split and every round after it carried the
+split itself or a correction to the evidence. All four of this ticket's criteria are
 met on recorded evidence. A fifth criterion asked what a live Codex session does and is
 SEEN-110's first by the amendment below, so this ticket neither claims it nor waits on it.
 
@@ -114,8 +114,8 @@ was missing `handoff`, `budget`, `route` and `review` before this ticket and sti
 two commands this ticket added were put in, because the other four are not this ticket's defect;
 they are SEEN-110's third and fourth criteria instead.
 
-The second review's triage found two more, both about the evidence rather than the code, and both
-made by the attempt that fixed the first eight. `slice_files` failed naming `.gitignore`,
+The triage at record 47 found two more, both about the evidence rather than the code, and both made
+by the round that fixed F1 to F8. `slice_files` failed naming `.gitignore`,
 `harness/cli.py`, `harness/doctor.py`, `harness/handoff.py` and `harness/paths.py`, because the
 amended solution record named only what its own attempt touched: fixing F5 by amending the plan
 reproduced F5's symptom one level up, and record 44's solution record carries a changes list
@@ -132,33 +132,36 @@ in this epic. The hooks were two tickets, and the evidence is the journal rather
 argument. How many rounds exactly is a number this section does not give, for the reason the
 next paragraph explains.
 
-One last thing about this section, because it is the defect it kept producing. Three separate
-reviews found a stale count or a stale cross-reference in this Outcome, each time in a summary
-rather than in the statement it summarised: F9's opening paragraph, F10's row in the workflow
-document, and the closing note above. The cause was the same every time, which is that a
+One last thing about this section, because it is the defect it kept producing. Review after review
+found a stale count or a stale cross-reference in this Outcome, each time in a summary rather than
+in the statement it summarised: the opening paragraph at F9, the workflow document's row at F10,
+the closing note at F11, the attributions of the split at F12, the counts themselves at F13, and
+this paragraph's own count of those reviews at F16. The cause was the same every time, which is that a
 summary written from memory goes stale the moment the thing it summarises moves, and an
 amendment moves things by definition. What finally fixed it was deriving the figures from the
 journal instead of restating them, which is the same discipline the harness applies to every
 other number it reports.
 
-A fourth review then found the gap that discipline still left. The counts were derived and
+A later review found the gap that discipline still left. The counts were derived and
 correct, but the attributions were not: three sentences placed the split at "the fourth
 attempt's solution stage", and the journal's own `attempt` field puts records 41 to 44 at
 attempt 5, while attempt 4 is records 39 and 40, a handoff and a return with no solution stage
 at all. An audit that checked counts and not attributions could not see it. Both now cite record
 numbers rather than attempt ordinals, because a record number is an identifier the journal fixes
-and an attempt ordinal is something a reader has to reconstruct and a writer can get wrong four
-times running.
+and an attempt ordinal is something a reader has to reconstruct and a writer kept getting wrong.
 
-A fifth review then found the one claim no audit of mine could have caught, and its diagnosis is
+A later review found the one claim no audit of mine could have caught, and its diagnosis is
 the thing worth keeping out of all of this. The harness requires this section to be written
 before the review that decides whether another round is needed. So a count of how many rounds
 the ticket took is, at the moment it is written, a claim about the future: it can only be right
-if the review it is about to face passes. This ticket needed one more round four times running,
-so the count was wrong four times, and the fourth time it was wrong in the very sentence written
-to fix the third. No amount of care fixes that, because the defect is in the shape of the claim
+if the review it is about to face passes. This ticket needed one more round again and again, so
+the count was wrong each time, and once it was wrong in the very sentence written to correct it. No amount of care fixes that, because the defect is in the shape of the claim
 and not in the care taken over it. The counts are therefore gone rather than corrected, and this
-section points at the journal for them. The reviewer recommended shortening over patching and
+section points at the journal for them. That first removal was still too narrow: it took out the
+counts of attempts, returns and records and left the paragraph above counting the reviews, which
+is the same claim about the same future wearing a different noun, and a later review found it at
+F16. Every count of this ticket's own rounds is now gone, and the ordinal words for them with it.
+The reviewer recommended shortening over patching and
 was right about the counts; the reasoning here is not self-referential and stays, because it is
 the most useful thing the ticket produced.
 

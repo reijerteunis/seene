@@ -1,0 +1,40 @@
+{
+  "sequence": 70,
+  "ticket": "SEEN-106",
+  "timestamp": "2026-09-26T14:52:21.778603+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 10,
+  "actor": "claude:implementer",
+  "session": "90d87d9d4058",
+  "head": "8928e4fd86b51c7561269b6cb927d9ec0a03e4b6",
+  "prev_hash": "6a6e3b0b217622be447febdc89f209e3c43bcde158a91318a8062bcd52931029",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "non-code",
+      "change_type": "policy",
+      "reason": "No executable behaviour is added or changed. The hooks, the guard and the dispatcher are built and proven earlier in this journal and are not re-proved here: records 9 and 10, 15 and 16, 17 and 18 for the three slices of the first plan, records 29 and 30, 32 and 33 for the eight findings the review at record 24 returned, carried through the tdd gate at advance 22 and advance 36. Every round after record 40 has changed ticket files, indexes and this journal and no Python at all, which the review at record 67's round verified against the diffs rather than taking on the declaration. This round removes the counts of its own rounds from the Outcome, on the diagnosis the review at record 67's round supplied: the harness requires the Outcome before the review that decides whether another round is needed, so a count of rounds is a claim about the future at the moment it is written and can only be right if that review passes. It was wrong four times, the fourth time in the sentence written to fix the third. The counts are gone rather than corrected and the Outcome points at this directory for them. This record cites record numbers and no attempt ordinals, deliberately. Record 66 did the opposite while claiming to have stopped, which is finding F14, and the journal being append-only it stands.",
+      "sources": [
+        "Record 69, the regression against the corrected tree: 1059 tests, exit 0, fingerprint identical before and after.",
+        "Record 68, the return carrying F13 and F14. F13 is fixed by removal. F14 is in an append-only record and cannot be repaired, so it is recorded as standing and the Outcome names it.",
+        "Record 37, the triage whose criterion_evidenced answers were 0.73, 0.68, 0.78 and 0.76 for the four criteria that stay and 0.13 for the one that moved, against a 0.6 bar.",
+        "Record 42's table, which carries the 0.54 and 0.55 solution-gate readings, and record 43, the split decision.",
+        "Record 20, the codex-cli 0.156.1 per-event JSON Schemas read out of the binary: twenty-three across the twelve events it names.",
+        "The review at record 67's round independently re-derived every checkable claim in the Outcome, including all ten RED and GREEN exit codes and failure texts against the failure_reason of advance 22 and advance 36, both fingerprint hashes, and the attempt field of records 39 to 44, and confirmed each. It then found the one claim no such audit could reach."
+      ],
+      "checks": [
+        69
+      ]
+    },
+    "decisions": [],
+    "figures": {
+      "session": "90d87d9d4058",
+      "output_tokens": 393777,
+      "tool_calls": 197,
+      "unavailable": null
+    }
+  }
+}
