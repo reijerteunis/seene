@@ -538,5 +538,213 @@ class SummaryTest(RunMixin, CommandTest):
         self.assertEqual(len(self.records()), before)
 
 
+class NamedConditionsTest(RunMixin, CommandTest):
+    """The criterion's five conditions, and which of them the loop finds itself.
+
+    Attempt 2 of SEEN-112, and the distinction the triage could not see: the six
+    reasons in `[run] stops` are a vocabulary, while the criterion names five
+    conditions. StopTest proves the vocabulary, that each reason reports its
+    stage, its record and one resume command, and that none is recorded twice. It
+    does not prove that a condition ends the run when it occurs, and a condition
+    a session has to remember to declare is weaker evidence than one a later
+    reader finds in the records: two sessions reading the same journal would
+    otherwise disagree about whether the run had ended.
+
+    So each of the five is classified here, and the classification is the loop's
+    own rather than this file's. Four are detected, from the journal or from what
+    verify-delivery already reads. One is declared, for one reason only: a gate
+    that refuses raises and writes nothing, so there is no record for a later
+    reader to find, and the declaration is then held to the vocabulary.
+    """
+
+    def clarify_draft(self, **changes):
+        """A clarify draft a session has written, so the next action is the gate."""
+        relative = f'.harness-drafts/{self.ticket_id}-clarify.json'
+        self.write(relative, json.dumps(clarify_evidence(**changes)))
+        return relative
+
+    def decided(self, question='clarified', answer='yes', confidence=0.52):
+        """One typed answer on record, with the confidence it came with.
+
+        0.52 against a bar of 0.8 is the shape of SEEN-112's own record 20, where
+        criterion_evidenced was answered no at 0.52: an answer somebody made, kept
+        with its probability, and below the bar the stage applies to it.
+        """
+        return self.run_harness('decide', self.ticket_id, '--question', question,
+                                '--answer', answer, '--confidence', str(confidence),
+                                '--actor', 'claude:implementer')
+
+    def test_each_of_the_five_conditions_is_either_detected_or_declared_exactly_once(self):
+        conditions = [reason for reason in loop.stops(self.rules())
+                      if reason != 'awaiting_authorisation']
+        # Five conditions, and the ordinary end of a run is not one of them: it is
+        # a stop that is not a failure.
+        self.assertEqual(len(conditions), 5, conditions)
+        self.assertEqual(sorted(conditions), sorted([*loop.DETECTED, *loop.DECLARED]),
+                         'Every condition the criterion names must be one the run detects or one '
+                         'a session declares, and the loop must say which')
+        self.assertEqual(set(loop.DETECTED) & set(loop.DECLARED), set())
+        self.assertNotIn('awaiting_authorisation', [*loop.DETECTED, *loop.DECLARED])
+        # And the one that is only declared is the one with nothing to detect,
+        # which the gate refusal test below is the evidence for.
+        self.assertEqual(tuple(loop.DECLARED), ('gate_refused',))
+
+    def test_a_recorded_answer_below_its_bar_stops_the_run_at_question_open(self):
+        self.start()
+        self.clarify_draft()
+        self.assertEqual(self.named(self.ask()), 'advance')
+        decision = self.decided()
+        self.assertIs(decision['data']['passed'], False)
+        action = self.assert_runnable(self.ask())
+        self.assertEqual(
+            action['kind'], 'stop',
+            'A Jev question that does not clear is one of the five conditions the criterion '
+            'names, and the answer on record cannot pass the gate it blocks, so offering '
+            f'{action["argv"][2]} again is retrying a decision: {action["argv"]}')
+        self.assertEqual(action['reason'], 'question_open')
+        self.assertEqual(action['stage'], 'clarify')
+        # It points at the decision record itself, which is where a reader sees
+        # the probability and the bar it did not clear.
+        self.assertEqual(action['record'], decision['sequence'])
+
+    def test_the_stop_names_the_question_to_answer_again_and_is_recorded_once(self):
+        self.start()
+        self.clarify_draft()
+        self.decided()
+        action = self.ask()
+        # One command, and it is the question put again: a note alone leaves the
+        # answer on record below its bar, so the advance would refuse identically.
+        self.assertEqual(self.named(action), 'decide')
+        self.assertIn('--question', action['resume'])
+        self.assertIn('clarified', action['resume'])
+        self.assertTrue(action['recorded'])
+        written = self.records()[-1]
+        self.assertEqual(written['kind'], 'stop')
+        self.assertEqual(written['data']['question'], 'clarified')
+        self.assertEqual(written['data']['resume'], action['resume'])
+        self.assertEqual(written['data']['record'], action['record'])
+        # Asked again it reports the same halt and writes nothing.
+        again = self.ask()
+        self.assertFalse(again['recorded'])
+        self.assertEqual(again['sequence'], written['sequence'])
+        self.assertEqual(self.kinds().count('stop'), 1)
+
+    def test_an_answer_that_clears_its_bar_is_not_a_stop(self):
+        self.start()
+        self.clarify_draft()
+        self.decided(confidence=0.9)
+        action = self.assert_runnable(self.ask())
+        self.assertNotEqual(action['kind'], 'stop')
+        self.assertEqual(self.named(action), 'advance')
+        self.assertNotIn('stop', self.kinds())
+
+    def test_an_answer_below_its_bar_on_a_question_this_stage_does_not_block_on_is_not_a_stop(self):
+        """The stage decides which questions block, and one reader decides it.
+
+        `risk` routes rather than blocks, so a low confidence in it is not a halt:
+        which way a question reads is cli.BLOCKING's, and the loop reads that
+        rather than keeping a second copy of it.
+        """
+        self.start()
+        self.clarify_draft()
+        self.decided(question='risk', answer='low', confidence=0.3)
+        self.assertNotEqual(self.ask()['kind'], 'stop')
+        self.assertNotIn('stop', self.kinds())
+
+    def test_a_gate_that_refuses_writes_no_record_so_the_session_declares_the_stop(self):
+        self.start()
+        before = len(self.records())
+        with self.assertRaisesRegex(HarnessError, 'acceptance'):
+            self.submit('clarify', clarify_evidence(acceptance=[]))
+        # Nothing for a later reader to find: the refusal is a raised error and an
+        # unwritten record, which is why this condition is the declared one.
+        self.assertEqual(len(self.records()), before)
+        self.assertNotEqual(self.ask()['kind'], 'stop')
+        action = self.assert_runnable(self.ask('--stop', 'gate_refused'))
+        self.assertEqual(action['reason'], 'gate_refused')
+        self.assertEqual(action['stage'], 'clarify')
+        self.assertEqual(action['record'], before)
+        # One runnable resume argv, and it is the same gate over the same draft.
+        self.assertEqual(self.named(action), 'advance')
+        self.assertIn(f'.harness-drafts/{self.ticket_id}-clarify.json', action['resume'])
+        self.assertEqual(self.records()[-1]['data']['resume'], action['resume'])
+        # And the declaration is held to the vocabulary: a reason nobody named is
+        # not a stop just because a session said so.
+        with self.assertRaisesRegex(HarnessError, 'stop'):
+            self.ask('--stop', 'the_gate_looked_cross')
+        self.assertEqual(self.kinds().count('stop'), 1)
+
+
+class RedCITest(RunMixin, DeliveryWalk):
+    """Red CI on the commit the receipt would attest, read and not declared.
+
+    Attempt 2 of SEEN-112. What CI says about a commit is what verify-delivery
+    already reads, so the run reads it one step earlier and stops at a named stop
+    rather than at a command that refuses. Only a completed check with a failing
+    conclusion is red: a pending check, a commit with no checks and a gh that
+    cannot answer are each verify-delivery's own refusal to explain in its own
+    words, and none of them is this stop.
+    """
+
+    def failing(self, conclusion='failure'):
+        from harness import github
+        github.CHECKS = lambda repository, commit: [
+            dict(name='Harness tests (Python 3.12)', status='completed', conclusion=conclusion)]
+
+    def test_red_ci_stops_the_run_before_the_receipt_and_nobody_declares_it(self):
+        self.walk_to_deliver()
+        self.commit_and_push()
+        self.failing()
+        reviewed = self.records()[-1]['sequence']
+        action = self.assert_runnable(self.ask())
+        self.assertEqual(
+            action['kind'], 'stop',
+            'Red CI is one of the five conditions the criterion names, and it is readable from '
+            f'what verify-delivery already reads, so the run must not offer {action["argv"][2]} '
+            'and wait for a session to declare the stop')
+        self.assertEqual(action['reason'], 'ci_red')
+        self.assertEqual(action['stage'], 'deliver')
+        # The record it stopped on, never the stop itself.
+        self.assertEqual(action['record'], reviewed)
+        # The check that is red is named, and the resume is the verification that
+        # writes the receipt once it is green.
+        self.assertIn('Harness tests (Python 3.12)', action['why'])
+        self.assertEqual(self.named(action), 'verify-delivery')
+        written = self.records()[-1]
+        self.assertEqual(written['kind'], 'stop')
+        self.assertEqual(written['data']['record'], reviewed)
+        self.assertEqual(written['data']['checks'], ['Harness tests (Python 3.12) (failure)'])
+        self.assertEqual(written['data']['why'], action['why'])
+        self.assertNotIn('receipt', self.kinds())
+        self.ask()
+        self.assertEqual(self.kinds().count('stop'), 1)
+
+    def test_ci_that_has_not_finished_is_not_this_stop(self):
+        self.walk_to_deliver()
+        from harness import github
+        github.CHECKS = lambda repository, commit: [
+            dict(name='Harness tests (Python 3.12)', status='in_progress', conclusion=None)]
+        self.assertNotEqual(self.ask()['kind'], 'stop')
+        self.assertNotIn('stop', self.kinds())
+
+    def test_a_gh_that_cannot_answer_is_not_this_stop(self):
+        self.walk_to_deliver()
+
+        def cannot(repository, commit):
+            raise HarnessError('gh is not installed, so this delivery cannot be verified')
+
+        from harness import github
+        github.CHECKS = cannot
+        self.assertNotEqual(self.ask()['kind'], 'stop')
+        self.assertNotIn('stop', self.kinds())
+
+    def test_a_skipped_check_is_green_and_not_red(self):
+        self.walk_to_deliver()
+        self.commit_and_push()
+        self.failing(conclusion='skipped')
+        self.assertNotEqual(self.ask()['kind'], 'stop')
+        self.assertNotIn('stop', self.kinds())
+
+
 if __name__ == '__main__':
     unittest.main()

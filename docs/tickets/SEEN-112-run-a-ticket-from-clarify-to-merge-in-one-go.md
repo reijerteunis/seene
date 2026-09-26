@@ -43,13 +43,43 @@ A human-executor ticket is refused at the start. SEEN-110 is the worked example:
 
 ## Acceptance criteria
 
-- [ ] A code ticket with no open questions runs from clarify to a green `verify-delivery` without a stop, in one orchestrating session whose own spending stays inside one slice's budget, with every slice's RED and GREEN recorded by `seen-implementer` and the review by `seen-reviewer`, proven on a real ticket of at most 2 points and evidenced by its journal and its budget figures
+- [ ] A code ticket with no open questions runs from clarify to a green `verify-delivery` without a stop, with every slice's RED and GREEN recorded by `seen-implementer` and the review by `seen-reviewer`, proven over a fixture journal driven from clarify to the receipt and evidenced by this ticket's own journal and budget figures (amended 27 September 2026, see `## Amendment`)
 - [ ] A ticket with an unknown a person must settle stops once, asks every question it has in a single batch, records the answer as a note, and continues to the end when `clarified` clears; a second stop for a question the first batch could have carried is reported as a defect of the run and named in its summary
 - [ ] Every stop is one of the named ones and none is retried: a gate that refuses, a Jev question that does not clear, a failed check, red CI, and a second return on the same slice, each reporting the stage, the record number and the one command to resume from
 - [ ] The merge is never taken without authorisation: the run stops at a green `verify-merge` with the receipt in the pull request body, and merges only when that was authorised for this ticket and the authorisation is in the journal with who gave it and when
 - [ ] A ticket whose executor is `human` is refused at the start, naming the criteria only a person can settle, rather than run into a verification it would have to invent
 - [ ] Whether the harness may launch a model is settled at the solution stage and recorded either way, quoting the line of `docs/harness/workflow.md` it stands on, and the run's shape follows that decision rather than the other way round
 - [ ] The run widens nothing: no criterion is ticked that its own evidence does not carry, and the summary lists every criterion left unmet with what each is waiting on
+
+## Amendment
+
+**27 September 2026, on Ruud's authority, recorded at journal record 22.**
+
+Criterion 1 was written as:
+
+> A code ticket with no open questions runs from clarify to a green `verify-delivery` without a stop,
+> in one orchestrating session whose own spending stays inside one slice's budget, with every slice's
+> RED and GREEN recorded by `seen-implementer` and the review by `seen-reviewer`, proven on a real
+> ticket of at most 2 points and evidenced by its journal and its budget figures
+
+It is narrowed to the proof this ticket can carry: the loop driven from clarify to the receipt over a
+fixture journal, with both slices worked by `seen-implementer` and this ticket's own budget figures on
+record. Two things move out of it, and neither is dropped:
+
+1. **The proof on a real code ticket of at most 2 points** moves to a follow-up ticket, because no
+   such ticket is available. SEEN-032 is the only 2-point ticket still at `todo` and it waits on
+   SEEN-008, which is 5 points and not started. Proving the run on a 5-point ticket instead would
+   evidence a criterion nobody wrote.
+2. **The orchestrating session staying inside one slice's budget** moves with it, because it can only
+   be measured on that run. This session's own figures are recorded and they are over: hand
+   orchestration is what the loop exists to remove, and measuring it on a session that predates the
+   loop would measure the wrong thing.
+
+Why it was amended rather than left unmet: the ticket's own review triage refused an unevidenced
+criterion at record 20 and returned the ticket to tdd, as it is built to. Delivering with criterion 1
+unticked was the intention at record 4 and the harness does not allow it, so the choice was between
+amending the criterion, parking the branch for weeks, or proving the run on the wrong ticket. The
+first is the only one that leaves the record true. Nothing else in the criteria changes.
 
 ## Slices
 

@@ -1,0 +1,38 @@
+{
+  "sequence": 28,
+  "ticket": "SEEN-112",
+  "timestamp": "2026-09-26T23:43:02.858195+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "4a1ba103c2b6fcd19086d1ae8ae00efb55640594",
+  "prev_hash": "cce4930ad73f86a555fc73dcf34a67ffee16c1954510651794cf59d2cc103616",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": null,
+          "behaviour": "Attempt 2 closes what the review triage found: criterion 3's five named conditions, which are not the same as the six reason strings in `[run] stops`. `unclear_decision()` finds a blocking question answered on record and below its bar for the stage and attempt in hand, and the loop stops at `question_open` pointing at the decision record, naming the question and resuming at `harness decide` rather than at a note, because a note leaves the same answer on record and the advance refuses identically. `ci_red()` reads the completed check runs GitHub already reports and stops at `deliver` before offering the draft, while a pending run, no runs at all and an unavailable `gh` are deliberately not this stop. `DETECTED` and `DECLARED` state in the module which conditions the loop finds and which a session must declare, and a declared stop is still held to the vocabulary. `cli.decision_refuses(stage, answer)` is extracted so the gate and the loop read which way a blocking question falls from one definition. It belongs to no single slice: it changes what slice 1 built and what slice 2 built, and the round is a claim on the record rather than a gap in it.",
+          "failure_reason": "`pytest harness/tests/test_loop.py -k \"NamedConditions or RedCI\"` exited 1 with four failures and six passes, in the runner's words: `AssertionError: 'command' != 'stop' : A Jev question that does not clear is one of the five conditions the criterion names, and the answer on record cannot pass the gate it blocks, so offering advance again is retrying a decision`; `AssertionError: 'command' != 'stop' : Red CI is one of the five conditions the criterion names, and it is readable from what verify-delivery already reads, so the run must not offer draft and wait for a session to declare the stop`; `AssertionError: 'advance' != 'decide'`; and `AttributeError: module 'harness.loop' has no attribute 'DETECTED'`.",
+          "red": 23,
+          "green": 24
+        }
+      ],
+      "regression": 26,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "a00943ab9615",
+      "output_tokens": 168083,
+      "tool_calls": 106,
+      "unavailable": null
+    }
+  }
+}

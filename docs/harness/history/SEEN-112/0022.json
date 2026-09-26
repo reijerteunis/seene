@@ -1,0 +1,16 @@
+{
+  "sequence": 22,
+  "ticket": "SEEN-112",
+  "timestamp": "2026-09-26T23:29:31.441115+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "4a1ba103c2b6fcd19086d1ae8ae00efb55640594",
+  "prev_hash": "f03b73cfe849cae1d1fa82bccb3b09332a6f4e5761fcd49f249da72676aa7984",
+  "data": {
+    "text": "# The second question batch, which is a defect of this run, and Ruud's answer\n\n**Named as a defect first, because this ticket's own criterion 2 requires it.** This is the second time\nthe work stopped to ask. The first batch (record 4) asked what proves criterion 1 and Ruud chose to\ndeliver with it unmet and named. That answer was refused by the ticket's own review triage at record\n20: `criterion_evidenced` came back no at 0.96 for criterion 1, and a criterion with nothing behind it\nreturns the ticket to tdd before any reviewer reads the diff. So the first batch asked the right\nquestion and accepted an answer the harness does not allow, which is the defect: the question to ask\nat record 4 was not \"what proves criterion 1\" but \"what happens to criterion 1 given that the gate\nwill refuse an unevidenced one\". Nothing in the second batch was unknowable at the time of the first.\nA run that did this would report it exactly here, in its summary, and so does this one.\n\n**The answer.** Criterion 1 is amended rather than deferred or proven on the wrong ticket. On Ruud's\nauthority, 27 September 2026: the criterion is narrowed to what this ticket proves, the loop driven\nfrom clarify to receipt over a fixture journal with both slices worked by `seen-implementer` and the\nreal budget figures on record, and the proof on a real code ticket of at most 2 points moves to a\nfollow-up ticket, because none exists today. SEEN-032 is the only 2-point ticket still at `todo` and\nit waits on SEEN-008, which is 5 points and not started. The ticket file carries an `## Amendment`\nsection quoting the criterion as it was written, so the narrowing is legible beside the original\nrather than in place of it; record 1's ticket snapshot holds the original in the journal as well.\n\nTwo alternatives were declined: parking the branch at tdd until SEEN-008 and then SEEN-032 land, which\nleaves the loop unused for weeks while every ticket in between is worked the old way; and proving it\non SEEN-008 at 5 points with the deviation recorded, which was declined at record 4 and again here.\n"
+  }
+}

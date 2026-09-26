@@ -946,21 +946,30 @@ def stage_decisions(repository, records, args, current, rules, evidence):
     return [taken.get(name) or fresh[name] for name in jev.questions_for(stage)]
 
 
-def require_decisions_pass(stage, answers):
-    """Refuse an advance the stage's blocking questions did not allow.
+def decision_refuses(stage, answer):
+    """Whether one recorded answer blocks an advance out of this stage.
 
-    Each blocking question says which way it reads. A decision that could not be
-    taken at all blocks nothing: it is recorded as unavailable and counted later,
-    rather than standing in for a judgement.
+    One definition, because two readers need it: this gate refuses the advance on
+    it, and the run stops at question_open on it when the answer is already in the
+    journal. A second copy of which way a question reads is how the two would
+    come to disagree about the same record.
+
+    A decision that could not be taken at all blocks nothing: it is recorded as
+    unavailable and counted later, rather than standing in for a judgement.
     """
+    sense = BLOCKING.get(stage, {}).get(answer['question'])
+    if sense is None or answer.get('passed') is None:
+        return False
+    return (answer['passed'] is False) if sense == 'clears' else bool(answer['passed'])
+
+
+def require_decisions_pass(stage, answers):
+    """Refuse an advance the stage's blocking questions did not allow."""
     rules = BLOCKING.get(stage, {})
     for answer in answers:
-        sense = rules.get(answer['question'])
-        if sense is None or answer['passed'] is None:
+        if not decision_refuses(stage, answer):
             continue
-        refused = (answer['passed'] is False) if sense == 'clears' else answer['passed']
-        if not refused:
-            continue
+        sense = rules[answer['question']]
         probability = answer['probabilities'].get(
             'yes', answer['probabilities'].get(answer['outcome'], 0.0))
         # The message says what happened. Printing the rule's own word made a

@@ -1,0 +1,35 @@
+{
+  "sequence": 23,
+  "ticket": "SEEN-112",
+  "timestamp": "2026-09-26T23:31:08.524037+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "4a1ba103c2b6fcd19086d1ae8ae00efb55640594",
+  "prev_hash": "2661245d5a9dbf526f6a7f23f99e88005863e7c09c4a60cb4d1c99038895b567",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "pytest",
+      "harness/tests/test_loop.py",
+      "-q",
+      "-k",
+      "NamedConditions or RedCI"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "model": "claude-opus-5",
+    "model_declared": "opus",
+    "agent_declared": "seen-implementer",
+    "duration_ms": 3576,
+    "output": ".F..FF...F                                                               [100%]\n=================================== FAILURES ===================================\n_ NamedConditionsTest.test_a_recorded_answer_below_its_bar_stops_the_run_at_question_open _\n\nself = <harness.tests.test_loop.NamedConditionsTest testMethod=test_a_recorded_answer_below_its_bar_stops_the_run_at_question_open>\n\n    def test_a_recorded_answer_below_its_bar_stops_the_run_at_question_open(self):\n        self.start()\n        self.clarify_draft()\n        self.assertEqual(self.named(self.ask()), 'advance')\n        decision = self.decided()\n        self.assertIs(decision['data']['passed'], False)\n        action = self.assert_runnable(self.ask())\n>       self.assertEqual(\n            action['kind'], 'stop',\n            'A Jev question that does not clear is one of the five conditions the criterion '\n            'names, and the answer on record cannot pass the gate it blocks, so offering '\n            f'{action[\"argv\"][2]} again is retrying a decision: {action[\"argv\"]}')\nE       AssertionError: 'command' != 'stop'\nE       - command\nE       + stop\nE        : A Jev question that does not clear is one of the five conditions the criterion names, and the answer on record cannot pass the gate it blocks, so offering advance again is retrying a decision: ['python3', 'harness/run.py', 'advance', 'SEEN-001', '--file', '.harness-drafts/SEEN-001-clarify.json', '--actor', 'claude:implementer']\n\nharness/tests/test_loop.py:599: AssertionError\n_ NamedConditionsTest.test_each_of_the_five_conditions_is_either_detected_or_declared_exactly_once _\n\nself = <harness.tests.test_loop.NamedConditionsTest testMethod=test_each_of_the_five_conditions_is_either_detected_or_declared_exactly_once>\n\n    def test_each_of_the_five_conditions_is_either_detected_or_declared_exactly_once(self):\n        conditions = [reason for reason in loop.stops(self.rules())\n                      if reason != 'awaiting_authorisation']\n        # Five conditions, and the ordinary end of a run is not one of them: it is\n        # a stop that is not a failure.\n        self.assertEqual(len(conditions), 5, conditions)\n>       self.assertEqual(sorted(conditions), sorted([*loop.DETECTED, *loop.DECLARED]),\n                                                      ^^^^^^^^^^^^^\n                         'Every condition the criterion names must be one the run detects or one '\n                         'a session declares, and the loop must say which')\nE       AttributeError: module 'harness.loop' has no attribute 'DETECTED'\n\nharness/tests/test_loop.py:583: AttributeError\n_ NamedConditionsTest.test_the_stop_names_the_question_to_answer_again_and_is_recorded_once _\n\nself = <harness.tests.test_loop.NamedConditionsTest testMethod=test_the_stop_names_the_question_to_answer_again_and_is_recorded_once>\n\n    def test_the_stop_names_the_question_to_answer_again_and_is_recorded_once(self):\n        self.start()\n        self.clarify_draft()\n        self.decided()\n        action = self.ask()\n        # One command, and it is the question put again: a note alone leaves the\n        # answer on record below its bar, so the advance would refuse identically.\n>       self.assertEqual(self.named(action), 'decide')\nE       AssertionError: 'advance' != 'decide'\nE       - advance\nE       + decide\n\nharness/tests/test_loop.py:617: AssertionError\n_ RedCITest.test_red_ci_stops_the_run_before_the_receipt_and_nobody_declares_it _\n\nself = <harness.tests.test_loop.RedCITest testMethod=test_red_ci_stops_the_run_before_the_receipt_and_nobody_declares_it>\n\n    def test_red_ci_stops_the_run_before_the_receipt_and_nobody_declares_it(self):\n        self.walk_to_deliver()\n        self.commit_and_push()\n        self.failing()\n        action = self.assert_runnable(self.ask())\n>       self.assertEqual(\n            action['kind'], 'stop',\n            'Red CI is one of the five conditions the criterion names, and it is readable from '\n            f'what verify-delivery already reads, so the run must not offer {action[\"argv\"][2]} '\n            'and wait for a session to declare the stop')\nE       AssertionError: 'command' != 'stop'\nE       - command\nE       + stop\nE        : Red CI is one of the five conditions the criterion names, and it is readable from what verify-delivery already reads, so the run must not offer draft and wait for a session to declare the stop\n\nharness/tests/test_loop.py:699: AssertionError\n=========================== short test summary info ============================\nFAILED harness/tests/test_loop.py::NamedConditionsTest::test_a_recorded_answer_below_its_bar_stops_the_run_at_question_open\nFAILED harness/tests/test_loop.py::NamedConditionsTest::test_each_of_the_five_conditions_is_either_detected_or_declared_exactly_once\nFAILED harness/tests/test_loop.py::NamedConditionsTest::test_the_stop_names_the_question_to_answer_again_and_is_recorded_once\nFAILED harness/tests/test_loop.py::RedCITest::test_red_ci_stops_the_run_before_the_receipt_and_nobody_declares_it\n4 failed, 6 passed, 24 deselected in 3.42s\n",
+    "output_sha256": "e6197667205cddc4434ab3550e22d2326b012671fcf13d2dd32789996e53914f",
+    "output_truncated": false,
+    "before": "fb80606188434b599f817bceef89e5f4aac3d62a91fa7f7b35f7b9fd745ded30",
+    "after": "fb80606188434b599f817bceef89e5f4aac3d62a91fa7f7b35f7b9fd745ded30"
+  }
+}

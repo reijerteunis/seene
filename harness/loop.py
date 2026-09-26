@@ -106,6 +106,26 @@ WHY = {
 GENERIC_WHY = ('A named stop from [run] stops in harness/thresholds.toml. It ends the run and is '
                'not retried.')
 
+# Which of the five conditions the run finds for itself, and which one a session
+# has to declare. The vocabulary is thresholds' and this is a claim about the
+# records: a condition in DETECTED is one a fresh session reading the same journal
+# reaches the same stop on, with nobody remembering to say so, and a stop nobody
+# has to remember is the stronger evidence of the two.
+#
+# gate_refused is declared for one reason only, that a gate refusing raises and
+# appends nothing: there is no record for a later reader to find, so the session
+# that saw the refusal is the only witness there is, and what holds it honest is
+# the vocabulary. awaiting_authorisation is in neither, because it is the ordinary
+# end of a run rather than one of the conditions the ticket names.
+DETECTED = ('question_open', 'check_failed', 'ci_red', 'second_return')
+DECLARED = ('gate_refused',)
+
+# What a person fills in on the one resume argv that cannot be complete: the same
+# placeholders jev's own unavailable message uses, so the command the run prints
+# and the command the harness documents read alike.
+OPTION = '<option>'
+CONFIDENCE = '<0 to 1>'
+
 
 def stops(rules):
     """The named stops, in the order thresholds.toml lists them."""
@@ -297,6 +317,70 @@ def _failed_check(records, current):
     return None
 
 
+def unclear_decision(records, current):
+    """A blocking question this stage answered on record and below its bar.
+
+    A Jev question that does not clear is one of the ticket's five conditions, and
+    the journal carries it whenever the answer was recorded rather than asked
+    inside an advance: cli.recorded_decisions reuses the latest answer per question
+    for this stage and attempt, so an answer below its bar refuses the same advance
+    every time it is run. Offering that advance again is retrying a decision, which
+    is what the criterion forbids, so the run stops instead.
+
+    Which way each question reads is cli.BLOCKING's and cli.decision_refuses
+    applies it, so the stop and the refusal are decided by one reader. A score
+    question routes rather than blocks and is therefore never this stop, and an
+    answer nobody could take is recorded as unavailable and blocks nothing.
+    """
+    from .cli import decision_refuses
+    latest = {}
+    for record in records:
+        if (record['kind'] == 'decision' and record['stage'] == current['stage']
+                and record['attempt'] == current['attempt']):
+            latest[record['data']['question']] = record
+    for record in sorted(latest.values(), key=lambda entry: entry['sequence']):
+        if decision_refuses(current['stage'], record['data']):
+            return record
+    return None
+
+
+def ci_red(repository, commit):
+    """The checks that are not green on one commit, or nothing. Read, never kept.
+
+    What verify-delivery already reads, read one step earlier so that red CI ends
+    the run at a named stop rather than at a command that refuses. Only a completed
+    check with a conclusion outside github.GREEN is red here: a check still
+    running, a commit with no checks at all and a gh that cannot answer are each a
+    refusal verify-delivery states in its own words, and none of them is evidence
+    that CI failed.
+    """
+    from . import github
+    try:
+        runs = github.latest_per_name(github.check_runs(repository, commit))
+    except (HarnessError, OSError):
+        return None
+    return [f'{run["name"]} ({run["conclusion"]})' for run in runs
+            if run.get('status') == 'completed' and run.get('conclusion') not in github.GREEN]
+
+
+def details(repository, ticket, records, current, reason):
+    """What a stop of this reason carries beyond its name and its record number.
+
+    Read fresh wherever a stop is built, which is the precedent halt already set
+    for a question batch: the draft is read where it lives rather than passed from
+    one call to the next. So the action a run reports and the record it writes are
+    built from the same reading and say the same thing.
+    """
+    if reason == 'question_open':
+        unclear = unclear_decision(records, current)
+        if unclear is not None:
+            return dict(question=unclear['data']['question'])
+        return dict(questions=open_questions(repository, ticket))
+    if reason == 'ci_red':
+        return dict(checks=ci_red(repository, repository.head()) or [])
+    return {}
+
+
 def _second_return(records):
     """The second return since the plan in hand was accepted, or nothing.
 
@@ -315,18 +399,24 @@ def _evident_stop(records, current):
     """A stop the journal itself shows, as its reason and the record it points at.
 
     A second return first: a failing check inside a plan that has already been
-    returned twice is the smaller of the two things a person has to decide.
+    returned twice is the smaller of the two things a person has to decide. A
+    question that did not clear comes before the failing check for the same
+    reason: what only a person can settle is the further-out of the two, and the
+    check inside it is the smaller.
     """
     thrashing = _second_return(records)
     if thrashing is not None:
         return 'second_return', thrashing
+    unclear = unclear_decision(records, current)
+    if unclear is not None:
+        return 'question_open', unclear['sequence']
     failed = _failed_check(records, current)
     if failed is not None:
         return 'check_failed', failed
     return None
 
 
-def resume(reason, ticket, stage, actor):
+def resume(reason, ticket, stage, actor, detail=None):
     """The one command a person runs to take the run forward from a stop.
 
     One command, because a stop that offered three is a stop that has not said
@@ -334,9 +424,17 @@ def resume(reason, ticket, stage, actor):
     in CI, the command is the run itself: it reads the journal again and says
     what is next from there.
     """
+    detail = detail or {}
     if reason == 'gate_refused':
         return _argv('advance', ticket, '--file', draft_of(ticket, stage), '--actor', actor)
     if reason == 'question_open':
+        # A question already answered on record and below its bar is not resumed by
+        # a note: the answer the gate reads would be the same one, and the advance
+        # would refuse identically. What moves it is that question put again, once
+        # a person has settled what it is about.
+        if detail.get('question'):
+            return _argv('decide', ticket, '--question', detail['question'], '--answer', OPTION,
+                         '--confidence', CONFIDENCE, '--actor', actor)
         return _argv('note', ticket, '--file', f'{DRAFTS}/{ticket}-answers.md', '--actor', actor)
     if reason == 'ci_red':
         return _argv('verify-delivery', ticket, '--file', draft_of(ticket, 'deliver'),
@@ -348,27 +446,50 @@ def resume(reason, ticket, stage, actor):
     return _argv('run', ticket, '--actor', actor)
 
 
-def stop(reason, stage, record, resume_argv, why=None, questions=()):
+def why_for(reason, detail=None):
+    """How a stop reads, and what it names about this one in particular.
+
+    The wording per reason is WHY's; what this adds is the thing a person would
+    otherwise have to go and look up: which check is not green, and which question
+    is answered below its bar.
+    """
+    why = WHY.get(reason, GENERIC_WHY)
+    detail = detail or {}
+    if detail.get('checks'):
+        why += ' Not green on this commit: ' + ', '.join(detail['checks']) + '.'
+    if detail.get('question'):
+        why += (f' The {detail["question"]} question is answered on record and below its '
+                'threshold, so the advance it blocks refuses the same way every time it is run '
+                'while that answer stands. Settle what it is about, then answer it again on '
+                'record.')
+    return why
+
+
+def stop(reason, stage, record, resume_argv, detail=None):
     """One named stop: where it stopped, what it points at, how to resume.
 
     This is what the `stop` record carries. The action a caller gets back is the
     same thing in the shape every other action has, which _stop_action builds.
-    `questions` is what the batch carried and is empty for every other reason,
-    present rather than omitted for the reason _action gives: what a second batch
-    is is read from these lists, so they are part of every stop's shape.
+    `questions`, `question` and `checks` are what this halt is about and are empty
+    for every reason that is not about them, present rather than omitted for the
+    reason _action gives: what a second batch is is read from these lists, so they
+    are part of every stop's shape.
     """
+    detail = detail or {}
     return dict(kind='stop', stage=stage, reason=reason, record=record,
-                resume=list(resume_argv), why=why or WHY.get(reason, GENERIC_WHY),
-                questions=list(questions))
+                resume=list(resume_argv), why=why_for(reason, detail),
+                questions=list(detail.get('questions') or []),
+                question=detail.get('question'),
+                checks=list(detail.get('checks') or []))
 
 
-def _stop_action(reason, stage, record, ticket, actor, rules, questions=()):
+def _stop_action(reason, stage, record, ticket, actor, rules, detail=None):
     """A stop as an action: its argv is the one command that resumes the run."""
-    built = stop(reason, stage, record, resume(reason, ticket, stage, actor),
-                 questions=questions)
+    built = stop(reason, stage, record, resume(reason, ticket, stage, actor, detail), detail=detail)
     return _action(stage, 'stop', built['resume'], built['why'], rules,
                    reason=reason, record=record, resume=built['resume'],
-                   questions=built['questions'])
+                   questions=built['questions'], question=built['question'],
+                   checks=built['checks'])
 
 
 def standing(records, reason, record):
@@ -399,8 +520,8 @@ def halt(repository, folder, records, ticket, actor, reason, rules):
     stage = current['stage']
     evident = _evident_stop(records, current)
     record = evident[1] if evident and evident[0] == reason else points_at(records)
-    questions = open_questions(repository, ticket) if reason == 'question_open' else ()
-    answer = _stop_action(reason, stage, record, ticket, actor, rules, questions=questions)
+    detail = details(repository, ticket, records, current, reason)
+    answer = _stop_action(reason, stage, record, ticket, actor, rules, detail=detail)
     already = standing(records, reason, record)
     if already is not None:
         return dict(answer, sequence=already['sequence'], recorded=False)
@@ -417,8 +538,8 @@ def halt(repository, folder, records, ticket, actor, reason, rules):
                              attempt=current['attempt'], actor=actor, head=repository.head(),
                              ticket=ticket,
                              data=stop(reason, stage, record,
-                                       resume(reason, ticket, stage, actor),
-                                       questions=questions))
+                                       resume(reason, ticket, stage, actor, detail),
+                                       detail=detail))
     return dict(answer, sequence=written['sequence'], recorded=True)
 
 
@@ -440,7 +561,8 @@ def action(repository, ticket, records, rules, actor=None, folder=None):
     evident = _evident_stop(records, current)
     if evident is not None:
         reason, record = evident
-        return _stop_action(reason, current['stage'], record, ticket, actor, rules)
+        return _stop_action(reason, current['stage'], record, ticket, actor, rules,
+                            detail=details(repository, ticket, records, current, reason))
     return _stage_action(repository, folder, ticket, records, current, rules, actor)
 
 
@@ -464,7 +586,7 @@ def _stage_action(repository, folder, ticket, records, current, rules, actor):
     if stage == 'review':
         return _review(repository, ticket, records, current, rules, actor)
     if stage == 'deliver':
-        return _deliver(repository, ticket, actor, rules)
+        return _deliver(repository, ticket, records, actor, rules)
     return _after_the_receipt(repository, folder, ticket, records, actor, rules)
 
 
@@ -616,7 +738,19 @@ def _qa(records, current):
     return None
 
 
-def _deliver(repository, ticket, actor, rules):
+def _deliver(repository, ticket, records, actor, rules):
+    """The receipt, unless CI says the commit it would attest is not green.
+
+    Read here rather than left to verify-delivery's refusal, because red CI is one
+    of the conditions the run must end at by name, and a session that has to notice
+    the refusal and declare the stop itself is a session that can forget to. A
+    commit nothing has built yet is not red, so a branch that is not pushed reaches
+    the verification and is told so in its own words.
+    """
+    failed = ci_red(repository, repository.head())
+    if failed:
+        return _stop_action('ci_red', 'deliver', points_at(records), ticket, actor, rules,
+                            detail=dict(checks=failed))
     relative = draft_of(ticket, 'deliver')
     if not (repository.root / relative).is_file():
         return _action('deliver', 'command', _argv('draft', ticket),
