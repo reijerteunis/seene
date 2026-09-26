@@ -230,8 +230,16 @@ def calibration_problems(repository, rules):
     return [problem] if problem else []
 
 
-def report(repository, rules):
-    """Run every check and collect what is wrong."""
+def report(repository, rules, quick=False):
+    """Run every check and collect what is wrong.
+
+    `quick` is the Stop hook's set: the sections that read the journal and the
+    generated copies, and neither of the two that read every tracked file,
+    marketplace_hosts and links. A check at the end of every turn that walks the
+    tree is a cost every session pays for an answer that changes when a file
+    does, not when a turn does. It is a smaller check and never a gentler one:
+    every problem the quick set reports the whole check reports too.
+    """
     sections = {
         'python': python_problems(sys.version_info),
         'thresholds': [] if (repository.root / THRESHOLDS).is_file() else [f'{THRESHOLDS} missing'],
@@ -244,9 +252,6 @@ def report(repository, rules):
         'agents': agent_problems(repository),
         'hook_files': hook_file_problems(repository),
         'ticket_status': status_problems(repository),
-        'marketplace_hosts': [f'{entry["path"]}:{entry["line"]} names {entry["host"]}'
-                              for entry in secrets.marketplace_hosts(repository.root)],
-        'links': link_problems(repository),
         # A switch flipped with no decision named is an edit, not a decision.
         # Here rather than in front of every triage, because the harness's own
         # tests flip the threshold to exercise spot depth and a refusal there
@@ -254,5 +259,12 @@ def report(repository, rules):
         # is held to being in order. F3 of SEEN-109's second review.
         'calibration': calibration_problems(repository, rules),
     }
+    if not quick:
+        # Built here rather than filtered out afterwards: a quick check that
+        # walked the tree and then dropped the answer would have cost what it
+        # was written to save.
+        sections['marketplace_hosts'] = [f'{entry["path"]}:{entry["line"]} names {entry["host"]}'
+                                         for entry in secrets.marketplace_hosts(repository.root)]
+        sections['links'] = link_problems(repository)
     problems = [problem for found in sections.values() for problem in found]
     return dict(ok=not problems, checked=list(sections), problems=problems)

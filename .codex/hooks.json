@@ -11,6 +11,16 @@
             "statusMessage": "Loading repowise context..."
           }
         ]
+      },
+      {
+        "matcher": "startup|resume|clear",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 harness/run.py hook session-start --client codex",
+            "timeout": 20
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -33,6 +43,40 @@
             "command": "repowise-augment --client codex",
             "timeout": 10,
             "statusMessage": "Checking repowise freshness..."
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 harness/run.py hook user-prompt-submit --client codex",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|apply_patch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 harness/run.py hook pre-tool-use --client codex",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 harness/run.py hook stop --client codex",
+            "timeout": 30
           }
         ]
       }

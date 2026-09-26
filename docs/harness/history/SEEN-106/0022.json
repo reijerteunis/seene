@@ -1,0 +1,52 @@
+{
+  "sequence": 22,
+  "ticket": "SEEN-106",
+  "timestamp": "2026-09-26T06:39:08.027839+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "90d87d9d4058",
+  "head": "70278d86bd2316aea47c89aa2a3f04327a134661",
+  "prev_hash": "7e940ca1b0e9494359093c8dd5dbda9b1d880e6cb978f5bca9007871e9455526",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": 1,
+          "behaviour": "harness/hooks.json as the one source, and sync merging the harness-owned entries into .claude/settings.json and .codex/hooks.json while leaving the graphify entries, the repowise entries and the permissions block untouched; drift compares only what the harness owns, both ways, so an edited command reads as missing and a harness-looking entry no source names reads as unnamed.",
+          "failure_reason": "ImportError: Failed to import test module: test_hooks / ModuleNotFoundError: No module named 'harness.hooks', raised at the import in harness/tests/test_hooks.py rather than by an assertion about merged content: a content assertion would have meant the module already existed.",
+          "red": 9,
+          "green": 10
+        },
+        {
+          "position": 2,
+          "behaviour": "harness guard <path> deciding from the path, the branch, the stage and the accepted slice files, with four rules and no fifth, absence allowing and saying why, and GuardRefusal mapping to exit 2 in main while every other HarnessError stays at 1.",
+          "failure_reason": "AssertionError: 'solution' not found in \"usage: harness/run.py ... error: argument command: invalid choice: 'guard'\". Every refusal case failed on its reason text and every allowance case on '2 != 0'; no refusal case could pass on argparse's own exit 2, which is what the solution record required of this RED.",
+          "red": 15,
+          "green": 16
+        },
+        {
+          "position": 3,
+          "behaviour": "harness hook <event> --client reading the hook JSON on stdin and printing that client envelope: the pack on SessionStart, a budget warning only once over budget, the guard on PreToolUse, the pack through handoff --auto on PreCompact, the reviewer findings validated on SubagentStop and doctor --quick on Stop. Each calls what already existed and adds no rule of its own.",
+          "failure_reason": "harness/run.py: error: argument command: invalid choice: 'hook'. The solution record predicted ModuleNotFoundError on harness.hooks, which slice 1 had by then created, so the available failure is argparse on an unknown command; the substitution is stated inside the recorded output as the message on every assertion rather than claimed afterwards.",
+          "red": 17,
+          "green": 18
+        }
+      ],
+      "regression": 19,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "90d87d9d4058",
+      "output_tokens": 129413,
+      "tool_calls": 89,
+      "unavailable": null
+    }
+  }
+}

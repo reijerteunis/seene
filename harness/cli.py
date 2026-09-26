@@ -162,6 +162,10 @@ def build_parser():
     pack.add_argument('--slice-done', dest='slice_done', type=int,
                       help='How many slices are done, when the greens do not say it: a slice '
                            'that recorded two greens counts twice without this')
+    pack.add_argument('--auto', action='store_true',
+                      help='The PreCompact path: write the pack and refuse nothing. A hook that '
+                           'failed compaction would lose the context it was protecting, so what '
+                           'would raise becomes a reason in the answer')
 
     ticket_command('budget', "This session's tokens and tool calls against the session budget")
 
@@ -206,9 +210,22 @@ def build_parser():
         'guard', help='Refuse an edit the stage or the accepted slice does not allow')
     guard.add_argument('path', help='The path about to be written, project-relative or absolute')
 
+    from . import hooks as hook_module
+    hook = commands.add_parser(
+        'hook', help="Answer one lifecycle hook: its JSON on stdin, the client's envelope on "
+                     'stdout')
+    hook.add_argument('event', choices=sorted(hook_module.HANDLERS),
+                      help='The event, as harness/hooks.json names it')
+    hook.add_argument('--client', required=True, choices=sorted(hook_module.COPIES),
+                      help='Which assistant sent the payload, because the envelope is its own')
+
     commands.add_parser('sync', help='Generate the skill copies from docs/harness/skill.md')
     commands.add_parser('lint', help='Refuse live marketplace hosts in test code')
-    commands.add_parser('doctor', help='Check the harness files, the journals and the links')
+    check_self = commands.add_parser('doctor',
+                                     help='Check the harness files, the journals and the links')
+    check_self.add_argument('--quick', action='store_true',
+                            help='The Stop path: the sections that read the journal and the '
+                                 'generated copies, and none that reads every tracked file')
     commands.add_parser('list', help='List every ticket with a journal and where it stands')
     return parser
 
@@ -330,13 +347,23 @@ def handoff(repository, folder, records, args, current, rules):
                        slice_done=getattr(args, 'slice_done', None))
     text = built['markdown']
     carried = secrets_module().leaked(text, os.environ)
-    require(not carried,
-            f'This pack carries the value of {", ".join(carried)} from the environment. A pack '
-            'is read by the next session and by people; credentials do not go in one')
-    require(built['estimated_tokens'] <= built['token_limit'],
-            f'This pack is about {built["estimated_tokens"]} tokens against a limit of '
-            f'{built["token_limit"]}. The pack is built from bounded sections, so a pack over '
-            'the limit is a bug in harness/handoff.py rather than a journal to shorten')
+    secret = (f'This pack carries the value of {", ".join(carried)} from the environment. A pack '
+              'is read by the next session and by people; credentials do not go in one'
+              if carried else None)
+    oversize = (f'This pack is about {built["estimated_tokens"]} tokens against a limit of '
+                f'{built["token_limit"]}. The pack is built from bounded sections, so a pack over '
+                'the limit is a bug in harness/handoff.py rather than a journal to shorten'
+                if built['estimated_tokens'] > built['token_limit'] else None)
+    # --auto refuses nothing, because it is the compaction path: a hook that
+    # failed compaction would lose the context it exists to protect. Every
+    # refusal below becomes the reason in the answer instead, which a person
+    # reads as a systemMessage rather than as a compaction that did not happen.
+    if getattr(args, 'auto', False):
+        declined = handoff_module.hands_over_nothing(built) or secret or oversize
+        if declined:
+            return dict(ticket=args.ticket, written=False, reason=declined)
+    require(not carried, secret)
+    require(not oversize, oversize)
     path = pack_path(repository, args.ticket)
     path.parent.mkdir(parents=True, exist_ok=True)
     # Explicit, because the bytes on disk are compared against the hash this
@@ -350,7 +377,15 @@ def handoff(repository, folder, records, args, current, rules):
                                       estimated_tokens=built['estimated_tokens'],
                                       token_limit=built['token_limit'],
                                       slice=built['slice'],
+                                      # Which hand wrote it: a pack written by a
+                                      # compaction is not a session declaring a
+                                      # boundary, and a later reader has to be
+                                      # able to tell one from the other.
+                                      auto=getattr(args, 'auto', False),
                                       figures=sessions.figures(repository.root)))
+    if getattr(args, 'auto', False):
+        return dict(ticket=args.ticket, written=True,
+                    pack=str(path.relative_to(repository.root)), record=record['sequence'])
     return record
 
 
@@ -1047,12 +1082,34 @@ def guard_command(repository, args, rules):
     return decision
 
 
+def hook_command(repository, args, rules):
+    """One lifecycle hook answered: its payload on stdin, its envelope on stdout.
+
+    Neither writes a record nor takes an actor, for the reason `guard` does not:
+    it answers a question an assistant asks about a keystroke, and the one event
+    that does write a record writes it through `handoff --auto`, which is bound
+    to the branch like every other writing command.
+
+    An empty or unreadable stdin is an empty payload rather than a failure. A
+    person runs this by hand to see what a hook would say, and on PreToolUse a
+    non-zero exit is how both assistants spell deny.
+    """
+    from . import hooks as hook_module
+    raw = sys.stdin.read() if not sys.stdin.isatty() else ''
+    try:
+        payload = json.loads(raw) if raw.strip() else {}
+    except json.JSONDecodeError as error:
+        raise HarnessError(f'The {args.event} payload on stdin is not valid JSON: '
+                           f'{error}') from error
+    return hook_module.respond(repository, rules, args.event, payload, args.client)
+
+
 def execute(args):
     repository = Repository(args.root)
     repository.require_is_root()
     rules = thresholds.load(repository.root)
     if args.command == 'doctor':
-        result = doctor.report(repository, rules)
+        result = doctor.report(repository, rules, quick=getattr(args, 'quick', False))
         require(result['ok'],
                 'The harness self-check found problems:\n  ' + '\n  '.join(result['problems']))
         return result
@@ -1080,6 +1137,8 @@ def execute(args):
         return list_tickets(repository)
     if args.command == 'guard':
         return guard_command(repository, args, rules)
+    if args.command == 'hook':
+        return hook_command(repository, args, rules)
 
     require_ticket_id(args.ticket, rules)
     if args.command in WRITING_COMMANDS:

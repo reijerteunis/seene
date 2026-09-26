@@ -35,15 +35,23 @@ def _relative(root, path):
     A hook payload carries an absolute path (Claude Code's tool_input.file_path
     does); a person typing `harness guard` types a project-relative one. Both
     arrive here and both are judged the same way.
+
+    Literally first and then with both sides resolved, because a symlinked parent
+    makes two strings of one file: /var is a link to /private/var on macOS, and a
+    payload carrying the form the root does not have would be read as a path
+    outside the project, match no slice file and refuse every edit that session
+    made. Genuinely outside the project it is judged on its own text, since there
+    is nothing to make it relative to.
     """
     candidate = Path(path)
     if candidate.is_absolute():
-        try:
-            candidate = candidate.relative_to(Path(root))
-        except ValueError:
-            # Outside the project entirely: judged on its own text, since there
-            # is nothing to make it relative to.
-            return candidate.as_posix()
+        for inside, outside in ((candidate, Path(root)),
+                                (candidate.resolve(), Path(root).resolve())):
+            try:
+                return inside.relative_to(outside).as_posix()
+            except ValueError:
+                continue
+        return candidate.as_posix()
     return candidate.as_posix()
 
 
