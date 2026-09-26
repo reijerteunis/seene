@@ -1,0 +1,43 @@
+{
+  "sequence": 13,
+  "ticket": "SEEN-111",
+  "timestamp": "2026-09-26T21:16:16.735988+00:00",
+  "harness_version": "2",
+  "kind": "handoff",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "ed286b2c2c3a",
+  "head": "491e7ffacb912650282f962fe0013ed9ec2597b2",
+  "prev_hash": "076437af5474a93c2318ed715620e3e6ae5a9ecf9b5d9ed8f88c2c26614fcb3c",
+  "data": {
+    "pack": ".harness-drafts/SEEN-111-handoff.md",
+    "sha256": "01ae7f7bc6ab088eb26b99d0635075cd9f77e452532d7e670629ceab5a50a64c",
+    "estimated_tokens": 1136,
+    "token_limit": 2000,
+    "slice": {
+      "position": 2,
+      "total": 3,
+      "done": 1,
+      "declared": true,
+      "inferred": 2,
+      "entry": {
+        "name": "The predicted cost at the solution stage, read from the delivered kpi.json records, reporting and never refusing",
+        "points": 1,
+        "files": [
+          "harness/forecast.py",
+          "harness/gates.py",
+          "harness/tests/test_forecast.py"
+        ],
+        "red": "A solution advance carries a forecast whose per-slice figure comes from the delivered slices' output tokens and not from the plan's points, names the split when it exceeds the session budget, and reports `available: false` with both counts rather than a low figure when fewer tickets have delivered than `[calibration] window`."
+      }
+    },
+    "auto": false,
+    "figures": {
+      "session": "ed286b2c2c3a",
+      "output_tokens": 76988,
+      "tool_calls": 67,
+      "unavailable": null
+    }
+  }
+}
