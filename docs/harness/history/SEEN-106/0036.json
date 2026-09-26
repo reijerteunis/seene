@@ -1,0 +1,45 @@
+{
+  "sequence": 36,
+  "ticket": "SEEN-106",
+  "timestamp": "2026-09-26T11:42:05.913400+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "session": "90d87d9d4058",
+  "head": "22406ae20e4f7283c8165082df7f8045bfc5888b",
+  "prev_hash": "e7813663ddd9ed825052f80673fecc1945041525d05e75835d25db631ab3c1c3",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": 1,
+          "behaviour": "F1: the fingerprint's exclusion set and the slice check's exemption set separated, so a partly generated copy stays inside the fingerprint. F2: PreCompact and SubagentStop given to Codex, the withheld behaviour corrected rather than the false reason, on the schema evidence in record 20.",
+          "failure_reason": "Two failures in one run, each executing its scenario rather than asserting the shape of a fix. F1: 'AssertionError: HarnessError not raised', from a temporary project walked to review, triaged, then given permissions.allow of Bash(curl:*) and defaultMode of bypassPermissions in .claude/settings.json, then advanced: the diff-has-not-moved check read the tree as unmoved. F2: \"AssertionError: 'PreCompact' unexpectedly found in\" the generated Codex copy, the existing withholding test failing against the corrected source so that its replacement is recorded as a decision and not as a tidy-up.",
+          "red": 29,
+          "green": 30
+        },
+        {
+          "position": 2,
+          "behaviour": "F3: an automatic pack is no slice boundary, so it no longer overwrites a declared boundary's figures in the windows the calibration reads. F4: SubagentStop allows an absent last_assistant_message and refuses only an answer that carried something which was not a review record. F7: the stage rule, the branch rule and both allowances proven through each assistant's own PreToolUse payload, with a rename asserted on both sides. F8: the two commands in CLAUDE.md and the stale Codex count and paragraph in the hooks docstring.",
+          "failure_reason": "Seven failures of 145. F3, four of them: 'AssertionError: 10 != 8 : the handoff that declared done=1 closed slice 1'; the same for slice 2's window opening at the compaction; 'AssertionError: Items in the first set but not the second: 10 : records 6 and 10 were written by a compaction, not by a session declaring a boundary'; and 'AssertionError: Lists differ: [8000, 37000] != [40000, 45000]', which is the per-slice output_tokens the calibration reads. F4, three of them, for an absent, a null and a blank field: the handler returned a decision to block with the reason 'This review carries no JSON review record' where it should have returned nothing. F7 contributed no failure: every payload case passed at first run, which is what the review said it expected ('the gap is not a wrong result now'), so F7 is evidence added and not a defect fixed, and inventing a failure to record would have been a falsification.",
+          "red": 32,
+          "green": 33
+        }
+      ],
+      "regression": 34,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "90d87d9d4058",
+      "output_tokens": 183944,
+      "tool_calls": 111,
+      "unavailable": null
+    }
+  }
+}
