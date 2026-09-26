@@ -1,0 +1,40 @@
+{
+  "sequence": 74,
+  "ticket": "SEEN-106",
+  "timestamp": "2026-09-26T15:12:56.962371+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 11,
+  "actor": "claude:implementer",
+  "session": "90d87d9d4058",
+  "head": "7cd5cac81b3cbea0e298dc26dda20cde6b10e1ab",
+  "prev_hash": "41e1228ee2881d153d6a7acb4a6e74370d0d8a7b6744ba450e547947f64ab9eb",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "non-code",
+      "change_type": "policy",
+      "reason": "No executable behaviour is added or changed. The hooks, the guard and the dispatcher are proven earlier in this journal and are not re-proved here: records 9 and 10, 15 and 16, 17 and 18 for the three slices of the first plan, records 29 and 30, 32 and 33 for the findings F1 to F8 that the review at record 24 returned, carried through the tdd gate at advance 22 and advance 36. Every round after record 40 has changed ticket files, indexes and this journal and no Python at all, which the review returning at record 68 verified against the diffs rather than taking on the declaration. This round closes the stale-summary class rather than another instance of it. F16 showed the earlier removal was too narrow: it took out the counts of attempts, returns and records and left the Outcome counting the reviews, which is the same claim about the same future wearing a different noun. Every count and every ordinal of this ticket's own rounds is now gone from the ticket file, verified by a regex over the whole text rather than by reading it, and the findings are named by id instead. F15 is rejected on evidence and recorded as rejected: it quoted two phrases as record 70's that are record 66's, which finding F14 already covers. This record cites records and no ordinals, and that is checkable against its own text rather than asserted.",
+      "sources": [
+        "Record 73, the regression against the corrected tree: 1059 tests, exit 0, fingerprint identical before and after.",
+        "Record 72, the return carrying F16 fixed and F15 rejected.",
+        "Records 24, 56, 60, 64, 68 and 72, the returning rounds, whose findings lists are what F16 was checked against: F1 to F8, then F9 with F10, then F11, then F12, then F13 with F14, then F16 with F15 rejected.",
+        "Record 37, whose criterion_evidenced answers were 0.73, 0.68, 0.78 and 0.76 for the four criteria that stay and 0.13 for the one that moved, against a 0.6 bar.",
+        "Record 20, the codex-cli 0.156.1 per-event JSON Schemas read out of the binary: twenty-three across the twelve events it names.",
+        "Record 70's reason field read verbatim, which is how F15 was tested: it contains no attempt ordinal, and both phrases the finding quoted are in record 66."
+      ],
+      "checks": [
+        73
+      ]
+    },
+    "decisions": [],
+    "figures": {
+      "session": "90d87d9d4058",
+      "output_tokens": 429253,
+      "tool_calls": 208,
+      "unavailable": null
+    }
+  }
+}

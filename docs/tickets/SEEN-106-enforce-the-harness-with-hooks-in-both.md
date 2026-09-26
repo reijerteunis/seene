@@ -126,11 +126,11 @@ that tree. Nothing in the harness refuses that today. Making the tdd gate refuse
 third criterion rather than a change smuggled in here, and what caught it was the triage's own
 rule, which is the harness working.
 
-Which is the honest closing note: eight points of plan against a three-point estimate, nine
-mechanisms behind what began as five criteria, and more rounds of review than any other ticket
-in this epic. The hooks were two tickets, and the evidence is the journal rather than an
-argument. How many rounds exactly is a number this section does not give, for the reason the
-next paragraph explains.
+Which is the honest closing note: eight points of plan against a three-point estimate, and nine
+mechanisms behind what began as five criteria. The hooks were two tickets, and the evidence is
+the journal rather than an argument. This section says nothing at all about how many rounds of
+review the ticket took, neither a count nor a comparison, for the reason the next paragraph
+explains.
 
 One last thing about this section, because it is the defect it kept producing. Review after review
 found a stale count or a stale cross-reference in this Outcome, each time in a summary rather than
@@ -160,7 +160,12 @@ and not in the care taken over it. The counts are therefore gone rather than cor
 section points at the journal for them. That first removal was still too narrow: it took out the
 counts of attempts, returns and records and left the paragraph above counting the reviews, which
 is the same claim about the same future wearing a different noun, and a later review found it at
-F16. Every count of this ticket's own rounds is now gone, and the ordinal words for them with it.
+F16. Then a later review found F17, and found it in the sentence written to fix F13: the count of
+rounds had been replaced by a comparison of rounds, "more rounds of review than any other ticket
+in this epic", which is the same claim about the same future in a different grammatical form and
+was false besides. Counting `return` records across this epic gives SEEN-108 thirteen, SEEN-106
+ten and SEEN-107 ten, so the superlative was wrong on the day it was written. Every count, every
+ordinal and every comparison of this ticket's own rounds is now gone.
 The reviewer recommended shortening over patching and
 was right about the counts; the reasoning here is not self-referential and stays, because it is
 the most useful thing the ticket produced.
