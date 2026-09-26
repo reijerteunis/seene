@@ -1,0 +1,45 @@
+{
+  "sequence": 66,
+  "ticket": "SEEN-106",
+  "timestamp": "2026-09-26T14:28:55.006831+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 9,
+  "actor": "claude:implementer",
+  "session": "90d87d9d4058",
+  "head": "bee6292c0cfdec7c99664257275f1e7ae0e347d3",
+  "prev_hash": "a6705fa7ce322128ef96a3a49ad13388d8e5380d09dce9e27142ff520706230a",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "non-code",
+      "change_type": "policy",
+      "reason": "The fourth attempt is the split Ruud decided at record 43, and a scope decision recorded in documents has no executable behaviour to prove. The behaviour this ticket carries is proven earlier in this same journal and is not re-proved here: records 9 and 10, 15 and 16, 17 and 18 for attempt 1, records 29 and 30, 32 and 33 for the eight findings of attempt 2, carried through the tdd gate at advance 22 and advance 36. What this attempt changed is two ticket files, an Amendments section, two indexes, the Outcome corrected to claim only what is proven, and the solution record's changes list extended to cover every file the ticket changes rather than only the attempt in hand. A RED written for any of that would be a test of prose, and a RED written to satisfy a gate rather than to fail for a reason is the falsification the tdd stage exists to prevent. The fifth attempt adds one thing to the fourth: the changes list now names one path per entry, which is the form the template states and the only form the triage's check can read. The sixth attempt adds the two prose corrections the fifth review found: the Outcome's opening paragraph no longer claims the ticket waits on a criterion it does not hold, and the workflow document's Permissions row points at SEEN-110 rather than at a criterion SEEN-106 no longer has. The seventh attempt adds F11's fix: the Outcome's counts are derived from the journal, the heading that counted attempts is reworded, and the section names the recurring defect and its cause, because three reviews found the same class of stale summary. The eighth attempt fixes F12 by citing record numbers rather than attempt ordinals in both ticket files, which removes the class instead of the instance, and names record 37 behind a fingerprint claim that was true but cited only as 'the triage'.",
+      "sources": [
+        "Record 37, the review triage: criterion_evidenced answered by jev-1.13.0 for all five criteria, 0.73, 0.68, 0.78 and 0.76 for the four that stay against a 0.6 bar, and 0.13 for the fifth. The split moved the one criterion the harness itself could see no evidence for.",
+        "Record 38, the triage's own return: a criterion with nothing behind it is answered by producing the evidence, not by a reviewer reading a diff that cannot contain it. No model read the diff, which is what SEEN-107 built the triage to avoid.",
+        "Record 20, the codex-cli 0.156.1 per-event JSON Schemas read out of the binary: twenty-three across the twelve events it names. They settle the payload fields and the response envelope and do not settle whether Codex loads a project-level .codex/hooks.json, which is why that question is SEEN-110's and not answerable here.",
+        "Record 42, the two readings of this attempt's solution record at 0.54 and 0.55 against 0.6, and the two options put to Ruud before either was taken.",
+        "Record 43, Ruud's decision, and the Amendments section in the ticket file that records it where a reader of the ticket rather than of the journal will meet it.",
+        "Record 48, the return from review with no findings: the third triage's slice_files check read four changes entries that each named two or three paths, and solution_paths reads one path per entry as the text before the first colon. The check was right and the record was wrong; the corrected list was verified against solution_paths, slice_exempt_paths and the real diff before the gate was asked, rather than by eye.",
+        "Record 56, the return from the fifth review: verdict pass with F9 and F10, two overclaims in this ticket's own prose, both fixed. A review that changed the tree is a review to throw away, so the round was recorded as rework rather than advanced on a fingerprint no reviewer read.",
+        "Record 60, the return from the sixth review: verdict pass with one medium finding, the third instance of the class F9 and F10 belonged to. Fixed by deriving every count from the journal rather than restating it, and by re-auditing every count claim in the ticket file programmatically rather than by eye.",
+        "Record 65, the regression against the tree with F12 fixed: 1059 tests, exit 0, fingerprint identical before and after.",
+        "Record 64, the return from the seventh review: verdict pass with one medium finding, the fourth instance of the stale-summary class. It was verified against the journal's attempt field before being accepted, and it exposed a real gap in F11's fix, which audited counts and not attributions.",
+        "The audit behind this attempt, run against the journal rather than by eye: every record and check citation in the Outcome resolves to a record of the right kind; the 0.13 and the 0.68 to 0.78 range match record 37's criterion_evidenced answers exactly; the 0.54 and 0.55 are in record 42's own table; all ten RED and GREEN phases and exit codes match; and both fingerprint hashes verify, 77c51dfa2a32 as check 34's and a8c161993dcf as record 37's."
+      ],
+      "checks": [
+        65
+      ]
+    },
+    "decisions": [],
+    "figures": {
+      "session": "90d87d9d4058",
+      "output_tokens": 376691,
+      "tool_calls": 191,
+      "unavailable": null
+    }
+  }
+}

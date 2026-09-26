@@ -38,10 +38,10 @@ The skill tells a session what to do; a hook makes the assistant unable to do ot
 
 ## Outcome
 
-Delivered after seven attempts and six returns, which is the journal's own count rather than this
-paragraph's: 59 records, the first three attempts writing the code and the four after them
-carrying the split and three corrections to the evidence. All four of this ticket's criteria
-are met on recorded evidence. A fifth criterion asked what a live Codex session does and is
+Delivered after several rounds, which `docs/harness/history/SEEN-106/` counts and this paragraph
+deliberately does not: the code was written in the first three attempts and every round after
+them carried the split or a correction to the evidence. All four of this ticket's criteria are
+met on recorded evidence. A fifth criterion asked what a live Codex session does and is
 SEEN-110's first by the amendment below, so this ticket neither claims it nor waits on it.
 
 `harness/hooks.json` is the one source for six lifecycle events. `harness/hooks.py` renders each
@@ -126,9 +126,11 @@ that tree. Nothing in the harness refuses that today. Making the tdd gate refuse
 third criterion rather than a change smuggled in here, and what caught it was the triage's own
 rule, which is the harness working.
 
-Which is the honest closing note: seven attempts, six returns, eight points of plan against a
-three-point estimate, and nine mechanisms behind what began as five criteria. The hooks were two
-tickets, and the evidence is the journal's own count rather than an argument.
+Which is the honest closing note: eight points of plan against a three-point estimate, nine
+mechanisms behind what began as five criteria, and more rounds of review than any other ticket
+in this epic. The hooks were two tickets, and the evidence is the journal rather than an
+argument. How many rounds exactly is a number this section does not give, for the reason the
+next paragraph explains.
 
 One last thing about this section, because it is the defect it kept producing. Three separate
 reviews found a stale count or a stale cross-reference in this Outcome, each time in a summary
@@ -147,6 +149,23 @@ at all. An audit that checked counts and not attributions could not see it. Both
 numbers rather than attempt ordinals, because a record number is an identifier the journal fixes
 and an attempt ordinal is something a reader has to reconstruct and a writer can get wrong four
 times running.
+
+A fifth review then found the one claim no audit of mine could have caught, and its diagnosis is
+the thing worth keeping out of all of this. The harness requires this section to be written
+before the review that decides whether another round is needed. So a count of how many rounds
+the ticket took is, at the moment it is written, a claim about the future: it can only be right
+if the review it is about to face passes. This ticket needed one more round four times running,
+so the count was wrong four times, and the fourth time it was wrong in the very sentence written
+to fix the third. No amount of care fixes that, because the defect is in the shape of the claim
+and not in the care taken over it. The counts are therefore gone rather than corrected, and this
+section points at the journal for them. The reviewer recommended shortening over patching and
+was right about the counts; the reasoning here is not self-referential and stays, because it is
+the most useful thing the ticket produced.
+
+One last honesty, which cannot be repaired. The journal record written to prove the ordinal fix,
+record 66, narrates this ticket's history in attempt ordinals and is off by one in exactly the
+way it claims to have eliminated. The journal is append-only, so it stands. A record that proves
+a habit was broken while displaying the habit is the most accurate thing in this file.
 
 ## Amendments
 
