@@ -56,7 +56,7 @@ call; it is not a command to run by hand.
 | [CONTEXT.md](CONTEXT.md) | Glossary: the harness terms, the product terms they collide with, and the resolution of the three meanings of gate |
 | [docs/adr/](docs/adr/) | Architecture decision records: journal integrity, the delivery receipt, the SEEN-086 bootstrap exemption |
 
-### Tickets (109, 353 build points)
+### Tickets (110, 353 build points)
 
 | Ticket | Title | Epic | Size |
 |---|---|---|---|
@@ -91,6 +91,7 @@ call; it is not a command to run by hand.
 | [SEEN-107](docs/tickets/SEEN-107-let-jev-settle-what-the-review-can-settle.md) | Let Jev settle what the review can settle before a model reads the diff | E10 | 3 pt |
 | [SEEN-108](docs/tickets/SEEN-108-route-each-slice-to-a-model-and-an-effort-at.md) | Route each slice to a model and an effort at solution, by rule first and by Jev second | E10 | 2 pt |
 | [SEEN-109](docs/tickets/SEEN-109-calibrate-the-review-triage-and-the-routes-on.md) | Calibrate the review triage and the routes on ten tickets before either saves a token | E10 | 2 pt |
+| [SEEN-110](docs/tickets/SEEN-110-verify-the-hooks-in-a-codex-session-and-close.md) | Verify the hooks in a Codex session and close what SEEN-106 declined | E10 | human |
 | [SEEN-008](docs/tickets/SEEN-008-create-trade-record-schema-v1-with-tenant-id.md) | Create trade-record schema v1 with tenant_id and RLS on every table | E0 | 5 pt |
 | [SEEN-009](docs/tickets/SEEN-009-define-connector-interface-capability-matrix.md) | Define connector interface, capability matrix and credential access | E1 | 5 pt |
 | [SEEN-010](docs/tickets/SEEN-010-add-per-marketplace-rate-limiting-with-header.md) | Add per-marketplace rate limiting with header-driven backoff | E1 | 3 pt |

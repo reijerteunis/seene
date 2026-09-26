@@ -35,7 +35,6 @@ The skill tells a session what to do; a hook makes the assistant unable to do ot
 - [x] harness guard blocks an edit to packages/ or apps/ while the ticket is at clarify or solution, an edit on a non-ticket branch and an edit outside the accepted slice's files, each with a reason, and allows the ticket file and .harness-drafts/ at every stage, proven with hook-input fixtures for both assistants
 - [x] SessionStart injects the handoff pack and UserPromptSubmit injects a budget warning once the session is over budget, proven with fixtures
 - [x] PreCompact writes the handoff pack before compaction, and a test proves it is written when the trigger is auto
-- [ ] The hooks run in a Codex session: /hooks lists them and a blocked edit is refused there too, recorded as a verification in the journal
 
 ## Outcome
 
@@ -98,11 +97,10 @@ fixed, and inventing a failure to record would have been a falsification.
 
 ### What is not done, and what cannot be
 
-Criterion 5 is unmet. It asks what an interactive Codex session prints for `/hooks`, whether a
-guarded edit is refused there, and whether `.agents/settings.json` is read by anything. Every
-question the Codex binary could answer is answered and recorded; the session itself has not run,
-and nothing this repository can do settles whether Codex loads a project-level `.codex/hooks.json`.
-That verification is Ruud's, and the ticket does not leave review without it.
+What a Codex session shows is not established, and this ticket no longer claims it: the criterion
+that asked for it is SEEN-110's, by the amendment above. Every question the Codex binary could
+answer is answered and recorded at record 20; whether Codex loads a project-level
+`.codex/hooks.json` is not a question this repository can put to itself.
 
 Two things are recorded rather than repaired. The journal holds no slice boundary between
 attempt 1's slices 2 and 3, because all three ran in one session, so `kpi.slice_windows` charges
@@ -111,12 +109,54 @@ happen cannot be written afterwards: the journal is append-only and backdating o
 falsification ADR 0001 exists to prevent. Its cause is fixed for every later ticket by the F3
 change, and attempt 2 wrote a pack at its own boundary. Separately, `CLAUDE.md`'s command list
 was missing `handoff`, `budget`, `route` and `review` before this ticket and still is; only the
-two commands this ticket added were put in, because the other four are not this ticket's defect
-and it is already at eight points of plan against a three-point estimate.
+two commands this ticket added were put in, because the other four are not this ticket's defect;
+they are SEEN-110's third and fourth criteria instead.
+
+The second review's triage found two more, both about the evidence rather than the code, and both
+made by the attempt that fixed the first eight. `slice_files` failed naming `.gitignore`,
+`harness/cli.py`, `harness/doctor.py`, `harness/handoff.py` and `harness/paths.py`, because the
+amended solution record named only what its own attempt touched: fixing F5 by amending the plan
+reproduced F5's symptom one level up, and the fourth attempt's record carries a changes list
+covering the whole ticket. And `fingerprint` failed because regression check 34 ran against
+`77c51dfa2a32` while the triage read `a8c161993dcf`: the Outcome was written after the regression
+and the ticket file is inside the fingerprint, so the tests that passed were not the tests for
+that tree. Nothing in the harness refuses that today. Making the tdd gate refuse it is SEEN-110's
+third criterion rather than a change smuggled in here, and what caught it was the triage's own
+rule, which is the harness working.
 
 Which is the honest closing note: two attempts, eight points planned, nine mechanisms behind five
 criteria. The hooks were two tickets, and the evidence for that is the two attempts rather than
 an argument.
+
+## Amendments
+
+**26 September 2026, at the fourth attempt's solution stage: the fifth criterion moved to
+[SEEN-110](SEEN-110-verify-the-hooks-in-a-codex-session-and-close.md).**
+
+The criterion read: "The hooks run in a Codex session: /hooks lists them and a blocked edit is
+refused there too, recorded as a verification in the journal." It is removed from this ticket and
+is SEEN-110's first criterion, unchanged in substance.
+
+Why, and on whose authority. The criterion asks what an interactive Codex session prints, which
+no session in this repository can observe: `codex doctor` says nothing about hook discovery, and
+the per-event JSON Schemas read out of the codex-cli 0.156.1 binary at record 20 settle the
+payload shapes while settling nothing about whether Codex loads a project-level
+`.codex/hooks.json`. The review triage refused the ticket for it at record 37, answering
+`criterion_evidenced` 0.13 against a 0.6 bar while answering the other four between 0.68 and
+0.78, and refused correctly: a criterion with nothing behind it is answered by producing the
+evidence, not by a reviewer reading a diff that cannot contain it. Two further attempts at the
+solution gate scored 0.54 and 0.55 against 0.6, one hundredth apart, which is the signature
+SEEN-100 measured and SEEN-104 tabulated. Ruud chose the split over an override on 26 September
+2026; both options were recorded at record 42 before either was taken.
+
+What moved with it: the `.agents/settings.json` question the clarify record attached to the same
+criterion, and the two improvements the fourth attempt declined as scope in writing rather than by
+omission, which are the tdd gate refusing a regression whose tree has moved and `CLAUDE.md`'s
+four other missing commands.
+
+What did not move: the id, the four proven criteria, the journal, and every check in it. This
+ticket is the hooks as built and proven with fixtures; SEEN-110 is what only another assistant and
+a person can establish.
 
 ## Depends on
 
