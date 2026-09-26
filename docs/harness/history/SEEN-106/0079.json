@@ -1,0 +1,40 @@
+{
+  "sequence": 79,
+  "ticket": "SEEN-106",
+  "timestamp": "2026-09-26T16:18:24.101013+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 12,
+  "actor": "claude:implementer",
+  "session": "90d87d9d4058",
+  "head": "627676defcaebf2d5850e0d8548a14ba92a3d974",
+  "prev_hash": "b8a52d18a95ea71d279d3eb412c057527725c8422dced629da4ee4344f4f1139",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "non-code",
+      "change_type": "policy",
+      "reason": "No executable behaviour is added or changed. The hooks, the guard and the dispatcher are proven earlier in this journal and are not re-proved here: records 9 and 10, 15 and 16, 17 and 18 for the three slices of the first plan, records 29 and 30, 32 and 33 for the findings F1 to F8 that the review at record 24 returned, carried through the tdd gate at advance 22 and advance 36. Every round after record 40 has changed ticket files, indexes, documentation and this journal and no Python at all. This round closes the stale-summary class by removing the surface rather than another instance. F17 was the seventh finding of that class and was introduced by the fix for F13: a count of rounds replaced by a superlative about rounds, which is the same self-reference in a different grammatical form, and false on the day it was written. Ruud chose to move the diagnosis out of the ticket rather than patch it again. docs/adr/0004-an-outcome-cannot-count-its-own-review-rounds.md now states the principle for every ticket: an Outcome gives what was built, its evidence by record number, and what moved elsewhere, and does not count, order or compare the ticket's own attempts, returns or review rounds. The Outcome keeps a pointer and nothing falsifiable. The ADR carried the defect it describes on its first draft, counting the rounds it was written about, and was caught by running the same check over it that had just been run over the ticket. Both files are now checked for counts, ordinals, comparatives and superlatives, because an audit for one form silently passes the others, which is how F16 and F17 both survived one.",
+      "sources": [
+        "Record 78, the regression against the restructured tree: 1059 tests, exit 0, fingerprint identical before and after.",
+        "Record 76, the return carrying F17 at high severity, verified before acceptance by counting return records across the epic: SEEN-108 thirteen, SEEN-106 ten, SEEN-107 ten, so the superlative was false.",
+        "Records 24, 56, 60, 64, 68, 72 and 76, the returning rounds and their findings: F1 to F8, F9 with F10, F11, F12, F13 with F14, F16 with F15 rejected, and F17.",
+        "Record 37, whose criterion_evidenced answers were 0.73, 0.68, 0.78 and 0.76 for the four criteria that stay and 0.13 for the one that moved, against a 0.6 bar.",
+        "Record 20, the codex-cli 0.156.1 per-event JSON Schemas read out of the binary: twenty-three across the twelve events it names.",
+        "docs/adr/0004-an-outcome-cannot-count-its-own-review-rounds.md, new in this round, and the CLAUDE.md docs index row that points at it."
+      ],
+      "checks": [
+        78
+      ]
+    },
+    "decisions": [],
+    "figures": {
+      "session": "90d87d9d4058",
+      "output_tokens": 475703,
+      "tool_calls": 221,
+      "unavailable": null
+    }
+  }
+}

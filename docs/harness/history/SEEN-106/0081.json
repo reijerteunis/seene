@@ -1,0 +1,22 @@
+{
+  "sequence": 81,
+  "ticket": "SEEN-106",
+  "timestamp": "2026-09-26T16:18:55.458586+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 12,
+  "actor": "claude:implementer",
+  "session": "90d87d9d4058",
+  "head": "627676defcaebf2d5850e0d8548a14ba92a3d974",
+  "prev_hash": "32f5963c65c2f8482591439b9ac5d5c5e6fa4fb76517592358a0d85adc5d86d5",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "solution",
+    "to_attempt": 13,
+    "reason": "Not a defect in the work and not an unmet criterion: the triage's slice_files check names docs/adr/0004-an-outcome-cannot-count-its-own-review-rounds.md, which the accepted solution record predates because the decision to write it was taken after that record was accepted. Returning to name it in the changes list rather than delivering with a deterministic check failing, which is the same judgement record 48 took. The journal sits outside the fingerprint, so regression check 78 still describes this tree and no new run is needed.",
+    "findings": [],
+    "no_findings": true,
+    "unmet_criteria": []
+  }
+}
