@@ -38,11 +38,11 @@ The skill tells a session what to do; a hook makes the assistant unable to do ot
 
 ## Outcome
 
-Delivered across five attempts. Attempt 1 built the three pieces, attempt 2 fixed the eight
-findings its review returned, and attempts 3 to 5 carried the split and two corrections to the
-evidence. All four of this ticket's criteria are met on recorded evidence. A fifth criterion
-asked what a live Codex session does and is SEEN-110's first by the amendment below, so this
-ticket neither claims it nor waits on it.
+Delivered after seven attempts and six returns, which is the journal's own count rather than this
+paragraph's: 59 records, the first three attempts writing the code and the four after them
+carrying the split and three corrections to the evidence. All four of this ticket's criteria
+are met on recorded evidence. A fifth criterion asked what a live Codex session does and is
+SEEN-110's first by the amendment below, so this ticket neither claims it nor waits on it.
 
 `harness/hooks.json` is the one source for six lifecycle events. `harness/hooks.py` renders each
 assistant's entries from it, merges them into `.claude/settings.json` and `.codex/hooks.json`,
@@ -67,7 +67,7 @@ carries a JSON Schema for every hook event, and the binary prints twenty-three o
 twelve events it names; they give the same payload fields and the same response shape Claude Code
 documents, so the two envelopes are one envelope here.
 
-### What the two attempts taught, which is the part worth keeping
+### What the returns taught, which is the part worth keeping
 
 The review found a defect neither the author nor the implementer saw, and it was created by
 treating a partly generated file as a generated one. `generated_paths()` answered two different
@@ -126,9 +126,18 @@ that tree. Nothing in the harness refuses that today. Making the tdd gate refuse
 third criterion rather than a change smuggled in here, and what caught it was the triage's own
 rule, which is the harness working.
 
-Which is the honest closing note: two attempts, eight points planned, nine mechanisms behind five
-criteria. The hooks were two tickets, and the evidence for that is the two attempts rather than
-an argument.
+Which is the honest closing note: seven attempts, six returns, eight points of plan against a
+three-point estimate, and nine mechanisms behind what began as five criteria. The hooks were two
+tickets, and the evidence is the journal's own count rather than an argument.
+
+One last thing about this section, because it is the defect it kept producing. Three separate
+reviews found a stale count or a stale cross-reference in this Outcome, each time in a summary
+rather than in the statement it summarised: F9's opening paragraph, F10's row in the workflow
+document, and the closing note above. The cause was the same every time, which is that a
+summary written from memory goes stale the moment the thing it summarises moves, and an
+amendment moves things by definition. What finally fixed it was deriving the figures from the
+journal instead of restating them, which is the same discipline the harness applies to every
+other number it reports.
 
 ## Amendments
 
