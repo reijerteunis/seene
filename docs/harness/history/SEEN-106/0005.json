@@ -1,0 +1,26 @@
+{
+  "sequence": 5,
+  "ticket": "SEEN-106",
+  "timestamp": "2026-09-26T04:47:50.972369+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "90d87d9d4058",
+  "head": "eb48c6dd260ebf6f20dbc04f575dcacf890cea30",
+  "prev_hash": "a5bcf351c18a0672725fdb1fb4cf3b51f91e630c3c77f19cc85c1e51c1c2bf63",
+  "data": {
+    "source": "repowise",
+    "mode": "why",
+    "command": [
+      "repowise",
+      "why",
+      "the generated assistant copies and how doctor detects a hand edit"
+    ],
+    "exit_code": 0,
+    "duration_ms": 542,
+    "answer": "Nothing recorded for that query.\nIndex is behind live HEAD — run `repowise update`.\n",
+    "answer_truncated": false
+  }
+}

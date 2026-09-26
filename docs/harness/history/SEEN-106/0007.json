@@ -1,0 +1,157 @@
+{
+  "sequence": 7,
+  "ticket": "SEEN-106",
+  "timestamp": "2026-09-26T04:52:12.295318+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "solution",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "90d87d9d4058",
+  "head": "eb48c6dd260ebf6f20dbc04f575dcacf890cea30",
+  "prev_hash": "522f2698e045eb94de4cf29f61dc2e5fc864e176828fca3cd0528490f4d7448f",
+  "data": {
+    "from_stage": "solution",
+    "to_stage": "tdd",
+    "evidence": {
+      "mode": "code",
+      "approach": "A third generated surface beside the skill copies and the agent copies, and one new refusal. `harness/hooks.json` is the source: an object per lifecycle event naming the matcher, the harness command, the timeout and which clients take it. `harness/hooks.py` holds `render_claude` and `render_codex`, which build the entries each assistant's schema wants, plus `sync`, `drift` and `owned`, following `harness/agents.py` exactly: re-render from the source and compare. The one departure, and the reason this is not `agents.py` with different strings: neither copy is wholly generated, so a full-text comparison is impossible. .claude/settings.json carries `permissions` with its allowlist and `defaultMode`, and two graphify PreToolUse entries; .codex/hooks.json carries two repowise-augment entries. So `sync` loads the copy, replaces only the entries it owns and writes the rest back untouched, and `drift` compares only those. Ownership is read off the command string: an entry whose command begins with the harness invocation is the harness's, anything else is nobody's business of ours. That keeps one rule in one place, needs no key either assistant's schema has to tolerate, and makes the check exact rather than heuristic. Two entry points onto the enforcement, because the workflow document names `python3 harness/run.py guard packages/core/src/policy.ts` as a command a person runs while the hooks pass their payload on stdin: `harness guard <path>` is the human one, `harness hook <event> --client <claude|codex>` reads the hook JSON on stdin, pulls the path or the trigger out of it, calls the same function and prints that client's response envelope. `harness/guard.py` holds the decision as one pure function of the path, the branch, the journal's stage and the accepted slice's files, returning an allowance or a refusal with the rule that refused; nothing about a hook reaches it. The exit code is the contract both assistants share: 2 blocks, and because argparse already exits 2 on a usage error, every guard test asserts the reason text and not the code alone. Three flags join them: `handoff --auto` for PreCompact, which writes the pack and never raises, because a hook that fails compaction loses the context it was protecting; `doctor --quick` for Stop, the sections that read the journal and the generated copies and none that walk the tree; and `--client` on `hook`, baked into each generated copy at sync time the way `repowise-augment --client codex` already is.",
+      "changes": [
+        "harness/hooks.json: new, the one source. Per event: the matcher, the harness command, the timeout in seconds, and the clients that take it. Six events, the six the ticket's description names.",
+        "harness/hooks.py: new. CLAUDE_COPY and CODEX_COPY, `render_claude` and `render_codex` for the two schemas, `owned` to tell a harness entry from a foreign one by its command prefix, `merge` to put the harness's entries into a loaded copy and leave everything else alone, `sync`, `drift`, and `respond(event, payload, client)` which builds each client's response envelope from what the underlying command returned.",
+        "harness/guard.py: new. `decide(root, records, branch, path, rules)` returning an allowance or a refusal carrying the rule and its reason. Four rules and no fifth: the ticket file and .harness-drafts/ are allowed at every stage; packages/ and apps/ are refused at clarify and solution; a branch that is not a ticket branch refuses an edit to packages/, apps/ or harness/; at tdd a path outside the accepted slice's files is refused. Absence allows and says so: no journal for the branch's ticket, or no accepted slice plan yet.",
+        "harness/cli.py: `guard` and `hook` as repository commands (neither writes a record, so neither is in WRITING_COMMANDS and neither takes --actor); `--auto` on handoff; `--quick` on doctor; and the exit-code contract, a GuardRefusal that main maps to exit 2 with the reason on stderr while every other HarnessError stays at 1.",
+        "harness/doctor.py: a `hook_files` section calling hooks.drift, and `--quick` selecting the sections that read the journal and the generated copies rather than every one.",
+        "harness/paths.py: the source path and the two generated copies, beside the graph and draft paths already there.",
+        "harness/triage.py: the two hook copies added to `generated_paths()`, so a review does not read a generated file as an unplanned change.",
+        ".claude/settings.json and .codex/hooks.json: the generated harness entries, with the graphify entries, the repowise entries and the permissions block unchanged.",
+        ".gitignore: `!.codex/hooks.json` beside the `!.codex/agents/` exception, with the reason written where the agents' reason already is.",
+        "harness/tests/test_hooks.py: new, the fixtures and the cases for sync, drift and the injecting events.",
+        "harness/tests/test_guard.py: new, one case per refusal and one per allowance, driven through both assistants' PreToolUse payloads.",
+        "docs/harness/workflow.md and docs/harness/skill.md: the hooks as built rather than as planned, and the guard in the command table; `sync` regenerates the three skill copies from the second.",
+        "docs/tickets/SEEN-106-enforce-the-harness-with-hooks-in-both.md: the Outcome section, status review and the five ticks, written before the review gate."
+      ],
+      "migrations": [],
+      "tests_first": [
+        "sync preserves what it does not own. `python3 -m pytest harness/tests/test_hooks.py -k preserves` against a temporary project whose .claude/settings.json holds the two graphify entries and the permissions block and whose .codex/hooks.json holds the two repowise-augment entries. The RED must fail with ModuleNotFoundError on harness.hooks, because nothing generates a hook copy yet; it must not fail on an assertion about content, which would mean the module exists and the merge is merely wrong.",
+        "drift names the copy and the entry a hand edit touched, and says nothing about a foreign entry. `python3 -m pytest harness/tests/test_hooks.py -k drift`. The RED fails with ModuleNotFoundError for the same reason. The GREEN must show both halves: an edited harness command reported, and a foreign entry added by hand not reported.",
+        "guard refuses an edit to packages/ at the solution stage with a reason naming the stage, and exits 2. `python3 -m pytest harness/tests/test_guard.py -k solution_stage`. The RED must fail on the reason text, not on the exit code: argparse exits 2 on an unknown command, so a test asserting only the code would pass against a harness that has no guard at all. This is the one RED in this ticket that can lie, and the assertion is written to make it impossible.",
+        "guard allows the ticket file and .harness-drafts/ at every stage, and allows when there is no journal or no accepted plan. `python3 -m pytest harness/tests/test_guard.py -k allows`. The RED fails with a non-zero exit because there is no guard command; the GREEN must show exit 0 and a reason naming which allowance applied.",
+        "SessionStart injects the pack and UserPromptSubmit injects nothing under budget and a warning over it. `python3 -m pytest harness/tests/test_hooks.py -k injects`, feeding each assistant's payload on stdin. The RED fails with ModuleNotFoundError; the GREEN must find the pack's own first heading inside the client's additionalContext field, so a test passing on an empty string is impossible.",
+        "PreCompact writes the pack with trigger auto and with trigger manual. `python3 -m pytest harness/tests/test_hooks.py -k precompact`. The RED fails with ModuleNotFoundError; the GREEN must show a handoff record appended and the pack file on disk for both triggers, and must show that a ticket with no accepted slice plan returns without raising, because a hook that fails compaction loses the context it exists to preserve.",
+        "The regression: `python3 -m pytest harness/tests -q` and `python3 harness/run.py doctor`, the second because this ticket adds a section to it and a doctor that refuses its own repository is the failure that matters."
+      ],
+      "slices": [
+        {
+          "name": "The one source and the two generated copies",
+          "points": 1,
+          "files": [
+            "harness/hooks.json",
+            "harness/hooks.py",
+            "harness/paths.py",
+            "harness/cli.py",
+            "harness/doctor.py",
+            "harness/triage.py",
+            "harness/tests/test_hooks.py",
+            ".gitignore",
+            ".claude/settings.json",
+            ".codex/hooks.json"
+          ],
+          "red": "sync into a temporary project holding the graphify entries, the permissions block and the repowise entries fails with ModuleNotFoundError on harness.hooks, and a hand edit to a generated harness command is not yet reported by doctor. Not an assertion about merged content: that failure would mean the module exists."
+        },
+        {
+          "name": "The edit guard",
+          "points": 1,
+          "files": [
+            "harness/guard.py",
+            "harness/cli.py",
+            "harness/tests/test_guard.py"
+          ],
+          "red": "guard on packages/core/src/detectors.ts with the journal at solution exits non-zero with no reason naming the stage, and the assertion is on the reason text rather than on the exit code, because argparse exits 2 on an unknown command and would otherwise make this RED indistinguishable from a pass."
+        },
+        {
+          "name": "The injecting and validating hooks",
+          "points": 2,
+          "files": [
+            "harness/hooks.py",
+            "harness/cli.py",
+            "harness/doctor.py",
+            "harness/handoff.py",
+            "harness/tests/test_hooks.py",
+            "docs/harness/workflow.md",
+            "docs/harness/skill.md",
+            ".claude/skills/seen-harness/SKILL.md",
+            ".agents/skills/seen-harness/SKILL.md"
+          ],
+          "red": "hook session-start --client claude fed Claude Code's own SessionStart payload on stdin fails with ModuleNotFoundError rather than printing an envelope whose additionalContext carries the pack's first heading; the same for user-prompt-submit over budget, pre-compact with trigger auto, subagent-stop for seen-reviewer and stop."
+        }
+      ],
+      "alternatives": [
+        "Generate .claude/settings.json whole, the way skills.py and agents.py generate their copies, and keep the permissions and the graphify entries in harness/hooks.json too. Rejected: it makes the harness the owner of a file it has no business owning. The permissions allowlist and another tool's hooks are the person's and that tool's, and a sync that rewrites them turns every graphify upgrade into a doctor failure in this repository.",
+        "Mark a harness entry with a sibling key such as _source. Rejected: neither assistant documents its hook schema as extensible, and an unknown key in a validated object is a refusal waiting for a release. The command prefix is already the thing that makes an entry the harness's.",
+        "One hook command per event, six subcommands. Rejected: the response envelope differs by client and not by event, so six commands would carry six copies of the same two envelopes. One dispatcher with --client keeps the difference in the one place it belongs, which is the same reason repowise-augment takes --client.",
+        "Leave SubagentStop and Stop out, since no acceptance criterion names them. Rejected, and this is the closest call in the record: the first criterion says both copies are generated from harness/hooks.json, and a source describing four of the six events the ticket's own description names is not that source. They are built and given the same fixtures as the four, which is what keeps this from being scope taken on quietly.",
+        "Have guard refuse when it cannot resolve a rule. Rejected: it refuses the first edit of every ticket, this one included, and the absence it would refuse on is already refused by the gate that comes next. A guard is early enforcement of an existing rule, never a new one."
+      ],
+      "risks": [
+        "The wall this ticket builds can refuse the session building it. A PreToolUse guard in .claude/settings.json takes effect as soon as the assistant reloads it, and the session that generated it is the session whose edits it judges. Mitigated three ways: every criterion is proven by fixtures rather than by the live hook, so nothing here needs the wall standing; sync runs deliberately at the end of the third slice rather than while the tests are being written; and the only refusal that can reach a legitimate edit is the tdd slice-files rule, whose remedy is to amend the slice plan with a return to solution, which is a recorded path rather than a way out.",
+        "Four points of plan against a three-point estimate. The plan's points are what the work is, not what the estimate said, and this epic has split twice on exactly this signature: SEEN-089 at seven enforcements and SEEN-096 three ways. If the third slice does not close inside its budget the ticket returns and the injecting hooks become their own ticket; the first two slices are independently useful and the source file is complete either way.",
+        "Ownership by command prefix breaks if the harness invocation is ever written differently, for instance as `harness` on the PATH or with an absolute python. Mitigated by the renderer being the only thing that writes those commands, and by a drift test that hand-edits the command and expects the copy to be reported rather than quietly disowned; a disowned entry would be a silent pass, which is the failure mode worth a test of its own.",
+        "Whether Codex reads a project-level .codex/hooks.json at all is unsettled: `codex features list` prints hooks as stable and effective true with no [features] section in force, verified 26 September 2026 on codex-cli 0.156.1, but `codex doctor` says nothing about hook discovery and the file has sat in this repository since SEEN-105 unconfirmed. Criterion 5 is the observation; if /hooks does not list the harness entries the generated path moves to whatever that session shows, recorded as a correction.",
+        "Stop running doctor on every turn is a cost every session in this repository pays. Mitigated by --quick reading only the journal and the generated copies, with no walk of the tree: link_problems and marketplace_hosts read every tracked file and are the two the quick set leaves out."
+      ],
+      "rollback": "Nothing is deployed, so the rollback is local and complete: `git revert` the commit, then `python3 harness/run.py sync`, which rewrites both copies from the reverted source and so removes the harness entries while leaving the graphify entries, the repowise entries and the permissions where they were. A session already running with the hooks loaded keeps them until it restarts, which is the one part a revert cannot reach; the answer is to restart it, not to add a bypass, because a guard with an environment switch is a guard with a hole.",
+      "new_dependencies": [],
+      "tenant_tables": [
+        "none: this ticket touches no database. It is harness tooling and two generated configuration files."
+      ],
+      "buyer_pii": "none. Nothing here reads, writes or passes a buyer field. The hook payloads carry file paths, a prompt and a compaction trigger; the secrets check that already refuses an environment value in a record is what guards the pack these hooks print.",
+      "policy_gate_action": null,
+      "slice_points": 4
+    },
+    "decisions": [
+      {
+        "key": "solution_complete",
+        "question": "solution_complete",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.68,
+          "no": 0.32
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "key": "touches_billing_or_policy_gate",
+        "question": "touches_billing_or_policy_gate",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.4,
+          "no": 0.6
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "sequence": 3,
+  "ticket": "SEEN-106",
+  "timestamp": "2026-09-26T04:46:34.395249+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "90d87d9d4058",
+  "head": "eb48c6dd260ebf6f20dbc04f575dcacf890cea30",
+  "prev_hash": "547a01083e988e5f6a8a328a5c3604b0749a4c228579593175f7494d05bc624a",
+  "data": {
+    "text": "# Scout brief: the generation-and-drift machinery SEEN-106 extends\n\nCould not answer: no `--auto` flag on `handoff` and no `--quick` flag on `doctor` exist\nanywhere in `harness/cli.py`; both are new surface. Did not trace whether `doctor`'s\nsuccess path reaches the shared JSON print.\n\n**Generation and drift.** `harness/agents.py` `sync(root)` (226-237) writes both copies from\neach source; `drift(root)` (269-287) re-renders `render_claude` and `render_codex` from the\nsource and compares the **full text** (`path.read_text() != rendered`), not a hash in a file\nand not a marker. The `GENERATED` comment (144-145) names the source but is informational.\n`strays(root)` (240-266) flags a copy with no source. Helpers `source_of`, `claude_copy`,\n`codex_copy` (148-158). `harness/skills.py` has the same pair: `sync` (46), `drift` (66).\n`harness/doctor.py` calls `skills.drift` (145) and `agents.drift` (150).\n`harness/triage.py:generated_paths()` (275-293) lists every generated copy so the review\ntriage does not flag them as unplanned.\n\n**The CLI the hooks call.** `status --brief`: flag at `cli.py:80`, `brief()` at 345,\ndispatched 1061-1063. `budget`: `budget()` at 373, dispatched 1059-1060. `handoff`:\n`handoff()` at 305, no `--auto`. `doctor`: dispatched at 1020 into `doctor.report(...)`,\nno `--quick`. Every command shares one `print(json.dumps(...))` at `cli.py:1099`, so\nstdout is JSON; `doctor`'s failure raises through `require()` with plain text (1022-1023).\n\n**Slice plan and branch.** `harness/handoff.py:plan_of(records)` (52-54) reads\n`gates.latest_evidence(records, 'solution')['slices']`; `current_slice()` (101-146) returns\nthe active entry. Per-slice `files` are read by `harness/routing.py:planned()` (134-138) from\n`entry['files']`. There is no helper returning the ticket of the current branch:\n`cli.py:require_branch()` (225-236) matches `repository.branch_or_none()` against `BRANCH`\nand compares `match.group('ticket')`, so it validates rather than returns.\n\n**The two settings files.** `.claude/settings.json` has two top-level keys, `hooks` and\n`permissions`; its only hook entries are `PreToolUse` on `Bash|Grep` to\n`graphify hook-guard search` and on `Read|Glob` to `graphify hook-guard read`.\n`.codex/hooks.json` already exists, hand-maintained, with `SessionStart` and `PostToolUse`\nentries running `repowise-augment --client codex`. `.codex/config.toml` and\n`.codex/agents/*.toml` exist too.\n\nNot checked: the bodies of `skills.py` `sync` and `drift`, and `doctor.report()`'s success path.\n",
+    "agent": "seen-scout",
+    "words": 303
+  }
+}
