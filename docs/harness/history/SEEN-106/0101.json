@@ -1,0 +1,121 @@
+{
+  "sequence": 101,
+  "ticket": "SEEN-106",
+  "timestamp": "2026-09-26T18:45:40.363274+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "review",
+  "attempt": 16,
+  "actor": "claude:reviewer",
+  "session": "90d87d9d4058",
+  "head": "b386454fb182d1c7b865e002740fe699ebc3cd50",
+  "prev_hash": "cac39b8d87abb7cb2c2b6b8ba5eacc73df846f3d61154bf4162f0411eda3947c",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "deliver",
+    "evidence": {
+      "reviewer": "claude:reviewer",
+      "independence": "self-review",
+      "read": [
+        "docs/tickets/SEEN-106-enforce-the-harness-with-hooks-in-both.md",
+        "docs/harness/history/SEEN-106/",
+        ".agents/skills/seen-harness/SKILL.md",
+        ".claude/settings.json",
+        ".claude/skills/seen-harness/SKILL.md",
+        ".codex/hooks.json",
+        ".gitignore",
+        "CLAUDE.md",
+        "docs/adr/0004-an-outcome-cannot-count-its-own-review-rounds.md",
+        "docs/harness/skill.md",
+        "docs/harness/workflow.md",
+        "docs/tickets/README.md",
+        "docs/tickets/SEEN-110-verify-the-hooks-in-a-codex-session-and-close.md",
+        "harness/cli.py",
+        "harness/doctor.py",
+        "harness/guard.py",
+        "harness/handoff.py",
+        "harness/hooks.json",
+        "harness/hooks.py",
+        "harness/kpi.py",
+        "harness/paths.py",
+        "harness/tests/helpers.py",
+        "harness/tests/test_guard.py",
+        "harness/tests/test_hooks.py",
+        "harness/tests/test_kpi.py",
+        "harness/triage.py"
+      ],
+      "acceptance_evidence": [
+        "1. harness sync generates the hooks section of .claude/settings.json and .codex/hooks.json from harness/hooks.json, preserving the graphify hooks and the permissions, and doctor reports a hand edit of either: records 9 and 10 for the slice, records 29 and 30 for the F1 fix. test_hooks.py HookSyncTest covers drift in both directions, hand-edit detection on each copy and foreign-entry preservation; the reviewer confirmed on disk that graphify's two guards, the permissions block and repowise's three loaders sit untouched beside the harness's entries. Clarify record 6 check 1. Regression record 97.",
+        "2. harness guard blocks an edit to packages or apps at clarify and solution, an edit on a non-ticket branch and an edit outside the accepted slice's files, each with a reason, and allows the ticket file and .harness-drafts at every stage, proven with hook-input fixtures for both assistants: records 15 and 16 for the slice, 32 and 33 for the F7 fixture breadth. harness/guard.py decide with four rules and symlink-resolved paths; test_guard.py DecideTest and GuardCommandTest; test_hooks.py PreToolUseTest driving the stage rule, the branch rule, the outside-slice rule and both allowances through each assistant's own payload, with an apply_patch rename judged on both sides. Clarify record 6 check 2. Regression record 97.",
+        "3. SessionStart injects the handoff pack and UserPromptSubmit injects a budget warning once the session is over budget, proven with fixtures: records 17 and 18. hooks.py _session_start and _user_prompt_submit; test_hooks.py SessionStartTest and UserPromptSubmitTest for both clients, asserting the pack's own heading inside additionalContext and nothing injected under budget. Clarify record 6 check 3. Regression record 97.",
+        "4. PreCompact writes the handoff pack before compaction, and a test proves it is written when the trigger is auto: records 17 and 18, with the F3 boundary fix at 32 and 33. hooks.py _pre_compact and handoff.py hands_over_nothing; test_hooks.py PreCompactTest for the auto and manual triggers, and test_kpi.py CompactionWindowTest for the accounting an automatic pack no longer corrupts. Clarify record 6 check 4. Regression record 97.",
+        "The fifth original criterion is not claimed here. The triage at record 37 answered criterion_evidenced 0.13 against a 0.6 bar for it while answering the other four between 0.68 and 0.78, and it is SEEN-110's first criterion by the amendment recorded at record 44's solution stage, unchanged in substance. Clarify record 6's fifth check is orphaned by that move rather than silently dropped, which the reviewer confirmed against the record."
+      ],
+      "findings": [],
+      "checks": [
+        97,
+        100
+      ],
+      "security_checklist": [
+        "No secret in the diff: gitleaks passed at the triage over main..HEAD and the pre-commit hook ran on every commit. No package manifest or lockfile is touched, so no new dependency enters without an audit.",
+        "Permissions, which is this ticket's own risk and the one the review turned on. .claude/settings.json carries the permission allowlist and defaultMode, which nothing generates and hooks.drift cannot see. Finding F1 established that adding the hook copies to generated_paths() had also dropped that file out of the code fingerprint the review gate compares, so a permission could be widened between a triage and a review advance with nothing refusing it. The sets are now separate, the fingerprint holding only wholly generated copies, and the test walks a project to review, widens permissions.allow and defaultMode, then advances, and the advance refuses. The permissions block itself is unchanged in this diff.",
+        "Injection: hook payloads are data. paths_in takes a path out of a payload and hands it to guard.decide, which compares prefixes and the slice's file list; nothing from a payload reaches a shell, and the dispatcher takes its event from its own argv rather than from the payload.",
+        "The guard has no bypass and is early enforcement of an existing rule rather than a new one. Absence allows and says why, so it cannot lock a session out of its own repository, and no environment switch was added, because a guard with one is a guard with a hole. The remedy for its one refusal that can reach a legitimate edit is an amendment through a return to solution, which this ticket used.",
+        "The hole the hooks leave is stated rather than claimed closed: the PreToolUse matcher covers Edit, Write, MultiEdit and apply_patch, so a write through a shell is not judged, and the skill says so. Criterion 2 is proven by fixtures rather than by the live hook, which is why that distinction belongs in front of a reader.",
+        "No live marketplace host in test code: lint passed at the triage, and the reviewer read test_guard.py, test_hooks.py and test_kpi.py directly and found none.",
+        "No tenant table, no RLS policy and no buyer PII: the solution record declares buyer_pii none, and the diff touches harness tooling, two generated configuration files and documentation.",
+        "No agent tool is added, so no policy-gate declaration is owed: changes_agent_action is false in the frontmatter and the solution record answered touches_billing_or_policy_gate no at 0.77, so a second reviewer and a reviewer from the other assistant are not required. The independence is disclosed as self-review, which is the weaker of the two things it could be called and the honest one. Each round did run in a context that had written none of the code, spawned as the seen-reviewer subagent with its own reading of the diff, the journal and the criteria; but a Claude Code subagent inherits its parent's session id, and this session wrote the work, so the gate cannot tell a real context boundary from a value typed to pass and refuses the subagent disclosure by name. SEEN-108 delivered on the same footing. What a reader should take from it: the reviews were fresh contexts and were not an independent tool, so the defects they caught are self-review catches for SEEN-109's per-kind figures, and a genuinely independent pass over this work has not happened."
+      ],
+      "verdict": "pass",
+      "tree": "83f67f76da8a702ffc5923e2460433891acd64ba381de134ebf7d9ca98ec5d41"
+    },
+    "decisions": [
+      {
+        "key": "severity",
+        "question": "severity",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high",
+          "blocking"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "blocking",
+        "probabilities": {
+          "low": 0.23,
+          "medium": 0.19,
+          "high": 0.05,
+          "blocking": 0.53
+        },
+        "confidence": 0.0,
+        "score": 1.88,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      },
+      {
+        "key": "must_fix",
+        "question": "must_fix",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.21,
+          "no": 0.79
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.7,
+        "passed": false,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

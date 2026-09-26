@@ -1,0 +1,32 @@
+{
+  "sequence": 96,
+  "ticket": "SEEN-106",
+  "timestamp": "2026-09-26T18:24:19.189285+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 15,
+  "actor": "claude:reviewer",
+  "session": "90d87d9d4058",
+  "head": "b386454fb182d1c7b865e002740fe699ebc3cd50",
+  "prev_hash": "a44232d1c66cdad3945c8a2250fdf16cdc32a891d8bf7049737017b932fe45bf",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 16,
+    "reason": "The review passed with one low finding, F20: adding SEEN-110 left the README's own header counts at 109 tickets and 37 in Sprint 0 while the file holds 110 rows and 38. I recorded it as open and deferred to SEEN-110, and the review gate refused the advance, because an open finding is resolved or the ticket returns and relabelling it is refused by name. The gate is stricter than I assumed and is right. Both numbers are fixed and verified against the rows in the same file.",
+    "findings": [
+      {
+        "id": "F20",
+        "severity": "low",
+        "file": "docs/tickets/README.md:3",
+        "claim": "Reported as F1 by this review and renumbered, F1 being taken. Adding SEEN-110 to the sprint table and the E10 epic list left the README's own header counts stale: line 3 says 109 tickets and the Sprint 0 summary says 37 tickets, while the file now holds 110 ticket rows and 38 in Sprint 0. CLAUDE.md's count was bumped in the same diff and the README's two were not.",
+        "failure_scenario": "A reader counts the rows in docs/tickets/README.md, gets 110 and 38, and finds the file's own header lines contradict it. Verified independently: 110 matching rows and 110 ticket files on disk, 38 rows inside the Sprint 0 section.",
+        "status": "fixed",
+        "resolution": "Fixed rather than deferred, because the harness refused the advance: an open finding must be resolved or the ticket returned, and relabelling it is refused by name. That is the stricter answer and the right one. Line 3 now reads 110 tickets and the Sprint 0 summary 38, each verified against the rows in the same file rather than by eye: 110 matching rows across the file and 38 inside the Sprint 0 section. The reasoning that argued for deferring is left in the journal at the returning record, because a judgement the gate overruled is worth a reader seeing."
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}
