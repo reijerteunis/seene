@@ -1,0 +1,42 @@
+{
+  "sequence": 14,
+  "ticket": "SEEN-106",
+  "timestamp": "2026-09-26T05:24:51.281925+00:00",
+  "harness_version": "2",
+  "kind": "handoff",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "90d87d9d4058",
+  "head": "cf54f059a3dbc92ba31e20f930722a2aa36426a4",
+  "prev_hash": "eec3b919d1ade62c89370e1d4a4cf303edc79ad40f8d8c39ba7f2bd9b00df103",
+  "data": {
+    "pack": ".harness-drafts/SEEN-106-handoff.md",
+    "sha256": "e9397bf964d1254ad43c28390baf24f1288ef18063d334d3127327bca515b84e",
+    "estimated_tokens": 1052,
+    "token_limit": 2000,
+    "slice": {
+      "position": 2,
+      "total": 3,
+      "done": 1,
+      "declared": true,
+      "inferred": 3,
+      "entry": {
+        "name": "The edit guard",
+        "points": 1,
+        "files": [
+          "harness/guard.py",
+          "harness/cli.py",
+          "harness/tests/test_guard.py"
+        ],
+        "red": "guard on packages/core/src/detectors.ts with the journal at solution exits non-zero with no reason naming the stage, and the assertion is on the reason text rather than on the exit code, because argparse exits 2 on an unknown command and would otherwise make this RED indistinguishable from a pass."
+      }
+    },
+    "figures": {
+      "session": "90d87d9d4058",
+      "output_tokens": 84222,
+      "tool_calls": 66,
+      "unavailable": null
+    }
+  }
+}
