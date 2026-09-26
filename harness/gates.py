@@ -532,23 +532,7 @@ def _review(data, records, current, repository, thresholds):
                 'reviewed it. A subagent is a context boundary, not independence by itself, and a '
                 'declared session cannot stand in for it where a missed defect costs money. Name '
                 f'the reviewer as one of {", ".join(sorted(known))} and a role')
-    # Two numbers, because two questions are asked of them at delivery. The
-    # first is the tree the review attested and is what delivery compares. The
-    # second is that tree without the ticket file, which is how delivery tells a
-    # ticket marked reviewed after the advance from a ticket edited after it:
-    # the procedure writes the status, the status row and the criteria boxes once
-    # the review has passed, and it cannot write them before it knows. SEEN-109
-    # record 76, where the procedure's own write refused the delivery.
-    ticket = _ticket_file(records, repository)
-    return dict(tree=repository.fingerprint(),
-                tree_without_ticket=(repository.fingerprint(excluding=(ticket,))
-                                     if ticket else None))
-
-
-def _ticket_file(records, repository):
-    """The ticket file as the start record named it, when it is still there."""
-    named = records[0]['data'].get('ticket_file') if records else None
-    return named if named and (repository.root / named).is_file() else None
+    return dict(tree=repository.fingerprint())
 
 
 def _tools_of(records):

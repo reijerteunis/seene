@@ -99,11 +99,14 @@ says which slice caused it, so every slice of the plan carries it and an escaped
 the same way; findings are the one per-slice measure. That is written into `route_rule` so nobody
 reads a per-slice rate as a per-slice cause.
 
-Six deviations from the solution record. Four are the files `slice_files` fails on, which the plan did
-not name, so a reader auditing that check finds every one of them here: `harness/doctor.py`,
-`harness/kpi.py`, `harness/tests/test_context_budget.py` and `harness/tests/test_triage.py`. The
-other two are about the tests themselves: the command that runs them, and which existing file two of
-them went into. Those two first. The plan named the tests as `pytest` commands and
+Seven deviations from the solution record. Five are the files `slice_files` fails on, which the plan
+did not name, so a reader auditing that check finds every one of them here: `harness/delivery.py`,
+`harness/doctor.py`, `harness/kpi.py`, `harness/tests/test_context_budget.py` and
+`harness/tests/test_triage.py`. The other two are about the tests themselves: the command that runs
+them, and which existing file two of them went into. This paragraph has been wrong four times, at the
+fifth, sixth, seventh and eighth reviews, each time because an attempt added a file and the sentence
+counting them was not read again; the list above is the one the triage record prints, copied rather
+than recalled. Those two first. The plan named the tests as `pytest` commands and
 this repository runs `unittest`, which is what every check records; and the gate tests for the
 finding file went into `test_calibration.py` rather than the `test_stage_gates.py` the plan named,
 because `test_calibration.py` is the file slice 1 declared.
@@ -117,7 +120,10 @@ and `doctor` is where it belongs, because CI runs it and a refusal in front of e
 make spot depth untestable. `harness/tests/test_triage.py` came with attempt 3 and attempt 4: its
 two helpers that flip the go-live switch flip both lines now, and two fixtures that return a ticket
 from review declare `--no-findings`. `harness/kpi.py` came with attempt 6, for F2 of the fifth
-review: two committed reports must not state different findings for one ticket.
+review: two committed reports must not state different findings for one ticket. `harness/delivery.py`
+came with attempt 8 and stays with attempt 9: attempt 8 relaxed what a receipt attests and attempt 9
+withdrew the relaxation, so what is left in that file is the refusal it always made and a message
+that now names the order the procedure has to keep.
 
 ### What the review found
 
@@ -323,7 +329,7 @@ predates this change. And the committed weekly and sprint reports are stale from
 they state five findings for SEEN-006 where the code computes six and carry no review-triage section,
 which is a delivery-time matter for whichever ticket regenerates them next.
 
-### The wall the procedure itself hit, at record 76
+### The wall the procedure itself hit, and the attempt that was withdrawn
 
 The review passed and the delivery refused. The ticket's status and its criteria boxes were set after
 the review advance, which moved the tree the review attested, and `verify-delivery` said so. That is
@@ -332,16 +338,31 @@ passed until it has passed, and `doctor` requires the ticket to say `review` by 
 is at deliver, so a ticket either writes those things after the advance and refuses its own delivery,
 or writes them before it on the assumption the review will pass. SEEN-108 did the second.
 
-Attempt 8 closes it. The review gate records a second fingerprint, the reviewed tree without the
-ticket file, and delivery uses it: when the tree has moved, it asks whether the only path that moved
-is the ticket, whether the rest of the tree matches that second number, and whether the ticket
-differs from the commit the review advance was written at in nothing but its frontmatter `status`, its
-status row and its criteria boxes, read through `git show` rather than from a copy in a record. If all
-three hold, the delivery proceeds and the receipt carries `ticket_marked_after_review`. Anything else
-refuses exactly as before, which two of the four tests assert: a line of prose added to the ticket
-after the review is refused, and so is a new file.
+Attempt 8 tried to close it: the review gate recorded a second fingerprint, the reviewed tree without
+the ticket file, and delivery accepted a tree that had moved only in those three fields, read against
+the commit the review advance was written at. Attempt 9 withdrew it, and the reason is the whole
+lesson of this ticket. One review found two ways through the exception and one legitimate change it
+refused. The reviewed ticket's own content was pinned nowhere, so a ticket uncommitted at the advance
+was compared against content no reviewer had seen, and a session that lost an Outcome paragraph
+between the advance and the commit could deliver without it while the receipt asserted that only the
+procedural fields had moved. The three substitutions were file-wide, so a prose line beginning
+`status:`, a second `| Status |` row or a `## Slices` checklist could all be rewritten undetected. And
+a ticket renamed mid-ticket, which SEEN-096 did and SEEN-101 exists for, lost the exception silently
+and met the wall anyway.
 
-The Outcome stays inside the fingerprint, which is the point of the skill's rule and the reason the
-exception is three named fields rather than the file. `doctor`'s message, the skill and the workflow
-say so now; the skill's old sentence claimed the whole ticket file was covered, which was true and is
-no longer.
+Those are fixable, and fixing them is not this ticket's business. The relaxation loosens the most
+safety-critical guarantee the harness has, it answers none of these four acceptance criteria, and one
+review through it found three holes: a calibration ticket is not where the meaning of a receipt is
+widened. So `harness/delivery.py` and `harness/gates.py` are back to attesting the tree the review
+read, with one sentence added to the refusal naming the order to keep, and the tests hold that plain
+guarantee instead: a ticket marked reviewed after the advance refuses, a ticket marked before it
+delivers, prose added afterwards refuses, and no receipt carries an exception.
+
+The wall stands, and the way through it is the order SEEN-108 kept: write the Outcome, set
+`status: review` and tick the boxes, then run the review advance. Writing `status: review` before the
+gate that decides whether the review passes reads oddly, and a review that returns the ticket sets it
+back. `CLAUDE.md`, the skill, the workflow and doctor's message all say that now, and the design that
+would close the wall properly is written down for the founder: pin the reviewed ticket's own content
+in the review record rather than reading it from a commit, resolve the ticket through `cli.ticket_file`
+so a rename survives, and scope the three fields to the frontmatter, the header table and the criteria
+list. That is a ticket of its own.

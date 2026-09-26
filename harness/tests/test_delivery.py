@@ -30,8 +30,15 @@ class DeliveryWalk(CommandTest):
         self.addCleanup(setattr, github, 'CHECKS', None)
         self.addCleanup(setattr, github, 'PULL_REQUEST', None)
 
-    def walk_to_deliver(self):
-        """Take a ticket through every stage, with real recorded checks."""
+    def walk_to_deliver(self, mark_reviewed=False):
+        """Take a ticket through every stage, with real recorded checks.
+
+        `mark_reviewed` writes the ticket's status and criteria before the review
+        advance, which is the order the procedure keeps: the reviewed tree is the
+        tree the receipt attests, so anything the procedure writes about the review
+        goes in before the gate reads the tree. SEEN-109 record 76 is what happens
+        otherwise.
+        """
         self.start()
         self.submit('clarify', clarify_evidence())
         self.submit('solution', solution_evidence())
@@ -55,6 +62,10 @@ class DeliveryWalk(CommandTest):
                                 coverage_delta=None))
         self.run_harness('check', self.ticket_id, '--phase', 'qa', '--actor',
                          'codex:reviewer', '--', 'true')
+        if mark_reviewed:
+            path = next((self.root / 'docs' / 'tickets').glob(f'{self.ticket_id}-*.md'))
+            path.write_text(path.read_text().replace('status: doing', 'status: review')
+                            .replace('- [ ] ', '- [x] '))
         self.submit('review', dict(reviewer='codex:reviewer',
                                    independence='independent',
                                    read=['harness/journal.py'],
