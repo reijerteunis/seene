@@ -41,8 +41,15 @@ HARNESS_VERSION = '2'
 # the journal rather than a promise: at most one stop per reason and record
 # number, so a run asked ten times about one refused gate leaves one record. The
 # envelope is unchanged, so HARNESS_VERSION stays at 2.
+# authorisation is its own kind for the reason stop is, and it is not in
+# journal.TRANSITIONS either: it says a person allowed the merge and the merge is
+# not a stage, so it moves nothing. It is the one record the procedure writes after
+# the receipt, because what it allows is the tree the receipt attests; the run's own
+# halt at that point is reported rather than written, so that `verify-merge` can
+# still read a receipt that is the last record. The envelope is unchanged, so
+# HARNESS_VERSION stays at 2.
 KINDS = ('start', 'note', 'check', 'advance', 'return', 'receipt', 'reopen', 'decision',
-         'handoff', 'triage', 'route', 'stop')
+         'handoff', 'triage', 'route', 'stop', 'authorisation')
 
 # Committed run history: docs/harness/history/<TICKET>/0001.json and onwards.
 HISTORY = Path('docs/harness/history')

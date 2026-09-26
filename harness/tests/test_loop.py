@@ -10,10 +10,16 @@ reason and record. The third is the refusal: a ticket whose executor is `human`
 is refused before its journal exists, because a run that started SEEN-110 would
 arrive at a verification whose only way forward is to invent the fact the
 criterion exists to establish.
+
+Slice 2 adds the three things the run needs before it can be trusted with a whole
+ticket: the single question batch, the merge that waits on a person, and the
+summary a person reads at the end. All three are below, from QuestionBatchTest
+onwards.
 """
 
 import contextlib
 import io
+import json
 from pathlib import Path
 import unittest
 
@@ -26,6 +32,8 @@ from harness.tests.test_lifecycle import CommandTest, clarify_evidence, solution
 PROJECT = Path(__file__).resolve().parents[2]
 # Every action's argv starts here: the entry point a session already runs.
 ENTRY = ['python3', 'harness/run.py']
+# Except the merge, which nothing in the harness does.
+MERGE = ['gh', 'pr', 'merge']
 # The worked example the ticket names, read from the real file rather than a
 # fixture: what the refusal has to name is what this ticket actually says.
 SEEN_110 = 'SEEN-110-verify-the-hooks-in-a-codex-session-and-close.md'
@@ -46,8 +54,14 @@ class RunMixin:
 
     def assert_runnable(self, action):
         self.assertIn(action['kind'], loop.ACTIONS, action)
-        self.assertEqual(action['argv'][:2], ENTRY, action)
-        self.assertIn(self.ticket_id, action['argv'], action)
+        if action['kind'] == 'merge':
+            # The one action whose argv is not a harness command, because the
+            # harness has no merge and never will: what merges a pull request is
+            # gh, run by the person who authorised it.
+            self.assertEqual(action['argv'][:3], MERGE, action)
+        else:
+            self.assertEqual(action['argv'][:2], ENTRY, action)
+            self.assertIn(self.ticket_id, action['argv'], action)
         self.assertTrue(action['why'], action)
         self.assertEqual(list(action['stops']), list(loop.stops(self.rules())), action)
         if action['kind'] == 'stop':
@@ -298,6 +312,230 @@ class HumanExecutorTest(unittest.TestCase):
         action = cli.execute(cli.parse(['--root', str(root), 'run', 'SEEN-001',
                                         '--actor', 'claude:implementer']))
         self.assertEqual(action['argv'][2], 'start')
+
+
+class QuestionBatchTest(RunMixin, CommandTest):
+    """Every question a record leaves open, asked once and in one batch.
+
+    Slice 2. Two properties: the batch, because a run that asked its questions one
+    at a time would stop as many times over one record and spend a person's
+    attention on each; and the resume, because what makes the run continue is the
+    answer being recorded rather than the loop deciding it liked it. What only the
+    work can settle is not asked at all: it belongs in the record's decisions with
+    the observation that will settle it, which is SEEN-100's distinction, and the
+    record's own two lists are what makes it rather than a classifier here.
+    """
+
+    QUESTIONS = ['Which marketplace does the first pilot run on?',
+                 'Who signs the DPA before the pilot starts?']
+    # An unknowable in the record's own words: named, with what will settle it.
+    ONLY_THE_WORK = ('Whether gh answers within the timeout on a cold machine, settled by the '
+                     'first real merge')
+
+    def setUp(self):
+        super().setUp()
+        self.start()
+
+    def draft(self, questions, answers=()):
+        """The clarify draft as a session would leave it, open questions and all."""
+        data = clarify_evidence(open_questions=list(questions),
+                                decisions=['Recorded by the harness itself, per SEEN-086',
+                                           self.ONLY_THE_WORK, *answers])
+        self.write(f'.harness-drafts/{self.ticket_id}-clarify.json', json.dumps(data))
+        return data
+
+    def answer(self, text='Bol, and Ruud signs it. Both answered on 27 September 2026.'):
+        self.write(f'.harness-drafts/{self.ticket_id}-answers.md', text)
+        return self.run_harness('note', self.ticket_id, '--file',
+                                f'.harness-drafts/{self.ticket_id}-answers.md',
+                                '--actor', 'claude:implementer')
+
+    def test_every_open_question_is_asked_at_once_in_one_ask(self):
+        self.draft(self.QUESTIONS)
+        action = self.assert_runnable(self.ask())
+        self.assertEqual(action['kind'], 'ask')
+        self.assertEqual(action['questions'], self.QUESTIONS)
+        # Where the answer goes: on record as a note, not into the loop's head.
+        self.assertEqual(self.named(action), 'note')
+        # What only the work can settle is not in the batch, and the ask says
+        # where it belongs instead.
+        self.assertNotIn(self.ONLY_THE_WORK, action['questions'])
+        self.assertIn('decisions', action['why'])
+
+    def test_the_ask_leaves_one_question_open_stop_pointing_at_the_record(self):
+        self.draft(self.QUESTIONS)
+        action = self.ask()
+        self.assertEqual(action['stop']['reason'], 'question_open')
+        self.assertEqual(action['stop']['record'], 1)
+        self.assertTrue(action['stop']['recorded'])
+        stopped = self.records()[-1]
+        self.assertEqual(stopped['kind'], 'stop')
+        # The stop carries the batch, which is what makes a later question a
+        # second batch rather than the same one asked twice.
+        self.assertEqual(stopped['data']['questions'], self.QUESTIONS)
+        self.ask()
+        self.assertEqual(self.kinds().count('stop'), 1)
+
+    def test_the_run_continues_once_a_note_answers_the_batch(self):
+        self.draft(self.QUESTIONS)
+        self.assertEqual(self.ask()['kind'], 'ask')
+        self.answer()
+        answered = self.draft([], answers=['Bol first, on Ruud\'s call of 27 September 2026'])
+        action = self.assert_runnable(self.ask())
+        self.assertNotEqual(action['kind'], 'stop')
+        self.assertEqual(self.named(action), 'advance')
+        # And the gate is what judges the answer: `clarified` clears, the record
+        # is accepted, and nothing here decided that for itself.
+        self.assertEqual(self.submit('clarify', answered)['data']['to_stage'], 'solution')
+
+    def test_a_second_batch_is_counted_from_the_stop_records_as_a_defect(self):
+        self.draft(self.QUESTIONS)
+        self.ask()
+        self.answer()
+        later = 'And who pays for the Amazon developer account?'
+        self.draft([*self.QUESTIONS, later])
+        second = self.ask()
+        self.assertEqual(second['kind'], 'ask')
+        # Only what the first batch did not carry: a question already asked and
+        # answered is not asked again.
+        self.assertEqual(second['questions'], [later])
+        summary = self.run_harness('run', self.ticket_id, '--summary')
+        self.assertEqual(summary['question_batches'],
+                         [record['sequence'] for record in self.records()
+                          if record['kind'] == 'stop'])
+        defect = next(entry for entry in summary['defects']
+                      if entry['defect'] == 'second_question_batch')
+        self.assertEqual(defect['records'], summary['question_batches'])
+
+
+class MergeAuthorisationTest(RunMixin, DeliveryWalk):
+    """The merge waits on a person, and the run never takes it.
+
+    Slice 2. The receipt says what was built and verify-merge says it is still
+    what is about to merge; neither says anybody wanted it merged. That is the
+    authorisation record, and the loop offers the merge only once one exists.
+    """
+
+    def deliver(self):
+        """A delivered ticket whose pull request carries its receipt hash."""
+        self.walk_to_deliver()
+        self.commit_and_push()
+        delivered = self.verify()
+        from harness import github
+        github.PULL_REQUEST = lambda repository: dict(
+            number=1, body=f'Receipt: {delivered["receipt_sha256"]}',
+            headRefName=f'claude/{self.ticket_id}-a-ticket-to-work')
+        return delivered
+
+    def authorise(self, by='Ruud'):
+        return self.run_harness('authorise', self.ticket_id, '--merge', '--by', by,
+                                '--actor', 'claude:implementer')
+
+    def test_a_green_verify_merge_stops_the_run_and_offers_no_merge(self):
+        delivered = self.deliver()
+        action = self.assert_runnable(self.ask())
+        self.assertEqual(action['kind'], 'stop')
+        self.assertEqual(action['reason'], 'awaiting_authorisation')
+        self.assertEqual(action['stage'], 'delivered')
+        # One command resumes it, and it is the authorisation.
+        self.assertEqual(self.named(action), 'authorise')
+        self.assertIn('--merge', action['resume'])
+        # The receipt stays the last record, which is what verify-merge itself
+        # requires, so the run's ordinary end is reported and not written.
+        self.assertFalse(action['recorded'])
+        self.assertEqual(self.records()[-1]['kind'], 'receipt')
+        self.assertEqual(self.records()[-1]['sequence'], delivered['record']['sequence'])
+
+    def test_the_merge_is_offered_only_after_an_authorisation_record(self):
+        self.deliver()
+        self.assertEqual(self.ask()['kind'], 'stop')
+        authorised = self.authorise()
+        self.assertEqual(authorised['kind'], 'authorisation')
+        self.assertEqual(authorised['data']['scope'], 'merge')
+        self.assertEqual(authorised['data']['by'], 'Ruud')
+        # When is the record's own timestamp, and what was authorised is named.
+        self.assertTrue(authorised['timestamp'])
+        self.assertEqual(authorised['data']['tip'], self.git('rev-parse', 'HEAD'))
+        action = self.assert_runnable(self.ask())
+        self.assertEqual(action['kind'], 'merge')
+        self.assertEqual(action['authorisation'], authorised['sequence'])
+        self.assertEqual(action['by'], 'Ruud')
+
+    def test_the_loop_never_merges_anything_itself(self):
+        self.deliver()
+        self.ask()
+        self.authorise()
+        head, before = self.git('rev-parse', 'HEAD'), len(self.records())
+        action = self.ask()
+        self.ask()
+        # The argv is handed over, not run: the branch and the journal are
+        # exactly where they were before the loop was asked twice.
+        self.assertEqual(action['argv'][:3], MERGE)
+        self.assertEqual(self.git('rev-parse', 'HEAD'), head)
+        self.assertEqual(len(self.records()), before)
+
+    def test_a_branch_that_moved_after_the_authorisation_is_not_offered_for_merge(self):
+        self.deliver()
+        self.ask()
+        self.authorise()
+        self.write('after.md', 'A commit nobody authorised.')
+        self.commit_and_push('docs: after the authorisation')
+        action = self.assert_runnable(self.ask())
+        self.assertNotEqual(action['kind'], 'merge')
+        self.assertEqual(self.named(action), 'reopen')
+
+    def test_a_merge_cannot_be_authorised_before_there_is_a_receipt(self):
+        self.walk_to_deliver()
+        with self.assertRaisesRegex(HarnessError, 'deliver'):
+            self.authorise()
+        self.assertNotIn('authorisation', self.kinds())
+
+
+class SummaryTest(RunMixin, CommandTest):
+    """Every criterion, its box as the ticket file has it, and what it waits on.
+
+    Slice 2. The summary is the one thing a run produces that a person reads
+    rather than executes, so it asserts nothing of its own: the box state is the
+    ticket file's and what an unmet criterion waits on is the journal's.
+    """
+
+    CRITERIA = ['Something observable happens', 'And something else is measured']
+    CHECKS = ['The journal holds one record per stage',
+              'The second is measured by the run that delivers it']
+
+    def setUp(self):
+        super().setUp()
+        self.start()
+        path = self.root / self.ticket_file
+        path.write_text(path.read_text().replace(
+            f'- [ ] {self.CRITERIA[0]}',
+            f'- [x] {self.CRITERIA[0]}\n- [ ] {self.CRITERIA[1]}'))
+
+    def summary(self):
+        return self.run_harness('run', self.ticket_id, '--summary')
+
+    def test_every_criterion_is_listed_with_its_box_state_from_the_ticket_file(self):
+        summary = self.summary()
+        self.assertEqual([entry['criterion'] for entry in summary['criteria']], self.CRITERIA)
+        self.assertEqual([entry['met'] for entry in summary['criteria']], [True, False])
+        self.assertEqual([entry['box'] for entry in summary['criteria']], ['x', ' '])
+        self.assertEqual((summary['met'], summary['unmet']), (1, 1))
+
+    def test_every_unmet_criterion_says_what_it_waits_on_from_the_journal(self):
+        clarified = self.submit('clarify', clarify_evidence(acceptance=self.CHECKS))
+        met, unmet = self.summary()['criteria']
+        self.assertIsNone(met['waiting_on'])
+        # The stage it stands at, and the check the clarify record restated for
+        # it, by record number: read from the journal rather than asserted.
+        self.assertIn('solution', unmet['waiting_on'])
+        self.assertIn(self.CHECKS[1], unmet['waiting_on'])
+        self.assertEqual(unmet['check'], self.CHECKS[1])
+        self.assertEqual(unmet['check_record'], clarified['sequence'])
+
+    def test_the_summary_takes_no_actor_and_writes_nothing(self):
+        before = len(self.records())
+        self.assertEqual(self.summary()['ticket'], self.ticket_id)
+        self.assertEqual(len(self.records()), before)
 
 
 if __name__ == '__main__':

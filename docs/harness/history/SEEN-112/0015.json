@@ -1,0 +1,35 @@
+{
+  "sequence": 15,
+  "ticket": "SEEN-112",
+  "timestamp": "2026-09-26T23:11:48.747122+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "8b178018f94a8c04fe7d2264e8ea45a7099dd64a",
+  "prev_hash": "40946c05faba3762a7d4e224e4c41e42cf3129d698d99c651b009b9a4c022c29",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "pytest",
+      "harness/tests/test_loop.py",
+      "-q",
+      "-k",
+      "QuestionBatch or MergeAuthorisation or Summary"
+    ],
+    "phase": "green",
+    "exit_code": 0,
+    "model": "claude-opus-5",
+    "model_declared": "opus",
+    "agent_declared": "seen-implementer",
+    "duration_ms": 7367,
+    "output": "............                                                             [100%]\n12 passed, 12 deselected in 7.23s\n",
+    "output_sha256": "a57c93d20ce21dd800b8bd40c9d5f84c48bcd6612df119be4be9c19fd6eb705c",
+    "output_truncated": false,
+    "before": "2c67af5d72bb83be687ab792a378b21bf645c877d0ddecea7080ba98c889d39a",
+    "after": "2c67af5d72bb83be687ab792a378b21bf645c877d0ddecea7080ba98c889d39a"
+  }
+}
