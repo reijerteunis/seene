@@ -1,0 +1,71 @@
+{
+  "sequence": 96,
+  "ticket": "SEEN-109",
+  "timestamp": "2026-09-26T03:54:36.943225+00:00",
+  "harness_version": "2",
+  "kind": "receipt",
+  "stage": "deliver",
+  "attempt": 9,
+  "actor": "claude:implementer",
+  "session": "343d37550220",
+  "head": "dc08b01352dd5dd6ecca20d8937f477da358d973",
+  "prev_hash": "8523da1ff085c1f48c55695257f37a8edc2c851bb445b6c6b4571401048237f7",
+  "data": {
+    "from_stage": "deliver",
+    "to_stage": "delivered",
+    "commit": "dc08b01352dd5dd6ecca20d8937f477da358d973",
+    "branch": "claude/SEEN-109-calibrate-triage-and-routes",
+    "remote": "origin",
+    "tree": "3a53e3fe5f8dd06600450850739d3166f1e22920b275af5b919d75e169e54b42",
+    "pull_request": "https://github.com/reijerteunis/seene/pull/25",
+    "limits": [
+      "The window counts nothing yet. Every journal in this repository started before [calibration] counted_from, and SEEN-107, SEEN-108 and this ticket are excluded by name, so the report states stay-shadow for both switches on the shortfall and concludes nothing. The first figure that means anything arrives with the tenth ticket worked after this one.",
+      "Neither switch moves here. [review] triage_shadow and [routing] shadow stay true, so every reviewer still reads the whole diff and every slice still runs on the session's model. Going live is the founder's, and for the triage it takes two lines rather than one.",
+      "A per-slice rework rate is evidence about a group and never about a cause: a return is charged to every slice of the plan it returned, an escaped defect to every slice of its ticket, and a finding no slice's files can be compared with to every slice as well, because no record says which slice caused any of them.",
+      "After go-live a defect in a file the narrowing dropped can only become a finding if the reviewer reads beyond its focus set. An escaped defect is computed and shown per ticket but is not an escape by the ticket's own two-kind definition; whether it should be is a question for the founder that this ticket raised and did not settle.",
+      "The wall at record 76 is documented, not closed: the Outcome, the status and the criteria boxes all go in before the review advance, which means writing status: review before the gate that decides whether the review passes. Attempt 8 tried to close it by relaxing what a receipt attests and attempt 9 withdrew that; the design that would close it properly is written into the workflow for a ticket of its own.",
+      "The triage's fingerprint check fails on the harness writing its own Outcome, which note 86 analyses for three triage records of this ticket. The narrower comparison that would fix it needs every check record to carry a second fingerprint, which is a change to what every record holds and is left for the founder.",
+      "The nine reviews came from seen-reviewer subagents in a context that had not written the code, and every one is disclosed as self-review, because a Claude Code subagent inherits its parent session id and no record here can prove otherwise."
+    ],
+    "evidence": {
+      "remote": "origin",
+      "pull_request": "https://github.com/reijerteunis/seene/pull/25",
+      "limits": [
+        "The window counts nothing yet. Every journal in this repository started before [calibration] counted_from, and SEEN-107, SEEN-108 and this ticket are excluded by name, so the report states stay-shadow for both switches on the shortfall and concludes nothing. The first figure that means anything arrives with the tenth ticket worked after this one.",
+        "Neither switch moves here. [review] triage_shadow and [routing] shadow stay true, so every reviewer still reads the whole diff and every slice still runs on the session's model. Going live is the founder's, and for the triage it takes two lines rather than one.",
+        "A per-slice rework rate is evidence about a group and never about a cause: a return is charged to every slice of the plan it returned, an escaped defect to every slice of its ticket, and a finding no slice's files can be compared with to every slice as well, because no record says which slice caused any of them.",
+        "After go-live a defect in a file the narrowing dropped can only become a finding if the reviewer reads beyond its focus set. An escaped defect is computed and shown per ticket but is not an escape by the ticket's own two-kind definition; whether it should be is a question for the founder that this ticket raised and did not settle.",
+        "The wall at record 76 is documented, not closed: the Outcome, the status and the criteria boxes all go in before the review advance, which means writing status: review before the gate that decides whether the review passes. Attempt 8 tried to close it by relaxing what a receipt attests and attempt 9 withdrew that; the design that would close it properly is written into the workflow for a ticket of its own.",
+        "The triage's fingerprint check fails on the harness writing its own Outcome, which note 86 analyses for three triage records of this ticket. The narrower comparison that would fix it needs every check record to carry a second fingerprint, which is a change to what every record holds and is left for the founder.",
+        "The nine reviews came from seen-reviewer subagents in a context that had not written the code, and every one is disclosed as self-review, because a Claude Code subagent inherits its parent session id and no record here can prove otherwise."
+      ]
+    },
+    "checks": [
+      {
+        "name": "Harness tests (Python 3.12)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Knowledge graph",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Monorepo (Node 24)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Secrets and supply chain",
+        "conclusion": "success",
+        "runs": 1
+      }
+    ],
+    "coverage": {
+      "package": "@seen/core",
+      "lines": 100.0,
+      "delta": 0.0
+    }
+  }
+}
