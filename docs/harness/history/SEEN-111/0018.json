@@ -1,0 +1,48 @@
+{
+  "sequence": 18,
+  "ticket": "SEEN-111",
+  "timestamp": "2026-09-26T21:28:54.715347+00:00",
+  "harness_version": "2",
+  "kind": "handoff",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "ed286b2c2c3a",
+  "head": "8b4f2154da3d7690c2157a38fa559c616a5f1bb1",
+  "prev_hash": "bae906843c9338be12b5ce8c72c14a6d6288b4afa6667d798ca0b68d05ada6c5",
+  "data": {
+    "pack": ".harness-drafts/SEEN-111-handoff.md",
+    "sha256": "e893b6694694ee62ab51cb29597b45b5dae1e98ac34541e9ad7e2a9d69ec397a",
+    "estimated_tokens": 1145,
+    "token_limit": 2000,
+    "slice": {
+      "position": 3,
+      "total": 3,
+      "done": 2,
+      "declared": true,
+      "inferred": 3,
+      "entry": {
+        "name": "The quiet check, and the two documents that describe all of it",
+        "points": 1,
+        "files": [
+          "harness/cli.py",
+          "harness/thresholds.toml",
+          "harness/tests/test_session_cap.py",
+          "docs/harness/workflow.md",
+          "docs/harness/skill.md",
+          ".claude/skills/seen-harness/SKILL.md",
+          ".agents/skills/seen-harness/SKILL.md",
+          "docs/tickets/SEEN-111-hold-a-slice-to-the-context-it-was-routed-to.md"
+        ],
+        "red": "`harness check --quiet` returns a payload holding no captured output but holding the exit code, the size counts and the tail, while the journal file it wrote is byte for byte the file written without the flag."
+      }
+    },
+    "auto": false,
+    "figures": {
+      "session": "ed286b2c2c3a",
+      "output_tokens": 101342,
+      "tool_calls": 83,
+      "unavailable": null
+    }
+  }
+}

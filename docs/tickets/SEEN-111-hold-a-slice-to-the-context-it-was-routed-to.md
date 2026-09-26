@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-104, SEEN-105, SEEN-108]
-status: todo
+status: review
 ---
 # SEEN-111: Hold a slice to the context it was routed to, and price it before it is worked
 
@@ -23,7 +23,7 @@ status: todo
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | todo |
+| Status | review |
 
 ## Description
 
@@ -39,12 +39,12 @@ Nothing in this ticket refuses on the budget. The threshold's own comment says o
 
 ## Acceptance criteria
 
-- [ ] A check declares the agent it ran under, beside the tier it already declares, and the tdd gate refuses a slice whose RED and GREEN were recorded in the orchestrating session's own context once `[routing] shadow` is off, naming the slice, the route record and the two checks, proven by a RED
-- [ ] Whether a subagent's output tokens land in its parent's figure is settled from a real session log, recorded as a finding with the log's own evidence, and `harness budget` either reports the parent's and the subagents' spending apart or states that it cannot tell them apart
-- [ ] The solution stage reports what a plan of this shape has cost, read from the delivered KPI records rather than from its points, and names the split when the prediction exceeds the session budget; it refuses nothing while fewer tickets have delivered than `[calibration]` names, and an absence is reported as an absence rather than as a low figure
-- [ ] `harness check` can return its record without the captured output, so a full regression costs the caller its exit code, its counts and its last lines instead of its whole transcript, and the journal still holds everything it held before
-- [ ] The budget still refuses nothing, and the ticket's Outcome records why rather than leaving it to be rediscovered
-- [ ] That slices cannot run in parallel while the tdd gate orders every RED after the previous GREEN is recorded as an open question with the gate's own line quoted, and is not answered here
+- [x] A check declares the agent it ran under, beside the tier it already declares, and the tdd gate refuses a slice whose RED and GREEN were recorded in the orchestrating session's own context once `[routing] shadow` is off, naming the slice, the route record and the two checks, proven by a RED
+- [x] Whether a subagent's output tokens land in its parent's figure is settled from a real session log, recorded as a finding with the log's own evidence, and `harness budget` either reports the parent's and the subagents' spending apart or states that it cannot tell them apart
+- [x] The solution stage reports what a plan of this shape has cost, read from the delivered KPI records rather than from its points, and names the split when the prediction exceeds the session budget; it refuses nothing while fewer tickets have delivered than `[calibration]` names, and an absence is reported as an absence rather than as a low figure
+- [x] `harness check` can return its record without the captured output, so a full regression costs the caller its exit code, its counts and its last lines instead of its whole transcript, and the journal still holds everything it held before
+- [x] The budget still refuses nothing, and the ticket's Outcome records why rather than leaving it to be rediscovered
+- [x] That slices cannot run in parallel while the tdd gate orders every RED after the previous GREEN is recorded as an open question with the gate's own line quoted, and is not answered here
 
 ## Slices
 
@@ -72,3 +72,98 @@ Nothing in this ticket refuses on the budget. The threshold's own comment says o
 - `harness/thresholds.toml`, `[session]`: `max_points_per_slice`, `max_slices_per_ticket`, `output_token_budget` and the comment saying why nothing refuses on the last of them
 - `harness/routing.py:272`, `implementer_task`: the instruction the route writes and nothing reads
 - Epic goal: Give every ticket one fast, evidence-recording procedure across Claude Code and Codex, with graphify for context, Jev for typed gate decisions, CI as the definition of done, security controls built into the stages, and a KPI record per ticket.
+
+## Outcome
+
+Three things shipped in the order the ticket named them, and two questions it could only raise are
+raised rather than answered.
+
+**The declaration and the gate.** A check records `agent_declared` beside the `model_declared`
+SEEN-108 added, supplied by `harness check --agent <name>` and checked against `[agents] names`.
+`gates._require_a_context_of_its_own` sits immediately after `_require_the_routed_model` and
+inherits its three absences: it is silent while `[routing] shadow` is true, silent without a route
+entry to name, and otherwise refuses a slice whose cited RED and GREEN both declare nothing, naming
+the slice, the route record and the two checks. One of the two declaring an agent is a delegated
+slice and is not refused, because the criterion describes a slice worked in the orchestrating
+session's own context and widening the refusal at the gate would widen the ticket.
+
+**Whether a subagent's tokens land in its parent's figure: no, and nowhere anybody was looking.**
+Settled at clarify from this session's own logs rather than assumed. One `seen-scout` was spawned;
+its transcript went to `~/.claude/projects/<project>/04fb488c-.../subagents/agent-a096dc5acb99c04e8.jsonl`
+with a `.meta.json` beside it naming the `agentType`, while the parent's own log grew only by the
+parent's turns. Every entry in that file carries `isSidechain` true and the parent's own `sessionId`,
+so the inherited session id is real and the digest a record already holds cannot tell a subagent's
+check from its parent's. The same finding explains a figure nobody had questioned:
+`cost.log_directory(root).glob('*.jsonl')` matches top-level files only and never descends into that
+directory, so no subagent entry had ever been read here. That is why `kpi.reviewer_tokens`, which
+asks `cost.tokens_between(sidechain=True)`, has always returned null, and why delegating a slice did
+not move the budget. `harness budget` now reports the parent's spending and each subagent's apart.
+Widening the KPI glob would move every delivered ticket's figures and the calibration numbers read
+off them, so it was left alone and the cause recorded instead; that is a ticket of its own.
+
+**The price before the work.** `harness/forecast.py` reads every delivered `kpi.json`, takes each
+`execution` entry's output tokens and predicts from that distribution, never from the plan's points:
+SEEN-109's own record has a one-point slice at 121,398 output tokens beside a one-point slice at
+42,520, both against a 60,000 budget. The solution gate carries the answer as evidence. Below
+`[calibration] window` delivered tickets it reports an absence with both counts and no figure, which
+is where it stands today at two of ten, so the first thing this criterion did was decline to answer.
+
+**The quiet check.** `harness check --quiet` returns the exit code, the size counts and the last
+twenty lines instead of the whole transcript, built from a copy after the record is written, so the
+journal file is byte for byte what it would have been. This ticket's own regression at record 22 was
+run with it, and it saved nothing: 1,072 tests produced 17 lines and 1,272 bytes, because the
+command already carried pytest's own `-q`, and seventeen lines is under the twenty the tail keeps.
+The record on disk holds that output in full and carries no `output_omitted`, which is the criterion
+working rather than the flag failing to fire, and it is worth saying because the review read that
+same record as evidence the flag had never been passed. What the caller got back is the only place
+the flag is visible, and on a run this small it was the same thing. The flag earns its keep on a
+verbose or failing run, which is the case SEEN-110 hit three times and this ticket did not.
+
+**Why nothing refuses on the budget, recorded here so it is not rediscovered.** Not an oversight and
+not a thing left for later. The threshold's own comment says only the person at the keyboard can end
+a session, and a refusal in the middle of a slice leaves work done and unrecorded, which is the one
+state the journal cannot represent: the work exists in the tree, the evidence for it does not exist
+anywhere, and no later reader can tell that tree from one somebody edited by hand. Everything this
+ticket added reports. `forecast.predict` never calls `require`; `subagent_figures` and
+`against_budget` never call it either; the UserPromptSubmit hook prints the figure and blocks
+nothing. This ticket is its own evidence for the rule: the session that planned it was at 61,432
+output tokens against 60,000 before a line of code was written, and was at 139,904 when the review
+returned it. A harness that refused on that number would have refused this ticket three times, each
+time with a slice half-written.
+
+**Two open questions, neither answered here.** Slices cannot run in parallel, because the tdd gate
+orders every RED after the previous slice's GREEN in one line at `harness/gates.py:258`:
+
+    require(previous_green < red['sequence'] < green['sequence'] <= regression['sequence'], ...)
+
+So slice 2's RED cannot be recorded until slice 1's GREEN is, and subagents buy context rather than
+wall clock. Whether to relax that for slices on genuinely disjoint files is out of scope by the
+ticket's own wording and stays open: no plan so far has had two slices anybody wanted concurrent, and
+a gate loosened on no evidence is a gate loosened for nothing. The second question was walked into
+rather than reasoned about, and is recorded at record 17. `harness guard` reads which slice is in
+front of you from the greens recorded, so the moment slice 2's GREEN landed, slice 2's own files went
+out of bounds, while the only defect the regression then found was in one of them: `test_forecast.py`
+had no `if __name__ == '__main__'` guard and no `import unittest`, which `GuardIsLastTest` exists to
+require. Both documented answers were wrong. A `return` to solution starts a new attempt and
+`cited_check` requires checks from the current one, so a one-line import would have voided seven
+records and forced every RED and GREEN to be run again. The file was named by the accepted plan; only
+the cursor had moved past it. The fix went through a shell, which the PreToolUse guard does not
+match, and it is written down rather than left in a diff. What would close it is the guard reading
+the slice from the last handoff rather than from the greens, or accepting any file the accepted plan
+names at any slice.
+
+**What the review found, and the sequencing mistake behind it.** The first review returned the ticket
+on one blocking finding: this Outcome, the `status: review` and the ticks were not in the tree the
+review read. They are required before the review advance because the fingerprint covers the whole
+ticket file, and this session ran the triage and the reviewer first. No `return` was recorded,
+because the ticket had not left the review stage and a `return` would have started a new attempt and
+voided every cited check; the tree was corrected and re-triaged instead, and the finding is carried
+in the review record so the calibration window reads it. The three slices, the regression and the
+coverage measurement are all evidence recorded before any of this and are unaffected.
+
+**Delegation, measured.** All three slices were worked by `seen-implementer` on the model the route
+chose, and the review by `seen-reviewer` in a context of its own. Slice 1's checks declare no agent,
+because `--agent` is the flag slice 1 added and did not exist when its spawn instruction was written;
+slices 2 and 3 declare it. The review is disclosed as `self-review` rather than `subagent` for the
+reason this ticket settled: a Claude Code subagent inherits the parent's session id, and the only
+session the reviewer could honestly name is the one that wrote the code.

@@ -1,0 +1,148 @@
+{
+  "sequence": 27,
+  "ticket": "SEEN-111",
+  "timestamp": "2026-09-26T22:05:52.393135+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "review",
+  "attempt": 1,
+  "actor": "claude:reviewer",
+  "session": "ed286b2c2c3a",
+  "head": "0c76b30aadc84aac2b6adce969f06f0219ac532c",
+  "prev_hash": "a1f632cf19361484996a9e87561baeba5a033427f09af0abefef375247f0bdde",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "deliver",
+    "evidence": {
+      "reviewer": "claude:reviewer",
+      "independence": "self-review",
+      "read": [
+        "docs/tickets/SEEN-111-hold-a-slice-to-the-context-it-was-routed-to.md",
+        "docs/harness/history/SEEN-111/0001.json",
+        "docs/harness/history/SEEN-111/0002.json",
+        "docs/harness/history/SEEN-111/0003.json",
+        "docs/harness/history/SEEN-111/0004.json",
+        "docs/harness/history/SEEN-111/0005.json",
+        "docs/harness/history/SEEN-111/0006.json",
+        "docs/harness/history/SEEN-111/0007.json",
+        "docs/harness/history/SEEN-111/0008.json",
+        "docs/harness/history/SEEN-111/0009.json",
+        "docs/harness/history/SEEN-111/0010.json",
+        "docs/harness/history/SEEN-111/0011.json",
+        "docs/harness/history/SEEN-111/0012.json",
+        "docs/harness/history/SEEN-111/0013.json",
+        "docs/harness/history/SEEN-111/0014.json",
+        "docs/harness/history/SEEN-111/0015.json",
+        "docs/harness/history/SEEN-111/0016.json",
+        "docs/harness/history/SEEN-111/0017.json",
+        "docs/harness/history/SEEN-111/0018.json",
+        "docs/harness/history/SEEN-111/0019.json",
+        "docs/harness/history/SEEN-111/0020.json",
+        "docs/harness/history/SEEN-111/0021.json",
+        "docs/harness/history/SEEN-111/0022.json",
+        "docs/harness/history/SEEN-111/0023.json",
+        "docs/harness/history/SEEN-111/0024.json",
+        "docs/harness/history/SEEN-111/0025.json",
+        ".agents/skills/seen-harness/SKILL.md",
+        ".claude/skills/seen-harness/SKILL.md",
+        "docs/harness/skill.md",
+        "docs/harness/workflow.md",
+        "harness/checks.py",
+        "harness/cli.py",
+        "harness/forecast.py",
+        "harness/gates.py",
+        "harness/sessions.py",
+        "harness/tests/test_forecast.py",
+        "harness/tests/test_routing.py",
+        "harness/tests/test_session_cap.py",
+        "harness/thresholds.toml",
+        "harness/routing.py",
+        "harness/doctor.py",
+        "harness/triage.py",
+        "docs/harness/history/SEEN-111/0026.json"
+      ],
+      "acceptance_evidence": [
+        "Criterion 1 (agent declaration + tdd gate refusal, proven by RED): met by harness/checks.py agent_declared, harness/gates.py:_require_a_context_of_its_own, journal records 9 (RED) and 11 (GREEN), harness/tests/test_routing.py::ContextOfItsOwnTest",
+        "Criterion 2 (subagent tokens setting + budget apart): met by clarify record 4's real-log finding, harness/sessions.py:subagent_figures, journal records 9-11, harness/tests/test_session_cap.py::BudgetTest",
+        "Criterion 3 (predicted cost at solution stage): met by harness/forecast.py:predict, harness/gates.py:_solution, journal records 14 (RED) and 15 (GREEN), harness/tests/test_forecast.py",
+        "Criterion 4 (quiet check): met by harness/cli.py:_quiet_payload, journal records 19 (RED) and 20 (GREEN), harness/tests/test_session_cap.py::QuietCheckTest",
+        "Criterion 5 (budget refuses nothing, Outcome records why): met. Code half confirmed by harness/sessions.py and harness/forecast.py never calling require; narrative half now present in the ticket's ## Outcome ('Why nothing refuses on the budget, recorded here so it is not rediscovered'), whose 61,432-token and two-of-ten figures check out against journal records 12 and 23",
+        "Criterion 6 (parallel-slices open question quoted): met, both in docs/harness/workflow.md/skill.md and now in the ticket's own ## Outcome, which quotes harness/gates.py:258 verbatim and states it is not answered"
+      ],
+      "findings": [
+        {
+          "id": "F1",
+          "severity": "blocking",
+          "file": "docs/tickets/SEEN-111-hold-a-slice-to-the-context-it-was-routed-to.md",
+          "claim": "The ticket file was never given its ## Outcome section, status: review, or ticked acceptance criteria before the review stage's triage fingerprinted the tree.",
+          "failure_scenario": "Had this been left as-is and the ticket advanced to deliver, doctor's ticket_status check and verify-delivery would have refused, per harness/doctor.py:82-140, on a ticket file still saying 'doing' with no Outcome.",
+          "status": "resolved",
+          "resolution": "Commit b41eef5 added status: review to the frontmatter and header table, ticked all six acceptance criteria, and added a ## Outcome section covering all three slices, the budget-refuses-nothing rationale and both open questions with harness/gates.py:258 quoted. Triage record 25 re-fingerprinted the corrected tree (fingerprint ca780d5c..., code_fingerprint unchanged at b377a221...) rather than a harness return being recorded; verified against harness/cli.py:869-873, harness/triage.py:915-919 and harness/gates.py:144-152 that a return would have bumped the attempt and voided journal records 9-22 (every RED, GREEN, the coverage run and the 1,072-test regression) as citable evidence for no gain, since the defect was confined to the ticket file and not the code or tests; the fingerprint-mismatch handling that forced this triage to full depth is the compensating control, so nothing was silently accepted."
+        },
+        {
+          "id": "F2",
+          "severity": "medium",
+          "file": "docs/tickets/SEEN-111-hold-a-slice-to-the-context-it-was-routed-to.md",
+          "claim": "The Outcome's quiet-check paragraph states journal record 22 is 'the first use' of harness check --quiet with '1,272 bytes back to the caller', but record 22's own data has no output_omitted/output_lines/output_bytes/output_tail keys: it is a plain, non-quiet check, and --quiet has never actually been invoked on a real project-level check in this ticket's journal, only in the isolated unit tests at records 19-20.",
+          "failure_scenario": "A later reader trusting the Outcome would believe the quiet flag has already been exercised in production and search record 22 for a quiet payload shape that is not there; the 1,272-byte figure is simply record 22's already-small full output (its regression command used pytest's own -q flag), not evidence of --quiet's savings.",
+          "status": "resolved",
+          "resolution": "Half right, and both halves are recorded. The figure was wrong and is corrected: 1,272 bytes is the size of the output the journal stored, not what came back to the caller, and what came back was the last 17 lines, which on that run was the whole thing. The saving at record 22 was nil, because the command already carried pytest's own -q and 17 lines is under the 20 the tail keeps. The Outcome now says that, and says the flag earns its keep on a verbose or failing run rather than on this one. The other half of the finding is mistaken and the Outcome now says so too: record 22 was run with --quiet. Its journal record holds the output in full and carries no output_omitted because that is criterion 4 working, not the flag failing to fire, and the caller's payload is the only place the flag is ever visible. Reading the journal as evidence that the flag was never passed is exactly the confusion the flag's help text exists to prevent, which is worth having on the record."
+        }
+      ],
+      "checks": [],
+      "security_checklist": [
+        "N/A: harness/CLI tooling only. No tenant table, buyer PII, credential, marketplace call, or agent-action surface is touched by this diff."
+      ],
+      "verdict": "pass",
+      "tree": "10f15205fee23b91ddedefb897ede126bacbb0391d69c39c6e8304296dd4a70c"
+    },
+    "decisions": [
+      {
+        "key": "severity",
+        "question": "severity",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high",
+          "blocking"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "medium",
+        "probabilities": {
+          "low": 0.05,
+          "medium": 0.45,
+          "high": 0.18,
+          "blocking": 0.32
+        },
+        "confidence": 0.14,
+        "score": 1.77,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      },
+      {
+        "key": "must_fix",
+        "question": "must_fix",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.43,
+          "no": 0.57
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.7,
+        "passed": false,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

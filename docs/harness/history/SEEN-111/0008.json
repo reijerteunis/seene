@@ -1,0 +1,242 @@
+{
+  "sequence": 8,
+  "ticket": "SEEN-111",
+  "timestamp": "2026-09-26T20:55:51.122546+00:00",
+  "harness_version": "2",
+  "kind": "route",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "ed286b2c2c3a",
+  "head": "d88d33a7ccd39d58d960fe1bf2a610be5520f76f",
+  "prev_hash": "e1cecde760589494660c008b395ebe0ef082bf2efddc5ff3bd5402f5d289f839",
+  "data": {
+    "solution": 7,
+    "shadow": true,
+    "strongest": "opus",
+    "tiers": [
+      "haiku",
+      "sonnet",
+      "opus"
+    ],
+    "rules": [],
+    "jev": {
+      "asked": true,
+      "model": "jev-1.13.0",
+      "reason": null,
+      "answers": [
+        {
+          "key": "implementation_model#1",
+          "question": "implementation_model",
+          "type": "score",
+          "options": [
+            "haiku",
+            "sonnet",
+            "opus"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "sonnet",
+          "probabilities": {
+            "haiku": 0.04,
+            "sonnet": 0.76,
+            "opus": 0.2
+          },
+          "confidence": 0.64,
+          "score": 1.16,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_effort#1",
+          "question": "implementation_effort",
+          "type": "score",
+          "options": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "high",
+          "probabilities": {
+            "low": 0.0,
+            "medium": 0.09,
+            "high": 0.91
+          },
+          "confidence": 0.86,
+          "score": 1.91,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_model#2",
+          "question": "implementation_model",
+          "type": "score",
+          "options": [
+            "haiku",
+            "sonnet",
+            "opus"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "sonnet",
+          "probabilities": {
+            "haiku": 0.02,
+            "sonnet": 0.77,
+            "opus": 0.21
+          },
+          "confidence": 0.66,
+          "score": 1.19,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_effort#2",
+          "question": "implementation_effort",
+          "type": "score",
+          "options": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "high",
+          "probabilities": {
+            "low": 0.01,
+            "medium": 0.42,
+            "high": 0.57
+          },
+          "confidence": 0.33,
+          "score": 1.55,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_model#3",
+          "question": "implementation_model",
+          "type": "score",
+          "options": [
+            "haiku",
+            "sonnet",
+            "opus"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "sonnet",
+          "probabilities": {
+            "haiku": 0.37,
+            "sonnet": 0.62,
+            "opus": 0.01
+          },
+          "confidence": 0.43,
+          "score": 0.64,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_effort#3",
+          "question": "implementation_effort",
+          "type": "score",
+          "options": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "medium",
+          "probabilities": {
+            "low": 0.07,
+            "medium": 0.74,
+            "high": 0.19
+          },
+          "confidence": 0.61,
+          "score": 1.12,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        }
+      ]
+    },
+    "execution": [
+      {
+        "position": 1,
+        "name": "The agent declaration, the gate that holds a slice to a context of its own, and the budget that tells a parent from its subagents",
+        "points": 2,
+        "files": [
+          "harness/checks.py",
+          "harness/cli.py",
+          "harness/gates.py",
+          "harness/sessions.py",
+          "harness/tests/test_routing.py",
+          "harness/tests/test_session_cap.py"
+        ],
+        "red": "A tdd advance with `[routing] shadow` false, citing a RED and a GREEN that declare no agent, is refused with the slice position, the route record's sequence and both check sequences named; and `harness budget` reports a subagent's output tokens apart from the parent's rather than reading only the parent's log.",
+        "model": "sonnet",
+        "effort": "high",
+        "source": "jev",
+        "rule": null,
+        "reason": null,
+        "model_probability": 0.76,
+        "effort_probability": 0.91,
+        "model_passed": true,
+        "model_threshold": 0.5,
+        "implementer_task": "Work slice 1 of SEEN-111: The agent declaration, the gate that holds a slice to a context of its own, and the budget that tells a parent from its subagents.\n\nRun it on sonnet at high effort, because Jev chose it at 0.76.\nThe model is what reaches the work: in Claude Code as the per-invocation model on the seen-implementer agent, and in Codex as the model this instruction names when you spawn it. The effort is recorded, carried and reported rather than applied, on either assistant: the generated copies do not vary by slice, because a file whose content depended on the ticket in hand was wrong on a detached HEAD, after a replan and after the receipt. Neither is yours to change.\n\nPoints: 2.\nFiles: harness/checks.py, harness/cli.py, harness/gates.py, harness/sessions.py, harness/tests/test_routing.py, harness/tests/test_session_cap.py\n\nIts RED must demonstrate: A tdd advance with `[routing] shadow` false, citing a RED and a GREEN that declare no agent, is refused with the slice position, the route record's sequence and both check sequences named; and `harness budget` reports a subagent's output tokens apart from the parent's rather than reading only the parent's log.\n\nWrite the test first and record it with:\n  python3 harness/run.py check SEEN-111 --phase red --actor <tool>:implementer --model sonnet -- <command>\nThen write only what turns it green and record that the same way. The `--model sonnet` is not optional: a subagent inherits its parent's session id, so the log records the model of the session that spawned you and not yours, and without the declaration the tdd gate compares the wrong two names. Then stop: do not start the next slice and do not advance the stage."
+      },
+      {
+        "position": 2,
+        "name": "The predicted cost at the solution stage, read from the delivered kpi.json records, reporting and never refusing",
+        "points": 1,
+        "files": [
+          "harness/forecast.py",
+          "harness/gates.py",
+          "harness/tests/test_forecast.py"
+        ],
+        "red": "A solution advance carries a forecast whose per-slice figure comes from the delivered slices' output tokens and not from the plan's points, names the split when it exceeds the session budget, and reports `available: false` with both counts rather than a low figure when fewer tickets have delivered than `[calibration] window`.",
+        "model": "sonnet",
+        "effort": "high",
+        "source": "jev",
+        "rule": null,
+        "reason": null,
+        "model_probability": 0.77,
+        "effort_probability": 0.57,
+        "model_passed": true,
+        "model_threshold": 0.5,
+        "implementer_task": "Work slice 2 of SEEN-111: The predicted cost at the solution stage, read from the delivered kpi.json records, reporting and never refusing.\n\nRun it on sonnet at high effort, because Jev chose it at 0.77.\nThe model is what reaches the work: in Claude Code as the per-invocation model on the seen-implementer agent, and in Codex as the model this instruction names when you spawn it. The effort is recorded, carried and reported rather than applied, on either assistant: the generated copies do not vary by slice, because a file whose content depended on the ticket in hand was wrong on a detached HEAD, after a replan and after the receipt. Neither is yours to change.\n\nPoints: 1.\nFiles: harness/forecast.py, harness/gates.py, harness/tests/test_forecast.py\n\nIts RED must demonstrate: A solution advance carries a forecast whose per-slice figure comes from the delivered slices' output tokens and not from the plan's points, names the split when it exceeds the session budget, and reports `available: false` with both counts rather than a low figure when fewer tickets have delivered than `[calibration] window`.\n\nWrite the test first and record it with:\n  python3 harness/run.py check SEEN-111 --phase red --actor <tool>:implementer --model sonnet -- <command>\nThen write only what turns it green and record that the same way. The `--model sonnet` is not optional: a subagent inherits its parent's session id, so the log records the model of the session that spawned you and not yours, and without the declaration the tdd gate compares the wrong two names. Then stop: do not start the next slice and do not advance the stage."
+      },
+      {
+        "position": 3,
+        "name": "The quiet check, and the two documents that describe all of it",
+        "points": 1,
+        "files": [
+          "harness/cli.py",
+          "harness/thresholds.toml",
+          "harness/tests/test_session_cap.py",
+          "docs/harness/workflow.md",
+          "docs/harness/skill.md",
+          ".claude/skills/seen-harness/SKILL.md",
+          ".agents/skills/seen-harness/SKILL.md",
+          "docs/tickets/SEEN-111-hold-a-slice-to-the-context-it-was-routed-to.md"
+        ],
+        "red": "`harness check --quiet` returns a payload holding no captured output but holding the exit code, the size counts and the tail, while the journal file it wrote is byte for byte the file written without the flag.",
+        "model": "sonnet",
+        "effort": "medium",
+        "source": "jev",
+        "rule": null,
+        "reason": null,
+        "model_probability": 0.62,
+        "effort_probability": 0.74,
+        "model_passed": true,
+        "model_threshold": 0.5,
+        "implementer_task": "Work slice 3 of SEEN-111: The quiet check, and the two documents that describe all of it.\n\nRun it on sonnet at medium effort, because Jev chose it at 0.62.\nThe model is what reaches the work: in Claude Code as the per-invocation model on the seen-implementer agent, and in Codex as the model this instruction names when you spawn it. The effort is recorded, carried and reported rather than applied, on either assistant: the generated copies do not vary by slice, because a file whose content depended on the ticket in hand was wrong on a detached HEAD, after a replan and after the receipt. Neither is yours to change.\n\nPoints: 1.\nFiles: harness/cli.py, harness/thresholds.toml, harness/tests/test_session_cap.py, docs/harness/workflow.md, docs/harness/skill.md, .claude/skills/seen-harness/SKILL.md, .agents/skills/seen-harness/SKILL.md, docs/tickets/SEEN-111-hold-a-slice-to-the-context-it-was-routed-to.md\n\nIts RED must demonstrate: `harness check --quiet` returns a payload holding no captured output but holding the exit code, the size counts and the tail, while the journal file it wrote is byte for byte the file written without the flag.\n\nWrite the test first and record it with:\n  python3 harness/run.py check SEEN-111 --phase red --actor <tool>:implementer --model sonnet -- <command>\nThen write only what turns it green and record that the same way. The `--model sonnet` is not optional: a subagent inherits its parent's session id, so the log records the model of the session that spawned you and not yours, and without the declaration the tdd gate compares the wrong two names. Then stop: do not start the next slice and do not advance the stage."
+      }
+    ]
+  }
+}

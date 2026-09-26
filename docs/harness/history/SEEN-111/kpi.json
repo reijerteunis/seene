@@ -1,0 +1,112 @@
+{
+  "ticket": "SEEN-111",
+  "delivered_at": "2026-09-26T22:10:45.748030+00:00",
+  "points": null,
+  "cycle_time_seconds": 5030,
+  "stage_seconds": {
+    "clarify": 311,
+    "solution": 218,
+    "tdd": 3273,
+    "review": 933,
+    "deliver": 293
+  },
+  "attempts": 1,
+  "rework": 0,
+  "red_before_green": true,
+  "coverage": {
+    "package": "@seen/core",
+    "lines": 100.0,
+    "delta": 0.0
+  },
+  "findings": {
+    "by_severity": {
+      "blocking": 1,
+      "medium": 1
+    },
+    "fixed": 2,
+    "waived": 0
+  },
+  "first_pass_ci": true,
+  "tokens": null,
+  "cost": null,
+  "escaped_defects": [],
+  "slices": {
+    "planned": 3,
+    "proven": 3
+  },
+  "sessions": 1,
+  "subagents": {
+    "briefs": 1,
+    "agents": [
+      "seen-scout"
+    ],
+    "review": "self-review",
+    "both": false
+  },
+  "review_triage": {
+    "record": 26,
+    "depth": "full",
+    "model_depth": "spot",
+    "shadow": true,
+    "asked": true,
+    "rules": [
+      "fingerprint did not pass, so the reviewer reads everything: The tree changed after check 22: it ran against 12e5cb41a57e and this triage reads 10f15205fee2. The tests that passed are not the tests for this tree"
+    ],
+    "files": 14,
+    "focus": 14,
+    "excluded": 10,
+    "excluded_share": 0.69,
+    "reviewer_output_tokens": null,
+    "reviewer_tokens": null
+  },
+  "execution": [
+    {
+      "position": 1,
+      "name": "The agent declaration, the gate that holds a slice to a context of its own, and the budget that tells a parent from its subagents",
+      "points": 2,
+      "model": "sonnet",
+      "effort": "high",
+      "source": "jev",
+      "rule": null,
+      "ran_on": "claude-opus-5",
+      "ran_on_tier": "opus",
+      "output_tokens": 76988,
+      "cost_cents": 577,
+      "routed_cost_cents": 115,
+      "cost_basis": "output tokens only, at the price of the model the slice ran on: a handoff record carries the session's output tokens and tool calls and nothing about input. routed_cost_cents prices the same tokens at the model the route chose, which in shadow is a counterfactual and not a cost"
+    },
+    {
+      "position": 2,
+      "name": "The predicted cost at the solution stage, read from the delivered kpi.json records, reporting and never refusing",
+      "points": 1,
+      "model": "sonnet",
+      "effort": "high",
+      "source": "jev",
+      "rule": null,
+      "ran_on": "claude-opus-5",
+      "ran_on_tier": "opus",
+      "output_tokens": 24354,
+      "cost_cents": 183,
+      "routed_cost_cents": 37,
+      "cost_basis": "output tokens only, at the price of the model the slice ran on: a handoff record carries the session's output tokens and tool calls and nothing about input. routed_cost_cents prices the same tokens at the model the route chose, which in shadow is a counterfactual and not a cost"
+    },
+    {
+      "position": 3,
+      "name": "The quiet check, and the two documents that describe all of it",
+      "points": 1,
+      "model": "sonnet",
+      "effort": "medium",
+      "source": "jev",
+      "rule": null,
+      "ran_on": "claude-opus-5",
+      "ran_on_tier": "opus",
+      "output_tokens": 31210,
+      "cost_cents": 234,
+      "routed_cost_cents": 47,
+      "cost_basis": "output tokens only, at the price of the model the slice ran on: a handoff record carries the session's output tokens and tool calls and nothing about input. routed_cost_cents prices the same tokens at the model the route chose, which in shadow is a counterfactual and not a cost"
+    }
+  ],
+  "output_tokens_per_slice": null,
+  "harness_version": "2",
+  "note": null
+}

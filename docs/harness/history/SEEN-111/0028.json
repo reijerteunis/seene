@@ -1,0 +1,73 @@
+{
+  "sequence": 28,
+  "ticket": "SEEN-111",
+  "timestamp": "2026-09-26T22:10:45.748030+00:00",
+  "harness_version": "2",
+  "kind": "receipt",
+  "stage": "deliver",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "ed286b2c2c3a",
+  "head": "91c88adf44dd8de5d13045ff013815c660d5773e",
+  "prev_hash": "044512835b1add245476c28a37ed9166a3fd9ec280f2584b9c98929f4bcee615",
+  "data": {
+    "from_stage": "deliver",
+    "to_stage": "delivered",
+    "commit": "91c88adf44dd8de5d13045ff013815c660d5773e",
+    "branch": "claude/SEEN-111-hold-a-slice-to-its-context",
+    "remote": "origin",
+    "tree": "10f15205fee23b91ddedefb897ede126bacbb0391d69c39c6e8304296dd4a70c",
+    "pull_request": "https://github.com/reijerteunis/seene/pull/28",
+    "limits": [
+      "Nothing here refuses on a token figure, and that is a decision rather than a gap: only the person at the keyboard can end a session, and a refusal mid-slice leaves work done and unrecorded, which is the one state the journal cannot represent. Do not read `harness budget` or the solution forecast as a wall.",
+      "The gate that holds a slice to a context of its own does nothing at all while `[routing] shadow` is true, which it is. Until SEEN-109's window turns it off, a slice worked in the orchestrating session's own context is recorded as such and refused nowhere.",
+      "`--agent` is a disclosure and not a proof, exactly as `--model` is. It is checked against `[agents] names` and nothing further, because a Claude Code subagent inherits its parent's session id and no log can say it either. A value typed to pass is not detectable and the gate does not pretend to detect it.",
+      "The forecast has nothing to say yet. Two delivered tickets carry priced `execution` entries against a `[calibration] window` of ten, so it reports an absence today and will keep doing so until eight more deliver. It is not evidence that a plan is cheap.",
+      "`kpi.reviewer_tokens` is still null and every delivered ticket's token figures still exclude their subagents'. The cause is now known and recorded, and fixing it would move the calibration numbers SEEN-109's window is read from, so it is left for a ticket of its own.",
+      "`--quiet` shapes only what comes back to the caller. The journal record is unchanged, and a reader looking at a journal for evidence that the flag was used will not find it there: the review made that mistake and it is recorded.",
+      "Slices still cannot run in parallel. Subagents buy context, not wall clock, while the tdd gate orders every RED after the previous slice's GREEN at `harness/gates.py:258`.",
+      "The review is disclosed as `self-review`. A `seen-reviewer` subagent read the diff in a context of its own, but it inherits this session's id, so the only session it could honestly name is the one that wrote the code. Nothing here has been reviewed by the other assistant, and this ticket does not touch billing, the policy gate or an agent action, so none was required."
+    ],
+    "evidence": {
+      "remote": "origin",
+      "pull_request": "https://github.com/reijerteunis/seene/pull/28",
+      "limits": [
+        "Nothing here refuses on a token figure, and that is a decision rather than a gap: only the person at the keyboard can end a session, and a refusal mid-slice leaves work done and unrecorded, which is the one state the journal cannot represent. Do not read `harness budget` or the solution forecast as a wall.",
+        "The gate that holds a slice to a context of its own does nothing at all while `[routing] shadow` is true, which it is. Until SEEN-109's window turns it off, a slice worked in the orchestrating session's own context is recorded as such and refused nowhere.",
+        "`--agent` is a disclosure and not a proof, exactly as `--model` is. It is checked against `[agents] names` and nothing further, because a Claude Code subagent inherits its parent's session id and no log can say it either. A value typed to pass is not detectable and the gate does not pretend to detect it.",
+        "The forecast has nothing to say yet. Two delivered tickets carry priced `execution` entries against a `[calibration] window` of ten, so it reports an absence today and will keep doing so until eight more deliver. It is not evidence that a plan is cheap.",
+        "`kpi.reviewer_tokens` is still null and every delivered ticket's token figures still exclude their subagents'. The cause is now known and recorded, and fixing it would move the calibration numbers SEEN-109's window is read from, so it is left for a ticket of its own.",
+        "`--quiet` shapes only what comes back to the caller. The journal record is unchanged, and a reader looking at a journal for evidence that the flag was used will not find it there: the review made that mistake and it is recorded.",
+        "Slices still cannot run in parallel. Subagents buy context, not wall clock, while the tdd gate orders every RED after the previous slice's GREEN at `harness/gates.py:258`.",
+        "The review is disclosed as `self-review`. A `seen-reviewer` subagent read the diff in a context of its own, but it inherits this session's id, so the only session it could honestly name is the one that wrote the code. Nothing here has been reviewed by the other assistant, and this ticket does not touch billing, the policy gate or an agent action, so none was required."
+      ]
+    },
+    "checks": [
+      {
+        "name": "Harness tests (Python 3.12)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Knowledge graph",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Monorepo (Node 24)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Secrets and supply chain",
+        "conclusion": "success",
+        "runs": 1
+      }
+    ],
+    "coverage": {
+      "package": "@seen/core",
+      "lines": 100.0,
+      "delta": 0.0
+    }
+  }
+}

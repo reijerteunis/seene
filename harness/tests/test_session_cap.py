@@ -343,6 +343,51 @@ class DeclaredSliceTest(AtTddTest):
         self.assertIn('Slice 3', self.pack_file().read_text())
 
 
+class QuietCheckTest(AtTddTest):
+    """`harness check --quiet`: what the caller gets back, and what the journal still holds.
+
+    SEEN-111's own regression is 1,067 tests; SEEN-110 ran one three times with the
+    whole transcript coming back to the caller each time. The flag changes what a
+    check returns and nothing about what it records.
+    """
+
+    def script(self, exit_code=0):
+        script = self.root / 'quiet.sh'
+        script.write_text(f'#!/bin/sh\necho hello\nexit {exit_code}\n')
+        script.chmod(0o755)
+        return script
+
+    def check(self, quiet):
+        args = ['check', self.ticket_id, '--phase', 'green', '--actor', 'claude:implementer']
+        if quiet:
+            args.append('--quiet')
+        args += ['--', str(self.script())]
+        return self.run_harness(*args)
+
+    def test_quiet_drops_the_output_but_keeps_the_exit_code_and_the_counts(self):
+        answer = self.check(quiet=True)
+        data = answer['data']
+        self.assertNotIn('output', data)
+        self.assertEqual(data['exit_code'], 0)
+        self.assertIn('output_lines', data)
+        self.assertIn('output_bytes', data)
+        self.assertIn('output_tail', data)
+
+    def test_the_journal_record_is_the_same_with_or_without_the_flag(self):
+        self.check(quiet=False)
+        self.check(quiet=True)
+        loud, quiet = self.records()[-2], self.records()[-1]
+        for key in ('kind', 'stage', 'attempt', 'actor', 'session', 'head', 'ticket'):
+            self.assertEqual(loud[key], quiet[key])
+        self.assertIn('output', quiet['data'])
+        # duration_ms is real elapsed time and is the one field two separate runs
+        # of the same script are not bound to agree on; everything else, output
+        # included, must be identical.
+        loud_data = {key: value for key, value in loud['data'].items() if key != 'duration_ms'}
+        quiet_data = {key: value for key, value in quiet['data'].items() if key != 'duration_ms'}
+        self.assertEqual(loud_data, quiet_data)
+
+
 class PackEdgesTest(AtTddTest):
     """Three things the first packs written in anger got wrong."""
 
@@ -456,6 +501,18 @@ class BudgetTest(SessionEnvironment):
                                   content=[dict(type='tool_use')] * tool_calls))
         (directory / f'{SESSION_ID}.jsonl').write_text(json.dumps(entry) + '\n')
 
+    def write_subagent_log(self, agent_id, agent_type, output_tokens, tool_calls=0):
+        """A subagent's own transcript, beside the parent's, the way Claude Code writes it."""
+        from harness import cost
+        directory = cost.log_directory(self.root) / SESSION_ID / 'subagents'
+        directory.mkdir(parents=True, exist_ok=True)
+        entry = dict(timestamp='2026-09-24T10:00:00Z',
+                     message=dict(usage=dict(output_tokens=output_tokens),
+                                  content=[dict(type='tool_use')] * tool_calls))
+        (directory / f'agent-{agent_id}.jsonl').write_text(json.dumps(entry) + '\n')
+        (directory / f'agent-{agent_id}.meta.json').write_text(
+            json.dumps(dict(agentType=agent_type)))
+
     def budget(self):
         return self.run_harness('budget', self.ticket_id)
 
@@ -489,6 +546,29 @@ class BudgetTest(SessionEnvironment):
         before = len(self.records())
         self.budget()
         self.assertEqual(len(self.records()), before)
+
+    def test_the_budget_reports_subagents_apart_from_the_parent(self):
+        self.write_log(1000, tool_calls=3)
+        self.write_subagent_log('x', 'seen-implementer', 500, tool_calls=2)
+        answer = self.budget()
+        # The parent's own figures do not move for a subagent's spending.
+        self.assertEqual(answer['output_tokens'], 1000)
+        self.assertEqual(answer['tool_calls'], 3)
+        subagents = answer['subagents']
+        self.assertEqual(subagents['output_tokens'], 500)
+        self.assertEqual(subagents['tool_calls'], 2)
+        self.assertEqual(len(subagents['agents']), 1)
+        entry = subagents['agents'][0]
+        self.assertEqual(entry['agent'], 'seen-implementer')
+        self.assertEqual(entry['output_tokens'], 500)
+        self.assertEqual(entry['tool_calls'], 2)
+
+    def test_no_subagents_directory_is_null_rather_than_zero(self):
+        self.write_log(10)
+        subagents = self.budget()['subagents']
+        self.assertIsNone(subagents['agents'])
+        self.assertIsNone(subagents['output_tokens'])
+        self.assertIn('null is not zero', subagents['unavailable'])
 
     def test_budget_carries_the_budget_it_judged_against(self):
         self.write_log(10)

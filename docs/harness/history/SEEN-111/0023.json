@@ -1,0 +1,52 @@
+{
+  "sequence": 23,
+  "ticket": "SEEN-111",
+  "timestamp": "2026-09-26T21:50:18.838950+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "ed286b2c2c3a",
+  "head": "d552ea71f991c63a37c1133e4b55928cfcbfbf61",
+  "prev_hash": "827dc91d1c0c7da2d42d10c4a08f04aa65a22ef215e7abea75a3f7d2c85a1c1a",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": 1,
+          "behaviour": "A check declares the agent that ran it, `harness check --agent <name>`, validated against `[agents] names` and recorded as `agent_declared` beside the tier's `model_declared`. `gates._require_a_context_of_its_own`, called from `_require_the_routed_slice` right after `_require_the_routed_model`, refuses a slice whose cited RED and GREEN both declare nothing once `[routing] shadow` is off, naming the slice, the route record and the two checks; one of the two declaring an agent is a delegated slice and is not refused. `sessions.subagent_figures` reads `<session>/subagents/agent-*.jsonl` and the `.meta.json` beside each for its `agentType`, so `harness budget` reports the parent's spending and each subagent's apart, null rather than zero where the directory is absent, and still refuses nothing.",
+          "failure_reason": "Two assertions, in one run: `AssertionError: HarnessError not raised` for the gate that did not exist, and `KeyError: 'subagents'` for the budget answer that had no such key.",
+          "red": 9,
+          "green": 11
+        },
+        {
+          "position": 2,
+          "behaviour": "`harness/forecast.py` reads every delivered `docs/harness/history/*/kpi.json`, collects each `execution` entry's output tokens and predicts a plan from that distribution rather than from its points, reporting the median, the highest and the counts they came from, and naming the split as a number of sessions when the median is over `[session] output_token_budget`. Below `[calibration] window` delivered tickets it answers `available: false` with the count observed and the count needed and no figure at all. `gates._solution` returns it as evidence on the advance record. No path in it can refuse: it never calls `require`, and it skips a malformed kpi.json the way `cost.py` skips a malformed log line. Against this repository's real records it reports `observed_tickets` 2 against `required` 10.",
+          "failure_reason": "`KeyError: 'forecast'` on all three tests, at `forecast = result['forecast']`: the solution gate's evidence carried no such key because harness/forecast.py did not exist.",
+          "red": 14,
+          "green": 16
+        },
+        {
+          "position": 3,
+          "behaviour": "`harness check --quiet` returns the exit code, the size counts and the last `[checks] quiet_tail_lines` lines instead of the whole captured output, built from a copy after `journal.append` has written the record, so the journal file is byte for byte the file written without the flag. The two documents describe all of it: `docs/harness/workflow.md` gains the delegation made answerable, the subagent-log finding and why `kpi.reviewer_tokens` has always been null, the forecast, the quiet check, three command rows and the two open questions; `docs/harness/skill.md` gains the agent declaration beside the model declaration, the parallel-slice question with the gate's line quoted, the budget's two figures, the forecast, the quiet check and two new refusals. `harness sync` regenerated both copies and `doctor` is clean.",
+          "failure_reason": "`harness.errors.HarnessError: Put the check command after --`, raised from harness/cli.py:242 in `parse()`, because `--quiet` was an unrecognised argument landing in `extra` ahead of the `--` separator.",
+          "red": 19,
+          "green": 20
+        }
+      ],
+      "regression": 22,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "ed286b2c2c3a",
+      "output_tokens": 132552,
+      "tool_calls": 112,
+      "unavailable": null
+    }
+  }
+}

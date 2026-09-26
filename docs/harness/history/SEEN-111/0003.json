@@ -1,0 +1,18 @@
+{
+  "sequence": 3,
+  "ticket": "SEEN-111",
+  "timestamp": "2026-09-26T20:51:41.404711+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "ed286b2c2c3a",
+  "head": "5105463704dad26a160e0bf55b748890016ed75d",
+  "prev_hash": "8288c0ff3287074ec6ed2a93cedf2206427dc2a5015f5ba7d57fac12646b3d57",
+  "data": {
+    "text": "# seen-scout: how the tdd stage holds a slice to its route\n\n## What it could not answer\nThe exact ordering line did not come back from two codegraph passes; it was confirmed with one grep, which the budget allows as a last resort.\n\n## The answer\n\n**The model comparison.** `_require_the_routed_model(records, position, checks_cited, thresholds)` at `harness/gates.py:299-341`. It calls `routing.shadow(thresholds)` at `harness/gates.py:312` and returns at once when that is true, so `[routing] shadow` switches the whole comparison off and every slice runs on whatever model its session happens to be, unrefused. With shadow off it takes `entry = routing.for_slice(records, position)` and `wanted = routing.model_id(thresholds, entry['model'])`, then for each cited check reads `data['model_declared']` first (`harness/gates.py:326`) and requires it to equal the slice's routed tier (`harness/gates.py:328`). Only when nothing was declared does it fall back to the model read from the session log, comparing `data['model']` with `wanted` and refusing when they differ (`harness/gates.py:335-341`).\n\n**What a route record carries per slice.** `routing.planned()` at `harness/routing.py:134-138` seeds each entry with `position`, `name`, `points`, `files` and `red`. `routing.run()` at `harness/routing.py:313-365` adds `model`, `effort`, `source` (one of rule, jev, unavailable), `rule`, `reason`, `model_probability`, `effort_probability`, `model_passed` and `model_threshold` at `harness/routing.py:334-338`, and finally `implementer_task` at `harness/routing.py:355`, built by `implementer_task(ticket, entry)` at `harness/routing.py:272-310`. The record itself also carries `solution`, `shadow`, `strongest`, `tiers`, `rules`, `jev` and `execution`.\n\n**The ordering rule.** One line, `harness/gates.py:258`:\n\n    require(previous_green < red['sequence'] < green['sequence'] <= regression['sequence'], ...)\n\n`previous_green` is seeded to 0 at `harness/gates.py:245` and set to `green['sequence']` at `harness/gates.py:262` after each slice, so it threads across the slices in order.\n\n## What it did not check\n`routing.for_slice` itself, and the caller chain in `_tdd` that invokes the model comparison and the ordering require together.\n",
+    "agent": "seen-scout",
+    "words": 277
+  }
+}

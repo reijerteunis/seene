@@ -352,14 +352,17 @@ class GateTest(RouteTest):
 
         The tests have no session log, so what would be read from one is
         substituted here: it is the value that reaches the record either way.
+        Declares an agent on every call: this class is about the model
+        comparison alone, and SEEN-111's own gate, `_require_a_context_of_its_
+        own`, is a separate refusal that these fixtures are not about.
         """
         from harness import sessions
         original = sessions.model
         sessions.model = lambda root, identity=None: model
         try:
             return self.run_harness('check', self.ticket_id, '--phase', phase,
-                                    '--actor', 'claude:implementer', '--',
-                                    'sh', '-c', f'exit {exit_code}')
+                                    '--actor', 'claude:implementer', '--agent',
+                                    'seen-implementer', '--', 'sh', '-c', f'exit {exit_code}')
         finally:
             sessions.model = original
 
@@ -594,12 +597,16 @@ class DeclaredModelTest(GateTest):
     """
 
     def declared_check(self, phase, exit_code=0, model=None, declared=None):
+        """Declares an agent on every call: this class is about `--model`, and
+        SEEN-111's separate context-of-its-own refusal is not what these
+        fixtures test.
+        """
         from harness import sessions
         original = sessions.model
         sessions.model = lambda root, identity=None: model
         try:
             arguments = ['check', self.ticket_id, '--phase', phase,
-                         '--actor', 'claude:implementer']
+                         '--actor', 'claude:implementer', '--agent', 'seen-implementer']
             if declared is not None:
                 arguments += ['--model', declared]
             return self.run_harness(*arguments, '--', 'sh', '-c', f'exit {exit_code}')
@@ -655,6 +662,132 @@ class DeclaredModelTest(GateTest):
         self.assertIn('haiku', message)
         self.assertIn('opus', message)
         self.assertIn('declared', message)
+
+
+class ContextOfItsOwnTest(RouteTest):
+    """A slice held to a context of its own, and not only to its route's model.
+
+    SEEN-111: a slice recorded in the orchestrating session's own context,
+    with neither its RED nor its GREEN declaring an agent, is refused once
+    `[routing] shadow` is off. One of the two declaring an agent is a
+    delegated slice and is not refused.
+
+    Extends `RouteTest` and not `GateTest`: `GateTest` carries its own tests
+    of `_require_the_routed_model`, proved with no `--agent` at all, and
+    inheriting them here would run every one of them again under this
+    ticket's new refusal, which is a second thing under test and not this
+    one. `set_shadow` and `record_coverage` are copied rather than shared for
+    the same reason `GateTest` itself is not reused.
+    """
+
+    def set_shadow(self, on):
+        """The one line in the project's own thresholds, and only that line.
+
+        Written precisely because `triage_shadow = true` ends in the same five
+        words: a looser replacement would turn off the review triage's shadow
+        as well and the test would be about two things.
+        """
+        path = self.root / 'harness' / 'thresholds.toml'
+        text = path.read_text()
+        wanted = f'\nshadow = {"true" if on else "false"}\n'
+        for value in ('\nshadow = true\n', '\nshadow = false\n'):
+            if value in text:
+                path.write_text(text.replace(value, wanted))
+                return
+        raise AssertionError('no [routing] shadow line to set')
+
+    def record_coverage(self, delta=0.0, attempt=1):
+        from harness import journal
+        folder = self.root / 'docs' / 'harness' / 'history' / self.ticket_id
+        records = journal.read(folder)
+        return journal.append(folder, records, kind='check', stage='tdd', attempt=attempt,
+                              actor='claude:implementer', head=self.git('rev-parse', 'HEAD'),
+                              ticket=self.ticket_id,
+                              data=dict(command=['pnpm', 'test'], phase='coverage', exit_code=0,
+                                        duration_ms=1, output='', output_sha256='0' * 64,
+                                        output_truncated=False, before='a', after='b',
+                                        package='@seen/core', lines=80.0, baseline=80.0 - delta,
+                                        delta=delta))
+
+    def declared_check(self, phase, exit_code=0, model=None, declared=None, agent=None):
+        from harness import sessions
+        original = sessions.model
+        sessions.model = lambda root, identity=None: model
+        try:
+            arguments = ['check', self.ticket_id, '--phase', phase,
+                         '--actor', 'claude:implementer']
+            if declared is not None:
+                arguments += ['--model', declared]
+            if agent is not None:
+                arguments += ['--agent', agent]
+            return self.run_harness(*arguments, '--', 'sh', '-c', f'exit {exit_code}')
+        finally:
+            sessions.model = original
+
+    def prove_context(self, model='claude-opus-5', declared='opus', red_agent=None,
+                      green_agent=None):
+        red = self.declared_check('red', exit_code=1, model=model, declared=declared,
+                                  agent=red_agent)
+        green = self.declared_check('green', model=model, declared=declared, agent=green_agent)
+        regression = self.declared_check('regression', model=model, declared=declared)
+        self.record_coverage()
+        evidence = dict(mode='code', regression=regression['sequence'], coverage_delta=0.0,
+                        slices=[dict(position=1,
+                                     behaviour='The status line shows the stage',
+                                     failure_reason='AssertionError: the status line is empty',
+                                     red=red['sequence'], green=green['sequence'])])
+        return evidence, red, green
+
+    def test_neither_check_declaring_an_agent_is_refused_without_a_context_of_its_own(self):
+        self.use(route_stub(model=(0.1, 0.2, 0.7)))
+        self.reach_tdd([PLAIN])
+        route_record = self.route()
+        self.set_shadow(False)
+        evidence, red, green = self.prove_context()
+        with self.assertRaises(HarnessError) as raised:
+            self.submit('tdd', evidence)
+        message = str(raised.exception)
+        self.assertIn('Slice 1', message)
+        self.assertIn(str(route_record['sequence']), message)
+        self.assertIn(str(red['sequence']), message)
+        self.assertIn(str(green['sequence']), message)
+
+    def test_the_red_declaring_an_agent_is_a_delegated_slice_and_advances(self):
+        self.use(route_stub(model=(0.1, 0.2, 0.7)))
+        self.reach_tdd([PLAIN])
+        self.route()
+        self.set_shadow(False)
+        evidence, red, green = self.prove_context(red_agent='seen-implementer')
+        record = self.submit('tdd', evidence)
+        self.assertEqual(record['data']['to_stage'], 'review')
+
+    def test_the_green_declaring_an_agent_is_a_delegated_slice_and_advances(self):
+        self.use(route_stub(model=(0.1, 0.2, 0.7)))
+        self.reach_tdd([PLAIN])
+        self.route()
+        self.set_shadow(False)
+        evidence, red, green = self.prove_context(green_agent='seen-implementer')
+        record = self.submit('tdd', evidence)
+        self.assertEqual(record['data']['to_stage'], 'review')
+
+    def test_in_shadow_neither_declaring_an_agent_is_not_refused(self):
+        self.reach_tdd([PLAIN])
+        self.route()
+        evidence, red, green = self.prove_context()
+        record = self.submit('tdd', evidence)
+        self.assertEqual(record['data']['to_stage'], 'review')
+
+    def test_an_unrouted_ticket_is_not_refused_for_lacking_a_context_of_its_own(self):
+        self.reach_tdd([PLAIN])
+        self.set_shadow(False)
+        evidence, red, green = self.prove_context()
+        record = self.submit('tdd', evidence)
+        self.assertEqual(record['data']['to_stage'], 'review')
+
+    def test_an_unknown_agent_is_refused_rather_than_recorded(self):
+        self.reach_tdd([PLAIN])
+        with self.assertRaisesRegex(HarnessError, 'seen-scout'):
+            self.declared_check('green', agent='not-an-agent')
 
 
 class DeclarationIsInstructedTest(RouteTest):
@@ -745,12 +878,16 @@ class SlicePositionTest(GateTest):
                                  red=red['sequence'], green=green['sequence'])])
 
     def declared_check(self, phase, exit_code=0, model=None, declared=None):
+        """Declares an agent on every call, for the same reason `GateTest.run_check` does:
+        this class is about which route a slice's position is held to, not about
+        SEEN-111's separate context-of-its-own refusal.
+        """
         from harness import sessions
         original = sessions.model
         sessions.model = lambda root, identity=None: model
         try:
             arguments = ['check', self.ticket_id, '--phase', phase,
-                         '--actor', 'claude:implementer']
+                         '--actor', 'claude:implementer', '--agent', 'seen-implementer']
             if declared is not None:
                 arguments += ['--model', declared]
             return self.run_harness(*arguments, '--', 'sh', '-c', f'exit {exit_code}')

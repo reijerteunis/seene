@@ -1,0 +1,33 @@
+{
+  "sequence": 14,
+  "ticket": "SEEN-111",
+  "timestamp": "2026-09-26T21:20:54.946131+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "ed286b2c2c3a",
+  "head": "7a90db7b21e3540a8a0690ac9568773e51a20fe3",
+  "prev_hash": "1e3e4024cd53a05d0e0e0a49a3f30f195b8cb73f27194e36bd78f70135aa1f1d",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "pytest",
+      "harness/tests/test_forecast.py",
+      "-q"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "model": "claude-opus-5",
+    "model_declared": "sonnet",
+    "agent_declared": "seen-implementer",
+    "duration_ms": 873,
+    "output": "FFF                                                                      [100%]\n=================================== FAILURES ===================================\n_ ThePredictionTest.test_the_per_slice_figure_is_the_median_of_delivered_slices_not_the_plan_points _\n\nself = <harness.tests.test_forecast.ThePredictionTest testMethod=test_the_per_slice_figure_is_the_median_of_delivered_slices_not_the_plan_points>\n\n    def test_the_per_slice_figure_is_the_median_of_delivered_slices_not_the_plan_points(self):\n        values = [10_000, 12_000, 14_000, 16_000, 18_000, 20_000, 22_000, 24_000, 26_000, 28_000]\n        for index, value in enumerate(values):\n            write_kpi(self.root, f'SEEN-{900 + index}', [value])\n        # A plan whose own points bear no relation to the delivered figures, so a\n        # forecast that echoed the points back would be caught rather than\n        # coincide with the right answer.\n        data = self.filled_solution(slices=[dict(position=1, name='The detector', points=1,\n                                                  files=['packages/core/src/fees.ts'],\n                                                  red='No detector exists')])\n        result = self.evaluate('solution', data)\n>       forecast = result['forecast']\n                   ^^^^^^^^^^^^^^^^^^\nE       KeyError: 'forecast'\n\nharness/tests/test_forecast.py:60: KeyError\n_ TheSplitNamedTest.test_a_prediction_over_budget_says_so_and_names_the_split_and_still_advances _\n\nself = <harness.tests.test_forecast.TheSplitNamedTest testMethod=test_a_prediction_over_budget_says_so_and_names_the_split_and_still_advances>\n\n    def test_a_prediction_over_budget_says_so_and_names_the_split_and_still_advances(self):\n        # SEEN-109's own recorded figures: a one-point slice at 121,398 output\n        # tokens and one at 42,520, against a 60,000 budget. The median of ten\n        # such slices is still well over budget.\n        values = [121_398, 118_000, 130_000, 125_000, 122_000,\n                  128_000, 119_000, 131_000, 126_000, 124_000]\n        for index, value in enumerate(values):\n            write_kpi(self.root, f'SEEN-{900 + index}', [value])\n        from harness.tests.test_stage_gates import SolutionGateTest\n        data = SolutionGateTest.filled_solution(self)\n        result = self.evaluate('solution', data)\n>       forecast = result['forecast']\n                   ^^^^^^^^^^^^^^^^^^\nE       KeyError: 'forecast'\n\nharness/tests/test_forecast.py:85: KeyError\n_ TheAbsenceTest.test_fewer_delivered_tickets_than_the_window_reports_an_absence_not_a_figure _\n\nself = <harness.tests.test_forecast.TheAbsenceTest testMethod=test_fewer_delivered_tickets_than_the_window_reports_an_absence_not_a_figure>\n\n    def test_fewer_delivered_tickets_than_the_window_reports_an_absence_not_a_figure(self):\n        observed = self.window - 1\n        self.deliver(observed, 30_000)\n        from harness.tests.test_stage_gates import SolutionGateTest\n        data = SolutionGateTest.filled_solution(self)\n        result = self.evaluate('solution', data)\n>       forecast = result['forecast']\n                   ^^^^^^^^^^^^^^^^^^\nE       KeyError: 'forecast'\n\nharness/tests/test_forecast.py:102: KeyError\n=========================== short test summary info ============================\nFAILED harness/tests/test_forecast.py::ThePredictionTest::test_the_per_slice_figure_is_the_median_of_delivered_slices_not_the_plan_points\nFAILED harness/tests/test_forecast.py::TheSplitNamedTest::test_a_prediction_over_budget_says_so_and_names_the_split_and_still_advances\nFAILED harness/tests/test_forecast.py::TheAbsenceTest::test_fewer_delivered_tickets_than_the_window_reports_an_absence_not_a_figure\n3 failed in 0.68s\n",
+    "output_sha256": "1e916e35d7bc1e2c987b8f34d8f8963283334b453afe5d652313934a417efaab",
+    "output_truncated": false,
+    "before": "ae0bde288929d7948659f65c553ce2a61d4d2b4589ec332c1f99e16de6718231",
+    "after": "ae0bde288929d7948659f65c553ce2a61d4d2b4589ec332c1f99e16de6718231"
+  }
+}
