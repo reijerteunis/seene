@@ -119,8 +119,8 @@ made by the attempt that fixed the first eight. `slice_files` failed naming `.gi
 `harness/cli.py`, `harness/doctor.py`, `harness/handoff.py` and `harness/paths.py`, because the
 amended solution record named only what its own attempt touched: fixing F5 by amending the plan
 reproduced F5's symptom one level up, and record 44's solution record carries a changes list
-covering the whole ticket. And `fingerprint` failed because regression check 34 ran against
-`77c51dfa2a32` while the triage read `a8c161993dcf`: the Outcome was written after the regression
+covering the whole ticket. And `fingerprint` failed at record 37 because regression check 34 ran
+against `77c51dfa2a32` while that triage read `a8c161993dcf`: the Outcome was written after the regression
 and the ticket file is inside the fingerprint, so the tests that passed were not the tests for
 that tree. Nothing in the harness refuses that today. Making the tdd gate refuse it is SEEN-110's
 third criterion rather than a change smuggled in here, and what caught it was the triage's own
