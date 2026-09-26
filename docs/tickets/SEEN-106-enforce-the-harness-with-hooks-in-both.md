@@ -114,7 +114,7 @@ was missing `handoff`, `budget`, `route` and `review` before this ticket and sti
 two commands this ticket added were put in, because the other four are not this ticket's defect;
 they are SEEN-110's third and fourth criteria instead.
 
-The triage at record 47 found two more, both about the evidence rather than the code, and both made
+The triage at record 37 found two more, both about the evidence rather than the code, and both made
 by the round that fixed F1 to F8. `slice_files` failed naming `.gitignore`,
 `harness/cli.py`, `harness/doctor.py`, `harness/handoff.py` and `harness/paths.py`, because the
 amended solution record named only what its own attempt touched: fixing F5 by amending the plan
