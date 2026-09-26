@@ -220,7 +220,9 @@ def _solution(data, records, current, repository, thresholds):
             require(_filled(declaration.get(key)), f'policy_gate_action is missing {key}')
     if mode_of(data) == 'non-code':
         return {}
-    return dict(slice_points=_slice_plan(data, thresholds))
+    from . import forecast
+    return dict(slice_points=_slice_plan(data, thresholds),
+                forecast=forecast.predict(data['slices'], repository.root, thresholds))
 
 
 def _tdd(data, records, current, repository, thresholds):
