@@ -1,12 +1,12 @@
 # Tickets
 
-109 tickets for the Seen MVP, one file per ticket, grouped by sprint. Each file carries YAML frontmatter (id, epic, sprint, gate, estimate, executor, changes_agent_action, marketplaces, depends_on, status) so the backlog can be filtered with grep or loaded by a script. Status values: todo, doing, review, done, parked. Update the status line in the frontmatter and the table when a ticket moves; `harness doctor` reports a status that disagrees with the ticket's journal. A started ticket's file is owned by this repository: the generator behind the council artifact rewrites only tickets still at todo.
+110 tickets for the Seen MVP, one file per ticket, grouped by sprint. Each file carries YAML frontmatter (id, epic, sprint, gate, estimate, executor, changes_agent_action, marketplaces, depends_on, status) so the backlog can be filtered with grep or loaded by a script. Status values: todo, doing, review, done, parked. Update the status line in the frontmatter and the table when a ticket moves; `harness doctor` reports a status that disagrees with the ticket's journal. A started ticket's file is owned by this repository: the generator behind the council artifact rewrites only tickets still at todo.
 
 Conventions: branch `claude/<id>-<slug>` (or `codex/`), commit messages `feat(<id>): ...`, `fix(<id>): ...`, `docs(<id>): ...`; a ticket is done only when every acceptance criterion is checked and the tests named in it run in CI.
 
 ## Sprint 0: Harness first, then foundations, three read connectors, ingest, day-0 registrations
 
-24 Sep - 9 Oct 2026, gate G0, 37 tickets, 92 build points.
+24 Sep - 9 Oct 2026, gate G0, 38 tickets, 92 build points.
 
 | Ticket | Title | Epic | Pts | Executor | Status | Depends on |
 |---|---|---|---|---|---|---|
