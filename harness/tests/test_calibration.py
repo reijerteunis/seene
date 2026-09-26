@@ -1100,7 +1100,42 @@ class ReceiptAttestsTheReviewedTreeTest(DeliveryWalk):
         self.commit_and_push()
         with self.assertRaisesRegex(HarnessError, 'changed after review'):
             self.verify()
+class TheOrderIsPrintedWhereItIsMetTest(ProjectTest):
+    """F2 of the ninth review: the advice that costs a return if it goes missing.
 
+    Delivery's refusal and doctor's message are the only two places the harness
+    tells a session how to meet the wall record 76 walked into, and both were
+    prose no test held, so an edit that trimmed either left the suite green and
+    the next session reading only "return the ticket to the stage that owns it",
+    which is the advice that costs a return and a second review. The same shape
+    the fourth review pinned for the go-live instruction, one attempt after the
+    third returned this ticket for a printed instruction that had drifted.
+    """
+
+    def test_the_delivery_refusal_names_the_order(self):
+        from harness import delivery
+        source = (PROJECT / 'harness' / 'delivery.py').read_text()
+        self.assertIn('before the review advance', source)
+        self.assertIn('the tree the review read', source)
+        self.assertTrue(callable(delivery.verify))
+
+    def test_doctor_names_the_order_too(self):
+        from harness import doctor, thresholds
+        from harness.repository import Repository
+        path = self.root / 'docs' / 'tickets' / f'{self.ticket_id}-a-ticket-to-work.md'
+        folder = self.root / 'docs' / 'harness' / 'history' / self.ticket_id
+        folder.mkdir(parents=True, exist_ok=True)
+        previous = None
+        for entry in journal(ticket=self.ticket_id, day=1):
+            if entry['kind'] == 'receipt':
+                continue
+            written = folder / f'{entry["sequence"]:04d}.json'
+            written.write_bytes(journal_module.serialise(dict(entry, prev_hash=previous)))
+            previous = journal_module.digest(written)
+        path.write_text(path.read_text().replace('status: doing', 'status: doing'))
+        found = doctor.status_problems(Repository(self.root))
+        self.assertTrue(any('before the review advance' in problem for problem in found),
+                        found)
 
 if __name__ == '__main__':
     unittest.main()

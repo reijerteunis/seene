@@ -99,19 +99,20 @@ says which slice caused it, so every slice of the plan carries it and an escaped
 the same way; findings are the one per-slice measure. That is written into `route_rule` so nobody
 reads a per-slice rate as a per-slice cause.
 
-Seven deviations from the solution record. Five are the files `slice_files` fails on, which the plan
-did not name, so a reader auditing that check finds every one of them here: `harness/delivery.py`,
-`harness/doctor.py`, `harness/kpi.py`, `harness/tests/test_context_budget.py` and
-`harness/tests/test_triage.py`. The other two are about the tests themselves: the command that runs
-them, and which existing file two of them went into. This paragraph has been wrong four times, at the
-fifth, sixth, seventh and eighth reviews, each time because an attempt added a file and the sentence
-counting them was not read again; the list above is the one the triage record prints, copied rather
-than recalled. Those two first. The plan named the tests as `pytest` commands and
-this repository runs `unittest`, which is what every check records; and the gate tests for the
-finding file went into `test_calibration.py` rather than the `test_stage_gates.py` the plan named,
-because `test_calibration.py` is the file slice 1 declared.
+Deviations from the solution record. Two are about the tests themselves: the plan named them as
+`pytest` commands and this repository runs `unittest`, which is what every check records, and the gate
+tests for the finding file went into `test_calibration.py` rather than the `test_stage_gates.py` the
+plan named, because `test_calibration.py` is the file slice 1 declared.
 
-The four files, in the order the reviews forced them. `harness/tests/test_context_budget.py`: SEEN-108
+The rest are files the plan did not name, and this paragraph no longer lists them. It listed them at
+every attempt from the fifth review onwards and was wrong at every one: naming three when the check
+named four, then stale counts, then a repeated clause, then missing `harness/delivery.py`, then missing
+`harness/tests/test_delivery.py`. A hand-copied list of a machine-generated list is a list that goes
+stale between the copy and the commit, so the authority is the `slice_files` check of the last triage
+record, which prints every one of them by name, and what follows is why each is in the change. Read
+them together: the record says which files, this says why.
+
+In the order the reviews forced them. `harness/tests/test_context_budget.py`: SEEN-108
 left a guard there asserting `report --calibration` is not a command the parser accepts, with a note
 saying the ticket that lands it may lose the tense. This is that ticket, so the sentence in
 `render_cost` is in the present now and the guard holds the other direction. `harness/doctor.py`
@@ -123,7 +124,13 @@ from review declare `--no-findings`. `harness/kpi.py` came with attempt 6, for F
 review: two committed reports must not state different findings for one ticket. `harness/delivery.py`
 came with attempt 8 and stays with attempt 9: attempt 8 relaxed what a receipt attests and attempt 9
 withdrew the relaxation, so what is left in that file is the refusal it always made and a message
-that now names the order the procedure has to keep.
+that now names the order the procedure has to keep. `CLAUDE.md` came with attempt 9, for F6 of the
+eighth review: rule 3 is the first thing every session reads and it said to write the Outcome before
+leaving review without saying the same of the status and the ticks, which is the omission that cost
+this ticket a return at record 76. `harness/tests/test_delivery.py` came with attempt 9: its
+`walk_to_deliver` takes a `mark_reviewed` parameter, off by default so every existing caller walks the
+identical path, which the four tests of the restored guarantee need in order to reach delivery the way
+the order now requires.
 
 ### What the review found
 
@@ -366,3 +373,36 @@ would close the wall properly is written down for the founder: pin the reviewed 
 in the review record rather than reading it from a commit, resolve the ticket through `cli.ticket_file`
 so a rename survives, and scope the three fields to the frontmatter, the header table and the criteria
 list. That is a ticket of its own.
+
+### What the ninth review found, and passed
+
+A pass, on the withdrawal. It checked the withdrawal against the commit that made it rather than by
+reading the file: `git diff a31c598^ HEAD -- harness/gates.py` is empty, so nothing of the second
+fingerprint survives; `harness/delivery.py` differs from `main` in the refusal message alone; the
+`import re` went with the helpers that needed it; and the only surviving mention of the withdrawn flag
+is the assertion that forbids it. It confirmed the four restored tests discriminate in both directions,
+that `walk_to_deliver`'s new parameter is off by default so no existing delivery test walks a different
+path, and that the four documents and two messages now describe one rule. It re-rendered the
+calibration report over the real journals and found the committed file byte-identical, and ran the whole
+suite on this tree.
+
+It judged the two failing deterministic checks rather than taking them as given. For `fingerprint` it
+established what note 86 argues: check 88's recorded fingerprint is exactly the tree of the revert
+commit, and rebuilding the entry map for that tree and for this one, the only fingerprinted path that
+moved is this ticket file. So the tests that passed are the tests for this code, and what moved is the
+procedure writing its own Outcome, status and ticks, which the order now requires.
+
+Three findings, all prose, all resolved here. The deviations paragraph was wrong for the fifth attempt
+running, this time missing `harness/tests/test_delivery.py`, and the reviewer's own conclusion is the
+resolution: stop carrying a hand-copied list. The paragraph now names no files and points at the
+`slice_files` check of the last triage record, which prints every one of them, and explains why each is
+in the change instead. Nothing pinned the sentence delivery's refusal and doctor's message were extended
+with, so an edit could have trimmed either green and left the next session reading only the advice that
+cost this ticket a return; a test holds both now, and it was checked by trimming the message and
+watching it fail. And the workflow promised three reasons the relaxation was withdrawn while naming
+two, dropping the renamed ticket, which is the case a founder designing the follow-up would most easily
+ship the hole through.
+
+The test that answers the second finding was written after the reviewing context had read the tree. It
+asserts two literal strings and nothing else, and it is named here because a reader comparing the
+review's `read` list with the diff should not have to wonder.
