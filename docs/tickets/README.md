@@ -36,7 +36,7 @@ Conventions: branch `claude/<id>-<slug>` (or `codex/`), commit messages `feat(<i
 | [SEEN-103](SEEN-103-declare-non-code-mode-at-the-solution-stage.md) | Declare non-code mode at the solution stage, not after it | E10 | 1 | Claude Code | done | SEEN-086 |
 | [SEEN-104](SEEN-104-cap-a-session-at-one-slice-the-slice-plan-the.md) | Cap a session at one slice: the slice plan, the budget and the handoff pack | E10 | 3 | Claude Code | done | SEEN-099, SEEN-103, SEEN-091 |
 | [SEEN-105](SEEN-105-give-the-scout-and-the-reviewer-their-own.md) | Give the scout and the reviewer their own context as subagents in both assistants | E10 | 3 | Claude Code | todo | SEEN-104, SEEN-092, SEEN-098 |
-| [SEEN-106](SEEN-106-enforce-the-harness-with-hooks-in-both.md) | Enforce the harness with hooks in both assistants, generated from one source | E10 | 3 | Claude Code | todo | SEEN-104, SEEN-092 |
+| [SEEN-106](SEEN-106-enforce-the-harness-with-hooks-in-both.md) | Enforce the harness with hooks in both assistants, generated from one source | E10 | 3 | Claude Code | done | SEEN-104, SEEN-092 |
 | [SEEN-107](SEEN-107-let-jev-settle-what-the-review-can-settle.md) | Let Jev settle what the review can settle before a model reads the diff | E10 | 3 | Claude Code | todo | SEEN-105, SEEN-098, SEEN-104 |
 | [SEEN-108](SEEN-108-route-each-slice-to-a-model-and-an-effort-at.md) | Route each slice to a model and an effort at solution, by rule first and by Jev second | E10 | 2 | Claude Code | todo | SEEN-104, SEEN-105, SEEN-098 |
 | [SEEN-109](SEEN-109-calibrate-the-review-triage-and-the-routes-on.md) | Calibrate the review triage and the routes on ten tickets before either saves a token | E10 | 2 | Claude Code | todo | SEEN-107, SEEN-108 |
