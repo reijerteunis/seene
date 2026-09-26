@@ -1,0 +1,48 @@
+{
+  "sequence": 13,
+  "ticket": "SEEN-112",
+  "timestamp": "2026-09-26T22:53:13.028438+00:00",
+  "harness_version": "2",
+  "kind": "handoff",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "cdadefad3cf11330d3daa816721e9b95d596a4b3",
+  "prev_hash": "8a650743bdb1ea54f1262989fda6125c909434780ab0fd5292e605691ceb28ce",
+  "data": {
+    "pack": ".harness-drafts/SEEN-112-handoff.md",
+    "sha256": "719b3b74a1dbc93b4afc1d22e4a94a7900fcd9e6abf51f5bdd99a2564f81303d",
+    "estimated_tokens": 1173,
+    "token_limit": 2000,
+    "slice": {
+      "position": 2,
+      "total": 2,
+      "done": 1,
+      "declared": false,
+      "inferred": 1,
+      "entry": {
+        "name": "The single question batch, the resume once clarified clears, the merge authorisation and the summary",
+        "points": 1,
+        "files": [
+          "harness/loop.py",
+          "harness/cli.py",
+          "harness/paths.py",
+          "harness/tests/test_loop.py",
+          "docs/harness/skill.md",
+          "docs/harness/workflow.md",
+          ".claude/skills/seen-harness/SKILL.md",
+          ".agents/skills/seen-harness/SKILL.md"
+        ],
+        "red": "QuestionBatchTest, MergeAuthorisationTest and SummaryTest fail because the loop asks nothing, `authorise` is not a subcommand, `authorisation` is not a record kind and there is no summary: an open question yields no `ask` action carrying every question at once, a green verify-merge offers a merge action with no authorisation on record, and no criterion is listed with what it waits on."
+      }
+    },
+    "auto": false,
+    "figures": {
+      "session": "a00943ab9615",
+      "output_tokens": 96768,
+      "tool_calls": 60,
+      "unavailable": null
+    }
+  }
+}
