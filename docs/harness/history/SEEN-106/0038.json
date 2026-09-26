@@ -1,0 +1,22 @@
+{
+  "sequence": 38,
+  "ticket": "SEEN-106",
+  "timestamp": "2026-09-26T11:42:58.600903+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "session": "90d87d9d4058",
+  "head": "57604d18f9b64ccecddd5b2b5b9816cfd22dc118",
+  "prev_hash": "021f85991210d16f320bdf8fb5dd4ceb86a2df27ca6ab20d65a0f2c62ebb7e05",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 4,
+    "reason": "The triage could see no evidence for: The hooks run in a Codex session: /hooks lists them and a blocked edit is refused there too, recorded as a verification in the journal. A criterion with nothing behind it is answered at the tdd stage, by writing the test or the check that proves it, rather than by a reviewer reading a diff that does not contain it",
+    "unmet_criteria": [
+      5
+    ]
+  }
+}

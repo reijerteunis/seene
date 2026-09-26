@@ -1,0 +1,93 @@
+{
+  "sequence": 6,
+  "ticket": "SEEN-106",
+  "timestamp": "2026-09-26T04:48:45.041944+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "90d87d9d4058",
+  "head": "eb48c6dd260ebf6f20dbc04f575dcacf890cea30",
+  "prev_hash": "9645b8e5961ba0ccf8812be91fb8fc409444adbe98e47e16454fbc63efe7a2ea",
+  "data": {
+    "from_stage": "clarify",
+    "to_stage": "solution",
+    "evidence": {
+      "scope": "One source, harness/hooks.json, from which `harness sync` generates the harness-owned hook entries into .claude/settings.json and .codex/hooks.json while leaving every foreign entry and the permissions untouched, with `doctor` reporting a hand edit of either copy; and the harness commands those hooks call, chiefly a new `harness guard <path>` that refuses an edit the stage, the branch or the accepted slice does not allow, proven with the hook-input JSON of both assistants as fixtures. The edge: no hook invents a rule. Every refusal a hook delivers is a refusal `advance` already delivers later, so a Codex session with no hook loaded still meets the same wall at the next gate; what the hooks change is when the session meets it, not what the harness enforces. Also inside the edge, because criterion 1 covers the permissions half of the same two files: the .agents/settings.json mirror the workflow doc records as read by nothing Codex documents, verified in the same Codex session as criterion 5 and removed if nothing reads it. Outside the edge: any new gate, any change to what a stage demands, and any hook that calls something other than a harness command.",
+      "acceptance": [
+        "1. `harness sync` writes the harness-owned hook entries of .claude/settings.json and .codex/hooks.json from harness/hooks.json, and `doctor` reports a hand edit of either. Evidence: a test that syncs into a temporary project holding a foreign hook entry and the permissions block, asserts both survive byte for byte while the harness entries appear, then edits a harness entry by hand in each copy in turn and asserts `doctor` names that copy and that key.",
+        "2. `harness guard <path>` refuses an edit to packages/ or apps/ while the ticket is at clarify or solution, an edit on a branch that is not the ticket's, and an edit outside the files the accepted slice names, each with a reason on stderr and exit 2; and allows the ticket file and .harness-drafts/ at every stage. Evidence: tests driving `guard` through the PreToolUse hook-input JSON of both assistants on stdin, one fixture per refusal and one per allowance, asserting the exit code and that the reason names the rule that refused.",
+        "3. SessionStart injects the handoff pack and UserPromptSubmit injects a budget warning once the session is over budget. Evidence: tests feeding each assistant's SessionStart and UserPromptSubmit hook-input JSON to the hook's command and asserting the pack appears in the additionalContext field, that a session under budget injects nothing, and that one over the [session] output_token_budget injects a warning naming the figure.",
+        "4. PreCompact writes the handoff pack before the context is summarised. Evidence: a test that runs the PreCompact hook command with trigger auto against a ticket with an accepted slice plan, asserts a handoff record was appended and the pack file exists, and a second with trigger manual asserting the same, so the auto path is not the only one proven.",
+        "5. The hooks load in a real Codex session: /hooks lists the harness entries and a guarded edit is refused there too, and .agents/settings.json is confirmed read or removed. Evidence: a verification note in this journal naming the codex-cli version, what /hooks printed and what the refused edit returned, with the sources of every claim, because a hook file this session can write is not a hook file the other assistant has been seen to load."
+      ],
+      "decisions": [
+        "Drift cannot be the full-text comparison `skills.drift` and `agents.drift` use, because neither copy is wholly generated: .claude/settings.json carries `permissions` and graphify's two PreToolUse entries, and .codex/hooks.json already carries repowise-augment on SessionStart and PostToolUse. So sync merges and drift compares only the harness-owned entries, re-rendered from harness/hooks.json the way agents.drift re-renders, and a foreign entry is never reported. Taken on the evidence of the scout brief at record 3.",
+        "A harness-owned entry is identified by its command beginning with the harness invocation, not by an added key. A sibling marker key would sit in a schema each assistant validates and neither documents as extensible, and the command prefix is what makes an entry the harness's in the first place. Settled here because drift's correctness rests on it.",
+        "`.codex/hooks.json` is committed, with a `!.codex/hooks.json` line beside the `!.codex/agents/` exception already in .gitignore: it is generated, its commands are repository-relative, and the agents precedent is that a fresh clone should hold a generated copy before its first sync. `.codex/config.toml` stays untracked because it carries an absolute path to this machine, which is the reason .gitignore already gives.",
+        "Codex hooks need no feature flag on codex-cli 0.156.1: `codex features list` prints hooks as stable and effective true, both inside this repository and from a directory outside it where no [features] section is in force, verified 26 September 2026. The `[features] hooks = true` line in the untracked .codex/config.toml is therefore redundant rather than load-bearing, and no criterion depends on it.",
+        "Whether Codex loads a project-level .codex/hooks.json at all is the one thing only the work can settle: `codex doctor` prints nothing about hooks, and the file has sat in this repository since SEEN-105 without anything confirming it is read. Proceeding on the workflow document's claim, with criterion 5 as the observation that settles it; if /hooks does not list the harness entries the generated Codex copy moves to whatever path that session shows Codex reads, and the move is recorded rather than the criterion dropped.",
+        "`guard` allows and says why when it cannot find a rule to apply: no journal for the branch's ticket, or no accepted slice plan yet. A guard that refuses on absence refuses the first edit of every ticket, including this one, and the absence is already refused by the gate that comes next. The three refusals it does deliver are the three the criterion names and no fourth.",
+        "The clarify and solution refusal is scoped to packages/ and apps/, as criterion 2 words it, and not to every file. A harness ticket writes Python at tdd and a documentation ticket writes Markdown, and the stage a file may be written at is not a property the guard can read off a path; the slice-files rule is what bounds those, once a plan exists.",
+        "This ticket builds a wall the session behind it then has to work behind: a PreToolUse guard generated into .claude/settings.json can refuse this session's own edits. The fixtures are what prove the behaviour, so no criterion needs the live hook, and `sync` is run deliberately at the end of the slice that writes the source rather than while the tests are still being written. If the live hook does refuse this session's work, that is criterion 2 passing and is recorded as such.",
+        "One reviewer, and a subagent is allowed: changes_agent_action is false in the frontmatter and nothing here touches billing or the policy gate, so the second reviewer and the other assistant are not required. The Codex session criterion 5 needs is a verification, not a review, and the two are recorded separately.",
+        "Three points, so two slices: the source with sync, drift and the gitignore line first, then guard with the injecting and blocking hook commands and their fixtures. The slice plan itself belongs to the solution record and is not fixed here.",
+        "Criterion 5 may need Ruud. It asks what an interactive Codex session prints for /hooks, which `codex exec` does not answer and this session cannot observe for itself. Proceeding with the other four criteria complete and the verification as the last step; if it cannot be driven from here it is handed to Ruud with the exact commands, and the ticket does not leave review until the note is in the journal."
+      ],
+      "open_questions": [],
+      "changes_agent_action": false,
+      "graph_impact": [
+        "repowise risk, record 2: below typical, 24th percentile by size and spread, no bug-fix history in the files HEAD touches. Read as the floor it is: the answer was taken on the one-line status commit, so it measures this ticket's opening rather than its diff.",
+        "codegraph impact on `sync`, record 4: twelve affected symbols, and the two that matter are harness/skills.py:sync:46 and harness/agents.py:sync:226 behind harness/cli.py:execute:1016, so a third generated surface joins two that already exist rather than standing alone. The rest is the test harness: tests/helpers.py:make_project:38 and setUp:99, test_isolation.py's three cases, test_lifecycle.py:run_harness:20 and test_context_budget.py:report:394.",
+        "repowise why on the generated copies and doctor's hand-edit check, record 5: nothing recorded, and the index is behind HEAD. Recorded as the absence it is, not as an answer that there is no reason; the reason is in the scout brief at record 3 and in SEEN-092's and SEEN-105's journals instead."
+      ]
+    },
+    "decisions": [
+      {
+        "key": "clarified",
+        "question": "clarified",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.84,
+          "no": 0.16
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.8,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "key": "risk",
+        "question": "risk",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "medium",
+        "probabilities": {
+          "low": 0.22,
+          "medium": 0.78,
+          "high": 0.0
+        },
+        "confidence": 0.66,
+        "score": 0.78,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

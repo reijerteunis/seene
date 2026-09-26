@@ -1,0 +1,32 @@
+{
+  "sequence": 64,
+  "ticket": "SEEN-106",
+  "timestamp": "2026-09-26T14:21:36.394280+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 8,
+  "actor": "claude:reviewer",
+  "session": "90d87d9d4058",
+  "head": "dd9d9adbedeceaf1e3463d90004c86528c393390",
+  "prev_hash": "81efdad493279945856935366311a88eca4f3a60da87252597fd42fe7ffa29f0",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 9,
+    "reason": "The seventh review returned verdict pass with one medium finding, the fourth instance of the stale-summary class. Verified against the journal's attempt field before accepting it: the finding is correct, records 41 to 44 are attempt 5 and attempt 4 has no solution stage. Fixed by citing record numbers rather than attempt ordinals in both ticket files, which removes the class rather than the instance, and the gap it exposed in F11's audit is recorded in the Outcome. The fix moved the tree, so this returns to tdd.",
+    "findings": [
+      {
+        "id": "F12",
+        "severity": "medium",
+        "file": "docs/tickets/SEEN-106-enforce-the-harness-with-hooks-in-both.md:144",
+        "claim": "Three sentences in this ticket and one in SEEN-110 placed the split at 'the fourth attempt's solution stage'. The journal's attempt field puts records 41 to 44, the two-readings note, the split decision and the non-code solution advance, at attempt 5; attempt 4 is records 39 and 40, a handoff and a tdd return, with no solution stage at all.",
+        "failure_scenario": "A reader, a session preparing SEEN-110, or SEEN-109's calibration reading attempt figures out of tickets opens record 40 expecting the split's deliberation and finds a tdd return with no mode, no readings table and no changes list; the material is one record later. Attempts 1 and 2 are correctly named by their own journal numbers elsewhere in the same document, so nothing warns a reader that 'the fourth attempt' is off by one.",
+        "status": "fixed",
+        "resolution": "Verified against the journal's attempt field before accepting: records 41 to 44 are attempt 5 and record 40 is attempt 4, so the finding is right. All four attributions now cite record numbers instead of attempt ordinals, in both ticket files. The fourth instance of one class, and it exposed a real gap in F11's fix: that audit checked count claims and not attributions, so it could not have found this. An attempt ordinal is something a reader reconstructs and a writer got wrong four times running; a record number is an identifier the journal fixes. The Outcome now records that too."
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}

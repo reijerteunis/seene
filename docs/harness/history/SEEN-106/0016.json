@@ -1,0 +1,32 @@
+{
+  "sequence": 16,
+  "ticket": "SEEN-106",
+  "timestamp": "2026-09-26T05:55:19.028163+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "90d87d9d4058",
+  "head": "2c2603024b6993eb0bc71609b317cef88e21a78e",
+  "prev_hash": "f3a30cd2f583954ebab810a226976c7cc20eced7878bd6030526fb13a4d42c46",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_guard",
+      "-v"
+    ],
+    "phase": "green",
+    "exit_code": 0,
+    "model": "claude-opus-5",
+    "model_declared": "sonnet",
+    "duration_ms": 3504,
+    "output": "test_a_branch_naming_a_ticket_with_no_journal_yet_allows (harness.tests.test_guard.DecideTest.test_a_branch_naming_a_ticket_with_no_journal_yet_allows)\nRule 3 asks only whether the branch names some ticket; whether that ... ok\ntest_a_detached_head_allows_a_path_the_guard_has_no_rule_for (harness.tests.test_guard.DecideTest.test_a_detached_head_allows_a_path_the_guard_has_no_rule_for) ... ok\ntest_a_detached_head_refuses_harness_too (harness.tests.test_guard.DecideTest.test_a_detached_head_refuses_harness_too) ... ok\ntest_a_stage_the_guard_has_no_rule_for_allows_and_says_so (harness.tests.test_guard.DecideTest.test_a_stage_the_guard_has_no_rule_for_allows_and_says_so)\nPast tdd there is nothing left in this guard to refuse by: review ... ok\ntest_an_absolute_path_is_judged_the_same_as_a_project_relative_one (harness.tests.test_guard.DecideTest.test_an_absolute_path_is_judged_the_same_as_a_project_relative_one)\nClaude Code's PreToolUse payload carries tool_input.file_path, always ... ok\ntest_apps_is_refused_at_clarify_the_same_way_packages_is (harness.tests.test_guard.DecideTest.test_apps_is_refused_at_clarify_the_same_way_packages_is) ... ok\ntest_docs_are_not_touched_by_the_stage_rule (harness.tests.test_guard.DecideTest.test_docs_are_not_touched_by_the_stage_rule)\nOnly packages/ and apps/ are refused before tdd; a documentation ... ok\ntest_a_branch_that_is_not_a_ticket_branch_allows_paths_the_guard_has_no_rule_for (harness.tests.test_guard.GuardCommandTest.test_a_branch_that_is_not_a_ticket_branch_allows_paths_the_guard_has_no_rule_for) ... ok\ntest_a_branch_that_is_not_a_ticket_branch_refuses_code_and_harness (harness.tests.test_guard.GuardCommandTest.test_a_branch_that_is_not_a_ticket_branch_refuses_code_and_harness) ... ok\ntest_a_file_the_accepted_slice_names_is_allowed_at_tdd (harness.tests.test_guard.GuardCommandTest.test_a_file_the_accepted_slice_names_is_allowed_at_tdd) ... ok\ntest_a_refusal_at_clarify_names_the_stage_too (harness.tests.test_guard.GuardCommandTest.test_a_refusal_at_clarify_names_the_stage_too) ... ok\ntest_a_refusal_at_the_solution_stage_exits_2_and_names_the_stage (harness.tests.test_guard.GuardCommandTest.test_a_refusal_at_the_solution_stage_exits_2_and_names_the_stage)\nThe RED this slice must demonstrate. ... ok\ntest_no_accepted_slice_plan_allows_the_edit_at_tdd (harness.tests.test_guard.GuardCommandTest.test_no_accepted_slice_plan_allows_the_edit_at_tdd)\nA non-code ticket reaches tdd with no slices to plan by at all. ... ok\ntest_no_journal_yet_allows_the_edit (harness.tests.test_guard.GuardCommandTest.test_no_journal_yet_allows_the_edit)\nBefore `start`, there is no stage to guard by, and the gate that ... ok\ntest_outside_the_accepted_slice_is_refused_at_tdd (harness.tests.test_guard.GuardCommandTest.test_outside_the_accepted_slice_is_refused_at_tdd) ... ok\ntest_the_drafts_directory_is_allowed_at_every_stage (harness.tests.test_guard.GuardCommandTest.test_the_drafts_directory_is_allowed_at_every_stage) ... ok\ntest_the_ticket_file_is_allowed_at_every_stage (harness.tests.test_guard.GuardCommandTest.test_the_ticket_file_is_allowed_at_every_stage) ... ok\n\n----------------------------------------------------------------------\nRan 17 tests in 3.415s\n\nOK\n",
+    "output_sha256": "89db077912a9a0fbebfe4a8b449f775e19a705b77ad23e39e927c81ae33ab4d1",
+    "output_truncated": false,
+    "before": "cd9639f3b78af9327f13e075c8d407d76b038cfddbb6a1d54d0eaee654630979",
+    "after": "cd9639f3b78af9327f13e075c8d407d76b038cfddbb6a1d54d0eaee654630979"
+  }
+}

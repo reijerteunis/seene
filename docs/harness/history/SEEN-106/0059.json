@@ -1,0 +1,1095 @@
+{
+  "sequence": 59,
+  "ticket": "SEEN-106",
+  "timestamp": "2026-09-26T13:47:30.635793+00:00",
+  "harness_version": "2",
+  "kind": "triage",
+  "stage": "review",
+  "attempt": 7,
+  "actor": "claude:implementer",
+  "session": "90d87d9d4058",
+  "head": "b29b5282215e49e4e1267e56cb50d6291a6d6bb7",
+  "prev_hash": "97ff250ddfb2d2a01c6752d9004c7ecf3059d1684f5ac714dc50546e8962690e",
+  "data": {
+    "fingerprint": "d813176eb5d5b814d2c24278e04efa77862368a21ece42558fc242fabbd617c1",
+    "code_fingerprint": "fbe41033549bc449ce4e6e7889fa181287dae9c708fb57835cd2544b87d2a936",
+    "files": [
+      {
+        "path": ".agents/skills/seen-harness/SKILL.md",
+        "hunks": 2,
+        "added": 22,
+        "removed": 4,
+        "package": ".agents",
+        "risk_percentile": 84.2,
+        "coverage_delta": null,
+        "named_in_solution": false
+      },
+      {
+        "path": ".claude/settings.json",
+        "hunks": 1,
+        "added": 67,
+        "removed": 0,
+        "package": ".claude",
+        "risk_percentile": 84.2,
+        "coverage_delta": null,
+        "named_in_solution": true
+      },
+      {
+        "path": ".claude/skills/seen-harness/SKILL.md",
+        "hunks": 2,
+        "added": 22,
+        "removed": 4,
+        "package": ".claude",
+        "risk_percentile": 84.2,
+        "coverage_delta": null,
+        "named_in_solution": false
+      },
+      {
+        "path": ".codex/hooks.json",
+        "hunks": 1,
+        "added": 108,
+        "removed": 0,
+        "package": ".codex",
+        "risk_percentile": 84.2,
+        "coverage_delta": null,
+        "named_in_solution": true
+      },
+      {
+        "path": ".gitignore",
+        "hunks": 1,
+        "added": 6,
+        "removed": 4,
+        "package": "root",
+        "risk_percentile": 84.2,
+        "coverage_delta": null,
+        "named_in_solution": true
+      },
+      {
+        "path": "CLAUDE.md",
+        "hunks": 3,
+        "added": 8,
+        "removed": 2,
+        "package": "root",
+        "risk_percentile": 84.2,
+        "coverage_delta": null,
+        "named_in_solution": true
+      },
+      {
+        "path": "docs/harness/skill.md",
+        "hunks": 2,
+        "added": 22,
+        "removed": 4,
+        "package": "docs",
+        "risk_percentile": 84.2,
+        "coverage_delta": null,
+        "named_in_solution": true
+      },
+      {
+        "path": "docs/harness/workflow.md",
+        "hunks": 3,
+        "added": 5,
+        "removed": 3,
+        "package": "docs",
+        "risk_percentile": 84.2,
+        "coverage_delta": null,
+        "named_in_solution": true
+      },
+      {
+        "path": "docs/tickets/README.md",
+        "hunks": 2,
+        "added": 2,
+        "removed": 1,
+        "package": "docs",
+        "risk_percentile": 84.2,
+        "coverage_delta": null,
+        "named_in_solution": true
+      },
+      {
+        "path": "docs/tickets/SEEN-106-enforce-the-harness-with-hooks-in-both.md",
+        "hunks": 3,
+        "added": 130,
+        "removed": 7,
+        "package": "docs",
+        "risk_percentile": 84.2,
+        "coverage_delta": null,
+        "named_in_solution": true
+      },
+      {
+        "path": "docs/tickets/SEEN-110-verify-the-hooks-in-a-codex-session-and-close.md",
+        "hunks": 1,
+        "added": 58,
+        "removed": 0,
+        "package": "docs",
+        "risk_percentile": 84.2,
+        "coverage_delta": null,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/cli.py",
+        "hunks": 8,
+        "added": 116,
+        "removed": 12,
+        "package": "harness",
+        "risk_percentile": 84.2,
+        "coverage_delta": null,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/doctor.py",
+        "hunks": 5,
+        "added": 29,
+        "removed": 6,
+        "package": "harness",
+        "risk_percentile": 84.2,
+        "coverage_delta": null,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/guard.py",
+        "hunks": 1,
+        "added": 137,
+        "removed": 0,
+        "package": "harness",
+        "risk_percentile": 84.2,
+        "coverage_delta": null,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/handoff.py",
+        "hunks": 1,
+        "added": 16,
+        "removed": 0,
+        "package": "harness",
+        "risk_percentile": 84.2,
+        "coverage_delta": null,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/hooks.json",
+        "hunks": 1,
+        "added": 79,
+        "removed": 0,
+        "package": "harness",
+        "risk_percentile": 84.2,
+        "coverage_delta": null,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/hooks.py",
+        "hunks": 1,
+        "added": 599,
+        "removed": 0,
+        "package": "harness",
+        "risk_percentile": 84.2,
+        "coverage_delta": null,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/kpi.py",
+        "hunks": 1,
+        "added": 12,
+        "removed": 0,
+        "package": "harness",
+        "risk_percentile": 84.2,
+        "coverage_delta": null,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/paths.py",
+        "hunks": 1,
+        "added": 6,
+        "removed": 0,
+        "package": "harness",
+        "risk_percentile": 84.2,
+        "coverage_delta": null,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/tests/helpers.py",
+        "hunks": 2,
+        "added": 9,
+        "removed": 0,
+        "package": "harness",
+        "risk_percentile": 84.2,
+        "coverage_delta": null,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/tests/test_guard.py",
+        "hunks": 1,
+        "added": 243,
+        "removed": 0,
+        "package": "harness",
+        "risk_percentile": 84.2,
+        "coverage_delta": null,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/tests/test_hooks.py",
+        "hunks": 1,
+        "added": 953,
+        "removed": 0,
+        "package": "harness",
+        "risk_percentile": 84.2,
+        "coverage_delta": null,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/tests/test_kpi.py",
+        "hunks": 1,
+        "added": 124,
+        "removed": 0,
+        "package": "harness",
+        "risk_percentile": 84.2,
+        "coverage_delta": null,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/triage.py",
+        "hunks": 3,
+        "added": 67,
+        "removed": 21,
+        "package": "harness",
+        "risk_percentile": 84.2,
+        "coverage_delta": null,
+        "named_in_solution": true
+      }
+    ],
+    "criteria": [
+      "harness sync generates the hooks section of .claude/settings.json and .codex/hooks.json from harness/hooks.json, preserving the graphify hooks and the permissions, and doctor reports a hand edit of either copy",
+      "harness guard blocks an edit to packages/ or apps/ while the ticket is at clarify or solution, an edit on a non-ticket branch and an edit outside the accepted slice's files, each with a reason, and allows the ticket file and .harness-drafts/ at every stage, proven with hook-input fixtures for both assistants",
+      "SessionStart injects the handoff pack and UserPromptSubmit injects a budget warning once the session is over budget, proven with fixtures",
+      "PreCompact writes the handoff pack before compaction, and a test proves it is written when the trigger is auto"
+    ],
+    "deterministic": [
+      {
+        "name": "coverage",
+        "outcome": "unavailable",
+        "detail": "No coverage measurement in this attempt, which is every non-code ticket"
+      },
+      {
+        "name": "lint",
+        "outcome": "pass",
+        "detail": "No live marketplace host in test code"
+      },
+      {
+        "name": "gitleaks",
+        "outcome": "pass",
+        "detail": "No leak in main..HEAD"
+      },
+      {
+        "name": "fingerprint",
+        "outcome": "pass",
+        "detail": "The tree is the one check 57 ran against"
+      },
+      {
+        "name": "slice_files",
+        "outcome": "pass",
+        "detail": "All 24 changed files are named by the accepted slice plan, or are the ticket file the procedure itself writes"
+      },
+      {
+        "name": "red_before_green",
+        "outcome": "pass",
+        "detail": "Every slice cites a check that exited non-zero rather than one that passed. Whether it failed for the reason the slice states is not something the harness can read"
+      },
+      {
+        "name": "tests_added",
+        "outcome": "pass",
+        "detail": "Test files changed: harness/tests/helpers.py, harness/tests/test_guard.py, harness/tests/test_hooks.py, harness/tests/test_kpi.py. Whether the behaviour this slice adds has one of its own is not something a path can say"
+      },
+      {
+        "name": "acceptance_entries",
+        "outcome": "pass",
+        "detail": "The clarify record restates 5 checks against 4 criteria in the ticket. Which check answers which criterion is not something either list says"
+      },
+      {
+        "name": "pull_request",
+        "outcome": "unavailable",
+        "detail": "gh could not answer, so the pull request body was not read. It is checked again at merge, where the receipt hash has to be in it"
+      }
+    ],
+    "rules": [],
+    "jev": {
+      "asked": true,
+      "model": "jev-1.13.0",
+      "reason": null,
+      "answers": [
+        {
+          "key": "criterion_evidenced#1",
+          "question": "criterion_evidenced",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "yes",
+          "probabilities": {
+            "yes": 0.78,
+            "no": 0.22
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.6,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "criterion_evidenced#2",
+          "question": "criterion_evidenced",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "yes",
+          "probabilities": {
+            "yes": 0.72,
+            "no": 0.28
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.6,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "criterion_evidenced#3",
+          "question": "criterion_evidenced",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "yes",
+          "probabilities": {
+            "yes": 0.75,
+            "no": 0.25
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.6,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "criterion_evidenced#4",
+          "question": "criterion_evidenced",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "yes",
+          "probabilities": {
+            "yes": 0.79,
+            "no": 0.21
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.6,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "diff_matches_solution",
+          "question": "diff_matches_solution",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "yes",
+          "probabilities": {
+            "yes": 0.67,
+            "no": 0.33
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.6,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#.agents/skills/seen-harness/SKILL.md",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "yes",
+          "probabilities": {
+            "yes": 0.55,
+            "no": 0.45
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#.claude/settings.json",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "no",
+          "probabilities": {
+            "yes": 0.26,
+            "no": 0.74
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#.claude/skills/seen-harness/SKILL.md",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "yes",
+          "probabilities": {
+            "yes": 0.54,
+            "no": 0.46
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#.codex/hooks.json",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "no",
+          "probabilities": {
+            "yes": 0.27,
+            "no": 0.73
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#.gitignore",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "no",
+          "probabilities": {
+            "yes": 0.43,
+            "no": 0.57
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#CLAUDE.md",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "no",
+          "probabilities": {
+            "yes": 0.36,
+            "no": 0.64
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#docs/harness/skill.md",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "no",
+          "probabilities": {
+            "yes": 0.47,
+            "no": 0.53
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#docs/harness/workflow.md",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "no",
+          "probabilities": {
+            "yes": 0.44,
+            "no": 0.56
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#docs/tickets/README.md",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "no",
+          "probabilities": {
+            "yes": 0.18,
+            "no": 0.82
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#docs/tickets/SEEN-106-enforce-the-harness-with-hooks-in-both.md",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "yes",
+          "probabilities": {
+            "yes": 0.64,
+            "no": 0.36
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#docs/tickets/SEEN-110-verify-the-hooks-in-a-codex-session-and-close.md",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "no",
+          "probabilities": {
+            "yes": 0.48,
+            "no": 0.52
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#harness/cli.py",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "yes",
+          "probabilities": {
+            "yes": 0.66,
+            "no": 0.34
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#harness/doctor.py",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "no",
+          "probabilities": {
+            "yes": 0.49,
+            "no": 0.51
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#harness/guard.py",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "yes",
+          "probabilities": {
+            "yes": 0.76,
+            "no": 0.24
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#harness/handoff.py",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "no",
+          "probabilities": {
+            "yes": 0.45,
+            "no": 0.55
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#harness/hooks.json",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "yes",
+          "probabilities": {
+            "yes": 0.55,
+            "no": 0.45
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#harness/hooks.py",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "yes",
+          "probabilities": {
+            "yes": 0.77,
+            "no": 0.23
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#harness/kpi.py",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "yes",
+          "probabilities": {
+            "yes": 0.5,
+            "no": 0.5
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#harness/paths.py",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "no",
+          "probabilities": {
+            "yes": 0.31,
+            "no": 0.69
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#harness/tests/helpers.py",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "no",
+          "probabilities": {
+            "yes": 0.17,
+            "no": 0.83
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#harness/tests/test_guard.py",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "no",
+          "probabilities": {
+            "yes": 0.31,
+            "no": 0.69
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#harness/tests/test_hooks.py",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "no",
+          "probabilities": {
+            "yes": 0.44,
+            "no": 0.56
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#harness/tests/test_kpi.py",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "no",
+          "probabilities": {
+            "yes": 0.37,
+            "no": 0.63
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#harness/triage.py",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "yes",
+          "probabilities": {
+            "yes": 0.74,
+            "no": 0.26
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "review_depth",
+          "question": "review_depth",
+          "type": "score",
+          "options": [
+            "spot",
+            "full"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "spot",
+          "probabilities": {
+            "spot": 0.54,
+            "full": 0.46
+          },
+          "confidence": 0.08,
+          "score": 0.46,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        }
+      ]
+    },
+    "criteria_answers": [
+      {
+        "key": "criterion_evidenced#1",
+        "question": "criterion_evidenced",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.78,
+          "no": 0.22
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null,
+        "criterion": "harness sync generates the hooks section of .claude/settings.json and .codex/hooks.json from harness/hooks.json, preserving the graphify hooks and the permissions, and doctor reports a hand edit of either copy"
+      },
+      {
+        "key": "criterion_evidenced#2",
+        "question": "criterion_evidenced",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.72,
+          "no": 0.28
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null,
+        "criterion": "harness guard blocks an edit to packages/ or apps/ while the ticket is at clarify or solution, an edit on a non-ticket branch and an edit outside the accepted slice's files, each with a reason, and allows the ticket file and .harness-drafts/ at every stage, proven with hook-input fixtures for both assistants"
+      },
+      {
+        "key": "criterion_evidenced#3",
+        "question": "criterion_evidenced",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.75,
+          "no": 0.25
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null,
+        "criterion": "SessionStart injects the handoff pack and UserPromptSubmit injects a budget warning once the session is over budget, proven with fixtures"
+      },
+      {
+        "key": "criterion_evidenced#4",
+        "question": "criterion_evidenced",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.79,
+          "no": 0.21
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null,
+        "criterion": "PreCompact writes the handoff pack before compaction, and a test proves it is written when the trigger is auto"
+      }
+    ],
+    "review_depth": "spot",
+    "reviewer_model": "sonnet",
+    "model_depth": "spot",
+    "focus": [
+      ".agents/skills/seen-harness/SKILL.md",
+      ".claude/settings.json",
+      ".claude/skills/seen-harness/SKILL.md",
+      ".codex/hooks.json",
+      ".gitignore",
+      "CLAUDE.md",
+      "docs/harness/skill.md",
+      "docs/harness/workflow.md",
+      "docs/tickets/README.md",
+      "docs/tickets/SEEN-106-enforce-the-harness-with-hooks-in-both.md",
+      "docs/tickets/SEEN-110-verify-the-hooks-in-a-codex-session-and-close.md",
+      "harness/cli.py",
+      "harness/doctor.py",
+      "harness/guard.py",
+      "harness/handoff.py",
+      "harness/hooks.json",
+      "harness/hooks.py",
+      "harness/kpi.py",
+      "harness/paths.py",
+      "harness/tests/helpers.py",
+      "harness/tests/test_guard.py",
+      "harness/tests/test_hooks.py",
+      "harness/tests/test_kpi.py",
+      "harness/triage.py"
+    ],
+    "shadow": true,
+    "shadow_source": "threshold",
+    "shadow_reason": "[review] triage_shadow is true in harness/thresholds.toml",
+    "would_exclude": [
+      ".claude/settings.json",
+      ".codex/hooks.json",
+      ".gitignore",
+      "CLAUDE.md",
+      "docs/harness/skill.md",
+      "docs/harness/workflow.md",
+      "docs/tickets/README.md",
+      "docs/tickets/SEEN-110-verify-the-hooks-in-a-codex-session-and-close.md",
+      "harness/doctor.py",
+      "harness/handoff.py",
+      "harness/paths.py",
+      "harness/tests/helpers.py",
+      "harness/tests/test_guard.py",
+      "harness/tests/test_hooks.py",
+      "harness/tests/test_kpi.py"
+    ],
+    "excluded_share": 0.5763,
+    "always_read": [
+      "docs/tickets/SEEN-106-enforce-the-harness-with-hooks-in-both.md",
+      "docs/harness/history/SEEN-106/"
+    ],
+    "reviewer_task": "Review SEEN-106 against its acceptance criteria and its journal.\n\nDepth: spot, settled by triage record 59, in shadow mode, so the focus set is the whole diff and what the narrowing would have dropped is recorded rather than acted on\n\nRun the reviewer on sonnet by rule: the strongest model at full depth, one tier down at spot.\n\nRead these whatever the depth, because they are what a review is against and no focus set can hold them:\n- docs/tickets/SEEN-106-enforce-the-harness-with-hooks-in-both.md\n- docs/harness/history/SEEN-106/\n\nOf the diff, read these 24 file(s) and no others:\n- .agents/skills/seen-harness/SKILL.md\n- .claude/settings.json\n- .claude/skills/seen-harness/SKILL.md\n- .codex/hooks.json\n- .gitignore\n- CLAUDE.md\n- docs/harness/skill.md\n- docs/harness/workflow.md\n- docs/tickets/README.md\n- docs/tickets/SEEN-106-enforce-the-harness-with-hooks-in-both.md\n- docs/tickets/SEEN-110-verify-the-hooks-in-a-codex-session-and-close.md\n- harness/cli.py\n- harness/doctor.py\n- harness/guard.py\n- harness/handoff.py\n- harness/hooks.json\n- harness/hooks.py\n- harness/kpi.py\n- harness/paths.py\n- harness/tests/helpers.py\n- harness/tests/test_guard.py\n- harness/tests/test_hooks.py\n- harness/tests/test_kpi.py\n- harness/triage.py\n\nAlready settled with no model, so do not spend a read confirming any of them: lint, gitleaks, fingerprint, slice_files.\n\nPartly settled, and the rest is yours:\n- red_before_green: it passed, but it proves the cited check exited non-zero, never that it failed for the reason the slice states, which only a reader comparing the two can judge\n- tests_added: it passed, but it proves a test file is in the change, never that the behaviour the slice adds has a test of its own, which a one-line fixture edit satisfies just as well\n- acceptance_entries: it passed, but it counts the clarify record's checks against the ticket's criteria, never that each criterion has one, because neither list names the other\n\nNot settled, so they are yours:\n- coverage (unavailable): No coverage measurement in this attempt, which is every non-code ticket\n- pull_request (unavailable): gh could not answer, so the pull request body was not read. It is checked again at merge, where the receipt hash has to be in it\n\nReturn the review record's shape. Its `read` list must name every file you read and must cover the focus set above, which the review gate checks."
+  }
+}

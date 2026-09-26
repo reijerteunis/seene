@@ -202,10 +202,12 @@ will demand.
 The reviewer holds Bash, because it cannot read a diff without it, and Claude Code
 has no read-only Bash. On that side it is held to reading by its instructions and
 by holding no Edit and no Write, and nothing refuses a write it makes through a
-shell; `sandbox_mode` closes that on the Codex side only. Enforcing it on both is
-SEEN-106, which puts hooks in front of both assistants. Until then, a review that
-changed the tree is a review to throw away: the gate records the fingerprint it
-attested, and delivery refuses a tree that moved after it.
+shell; `sandbox_mode` closes that on the Codex side only. SEEN-106's hooks do not
+close it either, and it is worth saying which hole they leave: the PreToolUse guard
+matches the edit tools and not a shell, and it has no rule at the review stage at
+all. So a review that changed the tree is still a review to throw away rather than
+one that was prevented: the gate records the fingerprint it attested, and delivery
+refuses a tree that moved after it.
 
 ## The context budget
 
@@ -246,6 +248,22 @@ plan, a slice over 2 points or a plan over 4. Coverage that fell. A record or a 
 the value of an environment variable. A delivery whose checks are not green on the commit it
 attests. A merge where anything but the journal, the reports, the coverage baseline or the graph
 changed after the receipt. Each refusal says what to do next.
+
+And some of it before the fact, because both assistants now run the harness's lifecycle hooks from
+one source, `harness/hooks.json`, written into their two copies by `harness sync`. Before an edit,
+the guard: `harness guard <path>` refuses a write to `packages/` or `apps/` while the ticket is at
+clarify or solution, a write to `packages/`, `apps/` or `harness/` from a branch that is not a
+ticket's, and, at tdd, a write to a file the accepted slice does not name, each with the reason on
+stderr and exit 2. An edit the slice plan did not anticipate is a plan to amend with a `return` to
+solution, not a wall to work around. At the start of a session the pack is injected; over budget the
+figure is; before a compaction the pack is written; when the reviewer stops its findings are held to
+the rule the review gate will apply, so a finding that gate would refuse costs one more answer
+rather than a whole round; and at the end of a turn `harness doctor --quick` runs. Every hook calls
+a command you can run yourself, and none of them is a rule that exists only in a hook. All six
+events go to both copies: codex-cli 0.156.1 carries a JSON Schema for each of them, so a compacting
+Codex session writes its pack and a Codex reviewer is held to the findings rule too. The one thing
+still unsettled is whether Codex reads a project-level `.codex/hooks.json` at all, which only a live
+Codex session answers.
 
 ## The worked example
 

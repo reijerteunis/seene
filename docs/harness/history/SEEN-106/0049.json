@@ -1,0 +1,112 @@
+{
+  "sequence": 49,
+  "ticket": "SEEN-106",
+  "timestamp": "2026-09-26T13:19:49.231665+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "solution",
+  "attempt": 6,
+  "actor": "claude:implementer",
+  "session": "90d87d9d4058",
+  "head": "9d771f9a6208570984d2b8f12728f1c94968caf4",
+  "prev_hash": "33b14179ce8f260e72766d2b9305cf7f7e345979294ea74e6e757eadacc5cfb7",
+  "data": {
+    "from_stage": "solution",
+    "to_stage": "tdd",
+    "evidence": {
+      "mode": "non-code",
+      "approach": "The fourth attempt is the split Ruud decided at record 43, and that is its content: this ticket keeps its id and the four criteria it proved, and the fifth becomes SEEN-110's first, unchanged in substance. It is non-code because a scope decision recorded in documents has no executable behaviour to prove, and the behaviour this ticket does carry is already proven in this journal: records 9 and 10, 15 and 16, 17 and 18 for attempt 1, records 29 and 30, 32 and 33 for the eight findings of attempt 2, regression at 19 and 34, coverage at 21 and 35, carried through the tdd gate at advance 22 and advance 36. What the attempt changes: two ticket files, the amendment recording why the criterion moved and on whose authority, the two indexes, the Outcome corrected to claim only what is proven, and the changes list below, which covers every file the ticket changes across all four attempts rather than only the attempt in hand. That last one is the defect the second triage found: attempt 2's record named only what attempt 2 touched, so fixing F5 by amending the plan reproduced F5's own symptom one level up. What it deliberately does not change, with the reason rather than by omission: nothing in the harness enforces that the Outcome is written before the regression, so the tests that passed can be the tests for another tree. The triage's fingerprint rule caught exactly that on this ticket, which is how it was found. Making the tdd gate refuse it is a new gate refusal, it deserves its own RED, and it is SEEN-110's third criterion. Here the ordering is a sequence a person follows and the triage is the check that it was followed.",
+      "changes": [
+        "harness/hooks.json: the one source, six lifecycle events, each with its matcher, its harness command, its timeout and the clients that take it. All six go to both clients.",
+        "harness/hooks.py: the renderers, the merge that owns only the harness's entries, drift comparing those both ways, and the dispatcher behind harness hook <event> --client.",
+        "harness/guard.py: decide(), four rules and no fifth, with absence allowing and saying why, and both sides of a path resolved so a symlinked parent does not read as outside the project.",
+        "harness/cli.py: the guard and hook commands, handoff --auto, doctor --quick, and GuardRefusal mapped to exit 2 while every other HarnessError stays at 1.",
+        "harness/doctor.py: the hook_files section calling hooks.drift, and report(quick=False) building the two tree-walking sections only when not quick.",
+        "harness/handoff.py: hands_over_nothing, the one case --auto declines, so a hook can never fail compaction.",
+        "harness/paths.py: the hook source and the two generated copies.",
+        "harness/triage.py: generated_paths() for the slice check and wholly_generated_paths() for the fingerprint, separated, because a partly generated copy is exempt from one and not the other.",
+        "harness/kpi.py: _closes returns None for a handoff record carrying auto: true, so a pack written by a compaction is no slice boundary and overwrites no declared boundary's figures.",
+        "harness/tests/test_hooks.py: the sync and drift cases with a foreign entry beside ours, the six events per client, the dispatcher per event, the F1 scenario executed, the three fail-open cases and the payload-driven guard rules.",
+        "harness/tests/test_guard.py: one case per refusal and per allowance through the real entry point, each asserting the reason text rather than the exit code, because argparse exits 2 on an unknown command.",
+        "harness/tests/test_kpi.py: a two-slice journal compacted inside each slice, proving a declared boundary's figures survive an automatic pack and that no window is keyed by one.",
+        "harness/tests/helpers.py: make_project carries the hook source and the synced copies, because doctor compares them and every project under test must hold them.",
+        ".gitignore: !.codex/hooks.json beside the !.codex/agents/ exception, so a generated copy with no machine-local path reaches a fresh clone.",
+        ".claude/settings.json: the generated harness entries, with graphify's two entries and the permissions block untouched.",
+        ".codex/hooks.json: the generated harness entries, with repowise's three entries untouched.",
+        "CLAUDE.md: guard and hook in the harness command list.",
+        "docs/harness/workflow.md: the hooks as built rather than as planned, the corrected Codex position and event count, the Permissions row, and the guard and hook rows in the command table.",
+        "docs/harness/skill.md: the hooks in what the harness will refuse, the corrected Codex position, and the hole the PreToolUse matcher leaves for a write through a shell; sync regenerates the three skill copies from it.",
+        "docs/tickets/SEEN-106-enforce-the-harness-with-hooks-in-both.md: the Outcome, the status and the ticks, written before the regression this time rather than after it.",
+        "docs/tickets/SEEN-110-verify-the-hooks-in-a-codex-session-and-close.md: new. The Codex session verification, the .agents/settings.json question, the tdd gate refusing a moved-tree regression, and CLAUDE.md's four other missing commands.",
+        "docs/tickets/SEEN-106-enforce-the-harness-with-hooks-in-both.md: the fifth criterion removed, an Amendments section recording why it moved, on whose authority and what moved with it, and the Outcome corrected to claim only what is proven.",
+        "docs/tickets/README.md: SEEN-110 in the sprint table and in the E10 epic's ticket list."
+      ],
+      "migrations": [],
+      "tests_first": [],
+      "alternatives": [
+        "Name attempt 1's files inside attempt 2's slice file lists instead of in the changes list. Rejected as a misrepresentation: a slice's files are what that slice changes, and attempt 2's two slices did not change harness/cli.py or harness/paths.py. The changes list is the ticket's account of what the ticket changes, and it is the right place for the union.",
+        "Leave slice_files failing, since it escalates the review to full depth rather than refusing anything, and triage_shadow is true so every review is full depth today anyway. Rejected because the cost is not today's: an unnamed file makes the narrowing look as though it can never save a read, which is the consequence F5 stated and the figure SEEN-109's window is collecting.",
+        "Keep this attempt in code mode and manufacture a RED for it. Refused rather than rejected: there is no new behaviour, and a RED written to satisfy a gate rather than to fail for a reason is the falsification the tdd stage exists to prevent. Non-code mode is the honest answer and this is what it is for.",
+        "Make the tdd gate refuse a regression whose tree has moved, so the ordering is enforced rather than remembered. Rejected as scope: no criterion of this ticket asks for it, the triage already reports it, and a new gate refusal belongs in its own ticket where it gets its own RED.",
+        "Override the solution gate at 0.55 and keep the fifth criterion, holding the ticket open until a Codex session runs. Rejected by Ruud at record 43 in favour of the split. It was the live alternative rather than a straw one: SEEN-100 cleared at 0.77 on its sixth reading by exactly that route, with the reason written down. What decided it against is that an override would have left a ticket open on an observation nobody had scheduled, while the split closes what is proven and gives the observation a ticket with an executor.",
+        "Renumber SEEN-106 so the split reads as two fresh tickets. Refused outright: receipts, journals and pull request bodies quote an id, and CLAUDE.md says renumbering is never done on a started ticket. The id keeps what is proven, which is what SEEN-089 and SEEN-096 did."
+      ],
+      "risks": [
+        "A non-code solution record as the ticket's last one could be read as a claim that the ticket wrote no code. The journal is append-only and records 7 and 27 are both code-mode solution records with their slice plans intact, and this record's approach names the checks that prove the behaviour, so a reader who follows the journal cannot draw that conclusion. A reader who reads only the latest record could, which is why the approach says it outright.",
+        "Four attempts and eight points of plan against a three-point estimate. The honest reading is unchanged from attempt 2: the hooks were two tickets. That call is Ruud's and the evidence is the four attempts.",
+        "A split can read as lowering the bar to get a ticket merged. What guards against it here is that the criterion moved rather than being dropped, that it moved unchanged in substance, that the record of why is in the ticket rather than only in the journal, and that SEEN-110 has an executor and a dependency on this ticket. The test of whether this was a split or an abandonment is whether SEEN-110 is worked, and that is visible in the ticket index rather than a matter of trust."
+      ],
+      "rollback": "Unchanged and still local, because nothing is deployed: git revert the commits, then python3 harness/run.py sync, which rewrites both copies from the reverted source and leaves the graphify entries, the repowise entries and the permissions block where they were. A session already holding the hooks keeps them until it restarts, which a revert cannot reach and which is answered by restarting it rather than by adding a bypass.",
+      "new_dependencies": [],
+      "tenant_tables": [
+        "none: no database is touched. Harness tooling, two generated configuration files and documentation."
+      ],
+      "buyer_pii": "none. No buyer field is read, written or passed. The hook payloads carry file paths, a prompt, a compaction trigger and an agent's last message; the secrets check that refuses an environment value in a record is what guards the pack these hooks print.",
+      "policy_gate_action": null
+    },
+    "decisions": [
+      {
+        "key": "solution_complete",
+        "question": "solution_complete",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.65,
+          "no": 0.35
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "key": "touches_billing_or_policy_gate",
+        "question": "touches_billing_or_policy_gate",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.24,
+          "no": 0.76
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

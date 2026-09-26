@@ -1,0 +1,41 @@
+{
+  "sequence": 56,
+  "ticket": "SEEN-106",
+  "timestamp": "2026-09-26T13:42:13.227110+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 6,
+  "actor": "claude:reviewer",
+  "session": "90d87d9d4058",
+  "head": "b29b5282215e49e4e1267e56cb50d6291a6d6bb7",
+  "prev_hash": "082593809973a0baeb0a64bb2abe3687f23cb0f44e99c0795ba8596b2e35567b",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 7,
+    "reason": "The fifth review returned verdict pass with two medium findings, F9 and F10, both overclaims in prose this ticket itself wrote: the Outcome's opening paragraph still said the fifth criterion blocked the ticket at review, and the workflow document's Permissions row still sent a reader to a criterion SEEN-106 no longer has. Both are fixed. The fix changed the tree, and a review that changed the tree is a review to throw away, so this returns to tdd rather than advancing on a fingerprint the reviewer never read: the regression is re-run against the corrected tree and the review round starts again. Recorded as rework because that is what it is.",
+    "findings": [
+      {
+        "id": "F9",
+        "severity": "medium",
+        "file": "docs/tickets/SEEN-106-enforce-the-harness-with-hooks-in-both.md:41",
+        "claim": "The Outcome section's opening summary is stale: it says the fifth criterion still blocks this ticket at review, contradicting the same section's later text and the Amendments section, both of which say the criterion moved to SEEN-110 and this ticket no longer claims it.",
+        "failure_scenario": "A reader, or a future gate-writing session, reads only the Outcome's first paragraph, sees 'the fifth needs a live Codex session and is the reason this ticket is still at review', and concludes SEEN-106 cannot be done until a Codex session runs against it, when all four of its remaining criteria are checked and proven and the Codex session is SEEN-110's. This is the overclaim-by-omission the reviewer was asked to rule out: the ticket did not consistently claim only what it proves.",
+        "status": "fixed",
+        "resolution": "The opening paragraph now says five attempts, all four criteria met, and that the fifth criterion is SEEN-110's by the amendment below so this ticket neither claims it nor waits on it. Fixed in the commit before regression check 57."
+      },
+      {
+        "id": "F10",
+        "severity": "medium",
+        "file": "docs/harness/workflow.md:68",
+        "claim": "The Permissions row still attributes the .agents/settings.json verification to SEEN-106's fifth criterion, a criterion the amendment removed from this ticket and moved unchanged to SEEN-110.",
+        "failure_scenario": "A reader follows the workflow document's own cross-reference into SEEN-106 to find what settles the .agents/settings.json question, finds no fifth criterion there at all because it was deleted from the ticket file, and has no path from that row to SEEN-110, where the criterion now lives as its second.",
+        "status": "fixed",
+        "resolution": "The row now reads 'which is SEEN-110's second criterion, moved there when SEEN-106 was split'. Fixed in the same commit."
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}

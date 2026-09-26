@@ -1,0 +1,247 @@
+{
+  "sequence": 8,
+  "ticket": "SEEN-106",
+  "timestamp": "2026-09-26T04:52:17.044325+00:00",
+  "harness_version": "2",
+  "kind": "route",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "90d87d9d4058",
+  "head": "eb48c6dd260ebf6f20dbc04f575dcacf890cea30",
+  "prev_hash": "56b82b8da562dbd7eaacd3ea6e1fae6c11b50c9eb7055247037b2e1719055e55",
+  "data": {
+    "solution": 7,
+    "shadow": true,
+    "strongest": "opus",
+    "tiers": [
+      "haiku",
+      "sonnet",
+      "opus"
+    ],
+    "rules": [],
+    "jev": {
+      "asked": true,
+      "model": "jev-1.13.0",
+      "reason": null,
+      "answers": [
+        {
+          "key": "implementation_model#1",
+          "question": "implementation_model",
+          "type": "score",
+          "options": [
+            "haiku",
+            "sonnet",
+            "opus"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "opus",
+          "probabilities": {
+            "haiku": 0.11,
+            "sonnet": 0.25,
+            "opus": 0.64
+          },
+          "confidence": 0.3,
+          "score": 1.54,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_effort#1",
+          "question": "implementation_effort",
+          "type": "score",
+          "options": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "high",
+          "probabilities": {
+            "low": 0.09,
+            "medium": 0.25,
+            "high": 0.66
+          },
+          "confidence": 0.35,
+          "score": 1.57,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_model#2",
+          "question": "implementation_model",
+          "type": "score",
+          "options": [
+            "haiku",
+            "sonnet",
+            "opus"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "sonnet",
+          "probabilities": {
+            "haiku": 0.06,
+            "sonnet": 0.66,
+            "opus": 0.28
+          },
+          "confidence": 0.49,
+          "score": 1.22,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_effort#2",
+          "question": "implementation_effort",
+          "type": "score",
+          "options": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "high",
+          "probabilities": {
+            "low": 0.02,
+            "medium": 0.46,
+            "high": 0.52
+          },
+          "confidence": 0.25,
+          "score": 1.5,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_model#3",
+          "question": "implementation_model",
+          "type": "score",
+          "options": [
+            "haiku",
+            "sonnet",
+            "opus"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "opus",
+          "probabilities": {
+            "haiku": 0.04,
+            "sonnet": 0.3,
+            "opus": 0.66
+          },
+          "confidence": 0.43,
+          "score": 1.62,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_effort#3",
+          "question": "implementation_effort",
+          "type": "score",
+          "options": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "high",
+          "probabilities": {
+            "low": 0.0,
+            "medium": 0.03,
+            "high": 0.97
+          },
+          "confidence": 0.95,
+          "score": 1.97,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        }
+      ]
+    },
+    "execution": [
+      {
+        "position": 1,
+        "name": "The one source and the two generated copies",
+        "points": 1,
+        "files": [
+          "harness/hooks.json",
+          "harness/hooks.py",
+          "harness/paths.py",
+          "harness/cli.py",
+          "harness/doctor.py",
+          "harness/triage.py",
+          "harness/tests/test_hooks.py",
+          ".gitignore",
+          ".claude/settings.json",
+          ".codex/hooks.json"
+        ],
+        "red": "sync into a temporary project holding the graphify entries, the permissions block and the repowise entries fails with ModuleNotFoundError on harness.hooks, and a hand edit to a generated harness command is not yet reported by doctor. Not an assertion about merged content: that failure would mean the module exists.",
+        "model": "opus",
+        "effort": "high",
+        "source": "jev",
+        "rule": null,
+        "reason": null,
+        "model_probability": 0.64,
+        "effort_probability": 0.66,
+        "model_passed": true,
+        "model_threshold": 0.5,
+        "implementer_task": "Work slice 1 of SEEN-106: The one source and the two generated copies.\n\nRun it on opus at high effort, because Jev chose it at 0.64.\nThe model is what reaches the work: in Claude Code as the per-invocation model on the seen-implementer agent, and in Codex as the model this instruction names when you spawn it. The effort is recorded, carried and reported rather than applied, on either assistant: the generated copies do not vary by slice, because a file whose content depended on the ticket in hand was wrong on a detached HEAD, after a replan and after the receipt. Neither is yours to change.\n\nPoints: 1.\nFiles: harness/hooks.json, harness/hooks.py, harness/paths.py, harness/cli.py, harness/doctor.py, harness/triage.py, harness/tests/test_hooks.py, .gitignore, .claude/settings.json, .codex/hooks.json\n\nIts RED must demonstrate: sync into a temporary project holding the graphify entries, the permissions block and the repowise entries fails with ModuleNotFoundError on harness.hooks, and a hand edit to a generated harness command is not yet reported by doctor. Not an assertion about merged content: that failure would mean the module exists.\n\nWrite the test first and record it with:\n  python3 harness/run.py check SEEN-106 --phase red --actor <tool>:implementer --model opus -- <command>\nThen write only what turns it green and record that the same way. The `--model opus` is not optional: a subagent inherits its parent's session id, so the log records the model of the session that spawned you and not yours, and without the declaration the tdd gate compares the wrong two names. Then stop: do not start the next slice and do not advance the stage."
+      },
+      {
+        "position": 2,
+        "name": "The edit guard",
+        "points": 1,
+        "files": [
+          "harness/guard.py",
+          "harness/cli.py",
+          "harness/tests/test_guard.py"
+        ],
+        "red": "guard on packages/core/src/detectors.ts with the journal at solution exits non-zero with no reason naming the stage, and the assertion is on the reason text rather than on the exit code, because argparse exits 2 on an unknown command and would otherwise make this RED indistinguishable from a pass.",
+        "model": "sonnet",
+        "effort": "high",
+        "source": "jev",
+        "rule": null,
+        "reason": null,
+        "model_probability": 0.66,
+        "effort_probability": 0.52,
+        "model_passed": true,
+        "model_threshold": 0.5,
+        "implementer_task": "Work slice 2 of SEEN-106: The edit guard.\n\nRun it on sonnet at high effort, because Jev chose it at 0.66.\nThe model is what reaches the work: in Claude Code as the per-invocation model on the seen-implementer agent, and in Codex as the model this instruction names when you spawn it. The effort is recorded, carried and reported rather than applied, on either assistant: the generated copies do not vary by slice, because a file whose content depended on the ticket in hand was wrong on a detached HEAD, after a replan and after the receipt. Neither is yours to change.\n\nPoints: 1.\nFiles: harness/guard.py, harness/cli.py, harness/tests/test_guard.py\n\nIts RED must demonstrate: guard on packages/core/src/detectors.ts with the journal at solution exits non-zero with no reason naming the stage, and the assertion is on the reason text rather than on the exit code, because argparse exits 2 on an unknown command and would otherwise make this RED indistinguishable from a pass.\n\nWrite the test first and record it with:\n  python3 harness/run.py check SEEN-106 --phase red --actor <tool>:implementer --model sonnet -- <command>\nThen write only what turns it green and record that the same way. The `--model sonnet` is not optional: a subagent inherits its parent's session id, so the log records the model of the session that spawned you and not yours, and without the declaration the tdd gate compares the wrong two names. Then stop: do not start the next slice and do not advance the stage."
+      },
+      {
+        "position": 3,
+        "name": "The injecting and validating hooks",
+        "points": 2,
+        "files": [
+          "harness/hooks.py",
+          "harness/cli.py",
+          "harness/doctor.py",
+          "harness/handoff.py",
+          "harness/tests/test_hooks.py",
+          "docs/harness/workflow.md",
+          "docs/harness/skill.md",
+          ".claude/skills/seen-harness/SKILL.md",
+          ".agents/skills/seen-harness/SKILL.md"
+        ],
+        "red": "hook session-start --client claude fed Claude Code's own SessionStart payload on stdin fails with ModuleNotFoundError rather than printing an envelope whose additionalContext carries the pack's first heading; the same for user-prompt-submit over budget, pre-compact with trigger auto, subagent-stop for seen-reviewer and stop.",
+        "model": "opus",
+        "effort": "high",
+        "source": "jev",
+        "rule": null,
+        "reason": null,
+        "model_probability": 0.66,
+        "effort_probability": 0.97,
+        "model_passed": true,
+        "model_threshold": 0.5,
+        "implementer_task": "Work slice 3 of SEEN-106: The injecting and validating hooks.\n\nRun it on opus at high effort, because Jev chose it at 0.66.\nThe model is what reaches the work: in Claude Code as the per-invocation model on the seen-implementer agent, and in Codex as the model this instruction names when you spawn it. The effort is recorded, carried and reported rather than applied, on either assistant: the generated copies do not vary by slice, because a file whose content depended on the ticket in hand was wrong on a detached HEAD, after a replan and after the receipt. Neither is yours to change.\n\nPoints: 2.\nFiles: harness/hooks.py, harness/cli.py, harness/doctor.py, harness/handoff.py, harness/tests/test_hooks.py, docs/harness/workflow.md, docs/harness/skill.md, .claude/skills/seen-harness/SKILL.md, .agents/skills/seen-harness/SKILL.md\n\nIts RED must demonstrate: hook session-start --client claude fed Claude Code's own SessionStart payload on stdin fails with ModuleNotFoundError rather than printing an envelope whose additionalContext carries the pack's first heading; the same for user-prompt-submit over budget, pre-compact with trigger auto, subagent-stop for seen-reviewer and stop.\n\nWrite the test first and record it with:\n  python3 harness/run.py check SEEN-106 --phase red --actor <tool>:implementer --model opus -- <command>\nThen write only what turns it green and record that the same way. The `--model opus` is not optional: a subagent inherits its parent's session id, so the log records the model of the session that spawned you and not yours, and without the declaration the tdd gate compares the wrong two names. Then stop: do not start the next slice and do not advance the stage."
+      }
+    ]
+  }
+}

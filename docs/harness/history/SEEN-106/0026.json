@@ -1,0 +1,22 @@
+{
+  "sequence": 26,
+  "ticket": "SEEN-106",
+  "timestamp": "2026-09-26T11:02:00.675447+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "90d87d9d4058",
+  "head": "3a8efe64cb12548a6f1518a6a6583f09625004de",
+  "prev_hash": "abdcd8d4868dc6c29661d77bdf1e99317dcc76556085f6784db3c05d68c92294",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "solution",
+    "to_attempt": 3,
+    "reason": "F5's remedy, used rather than noted. The review found two files changed outside the file list of the slice that changed them, harness/tests/helpers.py and harness/guard.py, and found a journal note standing in where the solution record itself named an amendment through a return to solution. This is that return. The amended plan names every file attempt 2 touches, including the four the fixes need that no slice named: harness/kpi.py for F3, harness/triage.py for F1, CLAUDE.md for F8 and the two already changed, so the guard the ticket built does not have to be worked around to fix the ticket.",
+    "findings": [],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}

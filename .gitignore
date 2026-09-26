@@ -44,11 +44,13 @@ coverage/
 .vscode/mcp.json
 .vscode/extensions.json
 .codex/*
-# Except the agent copies sync generates, from SEEN-105: they carry no
-# machine-local path, and committing them means a fresh clone has the two agents
-# before its first sync, the way the skill copies do. .codex/config.toml stays
-# out for the reason above.
+# Except the agent copies sync generates, from SEEN-105, and the hook copy it
+# generates from SEEN-106: they carry no machine-local path, their commands are
+# relative to the repository, and committing them means a fresh clone has the
+# agents and the hooks before its first sync, the way the skill copies do.
+# .codex/config.toml stays out for the reason above.
 !.codex/agents/
+!.codex/hooks.json
 # repowise's managed Codex entry point, from SEEN-102. It is CLAUDE.md with
 # Codex substituted for Claude Code throughout, which breaks a filename inside
 # a link and rewrites the branch rule to a prefix the harness refuses. Codex

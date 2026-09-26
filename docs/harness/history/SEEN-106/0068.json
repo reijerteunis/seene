@@ -1,0 +1,41 @@
+{
+  "sequence": 68,
+  "ticket": "SEEN-106",
+  "timestamp": "2026-09-26T14:46:29.112207+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 9,
+  "actor": "claude:reviewer",
+  "session": "90d87d9d4058",
+  "head": "8928e4fd86b51c7561269b6cb927d9ec0a03e4b6",
+  "prev_hash": "ec0f77d84f4543d19c2d95fc0e77e3c73e9eebe88f350a012b60b896bb4f5b9c",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 10,
+    "reason": "The eighth review returned on F13 and F14. F13 is the fifth instance of the stale-summary class and the first one no audit could have caught: the Outcome must be written before the review that decides whether another round is needed, so a count of rounds is a claim about the future and can only be right if that review passes. Fixed by removing the counts rather than correcting them, which is the reviewer's recommendation of shortening over patching. F14 is in an append-only record and cannot be repaired; it is recorded as standing, and the Outcome names it.",
+    "findings": [
+      {
+        "id": "F13",
+        "severity": "medium",
+        "file": "docs/tickets/SEEN-106-enforce-the-harness-with-hooks-in-both.md:41",
+        "claim": "The Outcome's opening paragraph and closing note said 'seven attempts and six returns... 59 records'. Those figures were exactly right when written, which the review verified by checking the tree at that commit, and were stale by the time the review read them: two further rounds had run, making it nine attempts and eight returns from 67 records.",
+        "failure_scenario": "SEEN-109's calibration, or a future reader, takes the figures at face value and undercounts this ticket's rework by two attempts, two returns and eight records. That is the failure scenario F11 stated for itself, true again of the sentence written to resolve F11.",
+        "status": "fixed",
+        "resolution": "Fixed by removal, on the reviewer's recommendation of shortening over patching, and its diagnosis is why: the harness requires the Outcome before the review that decides whether another round is needed, so a count of rounds is a claim about the future at the moment it is written and can only be right if that review passes. This ticket needed one more round four times running. No care fixes that, because the defect is in the shape of the claim. Both sentences now point at docs/harness/history/SEEN-106/ and assert no count. The reasoning in the Outcome stays, because unlike the counts it is not self-referential, and the section now records this diagnosis as the most useful thing the ticket produced."
+      },
+      {
+        "id": "F14",
+        "severity": "low",
+        "file": "docs/harness/history/SEEN-106/0066.json",
+        "claim": "The tdd advance record written to prove the F12 fix, which claims to cite record numbers rather than attempt ordinals, narrates this ticket's history in attempt ordinals and is off by one against the journal's own attempt field in exactly the way F12 flagged.",
+        "failure_scenario": "A reader following that record's prose rather than its attempt field maps 'the fourth attempt' to the split and lands on records 39 and 40, a handoff and a return with no solution stage, which is the wrong mapping F12 corrected in the ticket file and this record reintroduced.",
+        "status": "open",
+        "resolution": "Cannot be repaired: the journal is append-only and editing a record to hide the mistake it contains is the falsification ADR 0001 exists to prevent. It stands, and the Outcome names it, because a record proving a habit was broken while displaying the habit is accurate evidence about how hard the habit is to break. What is fixed forward is the tdd evidence of this attempt, which cites records and no ordinals."
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}

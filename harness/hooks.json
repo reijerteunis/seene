@@ -1,0 +1,79 @@
+{
+  "events": [
+    {
+      "event": "SessionStart",
+      "matcher": "startup|resume|clear",
+      "command": "hook session-start",
+      "timeout": 20,
+      "clients": ["claude", "codex"],
+      "why": [
+        "A session starts from the handoff pack rather than from the PRD.",
+        "SEEN-104 wrote the pack; this is what makes reading it the default",
+        "instead of an instruction a session can skip."
+      ]
+    },
+    {
+      "event": "UserPromptSubmit",
+      "matcher": null,
+      "command": "hook user-prompt-submit",
+      "timeout": 10,
+      "clients": ["claude", "codex"],
+      "why": [
+        "The budget is a cap only if the session hears about it before it spends",
+        "the next turn. A warning after the fact is a report."
+      ]
+    },
+    {
+      "event": "PreToolUse",
+      "matcher": "Edit|Write|MultiEdit|apply_patch",
+      "command": "hook pre-tool-use",
+      "timeout": 10,
+      "clients": ["claude", "codex"],
+      "why": [
+        "One matcher for both assistants: each matches on the tool names it has,",
+        "so the union names Edit, Write and MultiEdit on the Claude Code side and",
+        "apply_patch on the Codex side, with no per-client matcher to keep in step.",
+        "Ten seconds because this one runs in front of every edit."
+      ]
+    },
+    {
+      "event": "PreCompact",
+      "matcher": "manual|auto",
+      "command": "hook pre-compact",
+      "timeout": 30,
+      "clients": ["claude", "codex"],
+      "why": [
+        "Both, because both compact: codex-cli 0.156.1 carries a JSON Schema for",
+        "this event, so a Codex session that compacts can write its pack too, and",
+        "a session losing the pack is what this event exists to prevent. Both",
+        "triggers, because the automatic one is the one nobody chose and so the",
+        "one that loses the context."
+      ]
+    },
+    {
+      "event": "SubagentStop",
+      "matcher": null,
+      "command": "hook subagent-stop",
+      "timeout": 20,
+      "clients": ["claude", "codex"],
+      "why": [
+        "Both, for the reason PreCompact is: the same schemas name this event, so",
+        "a Codex reviewer is held to the findings rule as well. Which agent",
+        "stopped is read from the payload rather than from a matcher, because the",
+        "matcher on this event is not documented as matching an agent name."
+      ]
+    },
+    {
+      "event": "Stop",
+      "matcher": null,
+      "command": "hook stop",
+      "timeout": 30,
+      "clients": ["claude", "codex"],
+      "why": [
+        "The self-check at the end of a turn, quick rather than whole: the sections",
+        "that read the journal and the generated copies, and none that walks",
+        "the tree."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "sequence": 102,
+  "ticket": "SEEN-106",
+  "timestamp": "2026-09-26T18:51:01.134059+00:00",
+  "harness_version": "2",
+  "kind": "receipt",
+  "stage": "deliver",
+  "attempt": 16,
+  "actor": "claude:implementer",
+  "session": "90d87d9d4058",
+  "head": "3ba3bbc44332ccc27ae9f224f0c6bed2a1d3d168",
+  "prev_hash": "0021fa05e5bbbf776313b99fa08a4ffd891dc35e647e0c24450928c557083e95",
+  "data": {
+    "from_stage": "deliver",
+    "to_stage": "delivered",
+    "commit": "3ba3bbc44332ccc27ae9f224f0c6bed2a1d3d168",
+    "branch": "claude/SEEN-106-enforce-the-harness-with-hooks",
+    "remote": "origin",
+    "tree": "83f67f76da8a702ffc5923e2460433891acd64ba381de134ebf7d9ca98ec5d41",
+    "pull_request": "https://github.com/reijerteunis/seene/pull/26",
+    "limits": [
+      "Criterion 2 is proven by fixtures and not by the live hook, and the live hook cannot see every edit: the PreToolUse matcher covers Edit, Write, MultiEdit and apply_patch, so a write through a shell heredoc or sed is never judged. The sessions that built this ticket made most of their edits that way, so the guard judged almost none of them. The skill says which hole the hooks leave rather than claiming this ticket closes it, and a reader should not take passing fixtures for a standing wall.",
+      "Whether Codex loads a project-level .codex/hooks.json at all is unestablished, and no criterion here claims it. The codex-cli 0.156.1 binary's own per-event JSON Schemas settle the payload fields and the response envelope, twenty-three schemas across the twelve events it names, and settle nothing about hook discovery; codex doctor prints nothing about it. That observation is SEEN-110's first criterion. Both copies are generated and committed on the assumption the document makes, and if a live session shows another path the generated path moves and the move is recorded.",
+      "Claude Code's SubagentStop payload key for the agent name is unverified. _agent_that_stopped accepts agent_type, subagent_type and agent_name and stays silent when none is present, so on that side the hook may do nothing until a live session settles which key arrives. The Codex side is schema-verified.",
+      "The journal holds no slice boundary between the second and third slices of the first plan, because all three ran in one session, so kpi.slice_windows charges both to the second and the two-point third reads as having cost nothing. A boundary that did not happen cannot be written afterwards. The cause is fixed for every later ticket by the kpi change delivered here, and the sprint report's tokens-per-slice figure for this ticket is wrong in a knowable direction rather than silently.",
+      "The review is disclosed as self-review, not as an independent pass. Every round ran in a context that had written none of the code, but a Claude Code subagent inherits its parent's session id, so the gate refuses the subagent disclosure and the honest word is the weaker one. A genuinely independent pass over this work, by the other assistant, has not happened, and nothing here required one: changes_agent_action is false and the solution record answered touches_billing_or_policy_gate no.",
+      "The narrowing figures this ticket produced are measurements and not a verdict. Spot depth would have excluded between 57 and 63 per cent of the diff on a clean tree and nothing at all when the fingerprint check failed, which is a spread worth more to SEEN-109's window than any single figure, and both switches stay in shadow: every reviewer still read the whole diff and every slice still ran on the session's model rather than the routed one. Jev routed two fix slices to the cheapest tier, one of them below its own threshold, and shadow is why that did not take effect.",
+      "The two harness defects fixed here were found by review rather than by a test, and only one of them had a test that could have found it. The fingerprint hole existed because a partly generated file was treated as a generated one, and nothing in the harness would have refused it; the test that now proves it closed was written after the review named it. A reader should read that as evidence about what reviews catch that gates do not, rather than as a claim that the harness is now complete."
+    ],
+    "evidence": {
+      "remote": "origin",
+      "pull_request": "https://github.com/reijerteunis/seene/pull/26",
+      "limits": [
+        "Criterion 2 is proven by fixtures and not by the live hook, and the live hook cannot see every edit: the PreToolUse matcher covers Edit, Write, MultiEdit and apply_patch, so a write through a shell heredoc or sed is never judged. The sessions that built this ticket made most of their edits that way, so the guard judged almost none of them. The skill says which hole the hooks leave rather than claiming this ticket closes it, and a reader should not take passing fixtures for a standing wall.",
+        "Whether Codex loads a project-level .codex/hooks.json at all is unestablished, and no criterion here claims it. The codex-cli 0.156.1 binary's own per-event JSON Schemas settle the payload fields and the response envelope, twenty-three schemas across the twelve events it names, and settle nothing about hook discovery; codex doctor prints nothing about it. That observation is SEEN-110's first criterion. Both copies are generated and committed on the assumption the document makes, and if a live session shows another path the generated path moves and the move is recorded.",
+        "Claude Code's SubagentStop payload key for the agent name is unverified. _agent_that_stopped accepts agent_type, subagent_type and agent_name and stays silent when none is present, so on that side the hook may do nothing until a live session settles which key arrives. The Codex side is schema-verified.",
+        "The journal holds no slice boundary between the second and third slices of the first plan, because all three ran in one session, so kpi.slice_windows charges both to the second and the two-point third reads as having cost nothing. A boundary that did not happen cannot be written afterwards. The cause is fixed for every later ticket by the kpi change delivered here, and the sprint report's tokens-per-slice figure for this ticket is wrong in a knowable direction rather than silently.",
+        "The review is disclosed as self-review, not as an independent pass. Every round ran in a context that had written none of the code, but a Claude Code subagent inherits its parent's session id, so the gate refuses the subagent disclosure and the honest word is the weaker one. A genuinely independent pass over this work, by the other assistant, has not happened, and nothing here required one: changes_agent_action is false and the solution record answered touches_billing_or_policy_gate no.",
+        "The narrowing figures this ticket produced are measurements and not a verdict. Spot depth would have excluded between 57 and 63 per cent of the diff on a clean tree and nothing at all when the fingerprint check failed, which is a spread worth more to SEEN-109's window than any single figure, and both switches stay in shadow: every reviewer still read the whole diff and every slice still ran on the session's model rather than the routed one. Jev routed two fix slices to the cheapest tier, one of them below its own threshold, and shadow is why that did not take effect.",
+        "The two harness defects fixed here were found by review rather than by a test, and only one of them had a test that could have found it. The fingerprint hole existed because a partly generated file was treated as a generated one, and nothing in the harness would have refused it; the test that now proves it closed was written after the review named it. A reader should read that as evidence about what reviews catch that gates do not, rather than as a claim that the harness is now complete."
+      ]
+    },
+    "checks": [
+      {
+        "name": "Harness tests (Python 3.12)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Knowledge graph",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Monorepo (Node 24)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Secrets and supply chain",
+        "conclusion": "success",
+        "runs": 1
+      }
+    ],
+    "coverage": {
+      "package": "@seen/core",
+      "lines": 100.0,
+      "delta": 0.0
+    }
+  }
+}

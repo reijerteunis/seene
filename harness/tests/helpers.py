@@ -45,6 +45,10 @@ def make_project(ticket_id='SEEN-001', branch=None):
     (root / 'harness').mkdir()
     shutil.copytree(HARNESS / 'templates', root / 'harness' / 'templates')
     shutil.copyfile(HARNESS / 'thresholds.toml', root / 'harness' / 'thresholds.toml')
+    # The real hook source rather than a fixture: doctor compares the two copies
+    # against it, and a fixture of six events of its own would drift from the
+    # events this repository actually declares.
+    shutil.copyfile(HARNESS / 'hooks.json', root / 'harness' / 'hooks.json')
     # The same ignores the real project has, because a test project that ignores
     # less is a test project whose diff carries files the real one never sees:
     # SEEN-107's triage reads the working diff, and .env.local, which holds the
@@ -80,6 +84,11 @@ def make_project(ticket_id='SEEN-001', branch=None):
         source.parent.mkdir(parents=True, exist_ok=True)
         source.write_text(f'# {agent["name"]}\n\nStand-in body for the tests.\n')
     agents.sync(root)
+
+    # The hook copies, for the reason the agent copies are here: doctor checks
+    # them, so every project under test carries what sync would write.
+    from harness import hooks
+    hooks.sync(root)
 
     tickets = root / 'docs' / 'tickets'
     tickets.mkdir(parents=True)

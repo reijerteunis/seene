@@ -1,0 +1,32 @@
+{
+  "sequence": 90,
+  "ticket": "SEEN-106",
+  "timestamp": "2026-09-26T18:01:41.423467+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 14,
+  "actor": "claude:reviewer",
+  "session": "90d87d9d4058",
+  "head": "41c153820350a5096f8b215664654d52bc6c6ab8",
+  "prev_hash": "07bee5f8d45d68ad7c9a0de1e66d9ceaea76ce4e547c60b3e1f08f5b1ffa6022",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 15,
+    "reason": "The review returned on one medium finding and it is right: the Outcome attributed record 37's slice_files and fingerprint failures to record 47, which carries neither. Verified by opening both records before accepting. Corrected, and the citation audit now checks what each cited record contains rather than that it exists, and runs after every edit rather than once, which is how this one got in: it was introduced while fixing F16, after the audit had already passed.",
+    "findings": [
+      {
+        "id": "F19",
+        "severity": "medium",
+        "file": "docs/tickets/SEEN-106-enforce-the-harness-with-hooks-in-both.md:117",
+        "claim": "Reported as F1 by the review and renumbered, F1 being taken. The Outcome attributed two evidenced failures, slice_files naming five files and the fingerprint mismatch 77c51dfa2a32 against a8c161993dcf, to the triage at record 47. Both are record 37's. Record 47's slice_files names a different set and its fingerprint passes, and the same paragraph cites record 37 correctly two sentences later.",
+        "failure_scenario": "A reader, or SEEN-109's calibration, opens record 47 to verify the cited failures and finds neither: the file list does not match and the fingerprint is a pass. The citation cannot be verified against the journal it points at, which is the property ADR 0004 exists to guarantee.",
+        "status": "fixed",
+        "resolution": "Verified before accepting by opening both records: record 37 carries both failures verbatim and record 47 carries neither. Corrected to record 37. The cause is worth more than the fix: the wrong number was introduced while fixing F16, after the citation audit had already been run and passed, and the audit was never re-run. So the audit now checks what each cited record actually contains rather than that it exists, and it is run after every edit rather than once. Every citation in the file passes it."
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}

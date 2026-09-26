@@ -1,0 +1,32 @@
+{
+  "sequence": 85,
+  "ticket": "SEEN-106",
+  "timestamp": "2026-09-26T16:31:41.822522+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 13,
+  "actor": "claude:reviewer",
+  "session": "90d87d9d4058",
+  "head": "4a5eb359fc3bc7d2ce3e201706f7401795f912d7",
+  "prev_hash": "792b34cad02beb490cc091777d9156c5e5ab4a8a6c45191a9125ec0063598514",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 14,
+    "reason": "The review returned on F18 at high severity, and it is right. The ADR written to forbid counting a ticket's own review rounds shipped saying the findings were each found by a separate review round, and record 56 carries two of them, so seven findings came from six rounds. Verified before accepting. The clause is gone, and the ADR now records why no form-based check could have caught it: a distributive claim carries no number, so the only test is whether the review now beginning could falsify the sentence.",
+    "findings": [
+      {
+        "id": "F18",
+        "severity": "high",
+        "file": "docs/adr/0004-an-outcome-cannot-count-its-own-review-rounds.md:5",
+        "claim": "The ADR's case study said the findings of the class were 'each found by a separate review round'. Record 56 carries F9 and F10 together, so seven findings came from six rounds and the one-to-one claim is false. The document written to end the class shipped containing an instance of it.",
+        "failure_scenario": "A reader, or SEEN-109's calibration, takes the case study at face value, computes one round per finding, overstates the rounds and misreports which round found which pair. That is the failure scenario F16 stated for the ticket's own prose, reproduced in the artifact written to make it impossible.",
+        "status": "fixed",
+        "resolution": "Verified before accepting by listing the return records and their findings: 56 carries F9 and F10, then 60, 64, 68, 72 and 76 carry one each of the class, so seven findings across six rounds. The clause is gone; the case study now says the findings were found across successive rounds and asserts no mapping. The more useful half of the fix is what this exposed: a distributive claim carries no number, so it passed a check built for counts, ordinals, comparatives and superlatives. The ADR now says its own list of forms is not the test, that a sentence passing a search for banned words can still fail, and that the only test is whether the review now beginning could make the sentence false. It quotes its own defective draft as the example."
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}

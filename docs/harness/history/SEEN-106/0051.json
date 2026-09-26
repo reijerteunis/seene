@@ -1,0 +1,41 @@
+{
+  "sequence": 51,
+  "ticket": "SEEN-106",
+  "timestamp": "2026-09-26T13:24:47.847680+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 6,
+  "actor": "claude:implementer",
+  "session": "90d87d9d4058",
+  "head": "c36cbc5b1690b7fa6a30ef84eca959a13b8698c1",
+  "prev_hash": "3052cc1b4f3d6de36d0d6b0de0a56b29522ecdb33c230661fe63504d723c7eba",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "non-code",
+      "change_type": "policy",
+      "reason": "The fourth attempt is the split Ruud decided at record 43, and a scope decision recorded in documents has no executable behaviour to prove. The behaviour this ticket carries is proven earlier in this same journal and is not re-proved here: records 9 and 10, 15 and 16, 17 and 18 for attempt 1, records 29 and 30, 32 and 33 for the eight findings of attempt 2, carried through the tdd gate at advance 22 and advance 36. What this attempt changed is two ticket files, an Amendments section, two indexes, the Outcome corrected to claim only what is proven, and the solution record's changes list extended to cover every file the ticket changes rather than only the attempt in hand. A RED written for any of that would be a test of prose, and a RED written to satisfy a gate rather than to fail for a reason is the falsification the tdd stage exists to prevent. The fifth attempt adds one thing to the fourth: the changes list now names one path per entry, which is the form the template states and the only form the triage's check can read.",
+      "sources": [
+        "Record 37, the review triage: criterion_evidenced answered by jev-1.13.0 for all five criteria, 0.73, 0.68, 0.78 and 0.76 for the four that stay against a 0.6 bar, and 0.13 for the fifth. The split moved the one criterion the harness itself could see no evidence for.",
+        "Record 38, the triage's own return: a criterion with nothing behind it is answered by producing the evidence, not by a reviewer reading a diff that cannot contain it. No model read the diff, which is what SEEN-107 built the triage to avoid.",
+        "Record 20, the codex-cli 0.156.1 per-event JSON Schemas read out of the binary: twenty-three across the twelve events it names. They settle the payload fields and the response envelope and do not settle whether Codex loads a project-level .codex/hooks.json, which is why that question is SEEN-110's and not answerable here.",
+        "Record 42, the two readings of this attempt's solution record at 0.54 and 0.55 against 0.6, and the two options put to Ruud before either was taken.",
+        "Record 43, Ruud's decision, and the Amendments section in the ticket file that records it where a reader of the ticket rather than of the journal will meet it.",
+        "Record 50, the regression: 1059 tests, exit 0, with the tree fingerprint identical before and after the run and taken after the Outcome and the split were both committed. Recorded as the last action of the attempt, which is the ordering the second triage's fingerprint rule found broken at check 34.",
+        "Record 48, the return from review with no findings: the third triage's slice_files check read four changes entries that each named two or three paths, and solution_paths reads one path per entry as the text before the first colon. The check was right and the record was wrong; the corrected list was verified against solution_paths, slice_exempt_paths and the real diff before the gate was asked, rather than by eye."
+      ],
+      "checks": [
+        50
+      ]
+    },
+    "decisions": [],
+    "figures": {
+      "session": "90d87d9d4058",
+      "output_tokens": 281154,
+      "tool_calls": 151,
+      "unavailable": null
+    }
+  }
+}

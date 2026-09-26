@@ -1,0 +1,32 @@
+{
+  "sequence": 10,
+  "ticket": "SEEN-106",
+  "timestamp": "2026-09-26T05:05:14.258091+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "90d87d9d4058",
+  "head": "8635c3367e74bbfa430e685b0cefbcd64adfb555",
+  "prev_hash": "d9b9ad25ec7553a2cd0e3946d53cb75bec33b4236f9257fa583091062c400756",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_hooks",
+      "-v"
+    ],
+    "phase": "green",
+    "exit_code": 0,
+    "model": "claude-opus-5",
+    "model_declared": "opus",
+    "duration_ms": 3510,
+    "output": "test_doctor_is_quiet_immediately_after_sync (harness.tests.test_hooks.HookSyncTest.test_doctor_is_quiet_immediately_after_sync) ... ok\ntest_doctor_repairs_nothing (harness.tests.test_hooks.HookSyncTest.test_doctor_repairs_nothing) ... ok\ntest_doctor_reports_a_copy_that_is_not_valid_json_rather_than_raising (harness.tests.test_hooks.HookSyncTest.test_doctor_reports_a_copy_that_is_not_valid_json_rather_than_raising) ... ok\ntest_doctor_reports_a_harness_command_edited_by_hand (harness.tests.test_hooks.HookSyncTest.test_doctor_reports_a_harness_command_edited_by_hand)\nThe silent pass this check exists for. ... ok\ntest_doctor_reports_a_harness_command_whose_client_was_changed (harness.tests.test_hooks.HookSyncTest.test_doctor_reports_a_harness_command_whose_client_was_changed)\nThe other half: still ours by its prefix, and no longer what the ... ok\ntest_doctor_reports_a_harness_entry_the_source_does_not_name (harness.tests.test_hooks.HookSyncTest.test_doctor_reports_a_harness_entry_the_source_does_not_name)\nThe strays case, one layer in: an entry that claims the harness's name ... ok\ntest_doctor_reports_a_missing_copy (harness.tests.test_hooks.HookSyncTest.test_doctor_reports_a_missing_copy) ... ok\ntest_doctor_says_nothing_about_a_foreign_entry_added_by_hand (harness.tests.test_hooks.HookSyncTest.test_doctor_says_nothing_about_a_foreign_entry_added_by_hand)\ngraphify and repowise ship hooks on their own release cycle. A drift ... ok\ntest_every_event_reaches_the_clients_that_take_it_and_no_other (harness.tests.test_hooks.HookSyncTest.test_every_event_reaches_the_clients_that_take_it_and_no_other) ... ok\ntest_every_generated_command_begins_with_the_harness_invocation (harness.tests.test_hooks.HookSyncTest.test_every_generated_command_begins_with_the_harness_invocation)\nOwnership is the command prefix, so a command written any other way is ... ok\ntest_every_generated_entry_carries_a_command_type_and_a_timeout (harness.tests.test_hooks.HookSyncTest.test_every_generated_entry_carries_a_command_type_and_a_timeout) ... ok\ntest_sync_leaves_a_foreign_entry_added_by_hand_alone (harness.tests.test_hooks.HookSyncTest.test_sync_leaves_a_foreign_entry_added_by_hand_alone) ... ok\ntest_sync_leaves_the_graphify_hooks_in_place (harness.tests.test_hooks.HookSyncTest.test_sync_leaves_the_graphify_hooks_in_place) ... ok\ntest_sync_leaves_the_permissions_block_exactly_as_it_found_it (harness.tests.test_hooks.HookSyncTest.test_sync_leaves_the_permissions_block_exactly_as_it_found_it)\nThe permissions are the person's. A sync that rewrote them would make ... ok\ntest_sync_leaves_the_repowise_entries_in_place_including_a_shared_event (harness.tests.test_hooks.HookSyncTest.test_sync_leaves_the_repowise_entries_in_place_including_a_shared_event) ... ok\ntest_sync_refuses_a_source_that_names_no_command (harness.tests.test_hooks.HookSyncTest.test_sync_refuses_a_source_that_names_no_command) ... ok\ntest_sync_writes_both_copies_and_says_so (harness.tests.test_hooks.HookSyncTest.test_sync_writes_both_copies_and_says_so) ... ok\ntest_syncing_twice_changes_nothing (harness.tests.test_hooks.HookSyncTest.test_syncing_twice_changes_nothing)\nA merge that appended rather than replaced would double every entry. ... ok\ntest_the_codex_copy_takes_no_event_codex_does_not_document (harness.tests.test_hooks.HookSyncTest.test_the_codex_copy_takes_no_event_codex_does_not_document)\nThe `clients` key carries weight or it carries nothing. ... ok\ntest_the_source_names_the_six_events_the_ticket_describes (harness.tests.test_hooks.HookSyncTest.test_the_source_names_the_six_events_the_ticket_describes) ... ok\ntest_the_two_copies_count_as_generated_for_the_review_triage (harness.tests.test_hooks.HookSyncTest.test_the_two_copies_count_as_generated_for_the_review_triage)\nA review that read a generated file as an unplanned change would force ... ok\n\n----------------------------------------------------------------------\nRan 21 tests in 3.415s\n\nOK\n",
+    "output_sha256": "ff5d6727b82dacdf1e2a57ce1d3dd544597630167d12ffe6fa620af108a2182d",
+    "output_truncated": false,
+    "before": "a9468f594af91b33f4f6ca003f429a23d41a2d86b101c6bf77ad6a2653fb6415",
+    "after": "a9468f594af91b33f4f6ca003f429a23d41a2d86b101c6bf77ad6a2653fb6415"
+  }
+}

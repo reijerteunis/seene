@@ -1,0 +1,41 @@
+{
+  "sequence": 72,
+  "ticket": "SEEN-106",
+  "timestamp": "2026-09-26T15:08:29.375881+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 10,
+  "actor": "claude:reviewer",
+  "session": "90d87d9d4058",
+  "head": "7cd5cac81b3cbea0e298dc26dda20cde6b10e1ab",
+  "prev_hash": "3f86b235363bd73d3b44e11428a1a8ce732e70c8b79359573ef6e833e10cc847",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 11,
+    "reason": "The review returned on F15 and F16. F16 is real and fixed: F9 and F10 came from one review, so this ticket's account of the class miscounted the reviews, and the fix applies F13's diagnosis where it belonged the first time, removing every count and ordinal of the ticket's own rounds rather than the counts of attempts alone. F15 is rejected on evidence: record 70 contains neither phrase the finding quotes, both are in record 66, which F14 already covers, and the quotation joined two records and attributed them to one. It is recorded rather than dropped because a rejected finding is evidence about the review.",
+    "findings": [
+      {
+        "id": "F16",
+        "severity": "medium",
+        "file": "docs/tickets/SEEN-106-enforce-the-harness-with-hooks-in-both.md:135",
+        "claim": "The paragraph narrating the stale-summary class said 'Three separate reviews found a stale count or a stale cross-reference', when the return records show F9 and F10 came from one review at record 56 and F11 from the next at record 60: two reviews, three findings. The off-by-one then propagated to 'A fourth review' and 'A fifth review' below it.",
+        "failure_scenario": "A reader, or SEEN-109's calibration reading this ticket's own account of how many rounds the class took to close, undercounts the reviews by one and misattributes which review found which instance, which is the failure scenario F12 stated for its own instance.",
+        "status": "fixed",
+        "resolution": "Verified against the return records before accepting: records 56, 60, 64 and 68 carry F9 and F10, F11, F12, and F13 with F14, so the finding is right. Fixed by applying F13's diagnosis where it should have been applied the first time. That removal took out the counts of attempts, returns and records and left this paragraph counting reviews, which is the same claim about the same future wearing a different noun. Every count and ordinal of this ticket's own rounds is now gone from the file, verified by a regex over the whole text, and the paragraph names the findings by id instead. The two sentences the reviewer flagged as consequences now read 'a later review' rather than an ordinal."
+      },
+      {
+        "id": "F15",
+        "severity": "medium",
+        "file": "docs/harness/history/SEEN-106/0070.json",
+        "claim": "Reported as a finding that record 70's tdd evidence cites 'the fourth attempt' for the split and 'the eight findings of attempt 2' while claiming to cite no ordinals. Rejected: record 70 contains neither phrase.",
+        "failure_scenario": "None, because the premise is false. Record 70's reason field reads in full 'records 9 and 10, 15 and 16, 17 and 18 for the three slices of the first plan, records 29 and 30, 32 and 33 for the eight findings the review at record 24 returned', with no attempt ordinal anywhere in it. Both quoted phrases are in record 66, which is finding F14 and is already recorded as standing. The elisions in the quotation joined text from two records and attributed it to one.",
+        "status": "rejected",
+        "resolution": "Checked by reading record 70's reason field verbatim and testing both phrases against records 66 and 70: 'The fourth attempt is the split' and 'eight findings of attempt 2' are present in 66 and absent from 70. The finding is a conflation of the record that has the defect with the record that does not, and F14 already covers the one that does. Recorded rather than silently dropped, because a rejected finding is evidence about the review and the calibration window reads returning rounds."
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}

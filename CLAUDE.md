@@ -35,9 +35,14 @@ runs gitleaks on staged changes, and `doctor` refuses until it is set.
 
 Harness commands: `python3 harness/run.py doctor | start | status | history | draft | note | check |
 coverage | advance | graph | decide | return | reopen | verify-delivery | verify-merge | report |
-lint | sync | discard | list`. Every writing command refuses unless the branch is
+guard | hook | lint | sync | discard | list`. Every writing command refuses unless the branch is
 `claude/<ticket-id>-…` or `codex/<ticket-id>-…`. The skill both assistants read is generated from
 `docs/harness/skill.md` by `sync`, and `doctor` refuses when a copy has been edited by hand.
+`guard <path>` answers whether an edit is allowed before it is made, which is worth asking rather
+than finding out at the review: it exits 2 with the reason on stderr for code edits at clarify or
+solution, edits from a branch that is not the ticket's, and edits outside the files the accepted
+slice names. `hook <event> --client <claude|codex>` is the dispatcher the generated hook entries
+call; it is not a command to run by hand.
 
 ## Index of docs/
 
@@ -49,9 +54,9 @@ lint | sync | discard | list`. Every writing command refuses unless the branch i
 | [docs/harness/workflow.md](docs/harness/workflow.md) | The development harness as built: why, principles, the five stages and their stage gates, graphify, CodeGraph and Repowise with one role each, the context per session (slices, handoff packs, subagents, hooks), how the harness meets Claude Code and Codex, Jev AI, CI, the eleven KPIs, security controls, commands, repository layout, what the building settled, the harness tickets |
 | [docs/tickets/README.md](docs/tickets/README.md) | Ticket index by sprint with points, executors, status and dependencies, plus the epic table |
 | [CONTEXT.md](CONTEXT.md) | Glossary: the harness terms, the product terms they collide with, and the resolution of the three meanings of gate |
-| [docs/adr/](docs/adr/) | Architecture decision records: journal integrity, the delivery receipt, the SEEN-086 bootstrap exemption |
+| [docs/adr/](docs/adr/) | Architecture decision records: journal integrity, the delivery receipt, the SEEN-086 bootstrap exemption, why an Outcome cannot count its own review rounds |
 
-### Tickets (109, 353 build points)
+### Tickets (110, 353 build points)
 
 | Ticket | Title | Epic | Size |
 |---|---|---|---|
@@ -86,6 +91,7 @@ lint | sync | discard | list`. Every writing command refuses unless the branch i
 | [SEEN-107](docs/tickets/SEEN-107-let-jev-settle-what-the-review-can-settle.md) | Let Jev settle what the review can settle before a model reads the diff | E10 | 3 pt |
 | [SEEN-108](docs/tickets/SEEN-108-route-each-slice-to-a-model-and-an-effort-at.md) | Route each slice to a model and an effort at solution, by rule first and by Jev second | E10 | 2 pt |
 | [SEEN-109](docs/tickets/SEEN-109-calibrate-the-review-triage-and-the-routes-on.md) | Calibrate the review triage and the routes on ten tickets before either saves a token | E10 | 2 pt |
+| [SEEN-110](docs/tickets/SEEN-110-verify-the-hooks-in-a-codex-session-and-close.md) | Verify the hooks in a Codex session and close what SEEN-106 declined | E10 | human |
 | [SEEN-008](docs/tickets/SEEN-008-create-trade-record-schema-v1-with-tenant-id.md) | Create trade-record schema v1 with tenant_id and RLS on every table | E0 | 5 pt |
 | [SEEN-009](docs/tickets/SEEN-009-define-connector-interface-capability-matrix.md) | Define connector interface, capability matrix and credential access | E1 | 5 pt |
 | [SEEN-010](docs/tickets/SEEN-010-add-per-marketplace-rate-limiting-with-header.md) | Add per-marketplace rate limiting with header-driven backoff | E1 | 3 pt |

@@ -215,6 +215,22 @@ def _section(lines, title, entries, maximum, remaining):
     return remaining - spent
 
 
+def hands_over_nothing(built):
+    """Why an automatically written pack would hand nothing over, or nothing.
+
+    One case, and it is an absence rather than a fault: before the solution
+    record has advanced there is no accepted slice plan, so there is no slice for
+    a pack to hand over. PreCompact reads this and writes neither the file nor a
+    record, because a pack that says no plan exists is not context worth keeping
+    across a compaction, and a ticket compacting at clarify is not a ticket
+    anything went wrong in.
+    """
+    if built['slice'] is None:
+        return ('No accepted slice plan yet, so there is no slice for a pack to hand over; the '
+                'plan is written at the solution stage')
+    return None
+
+
 def pack(records, state, thresholds, branch=None, next_command='', slice_done=None):
     """The markdown a fresh session starts from, and what it cost to say it."""
     limit = thresholds['session']['handoff_token_limit']

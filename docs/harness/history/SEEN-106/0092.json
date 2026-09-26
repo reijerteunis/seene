@@ -1,0 +1,45 @@
+{
+  "sequence": 92,
+  "ticket": "SEEN-106",
+  "timestamp": "2026-09-26T18:06:24.776113+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 15,
+  "actor": "claude:implementer",
+  "session": "90d87d9d4058",
+  "head": "41c153820350a5096f8b215664654d52bc6c6ab8",
+  "prev_hash": "9ecb55909df03aa0f2addf9440d1082d00df73fe23a2e6d5ba8030d592f7382d",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "non-code",
+      "change_type": "policy",
+      "reason": "No executable behaviour is added or changed. The hooks, the guard and the dispatcher are proven earlier in this journal and are not re-proved here: records 9 and 10, 15 and 16, 17 and 18 for the three slices of the first plan, records 29 and 30, 32 and 33 for the findings F1 to F8 that the review at record 24 returned, carried through the tdd gate at advance 22 and advance 36. Every round after record 40 has changed ticket files, indexes, documentation and this journal and no Python at all. This round removes the last of the falsifiable surface rather than another instance of the defect on it. F18 was found in the ADR written to forbid the class, and its useful half is that no form-based check could have caught it. On Ruud's instruction the ADR is cut to the principle: it names no ticket, no finding and no round, gives the one test that works, and says that a search for forms is a convenience rather than the test. The ticket's Outcome keeps the pointer and no enumeration.",
+      "sources": [
+        "Record 76, the return carrying F17 at high severity, verified before acceptance by counting return records across the epic: SEEN-108 thirteen, SEEN-106 ten, SEEN-107 ten, so the superlative was false.",
+        "Records 24, 56, 60, 64, 68, 72 and 76, the returning rounds and their findings: F1 to F8, F9 with F10, F11, F12, F13 with F14, F16 with F15 rejected, and F17.",
+        "Record 37, whose criterion_evidenced answers were 0.73, 0.68, 0.78 and 0.76 for the four criteria that stay and 0.13 for the one that moved, against a 0.6 bar.",
+        "Record 20, the codex-cli 0.156.1 per-event JSON Schemas read out of the binary: twenty-three across the twelve events it names.",
+        "docs/adr/0004-an-outcome-cannot-count-its-own-review-rounds.md, new in this round, and the CLAUDE.md docs index row that points at it.",
+        "Record 81, the return that named docs/adr/0004 in the solution record's changes list, and record 82, the amended record. The journal sits outside the fingerprint, so regression check 78 still describes this tree and the check it cites is unchanged.",
+        "Record 85, the return carrying F18: the ADR forbidding a count of a ticket's own review rounds shipped saying the findings were each found by a separate review round, and record 56 carries two of them. Verified against the return records before accepting.",
+        "Ruud's instruction to cut the ADR's case study to the principle. The ADR now names no ticket, no finding and no round, and says why its own list of grammatical forms cannot be the test: a distributive claim carries no number and passes any search built for counts, ordinals, comparatives and superlatives. The ticket's pointer paragraph lost its list of findings for the same reason, an enumeration of instances being falsifiable by one more instance; it had already omitted F18.",
+        "Record 91, the regression against the corrected tree: 1059 tests, exit 0, fingerprint identical before and after.",
+        "Record 90, the return carrying F19: a citation in the Outcome pointed at record 47 for failures that are record 37's. Verified by opening both records before accepting. The cause was an audit treated as a one-time event: the wrong number went in while fixing F16, after the audit had already passed, and it was never re-run.",
+        "The citation audit as it now stands, run over the whole ticket file after this edit: every cited record is checked for what it actually contains rather than that it exists. Record 37 for the five-file slice_files list and the 77c51dfa2a32 against a8c161993dcf pair, record 34 as a regression, record 20 as the codex schema note, record 44 as the solution advance carrying the changes list, record 66 for the ordinals it is cited for. All pass."
+      ],
+      "checks": [
+        91
+      ]
+    },
+    "decisions": [],
+    "figures": {
+      "session": "90d87d9d4058",
+      "output_tokens": 549890,
+      "tool_calls": 248,
+      "unavailable": null
+    }
+  }
+}
