@@ -1,0 +1,97 @@
+{
+  "ticket": "SEEN-109",
+  "delivered_at": "2026-09-26T03:54:36.943225+00:00",
+  "points": null,
+  "cycle_time_seconds": 28863,
+  "stage_seconds": {
+    "clarify": 214,
+    "solution": 100,
+    "tdd": 7281,
+    "review": 9140,
+    "deliver": 12125
+  },
+  "attempts": 9,
+  "rework": 8,
+  "red_before_green": true,
+  "coverage": {
+    "package": "@seen/core",
+    "lines": 100.0,
+    "delta": 0.0
+  },
+  "findings": {
+    "by_severity": {
+      "high": 2,
+      "medium": 10,
+      "low": 14
+    },
+    "fixed": 26,
+    "waived": 0
+  },
+  "first_pass_ci": true,
+  "tokens": null,
+  "cost": null,
+  "escaped_defects": [],
+  "slices": {
+    "planned": 2,
+    "proven": 10
+  },
+  "sessions": 1,
+  "subagents": {
+    "briefs": 0,
+    "agents": [],
+    "review": "self-review",
+    "both": false
+  },
+  "review_triage": {
+    "record": 94,
+    "depth": "full",
+    "model_depth": "full",
+    "shadow": true,
+    "asked": true,
+    "rules": [
+      "fingerprint did not pass, so the reviewer reads everything: The tree changed after check 88: it ran against 25eadba73357 and this triage reads 3a53e3fe5f8d. The tests that passed are not the tests for this tree",
+      "slice_files did not pass, so the reviewer reads everything: Changed but named by no slice and no changes entry: CLAUDE.md, harness/delivery.py, harness/doctor.py, harness/kpi.py, harness/tests/test_context_budget.py, harness/tests/test_delivery.py, harness/tests/test_triage.py"
+    ],
+    "files": 23,
+    "focus": 23,
+    "excluded": 0,
+    "excluded_share": 0.0,
+    "reviewer_output_tokens": null,
+    "reviewer_tokens": null
+  },
+  "execution": [
+    {
+      "position": 1,
+      "name": "The rule and the evidence it will be read from",
+      "points": 1,
+      "model": "opus",
+      "effort": "high",
+      "source": "jev",
+      "rule": null,
+      "ran_on": "claude-opus-5",
+      "ran_on_tier": "opus",
+      "output_tokens": 121398,
+      "cost_cents": 910,
+      "routed_cost_cents": 910,
+      "cost_basis": "output tokens only, at the price of the model the slice ran on: a handoff record carries the session's output tokens and tool calls and nothing about input. routed_cost_cents prices the same tokens at the model the route chose, which in shadow is a counterfactual and not a cost"
+    },
+    {
+      "position": 2,
+      "name": "The report and the automatic return to shadow",
+      "points": 1,
+      "model": "sonnet",
+      "effort": "high",
+      "source": "jev",
+      "rule": null,
+      "ran_on": "claude-opus-5",
+      "ran_on_tier": "opus",
+      "output_tokens": 42520,
+      "cost_cents": 319,
+      "routed_cost_cents": 64,
+      "cost_basis": "output tokens only, at the price of the model the slice ran on: a handoff record carries the session's output tokens and tool calls and nothing about input. routed_cost_cents prices the same tokens at the model the route chose, which in shadow is a counterfactual and not a cost"
+    }
+  ],
+  "output_tokens_per_slice": null,
+  "harness_version": "2",
+  "note": null
+}

@@ -1,0 +1,26 @@
+{
+  "sequence": 3,
+  "ticket": "SEEN-109",
+  "timestamp": "2026-09-25T19:56:03.054003+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "343d37550220",
+  "head": "a8e3b9f03dcf715e9363a92129f809965eb324b3",
+  "prev_hash": "138b6372901f6db1c06c1c42031be08c6afdb93302fa75b0af39b7e428c7619e",
+  "data": {
+    "source": "repowise",
+    "mode": "why",
+    "command": [
+      "repowise",
+      "why",
+      "triage_shadow and routing shadow in harness/thresholds.toml"
+    ],
+    "exit_code": 0,
+    "duration_ms": 395,
+    "answer": "Nothing recorded for that query.\n",
+    "answer_truncated": false
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "sequence": 81,
+  "ticket": "SEEN-109",
+  "timestamp": "2026-09-25T23:38:47.517696+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 8,
+  "actor": "claude:implementer",
+  "session": "343d37550220",
+  "head": "a31c5988b4034898497462776b491ce6bb32556b",
+  "prev_hash": "123895a9a42dba236e644f4a0218de92a5a8e45b279735e8571de9503ce1890b",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": null,
+          "behaviour": "Delivery accepts a tree that moved only in the ticket's frontmatter status, its status row and its criteria boxes, read against the commit the review advance was written at, and records it in the receipt as ticket_marked_after_review; the review gate stores the reviewed tree without the ticket file so the comparison can be made; prose added to the ticket after the review and a new file are both still refused.",
+          "failure_reason": "HarnessError: The project changed after review; return the ticket to the stage that owns it, raised on a walk whose only change after the review was the ticket being marked reviewed; and KeyError: ticket_marked_after_review on the receipt that did not carry it",
+          "red": 77,
+          "green": 78
+        }
+      ],
+      "regression": 79,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "343d37550220",
+      "output_tokens": 458730,
+      "tool_calls": 283,
+      "unavailable": null
+    }
+  }
+}

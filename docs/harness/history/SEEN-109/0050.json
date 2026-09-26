@@ -1,0 +1,33 @@
+{
+  "sequence": 50,
+  "ticket": "SEEN-109",
+  "timestamp": "2026-09-25T22:01:18.616411+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 5,
+  "actor": "claude:implementer",
+  "session": "343d37550220",
+  "head": "f7a3f1c78e6de96e56a77465a0c18c76dffaafbd",
+  "prev_hash": "87567587d3e411d0c658682397f1e276edcd3a6b66e3b953836994df3634e9f6",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "harness/tests"
+    ],
+    "phase": "regression",
+    "exit_code": 1,
+    "model": "claude-opus-5",
+    "model_declared": "opus",
+    "duration_ms": 233961,
+    "output": ".....................F...............................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................\n======================================================================\nFAIL: test_no_test_class_is_defined_after_the_guard (test_agents.GuardIsLastTest.test_no_test_class_is_defined_after_the_guard)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_agents.py\", line 436, in test_no_test_class_is_defined_after_the_guard\n    self.assertEqual(stragglers, {})\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^\nAssertionError: {'test_calibration.py': ['class FourthReviewTest(ProjectTest):']} != {}\n- {'test_calibration.py': ['class FourthReviewTest(ProjectTest):']}\n+ {}\n\n----------------------------------------------------------------------\nRan 949 tests in 233.888s\n\nFAILED (failures=1)\n",
+    "output_sha256": "7164bf02b75efbf7d9b48a5fdfecc449aea172ec762b13160bc326619e4d22a9",
+    "output_truncated": false,
+    "before": "1a67229d14e30ff01e6bbf28cb79029cf9d15c687c362b5799b18c48423a3345",
+    "after": "90fba10db32c707f4e94207012540a6d557d06d73fcc00bb13d8f6fc1299727f"
+  }
+}

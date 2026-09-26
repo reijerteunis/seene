@@ -1,0 +1,48 @@
+{
+  "sequence": 9,
+  "ticket": "SEEN-109",
+  "timestamp": "2026-09-25T20:08:41.161855+00:00",
+  "harness_version": "2",
+  "kind": "handoff",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "343d37550220",
+  "head": "ea499b1a7325eec9d0378f6d0f3741e46f70d897",
+  "prev_hash": "127c6ee686e46016a1641d063603e66da984eab775ff9922f7d7c85a63d81896",
+  "data": {
+    "pack": ".harness-drafts/SEEN-109-handoff.md",
+    "sha256": "93c86dfb9eb1631b5cb65e1a30351c96413fc98666921bbbf17966a4c50fb8d6",
+    "estimated_tokens": 930,
+    "token_limit": 2000,
+    "slice": {
+      "position": 2,
+      "total": 2,
+      "done": 1,
+      "declared": false,
+      "inferred": 1,
+      "entry": {
+        "name": "The report and the automatic return to shadow",
+        "points": 1,
+        "files": [
+          "harness/report.py",
+          "harness/cli.py",
+          "harness/triage.py",
+          "harness/tests/test_calibration.py",
+          "docs/harness/workflow.md",
+          "docs/harness/skill.md",
+          "harness/agents/seen-reviewer.md",
+          "docs/harness/reports/calibration.md",
+          "docs/harness/reports/calibration.json"
+        ],
+        "red": "test_calibration asserts harness report --calibration writes the report and states the verdict, and that a triage runs in shadow while an escape sits in the window with the threshold set false. Both must fail: the flag is unknown and triage reads the threshold directly."
+      }
+    },
+    "figures": {
+      "session": "343d37550220",
+      "output_tokens": 121398,
+      "tool_calls": 70,
+      "unavailable": null
+    }
+  }
+}

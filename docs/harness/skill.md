@@ -26,9 +26,14 @@ the work is merged, when a defect is found after delivery. Both are recorded wit
 Anywhere else it is an untracked file in the tree, so submitting it changes the fingerprint review
 attested and delivery refuses the ticket for a change the harness itself caused.
 
-**Write the ticket's `## Outcome` before leaving review.** The reviewed-tree fingerprint covers the
-ticket file, so an outcome added afterwards makes `verify-delivery` refuse. Only the receipt hash
-cannot be written earlier, and it belongs in the pull request body.
+**Write the ticket's `## Outcome` before leaving review, and its status and criteria boxes with it.**
+The reviewed-tree fingerprint covers the whole ticket file, so anything added afterwards makes
+`verify-delivery` refuse: the outcome, the frontmatter `status`, the status row and the ticks. That
+means writing `status: review` and ticking the boxes before the gate that decides whether the review
+passes, which reads oddly and is the order the receipt's meaning requires; a review that returns the
+ticket sets them back. SEEN-109 tried to make delivery accept those three fields afterwards and
+withdrew it at record 84: one review found two ways through the exception. The receipt hash is the
+one thing that cannot be written earlier at all, and it belongs in the pull request body.
 
 **Name what only the work can settle.** A clarify record that leaves out an unknown reads as if there
 were none. Write it in `decisions`, as the decision to proceed with the observation that will settle
@@ -143,6 +148,29 @@ and refuses, before any model reads the diff. The review record's `read` list is
 what the reviewer actually read, and the gate refuses one that does not cover the
 focus set; reading more than the focus set is never refused.
 
+**Neither the narrowing nor a cheaper model takes effect on a guess.** `[calibration]`
+in thresholds.toml carries the window of ten tickets, what an escape is and both
+go-live rules, written before the first number existed. In shadow the reviewer still
+reads everything and every slice still runs on the session's model, while what the
+narrowing and the route would have done is recorded. `harness report --calibration`
+states go-live or stay-shadow for each, by the rule; going live is the founder's, and
+for the triage it is two lines in thresholds.toml, the switch and the record its
+decision is in. The return to shadow needs nobody: an escape in the window returns the triage to
+shadow, and so does evidence in the window that nobody can place, so a triage record
+says which shadow it is in and what put it there. A window that is not full yet is a
+reason for the report to conclude nothing, never a reason to override the switch. Three things the evidence needs from you: a finding at
+high or blocking severity must name the file it is in; a review that sends a ticket
+back records what it found with `harness return --findings <file>`, because a round
+that returned a ticket is a round whose findings the window reads; and one that sends
+it back for a criterion it found unmet names it with `harness return --unmet <n>`. A
+return from review that is none of those says `--no-findings`, and the harness refuses
+one that says nothing at all: an absence nobody declared cannot be told from a flag
+somebody forgot, and evidence nobody can place holds the verdict at stay-shadow rather
+than passing it. Going live takes two lines rather than one:
+`[review] triage_shadow` and `[calibration] went_live`, which names the ticket and
+the record number of the decision. `doctor` refuses a switch flipped with nothing
+named, because a threshold on its own cannot tell a decision from an edit.
+
 **A subagent is a context boundary, not independence by itself.** A review from one
 is disclosed as `subagent` and names the `reviewer_session` it came from, and the
 gate refuses a session that wrote any record on the ticket, whichever attempt it
@@ -203,8 +231,8 @@ baseline captured before any of them existed, with the rule for reading it writt
 
 ## What the harness will refuse
 
-A RED that did not fail. A check recorded under a model the route did not choose, once
-`[routing] shadow` is off. A slice citing a check from another attempt. A solution record with no slice
+A RED that did not fail. A finding at high or blocking severity that names no file. A
+check recorded under a model the route did not choose, once `[routing] shadow` is off. A slice citing a check from another attempt. A solution record with no slice
 plan, a slice over 2 points or a plan over 4. Coverage that fell. A record or a handoff pack carrying
 the value of an environment variable. A delivery whose checks are not green on the commit it
 attests. A merge where anything but the journal, the reports, the coverage baseline or the graph

@@ -110,6 +110,21 @@ def build_parser():
     back.add_argument('--to', required=True)
     back.add_argument('--reason', required=True)
     back.add_argument('--actor', required=True)
+    back.add_argument('--findings', metavar='FILE',
+                      help='JSON array of the findings this review returns the ticket on. A '
+                           'review that returned a ticket is a review, and its findings are what '
+                           'the calibration window reads: without them an escape counts only if '
+                           'the round that finally passes repeats it')
+    back.add_argument('--no-findings', action='store_true',
+                      help='This return from review is not about a defect, so there is nothing '
+                           'for the calibration window to read. One of --findings, --unmet or '
+                           'this is required at the review stage, because an absence nobody '
+                           'declared cannot be told from a flag somebody forgot')
+    back.add_argument('--unmet', type=int, action='append', metavar='N',
+                      help='The number of an acceptance criterion this return found unmet, '
+                           'repeatable. A criterion the triage answered evidenced and a review '
+                           'found unmet is an escape, and its number is the only thing that '
+                           'tells such a return from an ordinary one')
 
     measure = ticket_command('coverage', 'Measure coverage on the gated package and record the delta')
     measure.add_argument('--actor', required=True)
@@ -170,6 +185,9 @@ def build_parser():
     report.add_argument('--week', action='store_true', help='The ISO week of --date, or today')
     report.add_argument('--sprint', type=int, help='Planned against delivered for one sprint')
     report.add_argument('--date', help='The date whose week to report, YYYY-MM-DD')
+    report.add_argument('--calibration', action='store_true',
+                        help='The evidence the review triage and the routes will be decided on, '
+                             'per ticket and per slice, with the rule printed beside it')
 
     commands.add_parser('sync', help='Generate the skill copies from docs/harness/skill.md')
     commands.add_parser('lint', help='Refuse live marketplace hosts in test code')
@@ -731,11 +749,43 @@ def go_back(repository, folder, records, args, current, rules):
     require(STAGES.index(args.to) < STAGES.index(stage),
             f'A return must target a stage before {stage}')
     require(args.reason.strip(), 'A return needs a recorded reason')
+    findings = []
+    named = getattr(args, 'findings', None)
+    if named:
+        path = repository.root / named
+        require(path.is_file(), f'No such findings file: {named}')
+        try:
+            findings = json.loads(path.read_text())
+        except json.JSONDecodeError as error:
+            require(False, f'{named} is not readable JSON: {error}')
+        require(isinstance(findings, list), f'{named} must hold a JSON array of findings')
+        # The same shape the review gate demands, minus the resolution: a finding
+        # that returned a ticket is open by definition, and it must still name
+        # the file it is in when it is serious enough to be an escape.
+        gates.check_findings(findings, rules['review']['severities'], resolved=False)
+    unmet = sorted(set(getattr(args, 'unmet', None) or []))
+    require(all(position >= 1 for position in unmet),
+            'An unmet criterion is named by its number in the ticket, counting from 1')
+    declared = bool(getattr(args, 'no_findings', False))
+    require(stage != 'review' or findings or unmet or declared,
+            'A return from review says what it found: --findings <file> for the findings it '
+            'returns the ticket on, --unmet <n> for a criterion it found unmet, or --no-findings '
+            'when it is neither. The calibration window reads a returning round like any other, '
+            'and an absence nobody declared cannot be told from a flag somebody forgot')
     return journal.append(folder, records, kind='return', stage=stage,
                           attempt=current['attempt'], actor=args.actor,
                           head=repository.head(), ticket=args.ticket,
                           data=dict(from_stage=stage, to_stage=args.to,
-                                    to_attempt=current['attempt'] + 1, reason=args.reason))
+                                    to_attempt=current['attempt'] + 1, reason=args.reason,
+                                    findings=findings,
+                                    # Declared rather than inferred, for the
+                                    # reason the requirement above gives.
+                                    no_findings=declared,
+                                    # Which criteria this return says are unmet, by their
+                                    # number in the ticket. SEEN-109's second escape kind
+                                    # is a criterion the triage answered evidenced and a
+                                    # review found unmet, and prose cannot be read for it.
+                                    unmet_criteria=unmet))
 
 
 DISCARDED = Path('docs/harness/discarded.jsonl')
@@ -872,9 +922,16 @@ UNMEASURABLE = [
 
 
 def write_report(repository, args):
-    from . import report as reporting
-    require(args.week or args.sprint is not None, 'Ask for --week or --sprint <n>')
+    from . import calibration as calibrating, report as reporting
+    require(args.week or args.sprint is not None or args.calibration,
+            'Ask for --week, --sprint <n> or --calibration')
     rules = thresholds.load(repository.root)
+    if args.calibration:
+        section = calibrating.evidence(repository.root, rules)
+        markdown = reporting.render_calibration(section, rules)
+        written = reporting.write(repository.root, 'calibration', markdown, section)
+        return dict(written, tickets=len(section['tickets']),
+                    triage=section['triage']['state'], routes=section['routes']['state'])
     figures = ticket_figures(repository, rules)
     if args.sprint is not None:
         planned = 0
@@ -912,9 +969,14 @@ def write_report(repository, args):
         # the measure that does not go stale.
         section['cost_by_model'] = context.cost_by_model(covered)
         section['prices'] = rules['routing']['prices']
+    # Which shadow the review triage is in, and what put it there. In a weekly
+    # report rather than only in the calibration one, because an escape returns
+    # the triage to shadow with nobody editing a file, and a change nobody made
+    # is the one a reader most needs told.
+    shadow = calibrating.effective_shadow(repository.root, rules)
     payload = dict(name=name, generated_for=name, tickets=covered, totals=totals,
-                   unmeasurable=UNMEASURABLE, context=section)
-    markdown = reporting.render(title, covered, totals, UNMEASURABLE, section, budget)
+                   unmeasurable=UNMEASURABLE, context=section, review_triage_shadow=shadow)
+    markdown = reporting.render(title, covered, totals, UNMEASURABLE, section, budget, shadow)
     written = reporting.write(repository.root, name, markdown, payload)
     return dict(written, tickets=len(covered), totals=totals)
 

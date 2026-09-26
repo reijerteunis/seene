@@ -1,0 +1,45 @@
+{
+  "sequence": 15,
+  "ticket": "SEEN-109",
+  "timestamp": "2026-09-25T20:35:15.675017+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "343d37550220",
+  "head": "f464afd489ce54043b456d755bbf67d6fa3ef65c",
+  "prev_hash": "6d6337e800ec9e6608b5e7096b58d3987a1279c4834bc369afa971fa12371665",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": 1,
+          "behaviour": "The calibration rule and the evidence it is read from: [calibration] in thresholds.toml, harness/calibration.py, file required on a finding at high or blocking severity, and harness return --unmet.",
+          "failure_reason": "ImportError: cannot import name 'calibration' from 'harness'",
+          "red": 7,
+          "green": 8
+        },
+        {
+          "position": 2,
+          "behaviour": "The calibration report and the automatic return to shadow: harness report --calibration, the weekly line, and the triage reading the effective shadow rather than the threshold alone.",
+          "failure_reason": "AssertionError: False is not true, on a triage record's shadow while an escape sat in the window with [review] triage_shadow set false; and nine further failures, among them argparse refusing --calibration as an unknown flag",
+          "red": 10,
+          "green": 11
+        }
+      ],
+      "regression": 13,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "343d37550220",
+      "output_tokens": 163918,
+      "tool_calls": 101,
+      "unavailable": null
+    }
+  }
+}

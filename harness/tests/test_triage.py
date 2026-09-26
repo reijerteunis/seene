@@ -493,7 +493,13 @@ class FocusSetTest(ThreeCriteriaTest):
     def set_shadow(self, on):
         path = self.root / 'harness' / 'thresholds.toml'
         path.write_text(path.read_text().replace(
-            'triage_shadow = true', f'triage_shadow = {"true" if on else "false"}'))
+            'triage_shadow = true', f'triage_shadow = {"true" if on else "false"}').replace(
+            # Going live takes two lines from SEEN-109: the switch, and the
+            # record its decision is in. A test that flips one and not the
+            # other is a repository doctor refuses.
+            'went_live = {}',
+            'went_live = {}' if on
+            else '''went_live = { ticket = "SEEN-001", record = 1, on = "2026-09-25" }'''))
 
     def test_full_depth_puts_every_changed_file_in_focus(self):
         self.reach_review()
@@ -886,7 +892,13 @@ class PartialAnswerTest(ThreeCriteriaTest):
     def set_shadow(self, on):
         path = self.root / 'harness' / 'thresholds.toml'
         path.write_text(path.read_text().replace(
-            'triage_shadow = true', f'triage_shadow = {"true" if on else "false"}'))
+            'triage_shadow = true', f'triage_shadow = {"true" if on else "false"}').replace(
+            # Going live takes two lines from SEEN-109: the switch, and the
+            # record its decision is in. A test that flips one and not the
+            # other is a repository doctor refuses.
+            'went_live = {}',
+            'went_live = {}' if on
+            else '''went_live = { ticket = "SEEN-001", record = 1, on = "2026-09-25" }'''))
 
     def test_a_stage_gate_still_refuses_a_reply_that_left_its_question_out(self):
         """The other half of must_answer: a stage needs a judgement."""
@@ -1136,8 +1148,10 @@ class TriageAcrossAttemptsTest(FocusSetTest):
         return self.submit('review', review_evidence(read), actor='codex:reviewer')
 
     def return_and_reach_review_again(self):
+        # SEEN-109: a return from review declares what it found, and these
+        # fixtures are about the triage rather than about a defect.
         self.run_harness('return', self.ticket_id, '--to', 'tdd', '--reason',
-                         'A finding', '--actor', 'codex:reviewer')
+                         'A finding', '--actor', 'codex:reviewer', '--no-findings')
         red = self.run_check('red', exit_code=1)
         green = self.run_check('green')
         regression = self.run_check('regression')
@@ -1464,8 +1478,10 @@ class EveryAttemptsEvidenceTest(ThreeCriteriaTest):
 
     def prove_another_slice(self):
         """A return, then one more slice proved, the way rework goes."""
+        # SEEN-109: a return from review declares what it found, and these
+        # fixtures are about the triage rather than about a defect.
         self.run_harness('return', self.ticket_id, '--to', 'tdd', '--reason',
-                         'A finding', '--actor', 'codex:reviewer')
+                         'A finding', '--actor', 'codex:reviewer', '--no-findings')
         red = self.run_check('red', exit_code=1)
         green = self.run_check('green')
         regression = self.run_check('regression')

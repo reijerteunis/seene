@@ -439,21 +439,32 @@ def coverage(records):
 def findings(records):
     """Review findings by severity, and how many were fixed rather than waived.
 
-    A returned ticket is reviewed again and lists its findings again, so the
-    same finding appears in several records. They are counted by id, most recent
-    record wins, because a finding resolved on the second pass is one finding.
+    Read through calibration, which is the one place that knows what a review
+    finding is: a round that returned a ticket records its findings on the
+    return from SEEN-109, and reading only the advance made this report and the
+    calibration report state different findings for the same ticket in the same
+    commit. The old justification, that a returned ticket lists its findings
+    again, was a convention three tickets happened to keep and no gate requires.
+    F2 of SEEN-109's fifth review.
     """
-    latest = {}
-    for record in records:
-        if record['kind'] != 'advance' or record['data'].get('from_stage') != 'review':
-            continue
-        for position, finding in enumerate(record['data'].get('evidence', {}).get('findings', [])):
-            latest[finding.get('id') or f'{record["sequence"]}-{position}'] = finding
+    from . import calibration
+    # Where a ticket got to after each finding was written. A finding the
+    # passing round records is resolved, because the review gate refuses an
+    # advance carrying one that is not. A finding recorded on a return that a
+    # later advance followed is counted closed rather than open, and the limit of
+    # that is worth saying: the gate reads only the findings the advance itself
+    # carries, so nothing checks that this particular one was what got fixed.
+    # Closed is what the figure means and closed is what the report says. F1 of
+    # the seventh review, which found the first wording claiming more.
+    advances = [record['sequence'] for record in records
+                if record['kind'] == 'advance' and record['data'].get('from_stage') == 'review']
     by_severity, fixed, waived = {}, 0, 0
-    for finding in latest.values():
+    for record, finding in calibration.latest_finding_records(records):
         severity = finding.get('severity', 'unknown')
         by_severity[severity] = by_severity.get(severity, 0) + 1
-        if finding.get('status') == 'resolved':
+        closed = (finding.get('status') == 'resolved'
+                  or any(sequence > record['sequence'] for sequence in advances))
+        if closed:
             fixed += 1
         else:
             waived += 1

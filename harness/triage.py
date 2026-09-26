@@ -25,7 +25,7 @@ policy gate, and a migration. Any of them is full depth with no request made.
 
 import re
 
-from . import gates, jev, journal, kpi, risk, routing, secrets
+from . import calibration, gates, jev, journal, kpi, risk, routing, secrets
 from .errors import HarnessError, require
 from .paths import FINGERPRINT_EXCLUDED
 
@@ -764,7 +764,14 @@ def run(repository, records, current, rules, ticket, sequence):
     depth = 'full' if reasons else model_depth
     enforced = focus_set(facts, by_key, depth, rules)
     narrowed = focus_set(facts, by_key, model_depth, rules)
-    shadow = bool(rules['review']['triage_shadow'])
+    # Not the threshold alone: SEEN-109's rule returns the triage to shadow when
+    # an escape lands in the window, or when evidence in it cannot be placed, and
+    # it does that without anybody editing a file. Going live is still a person's,
+    # and it takes two lines in thresholds.toml, [review] triage_shadow and
+    # [calibration] went_live naming the record its decision is in. Nothing here
+    # writes to either.
+    in_shadow = calibration.effective_shadow(repository.root, rules)
+    shadow = in_shadow['shadow']
     focus = [entry['path'] for entry in facts] if shadow else list(enforced)
     required = always_read(records, ticket, repository.root)
     return dict(fingerprint=fingerprint,
@@ -793,6 +800,10 @@ def run(repository, records, current, rules, ticket, sequence):
                 # anything is decided by it.
                 focus=focus,
                 shadow=shadow,
+                # Which of the two put it there, and in its own words, so a
+                # record read later says whether a person or the window decided.
+                shadow_source=in_shadow['source'],
+                shadow_reason=in_shadow['reason'],
                 would_exclude=sorted({entry['path'] for entry in facts} - set(narrowed)),
                 excluded_share=excluded_share(facts, narrowed),
                 always_read=required,
@@ -807,6 +818,18 @@ def _ticket_text(repository, records):
     text, _ = read(records[0]['data'], records[0]['data'].get('ticket_id', records[0]['ticket']),
                    repository.root)
     return text
+
+
+def unevidenced_positions(data):
+    """The numbers of the criteria the model could see no evidence for.
+
+    The triage's own return carries them for the reason SEEN-109 gives: a return
+    from review that names no criterion cannot be told from one that found a
+    criterion unmet and forgot to say so, and this one found it itself.
+    """
+    return sorted(int(answer['key'].rpartition('#')[2])
+                  for answer in data['criteria_answers']
+                  if answer['passed'] is False and answer['key'].rpartition('#')[2].isdigit())
 
 
 def unevidenced(data):
@@ -847,7 +870,8 @@ def append(repository, folder, records, current, args, rules):
                    attempt=current['attempt'], actor=args.actor, head=repository.head(),
                    ticket=args.ticket,
                    data=dict(from_stage='review', to_stage='tdd',
-                             to_attempt=current['attempt'] + 1, reason=reason))
+                             to_attempt=current['attempt'] + 1, reason=reason,
+                             unmet_criteria=unevidenced_positions(data)))
     raise HarnessError(
         f'{reason}. Recorded as triage {record["sequence"]} and returned to tdd; no reviewer '
         'was spawned, so nothing has read the diff yet')

@@ -1,0 +1,20 @@
+{
+  "sequence": 18,
+  "ticket": "SEEN-109",
+  "timestamp": "2026-09-25T20:43:24.472128+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "343d37550220",
+  "head": "04de3e6455022759347fc692adc46072cab567fd",
+  "prev_hash": "37b770b6f1ed2469d343a65900d763cc9ec0099195c5af5f12414948f7cd0d95",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 2,
+    "reason": "The review at note 17 returns the ticket on F1: path_of strips the characters dot and slash rather than the prefix ./, so a high or blocking finding in a dot directory or at an absolute path is counted as no escape and as nothing unattributable either, which is the silent pass in favour of the narrowing that the recorded rule says must never happen. F2, F3 and F4 are taken in the same attempt: the weekly line is tested only in the branch that cannot see an escape, harness return --unmet has no test of its own, and a review return naming no criterion is counted clean rather than unattributable. F5 is recorded as a scope question for the founder and not implemented.",
+    "unmet_criteria": []
+  }
+}

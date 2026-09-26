@@ -1,0 +1,16 @@
+{
+  "sequence": 86,
+  "ticket": "SEEN-109",
+  "timestamp": "2026-09-26T00:12:38.695565+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 9,
+  "actor": "claude:implementer",
+  "session": "343d37550220",
+  "head": "9ac569a37c090c7d27479629e4ecf1bfe68479c2",
+  "prev_hash": "98ad1a85379c0f62d3c0acebb2a2cbfc028565bf3bf0c0fc961e0a5bf1444930",
+  "data": {
+    "text": "# Two findings of the eighth review that a note is the whole remedy for\n\n## F3: the triage's fingerprint check fails on the harness's own writing\n\nThe check compares the full tree fingerprint, and the skill tells every ticket to\nwrite its `## Outcome` before leaving review, which is after the tdd checks have\nrun. So the check fails on the procedure's own writing. This journal is the\nevidence: `fingerprint` passed at the first triage of every attempt, records 16,\n24, 35, 45, 55, 64 and 72, and failed at exactly the two taken after an Outcome\nhad been written, 74 and 82.\n\nThe reviewer recomputed the fingerprints per commit and checked the modification\ntimes: between the regression at check 79 and the triage at record 82, the only\nfingerprinted path that moved is the ticket file, written at 01:38:31 and\ncommitted a second later in a31c598. `harness/delivery.py`, `harness/gates.py`,\n`harness/doctor.py` and `harness/tests/test_calibration.py` were all last written\nbetween 01:31 and 01:33, before the green at 78 and before the regression at 79.\nSo the FAIL at records 74 and 82 is the ticket file and nothing else, and this\nrecord is where that is said rather than left for a reader to work out.\n\nWhat would fix it is a narrower comparison: `procedure_paths` exists for exactly\nthis and the triage's own `code_fingerprint` already uses it, but the `check`\nrecords' `before` and `after` are full fingerprints, so the check command would\nhave to record the narrower number too before the comparison could move. That is\na change to what every check record carries, on a ticket that has already learned\nwhat widening its own scope costs, so it is written here for the founder rather\nthan made here.\n\n## F4: what record 81's second failure reason claims\n\nRecord 81 states its RED failed with `KeyError: ticket_marked_after_review on the\nreceipt that did not carry it`. Record 77's output carries two errors: the genuine\n`HarnessError: The project changed after review`, which proves the relaxation was\nabsent, and `KeyError: 'data'` from a test indexing the command's return value\ninstead of the record it wraps. The second is a fault in the test, corrected\nbetween the RED and the GREEN, not the receipt lacking a field.\n\nSo record 81 proves the first half of what it claims and not the second. The\nclaim is narrower than it reads, and this record is where a reader finds that out,\nexactly as note 28 does for slice 1's second RED. Attempt 9 withdraws the\nbehaviour both halves were about, so nothing rests on it now; the record still\nsaid more than it had.\n"
+  }
+}

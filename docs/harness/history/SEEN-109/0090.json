@@ -1,0 +1,38 @@
+{
+  "sequence": 90,
+  "ticket": "SEEN-109",
+  "timestamp": "2026-09-26T00:17:13.590993+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 9,
+  "actor": "claude:implementer",
+  "session": "343d37550220",
+  "head": "5458d554100977905c5722577cf9e591c075e70e",
+  "prev_hash": "d6212f4d2909b76b250c56a4bec2a8d6cbd11ca340ec0f237752b33482e8b842",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": null,
+          "behaviour": "The guarantee attempt 8 loosened, restored: a receipt attests the tree the review read, so a ticket marked reviewed after the review advance refuses, a ticket marked before it delivers, prose added afterwards refuses, and no receipt carries an exception. The refusal names the order the procedure has to keep, and doctor, CLAUDE.md, the skill and the workflow say it.",
+          "failure_reason": "AssertionError: HarnessError not raised, on a delivery whose only change after the review was the ticket being marked reviewed; and AssertionError: 'ticket_marked_after_review' unexpectedly found in the receipt's evidence",
+          "red": 85,
+          "green": 87
+        }
+      ],
+      "regression": 88,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "343d37550220",
+      "output_tokens": 490098,
+      "tool_calls": 298,
+      "unavailable": null
+    }
+  }
+}

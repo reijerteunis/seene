@@ -1,0 +1,95 @@
+{
+  "sequence": 84,
+  "ticket": "SEEN-109",
+  "timestamp": "2026-09-26T00:10:03.064792+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 8,
+  "actor": "claude:reviewer",
+  "session": "343d37550220",
+  "head": "9ac569a37c090c7d27479629e4ecf1bfe68479c2",
+  "prev_hash": "32147c48f49f8607b2c02f587c8721e06fbb9855f9ee065ff79840650da26fbc",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 9,
+    "reason": "The review at note 83 returns attempt 8, and the answer is to withdraw it rather than to patch it. Attempt 8 loosened what a receipt attests, which is the most safety-critical guarantee the harness has, and one review found two ways through the loosening and one legitimate change it refuses. That is evidence enough: a calibration ticket is not where the receipt's meaning is widened, the change answers no acceptance criterion of this ticket, and the wall it closed has a workaround SEEN-108 already used. Attempt 9 reverts it and takes the wall the way SEEN-108 did, by setting the ticket's status and criteria before the review advance. F3, F4, F5 and F6 are taken on their own terms, and the wall and the design that would close it properly are written into the Outcome for the founder rather than shipped here.",
+    "findings": [
+      {
+        "id": "F1",
+        "severity": "medium",
+        "file": "harness/delivery.py:175",
+        "claim": "The reviewed ticket's content is pinned nowhere, so the comparison reads it from the review advance's commit and a ticket uncommitted at the advance is compared against content no reviewer saw",
+        "failure_scenario": "A session writes its Outcome, advances the review without committing, loses the paragraph, marks the status and delivers: the receipt asserts only the three procedural fields moved while the Outcome the review attested is gone.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F2",
+        "severity": "medium",
+        "file": "harness/delivery.py:192",
+        "claim": "Both new helpers resolve the ticket file by reading the start record's path rather than through cli.ticket_file, so a renamed ticket loses the exception silently",
+        "failure_scenario": "A ticket renamed mid-ticket records a null second fingerprint with nothing saying so, then meets the wall anyway and pays a return and another review for a change that was only its status.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F3",
+        "severity": "medium",
+        "file": "harness/triage.py:411",
+        "claim": "The triage's fingerprint check compares the full tree, so the Outcome the skill requires before leaving review makes it fail and nothing says what moved",
+        "failure_scenario": "The check passed at the first triage of every attempt of this ticket and failed at exactly the two taken after an Outcome was written, so a reader cannot tell the harness writing its own Outcome from code changed after the regression.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F4",
+        "severity": "medium",
+        "file": "docs/harness/history/SEEN-109/0081.json",
+        "claim": "The tdd record states a failure reason the cited RED does not show for the second behaviour",
+        "failure_scenario": "Record 77's second error is KeyError 'data' from a test indexing the command's return value, not the receipt lacking the field, so the journal does not prove the field was ever absent.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F5",
+        "severity": "medium",
+        "file": "docs/tickets/SEEN-109-calibrate-the-review-triage-and-the-routes-on.md:102",
+        "claim": "The Outcome says four files fail slice_files and lists all four; the triage names five, and the missing one is harness/delivery.py",
+        "failure_scenario": "A reader auditing the one failed deterministic check finds the file holding the whole of attempt 8's change in neither list, and has nothing to tell an undisclosed change from a disclosed one.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F6",
+        "severity": "low",
+        "file": "harness/doctor.py:113",
+        "claim": "Two places still print the pre-attempt-8 rule: the comment above the corrected message, and CLAUDE.md",
+        "failure_scenario": "A session reading either believes the wall still stands and sets the status before the review has passed, which is the behaviour the change existed to make unnecessary.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F7",
+        "severity": "low",
+        "file": "harness/delivery.py:139",
+        "claim": "The three substitutions are file-wide rather than scoped to the frontmatter, the header table and the criteria list",
+        "failure_scenario": "A ticket holding a prose line beginning status:, a second Status row or a Slices checklist can have all three rewritten after its review undetected.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F8",
+        "severity": "low",
+        "file": "docs/adr/0002-the-receipt-attests-the-tree-minus-the-journal.md",
+        "claim": "What a receipt attests changed and the record of that decision did not",
+        "failure_scenario": "A reader follows the pointer from paths.py and repository.py to the ADR and concludes a delivered ticket file is byte-for-byte the one the review read, which a receipt carrying the new flag contradicts.",
+        "status": "open",
+        "resolution": ""
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}

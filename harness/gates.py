@@ -25,6 +25,9 @@ WORK_STAGES = ('clarify', 'solution', 'tdd')
 SLICE_KEYS = ('name', 'points', 'files', 'red')
 POLICY_GATE_ACTION_KEYS = ('reversibility', 'action_type', 'euro_impact_estimator')
 FINDING_KEYS = ('id', 'severity', 'claim', 'failure_scenario', 'status', 'resolution')
+# The severities SEEN-109's escape rule is written at, which is why a finding at
+# one of them has to name the file it is in.
+ESCAPING_SEVERITIES = ('high', 'blocking')
 
 
 def template_name(stage, mode=None):
@@ -491,17 +494,7 @@ def _review(data, records, current, repository, thresholds):
     _require_the_diff_has_not_moved(records, current, repository)
     require(data['verdict'] == 'pass',
             f'A verdict of {data["verdict"]!r} is a return, not an advance; use harness return')
-    severities = thresholds['review']['severities']
-    for finding in data['findings']:
-        require(isinstance(finding, dict), 'Every finding must be an object')
-        for key in FINDING_KEYS[:-1]:
-            require(_filled(finding.get(key)), f'A finding is missing {key}')
-        require(finding['severity'] in severities,
-                f'Unknown severity: {finding["severity"]!r}; use one of {", ".join(severities)}')
-        require(finding['status'] == 'resolved',
-                f'Finding {finding["id"]} is {finding["status"]}; resolve every finding or '
-                'return the ticket, and do not relabel it')
-        require(_filled(finding.get('resolution')), f'Finding {finding["id"]} is missing resolution')
+    check_findings(data['findings'], thresholds['review']['severities'])
     two_reviewers = needs_two_reviewers(records, repository.root)
     if two_reviewers:
         require(_filled(data.get('second_reviewer')),
@@ -706,3 +699,33 @@ def evaluate(stage, data, records, current, repository, thresholds):
     # wherever it was pasted. Only the dropped field's own value is left out.
     reject_placeholders(template, {key: value for key, value in data.items() if key in shaped})
     return gate(data, records, current, repository, thresholds)
+
+
+def check_findings(findings, severities, resolved=True):
+    """What a finding must carry, and why a serious one must name its file.
+
+    SEEN-109 measures the review triage by asking whether anything expensive got
+    through a file the narrowing would have dropped, and a finding nobody can
+    place answers that question in favour of the narrowing. seen-reviewer
+    already writes `file` as `path:line`, so the requirement asks for what is
+    already there. Low and medium are left alone: neither can ever be an escape,
+    because not looking for them is the saving itself.
+    """
+    for finding in findings:
+        require(isinstance(finding, dict), 'Every finding must be an object')
+        for key in FINDING_KEYS[:-1]:
+            require(_filled(finding.get(key)), f'A finding is missing {key}')
+        require(finding['severity'] in severities,
+                f'Unknown severity: {finding["severity"]!r}; use one of {", ".join(severities)}')
+        if resolved:
+            require(finding['status'] == 'resolved',
+                    f'Finding {finding["id"]} is {finding["status"]}; resolve every finding or '
+                    'return the ticket, and do not relabel it')
+            require(_filled(finding.get('resolution')),
+                    f'Finding {finding["id"]} is missing resolution')
+        if finding['severity'] in ESCAPING_SEVERITIES:
+            require(_filled(finding.get('file')),
+                    f'Finding {finding["id"]} is {finding["severity"]} and names no file. A '
+                    'finding this serious is what the calibration window measures the review '
+                    'triage by, and one nobody can place counts in favour of the narrowing. '
+                    'Give it file, as path or path:line')

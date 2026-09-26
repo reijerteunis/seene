@@ -200,3 +200,60 @@ priced_on = "2026-09-25"
 haiku = { input = 80, output = 400 }
 sonnet = { input = 300, output = 1500 }
 opus = { input = 1500, output = 7500 }
+
+# The calibration window, from SEEN-109. Neither the narrowed review of SEEN-107
+# nor the cheaper model of SEEN-108 takes effect on a guess: both run in shadow
+# while the evidence accumulates, and the rule for reading the numbers is here
+# before the first number exists, exactly as [context] decision_rule was written
+# before the context tools had produced one.
+[calibration]
+# Ten tickets, and the window is the most recent ten rather than a counter
+# somebody keeps. That is what makes an escape return the triage to shadow by
+# itself: the escape holds the verdict until ten further tickets have pushed it
+# out of the window, which is the ticket's "another ten".
+window = 10
+# The commit that added this section, ea499b1, to the second. A ticket started
+# before it was not worked under the thing being calibrated, which is the rule
+# [context] tools_available_from already carries. Read from the commit rather
+# than rounded to the minute: the first value was eight minutes early, which is
+# eight minutes in which a ticket could have been counted against a rule that
+# did not exist. F4 of the second review.
+counted_from = "2026-09-25T20:08:27+00:00"
+# The three tickets that built the triage, the routes and this window. A ticket
+# that built a tool was not worked with it, which is the rule SEEN-098 wrote for
+# itself and SEEN-105 repeated; all three wrote triage or route records on their
+# own branches while the thing under calibration was being written.
+excluded = ["SEEN-107", "SEEN-108", "SEEN-109"]
+excluded_reason = "Built the triage, the routes or this window, so it was not worked under them"
+escape = """A finding at high or blocking severity in a file the triage would have excluded, or a \
+criterion the triage answered evidenced that the review found unmet. A finding at low or medium \
+severity is never an escape: the saving is that such a finding is not looked for. A high or \
+blocking finding naming no file, and a criterion the triage never answered, are reported as \
+unattributable and counted neither way, because counting them as no escape would be a silent pass \
+in favour of the narrowing being measured."""
+triage_rule = """With no escape in the most recent ten counted tickets, and nothing in them that \
+could not be placed, spot depth can go live. It takes two lines: the founder sets [review] \
+triage_shadow to false and fills [calibration] went_live with the ticket and the record number of \
+the decision, which doctor checks exists. Evidence nobody can place holds the verdict rather than \
+passing it, because counted neither way cannot mean counted as clean. Spot depth stays live until \
+the first escape, which returns the triage to shadow with nobody editing a file, for another ten \
+tickets."""
+# Where the founder's decision to go live is written down. Empty until [review]
+# triage_shadow goes false, and then the ticket and the record number of the
+# decision: a threshold read on its own cannot tell a decision from an edit, so
+# the harness refuses to narrow a review until the switch names the record a
+# reader can open. What the record says is a person's job; what this refuses is
+# a switch flipped with nothing named at all. F3 of the second review.
+went_live = {}
+route_rule = """Each routed slice is charged the returns of its ticket, the findings at high or \
+blocking severity landing in the files it planned to change, and its ticket's escaped defects. A \
+return sends the whole ticket back and no record says which slice caused it, so every slice of the \
+plan carries it, and an escaped defect is charged the same way; findings are the only per-slice \
+measure, so a per-slice rate is evidence about a group and never about a cause. The slices Jev \
+routed below the strongest tier are one group and every other slice, rule-routed ones included, \
+is the other. The routes go live when the downgraded group's rework per point is at or below the \
+other group's over the window; with no slice in either group there is nothing to compare and the \
+verdict stays shadow. A finding no slice's files can be compared with is charged to every slice \
+for the same reason a return is, and the verdict stays shadow while any such finding sits in the \
+window: a rate taken over findings the comparison could not see is not evidence that there were \
+none, which is what evidence nobody can place already means on the triage side."""

@@ -1,0 +1,59 @@
+{
+  "sequence": 57,
+  "ticket": "SEEN-109",
+  "timestamp": "2026-09-25T22:18:06.983157+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 5,
+  "actor": "claude:reviewer",
+  "session": "343d37550220",
+  "head": "1e4ee3b95686d24ad37203c7b630eb9dc870acb1",
+  "prev_hash": "a9180a3592624718b1badc1d6272dbb1168550b855214e408e5d69ef8f3f513c",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 6,
+    "reason": "The review at note 56 returns the ticket on F1: the path-comparison class is closed on the triage side and open on the route side, where a finding in a changed file no slice named is charged to nobody and the verdict has nowhere to put it, so ten blocking findings produce a rate of zero and a printed go-live. Taken by charging such a finding to every slice of the ticket, which is what route_rule already does with a return and an escaped defect for the same reason, and by holding the route verdict while any finding in the window could not be charged, which is what the triage verdict already does with evidence nobody can place. F2, F3 and F4 with it: the weekly report reads findings the way the calibration report does, the fallback that restored the merge is gone and the fixtures carry the real record shape, and the Outcome names all three files slice_files failed on.",
+    "findings": [
+      {
+        "id": "F1",
+        "severity": "high",
+        "file": "harness/calibration.py:363",
+        "claim": "A finding in a changed file that no slice named is charged to no slice, and verdict_routes has no channel for what could not be charged, so it states go-live on a rate of zero while the findings exist",
+        "failure_scenario": "Ten counted tickets, each with a downgraded and a strongest slice and one blocking finding in a file no slice named, report downgraded 0.0 against strongest 0.0 and a printed go-live, with nothing saying a finding was dropped.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F2",
+        "severity": "medium",
+        "file": "harness/kpi.py:448",
+        "claim": "kpi.findings still reads findings only from the review advance, so the weekly report and the calibration report state different findings for the same ticket in the same commit",
+        "failure_scenario": "SEEN-109 itself: record 47 carries one high, two medium and one low on the return, and a passing round that does not repeat them leaves the weekly report saying none recorded while the calibration report says four.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F3",
+        "severity": "low",
+        "file": "harness/calibration.py:199",
+        "claim": "The seen_by_triage guard restores the merge the fourth review removed whenever a triage record carries no files list, and every EscapeTest fixture runs through that fallback",
+        "failure_scenario": "A triage record with an empty files list places a finding at a path it never saw as neither an escape nor unattributable, which is the reply the fourth review returned the ticket for.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F4",
+        "severity": "low",
+        "file": "docs/tickets/SEEN-109-calibrate-the-review-triage-and-the-routes-on.md:99",
+        "claim": "The Outcome accounts for two of the three files slice_files names and its count of deviations is wrong",
+        "failure_scenario": "A reader auditing the failed check finds harness/doctor.py in neither deviation list, so nothing on the record says whether the change was planned or drifted in.",
+        "status": "open",
+        "resolution": ""
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}

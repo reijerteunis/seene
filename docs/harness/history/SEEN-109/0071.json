@@ -1,0 +1,38 @@
+{
+  "sequence": 71,
+  "ticket": "SEEN-109",
+  "timestamp": "2026-09-25T22:49:07.568850+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 7,
+  "actor": "claude:implementer",
+  "session": "343d37550220",
+  "head": "ca8411908cb4d05893be821f2e2c7f5f39fd2bb0",
+  "prev_hash": "d29bd810f2eaa07eee1fbe70d47d7493ee2cd6f79279ebbd1778d531f5fd336e",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": null,
+          "behaviour": "The four findings of the sixth review: a finding read against the gate that let it through, so one a later review advance followed counts as fixed whoever recorded it and one nothing has advanced past is still open; a route group called empty by its membership rather than by its rate; a damaged journal told from a go-live record nobody wrote; and the counts written around the four files no slice planned.",
+          "failure_reason": "AssertionError: Tuples differ: (0, 1) != (1, 0), on a blocking finding recorded open on a return that a later review advance followed; with two further failures, on a downgraded group holding a slice with no points being printed as a group nobody was routed into, and on a damaged journal reported as a record that does not exist",
+          "red": 67,
+          "green": 68
+        }
+      ],
+      "regression": 69,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "343d37550220",
+      "output_tokens": 384262,
+      "tool_calls": 228,
+      "unavailable": null
+    }
+  }
+}

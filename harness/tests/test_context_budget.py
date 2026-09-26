@@ -416,9 +416,11 @@ class SprintReportCostTest(ProjectTest):
 class ForwardReferenceTest(unittest.TestCase):
     """F5 of SEEN-108's third review: what the printed report tells a reader to run.
 
-    `report --calibration` is criterion 2 of SEEN-109 and nothing implements it,
-    so a table that names it in the present tense sends its reader to a command
-    argparse rejects.
+    `report --calibration` was criterion 2 of SEEN-109 and nothing implemented
+    it, so the table named it in the future tense and this test held the tense
+    to the truth. SEEN-109 landed, so the sentence is in the present now and the
+    test holds the other direction: a report that names a command must name one
+    the parser accepts.
     """
 
     def rendered(self):
@@ -429,17 +431,15 @@ class ForwardReferenceTest(unittest.TestCase):
                            output_tokens=40000, cost_per_point=150.0)),
             rules['routing']['prices']))
 
-    def test_it_does_not_claim_the_calibration_command_exists_yet(self):
+    def test_it_names_the_calibration_command_and_the_ticket_that_added_it(self):
         rendered = self.rendered()
         self.assertIn('report --calibration', rendered)
         self.assertRegex(rendered, r'(?i)SEEN-109')
 
-    def test_the_command_it_names_is_not_one_the_parser_accepts_today(self):
-        """If this ever fails, SEEN-109 has landed and the sentence can lose its tense."""
+    def test_the_command_it_names_is_one_the_parser_accepts(self):
+        """The direction this guards now: a report never sends a reader to nothing."""
         from harness import cli
-        from harness.errors import HarnessError
-        with self.assertRaisesRegex(HarnessError, 'calibration'):
-            cli.parse(['report', '--calibration'])
+        self.assertTrue(cli.parse(['report', '--calibration']).calibration)
 
 
 class UnpricedRowTest(unittest.TestCase):

@@ -27,7 +27,10 @@ def verify(repository, folder, records, args, current):
 
     tree = repository.fingerprint()
     require(reviewed['tree'] == tree,
-            'The project changed after review; return the ticket to the stage that owns it')
+            'The project changed after review; return the ticket to the stage that owns it. '
+            "If the only change is the ticket's status or its criteria boxes, the procedure wrote "
+            'them after the review read the tree: write them before the review advance, the way '
+            'SEEN-108 did, because what a receipt attests is the tree the review read')
     _require_committed(repository, folder)
     branch, commit = repository.branch(), repository.head()
     require(repository.tip_is_on_remote(data['remote'], branch, commit),

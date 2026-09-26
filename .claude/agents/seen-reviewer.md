@@ -81,6 +81,15 @@ The review record's shape, as JSON:
 }
 ```
 
+A review that returns a ticket is still a review, and its findings are read by
+the calibration window: the session records them with `harness return --findings
+<file>`, and a criterion you found unmet with `--unmet <n>`. A finding at high or
+blocking severity must name the file it is in, as `path` or `path:line`. That is what the calibration window measures the review triage
+by: a finding this serious in a file the narrowing would have dropped is an
+escape, and one nobody can place counts in favour of the narrowing. The review
+gate refuses it. Low and medium need no file, because neither can ever be an
+escape.
+
 Every finding carries a failure scenario. A finding without one is a preference,
 and a preference is not a finding. Order them most severe first.
 
