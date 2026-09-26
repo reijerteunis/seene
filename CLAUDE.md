@@ -35,9 +35,14 @@ runs gitleaks on staged changes, and `doctor` refuses until it is set.
 
 Harness commands: `python3 harness/run.py doctor | start | status | history | draft | note | check |
 coverage | advance | graph | decide | return | reopen | verify-delivery | verify-merge | report |
-lint | sync | discard | list`. Every writing command refuses unless the branch is
+guard | hook | lint | sync | discard | list`. Every writing command refuses unless the branch is
 `claude/<ticket-id>-…` or `codex/<ticket-id>-…`. The skill both assistants read is generated from
 `docs/harness/skill.md` by `sync`, and `doctor` refuses when a copy has been edited by hand.
+`guard <path>` answers whether an edit is allowed before it is made, which is worth asking rather
+than finding out at the review: it exits 2 with the reason on stderr for code edits at clarify or
+solution, edits from a branch that is not the ticket's, and edits outside the files the accepted
+slice names. `hook <event> --client <claude|codex>` is the dispatcher the generated hook entries
+call; it is not a command to run by hand.
 
 ## Index of docs/
 

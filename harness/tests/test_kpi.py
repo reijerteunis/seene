@@ -706,6 +706,130 @@ class ReworkWindowTest(DeliveryWalk):
         self.assertEqual(measured['tokens']['output_tokens'], 200000)
 
 
+def journal_with_a_compaction():
+    """The same two-slice ticket, compacted once inside each slice.
+
+    The shape F3 of SEEN-106's review is about. PreCompact writes a handoff
+    record mid-slice through `handoff --auto`, so that record carries `auto` true
+    and whatever `done` current_slice inferred at the moment the context filled:
+    0 while slice 1 is still being worked, 1 once slice 1 is proved and slice 2 is
+    in hand. Neither is a boundary anybody declared, and the figures each carries
+    are a fragment of the slice it interrupted.
+
+    One session, so the figures are cumulative and a slice costs the difference
+    between the boundary that closed it and the one before. The numbers are far
+    apart on purpose: 40,000 for slice 1 and 45,000 for slice 2 against the 8,000
+    and 37,000 a reader gets by treating a compaction as a boundary.
+    """
+    session = 'aaaaaaaaaaaa'
+
+    def handoff(sequence, minute, done, position, output, auto=False):
+        return record(sequence, 'handoff', 'tdd', minute=minute, session=session,
+                      pack='.harness-drafts/x.md', sha256='d' * 64, estimated_tokens=900,
+                      auto=auto,
+                      slice=dict(position=position, total=2, done=done, declared=not auto,
+                                 inferred=done),
+                      figures=dict(session=session, output_tokens=output, tool_calls=done * 20))
+
+    def check(sequence, minute, phase, exit_code):
+        return record(sequence, 'check', 'tdd', minute=minute, session=session, phase=phase,
+                      exit_code=exit_code, command=['t'], model='claude-opus-5')
+
+    return [
+        record(1, 'start', 'clarify', minute=0, session=session, ticket_file='docs/tickets/x.md',
+               ticket_snapshot='# x', base_commit='a' * 40),
+        record(2, 'advance', 'clarify', minute=5, session=session, from_stage='clarify',
+               to_stage='solution', evidence={}, decisions=[]),
+        record(3, 'advance', 'solution', minute=10, session=session, from_stage='solution',
+               to_stage='tdd', decisions=[],
+               evidence=dict(mode='code',
+                             slices=[dict(position=1, name='One', points=1, files=['a'], red='x'),
+                                     dict(name='Two', points=2, files=['b'], red='y')])),
+        # The planning window: 10,000 tokens spent before any slice was worked.
+        handoff(4, 14, done=0, position=1, output=10000),
+        check(5, 16, 'red', 1),
+        # A compaction inside slice 1, which no session declared: done=0, so it
+        # keys no window, and the 20,000 it carries are slice 1's own spending.
+        handoff(6, 17, done=0, position=1, output=30000, auto=True),
+        check(7, 18, 'green', 0),
+        handoff(8, 20, done=1, position=2, output=50000),
+        check(9, 30, 'red', 1),
+        # A compaction inside slice 2, carrying the done=1 current_slice infers
+        # from a proved slice 1: the record that overwrites slice 1's window.
+        handoff(10, 31, done=1, position=2, output=58000, auto=True),
+        check(11, 32, 'green', 0),
+        handoff(12, 35, done=2, position=None, output=95000),
+        record(13, 'advance', 'tdd', minute=40, session=session, from_stage='tdd',
+               to_stage='review', decisions=[],
+               figures=dict(session=session, output_tokens=95000, tool_calls=40),
+               evidence=dict(mode='code',
+                             slices=[dict(position=1, red=5, green=7), dict(red=9, green=11)])),
+    ]
+
+
+class CompactionWindowTest(DeliveryWalk):
+    """F3 of SEEN-106's review: a compaction is not a slice boundary.
+
+    A pack written by a compaction says where the work stands, which is what the
+    pack is for; it does not say a slice ended. Reading it as a boundary keys a
+    window a session already keyed and overwrites that slice's figures with a
+    fragment of the next slice's spending, and a compaction inside the first
+    slice moves the open cursor so that slice is charged only what came after it.
+    Those figures are what SEEN-109's calibration decides the routes on.
+    """
+
+    def windows(self):
+        return kpi.slice_windows(journal_with_a_compaction())
+
+    def test_slice_one_keeps_the_figures_of_the_boundary_a_session_declared(self):
+        """The declared boundary at record 8, not the compaction at record 10.
+
+        Overwritten, windows[1] reads 8,000 and closes at 10: the tokens spent
+        between the declared boundary and the compaction that interrupted slice 2.
+        """
+        window = self.windows()[1]
+        self.assertEqual(window['closed'], 8, 'the handoff that declared done=1 closed slice 1')
+        self.assertEqual(window['spent'], 40000)
+
+    def test_a_compaction_inside_a_slice_does_not_move_where_that_slice_opened(self):
+        """The open cursor stays where the declared boundary put it.
+
+        Slice 2 runs from record 8 to record 12 whatever happened in between, so
+        it costs 45,000 and not the 37,000 left after the compaction at record 10
+        has taken the first 8,000 of it away.
+        """
+        window = self.windows()[2]
+        self.assertEqual(window['opened'], 8)
+        self.assertEqual(window['spent'], 45000)
+
+    def test_no_window_is_keyed_by_a_record_a_compaction_wrote(self):
+        closed = {window['closed'] for window in self.windows().values()}
+        self.assertEqual(closed & {6, 10}, set(),
+                         'records 6 and 10 were written by a compaction, not by a session '
+                         'declaring a boundary')
+
+    def test_the_slice_figures_the_calibration_reads_carry_the_declared_window(self):
+        """output_tokens, cost_cents and routed_cost_cents per slice, which is
+        what SEEN-109 compares a route against."""
+        from harness import thresholds
+        records = journal_with_a_compaction()
+        records.append(route_record(14, 'aaaaaaaaaaaa', 11, [
+            dict(position=1, name='One', points=1, files=['a'], red='x',
+                 model='haiku', effort='low', source='jev', rule=None, reason=None,
+                 model_probability=0.7, effort_probability=0.6),
+            dict(position=2, name='Two', points=2, files=['b'], red='y',
+                 model='opus', effort='high', source='rule', rule='money',
+                 reason='b is money arithmetic', model_probability=None,
+                 effort_probability=None),
+        ]))
+        measured = kpi.measure(records, 'SEEN-001', points=3, rules=thresholds.load(PROJECT))
+        self.assertEqual([entry['output_tokens'] for entry in measured['execution']],
+                         [40000, 45000])
+        for entry in measured['execution']:
+            self.assertIsNotNone(entry['cost_cents'])
+            self.assertIsNotNone(entry['routed_cost_cents'])
+
+
 class StaleRouteTest(DeliveryWalk):
     """F2 of the fourth review: the KPI reads a route for the plan it routed.
 

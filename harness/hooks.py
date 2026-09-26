@@ -35,9 +35,9 @@ be a rule a hook invented, which is the one thing a hook must never be.
 `--client` rather than a subcommand per client because the envelope differs by
 client and not by event, which is the reason repowise-augment takes the same
 flag. Verified on codex-cli 0.156.1 on 26 September 2026: the binary carries a
-JSON Schema for every hook event's input and output, and `strings` on it prints
-all twenty-three, titled `pre-tool-use.command.input`,
-`session-start.command.output` and so on. They name the same payload fields
+JSON Schema for every hook event's input and output, twenty-three of them across
+the twelve events it names, and `strings` on it prints them all, titled
+`pre-tool-use.command.input`, `session-start.command.output` and so on. They name the same payload fields
 Claude Code documents and the same response envelope, `hookSpecificOutput` with
 `hookEventName` and `additionalContext`, `decision` with `reason`, and
 `systemMessage`; the subagent-stop and stop schemas say so outright, describing
@@ -45,13 +45,17 @@ Claude Code documents and the same response envelope, `hookSpecificOutput` with
 envelopes are one envelope here, and the client is validated rather than branched
 on: a typo in a generated command is a refusal instead of a silent success.
 
-Three things that verification does not reach. Whether Codex loads a
-project-level .codex/hooks.json at all is criterion 5 and only a real session
-settles it. What `tool_input` carries for an edit is opaque in the schema, so
-`paths_in` reads every shape either assistant is known to send and allows a
-payload it finds no path in. And the same schemas show Codex supports PreCompact
-and SubagentStop after all, which harness/hooks.json gives to Claude Code alone;
-that file is slice 1's and the correction belongs to whoever amends it.
+Twelve events there, six of them the harness's, and harness/hooks.json now gives
+all six to both clients: the same schemas show Codex supporting PreCompact and
+SubagentStop, so the withholding they were written under had a reason the journal
+itself disproved. F2 of this ticket's review.
+
+Two things that verification does not reach. Whether Codex loads a project-level
+.codex/hooks.json at all is criterion 5 and only a real session settles it, and it
+is now unsettled for six events rather than four. And what `tool_input` carries
+for an edit is opaque in the schema, so `paths_in` reads every shape either
+assistant is known to send and allows a payload it finds no path in, which is the
+same fail-open every handler here takes on a field it cannot read.
 """
 
 from collections import Counter
@@ -514,7 +518,18 @@ def _subagent_stop(repository, rules, payload, client):
     ticket, records = _ticket_in_hand(repository)
     if not records:
         return {}
-    found = review_in(payload.get('last_assistant_message') or '')
+    message = payload.get('last_assistant_message')
+    # An absent field and an answer with no record in it are two different
+    # things, and only the second is the reviewer's to fix. The Claude Code key
+    # is one this module's docstring admits is unverified, so a renamed or
+    # missing field must allow, the way paths_in, _agent_that_stopped and
+    # _pre_compact all allow on the same class of absence: refusing on it would
+    # tell every correct reviewer its answer carried no record and cost one whole
+    # extra review answer per review, which is the cost this hook exists to save.
+    # F4 of SEEN-106's review.
+    if not isinstance(message, str) or not message.strip():
+        return {}
+    found = review_in(message)
     if found is None:
         return _block('This review carries no JSON review record. Return the shape '
                       'harness/agents/seen-reviewer.md names, findings and verdict included, so '

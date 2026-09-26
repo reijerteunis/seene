@@ -181,9 +181,21 @@ def _closes(record, last, planned):
     An advance carrying no figures still closes its slice, with nothing spent:
     the boundary is where the work stopped, and a missing figure is an absence
     rather than a reason to let the window run on.
+
+    A pack a compaction wrote is not a boundary at all, and is no record here.
+    PreCompact writes one mid-slice, so its `done` is what `current_slice`
+    inferred at that moment and its figures are a fragment of the slice it
+    interrupted: read as a boundary it overwrites with that fragment the figures
+    of the boundary a session did declare, and a compaction inside the first
+    slice keys no window but still moves the open cursor, so that slice is
+    charged only what came after it. The pack's inference is right for the pack,
+    whose job is to say where the work stands; it is this reader that must know
+    which hand wrote it. F3 of SEEN-106's review, and the cause of F6.
     """
     data = record['data']
     if record['kind'] == 'handoff':
+        if data.get('auto'):
+            return None
         return (data.get('slice') or {}).get('done'), data.get('figures') or {}
     if record['kind'] == 'advance' and data.get('from_stage') == 'tdd':
         following = last + 1

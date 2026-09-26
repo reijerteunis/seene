@@ -1,0 +1,48 @@
+{
+  "sequence": 31,
+  "ticket": "SEEN-106",
+  "timestamp": "2026-09-26T11:21:47.355825+00:00",
+  "harness_version": "2",
+  "kind": "handoff",
+  "stage": "tdd",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "session": "90d87d9d4058",
+  "head": "53b3626d5d0afc092665d1e9de402ab39c92e84d",
+  "prev_hash": "a475acf714081b08e4076380866158de6931b049d9445cda2ea99b48529c45c2",
+  "data": {
+    "pack": ".harness-drafts/SEEN-106-handoff.md",
+    "sha256": "b3104da680ef2bc5265e7b4a8129b80698738c0001ab5d5e0e9ea889d6d6a6f3",
+    "estimated_tokens": 1103,
+    "token_limit": 2000,
+    "slice": {
+      "position": 2,
+      "total": 2,
+      "done": 1,
+      "declared": true,
+      "inferred": 1,
+      "entry": {
+        "name": "The measurement and the two fail-open repairs: F3, F4, F7 and F8",
+        "points": 2,
+        "files": [
+          "harness/kpi.py",
+          "harness/hooks.py",
+          "harness/tests/test_kpi.py",
+          "harness/tests/test_hooks.py",
+          "harness/tests/test_guard.py",
+          "harness/guard.py",
+          "harness/tests/helpers.py",
+          "CLAUDE.md"
+        ],
+        "red": "windows[1] holds the auto record's figures instead of the declared boundary's, with the two counts far enough apart to tell apart; a SubagentStop payload with no last_assistant_message blocks and the reason is quoted; and each of the guard's five rules fails separately through each assistant's payload rather than once through a shared helper."
+      }
+    },
+    "auto": false,
+    "figures": {
+      "session": "90d87d9d4058",
+      "output_tokens": 176695,
+      "tool_calls": 107,
+      "unavailable": null
+    }
+  }
+}

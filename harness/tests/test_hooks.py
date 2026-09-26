@@ -628,6 +628,87 @@ class PreToolUseTest(HookDispatchTest):
         self.hook('pre-tool-use', claude_edit_payload(self.root, 'apps/web/src/page.tsx'))
         self.assertEqual(len(self.records()), before)
 
+    # F7 of SEEN-106's review: criterion 2 asks for the refusals proven with
+    # hook-input fixtures for both assistants, and only the outside-slice rule
+    # above was reached through a payload. The stage rule, the branch rule and the
+    # two allowances are each driven through each assistant's own payload below,
+    # one test per rule: composition through _pre_tool_use is sound today, and it
+    # stops being sound the moment a payload shape carries something the guard
+    # should read beyond the path.
+
+    def test_it_refuses_code_before_tdd_through_each_assistant_s_payload(self):
+        """The stage rule: packages/ and apps/ are not written at clarify or
+        solution, whichever assistant asks to write them."""
+        self.start()
+        for stage in ('clarify', 'solution'):
+            if stage == 'solution':
+                self.submit('clarify', clarify_evidence())
+            for payload in (claude_edit_payload(self.root, 'packages/core/src/detectors.ts'),
+                            codex_patch_payload(self.root, 'packages/core/src/detectors.ts')):
+                with self.subTest(stage=stage, tool=payload['tool_name']):
+                    client = 'codex' if payload['tool_name'] == 'apply_patch' else 'claude'
+                    result = self.hook('pre-tool-use', payload, client)
+                    self.assertEqual(result.returncode, 2, NOTHING_ANSWERS + result.stderr)
+                    self.assertEqual(result.stdout, '', 'a refusal must not print an envelope')
+                    self.assertIn(stage, result.stderr)
+                    self.assertIn('packages/core/src/detectors.ts', result.stderr)
+
+    def test_it_refuses_an_edit_from_a_branch_that_is_not_the_ticket_s(self):
+        """The branch rule, through a payload: a harness file written from the
+        wrong branch is evidence recorded about the wrong ticket."""
+        self.at_tdd()
+        self.git('checkout', '-q', 'main')
+        for client, payload in (('claude', claude_edit_payload(self.root, 'harness/journal.py')),
+                                ('codex', codex_patch_payload(self.root, 'harness/journal.py'))):
+            with self.subTest(client=client):
+                result = self.hook('pre-tool-use', payload, client)
+                self.assertEqual(result.returncode, 2, NOTHING_ANSWERS + result.stderr)
+                self.assertIn('not a ticket branch', result.stderr)
+
+    def test_it_allows_the_ticket_file_through_each_assistant_s_payload(self):
+        """The first allowance: the ticket file is written at every stage.
+
+        At tdd rather than at clarify, so the allowance is what carries it: no
+        slice names the ticket file, and without rule 1 the outside-slice rule
+        would refuse the Outcome and the ticks every ticket has to write.
+        """
+        self.at_tdd()
+        for client, payload in (('claude', claude_edit_payload(self.root, self.ticket_file)),
+                                ('codex', codex_patch_payload(self.root, self.ticket_file))):
+            with self.subTest(client=client):
+                self.assertEqual(self.envelope('pre-tool-use', payload, client), {})
+
+    def test_it_allows_the_drafts_directory_through_each_assistant_s_payload(self):
+        """The second allowance: a session drafts its evidence before it submits
+        it, at every stage and whatever the slice names."""
+        self.at_tdd()
+        drafted = f'.harness-drafts/{self.ticket_id}-review.json'
+        for client, payload in (('claude', claude_edit_payload(self.root, drafted)),
+                                ('codex', codex_patch_payload(self.root, drafted))):
+            with self.subTest(client=client):
+                self.assertEqual(self.envelope('pre-tool-use', payload, client), {})
+
+    def test_a_rename_is_judged_on_both_of_its_sides(self):
+        """Which side of a rename the guard reads, which F7 found nothing asserted.
+
+        An apply_patch rename names the file it is updating and the place it is
+        moving to, so both are paths this edit is about: a rename out of the
+        slice's files writes somewhere the slice does not name, and a rename into
+        them reads a file the slice does not name. Either one alone would leave
+        half of every rename unguarded.
+        """
+        self.at_tdd()
+        inside, outside = 'harness/journal.py', 'apps/web/src/page.tsx'
+        for source, destination in ((inside, outside), (outside, inside)):
+            with self.subTest(source=source, destination=destination):
+                patch = (f'*** Begin Patch\n*** Update File: {source}\n'
+                         f'*** Move to: {destination}\n@@\n-old\n+new\n*** End Patch\n')
+                payload = dict(codex_patch_payload(self.root, source),
+                               tool_input=dict(command=['apply_patch', patch]))
+                result = self.hook('pre-tool-use', payload, 'codex')
+                self.assertEqual(result.returncode, 2, NOTHING_ANSWERS + result.stderr)
+                self.assertIn(outside, result.stderr)
+
 
 class PreCompactTest(HookDispatchTest):
     """The pack, written before the context that holds it is summarised."""
@@ -730,11 +811,43 @@ class SubagentStopTest(HookDispatchTest):
         self.assertEqual(envelope['decision'], 'block')
         self.assertIn('failure_scenario', envelope['reason'])
 
-    def test_it_blocks_an_answer_carrying_no_review_record_at_all(self):
+    def test_it_blocks_an_answer_that_carried_something_other_than_a_record(self):
+        """The refusal that survives F4: prose is an answer, and an answer with no
+        record in it is one the reviewer can and must fix."""
         self.at_tdd()
         envelope = self.envelope('subagent-stop',
                                  subagent_stop_payload(self.root, 'It all looks fine to me.'))
         self.assertEqual(envelope['decision'], 'block')
+        self.assertIn('no JSON review record', envelope['reason'])
+
+    def test_an_answer_with_no_last_assistant_message_at_all_is_allowed(self):
+        """F4 of SEEN-106's review: an absent field is an absence, not an answer.
+
+        The key's name on the Claude Code side is what a live session settles, and
+        every other handler in the module allows on that class of absence. A
+        handler that refused on it would tell every correct reviewer its answer
+        carried no record and cost a whole extra review answer per review, which
+        is the cost this hook exists to save. The fixture cannot catch this on its
+        own, because it supplies the very field under test.
+        """
+        payload = subagent_stop_payload(self.root, self.message())
+        del payload['last_assistant_message']
+        self.at_tdd()
+        envelope = self.envelope('subagent-stop', payload)
+        self.assertEqual(envelope, {}, 'an absent field says nothing at all')
+        self.assertFalse(self.draft().exists())
+
+    def test_a_last_assistant_message_that_is_not_a_string_is_allowed(self):
+        """Null under that key is the same absence as no key at all."""
+        self.at_tdd()
+        envelope = self.envelope('subagent-stop',
+                                 subagent_stop_payload(self.root, None))
+        self.assertEqual(envelope, {})
+
+    def test_an_empty_last_assistant_message_is_allowed(self):
+        self.at_tdd()
+        envelope = self.envelope('subagent-stop', subagent_stop_payload(self.root, '   \n'))
+        self.assertEqual(envelope, {})
 
     def test_a_review_with_no_findings_is_drafted_rather_than_blocked(self):
         self.at_tdd()
