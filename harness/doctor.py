@@ -11,7 +11,7 @@ import os
 import re
 import sys
 
-from . import agents, journal, secrets, skills
+from . import agents, hooks, journal, secrets, skills
 from .errors import HarnessError
 from .paths import (DRAFTS, HISTORY, LOCK, NON_CODE_TEMPLATE, TEMPLATES, TEMPLATE_FOR_STAGE,
                     THRESHOLDS)
@@ -150,6 +150,16 @@ def agent_problems(repository):
     return agents.drift(repository.root)
 
 
+def hook_file_problems(repository):
+    """The hook copies both assistants read, against the one file that makes them.
+
+    Named for the files rather than for the event, because `hook_problems` below
+    is about the git hook that scans a commit for credentials. Two unrelated
+    things called hooks in one repository is the collision CONTEXT.md exists for.
+    """
+    return hooks.drift(repository.root)
+
+
 def hook_problems(repository):
     """The pre-commit hook is the first place a credential is caught.
 
@@ -232,6 +242,7 @@ def report(repository, rules):
         'hooks': hook_problems(repository),
         'skill': skill_problems(repository),
         'agents': agent_problems(repository),
+        'hook_files': hook_file_problems(repository),
         'ticket_status': status_problems(repository),
         'marketplace_hosts': [f'{entry["path"]}:{entry["line"]} names {entry["host"]}'
                               for entry in secrets.marketplace_hosts(repository.root)],

@@ -284,13 +284,19 @@ def generated_paths():
 
     The Codex home copy is not here, because it lives outside the repository and
     can never be in a diff.
+
+    The two hook copies are here for the same reason as the rest, with one
+    difference a reviewer should know: neither is wholly generated, so what
+    `doctor` refuses is a hand edit to the entries the harness owns, and the
+    permissions block and another tool's entries in the same file are nobody's
+    generated output. A change there is a change to read.
     """
-    from . import agents, skills
+    from . import agents, hooks, skills
     paths = {str(relative) for relative in skills.COMMITTED}
     for agent in agents.AGENTS:
         paths.add(str(agents.claude_copy(agent)))
         paths.add(str(agents.codex_copy(agent)))
-    return paths
+    return paths | {str(relative) for relative in hooks.COPIES.values()}
 
 
 def procedure_paths(records, root=None):

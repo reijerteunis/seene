@@ -47,6 +47,12 @@ TICKETS = Path('docs/tickets')
 TEMPLATES = Path('harness/templates')
 # Thresholds and vocabularies. Fatal when missing: never silently defaulted.
 THRESHOLDS = Path('harness/thresholds.toml')
+# The lifecycle hooks: the one source, and the file each assistant reads them
+# from. Both copies hold entries the harness did not write, which is why
+# harness/hooks.py replaces the entries it owns rather than the file.
+HOOK_SOURCE = Path('harness/hooks.json')
+CLAUDE_SETTINGS = Path('.claude/settings.json')
+CODEX_HOOKS = Path('.codex/hooks.json')
 # Where the last delivered coverage figure is kept, so a delta has something to
 # compare against. Written by delivery, so it sits outside the fingerprint for
 # the same reason the journal does.
