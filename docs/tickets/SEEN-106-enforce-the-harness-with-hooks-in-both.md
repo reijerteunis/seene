@@ -38,9 +38,11 @@ The skill tells a session what to do; a hook makes the assistant unable to do ot
 
 ## Outcome
 
-Delivered across two attempts. Attempt 1 built the three pieces, attempt 2 fixed the eight
-findings its review returned. Four of the five criteria are met on recorded evidence; the fifth
-needs a live Codex session and is the reason this ticket is still at review.
+Delivered across five attempts. Attempt 1 built the three pieces, attempt 2 fixed the eight
+findings its review returned, and attempts 3 to 5 carried the split and two corrections to the
+evidence. All four of this ticket's criteria are met on recorded evidence. A fifth criterion
+asked what a live Codex session does and is SEEN-110's first by the amendment below, so this
+ticket neither claims it nor waits on it.
 
 `harness/hooks.json` is the one source for six lifecycle events. `harness/hooks.py` renders each
 assistant's entries from it, merges them into `.claude/settings.json` and `.codex/hooks.json`,
