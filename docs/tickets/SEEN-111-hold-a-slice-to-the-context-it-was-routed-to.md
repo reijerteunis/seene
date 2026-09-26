@@ -110,8 +110,14 @@ is where it stands today at two of ten, so the first thing this criterion did wa
 
 **The quiet check.** `harness check --quiet` returns the exit code, the size counts and the last
 twenty lines instead of the whole transcript, built from a copy after the record is written, so the
-journal file is byte for byte what it would have been. This ticket's own regression at record 22 is
-the first use: 1,072 tests, 1,272 bytes back to the caller.
+journal file is byte for byte what it would have been. This ticket's own regression at record 22 was
+run with it, and it saved nothing: 1,072 tests produced 17 lines and 1,272 bytes, because the
+command already carried pytest's own `-q`, and seventeen lines is under the twenty the tail keeps.
+The record on disk holds that output in full and carries no `output_omitted`, which is the criterion
+working rather than the flag failing to fire, and it is worth saying because the review read that
+same record as evidence the flag had never been passed. What the caller got back is the only place
+the flag is visible, and on a run this small it was the same thing. The flag earns its keep on a
+verbose or failing run, which is the case SEEN-110 hit three times and this ticket did not.
 
 **Why nothing refuses on the budget, recorded here so it is not rediscovered.** Not an oversight and
 not a thing left for later. The threshold's own comment says only the person at the keyboard can end
