@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-104, SEEN-105, SEEN-108]
-status: review
+status: done
 ---
 # SEEN-111: Hold a slice to the context it was routed to, and price it before it is worked
 
@@ -23,7 +23,7 @@ status: review
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | review |
+| Status | done |
 
 ## Description
 
