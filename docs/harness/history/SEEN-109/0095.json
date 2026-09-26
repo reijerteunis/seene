@@ -1,0 +1,162 @@
+{
+  "sequence": 95,
+  "ticket": "SEEN-109",
+  "timestamp": "2026-09-26T00:36:02.294850+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "review",
+  "attempt": 9,
+  "actor": "claude:implementer",
+  "session": "343d37550220",
+  "head": "adfae68fe8a51652f0c0f80d4128655e834a2db2",
+  "prev_hash": "5885f6218ed6d02cb3ee9d34f221725306bca15ff277c113f8dc5082ee57616e",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "deliver",
+    "evidence": {
+      "reviewer": "claude:reviewer",
+      "independence": "self-review",
+      "read": [
+        ".agents/skills/seen-harness/SKILL.md",
+        ".claude/agents/seen-reviewer.md",
+        ".claude/skills/seen-harness/SKILL.md",
+        ".codex/agents/seen-reviewer.toml",
+        "CLAUDE.md",
+        "docs/harness/history/SEEN-109/",
+        "docs/harness/reports/calibration.json",
+        "docs/harness/reports/calibration.md",
+        "docs/harness/skill.md",
+        "docs/harness/workflow.md",
+        "docs/tickets/SEEN-109-calibrate-the-review-triage-and-the-routes-on.md",
+        "harness/agents/seen-reviewer.md",
+        "harness/calibration.py",
+        "harness/cli.py",
+        "harness/delivery.py",
+        "harness/doctor.py",
+        "harness/gates.py",
+        "harness/kpi.py",
+        "harness/paths.py",
+        "harness/report.py",
+        "harness/repository.py",
+        "harness/tests/test_calibration.py",
+        "harness/tests/test_context_budget.py",
+        "harness/tests/test_delivery.py",
+        "harness/tests/test_doctor.py",
+        "harness/tests/test_triage.py",
+        "harness/thresholds.py",
+        "harness/thresholds.toml",
+        "harness/triage.py"
+      ],
+      "acceptance_evidence": [
+        "Criterion 1, [calibration] with the window, the escape definition and both go-live rules, committed before the first triage record it counts (as amended): clarify record 4 carries the amendment as decision 1, on the rule SEEN-098 wrote for itself; tdd record 15 slice 1, RED 7, GREEN 8. The reviewer verified counted_from against the commit that added the section and checked that all eight keys are fatal when missing.",
+        "Criterion 2, report --calibration shows per ticket the findings by severity, the files the triage would have excluded and the escapes, and per slice the recorded route against the returns and findings that followed: tdd record 15 slice 2, RED 10, GREEN 11. The reviewer re-rendered the report over the real journals and found the committed file byte-identical, so nothing went stale across nine attempts.",
+        "Criterion 3, the report states go-live or stay-shadow for the triage and the routes separately by the rule, and names the founder's decision: verdict_triage and verdict_routes, tested at nine, ten, ten-with-an-escape and an escape aged out, and at both route rates. The decision is [calibration] went_live naming a ticket and a record, which effective_shadow and doctor both check exists.",
+        "Criterion 4, an escape after go-live returns the triage to shadow automatically and the weekly report says so: effective_shadow, which triage.run reads instead of the threshold, returns to shadow on an escape or on evidence nobody can place; the triage record carries shadow_source and shadow_reason, and the weekly report carries the line. RED 19, GREEN 20 for the escape branch the first review found untested.",
+        "Attempt 9 answers no criterion: it withdraws attempt 8, which answered none either, and restores the guarantee that a receipt attests the tree the review read. The reviewer confirmed nothing the four criteria rest on is in its diff."
+      ],
+      "findings": [
+        {
+          "id": "F1",
+          "severity": "medium",
+          "file": "docs/tickets/SEEN-109-calibrate-the-review-triage-and-the-routes-on.md:102",
+          "claim": "The Outcome discloses six of the seven files slice_files fails on, omitting harness/tests/test_delivery.py, and both counts around the list are wrong, at the fifth attempt running that this paragraph has been wrong.",
+          "failure_scenario": "A reader auditing the one failing deterministic check finds harness/tests/test_delivery.py nowhere in the ticket, and so cannot tell an undisclosed change to a delivery fixture from a disclosed one.",
+          "status": "resolved",
+          "resolution": "The paragraph carries no list. The reviewer's own conclusion is the fix: a hand-copied list of a machine-generated list goes stale between the copy and the commit, so the slice_files check of the last triage record is the authority for which files, and the paragraph says why each is in the change. harness/tests/test_delivery.py is among the reasons given."
+        },
+        {
+          "id": "F2",
+          "severity": "low",
+          "file": "harness/delivery.py:30",
+          "claim": "Nothing pins the sentence delivery's refusal was extended with, nor doctor's new message, so the one place the harness tells a session how to meet the wall can be deleted green.",
+          "failure_scenario": "An edit that trims either message leaves the suite passing, and the next session to meet the wall reads only \"return the ticket to the stage that owns it\", which is the advice that cost this ticket a return and a second review.",
+          "status": "resolved",
+          "resolution": "TheOrderIsPrintedWhereItIsMetTest holds both messages, and it was checked by trimming doctor's message and watching it fail rather than by assuming it discriminates. The test was written after the reviewing context read the tree; it asserts two literal strings and nothing else, and the ticket says so."
+        },
+        {
+          "id": "F3",
+          "severity": "low",
+          "file": "docs/harness/workflow.md:176",
+          "claim": "The workflow names two of the three reasons the relaxation was withdrawn while promising three, dropping the renamed-ticket case.",
+          "failure_scenario": "A founder opening the follow-up ticket from the workflow designs the content pin and the frontmatter scoping and ships the exception again with the rename hole intact.",
+          "status": "resolved",
+          "resolution": "All three are named, the renamed ticket included, with SEEN-096 and SEEN-101 beside it as the evidence that a rename mid-ticket is ordinary."
+        }
+      ],
+      "checks": [
+        "Nine review rounds, each from a seen-reviewer subagent spawned on opus with the triage record's task text and nothing else, in a context that had not written the code. Disclosed as self-review all the same: a Claude Code subagent inherits its parent session id, so the only reviewer_session this record could name truthfully is the session that wrote the work. Notes 17, 25, 36, 46, 56, 65, 83 and this record carry the rounds; records 47, 57, 66 and 84 carry their findings structurally.",
+        "The withdrawal of attempt 8 is complete, checked against the commit that made it rather than by reading the file: the diff of harness/gates.py against its pre-attempt-8 state is empty, harness/delivery.py differs from main in the refusal message alone, the import that only the withdrawn helpers needed is gone, and the only surviving mention of the withdrawn flag is the assertion that forbids it.",
+        "The four restored tests hold the guarantee in both directions, and the two that discriminate are the two the RED at record 85 recorded. walk_to_deliver gained a parameter that is off by default, so every existing delivery and merge test walks the identical path.",
+        "fingerprint (fail): judged rather than assumed. Check 88's recorded fingerprint is exactly the tree of the revert commit, and rebuilding the entry map for that tree and for this one, the only fingerprinted path that moved is this ticket file. What moved is the procedure writing its own Outcome, status and ticks, which the order now requires; note 86 carries the same analysis for records 74 and 82, and the fix, a narrower comparison, is written there for the founder rather than made here.",
+        "slice_files (fail): seven files the plan did not name, every one forced by an earlier review or by the change propagating into a fixture, and the ticket says why each is there. The authority for which files is the check itself, which is F1's resolution.",
+        "pull_request (unavailable): gh could not answer at triage; verify-merge checks the receipt hash in the body.",
+        "red_before_green: record 90's stated failure reasons match record 85's output line for line, for both behaviours. The one attempt where that was overstated is record 81, disowned in note 86, and slice 1's second predicted RED is disowned in note 28.",
+        "tests_added: the restored guarantee has four tests in a class of its own, and the two messages have a test that fails when either is trimmed.",
+        "acceptance_entries: each of the four criteria has a clarify check that names its evidence, matched one to one rather than counted.",
+        "The four documents and the two messages describe one rule: CLAUDE.md rule 3, the skill, the workflow and doctor's message and its comment all say the Outcome, the status and the ticks go in before the review advance because a receipt attests the tree the review read, and delivery's refusal says the same. ADR 0002 is untouched and true again, which is what withdrawing the exception buys.",
+        "Ground rules, checked by codepoint: no euro sign, no em dash or en dash, no browser automation, no live marketplace host, no table, no credential, no buyer PII, no agent action, no euro arithmetic. British spelling throughout. The change is confined to harness/ and docs/ plus CLAUDE.md.",
+        "What the window will read from this round: the triage would have excluded nothing, so the narrowing would have saved nothing and no finding could have escaped it. The ticket is excluded from the window by name in any case."
+      ],
+      "security_checklist": [
+        "No credential or environment value can enter a record or a report: report.write refuses one through secrets.leaked and the calibration report goes through it. Checked over the whole diff.",
+        "No tenant table, no RLS policy and no migration: the change is confined to harness/, docs/ and CLAUDE.md, and the solution record answers tenant_tables as none.",
+        "No buyer PII is read, written or persisted.",
+        "No agent action is added or altered, so no policy gate decision and no audit event: the ticket's frontmatter and the clarify record both say changes_agent_action is false.",
+        "No marketplace is called and none is named in code: doctor's marketplace_hosts check is green.",
+        "No new dependency: the change imports only the standard library and modules already in harness/.",
+        "File reading is confined to docs/harness/history and docs/tickets under the repository root, and a journal that refuses to be read is excluded and named rather than raised, so a fault in one ticket's journal cannot block another ticket's review.",
+        "What a receipt attests is unchanged from main: attempt 8 widened it and attempt 9 withdrew that, which the ninth review verified against the commit rather than the file."
+      ],
+      "verdict": "pass",
+      "tree": "3a53e3fe5f8dd06600450850739d3166f1e22920b275af5b919d75e169e54b42"
+    },
+    "decisions": [
+      {
+        "key": "severity",
+        "question": "severity",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high",
+          "blocking"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "medium",
+        "probabilities": {
+          "low": 0.08,
+          "medium": 0.48,
+          "high": 0.18,
+          "blocking": 0.26
+        },
+        "confidence": 0.22,
+        "score": 1.62,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      },
+      {
+        "key": "must_fix",
+        "question": "must_fix",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.34,
+          "no": 0.66
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.7,
+        "passed": false,
+        "fallback_reason": null
+      }
+    ]
+  }
+}
