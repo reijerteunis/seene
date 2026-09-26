@@ -132,14 +132,16 @@ the journal rather than an argument. This section says nothing at all about how 
 review the ticket took, neither a count nor a comparison, for the reason the next paragraph
 explains.
 
-One last thing, because it is what this ticket mostly spent itself on. F9, F10, F11, F12, F13, F16
-and F17 are all one defect in this section's account of its own review history, and not one of
-them touched the built behaviour. Some were introduced by the fix for the one before. What that established is general rather than particular to this ticket, so it
-is written down where it applies to every ticket:
+One last thing, because it is what this ticket mostly spent itself on. This section's account of
+its own review history was returned again and again for one class of defect, while the built
+behaviour it describes stayed green throughout. What that established is general rather than
+particular to this ticket, so it is written down where it applies to every ticket:
 [docs/adr/0004-an-outcome-cannot-count-its-own-review-rounds.md](../adr/0004-an-outcome-cannot-count-its-own-review-rounds.md).
 This section therefore says nothing about how many attempts, returns or review rounds the ticket
-took, and nothing comparing them with any other ticket's. `docs/harness/history/SEEN-106/` is where
-those are correct by construction.
+took, nothing comparing them with any other ticket's, and no list of which findings there were:
+an enumeration of instances is falsifiable by one more instance, which is the same defect wearing
+a list. `docs/harness/history/SEEN-106/` holds the findings and the rounds, and is the only place
+they are correct by construction.
 
 One thing in that account cannot be repaired and is named rather than hidden. The journal record
 written to prove the ordinal fix, record 66, narrates this ticket's history in attempt ordinals and
