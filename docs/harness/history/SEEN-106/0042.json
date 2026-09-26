@@ -1,0 +1,16 @@
+{
+  "sequence": 42,
+  "ticket": "SEEN-106",
+  "timestamp": "2026-09-26T13:06:40.924108+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "solution",
+  "attempt": 5,
+  "actor": "claude:implementer",
+  "session": "90d87d9d4058",
+  "head": "8554c2d1e59c40d2c86bc61e1c14784101e095e3",
+  "prev_hash": "acfe8dd5fd5464ee182c3aabac2e9f11cb147f631cfe5dcf652ce957e26a591d",
+  "data": {
+    "text": "# Two readings of the fourth attempt's solution record, and why it stops here\n\n| Reading | What the record carried | Score |\n|---|---|---|\n| 1 | Non-code mode, sixteen changes entries covering both attempts, four alternatives, three risks, the rollback | 0.54 |\n| 2 | Plus record 41, closing the three things the first reading left open: which question `mode` and `changes` each answer, what this attempt's own evidence is, and that the ordering is caught by the triage rather than enforced by anything | 0.55 |\n\nOne hundredth for three real resolutions. That is the signature SEEN-100 measured and SEEN-104\nrecorded against `clarified`, now seen against `solution_complete`: a longer record reading as a\nless certain one. SEEN-104's own table moved 0.01 the wrong way for four resolutions and\nconcluded that the remaining distance was not a question the record could answer by growing.\n\nThe honest reading here is not only that signature. The score may simply be right. A solution\nrecord whose attempt corrects a list and then waits for a person is a weak solution record,\nbecause there is almost no work in it, and a gate that scores it low is not obviously wrong to.\nThe defect it fixes is real and small; the thing that keeps the ticket open is not in the record's\ngift at all.\n\nSo this stops rather than grows, and the choice is Ruud's, with both options recorded rather than\none taken quietly:\n\n- **Override.** `python3 harness/run.py decide SEEN-106 --question solution_complete --answer yes\n  --confidence <0-1> --actor human:implementer`, with the reason written down, which is what\n  SEEN-100 did at 0.77 on its sixth reading. Appropriate if the amendment is agreed to be as\n  small as it looks.\n- **Split.** Close SEEN-106 at what is proven, four criteria and ten checks, and open a follow-up\n  for criterion 5's Codex verification plus the two improvements this attempt declined as scope:\n  the tdd gate refusing a regression whose tree has moved, and `CLAUDE.md`'s four other missing\n  commands. That is what SEEN-089 did at 0.49 and SEEN-096 did three ways, and it is the option\n  the fourth attempt is itself evidence for.\n\nWhat is not an option is a third reading with more prose in it. Three sessions of this epic have\nnow measured what that buys and the answer each time was a hundredth.\n\nWritten at the solution stage of attempt 4, before either was chosen.\n"
+  }
+}
