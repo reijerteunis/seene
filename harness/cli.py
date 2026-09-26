@@ -119,6 +119,10 @@ def build_parser():
                             'proof, because a Claude Code subagent inherits its parent\'s '
                             'session id and the log cannot say it either')
     check.add_argument('--timeout', type=int, help='Seconds before the command is stopped')
+    check.add_argument('--quiet', action='store_true',
+                       help='Return the exit code, the size counts and a tail of the output '
+                            'instead of the whole transcript. The journal record is unchanged: '
+                            'this only shapes what comes back to the caller, not what is written')
 
     advance = ticket_command('advance', 'Pass the current stage gate with completed evidence')
     advance.add_argument('--file', required=True, help='Completed stage evidence JSON')
@@ -673,7 +677,30 @@ def check(repository, folder, records, args, current, rules):
             f'Recorded as check {record["sequence"]}, but this RED did not fail: the command exited '
             f'{evidence["exit_code"]}. A RED is a test failing for the reason the solution record '
             'predicted, not a command that passed, timed out or could not start')
+    if getattr(args, 'quiet', False):
+        return _quiet_payload(record, limits['quiet_tail_lines'])
     return record
+
+
+def _quiet_payload(record, tail_lines):
+    """What `--quiet` hands back to the caller, in place of the whole transcript.
+
+    The journal file is already written by the time this runs, over the record
+    exactly as `journal.append` returned it, so the evidence on disk is byte for
+    byte what it would have been without the flag. This builds a fresh dict for
+    the caller instead: `record['data']` is never mutated in place, because a
+    later reader of that same dict must still see what was recorded, and the
+    caller only gets the exit code, the size counts and a tail of the output,
+    for a regression whose passing transcript nobody needs back.
+    """
+    output = record['data']['output']
+    lines = output.splitlines()
+    data = {key: value for key, value in record['data'].items() if key != 'output'}
+    data.update(output_omitted=True,
+                output_lines=len(lines),
+                output_bytes=len(output.encode()),
+                output_tail='\n'.join(lines[-tail_lines:]))
+    return {**record, 'data': data}
 
 
 def route_slices(repository, folder, records, args, current, rules):

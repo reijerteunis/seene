@@ -1,0 +1,33 @@
+{
+  "sequence": 20,
+  "ticket": "SEEN-111",
+  "timestamp": "2026-09-26T21:43:58.818453+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "ed286b2c2c3a",
+  "head": "d552ea71f991c63a37c1133e4b55928cfcbfbf61",
+  "prev_hash": "bae70a2ce0ee0e3865df73bebe2ff1ce88dc298f2c06f5281fd7322feceb50cd",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "pytest",
+      "harness/tests/test_session_cap.py",
+      "-q"
+    ],
+    "phase": "green",
+    "exit_code": 0,
+    "model": "claude-opus-5",
+    "model_declared": "sonnet",
+    "agent_declared": "seen-implementer",
+    "duration_ms": 13128,
+    "output": "...............................................................          [100%]\n63 passed in 12.97s\n",
+    "output_sha256": "ee03050a7032d5fbe6c3d23c508125a9856a5013335d7bb715326e854c930390",
+    "output_truncated": false,
+    "before": "12e5cb41a57ebbcc36253d2d7416b9f4e8f2c2a7baa77c2ae6686933b41ed3b4",
+    "after": "12e5cb41a57ebbcc36253d2d7416b9f4e8f2c2a7baa77c2ae6686933b41ed3b4"
+  }
+}

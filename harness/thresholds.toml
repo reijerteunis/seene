@@ -28,6 +28,12 @@ phases = ["red", "green", "regression", "qa"]
 default_timeout_seconds = 600
 maximum_timeout_seconds = 3600
 output_limit_bytes = 65536
+# How much of a --quiet check's captured output still reaches the caller, so a
+# passing regression's summary line comes back rather than nothing at all. Twenty,
+# because a pytest tail of that length holds the summary and the last few test
+# names; the journal keeps the whole transcript regardless. SEEN-111's own
+# 1,067-test regression is what made the flag worth having.
+quiet_tail_lines = 20
 
 [review]
 severities = ["low", "medium", "high", "blocking"]

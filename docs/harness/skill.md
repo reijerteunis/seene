@@ -77,6 +77,18 @@ subagent inherits its parent's session id, so the log cannot tell you what an im
 it declares it with `harness check --model <tier>`, which the spawn instruction spells out and the
 gate compares first.
 
+**And the delegation is declared too.** A check says which agent ran it, `harness check --agent
+<name>`, beside the tier it already declares, and with `[routing] shadow` off the tdd gate refuses a
+slice whose cited RED and GREEN both declare nothing: that is a slice worked in the orchestrating
+session's own context, and the refusal names the slice, the route record and the two checks. One of
+the two declaring an agent is a delegated slice and is not refused. The name is checked against
+`[agents] names` and nothing further, because nothing further can be checked. SEEN-111 spawned a
+scout and read the logs: a Claude Code subagent's transcript lands in
+`<session>/subagents/agent-*.jsonl`, carrying `isSidechain` true and the parent's own `sessionId`.
+The inherited id is real, the digest on a record cannot tell a subagent's check from its parent's,
+and `--agent` is a disclosure exactly as `--model` is. Declare it only for work a subagent did: a
+disclosure typed by the party that did not do the work is the one thing it must never carry.
+
 **One ticket, one branch.** Every writing command refuses unless the branch is `claude/<ticket>-…` or
 `codex/<ticket>-…`, and refuses on `main`. Drifting onto another branch mid-ticket records evidence
 about a tree that belongs to different work.
@@ -113,7 +125,18 @@ the review, which has to hold the diff, the journal and the criteria at once,
 and the slice itself. Each has a context of its own. The implementer is the one
 agent that holds Edit and Write, and the one whose model and effort are not its
 own: they are the route's, and they reach it through the spawn instruction the route record
-carries rather than through its generated copies, which do not vary by slice.
+carries rather than through its generated copies, which do not vary by slice. It says both on every
+check it records, `--model <tier>` and `--agent seen-implementer`, which is the only place either
+fact exists to be read.
+
+They buy context and not wall clock. The tdd gate orders every RED after the previous slice's GREEN,
+in one line at `harness/gates.py:258`:
+
+    require(previous_green < red['sequence'] < green['sequence'] <= regression['sequence'], ...)
+
+so slice 2's RED cannot be recorded until slice 1's GREEN is. Whether to relax that for slices on
+disjoint files is an open question and not one SEEN-111 answered: no plan yet has had two slices
+anybody wanted concurrent.
 
 | Agent | What it is for | What comes back |
 |---|---|---|
@@ -226,6 +249,22 @@ The budget is 60,000 output tokens a session and 2,000 tokens of handoff pack, b
 `harness/thresholds.toml`. Read the ticket file and the pack, and the records the pack names; a
 session that opens a module the slice does not touch has already spent what the cap was protecting.
 
+`harness budget` reports the session's own spending and each subagent's apart from it, named from
+the meta file Claude Code writes beside each transcript. It reads them apart rather than together
+because they are apart: a subagent's tokens are in `<session>/subagents/agent-*.jsonl` and the
+parent's are in `<session>.jsonl`, and nothing before SEEN-111 read the first of those at all, which
+is why delegating a slice used to leave the figure unmoved. It still refuses nothing.
+
+Two things spend that budget faster than anything the rules above cover, and both now have an
+answer. The solution gate carries a forecast of what a plan of this shape has cost, read from the
+delivered `kpi.json` records rather than from the plan's points, with the split named when the
+median delivered slice is over the budget; below `[calibration] window` delivered tickets it reports
+an absence with the counts and no figure, which is where it stands today. And `harness check
+--quiet` hands back the exit code, the size counts and the tail rather than the whole transcript,
+while the journal keeps everything it kept before: the regression here is over a thousand tests, and
+a session that reads all of it three times has spent its slice on output it already knows the shape
+of.
+
 Whether they pay for the context they occupy is measured, not assumed: `harness report --sprint <n>`
 carries output tokens and tool calls per point, and output tokens per slice beside them, against the
 baseline captured before any of them existed, with the rule for reading it written in
@@ -234,7 +273,9 @@ baseline captured before any of them existed, with the rule for reading it writt
 ## What the harness will refuse
 
 A RED that did not fail. A finding at high or blocking severity that names no file. A
-check recorded under a model the route did not choose, once `[routing] shadow` is off. A slice citing a check from another attempt. A solution record with no slice
+check recorded under a model the route did not choose, and a slice whose RED and GREEN were both
+recorded in the orchestrating session's own context, once `[routing] shadow` is off. An agent
+declared on a check that is not one of `[agents] names`. A slice citing a check from another attempt. A solution record with no slice
 plan, a slice over 2 points or a plan over 4. Coverage that fell. A record or a handoff pack carrying
 the value of an environment variable. A delivery whose checks are not green on the commit it
 attests. A merge where anything but the journal, the reports, the coverage baseline or the graph

@@ -343,6 +343,51 @@ class DeclaredSliceTest(AtTddTest):
         self.assertIn('Slice 3', self.pack_file().read_text())
 
 
+class QuietCheckTest(AtTddTest):
+    """`harness check --quiet`: what the caller gets back, and what the journal still holds.
+
+    SEEN-111's own regression is 1,067 tests; SEEN-110 ran one three times with the
+    whole transcript coming back to the caller each time. The flag changes what a
+    check returns and nothing about what it records.
+    """
+
+    def script(self, exit_code=0):
+        script = self.root / 'quiet.sh'
+        script.write_text(f'#!/bin/sh\necho hello\nexit {exit_code}\n')
+        script.chmod(0o755)
+        return script
+
+    def check(self, quiet):
+        args = ['check', self.ticket_id, '--phase', 'green', '--actor', 'claude:implementer']
+        if quiet:
+            args.append('--quiet')
+        args += ['--', str(self.script())]
+        return self.run_harness(*args)
+
+    def test_quiet_drops_the_output_but_keeps_the_exit_code_and_the_counts(self):
+        answer = self.check(quiet=True)
+        data = answer['data']
+        self.assertNotIn('output', data)
+        self.assertEqual(data['exit_code'], 0)
+        self.assertIn('output_lines', data)
+        self.assertIn('output_bytes', data)
+        self.assertIn('output_tail', data)
+
+    def test_the_journal_record_is_the_same_with_or_without_the_flag(self):
+        self.check(quiet=False)
+        self.check(quiet=True)
+        loud, quiet = self.records()[-2], self.records()[-1]
+        for key in ('kind', 'stage', 'attempt', 'actor', 'session', 'head', 'ticket'):
+            self.assertEqual(loud[key], quiet[key])
+        self.assertIn('output', quiet['data'])
+        # duration_ms is real elapsed time and is the one field two separate runs
+        # of the same script are not bound to agree on; everything else, output
+        # included, must be identical.
+        loud_data = {key: value for key, value in loud['data'].items() if key != 'duration_ms'}
+        quiet_data = {key: value for key, value in quiet['data'].items() if key != 'duration_ms'}
+        self.assertEqual(loud_data, quiet_data)
+
+
 class PackEdgesTest(AtTddTest):
     """Three things the first packs written in anger got wrong."""
 
