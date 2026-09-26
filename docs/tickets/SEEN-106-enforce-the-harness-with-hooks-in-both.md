@@ -118,7 +118,7 @@ The second review's triage found two more, both about the evidence rather than t
 made by the attempt that fixed the first eight. `slice_files` failed naming `.gitignore`,
 `harness/cli.py`, `harness/doctor.py`, `harness/handoff.py` and `harness/paths.py`, because the
 amended solution record named only what its own attempt touched: fixing F5 by amending the plan
-reproduced F5's symptom one level up, and the fourth attempt's record carries a changes list
+reproduced F5's symptom one level up, and record 44's solution record carries a changes list
 covering the whole ticket. And `fingerprint` failed because regression check 34 ran against
 `77c51dfa2a32` while the triage read `a8c161993dcf`: the Outcome was written after the regression
 and the ticket file is inside the fingerprint, so the tests that passed were not the tests for
@@ -139,9 +139,18 @@ amendment moves things by definition. What finally fixed it was deriving the fig
 journal instead of restating them, which is the same discipline the harness applies to every
 other number it reports.
 
+A fourth review then found the gap that discipline still left. The counts were derived and
+correct, but the attributions were not: three sentences placed the split at "the fourth
+attempt's solution stage", and the journal's own `attempt` field puts records 41 to 44 at
+attempt 5, while attempt 4 is records 39 and 40, a handoff and a return with no solution stage
+at all. An audit that checked counts and not attributions could not see it. Both now cite record
+numbers rather than attempt ordinals, because a record number is an identifier the journal fixes
+and an attempt ordinal is something a reader has to reconstruct and a writer can get wrong four
+times running.
+
 ## Amendments
 
-**26 September 2026, at the fourth attempt's solution stage: the fifth criterion moved to
+**26 September 2026, at record 44's solution stage: the fifth criterion moved to
 [SEEN-110](SEEN-110-verify-the-hooks-in-a-codex-session-and-close.md).**
 
 The criterion read: "The hooks run in a Codex session: /hooks lists them and a blocked edit is
@@ -161,7 +170,7 @@ SEEN-100 measured and SEEN-104 tabulated. Ruud chose the split over an override 
 2026; both options were recorded at record 42 before either was taken.
 
 What moved with it: the `.agents/settings.json` question the clarify record attached to the same
-criterion, and the two improvements the fourth attempt declined as scope in writing rather than by
+criterion, and the two improvements record 44 declined as scope in writing rather than by
 omission, which are the tdd gate refusing a regression whose tree has moved and `CLAUDE.md`'s
 four other missing commands.
 

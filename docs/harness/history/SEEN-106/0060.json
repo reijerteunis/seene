@@ -1,0 +1,32 @@
+{
+  "sequence": 60,
+  "ticket": "SEEN-106",
+  "timestamp": "2026-09-26T13:57:27.688536+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 7,
+  "actor": "claude:reviewer",
+  "session": "90d87d9d4058",
+  "head": "ad70c1300145020add68f6a9bab947e0992119ae",
+  "prev_hash": "5201a4a31ec1464201b3b1a6933964ed62d1435d634a949b4d1baf3320b1e4a1",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 8,
+    "reason": "The sixth review returned verdict pass with one medium finding, the third instance of the class F9 and F10 belonged to: a summary in the Outcome carrying counts that went stale when the split moved what they summarised. Fixed by deriving every figure from the journal rather than restating it, and by re-auditing every count claim in the file programmatically rather than by eye. The fix moved the tree, so this returns to tdd rather than advancing on a fingerprint the reviewer never read, exactly as record 56 did.",
+    "findings": [
+      {
+        "id": "F11",
+        "severity": "medium",
+        "file": "docs/tickets/SEEN-106-enforce-the-harness-with-hooks-in-both.md:129",
+        "claim": "Reported as F1 by the sixth review and renumbered here, because F1 is already this ticket's fingerprint finding. The Outcome's closing paragraph said 'two attempts, eight points planned, nine mechanisms behind five criteria', contradicting the same section's 'All four of this ticket's criteria are met' four lines above, and the opening paragraph's 'attempts 3 to 5' omitted the attempt that wrote the sentence.",
+        "failure_scenario": "A reader, or SEEN-109's calibration reading attempt and effort figures out of tickets, takes the ticket's own closing note at face value and records SEEN-106 as a two-attempt, five-criterion ticket, undercounting the rework roughly threefold and miscounting the criteria against the amendment two paragraphs above it in the same file.",
+        "status": "fixed",
+        "resolution": "The third instance of one class, after F9 and F10. Fixed by deriving the figures from the journal instead of restating them: seven attempts, six returns, 59 records, three code attempts and four after them, and 'what began as five criteria'. The heading that counted attempts was reworded, and the Outcome now names the recurring defect and its cause, because a summary written from memory goes stale the moment the thing it summarises moves and an amendment moves things by definition. Every count claim in the file was then re-audited programmatically rather than by eye, which is how this instance was found to be the only one left."
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}
