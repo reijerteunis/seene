@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-104, SEEN-105, SEEN-107, SEEN-111]
-status: doing
+status: review
 ---
 # SEEN-112: Run a ticket from clarify to merge in one go, asking only what it cannot decide
 
@@ -23,7 +23,7 @@ status: doing
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | doing |
+| Status | review |
 
 ## Description
 
@@ -44,12 +44,12 @@ A human-executor ticket is refused at the start. SEEN-110 is the worked example:
 ## Acceptance criteria
 
 - [ ] A code ticket with no open questions runs from clarify to a green `verify-delivery` without a stop, in one orchestrating session whose own spending stays inside one slice's budget, with every slice's RED and GREEN recorded by `seen-implementer` and the review by `seen-reviewer`, proven on a real ticket of at most 2 points and evidenced by its journal and its budget figures
-- [ ] A ticket with an unknown a person must settle stops once, asks every question it has in a single batch, records the answer as a note, and continues to the end when `clarified` clears; a second stop for a question the first batch could have carried is reported as a defect of the run and named in its summary
-- [ ] Every stop is one of the named ones and none is retried: a gate that refuses, a Jev question that does not clear, a failed check, red CI, and a second return on the same slice, each reporting the stage, the record number and the one command to resume from
-- [ ] The merge is never taken without authorisation: the run stops at a green `verify-merge` with the receipt in the pull request body, and merges only when that was authorised for this ticket and the authorisation is in the journal with who gave it and when
-- [ ] A ticket whose executor is `human` is refused at the start, naming the criteria only a person can settle, rather than run into a verification it would have to invent
-- [ ] Whether the harness may launch a model is settled at the solution stage and recorded either way, quoting the line of `docs/harness/workflow.md` it stands on, and the run's shape follows that decision rather than the other way round
-- [ ] The run widens nothing: no criterion is ticked that its own evidence does not carry, and the summary lists every criterion left unmet with what each is waiting on
+- [x] A ticket with an unknown a person must settle stops once, asks every question it has in a single batch, records the answer as a note, and continues to the end when `clarified` clears; a second stop for a question the first batch could have carried is reported as a defect of the run and named in its summary
+- [x] Every stop is one of the named ones and none is retried: a gate that refuses, a Jev question that does not clear, a failed check, red CI, and a second return on the same slice, each reporting the stage, the record number and the one command to resume from
+- [x] The merge is never taken without authorisation: the run stops at a green `verify-merge` with the receipt in the pull request body, and merges only when that was authorised for this ticket and the authorisation is in the journal with who gave it and when
+- [x] A ticket whose executor is `human` is refused at the start, naming the criteria only a person can settle, rather than run into a verification it would have to invent
+- [x] Whether the harness may launch a model is settled at the solution stage and recorded either way, quoting the line of `docs/harness/workflow.md` it stands on, and the run's shape follows that decision rather than the other way round
+- [x] The run widens nothing: no criterion is ticked that its own evidence does not carry, and the summary lists every criterion left unmet with what each is waiting on
 
 ## Amendment
 
@@ -75,6 +75,69 @@ So the criterion is restored and its proof moves where it always belonged: Ruud 
 2026 that the loop is proven end to end on SEEN-008, from a branch off this one, with the single
 deviation recorded that SEEN-008 is 5 points and four slices rather than at most 2. SEEN-112 cites that
 run's journal and budget figures as criterion 1's evidence.
+
+## Outcome
+
+`harness run <ticket>` answers one question from the journal, the ticket file and the thresholds: what is
+the next action, exactly. It returns the stage, the kind (`command`, `spawn`, `ask`, `stop` or `merge`),
+runnable argv beginning `python3 harness/run.py`, the agent to spawn and that agent's task text where there
+is one, why this action, and the named stops. It launches nothing, which is Ruud's decision at record 4
+holding in the code: the implementer's task text is the one `routing.for_slice` already stored and the
+reviewer's is the one the triage record already carries, so the loop composes what exists. The opening of
+the Principles section of `docs/harness/workflow.md` is quoted and unchanged.
+
+Six named stops live in `[run] stops`, where a person reviews an addition as a diff: `gate_refused`,
+`question_open`, `check_failed`, `ci_red`, `second_return` and `awaiting_authorisation`. Each reports the
+stage, the record number it points at and one resume argv, and `halt()` writes at most one stop record per
+reason and record, which is what "none is retried" means in a journal. Two of the five conditions the
+criterion names were found to be undetected once someone looked: `question_open` was reading the clarify
+draft's list rather than a recorded decision below its threshold, and nothing read CI at all. Both are read
+from the journal and from GitHub's own completed check runs now, and `DETECTED` and `DECLARED` say in the
+module which conditions the loop finds and which a session must declare.
+
+`harness authorise <ticket> --merge --by <who>` writes the `authorisation` record the `merge` action sits
+behind. The run offers `verify-merge` until it is green, then stops at `awaiting_authorisation`, then offers
+the merge only once that record exists, and it never invokes a merge itself.
+
+**Criterion 1 is not met, and the summary says what each part of it waits on**, which is criterion 7 applied
+to this ticket rather than to some other. It was amended twice on 27 September and both amendments were
+withdrawn; the `## Amendment` section keeps that history. The review triage refused it three times, at 0.96,
+0.94 and 0.90, and was right every time. What the proof run on SEEN-008 established and what it did not:
+
+- **Met**: every slice's RED and GREEN was recorded by `seen-implementer`, declaring `--model` and
+  `--agent` on each check, and the review was `seen-reviewer` in a context that had written nothing. The
+  run reached review from clarify **with no stop**, driven by the loop naming each action and its arguments.
+- **Not met, waiting on a ticket whose review passes first time**: "to a green `verify-delivery` without a
+  stop". SEEN-008's review returned it on three high findings, each reproduced by execution, so it has not
+  reached delivery. A returned ticket is the harness working, not the loop failing, but it is not the run
+  the criterion describes.
+- **Not met, waiting on a fresh session working one ticket**: "one orchestrating session whose own spending
+  stays inside one slice's budget". This session spent 474,936 output tokens against a budget of 60,000,
+  with 535,622 more across twelve subagents. It hand-orchestrated two tickets, five returns and four
+  question batches. The loop is what removes the reason to stop at a slice boundary; it cannot retrofit a
+  budget onto the session that built it.
+- **Not met, waiting on a ticket of at most 2 points**: SEEN-008 is 5 points and four slices. No ticket of
+  at most 2 points was available: SEEN-032 is the only one at `todo` and it waits on SEEN-008 itself.
+
+So criterion 1 needs one thing this ticket could not provide: a small ticket, worked by the loop in a fresh
+session, whose review passes first time. The loop exists and is proven as far as review; the run the
+criterion describes has not yet happened end to end.
+
+What the proof run bought that reading the code had not. Four defects in the harness, three fixed here and
+one recorded: the guard allowed every path once a ticket's last slice was done, which is exactly the rework
+phase after a return; the guard's exact path match refused a new file inside a directory a slice names, so
+all three of SEEN-008's slices wrote their migration through a shell the hook does not see; and the coverage
+gate's own command never enabled coverage, so it had been comparing a summary file dated 23 September
+against the baseline and the control it advertises had not held. Record 48 carries `summary_written` for the
+first time. The fourth, recorded and not fixed, is that `handoff.plan_accepted_at` moves on a replan so the
+pack and the guard read "0 of 3 done" for slices that are green and committed.
+
+Five returns, and the record should be read with that in front of it. Three were criterion 1 refusing to be
+evidenced, one was the review of SEEN-008, and one was this deliberate amendment; none was a defect in
+delivered code. The ticket is 5 points against a 3-point estimate. Two question batches to Ruud were
+necessary and two more were defects of my own analysis, named at records 22, 31 and 41: the question to ask
+at record 4 was not what proves criterion 1, but what happens to it given that the gate refuses an
+unevidenced criterion, and that was answerable then.
 
 ## Slices
 

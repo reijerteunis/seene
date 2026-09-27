@@ -1,0 +1,22 @@
+{
+  "sequence": 43,
+  "ticket": "SEEN-112",
+  "timestamp": "2026-09-27T11:26:58.968821+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "tdd",
+  "attempt": 4,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "9b8038d51dc9b8b8e973e530ffbd2821c4dbb9bd",
+  "prev_hash": "657bd338e3d7a282a1f25c0f08aa93210c892d1a2a1d29437104ab6aef17567d",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "solution",
+    "to_attempt": 5,
+    "reason": "Deliberate plan amendment on Ruud's authority, not a defect in delivered code: the proof run on SEEN-008 surfaced three harness defects that belong to this ticket because this ticket's own loop is what found them, and attempt 4 has no honest RED without them. The plan gains harness/guard.py, harness/coverage.py and their tests, and a third slice. The three: the guard allows every path once a ticket's last slice is done, which is exactly the rework phase after a return; the guard's exact path match refuses a new file inside a directory a slice names, which no migration's filename can satisfy in advance; and the coverage gate's own command never enables coverage, so it has been comparing a stale summary file against the baseline and the control it advertises has not held. Recorded at record 42.",
+    "findings": [],
+    "no_findings": true,
+    "unmet_criteria": []
+  }
+}

@@ -275,5 +275,150 @@ class BaselineFingerprintTest(CommandTest):
                    '{"packages": {"@seen/core": {"lines": 91.2}}}')
         self.assertEqual(before, repository.fingerprint())
 
+
+class SliceGuardTest(CommandTest):
+    """The edit guard at tdd, asked the way `harness guard` asks it.
+
+    The two classes below carry the two defects record 42 found by running the
+    harness on SEEN-008 rather than by reading it. They live here rather than in
+    test_guard.py because what they are about is refusal: a guard that allows an
+    edit no slice named has stopped being a control, and so has one that refuses
+    the edit the plan asked for and teaches the session to write through a shell
+    instead.
+    """
+
+    def guard(self, path):
+        from harness import guard, thresholds
+        return guard.decide(self.root, self.records(),
+                            self.git('branch', '--show-current'), path,
+                            thresholds.load(self.root))
+
+    def plan(self, *slices):
+        """A ticket at tdd with this slice plan accepted."""
+        self.start()
+        self.submit('clarify', clarify_evidence())
+        self.submit('solution', solution_evidence(slices=list(slices)))
+
+    def slice_(self, *files, name='A slice', points=1):
+        return dict(name=name, points=points, files=list(files),
+                    red=f'Nothing yet proves {name}')
+
+    def green(self):
+        """A green check, which is how a slice ends and how the count moves on."""
+        script = self.root / 'passes.sh'
+        script.write_text('#!/bin/sh\nexit 0\n')
+        script.chmod(0o755)
+        return self.run_harness('check', self.ticket_id, '--phase', 'green',
+                                '--actor', 'claude:implementer', '--', str(script))
+
+
+class GuardAfterTheLastSlice(SliceGuardTest):
+    """Defect 1 of record 42: a fully worked plan stopped guarding.
+
+    `handoff.current_slice` returns no entry in two opposite situations, and the
+    guard read them as one: a plan nothing has been accepted against yet, which
+    has nothing to guard, and a plan whose every slice is done, which is the
+    state a ticket is in when a review returns it and rework begins. On SEEN-008,
+    three slices of three done, `guard supabase/migrations/...` answered
+    `allowed: true`, rule `no-slice-plan`, for a path no slice named. That answer
+    is the RED here.
+    """
+
+    def test_a_path_no_slice_named_is_refused_once_every_slice_is_done(self):
+        self.plan(self.slice_('harness/journal.py'))
+        self.green()
+
+        decision = self.guard('supabase/migrations/20260927000004_trade_record.sql')
+
+        self.assertFalse(decision['allowed'],
+                         f'the plan is worked out, not absent: {decision["reason"]}')
+        self.assertNotEqual(decision['rule'], 'no-slice-plan',
+                            'a plan whose slices are all done is not a plan that does not exist')
+        self.assertIn('supabase/migrations/20260927000004_trade_record.sql',
+                      decision['reason'])
+
+    def test_rework_on_a_file_the_plan_named_is_still_allowed(self):
+        """Which is why the union of the plan is what the guard falls back to.
+
+        A review returns a ticket on a finding in slice 1, not in the last one,
+        so a fallback to the last slice alone would refuse the rework the return
+        asked for, and a refusal a session cannot satisfy is the rule defect 2
+        taught people to route around.
+        """
+        self.plan(self.slice_('harness/journal.py', name='One'),
+                  self.slice_('harness/guard.py', name='Two'))
+        self.green()
+        self.green()
+
+        for path in ('harness/journal.py', 'harness/guard.py'):
+            with self.subTest(path=path):
+                self.assertTrue(self.guard(path)['allowed'])
+
+    def test_a_ticket_at_tdd_with_no_plan_at_all_keeps_the_permissive_answer(self):
+        """Non-code mode reaches tdd with nothing to compare a path against."""
+        self.start()
+        self.submit('clarify', clarify_evidence())
+        self.submit('solution', solution_evidence(mode='non-code', slices=[]))
+
+        decision = self.guard('harness/journal.py')
+
+        self.assertTrue(decision['allowed'])
+        self.assertEqual(decision['rule'], 'no-slice-plan')
+
+
+class GuardNamesADirectory(SliceGuardTest):
+    """Defect 2 of record 42: an exact string match refuses what the plan allows.
+
+    Nobody can name a migration's timestamped filename at solution time, so all
+    three of SEEN-008's slices named `supabase/migrations`, all three were
+    refused, and all three wrote their migration through a shell heredoc the hook
+    does not match. The fix may not become a prefix hole, which is why the second
+    half of the first test is here beside the first: a slice that names files
+    still authorises only those files.
+    """
+
+    def test_a_directory_entry_authorises_inside_it_and_a_file_entry_does_not(self):
+        migrations = self.root / 'supabase' / 'migrations'
+        migrations.mkdir(parents=True)
+        self.plan(self.slice_('supabase/migrations',
+                              'packages/core/src/db/tables.ts', points=2))
+
+        inside = self.guard('supabase/migrations/20260927000004_trade_record.sql')
+        sibling = self.guard('packages/core/src/db/other.ts')
+
+        self.assertTrue(inside['allowed'],
+                        f'the slice names the directory: {inside["reason"]}')
+        self.assertTrue(self.guard('packages/core/src/db/tables.ts')['allowed'])
+        self.assertFalse(sibling['allowed'],
+                         'a slice naming a file authorises that file and not its neighbours')
+
+    def test_a_directory_the_plan_names_before_it_exists_is_named_with_a_slash(self):
+        """The first migration of a ticket is written into a directory that is
+        not there yet, so the trailing slash says outright what the disk cannot."""
+        self.plan(self.slice_('supabase/migrations/'))
+
+        decision = self.guard('supabase/migrations/20260927000004_trade_record.sql')
+
+        self.assertTrue(decision['allowed'], decision['reason'])
+
+    def test_a_top_level_name_does_not_authorise_the_tree_under_it(self):
+        """The hole this fix must not open. `harness` is a directory on disk in
+        every project this harness runs in, and a one-word slice entry that
+        authorised every file under it would widen every plan in the repository.
+        """
+        self.plan(self.slice_('harness'))
+
+        for path in ('harness/guard.py', 'harness/coverage.py'):
+            with self.subTest(path=path):
+                self.assertFalse(self.guard(path)['allowed'])
+
+    def test_a_partial_segment_is_not_inside_the_directory(self):
+        """`supabase/migrations` must not authorise `supabase/migrations-old/x.sql`."""
+        (self.root / 'supabase' / 'migrations').mkdir(parents=True)
+        self.plan(self.slice_('supabase/migrations'))
+
+        self.assertFalse(self.guard('supabase/migrations-old/20260927_x.sql')['allowed'])
+
+
 if __name__ == '__main__':  # pragma: no cover - a module must run on its own
     unittest.main()

@@ -1,0 +1,243 @@
+{
+  "sequence": 45,
+  "ticket": "SEEN-112",
+  "timestamp": "2026-09-27T11:27:51.514584+00:00",
+  "harness_version": "2",
+  "kind": "route",
+  "stage": "tdd",
+  "attempt": 5,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "9b8038d51dc9b8b8e973e530ffbd2821c4dbb9bd",
+  "prev_hash": "7ff569201d43c2fe586e82b62823a02f80bd5dc4151595673f5fe60b478253e0",
+  "data": {
+    "solution": 44,
+    "shadow": true,
+    "strongest": "opus",
+    "tiers": [
+      "haiku",
+      "sonnet",
+      "opus"
+    ],
+    "rules": [],
+    "jev": {
+      "asked": true,
+      "model": "jev-1.13.0",
+      "reason": null,
+      "answers": [
+        {
+          "key": "implementation_model#1",
+          "question": "implementation_model",
+          "type": "score",
+          "options": [
+            "haiku",
+            "sonnet",
+            "opus"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "opus",
+          "probabilities": {
+            "haiku": 0.0,
+            "sonnet": 0.24,
+            "opus": 0.76
+          },
+          "confidence": 0.63,
+          "score": 1.76,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_effort#1",
+          "question": "implementation_effort",
+          "type": "score",
+          "options": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "high",
+          "probabilities": {
+            "low": 0.02,
+            "medium": 0.09,
+            "high": 0.89
+          },
+          "confidence": 0.8,
+          "score": 1.87,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_model#2",
+          "question": "implementation_model",
+          "type": "score",
+          "options": [
+            "haiku",
+            "sonnet",
+            "opus"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "sonnet",
+          "probabilities": {
+            "haiku": 0.01,
+            "sonnet": 0.64,
+            "opus": 0.35
+          },
+          "confidence": 0.46,
+          "score": 1.34,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_effort#2",
+          "question": "implementation_effort",
+          "type": "score",
+          "options": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "high",
+          "probabilities": {
+            "low": 0.03,
+            "medium": 0.36,
+            "high": 0.61
+          },
+          "confidence": 0.37,
+          "score": 1.58,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_model#3",
+          "question": "implementation_model",
+          "type": "score",
+          "options": [
+            "haiku",
+            "sonnet",
+            "opus"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "sonnet",
+          "probabilities": {
+            "haiku": 0.06,
+            "sonnet": 0.85,
+            "opus": 0.09
+          },
+          "confidence": 0.78,
+          "score": 1.03,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_effort#3",
+          "question": "implementation_effort",
+          "type": "score",
+          "options": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "high",
+          "probabilities": {
+            "low": 0.01,
+            "medium": 0.32,
+            "high": 0.67
+          },
+          "confidence": 0.49,
+          "score": 1.66,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        }
+      ]
+    },
+    "execution": [
+      {
+        "position": 1,
+        "name": "The loop over the five stages, every stop named and none retried, and the human-executor refusal",
+        "points": 2,
+        "files": [
+          "harness/loop.py",
+          "harness/cli.py",
+          "harness/paths.py",
+          "harness/thresholds.toml",
+          "harness/tests/test_loop.py"
+        ],
+        "red": "LoopTest, StopTest and HumanExecutorTest fail because harness/loop.py does not exist, `run` is not a subcommand and `stop` is not a record kind: no action is returned for any stage, no stop names a resume argv, and nothing refuses SEEN-110 before its journal would be created.",
+        "model": "opus",
+        "effort": "high",
+        "source": "jev",
+        "rule": null,
+        "reason": null,
+        "model_probability": 0.76,
+        "effort_probability": 0.89,
+        "model_passed": true,
+        "model_threshold": 0.5,
+        "implementer_task": "Work slice 1 of SEEN-112: The loop over the five stages, every stop named and none retried, and the human-executor refusal.\n\nRun it on opus at high effort, because Jev chose it at 0.76.\nThe model is what reaches the work: in Claude Code as the per-invocation model on the seen-implementer agent, and in Codex as the model this instruction names when you spawn it. The effort is recorded, carried and reported rather than applied, on either assistant: the generated copies do not vary by slice, because a file whose content depended on the ticket in hand was wrong on a detached HEAD, after a replan and after the receipt. Neither is yours to change.\n\nPoints: 2.\nFiles: harness/loop.py, harness/cli.py, harness/paths.py, harness/thresholds.toml, harness/tests/test_loop.py\n\nIts RED must demonstrate: LoopTest, StopTest and HumanExecutorTest fail because harness/loop.py does not exist, `run` is not a subcommand and `stop` is not a record kind: no action is returned for any stage, no stop names a resume argv, and nothing refuses SEEN-110 before its journal would be created.\n\nWrite the test first and record it with:\n  python3 harness/run.py check SEEN-112 --phase red --actor <tool>:implementer --model opus -- <command>\nThen write only what turns it green and record that the same way. The `--model opus` is not optional: a subagent inherits its parent's session id, so the log records the model of the session that spawned you and not yours, and without the declaration the tdd gate compares the wrong two names. Then stop: do not start the next slice and do not advance the stage."
+      },
+      {
+        "position": 2,
+        "name": "The single question batch, the resume once clarified clears, the merge authorisation and the summary",
+        "points": 1,
+        "files": [
+          "harness/loop.py",
+          "harness/cli.py",
+          "harness/paths.py",
+          "harness/tests/test_loop.py",
+          "docs/harness/skill.md",
+          "docs/harness/workflow.md",
+          ".claude/skills/seen-harness/SKILL.md",
+          ".agents/skills/seen-harness/SKILL.md"
+        ],
+        "red": "QuestionBatchTest, MergeAuthorisationTest and SummaryTest fail because the loop asks nothing, `authorise` is not a subcommand, `authorisation` is not a record kind and there is no summary: an open question yields no `ask` action carrying every question at once, a green verify-merge offers a merge action with no authorisation on record, and no criterion is listed with what it waits on.",
+        "model": "sonnet",
+        "effort": "high",
+        "source": "jev",
+        "rule": null,
+        "reason": null,
+        "model_probability": 0.64,
+        "effort_probability": 0.61,
+        "model_passed": true,
+        "model_threshold": 0.5,
+        "implementer_task": "Work slice 2 of SEEN-112: The single question batch, the resume once clarified clears, the merge authorisation and the summary.\n\nRun it on sonnet at high effort, because Jev chose it at 0.64.\nThe model is what reaches the work: in Claude Code as the per-invocation model on the seen-implementer agent, and in Codex as the model this instruction names when you spawn it. The effort is recorded, carried and reported rather than applied, on either assistant: the generated copies do not vary by slice, because a file whose content depended on the ticket in hand was wrong on a detached HEAD, after a replan and after the receipt. Neither is yours to change.\n\nPoints: 1.\nFiles: harness/loop.py, harness/cli.py, harness/paths.py, harness/tests/test_loop.py, docs/harness/skill.md, docs/harness/workflow.md, .claude/skills/seen-harness/SKILL.md, .agents/skills/seen-harness/SKILL.md\n\nIts RED must demonstrate: QuestionBatchTest, MergeAuthorisationTest and SummaryTest fail because the loop asks nothing, `authorise` is not a subcommand, `authorisation` is not a record kind and there is no summary: an open question yields no `ask` action carrying every question at once, a green verify-merge offers a merge action with no authorisation on record, and no criterion is listed with what it waits on.\n\nWrite the test first and record it with:\n  python3 harness/run.py check SEEN-112 --phase red --actor <tool>:implementer --model sonnet -- <command>\nThen write only what turns it green and record that the same way. The `--model sonnet` is not optional: a subagent inherits its parent's session id, so the log records the model of the session that spawned you and not yours, and without the declaration the tdd gate compares the wrong two names. Then stop: do not start the next slice and do not advance the stage."
+      },
+      {
+        "position": 3,
+        "name": "The three defects the proof run found: the guard's two, and the coverage gate reading a stale summary",
+        "points": 2,
+        "files": [
+          "harness/guard.py",
+          "harness/coverage.py",
+          "harness/tests/test_enforcement.py",
+          "harness/tests/test_coverage_gate.py",
+          "harness/tests/test_loop.py"
+        ],
+        "red": "GuardAfterTheLastSlice shows the guard allowing a path no slice names once every slice is done; GuardNamesADirectory shows it refusing a file inside a directory the slice names, while a slice naming only files still refuses a sibling; StaleCoverageSummary shows the coverage gate passing on a summary file that predates the run and DEFAULT_COMMAND's flags never reaching vitest.",
+        "model": "sonnet",
+        "effort": "high",
+        "source": "jev",
+        "rule": null,
+        "reason": null,
+        "model_probability": 0.85,
+        "effort_probability": 0.67,
+        "model_passed": true,
+        "model_threshold": 0.5,
+        "implementer_task": "Work slice 3 of SEEN-112: The three defects the proof run found: the guard's two, and the coverage gate reading a stale summary.\n\nRun it on sonnet at high effort, because Jev chose it at 0.85.\nThe model is what reaches the work: in Claude Code as the per-invocation model on the seen-implementer agent, and in Codex as the model this instruction names when you spawn it. The effort is recorded, carried and reported rather than applied, on either assistant: the generated copies do not vary by slice, because a file whose content depended on the ticket in hand was wrong on a detached HEAD, after a replan and after the receipt. Neither is yours to change.\n\nPoints: 2.\nFiles: harness/guard.py, harness/coverage.py, harness/tests/test_enforcement.py, harness/tests/test_coverage_gate.py, harness/tests/test_loop.py\n\nIts RED must demonstrate: GuardAfterTheLastSlice shows the guard allowing a path no slice names once every slice is done; GuardNamesADirectory shows it refusing a file inside a directory the slice names, while a slice naming only files still refuses a sibling; StaleCoverageSummary shows the coverage gate passing on a summary file that predates the run and DEFAULT_COMMAND's flags never reaching vitest.\n\nWrite the test first and record it with:\n  python3 harness/run.py check SEEN-112 --phase red --actor <tool>:implementer --model sonnet -- <command>\nThen write only what turns it green and record that the same way. The `--model sonnet` is not optional: a subagent inherits its parent's session id, so the log records the model of the session that spawned you and not yours, and without the declaration the tdd gate compares the wrong two names. Then stop: do not start the next slice and do not advance the stage."
+      }
+    ]
+  }
+}

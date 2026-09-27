@@ -1,0 +1,41 @@
+{
+  "sequence": 48,
+  "ticket": "SEEN-112",
+  "timestamp": "2026-09-27T11:42:20.698353+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 5,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "9b8038d51dc9b8b8e973e530ffbd2821c4dbb9bd",
+  "prev_hash": "080ea1d1a79d5f5f13a1bd439992cdfbd1a01fa9a41edc82c1cf14a02b77e4ab",
+  "data": {
+    "command": [
+      "pnpm",
+      "--filter",
+      "@seen/core",
+      "exec",
+      "vitest",
+      "run",
+      "--coverage.enabled",
+      "--coverage.reporter=json-summary"
+    ],
+    "phase": "coverage",
+    "exit_code": 0,
+    "model": "claude-opus-5",
+    "model_declared": null,
+    "agent_declared": null,
+    "duration_ms": 561,
+    "output": "\n RUN  v3.2.7 /Users/ruudvanengelenhoven/Development/seene/packages/core\n      Coverage enabled with v8\n\n ✓ src/index.test.ts (3 tests) 1ms\n\n Test Files  1 passed (1)\n      Tests  3 passed (3)\n   Start at  13:42:20\n   Duration  174ms (transform 13ms, setup 0ms, collect 12ms, tests 1ms, environment 0ms, prepare 31ms)\n\n",
+    "output_sha256": "40468a534740ea417aba66e844a83887eda986d9c406f77be85bbfe6047cefcf",
+    "output_truncated": false,
+    "before": "d3e1d1b330a2e0b5b61d5703ae7f5e6e74bb2c0c78b1097a3992d444b9f18315",
+    "after": "d3e1d1b330a2e0b5b61d5703ae7f5e6e74bb2c0c78b1097a3992d444b9f18315",
+    "package": "@seen/core",
+    "lines": 100.0,
+    "baseline": 100.0,
+    "delta": 0.0,
+    "summary_written": "2026-09-27T11:42:20+00:00"
+  }
+}
