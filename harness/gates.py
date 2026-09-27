@@ -42,6 +42,12 @@ TREE_SEARCH_LIMIT = 50
 WHOLE_SUITE = ('the regression covers the suite rather than a slice, so there are no files to '
                'scope the comparison to')
 UNSCOPED = 'nothing scopes this citation to the code it covered'
+# Whose files the comparison was made over, for the refusal to say. A citation
+# that names a slice is judged over that slice's files; one that belongs to no
+# single slice is judged over every file the plan names, and a session reading
+# the refusal needs to know which of the two it met.
+BY_THE_SLICE = 'its slice'
+BY_THE_PLAN = 'the plan'
 
 
 def template_name(stage, mode=None):
@@ -221,10 +227,13 @@ def _files_the_slice_covers(records, position):
 
     Read from the route record first, because the route is what the pack hands
     the session that works the slice, and from the accepted plan when no route
-    names it. Nothing for a citation that names no slice, a position no plan
-    names, or an entry that names no file: each is an absence of scope, and an
-    absence of scope is not an empty one. An empty comparison would accept every
-    citation, so it falls back to the whole tree instead.
+    names it. Nothing for a position no plan names or an entry that names no
+    file: each is an absence of scope, and an absence of scope is not an empty
+    one. An empty comparison would accept every citation, so it falls back to the
+    whole tree instead. Nothing for no position at all, because a round that
+    belongs to no single slice is judged over the plan and not over one slice of
+    it; `_the_files_the_plan_covers` is that reading, and this function is the
+    part of it that reads one position.
     """
     if position is None:
         return None
@@ -237,6 +246,39 @@ def _files_the_slice_covers(records, position):
             files = (planned[position - 1] or {}).get('files')
     named = [path for path in (files or []) if isinstance(path, str) and path.strip()]
     return named or None
+
+
+def _the_files_the_plan_covers(records):
+    """Every file the accepted plan's slices cover, or nothing.
+
+    The scope of a round that belongs to no single slice, because such a round
+    belongs to the plan rather than to nothing. Record 47 of SEEN-113's own
+    journal is the measurement: attempt 4's accepted tdd record declared null for
+    the checks it recorded, which is what the template asks a round that touches
+    more than one slice's work to declare, and attempt 5 citing that pair was
+    compared over the whole tree and refused. Every round after a return that
+    corrects work across slices is in that shape, so the rule carried the
+    evidence of a tidy single-slice round forward and refused the evidence of
+    exactly the rounds a return produces. Treating "several slices" as
+    "unknowable" is the same mistake as treating "every slice done" as "no plan
+    accepted", which is the defect this ticket started from.
+
+    Each position is read through `_files_the_slice_covers`, so a slice the route
+    re-scoped is read from its route here too and the union is exactly what the
+    positions would have bought one at a time. Wider than one slice's files and
+    narrower than the tree, and wider is stricter: a file any slice names is in
+    the comparison, so the round is held to the whole plan and not to the part of
+    it somebody says it worked.
+
+    Nothing where no plan is accepted and nothing where no slice of it names a
+    file: both are absences of scope rather than empty ones, and an empty
+    comparison would accept every citation, so they fall back to the whole tree.
+    """
+    planned = (latest_evidence(records, 'solution') or {}).get('slices') or []
+    covered = set()
+    for position in range(1, len(planned) + 1):
+        covered.update(_files_the_slice_covers(records, position) or ())
+    return sorted(covered) or None
 
 
 def _unresolved_in(repository, commit, files):
@@ -324,7 +366,10 @@ def _positions_declared_for(records, number):
     Every answer found rather than the last one read, so that two records
     disagreeing stays a disagreement: the scope is granted on one answer and on
     nothing else. None stands for a round that declared no position, which is a
-    claim that the round belongs to no single slice and so lends no mapping.
+    claim that the round belongs to no single slice, and it is read twice. It
+    lends no mapping to one slice, so a citation naming a number gets no scope
+    from it; and it is the answer a citation declaring null agrees with, so a
+    number in this set is what withholds the plan's files from one.
     """
     if not isinstance(number, int) or isinstance(number, bool):
         return set()
@@ -344,21 +389,34 @@ def _positions_declared_for(records, number):
 
 
 def _the_scope_a_citation_is_judged_in(records, number, position):
-    """The files a cited check's evidence is about, and why there are none.
+    """The files a cited check's evidence is about, whose they are, and why none.
 
-    Two answers and not one, because the reason there is no scope is what the
-    refusal has to say. The position is named by the record making the citation,
-    which is exactly why it cannot settle the scope by itself: naming another
-    slice's position was all it took to be compared against files that had not
-    moved, and the same citation declared honestly was refused. F1 of SEEN-113's
-    second review, reproduced end to end.
+    Three answers and not one: the reason there is no scope is what the refusal
+    has to say, and whose files they are is what it has to call them. The position
+    is named by the record making the citation, which is exactly why it cannot
+    settle the scope by itself: naming another slice's position was all it took to
+    be compared against files that had not moved, and the same citation declared
+    honestly was refused. F1 of SEEN-113's second review, reproduced end to end.
 
-    So it is corroborated from a record that is not the one asking: the tdd
-    record of the round that recorded the check, which passed this gate when the
-    check was fresh and is in the hash chain since. A check no accepted tdd
-    record cites is corroborated by nothing, and a round that declared no
-    position declares no mapping, which is this ticket's own record 17. Both are
-    absences, and an absence fails closed to the whole-tree comparison.
+    So a named position is corroborated from a record that is not the one asking:
+    the tdd record of the round that recorded the check, which passed this gate
+    when the check was fresh and is in the hash chain since. A check no accepted
+    tdd record cites is corroborated by nothing, and a record whose position that
+    round contradicts has settled nothing. Both are absences, and an absence fails
+    closed to the whole-tree comparison.
+
+    A citation that declares null is a different question and not a missing
+    answer. It claims the round belonged to no single slice, which the template
+    asks for in as many words, and a round that belongs to no single slice belongs
+    to the plan: its files are every file the plan's slices name, read by
+    `_the_files_the_plan_covers`. There is nothing to corroborate, because that
+    scope rests on no claim the citing record makes: the plan is read from the
+    accepted solution record and the rest from git, so no position named here can
+    widen it or narrow it, and a round no accepted tdd record mentions reaches it
+    too. What is still refused is a null declared where an accepted tdd record
+    named a slice for the same check, because that is the same disagreement the
+    numbered direction falls closed on, read the other way round: null is a claim,
+    a claim the chain contradicts settles nothing, and neither reading wins.
 
     This is the plan's half of the answer and not the whole of it. Corroboration
     is a record vouching for a record, and the earlier record's position was
@@ -367,25 +425,35 @@ def _the_scope_a_citation_is_judged_in(records, number, position):
     `_require_the_check_is_about_this_code`. What is decided here can only add
     files to that comparison, never take one away.
     """
-    if position is None:
-        return None, ('this citation names no slice, so there is nothing to scope the '
-                      'comparison to')
     declared = _positions_declared_for(records, number)
+    if position is None:
+        numbered = sorted(value for value in declared if value is not None)
+        if numbered:
+            named = ', '.join(f'slice {value}' for value in numbered)
+            return None, (f'this record says check {number} belongs to no single slice and the '
+                          f'tdd record of the round that recorded it named {named}, so which '
+                          'files it covered is not settled'), None
+        files = _the_files_the_plan_covers(records)
+        if not files:
+            return None, (f'check {number} belongs to no single slice, and nothing in the plan or '
+                          'the routes names a file for any slice of it, so there is nothing to '
+                          'scope the comparison to'), None
+        return files, None, BY_THE_PLAN
     if not declared:
         return None, (f'no accepted tdd record says which slice of the plan check {number} '
                       'proved, so the position this record names for it is corroborated by '
-                      'nothing but itself')
+                      'nothing but itself'), None
     if declared != {position}:
         named = ', '.join('no slice at all' if value is None else f'slice {value}'
                           for value in sorted(declared, key=lambda value: (value is None, value)))
         return None, (f'this record names slice {position} for check {number} and the tdd record '
                       f'of the round that recorded it named {named}, so which files it covered '
-                      'is not settled')
+                      'is not settled'), None
     files = _files_the_slice_covers(records, position)
     if not files:
         return None, (f'nothing in the plan or the route says which files slice {position} '
-                      'covers, so there is nothing to scope the comparison to')
-    return files, None
+                      'covers, so there is nothing to scope the comparison to'), None
+    return files, None, BY_THE_SLICE
 
 
 def _require_the_check_is_about_this_code(record, number, tree, current, repository, scope):
@@ -415,10 +483,13 @@ def _require_the_check_is_about_this_code(record, number, tree, current, reposit
     that it did not, and every journal written before SEEN-086 recorded one is in
     that position.
 
-    `scope` is the files and, when there are none, the reason there are none: a
-    scope is granted only where the journal corroborates the slice it belongs to
-    and git can resolve every path that slice names, and everything else is an
-    absence that falls back to the whole tree.
+    `scope` is the files, the reason there are none when there are none, and
+    whose files they are when there are: a scope is granted where the journal
+    corroborates the slice a citation names, and where a citation names no slice
+    it is every file the plan's slices cover. Everything else is an absence that
+    falls back to the whole tree. Which of the two granted it is what the refusal
+    calls the files, because a round told it was judged against the plan knows to
+    look at the plan.
 
     What the comparison is finally made over is wider than `scope` and is not
     read from any record: the files the round itself moved, from the commit
@@ -433,11 +504,14 @@ def _require_the_check_is_about_this_code(record, number, tree, current, reposit
     slice may name a file its round did not happen to move, and dropping it would
     be a citation newly accepted.
     """
-    files, because = scope
+    files, because, named_by = scope
     # Never an empty reason. The whole-tree refusal is the one a reader meets
     # with nothing else to go on, and "because None" is what a caller that
     # passed files and no reason used to leave them with.
     because = because or UNSCOPED
+    # And never an unnamed scope, for the same reason: a caller that passed files
+    # and did not say whose they are still has a sentence to write about them.
+    named_by = named_by or BY_THE_SLICE
     after = record['data'].get('after')
     require(after is not None,
             f'Check {number} was recorded in attempt {record["attempt"]} and this record is '
@@ -451,7 +525,7 @@ def _require_the_check_is_about_this_code(record, number, tree, current, reposit
         unresolved = _unresolved_in(repository, commit, files)
         moved_by_the_round = _the_files_the_round_moved(repository, commit)
         if unresolved:
-            because = (f'its slice names {", ".join(unresolved)}, which git cannot see in the '
+            because = (f'{named_by} names {", ".join(unresolved)}, which git cannot see in the '
                        'tree it ran against, so a comparison over those names is a comparison '
                        'of nothing')
         elif moved_by_the_round is None:
@@ -464,7 +538,7 @@ def _require_the_check_is_about_this_code(record, number, tree, current, reposit
             require(not moved,
                     f'The code check {number} covers has changed since it ran: '
                     f'{", ".join(moved)}. The round that recorded it moved '
-                    f'{", ".join(moved_by_the_round)} and its slice names {", ".join(files)}, '
+                    f'{", ".join(moved_by_the_round)} and {named_by} names {", ".join(files)}, '
                     'and its evidence is about those files as they were, not as they are; run '
                     'it again in this attempt')
             return
@@ -479,7 +553,7 @@ def _require_the_check_is_about_this_code(record, number, tree, current, reposit
 
 
 def cited_check(records, number, phase, current, tree=None, repository=None,
-                scope=(None, None)):
+                scope=(None, None, None)):
     """A check a stage record points at, confirmed to be usable evidence here.
 
     A check counts only for the stage that produced it, and only while it is
@@ -496,8 +570,9 @@ def cited_check(records, number, phase, current, tree=None, repository=None,
     protection whole: what it defended against was evidence reused for code that
     changed, and the fingerprint is the thing that says whether it did. `tree` is
     the tree the citing record is written against and `scope` is the files the
-    cited check's own slice covers with the reason there are none, which is the
-    scope the question is asked in.
+    question is asked over, with the reason there are none and whose files they
+    are: the cited check's own slice where the citation names one, and every slice
+    of the plan where the round belonged to none.
     Given no tree, only this attempt's own checks count, because a comparison
     with nothing is not one.
 
@@ -612,11 +687,13 @@ def _tdd(data, records, current, repository, thresholds):
     # The tree every citation below is judged against, read once: a check from an
     # earlier attempt counts while the files its slice covers still hold the
     # content it ran against, and is refused by their names the moment they do
-    # not. The regression is scoped to nothing, because it covers the suite and
-    # not a slice: it is held to the whole tree.
+    # not. A round that belonged to no single slice is judged over every file the
+    # plan names instead, which is wider and so stricter. The regression is scoped
+    # to nothing, because it covers the suite and not a slice: it is held to the
+    # whole tree.
     tree = repository.fingerprint()
     regression = cited_check(records, data['regression'], 'regression', current, tree,
-                             repository, (None, WHOLE_SUITE))
+                             repository, (None, WHOLE_SUITE, None))
     previous_green = 0
     for position, slice_ in enumerate(slices, start=1):
         require(isinstance(slice_, dict), f'Slice {position} must be an object')

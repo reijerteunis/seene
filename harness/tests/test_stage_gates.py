@@ -1006,18 +1006,24 @@ class TheSlicesOwnFilesMoved(ScopedToTheSlicesFiles):
 
 
 class UnattributableCitationFallsBack(ScopedToTheSlicesFiles):
-    """A citation belonging to no slice is held to the strict whole-tree rule.
+    """A citation the journal cannot place is held to the strict whole-tree rule.
 
     Fail closed: a citation nothing can attribute is the case where the scoped
     comparison would be a guess, so it is refused rather than scoped to whatever
     happens to be at hand.
+
+    Declaring null is no longer such a case by itself: a round that belongs to no
+    single slice belongs to the plan and is judged over the plan's files, which
+    `ARoundThatBelongsToNoSingleSlice` is about. What the two tests below keep is
+    the case where it still is one, because these records do not agree: this one
+    declares null and the tdd record of the round named slice 1.
     """
 
     def test_a_citation_that_names_its_slice_is_scoped_to_that_slice(self):
         self.slice_three_writes_its_own_file()
         self.evaluate('tdd', self.citing(position=1), records=self.journal(), attempt=2)
 
-    def test_a_citation_that_names_no_slice_is_held_to_the_whole_tree(self):
+    def test_a_citation_the_journal_disagrees_with_is_held_to_the_whole_tree(self):
         self.slice_three_writes_its_own_file()
         message = self.refusal(data=self.citing(position=None))
         self.assertIn('tree moved under check 3', message)
@@ -1196,8 +1202,9 @@ class TheRoundsOwnCommitSaysWhatItCovered(ScopedToTheSlicesFiles):
         """Without this the refusal above could be the corroboration refusing,
         which would leave the mis-declaration reaching the scope untested."""
         records = self.journal(corroborated=2)
-        files, because = gates._the_scope_a_citation_is_judged_in(records, 4, 2)
+        files, because, named_by = gates._the_scope_a_citation_is_judged_in(records, 4, 2)
         self.assertEqual(files, ['harness/slice_two.py'], because)
+        self.assertEqual(named_by, 'its slice')
 
     def test_the_file_the_mis_declaration_bought_really_had_not_moved(self):
         self.slice_one_is_rewritten()
@@ -1406,14 +1413,200 @@ class TheRegressionIsHeldToTheWholeTree(ScopedToTheSlicesFiles):
                                records=self.an_attempt_that_finished())
         self.assertNotIn('because None', message)
 
+    def test_a_record_that_declares_no_slice_does_not_scope_the_regression(self):
+        """The plan reading a null position gets is the slice citation's and not
+        the regression's: the regression covers the suite, and it says so however
+        the record citing it declares the position of the round beside it."""
+        self.slice_three_writes_its_own_file()
+        data = self.citing_that_regression()
+        data['slices'][0]['position'] = None
+        message = self.refusal(data=data, records=self.an_attempt_that_finished())
+        self.assertIn('tree moved under check 5', message)
+        self.assertIn('covers the suite rather than a slice', message)
+
     def test_the_slice_beside_it_keeps_the_scope_the_journal_corroborates(self):
         """The regression falling back does not take slice one's evidence with it:
         the refusal above is about check 5 and not about checks 3 and 4."""
         self.slice_three_writes_its_own_file()
         records = self.an_attempt_that_finished()
         for number in (3, 4):
-            files, because = gates._the_scope_a_citation_is_judged_in(records, number, 1)
+            files, because, named_by = gates._the_scope_a_citation_is_judged_in(records,
+                                                                               number, 1)
             self.assertEqual(files, ['harness/slice_one.py'], because)
+            self.assertEqual(named_by, 'its slice')
+
+
+class ARoundThatBelongsToNoSingleSlice(ScopedToTheSlicesFiles):
+    """A null position is a claim on the plan, so the plan is what it is judged over.
+
+    Record 47 of this ticket's own journal, found by running its own rule on its
+    own journal. Attempt 4's accepted tdd record declared null for the checks it
+    recorded, which is what the template asks a round that belongs to no single
+    slice to say, and attempt 5 citing that pair was compared over the whole tree
+    and refused: "compared over the whole tree because this citation names no
+    slice, so there is nothing to scope the comparison to". A round after a return
+    that touches more than one slice's work declares null by the template's own
+    instruction, so the rule carried a tidy single-slice round's evidence forward
+    and dropped the evidence of exactly the rounds a return produces, which is the
+    case this ticket was written for.
+
+    A round that belongs to no single slice belongs to the plan rather than to
+    nothing. Its scope is every file the plan's slices name, which is wider than
+    one slice's files and narrower than the tree, and wider is stricter: this is
+    the one rule in this ticket that accepts more, so the mirror below is what
+    keeps it from being a hole. Every file the plan names is in the comparison,
+    and a change to any of them costs the citation its evidence by name.
+    """
+
+    def setUp(self):
+        super().setUp()
+        # Slice three's file exists in the tree the cited checks ran against,
+        # because an entry git cannot see in that tree costs the scope whoever
+        # named it. The plan reading is held to that rule exactly as the slice
+        # reading is, and the case where it is not met has a test of its own.
+        self.write('harness/slice_three.py', 'def three():\n    return 3\n')
+        self.commit('feat(SEEN-001): slice three, before the round that is cited')
+        self.proved = self.repository.fingerprint()
+
+    def null_citation(self):
+        return self.citing(position=None)
+
+    def a_null_round(self, **changes):
+        """The journal of a round that declared null for the checks it recorded."""
+        return self.journal(corroborated=None, **changes)
+
+    def a_file_the_plan_names_nowhere_moves(self):
+        self.write('harness/elsewhere.py', 'def elsewhere():\n    return 0\n')
+        self.commit('chore(SEEN-001): a file the plan names nowhere')
+
+    def a_plan_file_moves(self, path):
+        self.write(path, 'def moved():\n    return 999\n')
+        self.commit(f'fix(SEEN-001): rewrite {path}')
+
+    def test_a_null_round_stands_when_a_file_the_plan_names_nowhere_moved(self):
+        """The citation record 47 recorded as refused, accepted: this is the whole
+        point of the change, and every test below it is what holds it in place."""
+        self.a_file_the_plan_names_nowhere_moves()
+        self.evaluate('tdd', self.null_citation(), records=self.a_null_round(), attempt=2)
+
+    def test_the_tree_really_did_move_so_that_acceptance_is_not_vacuous(self):
+        self.a_file_the_plan_names_nowhere_moves()
+        self.assertNotEqual(self.proved, self.repository.fingerprint())
+
+    def test_the_file_that_moved_is_named_by_no_slice_in_the_plan(self):
+        self.a_file_the_plan_names_nowhere_moves()
+        for entry in self.plan:
+            self.assertNotIn('harness/elsewhere.py', entry['files'])
+
+    def test_a_change_to_the_first_slices_file_is_refused_by_name(self):
+        self.a_plan_file_moves('harness/slice_one.py')
+        message = self.refusal(data=self.null_citation(), records=self.a_null_round())
+        self.assertIn('harness/slice_one.py', message)
+        self.assertNotIn('whole tree', message)
+
+    def test_a_change_to_a_middle_slices_file_is_refused_by_name(self):
+        """The mirror that matters most: slice two is a slice this round is not,
+        and the union is what puts its file in the comparison at all."""
+        self.a_plan_file_moves('harness/slice_two.py')
+        message = self.refusal(data=self.null_citation(), records=self.a_null_round())
+        self.assertIn('harness/slice_two.py', message)
+        self.assertNotIn('whole tree', message)
+
+    def test_a_change_to_the_last_slices_file_is_refused_by_name(self):
+        self.a_plan_file_moves('harness/slice_three.py')
+        message = self.refusal(data=self.null_citation(), records=self.a_null_round())
+        self.assertIn('harness/slice_three.py', message)
+        self.assertNotIn('whole tree', message)
+
+    def test_an_uncommitted_change_to_a_file_the_plan_names_is_refused_by_name(self):
+        self.write('harness/slice_two.py', 'def two():\n    return 999\n')
+        message = self.refusal(data=self.null_citation(), records=self.a_null_round())
+        self.assertIn('harness/slice_two.py', message)
+
+    def test_deleting_a_file_the_plan_names_is_refused_by_name(self):
+        (self.root / 'harness' / 'slice_two.py').unlink()
+        message = self.refusal(data=self.null_citation(), records=self.a_null_round())
+        self.assertIn('harness/slice_two.py', message)
+
+    def test_the_refusal_says_the_files_are_the_plans_and_not_one_slices(self):
+        """Whose files the comparison was made over is what a session reading the
+        refusal needs: a null round is told it was judged against the plan."""
+        self.a_plan_file_moves('harness/slice_two.py')
+        message = self.refusal(data=self.null_citation(), records=self.a_null_round())
+        self.assertIn('the plan names', message)
+        self.assertNotIn('its slice names', message)
+
+    def test_the_scope_is_every_slices_files_and_nothing_beside_them(self):
+        scope = gates._the_scope_a_citation_is_judged_in(self.a_null_round(), 4, None)
+        files, because, named_by = scope
+        self.assertEqual(files, ['harness/slice_one.py', 'harness/slice_three.py',
+                                 'harness/slice_two.py'], because)
+        self.assertEqual(named_by, 'the plan')
+
+    def test_a_null_round_no_tdd_record_mentions_is_judged_over_the_plan_too(self):
+        """A null position claims no slice, so there is nothing for another record
+        to corroborate: the union is read from the accepted plan and from git, and
+        no position in the citing record can widen or narrow it. Corroboration
+        withholds a scope that rests on a claim, and this scope rests on none."""
+        self.a_file_the_plan_names_nowhere_moves()
+        self.evaluate('tdd', self.null_citation(),
+                      records=self.journal(corroborating=False), attempt=2)
+
+    def test_that_uncorroborated_null_still_loses_its_evidence_to_a_plan_file(self):
+        self.a_plan_file_moves('harness/slice_two.py')
+        message = self.refusal(data=self.null_citation(),
+                               records=self.journal(corroborating=False))
+        self.assertIn('harness/slice_two.py', message)
+
+    def test_declaring_null_where_the_round_named_a_slice_settles_nothing(self):
+        """Null is a claim and not a shrug, so a record declaring it where the
+        accepted tdd record named slice 1 is the same disagreement the numbered
+        direction already falls closed on, and neither reading wins. Otherwise
+        null would be the word a record uses to reach the plan's files while the
+        journal says which one slice that round worked, and a claim the chain
+        contradicts would decide the comparison."""
+        self.a_file_the_plan_names_nowhere_moves()
+        message = self.refusal(data=self.null_citation(), records=self.journal())
+        self.assertIn('whole tree', message)
+        self.assertIn('slice 1', message)
+
+    def test_that_disagreement_would_otherwise_have_been_accepted(self):
+        """Without this the refusal above could be a comparison with nothing to
+        accept: the file that moved is named by no slice, so the plan reading
+        would have carried the citation had the disagreement not stopped it."""
+        self.a_file_the_plan_names_nowhere_moves()
+        self.evaluate('tdd', self.null_citation(), records=self.a_null_round(), attempt=2)
+
+    def test_a_plan_whose_slices_name_no_file_is_no_scope_at_all(self):
+        """An absence of files is not an empty comparison: an empty one accepts
+        every citation, so it falls back to the whole tree the way one slice
+        naming no file already does."""
+        self.a_file_the_plan_names_nowhere_moves()
+        message = self.refusal(data=self.null_citation(),
+                               records=self.a_null_round(
+                                   plan=[dict(entry, files=[]) for entry in self.plan]))
+        self.assertIn('whole tree', message)
+        self.assertIn('nothing in the plan', message)
+
+    def test_a_plan_with_an_entry_git_cannot_see_falls_back_to_the_whole_tree(self):
+        """The conservative side of the change, and the side a rule that accepts
+        more has to fall on: one entry that resolves to nothing in the tree the
+        check ran against makes the plan reading untrustworthy rather than
+        narrower, so it is the whole tree and the entry is named."""
+        self.a_file_the_plan_names_nowhere_moves()
+        message = self.refusal(
+            data=self.null_citation(),
+            records=self.a_null_round(plan=self.plan_with(
+                files=['harness/slice_one.py', 'harness/slice_one_typo.py'])))
+        self.assertIn('harness/slice_one_typo.py', message)
+        self.assertIn('whole tree', message)
+
+    def test_a_numbered_citation_is_still_scoped_to_its_own_slice_alone(self):
+        """The plan reading belongs to the round that belongs to no slice, and to
+        no other: a round that names slice 1 keeps slice 1's files, so a change to
+        slice two's file leaves its evidence standing."""
+        self.a_plan_file_moves('harness/slice_two.py')
+        self.evaluate('tdd', self.citing(position=1), records=self.journal(), attempt=2)
 
 
 if __name__ == '__main__':  # pragma: no cover - a module must run on its own
