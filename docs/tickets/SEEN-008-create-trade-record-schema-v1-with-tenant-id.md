@@ -93,9 +93,11 @@ an exact path match with no prefix rule, so a slice that names the directory `su
 create a file in it, which all three slices worked around through a shell the PreToolUse hook does not
 see. That last one needs a harness ticket of its own.
 
-This ticket was also the end-to-end proof of SEEN-112's `harness run`: clarify to review with no stop, all
-three slices worked by `seen-implementer` on opus at high effort by rule, and the whole run driven by the
-loop naming its next action and arguments.
+Every slice of this ticket was worked by `seen-implementer` on opus at high effort, chosen by rule rather
+than by a request, because a slice carrying a migration and RLS policies is not a judgement call; and the
+review was `seen-reviewer`, in a context that wrote none of it, four times. The accepted plan grew from
+three slices to four when the second review's findings needed a plan amendment. Nothing here claims
+anything about another ticket: a delivery record attests its own work.
 
 ### After the review, 27 September 2026
 
