@@ -1,0 +1,22 @@
+{
+  "sequence": 9,
+  "ticket": "SEEN-113",
+  "timestamp": "2026-09-27T13:45:39.361749+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "e94bfe7d5943c78b5549d50da189ec8e11c7b97c",
+  "prev_hash": "024062671ac2b44f476b904baa48ee2bede046462bc1f53a1521f1210e9e00d6",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "solution",
+    "to_attempt": 2,
+    "reason": "The solution record's whole-tree fingerprint comparison is the wrong scope and cannot do the job the ticket exists for: the implementing slice measured that every green records a distinct tree (SEEN-107 13 of 13, SEEN-109 13 of 13, SEEN-111 5 of 5), so an earlier attempt's green matches the final tree only if nothing changed since, which is never true when later slices add code. It declined to widen the rule and named the right scope instead. Amending: the comparison is scoped to the files the cited check's slice names, with the whole-tree comparison as the fallback when a citation cannot be attributed to a slice, and the handoff side adopts the plan-identity rule the slice found for reasons it could check and I had not. Recorded at record 8.",
+    "findings": [],
+    "no_findings": true,
+    "unmet_criteria": []
+  }
+}

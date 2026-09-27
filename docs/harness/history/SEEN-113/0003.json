@@ -1,0 +1,87 @@
+{
+  "sequence": 3,
+  "ticket": "SEEN-113",
+  "timestamp": "2026-09-27T13:25:25.525041+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "e94bfe7d5943c78b5549d50da189ec8e11c7b97c",
+  "prev_hash": "7bfa4671401aea323ca0fbf7ecfca55314742a72296413b424fccbeec099eee9",
+  "data": {
+    "from_stage": "clarify",
+    "to_stage": "solution",
+    "evidence": {
+      "scope": "One rule in `gates.cited_check`, that a check from an earlier attempt counts when its recorded tree fingerprint still matches the tree the citing record is written against, with the refusal saying which of two reasons applied, and the same correction in `handoff.plan_accepted_at` so a replan carries forward the greens of slices still in the branch; its edge is the attempt boundary alone, and it changes no stage, no template and no threshold.",
+      "acceptance": [
+        "Criterion 1: a tdd record cites a red or green from an earlier attempt and the gate accepts it when the check's recorded fingerprint matches the tree the citing record is written against. Evidence: a RED building a journal shaped like SEEN-112's, five attempts with slices proven in the first two, whose attempt-5 tdd record cites them and is refused with the words the gate uses today, then the GREEN accepting it with nothing re-proven.",
+        "Criterion 2: a check whose fingerprint has moved is still refused across attempts, and the refusal names which of the two reasons applied. Evidence: two REDs, one where the cited check's tree has moved and the message must say the tree moved rather than that the attempt differs, and one where no such check exists at all and the message must say that instead. The two messages must not be the same sentence.",
+        "Criterion 3: the ordering rule survives. Evidence: a RED asserting that a red still precedes its green, that slices do not overlap and that the regression is last, with the cited checks drawn from three different attempts, so the ordering is read from the sequence rather than from the attempt.",
+        "Criterion 4: a replan carries forward the greens of slices whose work is still in the branch. Evidence: a RED on a journal with a return to solution after two green slices, asserting that the handoff pack and `guard` read three of three or two of three rather than none, and naming the slice a session would actually be handed.",
+        "Criterion 5: proven on the shape that found it. Evidence: the fixture in criterion 1 is SEEN-112's own shape, five attempts and a fifth-attempt record citing the first two, and its mirror where one cited check's tree has moved.",
+        "Criterion 6: no evidence is revived for code that changed. Evidence: a RED editing a file the cited check covered, so the fingerprint differs, and asserting the refusal with the fingerprint difference as its stated reason."
+      ],
+      "decisions": [
+        "The fingerprint is the test, not the attempt, because a check already records the tree it ran against and the original rule's purpose was to stop evidence being reused for code that changed. The attempt number was a proxy for that and it is a lossy one: it refuses evidence about unchanged code and would equally accept a same-attempt check whose tree had moved, which is the defect from the other side. `_require_the_diff_has_not_moved` already reads fingerprints at the review stage, so the mechanism is not new to this codebase.",
+        "Which fingerprint a citing record is compared against is decided here rather than left to the implementation: the tree the tdd record is written against, read the same way `_fingerprint_check` reads it, so a citation is accepted when the code has not moved since the check ran and refused the moment it has. The check records both a before and an after; the after is the one that says what the passing run was about.",
+        "What only the work can settle, recorded rather than asked: whether any delivered journal in this repository would change verdict under the new rule. The observation that settles it is running the existing suite plus a pass over every journal under docs/harness/history, because the rule only ever accepts more than before, so a ticket that passed still passes and the question is whether any recorded refusal was load-bearing. If one was, it is named in the tdd record rather than smoothed over.",
+        "The two halves ship together. A pack that says none of three slices is done while the gate accepts the two that are would be a harness contradicting itself in the same breath, and the session reading the pack is the one that would pay for it."
+      ],
+      "open_questions": [],
+      "changes_agent_action": false,
+      "graph_impact": [
+        "repowise risk, recorded at record 2, scored against a tree holding only this ticket's own files, so it is a floor rather than a forecast for a change to the gate every tdd record passes through.",
+        "The two call sites are known from SEEN-112's journal rather than from a fresh search: `gates.cited_check` at harness/gates.py:144-163, whose docstring states the rule being loosened, and the ordering line at harness/gates.py:258 that must survive it; `handoff.plan_accepted_at` and `accepted_greens`, named at records 50 and 54 of SEEN-112 as the second place the attempt boundary discards work still in the branch.",
+        "What the graphs cannot answer, and why it is a decision above rather than a question: no file records which recorded refusals in the delivered journals were load-bearing, so only running the rule over them says whether any verdict moves."
+      ]
+    },
+    "decisions": [
+      {
+        "key": "clarified",
+        "question": "clarified",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.88,
+          "no": 0.12
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.8,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "key": "risk",
+        "question": "risk",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "medium",
+        "probabilities": {
+          "low": 0.31,
+          "medium": 0.69,
+          "high": 0.0
+        },
+        "confidence": 0.53,
+        "score": 0.69,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

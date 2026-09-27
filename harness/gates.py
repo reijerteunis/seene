@@ -7,11 +7,13 @@ checks that recorded evidence exists, is current and is ordered. It cannot check
 that a conclusion is correct, and it does not pretend to.
 """
 
+import hashlib
 import json
 
 from . import checks
 from .errors import HarnessError, require
-from .paths import ENUMERATED_KEYS, NON_CODE_TEMPLATE, TEMPLATE_FOR_STAGE, TEMPLATES
+from .paths import (ENUMERATED_KEYS, FINGERPRINT_EXCLUDED, NON_CODE_TEMPLATE,
+                    TEMPLATE_FOR_STAGE, TEMPLATES)
 
 MODES = ('code', 'non-code')
 # How a review discloses whose context it came from. A subagent is a context
@@ -28,6 +30,11 @@ FINDING_KEYS = ('id', 'severity', 'claim', 'failure_scenario', 'status', 'resolu
 # The severities SEEN-109's escape rule is written at, which is why a finding at
 # one of them has to name the file it is in.
 ESCAPING_SEVERITIES = ('high', 'blocking')
+# How far back the tree a check ran against is looked for. A check runs on the
+# working tree, and what puts that tree in the history is the commit that
+# carried the work it proved, which is the next commit on the branch; fifty is
+# past the longest ticket on record and keeps the search bounded.
+TREE_SEARCH_LIMIT = 50
 
 
 def template_name(stage, mode=None):
@@ -141,16 +148,182 @@ def record_at(records, number):
     raise HarnessError(f'Record {number} is not in this journal')
 
 
-def cited_check(records, number, phase, current):
+def content_fingerprint(repository, commit):
+    """The fingerprint of a commit's tree, as `Repository.fingerprint` defines it.
+
+    The same listing of `path:blob` over the paths the fingerprint counts, read
+    from a commit rather than from the index and the working tree. It is a second
+    reading of one definition, which is worth saying plainly: the repository
+    hashes the tree in hand and cannot hash a commit, and the alternative was to
+    check out or stash somebody's work to ask a question about it.
+    `test_the_fingerprint_this_rule_reads_is_the_one_the_repository_writes` holds
+    the two readings to each other, so a change to either is caught here rather
+    than by a citation silently scoped off the wrong commit.
+    """
+    entries = {}
+    for line in repository.git('ls-tree', '-r', commit).splitlines():
+        details, _, path = line.partition('\t')
+        if path and not path.startswith(FINGERPRINT_EXCLUDED):
+            entries[path] = details.split()[2]
+    listing = '\n'.join(f'{path}:{blob}' for path, blob in sorted(entries.items()))
+    return hashlib.sha256(listing.encode()).hexdigest()
+
+
+def _the_commit_holding(repository, tree):
+    """The commit whose content is that tree, if this branch still has one.
+
+    A check records the fingerprint of a tree and not the tree, so which files it
+    held is a question only the tree itself answers. What answers it afterwards
+    is the commit that carried the work the check proved: one commit later the
+    same content is in the history, and its fingerprint says so. Nothing is
+    trusted about which commit that is; every candidate is hashed and the one
+    that matches is the tree.
+
+    None when no commit carries it, which is a check whose tree was never
+    committed as it stood. That is an absence rather than a difference, and it
+    falls back to the whole tree rather than being scoped to a guess.
+    """
+    for commit in repository.git('log', '--format=%H', '-n', str(TREE_SEARCH_LIMIT),
+                                 'HEAD').split():
+        if content_fingerprint(repository, commit) == tree:
+            return commit
+    return None
+
+
+def _moved_since(repository, commit, files):
+    """Which of these paths differ between that commit and the tree in hand.
+
+    Git's own pathspec, so a slice entry naming a directory covers everything
+    under it and nothing beside it: `supabase/migrations` reaches every migration
+    and not `supabase/migrations-old`. That is the same reading the guard settled
+    on in SEEN-112, and here it can only cost a citation its evidence, never
+    grant it: a wider scope is a stricter rule.
+
+    Untracked files are counted, because a path the slice names that is new is a
+    path that was not there when the check ran.
+    """
+    moved = set(repository.git('diff', '--name-only', commit, '--', *files).split())
+    for line in repository.git('status', '--porcelain', '-uall', '--', *files).splitlines():
+        if line.startswith('??'):
+            moved.add(line[3:].strip())
+    return sorted(path for path in moved if path)
+
+
+def _files_the_slice_covers(records, position):
+    """The files the plan says the slice at this position covers, or nothing.
+
+    Read from the route record first, because the route is what the pack hands
+    the session that works the slice, and from the accepted plan when no route
+    names it. Nothing for a citation that names no slice, a position no plan
+    names, or an entry that names no file: each is an absence of scope, and an
+    absence of scope is not an empty one. An empty comparison would accept every
+    citation, so it falls back to the whole tree instead.
+    """
+    if position is None:
+        return None
+    from . import routing
+    entry = routing.for_slice(records, position) or {}
+    files = entry.get('files')
+    if not files:
+        planned = (latest_evidence(records, 'solution') or {}).get('slices') or []
+        if isinstance(position, int) and 1 <= position <= len(planned):
+            files = (planned[position - 1] or {}).get('files')
+    named = [path for path in (files or []) if isinstance(path, str) and path.strip()]
+    return named or None
+
+
+def _require_the_check_is_about_this_code(record, number, tree, current, repository, files):
+    """A check from an earlier attempt still describes the code it covered.
+
+    The second of the two refusals, and the one that carries the reason: a check
+    records the fingerprint of the tree it ran against, so whether its evidence
+    is still about this code is a question the journal answers rather than one
+    anybody has to be trusted on.
+
+    Scoped to the files the cited check's slice names, because that is what "this
+    code" means. The whole tree cannot answer it: every green records a distinct
+    tree, SEEN-107 13 of 13, SEEN-109 13 of 13, SEEN-111 5 of 5, so a whole-tree
+    comparison accepts an earlier attempt's green only when nothing at all
+    changed since, which is never true of a ticket whose later slices added code.
+    A green proving slice 1 is still evidence about slice 1 when slice 3 has since
+    written elsewhere, and stops being evidence the moment a file slice 1 names
+    has moved. The refusal names those files, because a file is what a session
+    can go and look at.
+
+    The whole tree survives as the fallback and only as the fallback: a citation
+    no slice can be attributed to, and a check whose tree no commit carries, are
+    held to the strict rule. Both are absences, and an absence fails closed.
+
+    A check that recorded no fingerprint at all is refused too, and separately:
+    it is not evidence that the tree moved, it is the absence of the evidence
+    that it did not, and every journal written before SEEN-086 recorded one is in
+    that position.
+    """
+    after = record['data'].get('after')
+    require(after is not None,
+            f'Check {number} was recorded in attempt {record["attempt"]} and this record is '
+            f'written in attempt {current["attempt"]}, and the check does not say which tree it '
+            'ran against, so nothing here can tell whether its evidence is still about this '
+            'code; run it again in this attempt')
+    if after == tree:
+        return
+    commit = _the_commit_holding(repository, after) if files and repository else None
+    if commit is not None:
+        moved = _moved_since(repository, commit, files)
+        require(not moved,
+                f'The code check {number} covers has changed since it ran: '
+                f'{", ".join(moved)}. Its slice names {", ".join(files)}, and its evidence is '
+                'about those files as they were, not as they are; run it again in this attempt')
+        return
+    because = ('this citation names no slice, so there is nothing to scope the comparison to'
+               if not files else
+               'no commit on this branch carries the tree it ran against, so which files moved '
+               'cannot be told')
+    require(False,
+            f'The tree moved under check {number}: it ran against {after[:12]} and this record '
+            f'is written against {tree[:12]}, compared over the whole tree because {because}. '
+            'Its evidence is about code this ticket has changed since, so it does not support a '
+            'citation here; run it again in this attempt')
+
+
+def cited_check(records, number, phase, current, tree=None, repository=None,
+                files=None):
     """A check a stage record points at, confirmed to be usable evidence here.
 
-    A check counts only for the stage and attempt that produced it, so evidence
-    from before a return cannot be quietly reused after one.
+    A check counts only for the stage that produced it, and only while it is
+    still about this code. The attempt used to stand for the second half, and it
+    is a lossy stand-in: a return resets which checks a record may cite, so a
+    ticket returned more than once could not accumulate its evidence, although
+    the slices proved in its first attempts were still green and their tests
+    still in the branch. Re-proving one of them needs a RED for code that already
+    passes, which is the one thing this harness refuses outright, so there was no
+    honest way out from inside such a ticket. SEEN-112 was returned five times
+    and found it.
+
+    So the test is the code rather than the attempt, which keeps the original
+    protection whole: what it defended against was evidence reused for code that
+    changed, and the fingerprint is the thing that says whether it did. `tree` is
+    the tree the citing record is written against and `files` are the files the
+    cited check's own slice names, which is the scope the question is asked in.
+    Given no tree, only this attempt's own checks count, because a comparison
+    with nothing is not one.
+
+    Two refusals and not one, because a gate answering "another attempt" where it
+    means "different code" is what made this take five returns to find: there is
+    no such check, or the tree moved under the check there is.
     """
-    record = record_at(records, number)
-    require(record['kind'] == 'check', f'Record {number} is not a check')
-    require(record['stage'] == current['stage'] and record['attempt'] == current['attempt'],
-            f'Check {number} belongs to another stage or attempt; run it again')
+    require(isinstance(number, int) and not isinstance(number, bool),
+            f'Not a record number: {number!r}')
+    record = next((entry for entry in records
+                   if entry['sequence'] == number and entry['kind'] == 'check'), None)
+    require(record is not None,
+            f'There is no such check: record {number} is not a check in this journal, so nothing '
+            'in it supports this citation')
+    require(record['stage'] == current['stage'],
+            f'Check {number} was recorded at the {record["stage"]} stage and this record belongs '
+            f'to {current["stage"]}; a check counts only for the stage that produced it')
+    if record['attempt'] != current['attempt']:
+        _require_the_check_is_about_this_code(record, number, tree, current, repository, files)
     require(record['data']['phase'] == phase,
             f'Expected a {phase} check at record {number}, found {record["data"]["phase"]}')
     if phase == 'red':
@@ -243,7 +416,14 @@ def _tdd(data, records, current, repository, thresholds):
     require(slices, 'Code changes need at least one slice in slices')
     _require_coverage(records, current)
     _require_the_work_trips_no_unrouted_rule(records, repository, thresholds)
-    regression = cited_check(records, data['regression'], 'regression', current)
+    # The tree every citation below is judged against, read once: a check from an
+    # earlier attempt counts while the files its slice covers still hold the
+    # content it ran against, and is refused by their names the moment they do
+    # not. The regression is scoped to nothing, because it covers the suite and
+    # not a slice: it is held to the whole tree.
+    tree = repository.fingerprint()
+    regression = cited_check(records, data['regression'], 'regression', current, tree,
+                             repository)
     previous_green = 0
     for position, slice_ in enumerate(slices, start=1):
         require(isinstance(slice_, dict), f'Slice {position} must be an object')
@@ -255,8 +435,10 @@ def _tdd(data, records, current, repository, thresholds):
                 'slice, which is a claim on the record rather than a gap in it: left out, it '
                 'skips the route comparison and is indistinguishable from a record written '
                 'before the field existed')
-        red = cited_check(records, slice_.get('red'), 'red', current)
-        green = cited_check(records, slice_.get('green'), 'green', current)
+        covers = _files_the_slice_covers(records, slice_.get('position'))
+        red = cited_check(records, slice_.get('red'), 'red', current, tree, repository, covers)
+        green = cited_check(records, slice_.get('green'), 'green', current, tree, repository,
+                            covers)
         require(previous_green < red['sequence'] < green['sequence'] <= regression['sequence'],
                 f'Slice {position} is out of order; each red must precede its green, slices '
                 'must not overlap, and the regression must be the last check')

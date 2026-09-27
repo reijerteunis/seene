@@ -629,5 +629,82 @@ class SessionThresholdTest(unittest.TestCase):
         self.assertEqual(section['output_token_budget'], 60000)
         self.assertEqual(section['handoff_token_limit'], 2000)
 
+
+def named_plan(count=3):
+    """A plan whose slices name different files, so the guard can tell them apart."""
+    return [dict(name=f'Slice {position}',
+                 points=1,
+                 files=[f'harness/slice{position}.py'],
+                 red=f'Nothing yet proves behaviour {position}')
+            for position in range(1, count + 1)]
+
+
+class ReplanCarriesForward(SessionEnvironment):
+    """SEEN-112 at its record 44: two slices green, a return, the same plan again.
+
+    `plan_accepted_at` moved to the second acceptance and `accepted_greens`
+    counted only the greens after it, so the pack and the guard read
+    "slice 1 of 3, 0 of 3 done" while slices 1 and 2 were green and committed.
+    The session that walked into it was handed slice 1's file list for work that
+    belonged to slice 3. A return does not unprove a slice: the code is in the
+    branch either way, and a plan re-accepted unchanged is the same plan.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.start()
+        self.submit('clarify', clarify_evidence())
+        self.submit('solution', solution_evidence(slices=named_plan()))
+
+    def green(self):
+        script = self.root / 'passes.sh'
+        script.write_text('#!/bin/sh\nexit 0\n')
+        script.chmod(0o755)
+        return self.run_harness('check', self.ticket_id, '--phase', 'green',
+                                '--actor', 'claude:implementer', '--', str(script))
+
+    def replan(self, slices=None):
+        self.run_harness('return', self.ticket_id, '--to', 'solution', '--reason',
+                         'A finding from the review', '--actor', 'claude:reviewer')
+        return self.submit('solution',
+                           solution_evidence(slices=slices or named_plan()))
+
+    def two_slices_then_a_replan(self, slices=None):
+        self.green()
+        self.green()
+        self.replan(slices)
+        return self.run_harness('status', self.ticket_id, '--brief')['pack']
+
+    def test_the_pack_counts_the_slices_the_branch_has_finished(self):
+        self.assertIn('2 of 3', self.two_slices_then_a_replan())
+
+    def test_the_pack_hands_over_the_slice_that_is_actually_next(self):
+        self.assertIn('Slice 3', self.two_slices_then_a_replan())
+
+    def test_the_guard_allows_the_files_of_the_slice_in_front_of_the_session(self):
+        self.two_slices_then_a_replan()
+        decision = self.run_harness('guard', 'harness/slice3.py')
+        self.assertTrue(decision['allowed'], decision['reason'])
+
+    def test_the_guard_still_refuses_a_file_of_a_slice_already_done(self):
+        self.two_slices_then_a_replan()
+        with self.assertRaises(HarnessError) as raised:
+            self.run_harness('guard', 'harness/slice1.py')
+        self.assertIn('slice 3 of 3', str(raised.exception))
+
+    def test_a_replan_that_changed_the_slices_starts_its_own_count(self):
+        """The one case the attempt boundary got right, and it is kept.
+
+        A plan whose slices changed is a different plan, and greens proving the
+        slices it replaced prove nothing about the slices it names.
+        """
+        changed = named_plan()
+        changed[0] = dict(changed[0], name='Slice 1, reworked',
+                          files=['harness/reworked.py'])
+        pack = self.two_slices_then_a_replan(slices=changed)
+        self.assertIn('0 of 3', pack)
+        self.assertIn('Slice 1, reworked', pack)
+
+
 if __name__ == '__main__':  # pragma: no cover - a module must run on its own
     unittest.main()

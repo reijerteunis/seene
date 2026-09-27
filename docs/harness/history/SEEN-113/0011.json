@@ -1,0 +1,169 @@
+{
+  "sequence": 11,
+  "ticket": "SEEN-113",
+  "timestamp": "2026-09-27T13:46:03.694592+00:00",
+  "harness_version": "2",
+  "kind": "route",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "e94bfe7d5943c78b5549d50da189ec8e11c7b97c",
+  "prev_hash": "b135927f9b20d11d4412ae5dd19fb814a71e6c6651ca02e86e14e42d9d721566",
+  "data": {
+    "solution": 10,
+    "shadow": true,
+    "strongest": "opus",
+    "tiers": [
+      "haiku",
+      "sonnet",
+      "opus"
+    ],
+    "rules": [],
+    "jev": {
+      "asked": true,
+      "model": "jev-1.13.0",
+      "reason": null,
+      "answers": [
+        {
+          "key": "implementation_model#1",
+          "question": "implementation_model",
+          "type": "score",
+          "options": [
+            "haiku",
+            "sonnet",
+            "opus"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "opus",
+          "probabilities": {
+            "haiku": 0.01,
+            "sonnet": 0.15,
+            "opus": 0.84
+          },
+          "confidence": 0.75,
+          "score": 1.83,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_effort#1",
+          "question": "implementation_effort",
+          "type": "score",
+          "options": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "high",
+          "probabilities": {
+            "low": 0.0,
+            "medium": 0.02,
+            "high": 0.98
+          },
+          "confidence": 0.97,
+          "score": 1.98,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_model#2",
+          "question": "implementation_model",
+          "type": "score",
+          "options": [
+            "haiku",
+            "sonnet",
+            "opus"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "opus",
+          "probabilities": {
+            "haiku": 0.04,
+            "sonnet": 0.37,
+            "opus": 0.59
+          },
+          "confidence": 0.31,
+          "score": 1.54,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_effort#2",
+          "question": "implementation_effort",
+          "type": "score",
+          "options": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "high",
+          "probabilities": {
+            "low": 0.0,
+            "medium": 0.11,
+            "high": 0.89
+          },
+          "confidence": 0.82,
+          "score": 1.88,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        }
+      ]
+    },
+    "execution": [
+      {
+        "position": 1,
+        "name": "The fingerprint rule in cited_check, its two refusal reasons, the ordering held across attempts, and the replan carrying forward",
+        "points": 2,
+        "files": [
+          "harness/gates.py",
+          "harness/handoff.py",
+          "harness/tests/test_stage_gates.py",
+          "harness/tests/test_session_cap.py"
+        ],
+        "red": "CiteAcrossAttempts fails with `Check {n} belongs to another stage or attempt; run it again` on a journal shaped like SEEN-112's; TreeMovedUnderTheCheck shows one sentence answering two different situations; OrderingAcrossAttempts shows the ordering untested across attempts; EvidenceForChangedCode shows no fingerprint reason in any refusal; and ReplanCarriesForward shows the pack reading 0 of 3 done with two slices green.",
+        "model": "opus",
+        "effort": "high",
+        "source": "jev",
+        "rule": null,
+        "reason": null,
+        "model_probability": 0.84,
+        "effort_probability": 0.98,
+        "model_passed": true,
+        "model_threshold": 0.5,
+        "implementer_task": "Work slice 1 of SEEN-113: The fingerprint rule in cited_check, its two refusal reasons, the ordering held across attempts, and the replan carrying forward.\n\nRun it on opus at high effort, because Jev chose it at 0.84.\nThe model is what reaches the work: in Claude Code as the per-invocation model on the seen-implementer agent, and in Codex as the model this instruction names when you spawn it. The effort is recorded, carried and reported rather than applied, on either assistant: the generated copies do not vary by slice, because a file whose content depended on the ticket in hand was wrong on a detached HEAD, after a replan and after the receipt. Neither is yours to change.\n\nPoints: 2.\nFiles: harness/gates.py, harness/handoff.py, harness/tests/test_stage_gates.py, harness/tests/test_session_cap.py\n\nIts RED must demonstrate: CiteAcrossAttempts fails with `Check {n} belongs to another stage or attempt; run it again` on a journal shaped like SEEN-112's; TreeMovedUnderTheCheck shows one sentence answering two different situations; OrderingAcrossAttempts shows the ordering untested across attempts; EvidenceForChangedCode shows no fingerprint reason in any refusal; and ReplanCarriesForward shows the pack reading 0 of 3 done with two slices green.\n\nWrite the test first and record it with:\n  python3 harness/run.py check SEEN-113 --phase red --actor <tool>:implementer --model opus -- <command>\nThen write only what turns it green and record that the same way. The `--model opus` is not optional: a subagent inherits its parent's session id, so the log records the model of the session that spawned you and not yours, and without the declaration the tdd gate compares the wrong two names. Then stop: do not start the next slice and do not advance the stage."
+      },
+      {
+        "position": 2,
+        "name": "Scope the comparison to the cited check's own slice files, with the whole tree as the fallback",
+        "points": 1,
+        "files": [
+          "harness/gates.py",
+          "harness/handoff.py",
+          "harness/tests/test_stage_gates.py",
+          "harness/tests/test_session_cap.py"
+        ],
+        "red": "CitedAcrossAttemptsByItsOwnFiles shows slice 1's green refused because an unrelated file moved, which is the state every real journal is in; TheSlicesOwnFilesMoved shows a green accepted although a file its own slice names has changed; UnattributableCitationFallsBack shows a citation belonging to no slice accepted on a moved tree.",
+        "model": "opus",
+        "effort": "high",
+        "source": "jev",
+        "rule": null,
+        "reason": null,
+        "model_probability": 0.59,
+        "effort_probability": 0.89,
+        "model_passed": true,
+        "model_threshold": 0.5,
+        "implementer_task": "Work slice 2 of SEEN-113: Scope the comparison to the cited check's own slice files, with the whole tree as the fallback.\n\nRun it on opus at high effort, because Jev chose it at 0.59.\nThe model is what reaches the work: in Claude Code as the per-invocation model on the seen-implementer agent, and in Codex as the model this instruction names when you spawn it. The effort is recorded, carried and reported rather than applied, on either assistant: the generated copies do not vary by slice, because a file whose content depended on the ticket in hand was wrong on a detached HEAD, after a replan and after the receipt. Neither is yours to change.\n\nPoints: 1.\nFiles: harness/gates.py, harness/handoff.py, harness/tests/test_stage_gates.py, harness/tests/test_session_cap.py\n\nIts RED must demonstrate: CitedAcrossAttemptsByItsOwnFiles shows slice 1's green refused because an unrelated file moved, which is the state every real journal is in; TheSlicesOwnFilesMoved shows a green accepted although a file its own slice names has changed; UnattributableCitationFallsBack shows a citation belonging to no slice accepted on a moved tree.\n\nWrite the test first and record it with:\n  python3 harness/run.py check SEEN-113 --phase red --actor <tool>:implementer --model opus -- <command>\nThen write only what turns it green and record that the same way. The `--model opus` is not optional: a subagent inherits its parent's session id, so the log records the model of the session that spawned you and not yours, and without the declaration the tdd gate compares the wrong two names. Then stop: do not start the next slice and do not advance the stage."
+      }
+    ]
+  }
+}

@@ -638,5 +638,380 @@ class TemplatePositionTest(unittest.TestCase):
         with self.assertRaisesRegex(HarnessError, 'no single slice'):
             gates.reject_placeholders(template, dict(slices=[left]))
 
+
+class SeenOneTwelveShape(TddGateTest):
+    """SEEN-112's shape: five attempts, the early slices proved in the first two.
+
+    A return resets the attempt, and the attempt was what decided which checks a
+    tdd record could cite, so a ticket returned more than once could not
+    accumulate its evidence. The slices proved in its first attempts are still
+    green and their tests are still in the branch; re-proving one would need a
+    RED for code that already passes, which is the one thing this harness
+    refuses outright. What says whether evidence is still about this code is the
+    tree the check ran against, and every check records it.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.tree = self.repository.fingerprint()
+
+    def journal(self, moved=()):
+        """Slice 1 proved in attempt 1, slice 2 in attempt 2, slice 3 in attempt 5.
+
+        `moved` names the checks whose recorded tree is not the one this record
+        is written against, which is the mirror case that must stay refused.
+        """
+        def tree_for(sequence):
+            return 'f' * 64 if sequence in moved else self.tree
+        return self.records + [check_record(2, 'red', attempt=1, after=tree_for(2)),
+                               check_record(3, 'green', attempt=1, after=tree_for(3)),
+                               check_record(4, 'red', attempt=2, after=tree_for(4)),
+                               check_record(5, 'green', attempt=2, after=tree_for(5)),
+                               check_record(6, 'red', attempt=5, after=tree_for(6)),
+                               check_record(7, 'green', attempt=5, after=tree_for(7)),
+                               check_record(8, 'regression', attempt=5, after=tree_for(8)),
+                               coverage_record(9, attempt=5)]
+
+    def citing_all(self, **changes):
+        data = self.template('tdd',
+                             slices=[dict(position=1, behaviour='Slice 1, proved in attempt 1',
+                                          failure_reason='expected 250, received 0',
+                                          red=2, green=3),
+                                     dict(position=2, behaviour='Slice 2, proved in attempt 2',
+                                          failure_reason='expected a refusal, got none',
+                                          red=4, green=5),
+                                     dict(position=3, behaviour='Slice 3, proved in attempt 5',
+                                          failure_reason='expected slice 3, read slice 1',
+                                          red=6, green=7)],
+                             regression=8)
+        data.update(changes)
+        return data
+
+
+class CiteAcrossAttempts(SeenOneTwelveShape):
+    """A record cites the evidence a return did not invalidate."""
+
+    def test_a_record_may_cite_the_slices_earlier_attempts_proved(self):
+        self.evaluate('tdd', self.citing_all(), records=self.journal(), attempt=5)
+
+    def test_nothing_is_re_proved_in_the_attempt_that_cites_them(self):
+        records = self.journal()
+        self.evaluate('tdd', self.citing_all(), records=records, attempt=5)
+        proved_here = [record['sequence'] for record in records
+                       if record['kind'] == 'check' and record['attempt'] == 5
+                       and record['data']['phase'] in ('red', 'green')]
+        self.assertEqual(proved_here, [6, 7], 'the earlier slices were re-proved to be cited')
+
+
+class TreeMovedUnderTheCheck(SeenOneTwelveShape):
+    """The two reasons a citation is refused, which one sentence used to answer.
+
+    A gate saying "another attempt" where it means "different code" is what made
+    this take five returns to find, so the two say different things.
+    """
+
+    def refusal(self, data, records):
+        with self.assertRaises(HarnessError) as raised:
+            self.evaluate('tdd', data, records=records, attempt=5)
+        return str(raised.exception)
+
+    def moved_tree(self):
+        return self.refusal(self.citing_all(), self.journal(moved=(3,)))
+
+    def absent_check(self):
+        data = self.citing_all()
+        data['slices'][0]['green'] = 99
+        return self.refusal(data, self.journal())
+
+    def test_a_check_whose_tree_has_moved_says_the_tree_moved(self):
+        self.assertIn('tree moved under check 3', self.moved_tree())
+
+    def test_a_citation_of_a_check_that_is_not_there_says_there_is_none(self):
+        self.assertIn('no such check', self.absent_check())
+
+    def test_the_two_reasons_are_not_the_same_sentence(self):
+        self.assertNotEqual(self.moved_tree(), self.absent_check())
+
+    def test_neither_reason_answers_with_the_attempt(self):
+        """The attempt was the proxy; naming it is what hid the real reason."""
+        for message in (self.moved_tree(), self.absent_check()):
+            self.assertNotIn('belongs to another stage or attempt', message)
+
+
+class EvidenceForChangedCode(SeenOneTwelveShape):
+    """The mirror the loosening is only safe with: code that moved loses its evidence.
+
+    Without this an always-true comparison would pass everything, which is the
+    whole risk of replacing the attempt test with a tree test.
+    """
+
+    def test_editing_a_file_the_check_covered_refuses_the_citation_by_name(self):
+        records = self.journal()
+        self.write('harness/journal.py', '# edited after the cited check ran\n')
+        moved_to = self.repository.fingerprint()
+        self.assertNotEqual(self.tree, moved_to, 'the edit did not move the tree')
+        with self.assertRaises(HarnessError) as raised:
+            self.evaluate('tdd', self.citing_all(), records=records, attempt=5)
+        message = str(raised.exception)
+        self.assertIn(self.tree[:12], message)
+        self.assertIn(moved_to[:12], message)
+
+    def test_a_check_that_recorded_no_tree_at_all_is_still_refused(self):
+        """Every journal written before this rule: nothing says whether it moved."""
+        records = self.records + [check_record(2, 'red', attempt=1),
+                                  check_record(3, 'green', attempt=1),
+                                  check_record(4, 'red', attempt=5, after=self.tree),
+                                  check_record(5, 'green', attempt=5, after=self.tree),
+                                  check_record(6, 'regression', attempt=5, after=self.tree),
+                                  coverage_record(7, attempt=5)]
+        data = self.template('tdd',
+                             slices=[dict(position=1, behaviour='Slice 1, proved in attempt 1',
+                                          failure_reason='expected 250, received 0',
+                                          red=2, green=3),
+                                     dict(position=2, behaviour='Slice 2, proved in attempt 5',
+                                          failure_reason='expected a refusal, got none',
+                                          red=4, green=5)],
+                             regression=6)
+        with self.assertRaisesRegex(HarnessError, 'does not say which tree'):
+            self.evaluate('tdd', data, records=records, attempt=5)
+
+
+class OrderingAcrossAttempts(SeenOneTwelveShape):
+    """The ordering rule reads sequence numbers, which are monotonic across attempts.
+
+    So it survives the change untouched, and this says so: a red still precedes
+    its green, slices still do not overlap and the regression is still last,
+    with the cited checks drawn from three different attempts.
+    """
+
+    def out_of_order(self, data, records=None):
+        with self.assertRaisesRegex(HarnessError, 'out of order'):
+            self.evaluate('tdd', data, records=records or self.journal(), attempt=5)
+
+    def test_the_ordered_case_passes_with_checks_from_three_attempts(self):
+        records = self.journal()
+        cited = {record['attempt'] for record in records
+                 if record['kind'] == 'check' and record['sequence'] in (2, 3, 4, 5, 6, 7)}
+        self.assertEqual(cited, {1, 2, 5})
+        self.evaluate('tdd', self.citing_all(), records=records, attempt=5)
+
+    def test_a_green_recorded_before_its_red_is_still_out_of_order(self):
+        data = self.citing_all()
+        # Attempt 2's red with attempt 1's green: the green ran first, whatever
+        # attempt either belongs to.
+        data['slices'][0].update(red=4, green=3)
+        data['slices'][1].update(red=2, green=5)
+        self.out_of_order(data)
+
+    def test_slices_may_not_overlap_across_attempts(self):
+        data = self.citing_all()
+        data['slices'][0].update(red=2, green=5)
+        data['slices'][1].update(red=4, green=7)
+        data['slices'][2].update(red=6, green=7)
+        self.out_of_order(data)
+
+    def test_the_regression_is_still_the_last_check(self):
+        records = self.records + [check_record(2, 'red', attempt=1, after=self.tree),
+                                  check_record(3, 'green', attempt=1, after=self.tree),
+                                  check_record(4, 'regression', attempt=2, after=self.tree),
+                                  check_record(5, 'red', attempt=3, after=self.tree),
+                                  check_record(6, 'green', attempt=3, after=self.tree),
+                                  coverage_record(7, attempt=5)]
+        data = self.template('tdd',
+                             slices=[dict(position=1, behaviour='Slice 1, proved in attempt 1',
+                                          failure_reason='expected 250, received 0',
+                                          red=2, green=3),
+                                     dict(position=2, behaviour='Slice 2, proved in attempt 3',
+                                          failure_reason='expected a refusal, got none',
+                                          red=5, green=6)],
+                             regression=4)
+        self.out_of_order(data, records=records)
+
+
+class ScopedToTheSlicesFiles(TddGateTest):
+    """The scope of "still about this code" is the code the check covered.
+
+    A whole-tree comparison cannot answer the question this rule exists for. The
+    measurement that settled it: every green records a distinct tree, SEEN-107 13
+    of 13, SEEN-109 13 of 13, SEEN-111 5 of 5, so an earlier attempt's green
+    equals the tree at the advance only when nothing at all changed since, which
+    is never true of a ticket whose later slices added code. A green proving
+    slice 1 is still evidence about slice 1 when slice 3 has since written
+    elsewhere, and stops being evidence the moment slice 1's own files move.
+
+    The fixture is a real one, with commits: a check runs against a working tree,
+    and what makes that tree findable afterwards is the commit that carried the
+    work it proved.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.plan = [dict(name='Slice one', points=1, files=['harness/slice_one.py'],
+                          red='Nothing yet proves one'),
+                     dict(name='Slice two', points=1, files=['harness/slice_two.py'],
+                          red='Nothing yet proves two'),
+                     dict(name='Slice three', points=1, files=['harness/slice_three.py'],
+                          red='Nothing yet proves three')]
+        self.write('harness/slice_one.py', 'def one():\n    return 1\n')
+        self.commit('feat(SEEN-001): slice one')
+        # The tree slice one's red and green ran against, which is this commit's
+        # content: the session proved the work and then committed it.
+        self.proved = self.repository.fingerprint()
+
+    def commit(self, message):
+        self.git('add', '-A')
+        self.git('commit', '-q', '-m', message)
+
+    def plan_with(self, **changes):
+        plan = [dict(entry) for entry in self.plan]
+        plan[0].update(changes)
+        return plan
+
+    def journal(self, plan=None, proved=None):
+        """Slice one proved in attempt 1, slice three in attempt 2, which is now."""
+        now = self.repository.fingerprint()
+        return self.records + [
+            advance_record(2, 'solution',
+                           dict(mode='code', slices=plan or self.plan), attempt=1),
+            check_record(3, 'red', attempt=1, after=proved or self.proved),
+            check_record(4, 'green', attempt=1, after=proved or self.proved),
+            check_record(5, 'red', attempt=2, after=now),
+            check_record(6, 'green', attempt=2, after=now),
+            check_record(7, 'regression', attempt=2, after=now),
+            coverage_record(8, attempt=2)]
+
+    def citing(self, position=1, **changes):
+        data = self.template(
+            'tdd',
+            slices=[dict(position=position, behaviour='Slice one, proved in attempt 1',
+                         failure_reason='expected 1, received nothing',
+                         red=3, green=4),
+                    dict(position=3, behaviour='Slice three, proved in this attempt',
+                         failure_reason='expected 3, received nothing',
+                         red=5, green=6)],
+            regression=7)
+        data.update(changes)
+        return data
+
+    def refusal(self, data=None, records=None):
+        with self.assertRaises(HarnessError) as raised:
+            self.evaluate('tdd', data or self.citing(), records=records or self.journal(),
+                          attempt=2)
+        return str(raised.exception)
+
+    def slice_three_writes_its_own_file(self):
+        self.write('harness/slice_three.py', 'def three():\n    return 3\n')
+        self.commit('feat(SEEN-001): slice three')
+
+
+class CitedAcrossAttemptsByItsOwnFiles(ScopedToTheSlicesFiles):
+    """Slice one's green survives slice three writing a file slice one never names."""
+
+    def test_a_green_stands_when_a_later_slice_wrote_somewhere_else(self):
+        self.slice_three_writes_its_own_file()
+        self.evaluate('tdd', self.citing(), records=self.journal(), attempt=2)
+
+    def test_the_tree_really_did_move_so_the_comparison_is_not_vacuous(self):
+        """Without this the acceptance above could be a comparison of nothing."""
+        self.slice_three_writes_its_own_file()
+        self.assertNotEqual(self.proved, self.repository.fingerprint())
+
+    def test_the_file_the_later_slice_wrote_is_named_by_no_earlier_slice(self):
+        self.slice_three_writes_its_own_file()
+        self.assertNotIn('harness/slice_three.py', self.plan[0]['files'])
+
+    def test_an_uncommitted_change_elsewhere_does_not_take_the_evidence_away(self):
+        self.write('harness/slice_three.py', 'def three():\n    return 3\n')
+        self.evaluate('tdd', self.citing(), records=self.journal(), attempt=2)
+
+
+class TheSlicesOwnFilesMoved(ScopedToTheSlicesFiles):
+    """The mirror, and the only thing that keeps the scoping from being a hole.
+
+    Every way the code a check covered can move: committed, uncommitted, and
+    deleted. Each must cost the citation its evidence, and the refusal must name
+    the file rather than a tree, because the file is what a session can go and
+    look at.
+    """
+
+    def test_a_committed_change_to_its_own_file_is_refused_by_name(self):
+        self.write('harness/slice_one.py', 'def one():\n    return 2\n')
+        self.commit('fix(SEEN-001): slice one again')
+        self.assertIn('harness/slice_one.py', self.refusal())
+
+    def test_an_uncommitted_change_to_its_own_file_is_refused_by_name(self):
+        self.write('harness/slice_one.py', 'def one():\n    return 2\n')
+        self.assertIn('harness/slice_one.py', self.refusal())
+
+    def test_deleting_the_file_it_covered_is_refused_by_name(self):
+        (self.root / 'harness' / 'slice_one.py').unlink()
+        self.assertIn('harness/slice_one.py', self.refusal())
+
+    def test_a_change_to_a_file_under_a_directory_the_slice_names_is_refused(self):
+        """A slice naming a directory covers what is under it, and nothing beside it."""
+        self.write('harness/one/deep.py', 'def deep():\n    return 1\n')
+        self.write('harness/one_beside.py', 'def beside():\n    return 1\n')
+        self.commit('feat(SEEN-001): a directory slice')
+        proved = self.repository.fingerprint()
+        plan = self.plan_with(files=['harness/one'])
+        self.write('harness/one/deep.py', 'def deep():\n    return 2\n')
+        self.assertIn('harness/one/deep.py',
+                      self.refusal(records=self.journal(plan=plan, proved=proved)))
+
+    def test_a_change_beside_a_directory_the_slice_names_is_not_inside_it(self):
+        self.write('harness/one/deep.py', 'def deep():\n    return 1\n')
+        self.write('harness/one_beside.py', 'def beside():\n    return 1\n')
+        self.commit('feat(SEEN-001): a directory slice')
+        proved = self.repository.fingerprint()
+        plan = self.plan_with(files=['harness/one'])
+        self.write('harness/one_beside.py', 'def beside():\n    return 2\n')
+        self.evaluate('tdd', self.citing(), records=self.journal(plan=plan, proved=proved),
+                      attempt=2)
+
+    def test_a_slice_naming_no_files_is_held_to_the_whole_tree(self):
+        """No scope is not an empty scope: an empty one would accept everything."""
+        self.slice_three_writes_its_own_file()
+        message = self.refusal(records=self.journal(plan=self.plan_with(files=[])))
+        self.assertIn('tree moved under check 3', message)
+
+
+class UnattributableCitationFallsBack(ScopedToTheSlicesFiles):
+    """A citation belonging to no slice is held to the strict whole-tree rule.
+
+    Fail closed: a citation nothing can attribute is the case where the scoped
+    comparison would be a guess, so it is refused rather than scoped to whatever
+    happens to be at hand.
+    """
+
+    def test_a_citation_that_names_its_slice_is_scoped_to_that_slice(self):
+        self.slice_three_writes_its_own_file()
+        self.evaluate('tdd', self.citing(position=1), records=self.journal(), attempt=2)
+
+    def test_a_citation_that_names_no_slice_is_held_to_the_whole_tree(self):
+        self.slice_three_writes_its_own_file()
+        message = self.refusal(data=self.citing(position=None))
+        self.assertIn('tree moved under check 3', message)
+        self.assertIn(self.proved[:12], message)
+
+    def test_the_whole_tree_refusal_says_that_is_what_it_compared(self):
+        self.slice_three_writes_its_own_file()
+        self.assertIn('whole tree', self.refusal(data=self.citing(position=None)))
+
+    def test_a_tree_no_commit_carries_cannot_be_scoped_and_is_refused(self):
+        """A check whose tree was never committed as it stood: nothing says which
+        files it held, so the whole tree is the only comparison left."""
+        self.slice_three_writes_its_own_file()
+        message = self.refusal(records=self.journal(proved='f' * 64))
+        self.assertIn('tree moved under check 3', message)
+        self.assertIn('whole tree', message)
+
+    def test_the_fingerprint_this_rule_reads_is_the_one_the_repository_writes(self):
+        """The scoped comparison identifies a check's tree by its fingerprint, so
+        the two readings of that hash must agree, or the scope is read off the
+        wrong commit."""
+        self.assertEqual(gates.content_fingerprint(self.repository, 'HEAD'),
+                         self.repository.fingerprint())
+
+
 if __name__ == '__main__':  # pragma: no cover - a module must run on its own
     unittest.main()

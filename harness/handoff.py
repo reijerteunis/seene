@@ -68,8 +68,34 @@ def accepted_greens(records, after=0):
             and record['data'].get('exit_code') == 0]
 
 
+def _slice_key(entry):
+    """What makes a slice the same slice across two acceptances of one plan."""
+    return (entry.get('name'), entry.get('points'),
+            tuple(entry.get('files') or []), entry.get('red'))
+
+
+def _slices_accepted_by(record):
+    return [_slice_key(entry)
+            for entry in (record['data'].get('evidence') or {}).get('slices') or []]
+
+
+def _is_the_same_plan(earlier, current):
+    """Whether an earlier acceptance accepted the plan that stands now.
+
+    The slices the two have in common, rather than the whole list, because a
+    replan that appends a slice or drops the last one leaves the slices already
+    proved exactly where they were. An acceptance that planned no slices at all
+    can never be the start of this plan's count: there was no slice then for a
+    green to have proved.
+    """
+    if not earlier:
+        return False
+    shared = min(len(earlier), len(current))
+    return earlier[:shared] == current[:shared]
+
+
 def plan_accepted_at(records):
-    """Where the plan the pack counts against was last accepted.
+    """Where the plan the pack counts against was first accepted.
 
     Slices belong to a plan, and a plan is set by the solution record. Counting
     from there rather than from the attempt is what H4 in SEEN-105's third review
@@ -77,11 +103,28 @@ def plan_accepted_at(records):
     and scoping the count to the attempt threw the declaration away and pointed the
     next session at work already delivered. A plan changed by a return to solution
     starts its own count, which is the one case an attempt boundary got right.
+
+    SEEN-113: reading only the last acceptance made every replan a changed plan,
+    so a return that re-accepted the same slices discarded the greens that proved
+    them. The count starts at the earliest acceptance whose slices still agree
+    with the current plan's on every slice the two have in common; the first one
+    that disagrees is where the plan really changed, and the count starts after
+    it. On SEEN-112 at its record 44 the pack read "slice 1 of 3, 0 of 3 done"
+    with slices 1 and 2 green and committed, and handed a session slice 1's file
+    list for work that belonged to slice 3.
     """
-    for record in reversed(records):
-        if record['kind'] == 'advance' and record['data'].get('from_stage') == 'solution':
-            return record['sequence']
-    return 0
+    acceptances = [record for record in records
+                   if record['kind'] == 'advance'
+                   and record['data'].get('from_stage') == 'solution']
+    if not acceptances:
+        return 0
+    current = _slices_accepted_by(acceptances[-1])
+    first = acceptances[-1]
+    for record in reversed(acceptances[:-1]):
+        if not _is_the_same_plan(_slices_accepted_by(record), current):
+            break
+        first = record
+    return first['sequence']
 
 
 def last_declaration(records, after=0):
