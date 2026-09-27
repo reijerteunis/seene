@@ -39,7 +39,7 @@ Write the Supabase migration for trade-record schema v1 in packages/core/db: ten
 
 ## Outcome
 
-Delivered as three forward-only migrations under `supabase/migrations/`, not under `packages/core/db` as
+Delivered as four forward-only migrations under `supabase/migrations/`, not under `packages/core/db` as
 the description said: the Supabase CLI and `pnpm db:reset` read `supabase/migrations`, so a migration
 outside it never applies and criterion 1 could not have passed. The ticket's intent, that the schema
 belongs to core rather than to an app, is kept in `packages/core/db/`, which holds the table list, the
@@ -54,7 +54,7 @@ and names it in the migration's comment and as `TENANT_CLAIM` for whoever wires 
 
 What the tests prove, all five criteria evidenced rather than asserted:
 
-- `pnpm db:reset` applies all three migrations from empty, and it is the first command of the regression
+- `pnpm db:reset` applies all four migrations from empty, and it is the first command of the regression
   at record 18, so a later slice breaking an earlier slice's tables cannot pass.
 - `db/schema.test.ts` reads `pg_catalog` rather than a list of names, so a table added later without
   `tenant_id` or without an enabled policy fails it with nobody remembering to extend the test.
@@ -134,6 +134,25 @@ Left open, named rather than done: `pg_default_acl` still grants the four write 
 browser is bound to. The new privilege assertion fails loudly when that happens, which is detection rather than
 prevention; narrowing it with `alter default privileges` changes every future migration and was not in the
 decision above.
+
+Three more left open by the second review, which passed the ticket:
+
+- **The turbo cache can replay a pass for the database tests.** `turbo run test`'s cache key for `@seen/core`
+  contains eleven inputs, all inside `packages/core`, and no migration file. So a later ticket that adds a
+  migration and touches nothing in `packages/core` gets `cache hit, replaying logs` and the old `57 passed`,
+  and the tenancy, privilege and append-only guards never run against the new migration. CI escapes it today
+  only because it caches the pnpm store and not `.turbo`; the day anyone caches `.turbo` or turns on remote
+  caching, the false green moves into CI. The fix is in `turbo.json`, which no slice of this ticket names, so
+  it needs a ticket of its own and it is the most urgent of these three.
+- **Three of the four migrations still end with the blanket grant** that the fourth one's comment forbids. The
+  end state after a reset is correct, because part four runs last and revokes per table, which the review
+  measured. The residual is that those three are the template the next migration author reads: copy part
+  three's tail and `authenticated` regains insert, update and delete on all 29 tables, reopening the billable
+  event finding, and part four's self-check does not re-run to catch it.
+- **Buyer PII is stored in plain `text` columns** and nothing says which reading of the ground rule's
+  "encrypted at rest" the schema relies on. The expiry half has an owner in SEEN-083; the encryption half has
+  none, so a `pg_dump` for the restore drill or a support query as the service role yields buyer names and
+  addresses in cleartext. Named here so a later ticket inherits it rather than nobody.
 
 ## Slices
 
