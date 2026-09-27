@@ -11,12 +11,21 @@
  * same migrations live here too, because they are facts about the schema and
  * nothing else would assert them: the buyer PII columns SEEN-083 has to expire
  * say so in their own comments, and `audit_events` is append-only.
+ *
+ * Each catalogue assertion is a named checker taking a schema name rather than a
+ * query inside a test, for two reasons. Every one of them answers with the tables
+ * that fail it, so it cannot pass by finding nothing when there is nothing to
+ * find: the same checker is run against a schema with no tables at all and has to
+ * refuse. And the tenancy checker is read by the test that injects a second
+ * permissive policy, which is the only way to show that the assertion sees a
+ * policy set and not the existence of one policy.
  */
 import { Client } from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import {
-  APPEND_ONLY_TABLES, BUYER_PII_COLUMNS, TENANT_CLAIM, TRADE_RECORD_TABLES,
+  APPEND_ONLY_PRIVILEGES, APPEND_ONLY_TABLES, BUYER_PII_COLUMNS, DATA_API_ROLES,
+  GOVERNED_PRIVILEGES, TABLE_PRIVILEGES, TENANT_CLAIM, TRADE_RECORD_TABLES,
 } from './tables';
 
 // The local Supabase stack's Postgres, the address `pnpm dev:up` prints when it
@@ -57,15 +66,170 @@ async function connect(): Promise<Client> {
   return client;
 }
 
-async function tableNames(client: Client): Promise<string[]> {
+async function tablesIn(client: Client, schema: string): Promise<string[]> {
   const { rows } = await client.query<{ name: string }>(
     `select c.relname as name
        from pg_catalog.pg_class c
        join pg_catalog.pg_namespace n on n.oid = c.relnamespace
-      where n.nspname = 'public' and c.relkind = 'r'
+      where n.nspname = $1 and c.relkind = 'r'
       order by c.relname`,
+    [schema],
   );
   return rows.map((row) => row.name);
+}
+
+/**
+ * The guard every catalogue assertion below is made of.
+ *
+ * Each of them asks the catalogue which tables fail a property and passes when
+ * the answer is empty, and an empty schema answers every such question with
+ * nothing: the assertion passed against a database with no tables at all at
+ * record 8, which is worth nothing at all.
+ */
+function assertPopulated(tables: string[], what: string): void {
+  if (tables.length === 0) {
+    throw new Error(
+      `There are no tables to assert anything about, so "${what}" proves nothing. Apply the `
+      + 'migrations with `pnpm db:reset`, or point SEEN_DATABASE_URL at a stack that has them.',
+    );
+  }
+}
+
+/** The tables in the schema with no `tenant_id` column. */
+async function tenantIdGapsIn(client: Client, schema: string): Promise<string[]> {
+  const tables = await tablesIn(client, schema);
+  assertPopulated(tables, `a tenant_id column on every table in schema ${schema}`);
+  const { rows } = await client.query<{ name: string }>(
+    `select c.relname as name
+       from pg_catalog.pg_class c
+       join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+      where n.nspname = $1 and c.relkind = 'r'
+        and not exists (
+          select 1 from pg_catalog.pg_attribute a
+           where a.attrelid = c.oid and a.attname = 'tenant_id'
+             and a.attnum > 0 and not a.attisdropped)
+      order by c.relname`,
+    [schema],
+  );
+  return rows.map((row) => row.name);
+}
+
+/** The tables in the schema without row-level security enabled. */
+async function rlsGapsIn(client: Client, schema: string): Promise<string[]> {
+  const tables = await tablesIn(client, schema);
+  assertPopulated(tables, `row-level security on every table in schema ${schema}`);
+  const { rows } = await client.query<{ name: string }>(
+    `select c.relname as name
+       from pg_catalog.pg_class c
+       join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+      where n.nspname = $1 and c.relkind = 'r' and not c.relrowsecurity
+      order by c.relname`,
+    [schema],
+  );
+  return rows.map((row) => row.name);
+}
+
+interface PolicyRow {
+  tablename: string;
+  policyname: string;
+  cmd: string;
+  permissive: string;
+  qual: string | null;
+  with_check: string | null;
+}
+
+async function policiesIn(client: Client, schema: string): Promise<PolicyRow[]> {
+  const { rows } = await client.query<PolicyRow>(
+    `select tablename, policyname, cmd, permissive, qual, with_check
+       from pg_catalog.pg_policies
+      where schemaname = $1
+      order by tablename, policyname`,
+    [schema],
+  );
+  return rows;
+}
+
+/**
+ * Every way the schema's policy set fails to bind a table to the one tenancy
+ * expression, named one by one.
+ */
+async function tenancyGapsIn(client: Client, schema: string): Promise<string[]> {
+  const tables = await tablesIn(client, schema);
+  assertPopulated(tables, `the tenancy expression on every table in schema ${schema}`);
+  const rows = await policiesIn(client, schema);
+  // The whole policy set per table, not the existence of one policy in it. Row
+  // level security ORs permissive policies together, so a second permissive policy
+  // widens whatever the first one narrowed, and a table is bound only if every
+  // permissive policy on it is. Restrictive policies are ANDed and can only
+  // narrow, so they are not asked to name the tenant.
+  //
+  // Both clauses are read. USING decides which existing rows a command sees, which
+  // is what governs select, update and delete; WITH CHECK decides which rows it
+  // may leave behind, which is what governs insert and update. A policy that names
+  // the tenant in one and allows anything in the other is bound for one half of
+  // the commands it covers and open for the other.
+  //
+  // One helper, `seen.current_tenant()`, rather than the expression copied per
+  // table: a policy that spells its own comparison is a policy that can be
+  // subtly different from the other twenty-eight.
+  const gaps: string[] = [];
+  for (const table of tables) {
+    const permissive = rows.filter(
+      (row) => row.tablename === table && row.permissive === 'PERMISSIVE',
+    );
+    if (permissive.length === 0) {
+      gaps.push(`${table}: no permissive policy at all`);
+      continue;
+    }
+    for (const policy of permissive) {
+      const clauses: [string, string | null][] = [
+        ['using', policy.qual], ['with check', policy.with_check],
+      ];
+      const written = clauses.filter(([, clause]) => clause !== null);
+      if (written.length === 0) {
+        gaps.push(`${table}.${policy.policyname} (${policy.cmd}): no clause at all`);
+        continue;
+      }
+      for (const [name, clause] of written) {
+        if (!(clause ?? '').includes('current_tenant')) {
+          gaps.push(
+            `${table}.${policy.policyname} (${policy.cmd}): its ${name} clause does not read `
+            + `seen.current_tenant(), it reads ${clause}`,
+          );
+        }
+      }
+    }
+  }
+  return gaps;
+}
+
+/** The privileges each Data API role holds on each table, from the table's own
+ * access control list, which is the only place the answer is complete: a default
+ * privilege granted at schema level and a grant written in a migration both land
+ * here, and a blanket `grant on all tables` that undid an earlier revoke is
+ * visible here and nowhere in the migration that wrote it. */
+async function privilegesIn(
+  client: Client,
+  schema: string,
+): Promise<Map<string, string[]>> {
+  const { rows } = await client.query<{ table_name: string; role: string; privilege: string }>(
+    `select c.relname as table_name,
+            a.grantee::regrole::text as role,
+            a.privilege_type as privilege
+       from pg_catalog.pg_class c
+       join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+       cross join lateral aclexplode(c.relacl) a
+      where n.nspname = $1 and c.relkind = 'r'
+        and a.grantee::regrole::text = any($2)`,
+    [schema, [...DATA_API_ROLES]],
+  );
+  const held = new Map<string, string[]>();
+  for (const row of rows) {
+    if (!(GOVERNED_PRIVILEGES as readonly string[]).includes(row.privilege)) continue;
+    const key = `${row.table_name}|${row.role}`;
+    held.set(key, [...(held.get(key) ?? []), row.privilege].sort());
+  }
+  return held;
 }
 
 describe('the trade record schema', () => {
@@ -74,7 +238,7 @@ describe('the trade record schema', () => {
 
   beforeAll(async () => {
     client = await connect();
-    present = await tableNames(client);
+    present = await tablesIn(client, 'public');
   });
 
   afterAll(async () => {
@@ -91,51 +255,120 @@ describe('the trade record schema', () => {
   });
 
   it('carries tenant_id on every table in the public schema', async () => {
-    const { rows } = await client.query<{ name: string }>(
-      `select c.relname as name
-         from pg_catalog.pg_class c
-         join pg_catalog.pg_namespace n on n.oid = c.relnamespace
-        where n.nspname = 'public' and c.relkind = 'r'
-          and not exists (
-            select 1 from pg_catalog.pg_attribute a
-             where a.attrelid = c.oid and a.attname = 'tenant_id'
-               and a.attnum > 0 and not a.attisdropped)
-        order by c.relname`,
-    );
-    const without = rows.map((row) => row.name);
-    expect(present.length, 'The public schema has no tables at all').toBeGreaterThan(0);
+    const without = await tenantIdGapsIn(client, 'public');
     expect(without, `Tables in the public schema without a tenant_id column: ${without.join(', ')}`)
       .toEqual([]);
   });
 
   it('has row-level security enabled on every table in the public schema', async () => {
-    const { rows } = await client.query<{ name: string }>(
-      `select c.relname as name
-         from pg_catalog.pg_class c
-         join pg_catalog.pg_namespace n on n.oid = c.relnamespace
-        where n.nspname = 'public' and c.relkind = 'r' and not c.relrowsecurity
-        order by c.relname`,
-    );
-    const without = rows.map((row) => row.name);
+    const without = await rlsGapsIn(client, 'public');
     expect(without, `Tables in the public schema without RLS enabled: ${without.join(', ')}`)
       .toEqual([]);
   });
 
   it('binds every table to the one tenancy expression', async () => {
-    // One helper, `seen.current_tenant()`, rather than the expression copied per
-    // table: a policy that spells its own comparison is a policy that can be
-    // subtly different from the other twenty-eight.
-    const { rows } = await client.query<{ tablename: string; qual: string | null }>(
-      `select tablename, qual from pg_catalog.pg_policies where schemaname = 'public'`,
-    );
-    const bound = new Set(
-      rows.filter((row) => (row.qual ?? '').includes('current_tenant')).map((row) => row.tablename),
-    );
-    const unbound = present.filter((table) => !bound.has(table));
+    const unbound = await tenancyGapsIn(client, 'public');
     expect(
       unbound,
-      'Tables in the public schema with no policy reading seen.current_tenant(): '
-      + unbound.join(', '),
+      `Policies in the public schema that do not bind the tenant: ${unbound.join('; ')}`,
+    ).toEqual([]);
+  });
+
+  it('proves nothing against a schema with no tables, and says so', async () => {
+    // Every assertion above is of the shape "the tables failing this property are
+    // none", and a schema with no tables satisfies all of them. Record 8 observed
+    // exactly that: the RLS assertion passed against an empty database. A checker
+    // that cannot tell the two apart is not an assertion.
+    await client.query('begin');
+    try {
+      await client.query('create schema seen_vacuity_probe');
+      await expect(
+        rlsGapsIn(client, 'seen_vacuity_probe'),
+        'the RLS assertion passes against a schema with no tables',
+      ).rejects.toThrow(/proves nothing/);
+      await expect(
+        tenantIdGapsIn(client, 'seen_vacuity_probe'),
+        'the tenant_id assertion passes against a schema with no tables',
+      ).rejects.toThrow(/proves nothing/);
+      await expect(
+        tenancyGapsIn(client, 'seen_vacuity_probe'),
+        'the tenancy assertion passes against a schema with no tables',
+      ).rejects.toThrow(/proves nothing/);
+    } finally {
+      await client.query('rollback');
+    }
+  });
+
+  it('sees a second permissive policy added beside tenant_isolation', async () => {
+    // Row-level security ORs permissive policies together, so a policy added
+    // beside tenant_isolation widens what tenant_isolation narrowed: this one
+    // would hand every tenant's buyer_name and buyer_address to every signed-in
+    // user of every other tenant. An assertion that asks whether any one policy
+    // on the table reads the tenant cannot see it.
+    await client.query('begin');
+    try {
+      await client.query(
+        'create policy leak on public.evidence for select to authenticated using (true)',
+      );
+      const gaps = await tenancyGapsIn(client, 'public');
+      expect(
+        gaps.filter((gap) => gap.startsWith('evidence')),
+        'A second permissive policy on public.evidence reading `using (true)` exposes every '
+        + "tenant's evidence, and the tenancy assertion reported "
+        + `${gaps.length === 0 ? 'nothing at all' : gaps.join('; ')}`,
+      ).not.toEqual([]);
+    } finally {
+      await client.query('rollback');
+    }
+  });
+
+  it('reads the with_check clause of a policy as well as the using clause', async () => {
+    // A policy with no USING clause has nothing for the previous assertion to
+    // read, so a write policy that checks nothing is invisible to it.
+    await client.query('begin');
+    try {
+      await client.query(
+        'create policy leak_write on public.evidence for insert to authenticated with check (true)',
+      );
+      const gaps = await tenancyGapsIn(client, 'public');
+      expect(
+        gaps.filter((gap) => gap.startsWith('evidence')),
+        'A permissive insert policy on public.evidence with `with check (true)` lets a tenant '
+        + 'write a row belonging to another tenant, and the tenancy assertion reported '
+        + `${gaps.length === 0 ? 'nothing at all' : gaps.join('; ')}`,
+      ).not.toEqual([]);
+    } finally {
+      await client.query('rollback');
+    }
+  });
+
+  it('grants each Data API role exactly what it is meant to hold, on every table', async () => {
+    // The privilege half of the tenancy boundary, on all twenty-nine tables
+    // rather than on audit_events alone. A policy decides which rows a role
+    // reaches; the privilege decides whether it reaches the table at all, and the
+    // second question was asked of one table out of twenty-nine.
+    const held = await privilegesIn(client, 'public');
+    assertPopulated(present, 'the privileges every Data API role holds on every table');
+    const wrong: string[] = [];
+    for (const table of present) {
+      const expected = (APPEND_ONLY_TABLES as readonly string[]).includes(table)
+        ? APPEND_ONLY_PRIVILEGES
+        : TABLE_PRIVILEGES;
+      for (const role of DATA_API_ROLES) {
+        const actual = held.get(`${table}|${role}`) ?? [];
+        const intended = [...expected[role]].sort();
+        if (actual.join(',') !== intended.join(',')) {
+          wrong.push(
+            `${table}: ${role} holds ${actual.join('+') || 'nothing'}, `
+            + `not ${intended.join('+') || 'nothing'}`,
+          );
+        }
+      }
+    }
+    expect(
+      wrong,
+      `${wrong.length} table and role pairs hold privileges the trade record does not intend: `
+      + wrong.join('; '),
     ).toEqual([]);
   });
 
@@ -197,14 +430,16 @@ describe('the append-only guarantee on audit_events', () => {
   // the update or delete privilege, no policy permits either command, and a
   // trigger refuses both for every role including the one that owns the table.
   // The single delete the guarantee allows is a tenant's erasure: the audit rows
-  // go when the tenant goes, because the PRD promises deletion on request.
+  // go when the tenant goes, because the PRD promises deletion on request. That
+  // delete is a service-role action, because no client-bound role holds delete on
+  // public.tenants; SEEN-083 owns it.
   let client: Client;
   let tenant: string | undefined;
   let event: string | undefined;
 
   beforeAll(async () => {
     client = await connect();
-    const present = await tableNames(client);
+    const present = await tablesIn(client, 'public');
     const missing = APPEND_ONLY_TABLES.filter((table) => !present.includes(table));
     if (missing.length > 0) {
       throw new Error(
@@ -289,7 +524,8 @@ describe('the append-only guarantee on audit_events', () => {
     // Deletion on request has to keep working: SEEN-083 removes a tenant's rows
     // within 30 days, and an audit table that could never be deleted from would
     // make that impossible. The trigger allows the delete exactly when the owning
-    // tenant is already gone, which is only ever true inside that cascade.
+    // tenant is already gone, which is only ever true inside that cascade, and
+    // only a role holding delete on public.tenants can open it.
     await client.query('delete from public.tenants where tenant_id = $1', [tenant]);
     const { rows } = await client.query(
       'select id from public.audit_events where tenant_id = $1',

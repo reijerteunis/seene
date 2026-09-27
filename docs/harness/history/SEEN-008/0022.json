@@ -1,0 +1,95 @@
+{
+  "sequence": 22,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-27T08:15:33.261990+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 1,
+  "actor": "claude:reviewer",
+  "session": "a00943ab9615",
+  "head": "cfbc4d89a55b05716816d905272423069c8485b2",
+  "prev_hash": "0050a68af09d96f27d3d92a3117bdd6eebe8d173a056442b16bb24eb68fa7878",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 2,
+    "reason": "The review verified all five criteria against the database and returns the ticket on three high findings outside them: the only tests that guard tenancy are behind a script nothing in CI invokes (F1); an authenticated member of a tenant can delete the tenant row and the cascade erases the whole trade record and every audit event through the one branch the append-only trigger permits (F2); and authenticated holds insert, update and delete on settlement_lines, claims, invoices, statements and headroom_entries, so a person can create a billable event, which CLAUDE.md forbids outright (F3). All three were verified by execution in a rolled-back transaction, not read off the diff.",
+    "findings": [
+      {
+        "id": "F1",
+        "severity": "high",
+        "file": "packages/core/package.json:9-10",
+        "claim": "The four db test files that are the entire evidence for criteria 2 to 5 are behind a `test:db` script that no CI job, no turbo task and no root script invokes, and the same change narrowed `test` to `--dir src`, so the tenancy guard runs only when a person types the filter command by hand.",
+        "failure_scenario": "`test:db` appears in exactly one tracked file, its own script line; turbo.json declares only test, lint, typecheck and build, and the CI node job runs `pnpm turbo run test`. SEEN-014 adds a raw_payloads migration with no tenant_id and no policy. CI runs lint, typecheck, turbo run test and supabase start, which applies the migration successfully, and is green, because schema.test.ts, the only test that reads pg_catalog for tenancy, is never invoked. The pull request merges and a table outside the tenancy boundary ships. The Outcome's claim that the test fails with nobody remembering to extend it holds for extending it and not for running it.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F2",
+        "severity": "high",
+        "file": "supabase/migrations/20260927000000_trade_record_v1_tenancy_and_orders.sql:396",
+        "claim": "Any signed-in user of a tenant can delete that tenant's row, and the cascade destroys the whole trade record and every audit_events row through the one branch the append-only trigger permits, so the exception is openable by the party the audit trail exists to hold accountable rather than only by an operator performing erasure on request.",
+        "failure_scenario": "Executed on the local stack in a rolled-back transaction: with request.jwt.claims set to tenant A and `set local role authenticated`, `delete from public.tenants where tenant_id = A` returned rowCount 1 with no error, and audit_events for A went from 2 rows to 0, orders to 0 as well. The DELETE privilege is held both by Supabase's default ACL for schema public (relacl on tenants is authenticated=arwdDxtm) and explicitly by this line, and tenant_isolation is `for all ... using (tenant_id = seen.current_tenant())`, whose USING clause governs DELETE. seen.refuse_audit_mutation then takes its `not exists (select 1 from public.tenants ...)` branch because the parent row has already gone. So one compromised member account erases a tenant's trade record and the evidence that it happened, and SEEN-032 inherits a guarantee weaker than the comment above it states. audit_events itself is correctly protected: the direct delete is refused for authenticated and for service_role, and the third migration's re-revoke does hold.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F3",
+        "severity": "high",
+        "file": "supabase/migrations/20260927000000_trade_record_v1_tenancy_and_orders.sql:396",
+        "claim": "The same grant, and the default ACL it does not narrow, give authenticated insert, update and delete on settlement_lines, claims, invoices, statements and headroom_entries, so a person can create the only thing that makes a credit billable, and can equally rewrite the record they are billed from; audit_events is the only table in the schema whose privileges are narrowed at all.",
+        "failure_scenario": "Executed on the local stack in a rolled-back transaction: as authenticated carrying only a tenant claim, the caller inserted a settlement, then a settlement_lines row with line_type compensation and amount_cents 999900, then a claims row with status credited pointing at that line. All accepted. CLAUDE.md: a credit is billable only as an ingested settlement line linked to a claim, and never let a person or the agent create a billable event directly. The same privileges run the other way: setting invoices.total_cents to 0 and status to void, or deleting a statements row, is available to the tenant being invoiced, and headroom_entries, of which the third migration says nothing else may state a headroom figure, is writable by the tenant whose headroom it meters. Nothing in the journal records a decision that authenticated writes are intended; the migration's comment says only that authenticated reaches every table through the policy and therefore only its own tenant's rows, which is a statement about which rows and not about which commands.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F4",
+        "severity": "medium",
+        "file": "docs/tickets/SEEN-112-run-a-ticket-from-clarify-to-merge-in-one-go.md",
+        "claim": "The branch is stacked on claude/SEEN-112 rather than branched from main, against the ground rule to branch from main with one ticket per branch, so SEEN-008's receipt will attest 2,100 lines of another ticket's work whose own ticket file on this branch still reads status doing with five unticked criteria.",
+        "failure_scenario": "`git log main..HEAD` is five SEEN-112 commits under two SEEN-008 ones, and the merge base with main is f04676c. If the pull request's base is main, merging SEEN-008 ships harness/loop.py, harness/cli.py, the three skill copies and SEEN-112's ticket file at status doing, so main then holds code whose ticket says it is still being worked, any later SEEN-112 review finding must be fixed on a new branch after the code has shipped, and SEEN-008's receipt fingerprint is the attestation for both. The triage's pull_request check was unavailable, which is also where the receipt hash is read, so this is the one thing no evidence on the branch can settle.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F5",
+        "severity": "medium",
+        "file": "packages/core/db/schema.test.ts:124-140",
+        "claim": "The tenancy assertion counts a table as bound if any one policy's qual mentions current_tenant, so it cannot see a second permissive policy added beside tenant_isolation, and it never reads with_check at all, leaving untested the exact failure the third migration names as where a leak hides.",
+        "failure_scenario": "A later migration adds a select policy on public.evidence for authenticated using true. RLS ORs permissive policies together, so every tenant's evidence rows, including buyer_name and buyer_address, become readable by every authenticated caller. schema.test.ts still passes, because tenant_isolation is still present and its qual still contains current_tenant; rls.test.ts still passes, because it reads only orders, findings and claims. The same hole covers with_check: `for all using (tenant_id = seen.current_tenant()) with check (true)` on any of the 29 tables would let a tenant write rows into another tenant and no assertion in the suite would fail. Today nothing leaks: audit_events is the only table with more than one policy and its pair is the select and insert one.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F6",
+        "severity": "low",
+        "file": "packages/core/db/schema.test.ts:251-273",
+        "claim": "The suite asserts table privileges for audit_events only, so the privilege half of the tenancy boundary is unasserted on the other 28 tables while Supabase's default ACL grants anon, authenticated and service_role every command including truncate.",
+        "failure_scenario": "relacl on public.tenants grants anon, authenticated and service_role every command, so anon holds delete and truncate on every trade-record table and is stopped only by having no policy. A later migration that disables RLS on one table for a migration step and forgets to re-enable it, or that adds a policy naming public rather than authenticated, turns that default grant into an unauthenticated write. The RLS half of that would be caught by schema.test.ts; the grant half has no assertion to fail.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F7",
+        "severity": "low",
+        "file": "packages/core/db/uniqueness.test.ts",
+        "claim": "Criterion 4's test could not fail first by construction, so it was written against the index as found rather than as specified; the handling is honest but the criterion rests on a green with no red.",
+        "failure_scenario": "The accepted change list put the five indexes in slice 1 and uniqueness.test.ts in slice 3, so at record 14 the file reported 15 passed inside the RED run. Had slice 1 built the index as (tenant_id, external_id), a test written afterwards would most likely have asserted the behaviour it observed and passed, and the marketplace column would have been missing from the upsert key with nothing failing. What makes this low rather than higher is that the test as written does discriminate on all three columns, record 10 predicted the defect before slice 3 ran, and the test file's own header, record 16 and the Outcome all say so rather than dropping an index to manufacture a failure.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F8",
+        "severity": "low",
+        "file": "packages/core/db/schema.test.ts",
+        "claim": "The RLS-enabled assertion has no non-vacuity guard, unlike the tenant_id assertion immediately above it, and was observed passing on a schema with no tables.",
+        "failure_scenario": "Record 8's RED output shows the row-level-security-enabled assertion and the one-tenancy-expression assertion both passing green against an empty public schema, because a query for tables lacking RLS returns nothing when there are no tables. Run the suite against a database where the migrations were never applied, or after a future move of the trade record to another schema, and both report success on zero tables. The greater-than-zero guard exists on the neighbouring test and would cost one line here.",
+        "status": "open",
+        "resolution": ""
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}
