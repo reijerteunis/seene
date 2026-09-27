@@ -1,0 +1,16 @@
+{
+  "sequence": 43,
+  "ticket": "SEEN-113",
+  "timestamp": "2026-09-27T17:01:24.936599+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 5,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "cd9e5492e2bb69b319a87e026a87c6f8d9912283",
+  "prev_hash": "9e93f6551fbbdf7cb8bc49d6648641dffe0f7c0bf6c90b3e37310d4f4db0e4e0",
+  "data": {
+    "text": "# The third triage, and what three tickets now say about an uncalibrated bar\n\nTriage 41 returned the ticket on criterion 2 alone, at 0.52 against the 0.6 bar. Every other criterion is\nbetween 0.67 and 0.85, and criterion 6, the one two review rounds returned the ticket on, is 0.76.\n\n**Criterion 2 was answered 0.83 at triage 30 and 0.52 at triage 41, and the only thing that changed is its\nwording.** The second review found it ticked while the delivered rule contradicted its first clause, which was\na fair finding: the wording described the whole-tree rule that record 9 had already amended away. So it was\nrestated to describe what the code does, naming four refusal sentences and nine fallback reasons. That is a\nlonger list of claims to evidence, and the answer fell by 0.31. Nothing about the code moved between the two\nreadings; 1,277 tests pass either way, and the round that closed the reviews' five high findings is recorded at\n34 and 35.\n\n**That is now three tickets and the pattern is the finding.** On SEEN-112, criteria 3 and 4 fell from 0.66 and\n0.74 to 0.59 and 0.58 when a return reset which checks a tdd record could cite, with no change to the code. On\nSEEN-008 the triage passed on the first attempt. Here a criterion made **more accurate** at a reviewer's\nrequest fell from 0.83 to 0.52. In all three cases the bar is `criterion_evidenced = 0.6` at\n`harness/thresholds.toml:77`, and the comment above it says what it is: \"starting values for SEEN-109 to\ncalibrate on ten tickets, not numbers anybody has evidence for yet.\"\n\nSo the harness has been enforcing an uncalibrated number as though it were settled, and the three readings that\ncrossed it were 0.59, 0.58 and 0.52, all within eight hundredths of the bar, none of them caused by a change to\nthe work. SEEN-109 exists to calibrate this on ten delivered tickets and has not run. That is the decision this\nrecord leaves for the founder rather than working around: the gate is not wrong to ask for evidence, and a bar\nnobody has calibrated should not be the thing that decides whether verified work can be delivered.\n\nRecorded and not retried. A fourth reading of the same criterion would be retrying a refused gate, which is\nwhat SEEN-112's criterion 3 forbids and what this session has already done too often.\n"
+  }
+}

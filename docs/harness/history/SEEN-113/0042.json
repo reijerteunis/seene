@@ -1,0 +1,22 @@
+{
+  "sequence": 42,
+  "ticket": "SEEN-113",
+  "timestamp": "2026-09-27T17:00:40.803536+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 4,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "cd9e5492e2bb69b319a87e026a87c6f8d9912283",
+  "prev_hash": "e97a71118360ac1e4b367a0ecb1c8640c23dae7f3b685aeb8c43fb1fcc197218",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 5,
+    "reason": "The triage could see no evidence for: A check is refused across attempts whenever the code it covers has changed, and the refusal names which of four reasons applied: there is no such check; the check recorded no tree at all; the code this check covers has changed, naming what the round moved and what its slice names; or the tree moved and the comparison fell back to the whole tree, naming which of nine reasons it fell back for (amended, see `## Amendment`). A criterion with nothing behind it is answered at the tdd stage, by writing the test or the check that proves it, rather than by a reviewer reading a diff that does not contain it",
+    "unmet_criteria": [
+      2
+    ]
+  }
+}
