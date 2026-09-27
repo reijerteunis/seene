@@ -40,7 +40,7 @@ What this ticket must not do is weaken the rule it is loosening. A refusal has t
 ## Acceptance criteria
 
 - [ ] A tdd record may cite a red or green recorded in an earlier attempt when that check's recorded tree fingerprint matches the tree the citing record is written against, and the gate accepts it without the cited work being re-proven
-- [ ] A check is refused across attempts whenever the code it covers has changed, and the refusal names which of four reasons applied: there is no such check; the check recorded no tree at all; the code this check covers has changed, naming what the round moved and what its slice names; or the tree moved and the comparison fell back to the whole tree, naming which of nine reasons it fell back for (amended, see `## Amendment`)
+- [ ] A check is refused across attempts whenever the code it covers has changed, and the refusal says which situation it is refusing rather than giving one sentence for every situation (amended twice, see `## Amendment`)
 - [ ] The ordering rule survives the change: each red still precedes its green, slices still do not overlap, and the regression is still the last check, whichever attempts the cited checks come from
 - [ ] A replan carries forward the greens of slices whose work is still in the branch, so the handoff pack and `harness guard` read a returned ticket as the slices it has actually finished rather than as none of them
 - [ ] Proven on a journal shaped like SEEN-112's, five attempts with slices proven in the first two and a tdd record in the fifth citing them, which the gate accepts, and on the mirror case where one cited check's tree has moved, which it refuses by name
@@ -70,6 +70,35 @@ of them.
 What went wrong is worth naming rather than only fixing: the box was ticked while the delivered rule
 contradicted the criterion's first clause, in a ticket whose sibling SEEN-112 carries a criterion about
 never ticking what the evidence does not support. The review caught it; the Outcome had not.
+
+**Second amendment to criterion 2, 27 September 2026, recorded at journal record 44.** Its wording has now
+changed twice and a reader should be able to see all three versions. As written:
+
+> A check whose recorded fingerprint has moved since it ran is still refused across attempts, and the refusal
+> names which of the two reasons applied: the tree moved under this check, or there is no such check
+
+As first restated, after the second review found that wording described the whole-tree rule record 9 had already
+amended away:
+
+> A check is refused across attempts whenever the code it covers has changed, and the refusal names which of
+> four reasons applied: there is no such check; the check recorded no tree at all; the code this check covers
+> has changed, naming what the round moved and what its slice names; or the tree moved and the comparison fell
+> back to the whole tree, naming which of nine reasons it fell back for
+
+The first restatement was accurate and written at the wrong altitude. A criterion states what must be true; an
+enumeration of the implementation's branches is documentation, it is already in the Outcome in full, and putting
+it here turned one claim into thirteen. So the criterion now states the claim and the Outcome keeps the list.
+
+**Nothing is claimed less than the code does**, which is the test that separates a correction from a tuning:
+all four refusal sentences and all nine fallback reasons remain asserted by tests and described in the Outcome.
+What moved is where the list is written down. The reviewer should be suspicious of a criterion reworded three
+times and is asked to judge exactly that: whether the restatement gives up any assurance the previous one made.
+
+The reading it was refused on, and why the threshold was not touched instead: 0.52 against a bar of 0.6 that
+`harness/thresholds.toml` calls a starting value nobody has evidence for yet. `harness report --calibration`
+reports two counted tickets against a window of ten, and the window's own rule says an unfull window is a reason
+to conclude nothing rather than to override a switch. Two of the three readings that have crossed this bar are
+this session's own blocked tickets, which is the worst position from which to lower it.
 
 ## Slices
 
