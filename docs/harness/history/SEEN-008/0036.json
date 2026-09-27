@@ -1,0 +1,45 @@
+{
+  "sequence": 36,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-27T17:46:50.005807+00:00",
+  "harness_version": "2",
+  "kind": "handoff",
+  "stage": "tdd",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "7d7d5075c36370b88e2354e59ef72ecb1ac7055f",
+  "prev_hash": "424eb1680ac4690694f94a1a96a1b17a073aa8ba0a3f7b28c20e47fd55f0eb19",
+  "data": {
+    "pack": ".harness-drafts/SEEN-008-handoff.md",
+    "sha256": "c162749f6aadf37b154982da8a1b458ad22e87b161bc7f8ef126966deafbdc71",
+    "estimated_tokens": 999,
+    "token_limit": 2000,
+    "slice": {
+      "position": 4,
+      "total": 4,
+      "done": 3,
+      "declared": true,
+      "inferred": 0,
+      "entry": {
+        "name": "The second review's three remaining findings: the cacheable guard, the blanket grant as a template, and the unowned half of the PII rule",
+        "points": 1,
+        "files": [
+          "turbo.json",
+          "supabase/migrations",
+          "packages/core/db/schema.test.ts",
+          "packages/core/db/tables.ts",
+          "packages/core/package.json"
+        ],
+        "red": "The turbo dry run shows the test task's inputs carrying no migration file and a cache hit after a migration is added; a test reading every migration finds the blanket grant in three of them; and the buyer PII assertion has no statement of what encrypted at rest means for these columns to read."
+      }
+    },
+    "auto": false,
+    "figures": {
+      "session": "a00943ab9615",
+      "output_tokens": 708914,
+      "tool_calls": 392,
+      "unavailable": null
+    }
+  }
+}

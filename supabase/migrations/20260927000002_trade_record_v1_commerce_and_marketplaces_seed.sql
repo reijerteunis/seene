@@ -442,15 +442,12 @@ begin
 end;
 $$;
 
--- The Data API roles, as parts 1 and 2: authenticated reaches these tables through
--- the policies above and therefore only its own tenant's rows, service_role
--- bypasses row-level security and is what the workers use. Nothing is granted on
--- seen.marketplace_catalogue to any of them.
-grant select, insert, update, delete on all tables in schema public to authenticated;
-grant all on all tables in schema public to service_role;
-
--- And audit_events takes its privileges back again, because the blanket grants
--- above have just handed them out a second time. Part 2's revoke is only true
--- until the next migration grants on all tables in the schema, which is a trap
--- every later migration in this repository will walk into unless it ends this way.
-revoke update, delete, truncate on public.audit_events from anon, authenticated, service_role;
+-- As parts 1 and 2: no table privilege is granted here, and nothing is granted on
+-- seen.marketplace_catalogue to any of the three request-bound roles at all. Part 4
+-- decides the privileges of every table in the schema, per table and by name.
+--
+-- There is no second revoke of audit_events here either. It was here only because
+-- the grant above it was, and once the grant is gone the revoke is a line that
+-- looks like a guarantee and asserts nothing. Part 2 strips the default privileges
+-- the table was created with and part 4 strips them again per table; this migration
+-- does not touch audit_events.

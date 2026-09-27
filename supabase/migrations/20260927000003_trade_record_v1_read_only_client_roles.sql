@@ -1,10 +1,19 @@
 -- Trade record v1, part 4: the Data API roles read, and nothing more.
 --
--- Parts 1 to 3 ended with `grant select, insert, update, delete on all tables in
--- schema public to authenticated`, and Supabase's default privileges for schema
--- public had already granted the same four to `anon` and `authenticated` when each
--- table was created. Two things followed from that, both of them reproduced
--- against this stack before this migration was written.
+-- Parts 1 to 3 each used to end with `grant select, insert, update, delete on all
+-- tables in schema public to authenticated`, and Supabase's default privileges for
+-- schema public had already granted the same four to `anon` and `authenticated`
+-- when each table was created. Two things followed from that, both of them
+-- reproduced against this stack before this migration was written.
+--
+-- Those three tails are gone: the second review of SEEN-008 found that they were
+-- the template the next migration author would read, and one copy of part 3's tail
+-- hands `authenticated` insert, update and delete on settlement_lines, claims and
+-- invoices back again with nothing re-running to notice. The default privileges are
+-- the half that remains, and are what the revoke below is for. Nothing is deployed,
+-- so the applied files could be corrected rather than patched over: the regression
+-- starts from `pnpm db:reset` on an empty database and measures the whole schema
+-- again.
 --
 -- A signed-in user of a tenant could delete that tenant's own row in
 -- public.tenants. The delete privilege was there, and the tenancy policy's USING
@@ -44,11 +53,16 @@
 -- still names the tenant is the difference between one tenant's mistake and every
 -- tenant's.
 --
--- This migration does not end in `grant ... on all tables in schema public`, and
--- no later one may either. That is what re-granted update and delete on
--- audit_events three times over in parts 1 to 3, each time silently undoing the
--- revoke the part before it had just written. Grant per table, or re-revoke
--- immediately afterwards and say why.
+-- This migration does not end in `grant ... on all tables in schema public`, and no
+-- later one may either. That is what re-granted update and delete on audit_events
+-- three times over in parts 1 to 3, each time silently undoing the revoke the part
+-- before it had just written. Grant per table, by name.
+--
+-- That sentence was already here as a comment and a comment was not enough, so it
+-- is a test now: `packages/core/db/schema.test.ts` reads every file under
+-- supabase/migrations and fails on a grant that names a whole schema, and on an
+-- `alter default privileges`, which is the same hazard one level up. The next author
+-- meets a failing test rather than this paragraph.
 
 do $$
 declare
@@ -61,18 +75,24 @@ begin
      where n.nspname = 'public' and c.relkind = 'r'
      order by c.relname
   loop
-    -- Everything, from both sources at once: the blanket grants in parts 1 to 3
-    -- and the default privileges Supabase holds on schema public, which granted
-    -- insert, update, delete and truncate to anon and authenticated at the moment
-    -- each table was created. Narrowing the grants alone would have left the
-    -- default access control list standing.
+    -- Everything, whatever granted it: the default privileges Supabase holds on
+    -- schema public granted insert, update, delete and truncate to anon and
+    -- authenticated at the moment each table was created, and parts 1 to 3 granted
+    -- the same four again until those tails were removed. Narrowing a grant is not
+    -- enough on its own, because the default access control list would still be
+    -- standing behind it.
     execute format('revoke all privileges on public.%I from anon, authenticated', target);
     execute format('grant select on public.%I to authenticated', target);
 
     if target = 'audit_events' then
       -- The gate writes an event and no role rewrites one. Named per table rather
-      -- than granted broadly and revoked after, because the revoke is the part
-      -- that keeps getting undone.
+      -- than granted broadly and revoked after, because the revoke is the part that
+      -- keeps getting undone. The revoke is written here as well as in part 2, so
+      -- that this migration is true on its own when read: part 2 is what strips the
+      -- privileges the table was created with, and this is what a later reader can
+      -- check without having to find part 2 to know whether it still holds.
+      execute format(
+        'revoke update, delete, truncate on public.%I from service_role', target);
       execute format('grant select, insert on public.%I to service_role', target);
     else
       execute format(

@@ -1,0 +1,127 @@
+{
+  "sequence": 34,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-27T17:32:18.731184+00:00",
+  "harness_version": "2",
+  "kind": "route",
+  "stage": "tdd",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "7d7d5075c36370b88e2354e59ef72ecb1ac7055f",
+  "prev_hash": "75ecc93d823db1755cb947b85e1a51037bad3960603c0ced7d79bc8cb2cb023b",
+  "data": {
+    "solution": 33,
+    "shadow": true,
+    "strongest": "opus",
+    "tiers": [
+      "haiku",
+      "sonnet",
+      "opus"
+    ],
+    "rules": [
+      "This change touches billing or the policy gate, so every slice of it is routed by rule",
+      "This plan carries a migration, so every slice of it is routed by rule"
+    ],
+    "jev": {
+      "asked": false,
+      "model": null,
+      "answers": [],
+      "reason": "Every slice was settled by rule, so no request was made"
+    },
+    "execution": [
+      {
+        "position": 1,
+        "name": "Tenancy, the policy helper, orders and the settlement tables",
+        "points": 2,
+        "files": [
+          "supabase/migrations",
+          "packages/core/db/tables.ts",
+          "packages/core/db/schema.test.ts",
+          "packages/core/db/rls.test.ts",
+          "packages/core/package.json"
+        ],
+        "red": "schema.test.ts finds none of the fourteen tables this slice creates and names them; rls.test.ts cannot query orders at all. Both must fail on absence, not on a policy being wrong, because nothing exists yet.",
+        "model": "opus",
+        "effort": "high",
+        "source": "rule",
+        "rule": "billing",
+        "reason": "This change touches billing or the policy gate, so every slice of it is routed by rule",
+        "model_probability": null,
+        "effort_probability": null,
+        "model_passed": null,
+        "model_threshold": null,
+        "implementer_task": "Work slice 1 of SEEN-008: Tenancy, the policy helper, orders and the settlement tables.\n\nRun it on opus at high effort, because a rule sent it there (billing): This change touches billing or the policy gate, so every slice of it is routed by rule.\nThe model is what reaches the work: in Claude Code as the per-invocation model on the seen-implementer agent, and in Codex as the model this instruction names when you spawn it. The effort is recorded, carried and reported rather than applied, on either assistant: the generated copies do not vary by slice, because a file whose content depended on the ticket in hand was wrong on a detached HEAD, after a replan and after the receipt. Neither is yours to change.\n\nPoints: 2.\nFiles: supabase/migrations, packages/core/db/tables.ts, packages/core/db/schema.test.ts, packages/core/db/rls.test.ts, packages/core/package.json\n\nIts RED must demonstrate: schema.test.ts finds none of the fourteen tables this slice creates and names them; rls.test.ts cannot query orders at all. Both must fail on absence, not on a policy being wrong, because nothing exists yet.\n\nWrite the test first and record it with:\n  python3 harness/run.py check SEEN-008 --phase red --actor <tool>:implementer --model opus -- <command>\nThen write only what turns it green and record that the same way. The `--model opus` is not optional: a subagent inherits its parent's session id, so the log records the model of the session that spawned you and not yours, and without the declaration the tdd gate compares the wrong two names. Then stop: do not start the next slice and do not advance the stage."
+      },
+      {
+        "position": 2,
+        "name": "Findings, claims, evidence, messaging and the agent tables",
+        "points": 2,
+        "files": [
+          "supabase/migrations",
+          "packages/core/db/tables.ts",
+          "packages/core/db/schema.test.ts",
+          "packages/core/db/rls.test.ts"
+        ],
+        "red": "schema.test.ts finds the first slice's tables and none of the eleven this slice adds; rls.test.ts's cross-tenant read on findings and claims fails because those tables do not exist.",
+        "model": "opus",
+        "effort": "high",
+        "source": "rule",
+        "rule": "billing",
+        "reason": "This change touches billing or the policy gate, so every slice of it is routed by rule",
+        "model_probability": null,
+        "effort_probability": null,
+        "model_passed": null,
+        "model_threshold": null,
+        "implementer_task": "Work slice 2 of SEEN-008: Findings, claims, evidence, messaging and the agent tables.\n\nRun it on opus at high effort, because a rule sent it there (billing): This change touches billing or the policy gate, so every slice of it is routed by rule.\nThe model is what reaches the work: in Claude Code as the per-invocation model on the seen-implementer agent, and in Codex as the model this instruction names when you spawn it. The effort is recorded, carried and reported rather than applied, on either assistant: the generated copies do not vary by slice, because a file whose content depended on the ticket in hand was wrong on a detached HEAD, after a replan and after the receipt. Neither is yours to change.\n\nPoints: 2.\nFiles: supabase/migrations, packages/core/db/tables.ts, packages/core/db/schema.test.ts, packages/core/db/rls.test.ts\n\nIts RED must demonstrate: schema.test.ts finds the first slice's tables and none of the eleven this slice adds; rls.test.ts's cross-tenant read on findings and claims fails because those tables do not exist.\n\nWrite the test first and record it with:\n  python3 harness/run.py check SEEN-008 --phase red --actor <tool>:implementer --model opus -- <command>\nThen write only what turns it green and record that the same way. The `--model opus` is not optional: a subagent inherits its parent's session id, so the log records the model of the session that spawned you and not yours, and without the declaration the tdd gate compares the wrong two names. Then stop: do not start the next slice and do not advance the stage."
+      },
+      {
+        "position": 3,
+        "name": "Commerce tables, the unique indexes and the marketplaces seed",
+        "points": 1,
+        "files": [
+          "supabase/migrations",
+          "packages/core/db/tables.ts",
+          "packages/core/db/marketplaces.ts",
+          "packages/core/db/schema.test.ts",
+          "packages/core/db/uniqueness.test.ts",
+          "packages/core/db/marketplaces.test.ts"
+        ],
+        "red": "uniqueness.test.ts's second insert of the same triple succeeds where it must be rejected, and marketplaces.test.ts finds an empty catalogue against the routing table's six columns and nine rows.",
+        "model": "opus",
+        "effort": "high",
+        "source": "rule",
+        "rule": "billing",
+        "reason": "This change touches billing or the policy gate, so every slice of it is routed by rule",
+        "model_probability": null,
+        "effort_probability": null,
+        "model_passed": null,
+        "model_threshold": null,
+        "implementer_task": "Work slice 3 of SEEN-008: Commerce tables, the unique indexes and the marketplaces seed.\n\nRun it on opus at high effort, because a rule sent it there (billing): This change touches billing or the policy gate, so every slice of it is routed by rule.\nThe model is what reaches the work: in Claude Code as the per-invocation model on the seen-implementer agent, and in Codex as the model this instruction names when you spawn it. The effort is recorded, carried and reported rather than applied, on either assistant: the generated copies do not vary by slice, because a file whose content depended on the ticket in hand was wrong on a detached HEAD, after a replan and after the receipt. Neither is yours to change.\n\nPoints: 1.\nFiles: supabase/migrations, packages/core/db/tables.ts, packages/core/db/marketplaces.ts, packages/core/db/schema.test.ts, packages/core/db/uniqueness.test.ts, packages/core/db/marketplaces.test.ts\n\nIts RED must demonstrate: uniqueness.test.ts's second insert of the same triple succeeds where it must be rejected, and marketplaces.test.ts finds an empty catalogue against the routing table's six columns and nine rows.\n\nWrite the test first and record it with:\n  python3 harness/run.py check SEEN-008 --phase red --actor <tool>:implementer --model opus -- <command>\nThen write only what turns it green and record that the same way. The `--model opus` is not optional: a subagent inherits its parent's session id, so the log records the model of the session that spawned you and not yours, and without the declaration the tdd gate compares the wrong two names. Then stop: do not start the next slice and do not advance the stage."
+      },
+      {
+        "position": 4,
+        "name": "The second review's three remaining findings: the cacheable guard, the blanket grant as a template, and the unowned half of the PII rule",
+        "points": 1,
+        "files": [
+          "turbo.json",
+          "supabase/migrations",
+          "packages/core/db/schema.test.ts",
+          "packages/core/db/tables.ts",
+          "packages/core/package.json"
+        ],
+        "red": "The turbo dry run shows the test task's inputs carrying no migration file and a cache hit after a migration is added; a test reading every migration finds the blanket grant in three of them; and the buyer PII assertion has no statement of what encrypted at rest means for these columns to read.",
+        "model": "opus",
+        "effort": "high",
+        "source": "rule",
+        "rule": "billing",
+        "reason": "This change touches billing or the policy gate, so every slice of it is routed by rule",
+        "model_probability": null,
+        "effort_probability": null,
+        "model_passed": null,
+        "model_threshold": null,
+        "implementer_task": "Work slice 4 of SEEN-008: The second review's three remaining findings: the cacheable guard, the blanket grant as a template, and the unowned half of the PII rule.\n\nRun it on opus at high effort, because a rule sent it there (billing): This change touches billing or the policy gate, so every slice of it is routed by rule.\nThe model is what reaches the work: in Claude Code as the per-invocation model on the seen-implementer agent, and in Codex as the model this instruction names when you spawn it. The effort is recorded, carried and reported rather than applied, on either assistant: the generated copies do not vary by slice, because a file whose content depended on the ticket in hand was wrong on a detached HEAD, after a replan and after the receipt. Neither is yours to change.\n\nPoints: 1.\nFiles: turbo.json, supabase/migrations, packages/core/db/schema.test.ts, packages/core/db/tables.ts, packages/core/package.json\n\nIts RED must demonstrate: The turbo dry run shows the test task's inputs carrying no migration file and a cache hit after a migration is added; a test reading every migration finds the blanket grant in three of them; and the buyer PII assertion has no statement of what encrypted at rest means for these columns to read.\n\nWrite the test first and record it with:\n  python3 harness/run.py check SEEN-008 --phase red --actor <tool>:implementer --model opus -- <command>\nThen write only what turns it green and record that the same way. The `--model opus` is not optional: a subagent inherits its parent's session id, so the log records the model of the session that spawned you and not yours, and without the declaration the tdd gate compares the wrong two names. Then stop: do not start the next slice and do not advance the stage."
+      }
+    ]
+  }
+}

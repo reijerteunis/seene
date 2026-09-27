@@ -135,24 +135,43 @@ browser is bound to. The new privilege assertion fails loudly when that happens,
 prevention; narrowing it with `alter default privileges` changes every future migration and was not in the
 decision above.
 
-Three more left open by the second review, which passed the ticket:
+### The second review's three remaining findings, closed
 
-- **The turbo cache can replay a pass for the database tests.** `turbo run test`'s cache key for `@seen/core`
-  contains eleven inputs, all inside `packages/core`, and no migration file. So a later ticket that adds a
-  migration and touches nothing in `packages/core` gets `cache hit, replaying logs` and the old `57 passed`,
-  and the tenancy, privilege and append-only guards never run against the new migration. CI escapes it today
-  only because it caches the pnpm store and not `.turbo`; the day anyone caches `.turbo` or turns on remote
-  caching, the false green moves into CI. The fix is in `turbo.json`, which no slice of this ticket names, so
-  it needs a ticket of its own and it is the most urgent of these three.
-- **Three of the four migrations still end with the blanket grant** that the fourth one's comment forbids. The
-  end state after a reset is correct, because part four runs last and revokes per table, which the review
-  measured. The residual is that those three are the template the next migration author reads: copy part
-  three's tail and `authenticated` regains insert, update and delete on all 29 tables, reopening the billable
-  event finding, and part four's self-check does not re-run to catch it.
-- **Buyer PII is stored in plain `text` columns** and nothing says which reading of the ground rule's
-  "encrypted at rest" the schema relies on. The expiry half has an owner in SEEN-083; the encryption half has
-  none, so a `pg_dump` for the restore drill or a support query as the service role yields buyer names and
-  addresses in cleartext. Named here so a later ticket inherits it rather than nobody.
+The review gate requires every finding resolved and has no deferral status, which is the right rule: findings
+are fixed, not carried. So the three the second review left are closed rather than inherited.
+
+- **The database guard could be replayed from cache.** `turbo run test`'s cache key held eleven files, all
+  inside `packages/core`, and no migration, so a later ticket adding a migration and touching nothing in that
+  package would get `cache hit, replaying logs` over the only tests that guard tenancy, privileges and the
+  append-only table. The `test` task now hashes `supabase/migrations/**` through `$TURBO_ROOT$`. Measured both
+  ways: before, a probe migration creating an untenanted table left the hash unchanged and printed the old
+  count; after, the same probe gives a cache miss and twelve named failures. The input list sits on the root
+  task, so every package's tests now hash the migrations, which is deliberate because the next
+  database-dependent test may not be in `packages/core`.
+- **Three migrations still ended with the blanket grant** the fourth forbids, which is the template the next
+  author reads. All six statements are removed, and a test reads every file under `supabase/migrations` and
+  fails on one, so the next author meets a failing test rather than a paragraph. Part 4 now revokes update,
+  delete and truncate on `audit_events` from the service role itself, so it reads true on its own rather than
+  only after the tails that used to precede it.
+- **Buyer PII said nothing about which encryption at rest applied.** Each of the six columns now states it:
+  written only as far as a claim needs it and expired after 30 days by SEEN-083; encryption at rest is the
+  storage layer only, this volume today and the Supabase EU project after the SEEN-007 go decision; the value
+  itself is cleartext, so a `pg_dump` for a restore drill and any service-role query read every tenant's buyer
+  data as typed; and **column-level encryption is owed and unowned, a decision beyond this ticket and one owed
+  before SEEN-082 takes its first restore-drill dump.** An assertion holds the sentence in place rather than
+  prose.
+
+The privilege set after all of that is identical to the one the review measured by execution: `anon` no ACL
+entry on any of the 29 tables, `authenticated` select only, `service_role` select and insert on 29 with update,
+delete and truncate on 28, not `audit_events`. The service role can still insert a tenant, insert an audit
+event, update a connection and delete a tenant, so erasure on request remains possible, and part 4's self-check
+raises on an injected failure including one that would have made the revoke over-broad.
+
+Still left open and named, all harness-side rather than schema-side: the guard's exact path match refuses every
+file under a directory a slice names, which four tickets have now walked into and which SEEN-112 fixes;
+`plan_accepted_at` counts greens only after the last advance out of solution, so a post-return slice starts
+blocked until a session declares `--slice-done`, which SEEN-113 fixes; and `packages/core/tsconfig.json`
+includes only `src`, so the routing-table parser is linted but never typechecked.
 
 ## Slices
 

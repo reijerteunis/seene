@@ -20,13 +20,22 @@
  * permissive policy, which is the only way to show that the assertion sees a
  * policy set and not the existence of one policy.
  */
+import { execFileSync } from 'node:child_process';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import { Client } from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import {
-  APPEND_ONLY_PRIVILEGES, APPEND_ONLY_TABLES, BUYER_PII_COLUMNS, DATA_API_ROLES,
-  GOVERNED_PRIVILEGES, TABLE_PRIVILEGES, TENANT_CLAIM, TRADE_RECORD_TABLES,
+  APPEND_ONLY_PRIVILEGES, APPEND_ONLY_TABLES, BUYER_PII_COLUMNS, BUYER_PII_COMMENT_TERMS,
+  DATA_API_ROLES, FORBIDDEN_PRIVILEGE_STATEMENTS, GOVERNED_PRIVILEGES, MIGRATIONS_DIRECTORY,
+  TABLE_PRIVILEGES, TENANT_CLAIM, TRADE_RECORD_TABLES,
 } from './tables';
+
+/** The repository root, from this file's own location: `packages/core/db`. */
+const REPOSITORY_ROOT = fileURLToPath(new URL('../../..', import.meta.url));
 
 // The local Supabase stack's Postgres, the address `pnpm dev:up` prints when it
 // starts. Overridden by SEEN_DATABASE_URL so CI or a second stack needs no code
@@ -232,6 +241,103 @@ async function privilegesIn(
   return held;
 }
 
+/** Every migration file, as a path relative to the repository root, newest last. */
+function migrationFiles(): string[] {
+  const directory = join(REPOSITORY_ROOT, MIGRATIONS_DIRECTORY);
+  if (!existsSync(directory)) {
+    throw new Error(
+      `There is no ${MIGRATIONS_DIRECTORY} directory under ${REPOSITORY_ROOT}, so a test that `
+      + 'reads the migrations proves nothing. This test resolves the repository root from its own '
+      + 'location and that assumption has broken.',
+    );
+  }
+  const files = readdirSync(directory).filter((name) => name.endsWith('.sql')).sort();
+  if (files.length === 0) {
+    throw new Error(
+      `There are no .sql files in ${MIGRATIONS_DIRECTORY}, so a test that reads the migrations `
+      + 'proves nothing.',
+    );
+  }
+  return files.map((name) => `${MIGRATIONS_DIRECTORY}/${name}`);
+}
+
+/**
+ * The statements of a migration, with its comments removed.
+ *
+ * The comments have to go before anything is matched in them: part 4 of the trade
+ * record quotes the blanket grant it forbids, twice, in order to say what it is
+ * undoing, and a scanner that could not tell a quotation from a statement would
+ * either fail on the file that fixed the problem or be written loosely enough to
+ * miss the statement itself.
+ */
+function statementsOf(sql: string): string[] {
+  const withoutComments = sql
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .replace(/--[^\n]*/g, ' ');
+  return withoutComments.split(';').map((statement) => statement.trim()).filter(Boolean);
+}
+
+/** Every forbidden privilege statement in the migrations, named with its file. */
+function blanketPrivilegeStatements(): string[] {
+  const found: string[] = [];
+  for (const file of migrationFiles()) {
+    const statements = statementsOf(readFileSync(join(REPOSITORY_ROOT, file), 'utf8'));
+    for (const statement of statements) {
+      for (const forbidden of FORBIDDEN_PRIVILEGE_STATEMENTS) {
+        if (forbidden.pattern.test(statement)) {
+          found.push(`${file}: ${forbidden.name}, as \`${statement.replace(/\s+/g, ' ')}\``);
+        }
+      }
+    }
+  }
+  return found;
+}
+
+/**
+ * The files turbo hashes to decide whether `@seen/core#test` may be replayed from
+ * the cache, measured from turbo itself rather than read out of `turbo.json`.
+ *
+ * `--dry=json` computes the hash and its input list without running the task, so
+ * this is the same question the cache asks, asked from inside the suite the cache
+ * would be replaying. Reading the configuration instead would assert what somebody
+ * wrote, not what turbo resolved: a root-relative glob that turbo silently ignored
+ * would read as a fix and hash nothing.
+ */
+function testTaskInputs(): string[] {
+  const turbo = join(REPOSITORY_ROOT, 'node_modules', '.bin', 'turbo');
+  if (!existsSync(turbo)) {
+    throw new Error(
+      `No turbo binary at ${turbo}, so this test cannot measure what the test task hashes and `
+      + 'proves nothing about the cache. Install the workspace with `pnpm install`.',
+    );
+  }
+  let output: string;
+  try {
+    output = execFileSync(
+      turbo,
+      ['run', 'test', '--filter=@seen/core', '--dry=json'],
+      { cwd: REPOSITORY_ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 },
+    );
+  } catch (cause) {
+    throw new Error(
+      'turbo could not report what the test task hashes, so this test proves nothing about the '
+      + `cache. turbo said: ${(cause as Error).message}`,
+      { cause },
+    );
+  }
+  const plan = JSON.parse(output.slice(output.indexOf('{'))) as {
+    tasks?: { taskId?: string; inputs?: Record<string, string> }[];
+  };
+  const task = (plan.tasks ?? []).find((entry) => entry.taskId === '@seen/core#test');
+  if (!task) {
+    throw new Error(
+      'turbo reported no @seen/core#test task at all, so this test proves nothing about the '
+      + `cache. It reported: ${(plan.tasks ?? []).map((entry) => entry.taskId).join(', ')}`,
+    );
+  }
+  return Object.keys(task.inputs ?? {});
+}
+
 describe('the trade record schema', () => {
   let client: Client;
   let present: string[];
@@ -422,6 +528,121 @@ describe('the trade record schema', () => {
       'Buyer PII columns whose own comment does not say they are PII expiring after 30 days: '
       + silent.join(', '),
     ).toEqual([]);
+  });
+
+  it('says in each buyer PII column which encryption at rest it relies on, and what is owed',
+    async () => {
+      // The six columns are plain `text`. CLAUDE.md says buyer PII is encrypted at
+      // rest, and that sentence reads two ways: the volume the provider encrypts,
+      // or the column itself, so that a restore-drill `pg_dump` and a support query
+      // as service_role yield ciphertext rather than every tenant's buyer names and
+      // addresses. This schema relies on the first and implements none of the
+      // second. Nothing recorded which reading was in force, and an obligation
+      // nobody has written down is one that disappears: the comment states it and
+      // this test is what keeps the statement there.
+      const { rows } = await client.query<{ column: string; comment: string | null }>(
+        `select c.relname || '.' || a.attname as column,
+                pg_catalog.col_description(c.oid, a.attnum) as comment
+           from pg_catalog.pg_class c
+           join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+           join pg_catalog.pg_attribute a on a.attrelid = c.oid
+          where n.nspname = 'public' and c.relkind = 'r'
+            and a.attnum > 0 and not a.attisdropped and a.attname like 'buyer%'
+          order by 1`,
+      );
+      assertPopulated(rows.map((row) => row.column), 'what each buyer PII column says is owed');
+      const silent: string[] = [];
+      for (const row of rows) {
+        const comment = row.comment ?? '';
+        const unsaid = BUYER_PII_COMMENT_TERMS.filter((term) => !comment.includes(term));
+        if (unsaid.length > 0) {
+          silent.push(`${row.column} does not say ${unsaid.map((term) => `"${term}"`).join(', ')}`);
+        }
+      }
+      expect(
+        silent,
+        'Buyer PII columns whose comment does not state which encryption at rest the schema '
+        + 'relies on today and what is still owed and by whom: ' + silent.join('; '),
+      ).toEqual([]);
+    });
+});
+
+describe('the migrations that write the schema', () => {
+  // Two properties of the migrations as files rather than of the database they
+  // produce, because both are about what the next migration will do. The end state
+  // after `pnpm db:reset` is correct in each case; what is wrong is what an author
+  // reading these files, or a cache reading their hash, would conclude.
+
+  it('hashes every migration into the test task, so the cache cannot replay a stale pass',
+    () => {
+      // These are the only database-dependent tests in the repository, and they sit
+      // in a turbo task whose inputs are the files of one package. A migration that
+      // adds a table with no tenant_id, or one born writable by `authenticated`,
+      // changes nothing under packages/core, so `turbo run test` reports the old
+      // pass from the cache and the tenancy, privilege and append-only guards never
+      // see the new schema at all. CI escapes it today only because it caches the
+      // pnpm store and not `.turbo`.
+      const inputs = testTaskInputs();
+      expect(inputs.length, 'turbo reported no inputs at all for @seen/core#test').toBeGreaterThan(0);
+      const migrations = migrationFiles().map((file) => file.split('/').pop() as string);
+      const hashed = migrations.filter(
+        (name) => inputs.some((input) => input.includes(MIGRATIONS_DIRECTORY) && input.endsWith(name)),
+      );
+      expect(
+        migrations.filter((name) => !hashed.includes(name)),
+        `The cache key of @seen/core#test covers ${inputs.length} files and `
+        + `${hashed.length} of ${migrations.length} migrations, so a turbo cache hit can report `
+        + 'these database tests as passed without ever running them against a changed schema. '
+        + `turbo hashes: ${inputs.join(', ')}`,
+      ).toEqual([]);
+    });
+
+  it('contains no blanket grant, so the next migration has no such tail to copy', () => {
+    // Parts 1, 2 and 3 each ended with `grant ... on all tables in schema public`,
+    // the statement part 4's own comment forbids any later migration from writing,
+    // and each one silently re-granted update and delete on audit_events to the
+    // roles the part before it had just revoked them from. Part 4 runs last and
+    // revokes per table, so the end state was right; the residual is that those
+    // three tails are the template the next author reads, and part 4's self-check
+    // does not re-run to catch the copy.
+    const found = blanketPrivilegeStatements();
+    expect(
+      found,
+      `${found.length} blanket privilege statements in the migrations, each of which reaches `
+      + 'every table in the schema including the ones an earlier migration narrowed: '
+      + found.join('; '),
+    ).toEqual([]);
+  });
+
+  it('would see a blanket grant a later migration added, in any of its spellings', () => {
+    // The assertion above passes when it finds nothing, and a scanner that matched
+    // nothing would pass in exactly the same way. So the detector is shown what it
+    // is for, including the two spellings that are not the one that was removed: a
+    // grant broken over lines, and a default privilege, which grants on tables that
+    // do not exist yet and is how anon held four privileges on all twenty-nine.
+    const hazards = [
+      'grant select, insert, update, delete on all tables in schema public to authenticated',
+      'grant all on all tables in schema public to service_role',
+      'grant\n  select\n  on all tables\n  in schema public\n  to anon',
+      'alter default privileges in schema public grant all on tables to authenticated',
+    ];
+    const missed = hazards.filter(
+      (hazard) => !FORBIDDEN_PRIVILEGE_STATEMENTS.some((rule) => rule.pattern.test(hazard)),
+    );
+    expect(missed, `Blanket privilege statements the detector does not see: ${missed.join('; ')}`)
+      .toEqual([]);
+    // And what it must not flag, or part 4 could not be written at all: a grant per
+    // table, a grant on the helper schema, and the quotation of the hazard in a
+    // comment that explains why it is forbidden.
+    const allowed = [
+      "execute format('grant select on public.%I to authenticated', target)",
+      'grant usage on schema seen to anon, authenticated, service_role',
+      '-- no later migration may end in `grant ... on all tables in schema public`',
+    ];
+    const misread = allowed.filter((statement) => statementsOf(statement).some(
+      (cleaned) => FORBIDDEN_PRIVILEGE_STATEMENTS.some((rule) => rule.pattern.test(cleaned)),
+    ));
+    expect(misread, `Statements the detector wrongly flags: ${misread.join('; ')}`).toEqual([]);
   });
 });
 

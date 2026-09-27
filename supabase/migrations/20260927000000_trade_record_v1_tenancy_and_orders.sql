@@ -233,9 +233,21 @@ create table public.shipments (
 );
 
 comment on column public.shipments.buyer_name is
-  'Buyer PII. Written only as far as a claim needs it and expired after 30 days by SEEN-083.';
+  'Buyer PII. Written only as far as a claim needs it and expired after 30 days by SEEN-083. '
+  'Encryption at rest is the storage layer only: the volume this database sits on, and the '
+  'Supabase EU project once the SEEN-007 go decision is taken. The value itself is cleartext, '
+  'so a pg_dump taken for a restore drill and any query as service_role read every tenant''s '
+  'buyer data as typed. Nothing here encrypts the value itself, and no ticket owns doing so: '
+  'column-level encryption is owed and unowned, a decision beyond SEEN-008 and one owed '
+  'before SEEN-082 takes the first restore-drill dump.';
 comment on column public.shipments.buyer_address is
-  'Buyer PII. Written only as far as a claim needs it and expired after 30 days by SEEN-083.';
+  'Buyer PII. Written only as far as a claim needs it and expired after 30 days by SEEN-083. '
+  'Encryption at rest is the storage layer only: the volume this database sits on, and the '
+  'Supabase EU project once the SEEN-007 go decision is taken. The value itself is cleartext, '
+  'so a pg_dump taken for a restore drill and any query as service_role read every tenant''s '
+  'buyer data as typed. Nothing here encrypts the value itself, and no ticket owns doing so: '
+  'column-level encryption is owed and unowned, a decision beyond SEEN-008 and one owed '
+  'before SEEN-082 takes the first restore-drill dump.';
 
 create table public.returns (
   id uuid primary key default gen_random_uuid(),
@@ -259,9 +271,21 @@ create table public.returns (
 );
 
 comment on column public.returns.buyer_name is
-  'Buyer PII. Written only as far as a claim needs it and expired after 30 days by SEEN-083.';
+  'Buyer PII. Written only as far as a claim needs it and expired after 30 days by SEEN-083. '
+  'Encryption at rest is the storage layer only: the volume this database sits on, and the '
+  'Supabase EU project once the SEEN-007 go decision is taken. The value itself is cleartext, '
+  'so a pg_dump taken for a restore drill and any query as service_role read every tenant''s '
+  'buyer data as typed. Nothing here encrypts the value itself, and no ticket owns doing so: '
+  'column-level encryption is owed and unowned, a decision beyond SEEN-008 and one owed '
+  'before SEEN-082 takes the first restore-drill dump.';
 comment on column public.returns.buyer_address is
-  'Buyer PII. Written only as far as a claim needs it and expired after 30 days by SEEN-083.';
+  'Buyer PII. Written only as far as a claim needs it and expired after 30 days by SEEN-083. '
+  'Encryption at rest is the storage layer only: the volume this database sits on, and the '
+  'Supabase EU project once the SEEN-007 go decision is taken. The value itself is cleartext, '
+  'so a pg_dump taken for a restore drill and any query as service_role read every tenant''s '
+  'buyer data as typed. Nothing here encrypts the value itself, and no ticket owns doing so: '
+  'column-level encryption is owed and unowned, a decision beyond SEEN-008 and one owed '
+  'before SEEN-082 takes the first restore-drill dump.';
 
 -- Settlements ----------------------------------------------------------------
 
@@ -390,8 +414,19 @@ begin
 end;
 $$;
 
--- The Data API roles. authenticated reaches every table through the policy above
--- and therefore only its own tenant's rows; service_role bypasses row-level
--- security and is what the workers use, so nothing it does is a tenant's request.
-grant select, insert, update, delete on all tables in schema public to authenticated;
-grant all on all tables in schema public to service_role;
+-- The Data API roles are granted nothing here, on purpose, and in particular not
+-- the statement that grants on every table in the schema at once.
+--
+-- Nothing in this migration needs a table privilege: a migration runs as the owner
+-- of the tables it creates, and the three request-bound roles reach these tables
+-- only through a request, which part 4 of this set decides per table by name. A
+-- grant on the whole schema written here would also reach the sixteen tables parts
+-- 2 and 3 add later, and each of the three this set used to carry undid the revoke
+-- the part before it had just written: `authenticated` was handed insert, update
+-- and delete on settlement_lines, claims and invoices three times over that way,
+-- and the tail of one migration is what the author of the next one copies. Grant
+-- per table, by name, and say what the grant is for.
+--
+-- What is granted above is what a policy needs in order to be evaluated as
+-- `authenticated` at all: usage on schema seen, and execute on
+-- seen.current_tenant().

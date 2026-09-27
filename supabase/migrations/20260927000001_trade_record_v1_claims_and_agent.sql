@@ -143,9 +143,21 @@ create table public.evidence (
 );
 
 comment on column public.evidence.buyer_name is
-  'Buyer PII. Written only as far as a claim needs it and expired after 30 days by SEEN-083.';
+  'Buyer PII. Written only as far as a claim needs it and expired after 30 days by SEEN-083. '
+  'Encryption at rest is the storage layer only: the volume this database sits on, and the '
+  'Supabase EU project once the SEEN-007 go decision is taken. The value itself is cleartext, '
+  'so a pg_dump taken for a restore drill and any query as service_role read every tenant''s '
+  'buyer data as typed. Nothing here encrypts the value itself, and no ticket owns doing so: '
+  'column-level encryption is owed and unowned, a decision beyond SEEN-008 and one owed '
+  'before SEEN-082 takes the first restore-drill dump.';
 comment on column public.evidence.buyer_address is
-  'Buyer PII. Written only as far as a claim needs it and expired after 30 days by SEEN-083.';
+  'Buyer PII. Written only as far as a claim needs it and expired after 30 days by SEEN-083. '
+  'Encryption at rest is the storage layer only: the volume this database sits on, and the '
+  'Supabase EU project once the SEEN-007 go decision is taken. The value itself is cleartext, '
+  'so a pg_dump taken for a restore drill and any query as service_role read every tenant''s '
+  'buyer data as typed. Nothing here encrypts the value itself, and no ticket owns doing so: '
+  'column-level encryption is owed and unowned, a decision beyond SEEN-008 and one owed '
+  'before SEEN-082 takes the first restore-drill dump.';
 
 -- Serve: correspondence ------------------------------------------------------
 
@@ -447,13 +459,16 @@ begin
 end;
 $$;
 
--- The Data API roles, as part 1: authenticated reaches these tables through the
--- policies above and therefore only its own tenant's rows, service_role bypasses
--- row-level security and is what the workers use.
-grant select, insert, update, delete on all tables in schema public to authenticated;
-grant all on all tables in schema public to service_role;
-
--- And then audit_events takes its privileges back, from every role including the
--- one that just received all of them. Truncate goes too, because grant all
--- carries it.
+-- As part 1: no table privilege is granted here, because part 4 grants per table by
+-- name and a grant on the whole schema would reach every table parts 1 and 3 own
+-- as well.
+--
+-- audit_events gives back what no migration granted it in the first place.
+-- Supabase's default privileges for schema public hand insert, update, delete and
+-- truncate to anon, authenticated and service_role at the moment a table is
+-- created, so this table was rewritable before this line and no statement in this
+-- file is what made it so. Truncate goes with the other two: a truncated audit
+-- trail is an erased one. Part 4 revokes the same three per table again, so the
+-- guarantee does not rest on the tail of an earlier migration that a later author
+-- can delete without seeing what it was for.
 revoke update, delete, truncate on public.audit_events from anon, authenticated, service_role;

@@ -99,6 +99,64 @@ export const BUYER_PII_COLUMNS = [
 ] as const;
 
 /**
+ * What every buyer PII column's own comment has to say, phrase by phrase.
+ *
+ * CLAUDE.md requires buyer PII to be "encrypted at rest", and that sentence has
+ * more than one reading: a volume the provider encrypts, or the column itself
+ * encrypted so that a dump and a support query as `service_role` yield ciphertext.
+ * This schema relies on the first and implements nothing of the second, and until
+ * the second review of SEEN-008 said so nothing in the repository recorded which
+ * reading was in force. So each column states it, and this list is what makes the
+ * statement assertable: a migration that drops the sentence, or a later column
+ * that repeats the old comment, fails `schema.test.ts` rather than quietly
+ * shedding the obligation. Column-level encryption is a decision beyond this
+ * ticket and the comment says so, with who is owed it and when.
+ */
+export const BUYER_PII_COMMENT_TERMS = [
+  'PII',
+  '30 days',
+  'SEEN-083',
+  'storage layer only',
+  'cleartext',
+  'column-level encryption is owed and unowned',
+  'SEEN-082',
+] as const;
+
+/** Where the migrations live, relative to the repository root. */
+export const MIGRATIONS_DIRECTORY = 'supabase/migrations';
+
+/**
+ * The privilege statements no migration may contain, and why each is a trap.
+ *
+ * `grant ... on all tables in schema public` reaches every table in the schema,
+ * including the ones an earlier migration deliberately narrowed: parts 1, 2 and 3
+ * of the trade record each ended with one, and each silently re-granted update and
+ * delete on `audit_events` to the very roles the part before it had revoked them
+ * from. Part 4 revokes per table and is last, so the end state was right, but the
+ * next migration author copies the tail of the migration in front of them, and one
+ * such copy hands `authenticated` insert, update and delete on `settlement_lines`,
+ * `claims` and `invoices` back again, with no self-check re-running to notice.
+ *
+ * `alter default privileges` is the same hazard one level up: it grants on tables
+ * that do not exist yet, which is how `anon` and `authenticated` held four
+ * privileges on all twenty-nine tables from the moment each was created.
+ *
+ * Grant per table, by name, and say what each grant is for. A comment asking for
+ * that was already in part 4 and was not enough; this is the failing test the next
+ * author meets instead.
+ */
+export const FORBIDDEN_PRIVILEGE_STATEMENTS = [
+  {
+    name: 'grant ... on all tables in schema',
+    pattern: /\bgrant\b[^;]*\ball\s+tables\s+in\s+schema\b/i,
+  },
+  {
+    name: 'alter default privileges',
+    pattern: /\balter\s+default\s+privileges\b/i,
+  },
+] as const;
+
+/**
  * The three roles the Supabase Data API binds a request to.
  *
  * A browser request arrives as `anon` before sign-in and as `authenticated`

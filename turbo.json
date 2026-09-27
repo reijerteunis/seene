@@ -16,7 +16,26 @@
       ]
     },
     "test": {
-      "dependsOn": []
+      "dependsOn": [],
+      // The migrations are an input to every test task, not only to the package
+      // that reads them today. The tenancy, privilege and append-only guards in
+      // @seen/core are the only database-dependent tests in the repository, and
+      // the default cache key of a task is the files of its own package: a
+      // migration adding a table with no tenant_id, or one born writable by
+      // `authenticated`, changes nothing under packages/core, so `turbo run test`
+      // replayed the recorded pass from the cache and no guard saw the new schema
+      // at all. Measured before this line was written: the same hash, `cache hit,
+      // replaying logs`, 57 passed, with exactly such a migration in the tree.
+      // CI escaped it only because it caches the pnpm store and not .turbo.
+      //
+      // An input list rather than `"cache": false`, so the cache still works and
+      // simply notices a migration. $TURBO_DEFAULT$ keeps the package's own files,
+      // which naming any input at all would otherwise replace, and $TURBO_ROOT$ is
+      // how a task reaches a path outside its package.
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/supabase/migrations/**"
+      ]
     },
     "lint": {
       "dependsOn": []
