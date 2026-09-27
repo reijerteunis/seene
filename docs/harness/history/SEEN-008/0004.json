@@ -1,0 +1,87 @@
+{
+  "sequence": 4,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-27T06:42:57.365373+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "ac8affb9a62263bae886ebdec00ebdf2bd53dc29",
+  "prev_hash": "06e4fe14ceeb14ed0ca3eaa4e01ba6286cb65e494b6ec755e77393ee29bba7a8",
+  "data": {
+    "from_stage": "clarify",
+    "to_stage": "solution",
+    "evidence": {
+      "scope": "One Supabase migration creating trade-record schema v1, the 29 tables of the architecture's ER diagram, each carrying tenant_id and an enabled row-level security policy bound to the tenant claim in the JWT, with the (tenant_id, marketplace, external_id) unique index on the externally sourced tables and the marketplaces catalogue seeded from the architecture's routing table; its edge is the schema and its policies, with no application code reading it and no connector writing to it.",
+      "acceptance": [
+        "Criterion 1: the migration applies on an empty database and `pnpm db:reset` re-applies it without error. Evidence: a RED that runs `supabase db reset` against the local stack and fails because the migration does not exist or does not apply, then the GREEN that applies cleanly, with the reset in the regression command so a later slice cannot break the earlier one's tables.",
+        "Criterion 2: a test listing every table in the public schema finds tenant_id and an enabled RLS policy on 100 per cent of them. Evidence: a test that reads pg_catalog rather than a hand-written list of tables, so a table added later without tenant_id or without a policy fails it; the RED fails on the count of tables found, and each slice's RED extends it to the tables that slice creates.",
+        "Criterion 3: a query with tenant A's JWT returns zero rows from tenant B's orders. Evidence: an integration test that sets the tenant claim as a request-scoped setting the policy reads, inserts rows for two tenants through the service role, then reads as each tenant and asserts zero cross-tenant rows on orders, and on findings and claims when those tables exist. This is also the observation that settles the claim decision below.",
+        "Criterion 4: a unique index on (tenant_id, marketplace, external_id) exists on orders, shipments, returns, settlements and settlement_lines. Evidence: a RED that inserts the same triple twice and expects the second insert to be rejected, per table, rather than a test that reads the index's name.",
+        "Criterion 5: the marketplaces seed carries the six marketplaces with capability flags matching the routing table in the architecture. Evidence: a test that reads the routing table's nine capability rows and six marketplace columns and compares them against the seeded rows, so a change to the document fails the test rather than drifting from it silently. The table is `docs/architecture.md:13-23` and its cells are `API`, `assisted`, `none`, `n/a` and `code`, per record 3."
+      ],
+      "decisions": [
+        "The tenant claim and the RLS expression are decided here rather than looked up, because nothing in the repository documents them: record 3 establishes that the architecture says only 'Postgres row-level security by tenant' and the ticket says only 'bound to the JWT tenant claim'. The decision: every policy reads the tenant from the request's JWT claims, and the policy expression is factored into one immutable SQL helper so 29 tables do not carry 29 copies of it. The observation that settles it is criterion 3's integration test: a JWT for tenant A returning zero rows from tenant B's orders proves the expression regardless of which spelling of the claim was chosen, and a spelling the application layer disagrees with fails that test rather than passing quietly. Whoever wires Supabase Auth in the web application must set the same claim, so the helper's name and the claim it reads are named in the migration's own comment where that work will find them.",
+        "The six marketplace identifiers are created by this migration, because record 3 establishes that no enum, constant or type for them exists anywhere in the repository. They become the primary keys of the static `marketplaces` catalogue rather than a Postgres enum, so adding a marketplace is a seeded row and not a migration that rewrites a type; the architecture's six are bol, amazon, ebay, kaufland, otto and shopify.",
+        "The capability flags are stored as the routing table states them, one value per capability per marketplace from the set the document uses, rather than as booleans. Record 3 establishes that the table is a nine by six matrix whose cells are `API`, `assisted`, `none`, `n/a` and `code`, so booleans would lose the distinction between a capability that is assisted and one that does not exist, which is exactly the distinction the claims rail and the routing depend on.",
+        "Two rules this schema must follow are written down outside the architecture, so they are recorded here as binding rather than rediscovered: amounts are integer cents with a currency code, which record 3 found only as a comment at packages/core/src/index.ts:11, and the (tenant_id, marketplace, external_id) uniqueness, which record 3 found only in this ticket's own text. Both are in CLAUDE.md as ground rules.",
+        "Buyer PII is not in this ticket's tables beyond what a claim needs, and the 30-day expiry job is SEEN-083's. The decision here is that the columns which will hold buyer name and address are created encrypted-at-rest by the database's own storage and are named in the solution record so SEEN-083 has a list to expire rather than a search to do."
+      ],
+      "open_questions": [],
+      "changes_agent_action": false,
+      "graph_impact": [
+        "repowise risk, recorded at record 2: below typical, 24th percentile of recent commits by size and spread, and no bug-fix history in the files it touches. It scored the working tree at the time, which held only this ticket's status change, so it is a floor and not a forecast for a migration creating 29 tables and their policies.",
+        "seen-scout, one brief, recorded at record 3: the routing table is at docs/architecture.md:13-23 as a nine by six matrix; the 29 entities are in the ER diagram at docs/architecture.md:77-108 with the prose at line 110; the only existing migration, supabase/migrations/20260924000000_evidence_bucket.sql, creates one storage bucket and establishes no RLS pattern and no helper; supabase/config.toml enables db.seed from ./seed.sql at lines 65-70 and configures no tenant claim; packages/core has no db directory, only src/index.ts exporting LEDGER_CURRENCY and sumCents. It did not check packages/connectors or the development plan for a marketplace identifier list.",
+        "What the graphs could not answer, which is why it is a decision and not a lookup: no file in the repository names the JWT tenant claim or gives an RLS expression, and no file defines the six marketplace identifiers. Both are created by this ticket."
+      ]
+    },
+    "decisions": [
+      {
+        "key": "clarified",
+        "question": "clarified",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.86,
+          "no": 0.14
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.8,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "key": "risk",
+        "question": "risk",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "high",
+        "probabilities": {
+          "low": 0.01,
+          "medium": 0.15,
+          "high": 0.84
+        },
+        "confidence": 0.76,
+        "score": 1.84,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

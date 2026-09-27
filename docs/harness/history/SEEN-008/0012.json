@@ -1,0 +1,32 @@
+{
+  "sequence": 12,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-27T07:06:25.317341+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "ac8affb9a62263bae886ebdec00ebdf2bd53dc29",
+  "prev_hash": "d7142984ab0f44c676ba83d7776dbbe92670d1acbdc0e6dc15c6510d9a4bec82",
+  "data": {
+    "command": [
+      "pnpm",
+      "--filter",
+      "@seen/core",
+      "test:db"
+    ],
+    "phase": "green",
+    "exit_code": 0,
+    "model": "claude-opus-5",
+    "model_declared": "opus",
+    "agent_declared": "seen-implementer",
+    "duration_ms": 603,
+    "output": "\n> @seen/core@0.0.0 test:db /Users/ruudvanengelenhoven/Development/seene/packages/core\n> vitest run --dir db\n\n\n RUN  v3.2.7 /Users/ruudvanengelenhoven/Development/seene/packages/core\n\n ✓ db/schema.test.ts (11 tests) 33ms\n ✓ db/rls.test.ts (7 tests) 52ms\n\n Test Files  2 passed (2)\n      Tests  18 passed (18)\n   Start at  09:06:24\n   Duration  212ms (transform 29ms, setup 0ms, collect 51ms, tests 85ms, environment 0ms, prepare 54ms)\n\n",
+    "output_sha256": "b6bd6d169f5d93c73853a6292d51135cdbea933d05320af4155d47d2d8285c9f",
+    "output_truncated": false,
+    "before": "baf8dba366891d8343fb6774edfc0ab017e129456a2db1ce11d63539727dc59e",
+    "after": "baf8dba366891d8343fb6774edfc0ab017e129456a2db1ce11d63539727dc59e"
+  }
+}

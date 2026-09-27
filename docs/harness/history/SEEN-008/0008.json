@@ -1,0 +1,32 @@
+{
+  "sequence": 8,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-27T06:51:14.185636+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "ac8affb9a62263bae886ebdec00ebdf2bd53dc29",
+  "prev_hash": "29d14b8de521589996e3ea8c109d51bc8677a24061f4eb515d2ab005737bdc5c",
+  "data": {
+    "command": [
+      "pnpm",
+      "--filter",
+      "@seen/core",
+      "test:db"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "model": "claude-opus-5",
+    "model_declared": "opus",
+    "agent_declared": "seen-implementer",
+    "duration_ms": 561,
+    "output": "\n> @seen/core@0.0.0 test:db /Users/ruudvanengelenhoven/Development/seene/packages/core\n> vitest run --dir db\n\n\n RUN  v3.2.7 /Users/ruudvanengelenhoven/Development/seene/packages/core\n\n ❯ db/rls.test.ts (4 tests | 4 skipped) 12ms\n   ↓ tenant isolation on orders > returns zero rows from tenant B's orders for a request carrying tenant A's claim\n   ↓ tenant isolation on orders > returns zero rows from tenant A's orders for a request carrying tenant B's claim\n   ↓ tenant isolation on orders > returns zero rows for a request carrying no claim at all\n   ↓ tenant isolation on orders > returns zero rows for a request carrying a claim for no tenant at all\n ❯ db/schema.test.ts (5 tests | 3 failed) 19ms\n   × the trade record schema > created every table the trade record names 4ms\n     → The public schema is missing 13 of the 13 tables the trade record names: connections, fee_expectations, listings, marketplaces, order_lines, orders, products, returns, settlement_lines, settlements, shipments, tenants, users: expected [ 'connections', …(12) ] to deeply equal []\n   × the trade record schema > carries tenant_id on every table in the public schema 1ms\n     → The public schema has no tables at all: expected 0 to be greater than 0\n   ✓ the trade record schema > has row-level security enabled on every table in the public schema 1ms\n   ✓ the trade record schema > binds every table to the one tenancy expression 1ms\n   × the trade record schema > reads the tenant from the claim the helper documents 1ms\n     → seen.current_tenant() does not exist: expected [] to have a length of 1 but got +0\n\n⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯\n\n FAIL  db/rls.test.ts > tenant isolation on orders\nError: This test cannot query public.orders at all: tenants, connections, orders do not exist in the public schema. The trade record migration has not been applied, so there is no policy to prove anything about. Apply it with `pnpm db:reset`.\n ❯ db/rls.test.ts:129:13\n    127|     const missing = await absent(client);\n    128|     if (missing.length > 0) {\n    129|       throw new Error(\n       |             ^\n    130|         'This test cannot query public.orders at all: '\n    131|         + `${missing.join(', ')} ${missing.length === 1 ? 'does' : 'do…\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯\n\n\n⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯\n\n FAIL  db/schema.test.ts > the trade record schema > created every table the trade record names\nAssertionError: The public schema is missing 13 of the 13 tables the trade record names: connections, fee_expectations, listings, marketplaces, order_lines, orders, products, returns, settlement_lines, settlements, shipments, tenants, users: expected [ 'connections', …(12) ] to deeply equal []\n\n\u001b[32m- Expected\u001b[39m\n\u001b[31m+ Received\u001b[39m\n\n\u001b[32m- []\u001b[39m\n\u001b[31m+ [\u001b[39m\n\u001b[31m+   \"connections\",\u001b[39m\n\u001b[31m+   \"fee_expectations\",\u001b[39m\n\u001b[31m+   \"listings\",\u001b[39m\n\u001b[31m+   \"marketplaces\",\u001b[39m\n\u001b[31m+   \"order_lines\",\u001b[39m\n\u001b[31m+   \"orders\",\u001b[39m\n\u001b[31m+   \"products\",\u001b[39m\n\u001b[31m+   \"returns\",\u001b[39m\n\u001b[31m+   \"settlement_lines\",\u001b[39m\n\u001b[31m+   \"settlements\",\u001b[39m\n\u001b[31m+   \"shipments\",\u001b[39m\n\u001b[31m+   \"tenants\",\u001b[39m\n\u001b[31m+   \"users\",\u001b[39m\n\u001b[31m+ ]\u001b[39m\n\n ❯ db/schema.test.ts:83:7\n     81|       `The public schema is missing ${missing.length} of the ${TRADE_R…\n     82|       + `tables the trade record names: ${missing.join(', ')}`,\n     83|     ).toEqual([]);\n       |       ^\n     84|   });\n     85| \n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯\n\n FAIL  db/schema.test.ts > the trade record schema > carries tenant_id on every table in the public schema\nAssertionError: The public schema has no tables at all: expected 0 to be greater than 0\n ❯ db/schema.test.ts:99:70\n     97|     );\n     98|     const without = rows.map((row) => row.name);\n     99|     expect(present.length, 'The public schema has no tables at all').t…\n       |                                                                      ^\n    100|     expect(without, `Tables in the public schema without a tenant_id c…\n    101|       .toEqual([]);\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯\n\n FAIL  db/schema.test.ts > the trade record schema > reads the tenant from the claim the helper documents\nAssertionError: seen.current_tenant() does not exist: expected [] to have a length of 1 but got +0\n\n\u001b[32m- Expected\u001b[39m\n\u001b[31m+ Received\u001b[39m\n\n\u001b[32m- 1\u001b[39m\n\u001b[31m+ 0\u001b[39m\n\n ❯ db/schema.test.ts:145:58\n    143|         where n.nspname = 'seen' and p.proname = 'current_tenant'`,\n    144|     );\n    145|     expect(rows, 'seen.current_tenant() does not exist').toHaveLength(…\n       |                                                          ^\n    146|     expect(rows[0].definition).toContain(`'${TENANT_CLAIM}'`);\n    147|     expect(rows[0].definition).toContain('request.jwt.claims');\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯\n\n\n Test Files  2 failed (2)\n      Tests  3 failed | 2 passed | 4 skipped (9)\n   Start at  08:51:13\n   Duration  164ms (transform 19ms, setup 0ms, collect 35ms, tests 30ms, environment 0ms, prepare 53ms)\n\n/Users/ruudvanengelenhoven/Development/seene/packages/core:\n ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @seen/core@0.0.0 test:db: `vitest run --dir db`\nExit status 1\n",
+    "output_sha256": "0be98880cec46aed5d95f332fcf3ffb8a40d6bec77cccc26f912546ec1266767",
+    "output_truncated": false,
+    "before": "5e17ca4185a335608df73cfa21d0aa1fc52809f17f8255aebf7ea1d33004096b",
+    "after": "5e17ca4185a335608df73cfa21d0aa1fc52809f17f8255aebf7ea1d33004096b"
+  }
+}
