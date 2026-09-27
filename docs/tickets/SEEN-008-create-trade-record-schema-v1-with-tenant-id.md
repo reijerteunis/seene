@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-006, SEEN-092, SEEN-094]
-status: review
+status: doing
 ---
 # SEEN-008: Create trade-record schema v1 with tenant_id and RLS on every table
 
@@ -23,7 +23,7 @@ status: review
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | review |
+| Status | doing |
 
 ## Description
 
@@ -31,11 +31,11 @@ Write the Supabase migration for trade-record schema v1 in packages/core/db: ten
 
 ## Acceptance criteria
 
-- [x] Migration applies on an empty database and pnpm db:reset re-applies it without error
-- [x] A test that lists every table in the public schema finds tenant_id and an enabled RLS policy on 100% of them
-- [x] A query with tenant A's JWT returns zero rows from tenant B's orders in an integration test
-- [x] Unique index on (tenant_id, marketplace, external_id) exists on orders, shipments, returns, settlements and settlement_lines
-- [x] marketplaces seed contains the six marketplaces with capability flags matching the routing table in architecture.md
+- [ ] Migration applies on an empty database and pnpm db:reset re-applies it without error
+- [ ] A test that lists every table in the public schema finds tenant_id and an enabled RLS policy on 100% of them
+- [ ] A query with tenant A's JWT returns zero rows from tenant B's orders in an integration test
+- [ ] Unique index on (tenant_id, marketplace, external_id) exists on orders, shipments, returns, settlements and settlement_lines
+- [ ] marketplaces seed contains the six marketplaces with capability flags matching the routing table in architecture.md
 
 ## Outcome
 
@@ -167,11 +167,25 @@ delete and truncate on 28, not `audit_events`. The service role can still insert
 event, update a connection and delete a tenant, so erasure on request remains possible, and part 4's self-check
 raises on an injected failure including one that would have made the revoke over-broad.
 
-Still left open and named, all harness-side rather than schema-side: the guard's exact path match refuses every
-file under a directory a slice names, which four tickets have now walked into and which SEEN-112 fixes;
-`plan_accepted_at` counts greens only after the last advance out of solution, so a post-return slice starts
-blocked until a session declares `--slice-done`, which SEEN-113 fixes; and `packages/core/tsconfig.json`
-includes only `src`, so the routing-table parser is linted but never typechecked.
+Still left open, all harness-side rather than schema-side, and **owned by nobody as this branch stands**, which
+is the point of recording them here rather than naming an owner the tree does not support:
+
+- **`harness/guard.py`'s fourth rule is an exact path match**, so a slice that names the directory
+  `supabase/migrations` cannot create or edit a file inside it, and the `PreToolUse` hook does not see an edit
+  made through a shell. Four slices of this ticket walked into it and all four went round it that way. SEEN-106
+  built the guard as four rules and no fifth and is delivered, so this needs a harness ticket of its own. A fix
+  exists on an unmerged branch at the time of writing; until that branch is merged and its own ticket says so,
+  nothing in this repository owns it.
+- **`handoff.plan_accepted_at` counts greens only after the last advance out of solution**, so after a return a
+  slice starts blocked and the guard offers an earlier slice's file list; slice 4 of this ticket had to declare
+  `harness handoff --slice-done 3` to proceed, which the journal supports but which is a session vouching for
+  its own progress. Also unowned here, and also has a fix on an unmerged branch.
+- **`packages/core/tsconfig.json` includes only `src`**, so the routing-table parser in `db/marketplaces.ts` is
+  linted but never typechecked.
+
+None of the three is assigned to a ticket in this repository, and that is deliberate: this Outcome is carried by
+the receipt fingerprint, so a sentence claiming an owner the tree cannot show would be a false statement in the
+delivery record.
 
 ## Slices
 
