@@ -803,6 +803,61 @@ class SlicesProvedRatherThanGreensCounted(unittest.TestCase):
                                    green_check(5, attempt=2),
                                    slices_proved(6, {5: 3}, attempt=2)), 3)
 
+    def test_a_run_is_held_to_the_plan_it_ran_against_when_the_plan_grows(self):
+        """F2 of the third review. One slice planned and proved with a correction,
+        so two greens; a return to solution grows the plan to three whose first
+        slice is unchanged, so the count starts at the first acceptance and the
+        clamp that hid the over-count widens with the plan. The pack read
+        "Slice 3 of 3, 2 of 3 done" with slice 2 never worked."""
+        self.assertEqual(self.done(plan_accepted(2, self.plan[:1]), green_check(3),
+                                   green_check(4),
+                                   plan_accepted(5, self.plan, attempt=2)), 1)
+
+    def test_two_corrections_under_a_one_slice_plan_do_not_complete_a_three_slice_one(self):
+        self.assertEqual(self.done(plan_accepted(2, self.plan[:1]), green_check(3),
+                                   green_check(4), green_check(5),
+                                   plan_accepted(6, self.plan, attempt=2)), 1)
+
+    def test_the_run_after_the_growth_counts_against_the_plan_it_ran_against(self):
+        """The cap is per run and not a ceiling on the answer: work after the
+        growth still reaches the slices the longer plan added."""
+        self.assertEqual(self.done(plan_accepted(2, self.plan[:1]), green_check(3),
+                                   plan_accepted(4, self.plan, attempt=2),
+                                   green_check(5, attempt=2), green_check(6, attempt=2)), 2)
+
+    def test_two_records_disagreeing_about_one_green_settle_nothing(self):
+        """F3 of the third review: the disagreement was resolved with `max`, the
+        over-counting direction this function's own docstring names as the harm,
+        while the tdd gate treats the identical disagreement as an absence and
+        falls back to the whole tree. A green two records cannot agree on does not
+        carry the count anywhere."""
+        self.assertEqual(self.done(plan_accepted(2, self.plan), green_check(3),
+                                   slices_proved(4, {3: 1}),
+                                   slices_proved(5, {3: 3}, attempt=2)), 0)
+
+    def test_the_larger_number_is_what_the_disagreement_used_to_buy(self):
+        """Without this the test above could pass on the smaller claim being
+        taken, which is a vote and not an absence."""
+        self.assertNotEqual(self.done(plan_accepted(2, self.plan), green_check(3),
+                                      slices_proved(4, {3: 1}),
+                                      slices_proved(5, {3: 3}, attempt=2)), 3)
+
+    def test_a_disagreement_does_not_advance_a_count_it_has_already_passed(self):
+        """The direction that rules out reading the disagreement as a green
+        nothing attributes: that reading adds one, which runs the count past a
+        slice nobody worked whenever it has already reached the larger claim."""
+        self.assertEqual(self.done(plan_accepted(2, self.plan), green_check(3),
+                                   green_check(4), green_check(5),
+                                   slices_proved(6, {5: 1}),
+                                   slices_proved(7, {5: 2}, attempt=2)), 2)
+
+    def test_a_round_declaring_null_for_a_green_lends_it_no_position(self):
+        """A round that says it belongs to no single slice says so about the green
+        it names, which is a claim and not a gap: the gate reads it that way and
+        the count does now too."""
+        self.assertEqual(self.done(plan_accepted(2, self.plan), green_check(3),
+                                   slices_proved(4, {3: None})), 0)
+
     def test_a_declared_position_does_not_count_on_top_of_the_greens_before_it(self):
         """Positions are places in the plan and greens are a tally; adding one to
         the other is how a count runs past the plan it is counting."""

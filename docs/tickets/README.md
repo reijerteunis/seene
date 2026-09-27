@@ -1,12 +1,12 @@
 # Tickets
 
-110 tickets for the Seen MVP, one file per ticket, grouped by sprint. Each file carries YAML frontmatter (id, epic, sprint, gate, estimate, executor, changes_agent_action, marketplaces, depends_on, status) so the backlog can be filtered with grep or loaded by a script. Status values: todo, doing, review, done, parked. Update the status line in the frontmatter and the table when a ticket moves; `harness doctor` reports a status that disagrees with the ticket's journal. A started ticket's file is owned by this repository: the generator behind the council artifact rewrites only tickets still at todo.
+113 tickets for the Seen MVP, one file per ticket, grouped by sprint. Each file carries YAML frontmatter (id, epic, sprint, gate, estimate, executor, changes_agent_action, marketplaces, depends_on, status) so the backlog can be filtered with grep or loaded by a script. Status values: todo, doing, review, done, parked. Update the status line in the frontmatter and the table when a ticket moves; `harness doctor` reports a status that disagrees with the ticket's journal. A started ticket's file is owned by this repository: the generator behind the council artifact rewrites only tickets still at todo.
 
 Conventions: branch `claude/<id>-<slug>` (or `codex/`), commit messages `feat(<id>): ...`, `fix(<id>): ...`, `docs(<id>): ...`; a ticket is done only when every acceptance criterion is checked and the tests named in it run in CI.
 
 ## Sprint 0: Harness first, then foundations, three read connectors, ingest, day-0 registrations
 
-24 Sep - 9 Oct 2026, gate G0, 38 tickets, 92 build points.
+24 Sep - 9 Oct 2026, gate G0, 41 tickets, 100 build points.
 
 | Ticket | Title | Epic | Pts | Executor | Status | Depends on |
 |---|---|---|---|---|---|---|
@@ -43,7 +43,7 @@ Conventions: branch `claude/<id>-<slug>` (or `codex/`), commit messages `feat(<i
 | [SEEN-110](SEEN-110-verify-the-hooks-in-a-codex-session-and-close.md) | Verify the hooks in a Codex session and close what SEEN-106 declined | E10 | 2 | human | todo | SEEN-106 |
 | [SEEN-111](SEEN-111-hold-a-slice-to-the-context-it-was-routed-to.md) | Hold a slice to the context it was routed to, and price it before it is worked | E10 | 3 | Claude Code | todo | SEEN-104, SEEN-105, SEEN-108 |
 | [SEEN-112](SEEN-112-run-a-ticket-from-clarify-to-merge-in-one-go.md) | Run a ticket from clarify to merge in one go, asking only what it cannot decide | E10 | 3 | Claude Code | todo | SEEN-104, SEEN-105, SEEN-107, SEEN-111 |
-| [SEEN-113](SEEN-113-let-a-tdd-record-cite-the-evidence-a-return.md) | Let a tdd record cite the evidence a return did not invalidate | E10 | 2 | Claude Code | todo | SEEN-104, SEEN-112 |
+| [SEEN-113](SEEN-113-let-a-tdd-record-cite-the-evidence-a-return.md) | Let a tdd record cite the evidence a return did not invalidate | E10 | 2 | Claude Code | doing | SEEN-104, SEEN-112 |
 | [SEEN-008](SEEN-008-create-trade-record-schema-v1-with-tenant-id.md) | Create trade-record schema v1 with tenant_id and RLS on every table | E0 | 5 | Claude Code | todo | SEEN-006, SEEN-092, SEEN-094 |
 | [SEEN-009](SEEN-009-define-connector-interface-capability-matrix.md) | Define connector interface, capability matrix and credential access | E1 | 5 | Claude Code | todo | SEEN-006, SEEN-008 |
 | [SEEN-010](SEEN-010-add-per-marketplace-rate-limiting-with-header.md) | Add per-marketplace rate limiting with header-driven backoff | E1 | 3 | Claude Code | todo | SEEN-009 |

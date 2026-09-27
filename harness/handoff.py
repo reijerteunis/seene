@@ -68,6 +68,15 @@ def _positions_the_journal_declares(records, after=0):
     check that passed; which slice it proved is a claim, and the tdd records are
     where that claim is made, one position per round beside the red and the green
     that proved it.
+
+    Every position found rather than one of them, so that two records disagreeing
+    about the same green stays a disagreement. It used to be resolved with `max`,
+    which is a vote for the larger number in the one direction this function's
+    own docstring calls the harm, while the tdd gate treats the identical
+    disagreement as an absence and falls back to the whole tree. F3 of the third
+    review. A round declaring null is in the set as None, for the same reason the
+    gate keeps it there: a round that belongs to no single slice is a claim about
+    the green and not a gap in the record.
     """
     declared = {}
     for record in records:
@@ -78,10 +87,44 @@ def _positions_the_journal_declares(records, after=0):
             if not isinstance(entry, dict):
                 continue
             position, green = entry.get('position'), entry.get('green')
-            if (isinstance(position, int) and not isinstance(position, bool)
-                    and isinstance(green, int) and not isinstance(green, bool)):
-                declared[green] = max(declared.get(green, 0), position)
+            if not isinstance(green, int) or isinstance(green, bool):
+                continue
+            declared.setdefault(green, set()).add(
+                position if isinstance(position, int) and not isinstance(position, bool)
+                else None)
     return declared
+
+
+def _the_position_the_journal_settles(declared, green):
+    """The one position the journal settles on for that green, or nothing.
+
+    Three answers in two values, so the caller can tell them apart by asking
+    twice: no tdd record mentions this green, which is a green nothing attributes;
+    one position, which is the slice it proved; and anything else, which is a
+    disagreement or a declared null and settles nothing at all.
+    """
+    positions = declared.get(green)
+    if positions is None:
+        return None, False
+    if len(positions) == 1 and None not in positions:
+        return next(iter(positions)), True
+    return None, True
+
+
+def _plan_length_at(records, sequence):
+    """How many slices the plan in force at that point in the journal had.
+
+    Read from the acceptance that set it, because a count of slices proved is a
+    count against a plan and means nothing against a longer one. None where no
+    plan had been accepted yet, which is a count with nothing to be held to.
+    """
+    length = None
+    for record in records:
+        if record['sequence'] > sequence:
+            break
+        if record['kind'] == 'advance' and record['data'].get('from_stage') == 'solution':
+            length = len((record['data'].get('evidence') or {}).get('slices') or [])
+    return length
 
 
 def slices_proved(records, after=0, done=0):
@@ -107,6 +150,18 @@ def slices_proved(records, after=0, done=0):
     already counted. So each run starts its own reckoning from the count that
     stood, and the answer is the furthest any of them reached.
 
+    A run is held to the plan it ran against, which is what `min(…, len(slices))`
+    at the caller could not do: the clamp is the plan that stands now, so an
+    earlier shorter plan's over-count was hidden only while the plan stayed that
+    length and was let out the moment it grew. One slice planned, proved with a
+    correction, so two greens; a return to solution growing the plan to three
+    whose first slice is unchanged; the run before the return had its count
+    carried forward and the pack read "Slice 3 of 3, 2 of 3 done" with slice 2
+    never worked, or "the plan is complete" with two corrections. F2 of the third
+    review, and this ticket's own journal was one green short of it. A run cannot
+    have proved more slices than the plan in force had, so each is capped there
+    and not at the length of a plan it never saw.
+
     Under-counting is the direction this errs in: a run that really did carry the
     plan on after a return, and whose tdd record has not been written yet,
     reaches a lower number than it earned, and the session that worked it says so
@@ -115,14 +170,24 @@ def slices_proved(records, after=0, done=0):
     """
     declared = _positions_the_journal_declares(records, after)
     reached = furthest = done
+    planned = _plan_length_at(records, after)
     for record in records:
         if record['sequence'] <= after:
             continue
         if record['kind'] == 'advance' and record['data'].get('from_stage') == 'solution':
             reached = done
+            planned = len((record['data'].get('evidence') or {}).get('slices') or [])
         elif _is_an_accepted_green(record):
-            reached = (max(reached, declared[record['sequence']])
-                       if record['sequence'] in declared else reached + 1)
+            position, spoken = _the_position_the_journal_settles(declared, record['sequence'])
+            if position is not None:
+                reached = max(reached, position)
+            elif not spoken:
+                reached += 1
+            # Otherwise the journal's records name no one slice for this green,
+            # by disagreeing or by declaring null, and a count does not advance
+            # on a question the journal left open.
+            if planned is not None:
+                reached = min(reached, planned)
             furthest = max(furthest, reached)
     return furthest
 

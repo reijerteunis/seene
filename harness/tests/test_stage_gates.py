@@ -984,8 +984,13 @@ class TheSlicesOwnFilesMoved(ScopedToTheSlicesFiles):
                       self.refusal(records=self.journal(plan=plan, proved=proved)))
 
     def test_a_change_beside_a_directory_the_slice_names_is_not_inside_it(self):
-        self.write('harness/one/deep.py', 'def deep():\n    return 1\n')
+        # The file beside the directory is committed before the round whose
+        # checks are cited, so it is neither under the directory the slice names
+        # nor among the files that round moved: the two ways into the comparison,
+        # and this test is about a path that takes neither.
         self.write('harness/one_beside.py', 'def beside():\n    return 1\n')
+        self.commit('feat(SEEN-001): a file beside the directory')
+        self.write('harness/one/deep.py', 'def deep():\n    return 1\n')
         self.commit('feat(SEEN-001): a directory slice')
         proved = self.repository.fingerprint()
         plan = self.plan_with(files=['harness/one'])
@@ -1153,6 +1158,155 @@ class EveryEntryInTheScopeResolves(ScopedToTheSlicesFiles):
         self.slice_three_writes_its_own_file()
         self.evaluate('tdd', self.citing(), attempt=2, records=self.journal(
             plan=self.plan_with(files=['harness/slice_one.py', 'harness/slice_two.py'])))
+
+
+class TheRoundsOwnCommitSaysWhatItCovered(ScopedToTheSlicesFiles):
+    """F1 of the third review: the corroboration was one round deep.
+
+    A record's position was corroborated by the tdd record of the round that
+    recorded the check, and that record's position had never itself been checked
+    against any code: the content test is skipped for a same-attempt check, the
+    route comparison only range-checks the position against the plan's length,
+    and the model comparison returns while `[routing] shadow` is true. So attempt
+    1 proved slice 1 and declared position 2 for it; attempt 2 rewrote slice one's
+    file and cited the same checks under position 2; the claim corroborated
+    itself, the scope became slice 2's untouched file and stale evidence was
+    accepted, while the same citation declared honestly as position 1 was
+    refused. Worse, a later record copies the position it reads from the earlier
+    one, so one mis-declaration self-corroborated for the rest of the ticket.
+
+    What settles it needs nobody's word: the commit carrying the tree the check
+    ran against, whose diff with its parent is the change that round was. The
+    plan's files stay in the comparison beside it, because a slice may name a file
+    its round did not move and dropping it would accept a citation that is refused
+    today.
+    """
+
+    def slice_one_is_rewritten(self):
+        self.write('harness/slice_one.py', 'def one():\n    return 999\n')
+        self.commit('fix(SEEN-001): rewrite the file slice one covered')
+
+    def test_a_position_the_earlier_round_declared_wrongly_buys_no_scope(self):
+        self.slice_one_is_rewritten()
+        message = self.refusal(data=self.citing(position=2),
+                               records=self.journal(corroborated=2))
+        self.assertIn('harness/slice_one.py', message)
+
+    def test_the_corroboration_really_was_satisfied(self):
+        """Without this the refusal above could be the corroboration refusing,
+        which would leave the mis-declaration reaching the scope untested."""
+        records = self.journal(corroborated=2)
+        files, because = gates._the_scope_a_citation_is_judged_in(records, 4, 2)
+        self.assertEqual(files, ['harness/slice_two.py'], because)
+
+    def test_the_file_the_mis_declaration_bought_really_had_not_moved(self):
+        self.slice_one_is_rewritten()
+        commit = gates._the_commit_holding(self.repository, self.proved)
+        self.assertEqual(gates._moved_since(self.repository, commit,
+                                            ['harness/slice_two.py']), [])
+
+    def test_what_the_round_moved_is_read_from_the_commit_and_not_from_a_record(self):
+        commit = gates._the_commit_holding(self.repository, self.proved)
+        self.assertEqual(gates._the_files_the_round_moved(self.repository, commit),
+                         ['harness/slice_one.py', 'harness/slice_two.py'])
+
+    def test_a_file_the_round_moved_that_its_slice_never_names_is_compared_too(self):
+        """The round committed slice two's file as well, so a later change to it
+        changes code that check covered, whatever the plan calls that file."""
+        self.write('harness/slice_two.py', 'def two():\n    return 22\n')
+        self.commit('fix(SEEN-001): the other file that round moved')
+        self.assertIn('harness/slice_two.py', self.refusal())
+
+    def test_the_honest_declaration_still_carries_its_own_evidence(self):
+        """The acceptance this rule must not cost: slice three wrote elsewhere,
+        so slice one's green is still about slice one's code."""
+        self.slice_three_writes_its_own_file()
+        self.evaluate('tdd', self.citing(position=1), records=self.journal(), attempt=2)
+
+    def test_the_commit_that_carries_the_tree_may_be_one_that_moved_no_code(self):
+        """The shape every real journal is in, and the fixture was not: the harness
+        writes its records into the same branch, so a record-only commit follows
+        the work and carries the same counted content. It is the newest commit
+        whose fingerprint matches, so it is the one found, and its own change is
+        nothing this comparison counts. What moved is read from the commit that
+        moved something, walking back while the content stands still."""
+        self.write('docs/harness/history/SEEN-001/0002.json', '{"sequence": 2}\n')
+        self.commit('docs(SEEN-001): a record written after the work')
+        commit = gates._the_commit_holding(self.repository, self.proved)
+        self.assertEqual(commit, self.repository.head())
+        self.assertEqual(gates._the_files_the_round_moved(self.repository, commit),
+                         ['harness/slice_one.py', 'harness/slice_two.py'])
+
+    def test_a_record_only_commit_does_not_cost_a_citation_its_scope(self):
+        """What the measurement caught: on SEEN-112 slice 1's green fell back to
+        the whole tree for this reason alone, so the scoped comparison this ticket
+        exists for was unreachable in every journal the harness has written."""
+        self.write('docs/harness/history/SEEN-001/0002.json', '{"sequence": 2}\n')
+        self.commit('docs(SEEN-001): a record written after the work')
+        self.slice_three_writes_its_own_file()
+        self.evaluate('tdd', self.citing(), records=self.journal(), attempt=2)
+
+    def test_the_round_is_still_what_moved_and_not_everything_since(self):
+        """The walk back stops at the first commit that moved something, so it
+        cannot collect a later slice's files and refuse on those."""
+        self.write('docs/harness/history/SEEN-001/0002.json', '{"sequence": 2}\n')
+        self.commit('docs(SEEN-001): a record written after the work')
+        self.slice_three_writes_its_own_file()
+        commit = gates._the_commit_holding(self.repository, self.proved)
+        self.assertNotIn('harness/slice_three.py',
+                         gates._the_files_the_round_moved(self.repository, commit))
+
+    def test_a_round_whose_commit_has_no_parent_falls_back_to_the_whole_tree(self):
+        """A check whose tree is the project's first commit belongs to no round of
+        this ticket's work: there is no parent for its change to be a change
+        against, so what it covered cannot be established and it fails closed."""
+        root = self.git('rev-list', '--max-parents=0', 'HEAD')
+        message = self.refusal(records=self.journal(
+            plan=self.plan_with(files=['harness/thresholds.toml']),
+            proved=gates.content_fingerprint(self.repository, root)))
+        self.assertIn('tree moved under check 3', message)
+        self.assertIn('whole tree', message)
+        self.assertIn('which files that round moved cannot be read', message)
+
+    def test_the_file_that_first_commit_names_really_had_not_moved(self):
+        """Without this the refusal above could be a comparison that had already
+        found something moved, which would pass whatever the rule did."""
+        root = self.git('rev-list', '--max-parents=0', 'HEAD')
+        self.assertEqual(gates._moved_since(self.repository, root,
+                                            ['harness/thresholds.toml']), [])
+
+
+class AnEntryGitWillNotTakeAsAPathspec(ScopedToTheSlicesFiles):
+    """F6 of the third review: an entry resolving outside the repository.
+
+    `git ls-tree -r <commit> -- ../elsewhere.py` exits non-zero, so the session
+    met `fatal: ../elsewhere.py is outside repository at '/var/folders/...'`,
+    naming a temporary directory, instead of the sentence every other
+    unresolvable entry gets. The verdict was already the right one; what was
+    wrong was that it arrived as git's crash rather than as the harness saying
+    which entry in the plan is wrong.
+    """
+
+    def refusal_over(self, *files):
+        """The refusal a citation meets when its slice names these entries."""
+        self.slice_three_writes_its_own_file()
+        return self.refusal(records=self.journal(plan=self.plan_with(files=list(files))))
+
+    def test_a_path_escaping_the_repository_is_named_as_an_entry_that_resolves_to_nothing(self):
+        message = self.refusal_over('../outside.py')
+        self.assertIn('../outside.py', message)
+        self.assertIn('whole tree', message)
+
+    def test_it_is_the_harness_sentence_and_not_gits_crash(self):
+        message = self.refusal_over('../outside.py')
+        self.assertNotIn('fatal:', message)
+        self.assertNotIn('outside repository', message)
+
+    def test_an_absolute_path_outside_the_working_tree_is_the_same_answer(self):
+        message = self.refusal_over('/etc/hosts', 'harness/slice_one.py')
+        self.assertIn('/etc/hosts', message)
+        self.assertNotIn('fatal:', message)
+        self.assertIn('whole tree', message)
 
 
 class TheFingerprintTheRuleReads(ScopedToTheSlicesFiles):

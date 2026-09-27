@@ -252,9 +252,70 @@ def _unresolved_in(repository, commit, files):
 
     Asked of the commit the comparison is made against, because that is the tree
     the check ran on: a path that was not in it is not code that check covered.
+
+    An entry git refuses as a pathspec at all counts here too. `../elsewhere.py`
+    and an absolute path outside the working tree make git exit non-zero, and the
+    session met `fatal: ... is outside repository` naming a temporary directory
+    rather than the sentence every other unresolvable entry gets. An entry git
+    will not even take the question about is the strongest form of unresolvable,
+    so it costs the scope the same way and is named the same way. F6 of the third
+    review.
     """
-    return [path for path in files
-            if not repository.git('ls-tree', '-r', '--name-only', commit, '--', path).strip()]
+    unresolved = []
+    for path in files:
+        try:
+            seen = repository.git('ls-tree', '-r', '--name-only', commit, '--', path).strip()
+        except HarnessError:
+            seen = ''
+        if not seen:
+            unresolved.append(path)
+    return unresolved
+
+
+def _the_files_the_round_moved(repository, commit):
+    """Which files the commit carrying a check's tree moved, against its parent.
+
+    What the round the check belongs to actually did, read from the history
+    rather than from anybody's account of it. A check records the fingerprint of
+    the tree it ran against; the commit that carries that content is the commit
+    that carried the work, and its diff against its parent is the change that
+    work was. No record is consulted and none can bend it: a journal declaring
+    the wrong slice does not make git say a different set of files.
+
+    The paths the fingerprint leaves out are left out here too, because the
+    comparison is the fingerprint's comparison: counting the journal the commit
+    carries would refuse every citation the moment the next record was written.
+
+    A commit that moved no counted file is not the commit that carried the work:
+    its parent holds the same content, so the question is asked of the parent,
+    and on down while the content stands still. That is the shape every journal
+    this harness has written is in, because the records go into the same branch:
+    the commit after the work carries the same code and the same fingerprint, and
+    being the newer one it is the one found. Measured on SEEN-112, slice 1's green
+    ran against a tree carried by `docs(SEEN-112): slice 1 note and the handoff
+    pack`, whose own change is one journal record, so without the walk back the
+    scoped comparison this ticket exists for was unreachable in every real
+    journal. The walk stops at the first commit that moved something, so it never
+    collects a later slice's work.
+
+    None where the history cannot answer: the earliest commit holding that content
+    is a root commit, whose change has nothing to be a change against. That is an
+    absence, and an absence falls closed to the whole tree.
+    """
+    for _ in range(TREE_SEARCH_LIMIT):
+        parents = repository.git('log', '-1', '--format=%P', commit).split()
+        if not parents:
+            return None
+        moved = [path for path
+                 in repository.git('diff', '--name-only', parents[0], commit).splitlines()
+                 if path.strip() and not path.startswith(FINGERPRINT_EXCLUDED)]
+        if moved:
+            return moved
+        # No counted path differs, so the parent's content is this commit's
+        # content and the check's tree is carried by it too. Nothing is assumed
+        # about why: that equality is the same one the fingerprint is made of.
+        commit = parents[0]
+    return None
 
 
 def _positions_declared_for(records, number):
@@ -298,6 +359,13 @@ def _the_scope_a_citation_is_judged_in(records, number, position):
     record cites is corroborated by nothing, and a round that declared no
     position declares no mapping, which is this ticket's own record 17. Both are
     absences, and an absence fails closed to the whole-tree comparison.
+
+    This is the plan's half of the answer and not the whole of it. Corroboration
+    is a record vouching for a record, and the earlier record's position was
+    never itself checked against any code, so the comparison is widened by what
+    the round's own commit moved before any citation is accepted; see
+    `_require_the_check_is_about_this_code`. What is decided here can only add
+    files to that comparison, never take one away.
     """
     if position is None:
         return None, ('this citation names no slice, so there is nothing to scope the '
@@ -351,6 +419,19 @@ def _require_the_check_is_about_this_code(record, number, tree, current, reposit
     scope is granted only where the journal corroborates the slice it belongs to
     and git can resolve every path that slice names, and everything else is an
     absence that falls back to the whole tree.
+
+    What the comparison is finally made over is wider than `scope` and is not
+    read from any record: the files the round itself moved, from the commit
+    carrying the check's tree against its parent, together with the ones its
+    slice names. The corroboration held within a round and not across them, where
+    the same author's earlier unchecked claim was the authority: a first attempt
+    declaring position 2 for the round that proved slice 1 was corroborated by
+    itself ever after, the scope became slice 2's untouched files, and a rewrite
+    of slice 1 kept its stale evidence, while the same citation declared honestly
+    was refused. F1 of the third review, reproduced end to end. The plan's files
+    stay in the comparison rather than being replaced by the round's, because a
+    slice may name a file its round did not happen to move, and dropping it would
+    be a citation newly accepted.
     """
     files, because = scope
     # Never an empty reason. The whole-tree refusal is the one a reader meets
@@ -368,16 +449,25 @@ def _require_the_check_is_about_this_code(record, number, tree, current, reposit
     commit = _the_commit_holding(repository, after) if files and repository else None
     if commit is not None:
         unresolved = _unresolved_in(repository, commit, files)
-        if not unresolved:
-            moved = _moved_since(repository, commit, files)
+        moved_by_the_round = _the_files_the_round_moved(repository, commit)
+        if unresolved:
+            because = (f'its slice names {", ".join(unresolved)}, which git cannot see in the '
+                       'tree it ran against, so a comparison over those names is a comparison '
+                       'of nothing')
+        elif moved_by_the_round is None:
+            because = ('the earliest commit carrying the tree it ran against has no parent for '
+                       'its work to be a change against, so which files that round moved cannot '
+                       'be read from the history')
+        else:
+            covered = sorted(set(files) | set(moved_by_the_round))
+            moved = _moved_since(repository, commit, covered)
             require(not moved,
                     f'The code check {number} covers has changed since it ran: '
-                    f'{", ".join(moved)}. Its slice names {", ".join(files)}, and its evidence '
-                    'is about those files as they were, not as they are; run it again in this '
-                    'attempt')
+                    f'{", ".join(moved)}. The round that recorded it moved '
+                    f'{", ".join(moved_by_the_round)} and its slice names {", ".join(files)}, '
+                    'and its evidence is about those files as they were, not as they are; run '
+                    'it again in this attempt')
             return
-        because = (f'its slice names {", ".join(unresolved)}, which git cannot see in the tree '
-                   'it ran against, so a comparison over those names is a comparison of nothing')
     elif files:
         because = ('no commit on this branch carries the tree it ran against, so which files '
                    'moved cannot be told')
