@@ -877,14 +877,165 @@ def _waiting_on(records, current, clarify_at, check):
     return ' '.join(parts)
 
 
+def citations(records):
+    """Which two checks each slice of the plan in hand is proved by, per position.
+
+    Read from the tdd records rather than counted from the greens, because the
+    citation is the only place a check is bound to a slice of the plan by number,
+    and it is the same binding the tdd gate holds to the route. Every tdd record
+    since the plan was accepted, the latest citation of a position winning: a
+    rework attempt proves the one round it reworked and cites position null for
+    it, so reading the latest record alone would leave a reworked ticket's slices
+    with no checks at all, and counting greens instead would shift every slice
+    after a slice that recorded two.
+
+    A position nothing cites is absent rather than empty, which is what lets the
+    summary tell a slice nobody has proved from one proved in the session's own
+    context.
+    """
+    found = {}
+    after = handoff.plan_accepted_at(records)
+    for record in records:
+        if (record['kind'] != 'advance' or record['data'].get('from_stage') != 'tdd'
+                or record['sequence'] <= after):
+            continue
+        for entry in record['data'].get('evidence', {}).get('slices') or []:
+            position = entry.get('position')
+            if position is not None:
+                found[position] = dict(red=entry.get('red'), green=entry.get('green'),
+                                       cited_by=record['sequence'])
+    return found
+
+
+def _cited(records, sequence):
+    """The check a citation names, or nothing. A number is not a record."""
+    if not isinstance(sequence, int) or isinstance(sequence, bool):
+        return None
+    for record in records:
+        if record['sequence'] == sequence and record['kind'] == 'check':
+            return record
+    return None
+
+
+def _proof(records, cited):
+    """What the cited RED and GREEN declare, in that order, for one slice.
+
+    The two declarations and the observed model, and nothing else a check
+    carries: the summary is read by a person, and a check record holds the whole
+    transcript of its command.
+    """
+    checks = []
+    for phase in ('red', 'green'):
+        record = _cited(records, (cited or {}).get(phase))
+        if record is None:
+            continue
+        data = record['data']
+        checks.append(dict(phase=data.get('phase') or phase,
+                           record=record['sequence'],
+                           agent=data.get('agent_declared'),
+                           declared_model=data.get('model_declared'),
+                           model=data.get('model')))
+    return checks
+
+
+def _agreed(checks, field):
+    """The one value every check that declared this field gave, or nothing.
+
+    Nothing when they disagree, because a slice whose RED and GREEN declare two
+    different things has no single answer and the per-check list is where that is
+    read. Nothing when none declared, for the reason that is the whole point of
+    the field: only the declaration knows, so an absence is nobody knowing.
+    """
+    declared = {check[field] for check in checks if check[field]}
+    return declared.pop() if len(declared) == 1 else None
+
+
+def _as_routed(route, checks, rules):
+    """Whether what proved a slice is what the route decided, or nothing to compare.
+
+    The declaration first and the model the log observed second, which is the
+    order gates._require_the_routed_model reads them in: a Claude Code subagent
+    inherits its parent's session id, so a delegated check observes the spawning
+    session's model and only the declaration knows. Reported and never refused
+    here. The tdd gate is what refuses, and while `[routing] shadow` is true it
+    refuses nothing at all, which is exactly the window in which this is the only
+    place a slice that ran on something else is visible.
+    """
+    if route is None or not checks:
+        return None
+    wanted = routing.model_id(rules, route['model'])
+    answers = [check['declared_model'] == route['model'] if check['declared_model']
+               else check['model'] == wanted
+               for check in checks
+               if check['declared_model'] or (wanted and check['model'])]
+    return all(answers) if answers else None
+
+
+def slice_evidence(records, rules):
+    """Per slice of the plan: who worked it, on what, and which checks say so.
+
+    The run's own evidence about itself, and it is evidence rather than an
+    assertion because every field is a record's: the plan is the solution
+    record's, the route is the route record's, the pairing is the tdd record's
+    citation and the two declarations are the cited checks' own. Nothing here is
+    inferred from a count and nothing is refused; a slice whose declarations
+    disagree with its route is reported disagreeing.
+
+    `delegated` is null before anything cites the slice's checks, false when
+    neither declares an agent and true when either does, which is the reading
+    gates._require_a_context_of_its_own already applies: a RED that came back from
+    a context of its own and a GREEN recorded by the session that spawned it is a
+    delegated slice.
+    """
+    cited = citations(records)
+    entries = []
+    for position, planned in enumerate(handoff.plan_of(records), start=1):
+        route = routing.for_slice(records, position)
+        checks = _proof(records, cited.get(position))
+        entries.append(dict(
+            position=position,
+            name=planned.get('name'),
+            points=planned.get('points'),
+            cited_by=(cited.get(position) or {}).get('cited_by'),
+            checks=checks,
+            delegated=None if not checks else any(check['agent'] for check in checks),
+            agent=_agreed(checks, 'agent'),
+            declared_model=_agreed(checks, 'declared_model'),
+            routed=None if route is None else dict(model=route['model'], effort=route['effort'],
+                                                   source=route['source']),
+            as_routed=_as_routed(route, checks, rules)))
+    return entries
+
+
+def spending(repository, ticket, rules):
+    """What this session spent and what its subagents spent apart from it.
+
+    `harness budget`'s own figures rather than a second reading of the same logs:
+    one reader, so the summary and the command a session runs mid-slice cannot
+    disagree about what a slice cost. The ticket is dropped because the summary
+    already names it, and the subagents stay apart from the session's own total
+    for the reason sessions.against_budget gives: folding them in would count a
+    delegated slice's cost twice.
+    """
+    from .cli import budget
+    return {key: value for key, value in budget(repository, ticket, rules).items()
+            if key != 'ticket'}
+
+
 def summary(repository, ticket, records, rules):
-    """Every criterion, its box, and what each unmet one waits on.
+    """Every criterion, its box, what each unmet one waits on, and what the run cost.
 
     The one thing a run produces to be read rather than executed, and it asserts
     nothing of its own: the box is the ticket file's, the check is the clarify
     record's, and a defect is counted from the records. Read-only and actorless,
     for the reason `status` and `budget` are: a command a person runs to see where a
     ticket stands must not make its journal longer.
+
+    `slices` and `spending` are the run's evidence about itself, added at attempt 3
+    of SEEN-112: who worked each slice, on what against what it was routed to, and
+    what the session and its subagents spent. They are here because a criterion
+    that rests on a fact of the journal and is proved by prose in a note is not
+    proved at all.
     """
     path = ticket_path(repository, ticket, records)
     require(path is not None and path.is_file(),
@@ -917,4 +1068,6 @@ def summary(repository, ticket, records, rules):
                 question_batches=[record['sequence'] for record in question_stops(records)],
                 authorisation=(authorisation(records) or {}).get('sequence'),
                 defects=defects(records),
+                slices=slice_evidence(records, rules),
+                spending=spending(repository, ticket, rules),
                 stops=list(stops(rules)))

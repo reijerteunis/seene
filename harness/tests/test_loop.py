@@ -15,19 +15,26 @@ Slice 2 adds the three things the run needs before it can be trusted with a whol
 ticket: the single question batch, the merge that waits on a person, and the
 summary a person reads at the end. All three are below, from QuestionBatchTest
 onwards.
+
+Attempt 3 turns the summary from a list of criteria into the run's own evidence
+about itself: who worked each slice, on what, and what it cost. RunEvidenceTest,
+at the end.
 """
 
 import contextlib
 import io
 import json
 from pathlib import Path
+import re
+import tempfile
 import unittest
 
-from harness import cli, loop, thresholds
+from harness import cli, loop, routing, thresholds
 from harness.errors import HarnessError
 from harness.tests import helpers
 from harness.tests.test_delivery import DeliveryWalk
 from harness.tests.test_lifecycle import CommandTest, clarify_evidence, solution_evidence
+from harness.tests.test_session_cap import SessionEnvironment, plan
 
 PROJECT = Path(__file__).resolve().parents[2]
 # Every action's argv starts here: the entry point a session already runs.
@@ -744,6 +751,178 @@ class RedCITest(RunMixin, DeliveryWalk):
         self.failing(conclusion='skipped')
         self.assertNotEqual(self.ask()['kind'], 'stop')
         self.assertNotIn('stop', self.kinds())
+
+
+class RunEvidenceTest(RunMixin, SessionEnvironment):
+    """What a run says about itself: who worked each slice, on what, at what cost.
+
+    Attempt 3 of SEEN-112, and criterion 1 as record 31 amended it. Two of the
+    three things that criterion now rests on were facts of this ticket's own
+    journal that nothing read: that each slice was handed to an implementer with
+    a context of its own, and that each ran on the model it was routed to. Both
+    were true, and both were true only as prose in a note; prose about a run is
+    the run's own account of itself rather than evidence about it. So the summary
+    reports them per slice from the journal and nowhere else, beside what the
+    session and its subagents spent, which is `harness budget`'s figure and not a
+    second reading of the same logs.
+    """
+
+    COVERAGE = '{"total": {"lines": {"total": 10, "covered": 9, "skipped": 0, "pct": 90.0}}}'
+
+    def setUp(self):
+        super().setUp()
+        from harness import cost
+        self.addCleanup(setattr, cost, 'LOGS', cost.LOGS)
+        cost.LOGS = Path(tempfile.mkdtemp())
+        self.keep_the_routes_in_shadow()
+        self.start()
+        self.submit('clarify', clarify_evidence())
+        self.submit('solution', solution_evidence(slices=plan(count=2)))
+        self.route = self.run_harness('route', self.ticket_id, '--actor', 'claude:implementer')
+
+    def keep_the_routes_in_shadow(self):
+        """Pinned rather than inherited, because one slice below runs off its route.
+
+        In shadow the tdd gate reports a model mismatch and refuses nothing, which
+        is exactly the window in which the summary is the only thing that would
+        show one. With `[routing] shadow` off that gate refuses the slice and this
+        fixture could not exist, so the flag is set here rather than read.
+        """
+        path = self.root / 'harness' / 'thresholds.toml'
+        text = re.sub(r'(?m)^shadow = false$', 'shadow = true', path.read_text())
+        self.assertIn('\nshadow = true\n', text)
+        path.write_text(text)
+
+    def routed(self, position):
+        """What the route record decided for one slice, read from the record itself."""
+        return self.route['data']['execution'][position - 1]
+
+    def prove(self, model=None, agent=None):
+        """One slice's RED and its GREEN, declaring what its session was asked to."""
+        declaration = []
+        if model is not None:
+            declaration += ['--model', model]
+        if agent is not None:
+            declaration += ['--agent', agent]
+        red = self.run_harness('check', self.ticket_id, '--phase', 'red', '--actor',
+                               'claude:implementer', *declaration, '--', 'sh', '-c',
+                               'echo expected 1, got 0; exit 1')
+        green = self.run_harness('check', self.ticket_id, '--phase', 'green', '--actor',
+                                 'claude:implementer', *declaration, '--', 'true')
+        return red['sequence'], green['sequence']
+
+    def walk_the_slices(self, second=None):
+        """Both slices proved, then cited: the citation is where a check meets a slice."""
+        proved = [self.prove(model='opus', agent='seen-implementer'),
+                  self.prove(**(second if second is not None else dict(model='opus')))]
+        self.write('packages/core/coverage/coverage-summary.json', self.COVERAGE)
+        self.run_harness('coverage', self.ticket_id, '--actor', 'claude:implementer', '--', 'true')
+        regression = self.run_harness('check', self.ticket_id, '--phase', 'regression',
+                                      '--actor', 'claude:implementer', '--', 'true')
+        return self.submit('tdd', dict(
+            mode='code',
+            slices=[dict(position=position,
+                         behaviour=f'Slice {position} does its part',
+                         failure_reason='expected 1, got 0', red=red, green=green)
+                    for position, (red, green) in enumerate(proved, start=1)],
+            regression=regression['sequence'], coverage_delta=None))
+
+    def write_log(self, output_tokens, tool_calls=0):
+        """This session's own log, of the shape the assistant writes and no other."""
+        from harness import cost
+        directory = cost.log_directory(self.root)
+        directory.mkdir(parents=True, exist_ok=True)
+        (directory / f'{self.session}.jsonl').write_text(json.dumps(dict(
+            message=dict(usage=dict(output_tokens=output_tokens),
+                         content=[dict(type='tool_use')] * tool_calls))) + '\n')
+
+    def write_subagent_log(self, agent_id, agent_type, output_tokens, tool_calls=0):
+        """A subagent's transcript beside the parent's, which is the only place the
+        split between the two exists to read."""
+        from harness import cost
+        directory = cost.log_directory(self.root) / self.session / 'subagents'
+        directory.mkdir(parents=True, exist_ok=True)
+        (directory / f'agent-{agent_id}.jsonl').write_text(json.dumps(dict(
+            message=dict(usage=dict(output_tokens=output_tokens),
+                         content=[dict(type='tool_use')] * tool_calls))) + '\n')
+        (directory / f'agent-{agent_id}.meta.json').write_text(
+            json.dumps(dict(agentType=agent_type)))
+
+    def summary(self):
+        return self.run_harness('run', self.ticket_id, '--summary')
+
+    def test_each_slice_says_whether_it_was_delegated_and_to_which_agent(self):
+        self.walk_the_slices()
+        first, second = self.summary()['slices']
+        self.assertEqual((first['position'], second['position']), (1, 2))
+        self.assertTrue(first['delegated'])
+        self.assertEqual(first['agent'], 'seen-implementer')
+        self.assertEqual([check['phase'] for check in first['checks']], ['red', 'green'])
+        self.assertEqual([check['agent'] for check in first['checks']],
+                         ['seen-implementer', 'seen-implementer'])
+        # Recorded in the orchestrating session's own context: neither cited check
+        # declares an agent, and only the declaration could ever say so, because a
+        # Claude Code subagent inherits its parent's session id.
+        self.assertFalse(second['delegated'])
+        self.assertIsNone(second['agent'])
+
+    def test_a_slice_nothing_has_proved_yet_says_nobody_knows_rather_than_no(self):
+        # The rule cost.py applies to tokens and sessions.py to a missing log: an
+        # absence and a no must not read alike. The route is on record before the
+        # first slice is worked, so that much is reported either way.
+        entries = self.summary()['slices']
+        self.assertEqual([entry['position'] for entry in entries], [1, 2])
+        for entry in entries:
+            self.assertEqual(entry['checks'], [])
+            self.assertIsNone(entry['delegated'])
+            self.assertIsNone(entry['agent'])
+            self.assertIsNone(entry['as_routed'])
+            self.assertEqual(entry['routed']['model'], self.routed(entry['position'])['model'])
+            self.assertEqual(entry['routed']['effort'], self.routed(entry['position'])['effort'])
+
+    def test_each_slice_reports_what_it_ran_on_beside_what_the_route_decided(self):
+        strongest = routing.strongest(self.rules())
+        self.walk_the_slices(second=dict(model='sonnet', agent='seen-implementer'))
+        first, second = self.summary()['slices']
+        self.assertEqual(first['declared_model'], strongest)
+        self.assertEqual(first['routed']['model'], strongest)
+        self.assertTrue(first['as_routed'])
+        # A slice that ran on something else is visible rather than asserted. In
+        # shadow the tdd gate reports this and refuses nothing, so the summary is
+        # the only place it is said.
+        self.assertEqual(second['declared_model'], 'sonnet')
+        self.assertEqual(second['routed']['model'], strongest)
+        self.assertFalse(second['as_routed'])
+        self.assertEqual([check['declared_model'] for check in second['checks']],
+                         ['sonnet', 'sonnet'])
+
+    def test_the_summary_reports_the_session_and_the_subagents_spending_apart(self):
+        self.write_log(1200, tool_calls=4)
+        self.write_subagent_log('a', 'seen-implementer', 700, tool_calls=3)
+        spending = self.summary()['spending']
+        self.assertEqual(spending['output_tokens'], 1200)
+        self.assertEqual(spending['tool_calls'], 4)
+        # A delegated slice's cost is a different session's, told apart from this
+        # one's rather than folded into it.
+        self.assertEqual(spending['subagents']['output_tokens'], 700)
+        self.assertEqual([entry['agent'] for entry in spending['subagents']['agents']],
+                         ['seen-implementer'])
+        # harness budget's own figures: one reader, so the summary and the command
+        # a session runs mid-slice cannot disagree about what the slice cost.
+        budget = self.run_harness('budget', self.ticket_id)
+        self.assertEqual(spending,
+                         {key: value for key, value in budget.items() if key != 'ticket'})
+
+    def test_a_machine_with_no_session_log_is_null_rather_than_zero(self):
+        spending = self.summary()['spending']
+        self.assertIsNone(spending['output_tokens'])
+        self.assertIn('null is not zero', spending['unavailable'])
+
+    def test_the_summary_is_still_read_only_and_takes_no_actor(self):
+        self.walk_the_slices()
+        before = len(self.records())
+        self.assertEqual(self.summary()['ticket'], self.ticket_id)
+        self.assertEqual(len(self.records()), before)
 
 
 if __name__ == '__main__':

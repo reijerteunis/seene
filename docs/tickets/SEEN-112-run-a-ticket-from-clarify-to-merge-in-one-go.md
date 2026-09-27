@@ -43,7 +43,7 @@ A human-executor ticket is refused at the start. SEEN-110 is the worked example:
 
 ## Acceptance criteria
 
-- [ ] A code ticket with no open questions runs from clarify to a green `verify-delivery` without a stop, with every slice's RED and GREEN recorded by `seen-implementer` and the review by `seen-reviewer`, proven over a fixture journal driven from clarify to the receipt and evidenced by this ticket's own journal and budget figures (amended 27 September 2026, see `## Amendment`)
+- [ ] A code ticket with no open questions runs the whole way without a stop, proven at review by the fixture walk (`LoopTest` drives the loop from clarify to the receipt, every step an action with runnable argv and no step a stop) and by this ticket's own journal: both slices' RED and GREEN declaring `--agent seen-implementer`, and the session's budget figures on record (amended twice, 27 September 2026, see `## Amendment`)
 - [ ] A ticket with an unknown a person must settle stops once, asks every question it has in a single batch, records the answer as a note, and continues to the end when `clarified` clears; a second stop for a question the first batch could have carried is reported as a defect of the run and named in its summary
 - [ ] Every stop is one of the named ones and none is retried: a gate that refuses, a Jev question that does not clear, a failed check, red CI, and a second return on the same slice, each reporting the stage, the record number and the one command to resume from
 - [ ] The merge is never taken without authorisation: the run stops at a green `verify-merge` with the receipt in the pull request body, and merges only when that was authorised for this ticket and the authorisation is in the journal with who gave it and when
@@ -80,6 +80,33 @@ criterion at record 20 and returned the ticket to tdd, as it is built to. Delive
 unticked was the intention at record 4 and the harness does not allow it, so the choice was between
 amending the criterion, parking the branch for weeks, or proving the run on the wrong ticket. The
 first is the only one that leaves the record true. Nothing else in the criteria changes.
+
+**Second amendment, 27 September 2026, on Ruud's authority, recorded at journal record 31.**
+
+Criterion 1 is amended again, and this time for a reason that had nothing to do with which tickets
+exist: **a criterion cannot be evidenced before the thing it describes happens.** As written, and as
+first amended, it named a green `verify-delivery` and a review by `seen-reviewer`. The review triage
+is the gate that decides whether a reviewer is spawned at all, and delivery is a stage later still, so
+at the moment the criterion was being judged neither could have evidence, whatever had been built. The
+triage refused it twice, correctly, at 0.96 and then 0.94.
+
+So the criterion now asks for what a review can actually see:
+
+1. the fixture walk, `LoopTest`, which drives the loop from clarify to the receipt and asserts an
+   action at every step with runnable argv and no step a stop;
+2. this ticket's own journal, where both slices' RED and GREEN declare `--agent seen-implementer`;
+3. the session's budget figures, which are on record and which are over the one-slice budget.
+
+Moved to the follow-up ticket, joining the real-ticket proof that moved there in the first amendment:
+the review by `seen-reviewer` and the green `verify-delivery`, both of which that ticket's own journal
+will carry as facts rather than as claims.
+
+What the two returns bought, recorded because rework that earned itself should be legible as such: the
+first return found a real hole rather than a wording problem. `question_open` was reading the clarify
+draft's list of open questions rather than a recorded decision below its threshold, and nothing read CI
+at all, so two of criterion 3's five named conditions could not be reported unless a session remembered
+to declare them. Criterion 3 went from 0.48 to 0.66 once both were detected. The second return cost an
+attempt and taught the lesson above.
 
 ## Slices
 
