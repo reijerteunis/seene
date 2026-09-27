@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-006, SEEN-092, SEEN-094]
-status: doing
+status: review
 ---
 # SEEN-008: Create trade-record schema v1 with tenant_id and RLS on every table
 
@@ -23,7 +23,7 @@ status: doing
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | doing |
+| Status | review |
 
 ## Description
 
@@ -31,11 +31,11 @@ Write the Supabase migration for trade-record schema v1 in packages/core/db: ten
 
 ## Acceptance criteria
 
-- [ ] Migration applies on an empty database and pnpm db:reset re-applies it without error
-- [ ] A test that lists every table in the public schema finds tenant_id and an enabled RLS policy on 100% of them
-- [ ] A query with tenant A's JWT returns zero rows from tenant B's orders in an integration test
-- [ ] Unique index on (tenant_id, marketplace, external_id) exists on orders, shipments, returns, settlements and settlement_lines
-- [ ] marketplaces seed contains the six marketplaces with capability flags matching the routing table in architecture.md
+- [x] Migration applies on an empty database and pnpm db:reset re-applies it without error
+- [x] A test that lists every table in the public schema finds tenant_id and an enabled RLS policy on 100% of them
+- [x] A query with tenant A's JWT returns zero rows from tenant B's orders in an integration test
+- [x] Unique index on (tenant_id, marketplace, external_id) exists on orders, shipments, returns, settlements and settlement_lines
+- [x] marketplaces seed contains the six marketplaces with capability flags matching the routing table in architecture.md
 
 ## Outcome
 
@@ -186,6 +186,26 @@ is the point of recording them here rather than naming an owner the tree does no
 None of the three is assigned to a ticket in this repository, and that is deliberate: this Outcome is carried by
 the receipt fingerprint, so a sentence claiming an owner the tree cannot show would be a false statement in the
 delivery record.
+
+### The third review's two findings, closed
+
+The third review confirmed the previous three fixes by execution and returned the ticket on two of its own, both
+introduced by this session's own writing rather than by the schema.
+
+- **The Outcome had assigned the open harness defects to owners that do not own them**, which is the class of
+  error the migration miscount was raised for and would have been carried by the receipt. Corrected above: all
+  three are owned by nobody in this repository, and the text says why that is deliberate.
+- **Every migration's header now states the size of the set truthfully.** Removing the blanket grants had
+  rewritten the tails of parts 1 to 3 to point at part 4 while their first lines still read "part N of 3", and
+  part 4 stated no count at all, so an author stopping at the three the headers counted would never read part
+  4's per-table privilege boundary or its self-check and would leave the default ACL standing on a new table.
+  That is the hazard listed as still open two sections above, and routing the next author to part 4 is what
+  removing the grants was for. A test counts the members from disk rather than from the number four, scoped to
+  the trade-record filenames so a fifth part does not punish its author, and proven against a synthetic set of
+  five so it cannot pass by finding nothing.
+
+No SQL statement changed in that round: the diff over `supabase/migrations` filtered to non-comment lines is
+empty, so the privilege set the review measured three times is byte-identical.
 
 ## Slices
 

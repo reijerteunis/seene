@@ -126,6 +126,33 @@ export const BUYER_PII_COMMENT_TERMS = [
 export const MIGRATIONS_DIRECTORY = 'supabase/migrations';
 
 /**
+ * How a file under `supabase/migrations` declares itself a member of the trade
+ * record v1 set, and the header line every member has to carry.
+ *
+ * The set is the four SEEN-008 migrations, recognised by the `trade_record_v1`
+ * segment of their filenames, and not every file in the directory: the evidence
+ * bucket migration of 24 September creates a storage bucket for the environment,
+ * takes no part in the privilege boundary the four parts hand to each other, and
+ * numbering it in would make every later ticket's migration renumber these
+ * headers. So the header reads `Trade record v1, part N of M`, counting the set it
+ * names, and `schema.test.ts` compares M with the number of members on disk rather
+ * than with the number four: a fifth part is added by writing `part 5 of 5` and
+ * correcting the four in front of it, and a migration belonging to another ticket
+ * changes nothing here.
+ *
+ * Why the count is asserted and not just written. Part 3 ends by saying it grants
+ * no table privilege because part 4 decides the privileges of every table per
+ * table and by name. An author told by line 1 that the set is three files stops at
+ * part 3, never reads part 4's boundary or its self-check, writes their table with
+ * Supabase's default ACL standing, and it is born writable by `anon` and
+ * `authenticated`. The headers are the route to part 4, so they have to count.
+ */
+export const TRADE_RECORD_MIGRATION_MARKER = 'trade_record_v1';
+
+/** The `part N of M` header, matched against a member's first line. */
+export const MIGRATION_SET_HEADER = /^--\s+Trade record v1, part (\d+) of (\d+)\b/;
+
+/**
  * The privilege statements no migration may contain, and why each is a trap.
  *
  * `grant ... on all tables in schema public` reaches every table in the schema,

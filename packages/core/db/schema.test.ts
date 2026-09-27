@@ -30,8 +30,9 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import {
   APPEND_ONLY_PRIVILEGES, APPEND_ONLY_TABLES, BUYER_PII_COLUMNS, BUYER_PII_COMMENT_TERMS,
-  DATA_API_ROLES, FORBIDDEN_PRIVILEGE_STATEMENTS, GOVERNED_PRIVILEGES, MIGRATIONS_DIRECTORY,
-  TABLE_PRIVILEGES, TENANT_CLAIM, TRADE_RECORD_TABLES,
+  DATA_API_ROLES, FORBIDDEN_PRIVILEGE_STATEMENTS, GOVERNED_PRIVILEGES, MIGRATION_SET_HEADER,
+  MIGRATIONS_DIRECTORY, TABLE_PRIVILEGES, TENANT_CLAIM, TRADE_RECORD_MIGRATION_MARKER,
+  TRADE_RECORD_TABLES,
 } from './tables';
 
 /** The repository root, from this file's own location: `packages/core/db`. */
@@ -275,6 +276,66 @@ function statementsOf(sql: string): string[] {
     .replace(/\/\*[\s\S]*?\*\//g, ' ')
     .replace(/--[^\n]*/g, ' ');
   return withoutComments.split(';').map((statement) => statement.trim()).filter(Boolean);
+}
+
+/** One member of the trade record v1 migration set: its path and its first line. */
+interface SetMember { file: string; firstLine: string }
+
+/**
+ * The members of the trade record v1 set whose header misstates the size of the
+ * set, or states no part number at all, given every member's first line in
+ * migration order.
+ *
+ * Pure over the members it is handed, so that the test below can show it a set of
+ * five, which the four files on disk cannot demonstrate: the size it compares
+ * against is the number of members it was given and never a literal, so a fifth
+ * migration is added by numbering it and correcting the four in front of it, not by
+ * editing this test.
+ */
+function misnumberedSetHeaders(members: readonly SetMember[]): string[] {
+  const size = members.length;
+  const offenders: string[] = [];
+  members.forEach((member, index) => {
+    const stated = MIGRATION_SET_HEADER.exec(member.firstLine);
+    if (stated === null) {
+      offenders.push(
+        `${member.file}: its first line states no part number, and the set has ${size} files`,
+      );
+      return;
+    }
+    const [, part, total] = stated;
+    if (Number(total) !== size) {
+      offenders.push(
+        `${member.file}: its first line says \`part ${part} of ${total}\`, and the set has `
+        + `${size} files`,
+      );
+      return;
+    }
+    if (Number(part) !== index + 1) {
+      offenders.push(
+        `${member.file}: its first line says \`part ${part} of ${total}\`, and it is file `
+        + `${index + 1} of the set in migration order`,
+      );
+    }
+  });
+  return offenders;
+}
+
+/** Every member of the trade record v1 set with its first line, oldest first. */
+function tradeRecordSetHeaders(): SetMember[] {
+  const members = migrationFiles()
+    .filter((file) => file.includes(TRADE_RECORD_MIGRATION_MARKER));
+  if (members.length === 0) {
+    throw new Error(
+      `No file in ${MIGRATIONS_DIRECTORY} carries \`${TRADE_RECORD_MIGRATION_MARKER}\` in its `
+      + 'name, so a test that reads the set\'s headers proves nothing. The migrations of this '
+      + 'ticket have been renamed and the marker has not followed them.',
+    );
+  }
+  return members.map((file) => ({
+    file,
+    firstLine: readFileSync(join(REPOSITORY_ROOT, file), 'utf8').split('\n')[0] ?? '',
+  }));
 }
 
 /** Every forbidden privilege statement in the migrations, named with its file. */
@@ -568,8 +629,8 @@ describe('the trade record schema', () => {
 });
 
 describe('the migrations that write the schema', () => {
-  // Two properties of the migrations as files rather than of the database they
-  // produce, because both are about what the next migration will do. The end state
+  // Three properties of the migrations as files rather than of the database they
+  // produce, because each is about what the next migration will do. The end state
   // after `pnpm db:reset` is correct in each case; what is wrong is what an author
   // reading these files, or a cache reading their hash, would conclude.
 
@@ -596,6 +657,56 @@ describe('the migrations that write the schema', () => {
         + `turbo hashes: ${inputs.join(', ')}`,
       ).toEqual([]);
     });
+
+  it('counts its own set in every header, so the route to part 4 is not a wrong number', () => {
+    // The round that removed the blanket tails rewrote parts 1, 2 and 3 to point at
+    // part 4 while their first lines still read `part 1 of 3`, `part 2 of 3` and
+    // `part 3 of 3`, so each file contradicts itself about how many migrations the
+    // set has. It is not a typo: part 3's tail says it grants no table privilege
+    // because part 4 decides them per table, and an author who believes line 1 stops
+    // at part 3, never reads that boundary or its self-check, and leaves the default
+    // ACL standing on the table they have just created.
+    const members = tradeRecordSetHeaders();
+    const offenders = misnumberedSetHeaders(members);
+    expect(
+      offenders,
+      `${offenders.length} of the ${members.length} migrations in the trade record v1 set state `
+      + 'a size for it that the directory contradicts, so the file that decides every table\'s '
+      + 'privileges is outside the set its own parts count: ' + offenders.join('; '),
+    ).toEqual([]);
+  });
+
+  it('would number a fifth migration without this test being rewritten', () => {
+    // The obvious assertion hard-codes four and fails the moment a fifth part is
+    // added, which punishes the next author for doing the right thing. The size is
+    // the number of members found on disk, so the checker is shown a set of five to
+    // prove that: five headers that count five pass, and the same five still reading
+    // `of 4` are all named. A file in the directory that is not of this set, the
+    // evidence bucket today, is not counted and needs no header.
+    const five = (total: number): SetMember[] => [1, 2, 3, 4, 5].map((part) => ({
+      file: `${MIGRATIONS_DIRECTORY}/2027_${TRADE_RECORD_MIGRATION_MARKER}_part${part}.sql`,
+      firstLine: `-- Trade record v1, part ${part} of ${total}: a table this ticket does not have.`,
+    }));
+    expect(
+      misnumberedSetHeaders(five(5)),
+      'A fifth migration that states the size of the set it joined is reported as an offender, '
+      + 'so the assertion counts something other than the files it was given',
+    ).toEqual([]);
+    expect(
+      misnumberedSetHeaders(five(4)).length,
+      'Five migrations all still stating four are not all reported, so the assertion passes by '
+      + 'finding nothing rather than by reading the headers',
+    ).toBe(5);
+    // And the numbering is read as well as the count: part 3 twice and no part 2 is
+    // the drift a copied header produces, and it names the file that is out of order.
+    const duplicated = five(5).map(
+      (member, index) => (index === 1 ? { ...member, firstLine: member.firstLine.replace('part 2 of 5', 'part 3 of 5') } : member),
+    );
+    expect(
+      misnumberedSetHeaders(duplicated).length,
+      'A header copied from the part before it, numbering the set 1, 3, 3, 4, 5, is not reported',
+    ).toBe(1);
+  });
 
   it('contains no blanket grant, so the next migration has no such tail to copy', () => {
     // Parts 1, 2 and 3 each ended with `grant ... on all tables in schema public`,

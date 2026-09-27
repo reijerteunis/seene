@@ -1,4 +1,4 @@
--- Trade record v1, part 3 of 3: the commerce and billing tables, the marketplaces
+-- Trade record v1, part 3 of 4: the commerce and billing tables, the marketplaces
 -- catalogue and the key that binds a connection to it. SEEN-008.
 --
 -- Parts 1 and 2 created the tenancy, the policy helper seen.current_tenant(), the
