@@ -40,11 +40,36 @@ What this ticket must not do is weaken the rule it is loosening. A refusal has t
 ## Acceptance criteria
 
 - [ ] A tdd record may cite a red or green recorded in an earlier attempt when that check's recorded tree fingerprint matches the tree the citing record is written against, and the gate accepts it without the cited work being re-proven
-- [ ] A check whose recorded fingerprint has moved since it ran is still refused across attempts, and the refusal names which of the two reasons applied: the tree moved under this check, or there is no such check
+- [ ] A check is refused across attempts whenever the code it covers has changed, and the refusal names which reason applied: the code this check covers has changed, naming the files; the tree moved and the comparison had to fall back, naming why; or there is no such check (amended, see `## Amendment`)
 - [ ] The ordering rule survives the change: each red still precedes its green, slices still do not overlap, and the regression is still the last check, whichever attempts the cited checks come from
 - [ ] A replan carries forward the greens of slices whose work is still in the branch, so the handoff pack and `harness guard` read a returned ticket as the slices it has actually finished rather than as none of them
 - [ ] Proven on a journal shaped like SEEN-112's, five attempts with slices proven in the first two and a tdd record in the fifth citing them, which the gate accepts, and on the mirror case where one cited check's tree has moved, which it refuses by name
 - [ ] No evidence is revived for code that changed: a test shows a check from an earlier attempt refused after its files are edited, with the fingerprint difference as the stated reason
+
+## Amendment
+
+**27 September 2026, recorded at journal record 20's review, and written by the orchestrating session
+because it is bookkeeping the review was right to call out.**
+
+Criterion 2 was written as:
+
+> A check whose recorded fingerprint has moved since it ran is still refused across attempts, and the
+> refusal names which of the two reasons applied: the tree moved under this check, or there is no such check
+
+That wording describes the whole-tree rule the first plan specified, and record 9 amended that plan: the
+comparison is scoped to the files the cited check's slice names, so a check whose recorded fingerprint has
+moved is now accepted when its own slice's files have not, which is the entire point of the scoping. There
+are three refusal reasons rather than two. The criterion is restated to describe the behaviour the amended
+plan asks for, and the original is quoted above so the change is legible rather than silent.
+
+Nothing is loosened by the restatement: the property that matters, that no evidence is accepted for code
+that changed, is criterion 6 and it is unchanged. The review returned this ticket with criterion 6 unmet on
+two reproduced paths, which is the right verdict, and the restated criterion 2 would not have hidden either
+of them.
+
+What went wrong is worth naming rather than only fixing: the box was ticked while the delivered rule
+contradicted the criterion's first clause, in a ticket whose sibling SEEN-112 carries a criterion about
+never ticking what the evidence does not support. The review caught it; the Outcome had not.
 
 ## Slices
 
