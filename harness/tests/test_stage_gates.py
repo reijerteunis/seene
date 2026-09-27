@@ -1283,6 +1283,179 @@ class TheRoundsOwnCommitSaysWhatItCovered(ScopedToTheSlicesFiles):
                                             ['harness/thresholds.toml']), [])
 
 
+class TheProcedureRewritesTheTicketFile(ScopedToTheSlicesFiles):
+    """Record 50: the defect under this whole chain, and it is a step of the procedure.
+
+    A check records the fingerprint of a tree, and what makes that tree findable
+    afterwards is the commit that carried the work. Between those two moments the
+    workflow requires the `## Outcome`, the frontmatter `status` and the criteria
+    ticks to be written into the ticket file, so the ticket file is guaranteed to
+    differ, the fingerprint counts it, and no commit holds the tree the check ran
+    against. Measured on this ticket's own branch: green 35's tree is the content
+    of none of the last sixty commits, and it is `36b3c57`'s content with the
+    ticket file read as it stood at the check. Every refusal in this chain traces
+    to a step the harness itself mandates.
+
+    The fingerprint is not what changes. It keeps covering the whole ticket file,
+    which is what gives the receipt its meaning and what SEEN-109 withdrew an
+    attempt to weaken. What becomes tolerant is the search for the commit holding
+    a check's tree, over the one path the procedure rewrites and no other.
+
+    The mirror is the whole risk, because this makes a search succeed where it
+    used to fail: a commit differing in the ticket file and in anything else must
+    match nothing.
+    """
+
+    OUTCOME = '\n## Outcome\n\nThe slice was proved, and the review read it.\n'
+
+    def the_outcome_is_written(self):
+        """What the procedure asks for before review is left, on the real file."""
+        path = self.root / self.ticket_file
+        path.write_text(path.read_text() + self.OUTCOME)
+
+    def the_criteria_are_ticked(self):
+        """And what it asks for after the reviewer has read, in the same file."""
+        path = self.root / self.ticket_file
+        path.write_text(path.read_text().replace('- [ ]', '- [x]'))
+
+    def the_round_committed_with_its_outcome(self):
+        """The shape the procedure forces on every round, which the fixture lacked.
+
+        The checks run on a working tree; the ticket file is then rewritten
+        because the workflow says so; and the commit carrying the work carries
+        that rewrite with it. So the tree the checks ran against is no commit's
+        content, and the one path it differs by is the one the procedure wrote.
+        """
+        self.write('harness/slice_one.py', 'def one():\n    return 11\n')
+        proved = self.repository.fingerprint()
+        self.the_outcome_is_written()
+        self.commit('feat(SEEN-001): the round, and the outcome the procedure asks for')
+        return proved
+
+    def test_a_green_whose_round_rewrote_the_ticket_file_is_still_citable(self):
+        """This ticket's own case, and the reason the tolerance exists."""
+        proved = self.the_round_committed_with_its_outcome()
+        self.the_criteria_are_ticked()
+        self.slice_three_writes_its_own_file()
+        self.evaluate('tdd', self.citing(), records=self.journal(proved=proved), attempt=2)
+
+    def test_the_tree_really_is_no_commits_content_so_the_acceptance_is_not_free(self):
+        """Without this the acceptance above could be an exact match all along."""
+        proved = self.the_round_committed_with_its_outcome()
+        self.assertIsNone(gates._the_commit_holding(self.repository, proved))
+
+    def test_the_commit_it_is_held_by_is_the_one_the_work_was_committed_in(self):
+        proved = self.the_round_committed_with_its_outcome()
+        self.assertEqual(gates._the_commit_holding(self.repository, proved, self.ticket_file),
+                         self.repository.head())
+
+    def test_the_scope_the_tolerance_grants_still_refuses_by_name(self):
+        """The mirror that matters at the gate: a scope granted is a scope
+        compared, so the file that round proved moving still costs the citation
+        its evidence, and by name rather than as a tree."""
+        proved = self.the_round_committed_with_its_outcome()
+        self.write('harness/slice_one.py', 'def one():\n    return 12\n')
+        self.commit('fix(SEEN-001): rewrite the file that round proved')
+        message = self.refusal(records=self.journal(proved=proved))
+        self.assertIn('harness/slice_one.py', message)
+        self.assertNotIn('whole tree', message)
+
+    def test_a_tree_differing_in_a_source_file_too_is_held_by_no_commit(self):
+        """The guard the tolerance is worth nothing without: one path is
+        tolerated, and a commit differing in it and in anything else is not the
+        tree. A search that substituted two paths at once, or every path the
+        procedure touches, would pass its neighbours and fail here.
+        """
+        self.write('harness/slice_one.py', 'def one():\n    return 11\n')
+        proved = self.repository.fingerprint()
+        self.the_outcome_is_written()
+        self.write('harness/slice_two.py', 'def two():\n    return 22\n')
+        self.commit('feat(SEEN-001): the round, its outcome, and a second file')
+        self.assertIsNone(gates._the_commit_holding(self.repository, proved, self.ticket_file))
+
+    def test_the_second_difference_is_the_only_reason_that_one_is_not_found(self):
+        """Without this the refusal above could be the fixture failing to match
+        for some reason of its own, which would pass whatever the search did."""
+        self.write('harness/slice_one.py', 'def one():\n    return 11\n')
+        proved = self.repository.fingerprint()
+        self.the_outcome_is_written()
+        self.commit('feat(SEEN-001): the round and its outcome, and nothing else')
+        self.assertEqual(gates._the_commit_holding(self.repository, proved, self.ticket_file),
+                         self.repository.head())
+
+    def test_a_citation_whose_round_moved_a_second_file_falls_back_as_before(self):
+        """The same two differences at the gate: no scope is granted, so the
+        strict whole-tree rule stands where it stood."""
+        self.write('harness/slice_one.py', 'def one():\n    return 11\n')
+        proved = self.repository.fingerprint()
+        self.the_outcome_is_written()
+        self.write('harness/slice_two.py', 'def two():\n    return 22\n')
+        self.commit('feat(SEEN-001): the round, its outcome, and a second file')
+        self.assertIn('whole tree', self.refusal(records=self.journal(proved=proved)))
+
+    def test_a_document_that_is_not_the_ticket_file_is_not_tolerated(self):
+        """A path is tolerated because the procedure rewrites it between a check
+        and its commit, not because it is documentation."""
+        self.write('docs/architecture.md', 'The architecture.\n')
+        self.commit('docs(SEEN-001): a document the procedure does not rewrite')
+        self.write('harness/slice_one.py', 'def one():\n    return 11\n')
+        proved = self.repository.fingerprint()
+        self.write('docs/architecture.md', 'The architecture, restated.\n')
+        self.commit('feat(SEEN-001): the round, and a document beside it')
+        self.assertIsNone(gates._the_commit_holding(self.repository, proved, self.ticket_file))
+
+    def test_a_commit_holding_the_tree_exactly_is_preferred_to_a_substitution(self):
+        """Two commits can answer, and the one that needs no reconstruction wins."""
+        exact = self.repository.head()
+        self.the_outcome_is_written()
+        self.commit('docs(SEEN-001): the outcome, and nothing else')
+        self.assertEqual(gates._the_commit_holding(self.repository, self.proved,
+                                                  self.ticket_file), exact)
+
+    def test_the_newer_commit_really_would_have_answered_by_substitution(self):
+        """Without this the preference above could be the newer commit matching
+        nothing, which would pass whatever the order did. The substitution is done
+        here by hand, which is how the reviewer reproduced a recorded fingerprint
+        twice before any of this was code."""
+        exact = self.repository.head()
+        self.the_outcome_is_written()
+        self.commit('docs(SEEN-001): the outcome, and nothing else')
+        self.assertNotEqual(self.repository.head(), exact)
+        listing = gates._tree_listing(self.repository, self.repository.head())
+        listing[self.ticket_file] = gates._tree_listing(self.repository,
+                                                        exact)[self.ticket_file]
+        self.assertEqual(gates._fingerprint_of(listing), self.proved)
+
+    def test_what_the_round_moved_leaves_out_the_path_the_procedure_rewrites(self):
+        """Left in, it would cost every citation its evidence: the ticket file is
+        rewritten again after the review, so a comparison counting it refuses
+        whatever the code did."""
+        proved = self.the_round_committed_with_its_outcome()
+        commit = gates._the_commit_holding(self.repository, proved, self.ticket_file)
+        self.assertEqual(gates._the_files_the_round_moved(self.repository, commit,
+                                                          self.ticket_file),
+                         ['harness/slice_one.py'])
+
+    def test_a_commit_that_only_rewrote_the_ticket_file_is_not_the_round(self):
+        """The commit found is often the one the procedure wrote and nothing else,
+        which is what the measurement on this branch met: green 35's tree is held
+        by a docs commit whose own change is the ticket file. A commit that moved
+        only that path did not carry the work, so the question goes to its parent,
+        exactly as it does for a commit that moved nothing counted at all."""
+        self.the_outcome_is_written()
+        self.commit('docs(SEEN-001): the outcome, written before the review is left')
+        self.assertEqual(gates._the_files_the_round_moved(self.repository,
+                                                          self.repository.head(),
+                                                          self.ticket_file),
+                         ['harness/slice_one.py', 'harness/slice_two.py'])
+
+    def test_a_journal_that_cannot_say_which_ticket_file_tolerates_nothing(self):
+        """No path at all where the journal cannot say which ticket file it is:
+        an absence is not a licence, and the search stays exactly as strict."""
+        proved = self.the_round_committed_with_its_outcome()
+        self.assertIsNone(gates._the_commit_holding(self.repository, proved, None))
+
+
 class AnEntryGitWillNotTakeAsAPathspec(ScopedToTheSlicesFiles):
     """F6 of the third review: an entry resolving outside the repository.
 

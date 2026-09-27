@@ -33,7 +33,13 @@ ESCAPING_SEVERITIES = ('high', 'blocking')
 # How far back the tree a check ran against is looked for. A check runs on the
 # working tree, and what puts that tree in the history is the commit that
 # carried the work it proved, which is the next commit on the branch; fifty is
-# past the longest ticket on record and keeps the search bounded.
+# past the longest ticket on record and keeps the search bounded. It bounds the
+# tolerant half of that search too, and squarely: the blobs tried for the path
+# the procedure rewrites are the ones it held inside the same window, so the work
+# is at most this many hashes of this many listings and no extra git call.
+# Measured on this branch at the current limit: the window walk costs 0.36
+# seconds in fifty ls-tree calls, and 2,500 substituted hashes of a 299-path
+# listing cost 0.08 on top of it. The longest branch on record is nine commits.
 TREE_SEARCH_LIMIT = 50
 # Why a citation is compared over the whole tree when nothing scopes it. The
 # regression is the deliberate case: it covers the suite and not a slice, so it
@@ -161,6 +167,28 @@ def record_at(records, number):
     raise HarnessError(f'Record {number} is not in this journal')
 
 
+def _tree_listing(repository, commit):
+    """The `path: blob` of a commit's tree over the paths the fingerprint counts."""
+    entries = {}
+    for line in repository.git('ls-tree', '-r', commit).splitlines():
+        details, _, path = line.partition('\t')
+        if path and not path.startswith(FINGERPRINT_EXCLUDED):
+            entries[path] = details.split()[2]
+    return entries
+
+
+def _fingerprint_of(entries):
+    """The hash of such a listing, composed exactly as the repository composes it.
+
+    Separate from the reading of it because the commit search asks the question
+    of a listing it has altered by one entry, and the only honest way to compare
+    an altered listing with a recorded fingerprint is to hash it the same way. A
+    second hashing rule here would be a second answer waiting to disagree.
+    """
+    listing = '\n'.join(f'{path}:{blob}' for path, blob in sorted(entries.items()))
+    return hashlib.sha256(listing.encode()).hexdigest()
+
+
 def content_fingerprint(repository, commit):
     """The fingerprint of a commit's tree, as `Repository.fingerprint` defines it.
 
@@ -173,16 +201,43 @@ def content_fingerprint(repository, commit):
     the two readings to each other, so a change to either is caught here rather
     than by a citation silently scoped off the wrong commit.
     """
-    entries = {}
-    for line in repository.git('ls-tree', '-r', commit).splitlines():
-        details, _, path = line.partition('\t')
-        if path and not path.startswith(FINGERPRINT_EXCLUDED):
-            entries[path] = details.split()[2]
-    listing = '\n'.join(f'{path}:{blob}' for path, blob in sorted(entries.items()))
-    return hashlib.sha256(listing.encode()).hexdigest()
+    return _fingerprint_of(_tree_listing(repository, commit))
 
 
-def _the_commit_holding(repository, tree):
+def _the_path_the_procedure_rewrites(records, ticket, repository):
+    """The one path the harness's own procedure rewrites after a round's checks.
+
+    The ticket file, and nothing else, because nothing else is written by the
+    procedure between a check and the commit that carries the work that check
+    proved. The workflow requires the `## Outcome`, the frontmatter `status` and
+    the criteria ticks before review is left, so the ticket file is guaranteed to
+    differ by then; the journal, the drafts, the graph, the coverage baseline and
+    the reports are already outside the fingerprint for the neighbouring reason,
+    that writing a record about a tree must not change that tree.
+
+    Deliberately narrower than `triage.procedure_paths`, which adds the copies
+    `sync` generates whole. Those change when a session runs `sync`, which is part
+    of the work and lands in the same commit as the source it is generated from:
+    the procedure does not force them to move after the last check of a round, so
+    tolerating them would widen the search for nothing. A path is tolerated here
+    because the procedure rewrites it at that moment, never because it is
+    documentation.
+
+    Resolved the way the review triage resolves it, and by the same function: a
+    ticket file carries its title and so changes name when the title does, and
+    reading record 1 directly was a defect once already, J3 of SEEN-107's fifth
+    review, which excluded a path that was no longer there. None where nothing
+    resolves, and None is a licence for nothing: the search stays exactly as
+    strict as it was.
+    """
+    if repository is None or not records:
+        return None
+    from .cli import ticket_file
+    path, _ = ticket_file(records[0].get('data') or {}, ticket, repository.root)
+    return path
+
+
+def _the_commit_holding(repository, tree, rewritten=None):
     """The commit whose content is that tree, if this branch still has one.
 
     A check records the fingerprint of a tree and not the tree, so which files it
@@ -192,14 +247,71 @@ def _the_commit_holding(repository, tree):
     trusted about which commit that is; every candidate is hashed and the one
     that matches is the tree.
 
+    Apart from `rewritten`, the one path the procedure itself rewrites between a
+    check and that commit. Without this the search could not succeed at all, and
+    that is measured rather than argued: the workflow requires the `## Outcome`,
+    the `status` and the criteria ticks in the ticket file before review is left,
+    the fingerprint counts the ticket file, so the tree a check ran against is
+    never any commit's content. On this ticket's own branch, neither green 35's
+    tree nor red 34's is the content of any of the last sixty commits, and green
+    35's is `36b3c57`'s content with the ticket file read as it stood at the
+    check. Every refusal in this chain traced to a step the harness mandates.
+
+    What is not tolerated is anything else, and that is the whole of the guard:
+    the candidate's listing is altered at that one path and nowhere else, so a
+    commit differing in the ticket file and in a source file matches nothing. The
+    fingerprint is untouched by any of this and still covers the whole ticket
+    file, which is what gives the receipt its meaning and what SEEN-109 withdrew
+    an attempt to weaken; what has become tolerant is this search and only this
+    search.
+
+    A commit holding the tree exactly is preferred to one holding it by
+    substitution, which is why the whole window is walked for an exact match
+    before any blob is tried. An exact match is the tree, and a reader can check
+    it by hand with `git ls-tree`; a substituted match is a reconstruction resting
+    on the claim that the only difference is the path the procedure rewrites.
+    Where both exist they carry the same code, so preferring the one that needs no
+    inference costs nothing and keeps the weaker answer as the fallback it is.
+
+    The candidate blobs are the ones that path held inside the same window, so
+    nothing outside the window can be read in and no further git call is made:
+    the listings the exact pass already read are what the substitutions are built
+    from. That bounds the added work at `TREE_SEARCH_LIMIT` squared hashes and no
+    subprocess at all, which is 2,500 hashes of a 299-path listing at the current
+    limit, measured at under 0.1 seconds against the 0.36 seconds the window walk
+    itself costs.
+
     None when no commit carries it, which is a check whose tree was never
-    committed as it stood. That is an absence rather than a difference, and it
-    falls back to the whole tree rather than being scoped to a guess.
+    committed as it stood, and every RED is in that shape: its tree holds the
+    test without the code that answers it, and what gets committed is the green.
+    That is an absence rather than a difference, and it falls back to the whole
+    tree rather than being scoped to a guess.
     """
+    listings = {}
     for commit in repository.git('log', '--format=%H', '-n', str(TREE_SEARCH_LIMIT),
                                  'HEAD').split():
-        if content_fingerprint(repository, commit) == tree:
+        listings[commit] = _tree_listing(repository, commit)
+        if _fingerprint_of(listings[commit]) == tree:
             return commit
+    if rewritten is None:
+        return None
+    # Every distinct content that path held in the window, and only those: the
+    # listings are already in hand, so the tolerance reads nothing new.
+    blobs = list(dict.fromkeys(entries[rewritten] for entries in listings.values()
+                               if rewritten in entries))
+    # Newest first again, because a dict keeps the order it was filled in: the
+    # commit chosen is the one the exact pass would have chosen had the procedure
+    # left the ticket file alone.
+    for commit, entries in listings.items():
+        held = entries.get(rewritten)
+        # A path the candidate does not carry at all cannot be substituted into
+        # it. Adding or removing a path changes which files exist, which is not
+        # the procedure rewriting one of them, so it is not tolerated.
+        if held is None:
+            continue
+        for blob in blobs:
+            if blob != held and _fingerprint_of({**entries, rewritten: blob}) == tree:
+                return commit
     return None
 
 
@@ -314,7 +426,7 @@ def _unresolved_in(repository, commit, files):
     return unresolved
 
 
-def _the_files_the_round_moved(repository, commit):
+def _the_files_the_round_moved(repository, commit, rewritten=None):
     """Which files the commit carrying a check's tree moved, against its parent.
 
     What the round the check belongs to actually did, read from the history
@@ -327,6 +439,16 @@ def _the_files_the_round_moved(repository, commit):
     The paths the fingerprint leaves out are left out here too, because the
     comparison is the fingerprint's comparison: counting the journal the commit
     carries would refuse every citation the moment the next record was written.
+    And `rewritten` with them, for that same reason one step on. The procedure
+    rewrites the ticket file after a round's checks and again after the review,
+    so a comparison counting it refuses every citation whatever the code did, and
+    the commit this question is asked of is often the commit that rewrote it and
+    nothing else: on this ticket's branch green 35's tree is held by a docs commit
+    whose own change is the ticket file. A commit that moved only that path did
+    not carry the work either, so the question goes to its parent, exactly as it
+    does for a commit that moved nothing counted at all. Left out of what the
+    round moved, not out of what a plan may name: a slice naming the ticket file
+    is still held to it, because that is the plan's own choice and a stricter one.
 
     A commit that moved no counted file is not the commit that carried the work:
     its parent holds the same content, so the question is asked of the parent,
@@ -350,7 +472,8 @@ def _the_files_the_round_moved(repository, commit):
             return None
         moved = [path for path
                  in repository.git('diff', '--name-only', parents[0], commit).splitlines()
-                 if path.strip() and not path.startswith(FINGERPRINT_EXCLUDED)]
+                 if path.strip() and not path.startswith(FINGERPRINT_EXCLUDED)
+                 and path != rewritten]
         if moved:
             return moved
         # No counted path differs, so the parent's content is this commit's
@@ -456,7 +579,8 @@ def _the_scope_a_citation_is_judged_in(records, number, position):
     return files, None, BY_THE_SLICE
 
 
-def _require_the_check_is_about_this_code(record, number, tree, current, repository, scope):
+def _require_the_check_is_about_this_code(record, number, tree, current, repository, scope,
+                                          rewritten=None):
     """A check from an earlier attempt still describes the code it covered.
 
     The second of the two refusals, and the one that carries the reason: a check
@@ -503,6 +627,13 @@ def _require_the_check_is_about_this_code(record, number, tree, current, reposit
     stay in the comparison rather than being replaced by the round's, because a
     slice may name a file its round did not happen to move, and dropping it would
     be a citation newly accepted.
+
+    `rewritten` is the one path the procedure rewrites between a check and the
+    commit carrying its work, which both of those readings are told to tolerate
+    and nothing else is. It is what makes the scoped comparison reachable at all,
+    because until it was tolerated no commit carried any check's tree:
+    `_the_path_the_procedure_rewrites` argues for the narrowness of the set and
+    `_the_commit_holding` for the guard around the search.
     """
     files, because, named_by = scope
     # Never an empty reason. The whole-tree refusal is the one a reader meets
@@ -520,10 +651,10 @@ def _require_the_check_is_about_this_code(record, number, tree, current, reposit
             'code; run it again in this attempt')
     if after == tree:
         return
-    commit = _the_commit_holding(repository, after) if files and repository else None
+    commit = _the_commit_holding(repository, after, rewritten) if files and repository else None
     if commit is not None:
         unresolved = _unresolved_in(repository, commit, files)
-        moved_by_the_round = _the_files_the_round_moved(repository, commit)
+        moved_by_the_round = _the_files_the_round_moved(repository, commit, rewritten)
         if unresolved:
             because = (f'{named_by} names {", ".join(unresolved)}, which git cannot see in the '
                        'tree it ran against, so a comparison over those names is a comparison '
@@ -543,8 +674,14 @@ def _require_the_check_is_about_this_code(record, number, tree, current, reposit
                     'it again in this attempt')
             return
     elif files:
-        because = ('no commit on this branch carries the tree it ran against, so which files '
-                   'moved cannot be told')
+        # Which of the two searches came back empty, because a session reading
+        # this needs to know whether the tolerance was even in play. A RED's tree
+        # is the ordinary case: it holds the test without the code that answers
+        # it, and what gets committed is the green.
+        because = ('no commit on this branch carries the tree it ran against'
+                   + (f', even reading {rewritten} as the procedure rewrote it' if rewritten
+                      else '')
+                   + ', so which files moved cannot be told')
     require(False,
             f'The tree moved under check {number}: it ran against {after[:12]} and this record '
             f'is written against {tree[:12]}, compared over the whole tree because {because}. '
@@ -591,7 +728,12 @@ def cited_check(records, number, phase, current, tree=None, repository=None,
             f'Check {number} was recorded at the {record["stage"]} stage and this record belongs '
             f'to {current["stage"]}; a check counts only for the stage that produced it')
     if record['attempt'] != current['attempt']:
-        _require_the_check_is_about_this_code(record, number, tree, current, repository, scope)
+        # The ticket is read from the record being judged rather than from the
+        # start record, because every record carries the ticket it belongs to and
+        # the start record of a journal written before a field existed may not.
+        _require_the_check_is_about_this_code(
+            record, number, tree, current, repository, scope,
+            _the_path_the_procedure_rewrites(records, record.get('ticket'), repository))
     require(record['data']['phase'] == phase,
             f'Expected a {phase} check at record {number}, found {record["data"]["phase"]}')
     if phase == 'red':
