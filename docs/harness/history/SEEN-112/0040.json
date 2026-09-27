@@ -1,0 +1,22 @@
+{
+  "sequence": 40,
+  "ticket": "SEEN-112",
+  "timestamp": "2026-09-27T06:26:34.136493+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "9939b11837a1876ed0990f9aac7aa00ceec25282",
+  "prev_hash": "466dd44b576448da3e278b0ccce211cbda436374fc2b9062794d12282fb1b9e2",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 4,
+    "reason": "The triage could see no evidence for: A code ticket with no open questions runs the whole way without a stop, proven at review by the fixture walk (`LoopTest` drives the loop from clarify to the receipt, every step an action with runnable argv and no step a stop) and by this ticket's own journal: both slices' RED and GREEN declaring `--agent seen-implementer`, and the session's budget figures on record (amended twice, 27 September 2026, see `## Amendment`). A criterion with nothing behind it is answered at the tdd stage, by writing the test or the check that proves it, rather than by a reviewer reading a diff that does not contain it",
+    "unmet_criteria": [
+      1
+    ]
+  }
+}
