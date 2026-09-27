@@ -97,6 +97,44 @@ This ticket was also the end-to-end proof of SEEN-112's `harness run`: clarify t
 three slices worked by `seen-implementer` on opus at high effort by rule, and the whole run driven by the
 loop naming its next action and arguments.
 
+### After the review, 27 September 2026
+
+The review verified all five criteria against the database rather than against this journal's account of them,
+and returned the ticket on three high findings it reproduced by execution in rolled-back transactions. All
+three are closed at records 23 and 24.
+
+A signed-in member of a tenant could delete its own tenant row, and the cascade erased the whole trade record
+and every audit event through the one branch the append-only trigger permits, so the audit trail was erasable
+by the party it exists to hold accountable. `authenticated` could insert a compensation settlement line of
+999900 cents and a claim marked credited, which is CLAUDE.md's ground rule about billable events broken
+outright, and could equally zero an invoice or delete a signed statement. And the four database tests that are
+the only evidence for four of the five criteria sat behind a `test:db` script that no CI job, turbo task or root
+script invoked.
+
+The decision those fixes rest on: `anon` and `authenticated` get **select only** on all 29 tables, every write
+goes through the API with the service role, and tenant erasure is a service-role action which SEEN-083 owns.
+Measured from `relacl` after a reset rather than asserted: `anon` holds nothing at all, `authenticated` holds
+select on 29 and nothing else, `service_role` holds select and insert on 29 with update, delete and truncate on
+28, not `audit_events`. The revoke had to be per table over `pg_class`, because Supabase's default ACL had
+granted those privileges at table-creation time and the blanket grant was not their only source, and the
+migration ends with a self-check that raises rather than with a blanket grant.
+
+The package's `test` script is now the whole suite, so CI runs the tenancy guard; CI starts Supabase before
+`turbo run test`, so this needed no change to the workflow. The tenancy assertion reads the whole permissive
+policy set per table and both `qual` and `with_check`, the privilege assertion covers 29 tables and three roles,
+every catalogue assertion is guarded against passing on an empty schema, and three probe tests inject the
+failures they must catch.
+
+The branch was rebased onto main after the review, so its receipt attests only this ticket's work. That was the
+review's fourth finding: it had been stacked on SEEN-112's branch, which carried 2,100 lines of another
+ticket's work and that ticket's file still at `status: doing`.
+
+Left open, named rather than done: `pg_default_acl` still grants the four write privileges to `anon` and
+`authenticated` on tables that do not exist yet, so the next migration's table is born writable by the role a
+browser is bound to. The new privilege assertion fails loudly when that happens, which is detection rather than
+prevention; narrowing it with `alter default privileges` changes every future migration and was not in the
+decision above.
+
 ## Slices
 
 The starting slice plan, one session each; the solution stage adopts or amends it (SEEN-104). A slice is at most 2 points and a ticket has at most four.

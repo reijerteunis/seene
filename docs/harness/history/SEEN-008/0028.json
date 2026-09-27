@@ -1,0 +1,38 @@
+{
+  "sequence": 28,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-27T17:07:20.021867+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "aab086ff608f5038e638b6a26c1ed489c83ed5c8",
+  "prev_hash": "508719ede49cc7e588eb96376262cecfad78f2d4a673289b4b66c10c828111b7",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": null,
+          "behaviour": "Attempt 2 closes the three high findings the review reproduced by execution, and the round belongs to no single slice because it changes what all three built. `anon` holds nothing on any of the 29 tables and `authenticated` holds select only; every write goes through the API with the service role, and tenant deletion, and therefore erasure on request, becomes a service-role action which SEEN-083 owns. The revoke is per table over `pg_class`, because Supabase's default ACL for schema public had granted those privileges at table-creation time and the blanket grant was not their only source, and the migration ends with a self-check that raises if a client-bound role still holds anything unintended rather than with a blanket grant. The package's `test` script is the whole suite, so `turbo run test` and therefore CI run the database tests that are the only evidence for four of the five criteria, with `test:unit` keeping the database-free path; CI starts Supabase before `turbo run test`, which is why this needed no change to the workflow. The tenancy assertion now reads the whole permissive policy set per table and both `qual` and `with_check`, the privilege assertion covers 29 tables and three roles from `aclexplode`, every catalogue assertion is guarded against passing on an empty schema, and three probe tests inject the failures they are meant to catch. The branch was rebased onto main after the review, so its receipt attests only this ticket's work, which was the review's fourth finding.",
+          "failure_reason": "`pnpm --filter @seen/core test` exited 1 with 11 failures of 57 tests, reproducing the reviewer's own executions as tests. In the runner's words: \"a signed-in user of the tenant deleted the tenant row, and the cascade took the trade record with it: of the 2 audit events and 1 order the tenant had, 0 audit events and 0 orders are left\"; \"the tenant wrote its own settlement line and its own credited claim, which is a billable event created by a person rather than ingested\"; \"the tenant zeroed and voided its own invoice\"; \"the tenant deleted its own signed statement\"; \"58 table and role pairs hold privileges the trade record does not intend\"; and \"A second permissive policy on public.evidence reading 'using (true)' exposes every tenant's evidence, and the tenancy assertion reported nothing at all\".",
+          "red": 23,
+          "green": 24
+        }
+      ],
+      "regression": 27,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "a00943ab9615",
+      "output_tokens": 671960,
+      "tool_calls": 365,
+      "unavailable": null
+    }
+  }
+}
