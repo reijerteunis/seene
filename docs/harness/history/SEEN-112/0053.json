@@ -1,0 +1,24 @@
+{
+  "sequence": 53,
+  "ticket": "SEEN-112",
+  "timestamp": "2026-09-27T12:29:49.210939+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 5,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "bee79220b456d1493255b7e77921f9b0850db9dc",
+  "prev_hash": "acb3a2d1a05e1fe3963fb0eea66982b929e80c67753fbca56d66364f16d624d7",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 6,
+    "reason": "The triage could see no evidence for: A code ticket with no open questions runs from clarify to a green `verify-delivery` without a stop, in one orchestrating session whose own spending stays inside one slice's budget, with every slice's RED and GREEN recorded by `seen-implementer` and the review by `seen-reviewer`, proven on a real ticket of at most 2 points and evidenced by its journal and its budget figures; Every stop is one of the named ones and none is retried: a gate that refuses, a Jev question that does not clear, a failed check, red CI, and a second return on the same slice, each reporting the stage, the record number and the one command to resume from; The merge is never taken without authorisation: the run stops at a green `verify-merge` with the receipt in the pull request body, and merges only when that was authorised for this ticket and the authorisation is in the journal with who gave it and when. A criterion with nothing behind it is answered at the tdd stage, by writing the test or the check that proves it, rather than by a reviewer reading a diff that does not contain it",
+    "unmet_criteria": [
+      1,
+      3,
+      4
+    ]
+  }
+}
