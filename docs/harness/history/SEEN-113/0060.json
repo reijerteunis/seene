@@ -1,0 +1,38 @@
+{
+  "sequence": 60,
+  "ticket": "SEEN-113",
+  "timestamp": "2026-09-27T22:45:35.528119+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 5,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "c1c51719dda8eeafcee07d3772689c76a71de868",
+  "prev_hash": "5f8478dbed1918f3b9e299ddc4bd4de340712b6c05a88967e58b368cae6af964",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": 2,
+          "behaviour": "The rule as it stands after three review rounds and three further defects found by using it. `cited_check` keeps its phase and stage requirements and replaces the attempt requirement with a content test: a check counts when it was recorded in this attempt, or when the code it covers has not changed since it ran. The scope is the files the cited check's slice names, corroborated by the positions other accepted tdd records declared for that check so a citation cannot vouch for its own scope, with every entry required to resolve in the commit compared against and the whole tree as a fail-closed fallback. A round that belongs to no single slice is scoped by the union of the accepted plan's files, because several slices is not the same as unknowable. The search for the commit carrying a check's tree tolerates exactly one path, the ticket file, because the procedure itself requires the Outcome, the status and the ticks before review is left and so forces that file to move between a check and the commit carrying its work; the fingerprint and FINGERPRINT_EXCLUDED are untouched, and a candidate differing in that path and anything else is refused by name. And a slice's pair is judged by its green, because a red runs on a tree holding the test without the code that answers it so no commit ever carries a red's tree: the green's comparison is made first and passed into the red's citation, a pair whose green is refused fails as a pair, and both halves must come from the same attempt, which all 100 slice entries in every journal already satisfy. This round is slice 2's rule reaching its final shape, so it is cited at position 2.",
+          "failure_reason": "`python3 -m unittest harness.tests.test_stage_gates harness.tests.test_session_cap` exited 1 on 433 tests with 16 failures and one error. The headline was the pair shape a real journal always produces: `HarnessError: The tree moved under check 3: it ran against ffffffffffff and this record is written against cd66624ed26c, compared over the whole tree because no commit on this branch carries the tree it ran against, even reading the ticket file as the procedure rewrote it, so which files moved cannot be told`. The mirror failed too, and in the direction that matters: `AssertionError: 'tree moved under check 4' not found in 'The tree moved under check 3 ...'`, so before the change the refusal named the red and after it names the green. The pair tie failed as `AssertionError: HarnessError not raised`, because a red from one attempt beside a green from another was accepted before this change.",
+          "red": 55,
+          "green": 56
+        }
+      ],
+      "regression": 59,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "a00943ab9615",
+      "output_tokens": 893567,
+      "tool_calls": 489,
+      "unavailable": null
+    }
+  }
+}

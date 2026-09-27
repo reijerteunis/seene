@@ -717,6 +717,8 @@ class TreeMovedUnderTheCheck(SeenOneTwelveShape):
         return str(raised.exception)
 
     def moved_tree(self):
+        # Check 3 is a green here, which is the half a pair is judged by, so this
+        # is the refusal a moved tree produces whichever rule is in force.
         return self.refusal(self.citing_all(), self.journal(moved=(3,)))
 
     def absent_check(self):
@@ -873,7 +875,15 @@ class ScopedToTheSlicesFiles(TddGateTest):
         plan[0].update(changes)
         return plan
 
-    def journal(self, plan=None, proved=None, corroborated=1, corroborating=True):
+    # The half of a pair a refusal in this fixture names. Its red and its green
+    # ran against the same tree, so both used to be comparable and the red, being
+    # cited first, was the one the refusal was about. A pair is judged by its
+    # green now, so the comparison is made for the green and the green is what a
+    # refusal names. The reason is the same sentence either way.
+    JUDGED = 'tree moved under check 4'
+
+    def journal(self, plan=None, proved=None, corroborated=1, corroborating=True,
+                red_proved=None):
         """Slice one proved in attempt 1, slice three in attempt 2, which is now.
 
         Attempt 1 advanced out of tdd, and its record is what says which slice of
@@ -883,6 +893,13 @@ class ScopedToTheSlicesFiles(TddGateTest):
         is the position that record declared, null for a round that declared
         none, and `corroborating` False for an attempt that never advanced out of
         tdd at all.
+
+        `red_proved` is the tree the red ran against where it is not the green's.
+        That is every real red's shape and not an odd case: a red runs on a tree
+        holding the test without the code that answers it, and what gets
+        committed is the green, so no commit carries a red's tree. The default
+        keeps the two halves equal, because the tests written before that was
+        measured are about the comparison rather than about which half carries it.
         """
         now = self.repository.fingerprint()
         earlier = [advance_record(
@@ -897,7 +914,7 @@ class ScopedToTheSlicesFiles(TddGateTest):
         return self.records + [
             advance_record(2, 'solution',
                            dict(mode='code', slices=plan or self.plan), attempt=1),
-            check_record(3, 'red', attempt=1, after=proved or self.proved),
+            check_record(3, 'red', attempt=1, after=red_proved or proved or self.proved),
             check_record(4, 'green', attempt=1, after=proved or self.proved),
             *earlier,
             check_record(6, 'red', attempt=2, after=now),
@@ -1002,7 +1019,7 @@ class TheSlicesOwnFilesMoved(ScopedToTheSlicesFiles):
         """No scope is not an empty scope: an empty one would accept everything."""
         self.slice_three_writes_its_own_file()
         message = self.refusal(records=self.journal(plan=self.plan_with(files=[])))
-        self.assertIn('tree moved under check 3', message)
+        self.assertIn(self.JUDGED, message)
 
 
 class UnattributableCitationFallsBack(ScopedToTheSlicesFiles):
@@ -1026,7 +1043,7 @@ class UnattributableCitationFallsBack(ScopedToTheSlicesFiles):
     def test_a_citation_the_journal_disagrees_with_is_held_to_the_whole_tree(self):
         self.slice_three_writes_its_own_file()
         message = self.refusal(data=self.citing(position=None))
-        self.assertIn('tree moved under check 3', message)
+        self.assertIn(self.JUDGED, message)
         self.assertIn(self.proved[:12], message)
 
     def test_the_whole_tree_refusal_says_that_is_what_it_compared(self):
@@ -1038,7 +1055,7 @@ class UnattributableCitationFallsBack(ScopedToTheSlicesFiles):
         files it held, so the whole tree is the only comparison left."""
         self.slice_three_writes_its_own_file()
         message = self.refusal(records=self.journal(proved='f' * 64))
-        self.assertIn('tree moved under check 3', message)
+        self.assertIn(self.JUDGED, message)
         self.assertIn('whole tree', message)
 
     def test_the_fingerprint_this_rule_reads_is_the_one_the_repository_writes(self):
@@ -1069,7 +1086,7 @@ class ThePositionIsCorroborated(ScopedToTheSlicesFiles):
     def test_naming_another_slices_position_does_not_buy_that_slices_files(self):
         self.slice_one_is_rewritten()
         message = self.refusal(data=self.citing(position=2))
-        self.assertIn('tree moved under check 3', message)
+        self.assertIn(self.JUDGED, message)
         self.assertIn('whole tree', message)
 
     def test_the_refusal_says_which_slice_the_journal_declared_instead(self):
@@ -1095,7 +1112,7 @@ class ThePositionIsCorroborated(ScopedToTheSlicesFiles):
     def test_an_attempt_that_never_advanced_out_of_tdd_corroborates_nothing(self):
         self.slice_three_writes_its_own_file()
         message = self.refusal(records=self.journal(corroborating=False))
-        self.assertIn('tree moved under check 3', message)
+        self.assertIn(self.JUDGED, message)
         self.assertIn('whole tree', message)
 
     def test_a_round_that_declared_no_position_lends_no_scope(self):
@@ -1104,7 +1121,7 @@ class ThePositionIsCorroborated(ScopedToTheSlicesFiles):
         declares no mapping, and no mapping is not a mapping to anything."""
         self.slice_three_writes_its_own_file()
         message = self.refusal(records=self.journal(corroborated=None))
-        self.assertIn('tree moved under check 3', message)
+        self.assertIn(self.JUDGED, message)
         self.assertIn('whole tree', message)
 
 
@@ -1271,7 +1288,7 @@ class TheRoundsOwnCommitSaysWhatItCovered(ScopedToTheSlicesFiles):
         message = self.refusal(records=self.journal(
             plan=self.plan_with(files=['harness/thresholds.toml']),
             proved=gates.content_fingerprint(self.repository, root)))
-        self.assertIn('tree moved under check 3', message)
+        self.assertIn(self.JUDGED, message)
         self.assertIn('whole tree', message)
         self.assertIn('which files that round moved cannot be read', message)
 
@@ -1780,6 +1797,193 @@ class ARoundThatBelongsToNoSingleSlice(ScopedToTheSlicesFiles):
         slice two's file leaves its evidence standing."""
         self.a_plan_file_moves('harness/slice_two.py')
         self.evaluate('tdd', self.citing(position=1), records=self.journal(), attempt=2)
+
+
+class APairIsJudgedByItsGreen(ScopedToTheSlicesFiles):
+    """A red's standing rests on its green's tree, because it can have none of its own.
+
+    Ruud's decision, recorded at record 54 of this ticket's journal after two
+    rounds reached the same reading and declined to take it on their own
+    authority. The measurement that forced it: a red runs on a tree holding the
+    test without the code that answers it, and what gets committed is the green,
+    so no commit ever carries a red's tree. None of SEEN-112's five reds nor this
+    ticket's red 34 is any commit's content, modulo any single path. Cross-attempt
+    citation therefore worked for a green and could never work for a red, and
+    because a slice entry requires both halves, every cross-attempt pair fell
+    closed on its red however untouched its code was.
+
+    What a red loses is one thing, a tree test that could never pass for it. What
+    it keeps is everything else, and each of those has a test: it exited non-zero
+    and `checks.demonstrates_failure` holds of it, below; it precedes its green,
+    slices do not overlap and the regression is last, in `OrderingAcrossAttempts`;
+    it is the right phase at the right stage, in `TddGateTest` and below.
+    """
+
+    def a_red_whose_tree_no_commit_carries(self, **changes):
+        """The shape of every real red, and of this ticket's own red 34."""
+        return self.journal(red_proved='f' * 64, **changes)
+
+    def test_the_fixture_really_models_a_red_no_commit_carries(self):
+        """Without this the acceptance below could be an exact match all along."""
+        self.assertIsNone(gates._the_commit_holding(self.repository, 'f' * 64))
+        self.assertIsNotNone(gates._the_commit_holding(self.repository, self.proved))
+
+    def test_a_pair_stands_when_only_its_green_is_findable(self):
+        """The citation this ticket has been blocked on for two rounds."""
+        self.slice_three_writes_its_own_file()
+        self.evaluate('tdd', self.citing(), records=self.a_red_whose_tree_no_commit_carries(),
+                      attempt=2)
+
+    def test_the_green_it_rests_on_was_really_compared(self):
+        """So the acceptance above is worth what the green's comparison is worth: a
+        change to the file slice one covers takes the pair down, by name."""
+        self.write('harness/slice_one.py', 'def one():\n    return 999\n')
+        self.commit('fix(SEEN-001): rewrite the file slice one covered')
+        message = self.refusal(records=self.a_red_whose_tree_no_commit_carries())
+        self.assertIn('harness/slice_one.py', message)
+        self.assertIn('check 4', message)
+
+    def red_that_did_not_fail(self, exit_code):
+        records = self.a_red_whose_tree_no_commit_carries()
+        for record in records:
+            if record['sequence'] == 3:
+                record['data']['exit_code'] = exit_code
+        return self.refusal(records=records)
+
+    def test_an_exempt_red_that_passed_is_still_refused(self):
+        """The one thing this harness refuses outright, and the exemption is not a
+        way round it: the phase and the failure are read from the record, which is
+        where they always were."""
+        self.assertIn('did not fail', self.red_that_did_not_fail(0))
+
+    def test_an_exempt_red_that_timed_out_is_still_refused(self):
+        """A timeout is a fact about the runner rather than about the behaviour."""
+        self.assertIn('did not fail', self.red_that_did_not_fail(124))
+
+    def test_an_exempt_red_from_another_stage_is_still_refused(self):
+        records = self.a_red_whose_tree_no_commit_carries()
+        for record in records:
+            if record['sequence'] == 3:
+                record['stage'] = 'review'
+        self.assertIn('counts only for the stage that produced it',
+                      self.refusal(records=records))
+
+    def test_a_red_that_is_not_there_at_all_is_still_refused(self):
+        """Nothing is exempted by being absent: the green cannot carry a half the
+        journal does not have."""
+        data = self.citing()
+        data['slices'][0]['red'] = 99
+        self.assertIn('no such check', self.refusal(data=data))
+
+
+class NoPairSurvivesItsGreensRefusal(ScopedToTheSlicesFiles):
+    """The mirror that decides whether this is a fix or a hole.
+
+    The change makes the gate accept more, so what it still refuses is the whole
+    question: a red may not be citable where its green is not. The exemption is
+    not a rule about reds, it is the pair being judged once at the half that can
+    be judged, so a green that loses its evidence takes its red down with it.
+
+    In the code that is structural rather than a matter of statement order: the
+    exemption is reached only by handing the red the green `cited_check` has
+    already returned, so there is no way to write the red's citation that does not
+    first make the green's comparison and raise on it.
+    """
+
+    def both_halves_stale(self, **changes):
+        """Neither tree is any commit's content: the worst case for the pair."""
+        return self.journal(proved='f' * 64, red_proved='e' * 64, **changes)
+
+    def test_a_pair_whose_green_is_refused_fails_as_a_pair(self):
+        self.slice_three_writes_its_own_file()
+        self.assertIn('tree moved under check 4', self.refusal(records=self.both_halves_stale()))
+
+    def test_the_refusal_is_the_greens_and_never_the_reds(self):
+        """A red the gate exempts cannot be the reason for anything it says."""
+        self.slice_three_writes_its_own_file()
+        self.assertNotIn('check 3', self.refusal(records=self.both_halves_stale()))
+
+    def test_the_greens_own_file_moving_takes_the_pair_down_too(self):
+        """The scoped refusal and not only the whole-tree one: a green whose scope
+        was granted and then broken by name is still the end of its pair."""
+        self.write('harness/slice_one.py', 'def one():\n    return 999\n')
+        self.commit('fix(SEEN-001): rewrite the file slice one covered')
+        message = self.refusal(records=self.journal(red_proved='e' * 64))
+        self.assertIn('harness/slice_one.py', message)
+
+
+class WhatTiesARedToItsGreen(SeenOneTwelveShape):
+    """A pair is one round, and the attempt is what a gate can check of that.
+
+    The exemption lends the green's standing to the red, which is only honest if
+    the two halves are the same work. What holds them together, in full: the
+    ordering rule, which puts the red after the previous entry's green and before
+    its own; the route, which holds both halves to the model and the context the
+    position was routed to; and the attempt, which is what this class adds. A
+    return ends a round and every return increments the attempt, so a pair split
+    across a return is two halves of different work and the red would be
+    borrowing a tree it has no claim on.
+
+    Measured on every journal under `docs/harness/history`: 100 slice entries in
+    accepted tdd records, and all 100 have their red and their green in the same
+    attempt. So nothing any journal has recorded is refused by requiring it.
+
+    **What is not tied, said plainly rather than implied.** Within one attempt a
+    session may record two rounds, and beyond the ordering nothing here tells one
+    round's red from the other's. The nearest red before the green is not the
+    answer either: SEEN-098's green 8 belongs to red 6 with another red recorded
+    at 7, so the nearest red would refuse a real pair. Inside an attempt the
+    pairing is the record's word, and the failure reason a slice states is prose
+    a reviewer reads against the runner's output at the triage, not anything this
+    gate compares.
+    """
+
+    def split_across_a_return(self):
+        """Attempt 1's red with attempt 2's green, and an ordering nothing objects to."""
+        return self.template(
+            'tdd',
+            slices=[dict(position=1, behaviour='A red from attempt 1 and a green from attempt 2',
+                         failure_reason='expected 250, received 0', red=2, green=5),
+                    dict(position=3, behaviour='Slice 3, proved in attempt 5',
+                         failure_reason='expected slice 3, read slice 1', red=6, green=7)],
+            regression=8)
+
+    def refusal(self, data=None, records=None):
+        with self.assertRaises(HarnessError) as raised:
+            self.evaluate('tdd', data or self.split_across_a_return(),
+                          records=records or self.journal(), attempt=5)
+        return str(raised.exception)
+
+    def test_a_red_from_before_a_return_may_not_be_cited_beside_a_later_green(self):
+        self.assertIn('one round', self.refusal())
+
+    def test_the_refusal_names_both_attempts_and_both_checks(self):
+        message = self.refusal()
+        for named in ('red 2', 'green 5', 'attempt 1', 'attempt 2'):
+            self.assertIn(named, message)
+
+    def test_that_pair_is_one_the_rest_of_the_gate_accepts(self):
+        """Without this the refusal above could be the ordering rule's: the red
+        precedes the green, no entry overlaps another and the regression is last,
+        and every tree in this fixture is the tree this record is written against,
+        so nothing else in the gate has an objection to make."""
+        self.assertNotIn('out of order', self.refusal())
+
+    def test_a_pair_of_one_round_from_an_earlier_attempt_is_still_cited(self):
+        """The rule ties the halves to each other, not to the citing attempt: the
+        citation this ticket exists to allow is untouched."""
+        self.evaluate('tdd', self.citing_all(), records=self.journal(), attempt=5)
+
+    def test_a_record_whose_entries_overlap_still_hears_about_the_ordering(self):
+        """Why the pair is asked after the ordering pass and not inside it: the
+        ordering rule reads across entries, so a record whose entries overlap gets
+        the sentence a session can act on rather than one about a pair the
+        ordering was going to refuse anyway."""
+        data = self.citing_all()
+        data['slices'][0].update(red=2, green=5)
+        data['slices'][1].update(red=4, green=7)
+        data['slices'][2].update(red=6, green=7)
+        self.assertIn('out of order', self.refusal(data=data))
 
 
 if __name__ == '__main__':  # pragma: no cover - a module must run on its own

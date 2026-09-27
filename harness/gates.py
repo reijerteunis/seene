@@ -689,8 +689,51 @@ def _require_the_check_is_about_this_code(record, number, tree, current, reposit
             'citation here; run it again in this attempt')
 
 
+def _require_the_pair_is_one_round(position, red, green):
+    """A slice's red and its green were recorded in the same attempt.
+
+    The one thing a gate can check of the claim the exemption below rests on.
+    Judging a pair by its green lends the green's standing to the red, which is
+    honest only where the two halves are the same work, and Ruud's decision at
+    record 54 says why they are: a red and the green that follows it in one slice
+    entry are one round, so the round the green's commit carries is the red's
+    round too. A pair split across a return is not that. Every return increments
+    the attempt, and a return is what ends a round, so a red from attempt 2 beside
+    a green from attempt 5 is two halves of different work and the red would be
+    borrowing a tree it has no claim on.
+
+    Measured before it was required, on every journal under
+    `docs/harness/history`: 100 slice entries in accepted tdd records, and all 100
+    have their red and their green in the same attempt. So this refuses nothing
+    any journal has recorded, and it does not narrow the citation this ticket
+    exists for: what has to be old is the pair, not either half of it separately.
+
+    **What ties the halves together, in full, because the honest answer is shorter
+    than it looks.** This rule, the ordering rule, which puts the red after the
+    previous entry's green and before its own, and the route, which holds both
+    halves to the model and the context the position was routed to. Nothing else.
+    Within one attempt a session may record two rounds, and no rule here tells one
+    round's red from the other's: cite slice B's green beside slice A's red inside
+    one attempt and the gate takes the record's word for it. The nearest red before
+    the green is not the missing rule either, and that was measured rather than
+    assumed: SEEN-098's green 8 belongs to red 6 with another red recorded at 7, so
+    a nearest-red rule would refuse a real pair. Nor is the failure reason a check
+    of it: `failure_reason` is prose a reviewer reads against the runner's output
+    at the triage, and `triage` says so in as many words. So inside an attempt the
+    pairing rests on the record's word, and this docstring is the place that says
+    so rather than a comment implying a check that is not there.
+    """
+    require(red['attempt'] == green['attempt'],
+            f'Slice {position} cites red {red["sequence"]} from attempt {red["attempt"]} beside '
+            f'green {green["sequence"]} from attempt {green["attempt"]}. A red and its green are '
+            'one round, and a return is what ends a round, so a pair split across one is two '
+            'halves of different work: the red is judged by its green here, and a green from '
+            'another attempt is not its green. Cite the green of the round that recorded the '
+            'red, or the red of the round that recorded the green')
+
+
 def cited_check(records, number, phase, current, tree=None, repository=None,
-                scope=(None, None, None)):
+                scope=(None, None, None), judged_with=None):
     """A check a stage record points at, confirmed to be usable evidence here.
 
     A check counts only for the stage that produced it, and only while it is
@@ -716,6 +759,30 @@ def cited_check(records, number, phase, current, tree=None, repository=None,
     Two refusals and not one, because a gate answering "another attempt" where it
     means "different code" is what made this take five returns to find: there is
     no such check, or the tree moved under the check there is.
+
+    `judged_with` is the pair's green, for a red, and is what makes a pair judged
+    once at the half that can be judged. **Ruud's decision, at record 54 of
+    SEEN-113's journal, and the measurement that forced it:** a red runs on a tree
+    holding the test without the code that answers it, and what gets committed is
+    the green, so no commit ever carries a red's tree. None of SEEN-112's five reds
+    nor this ticket's red 34 is any commit's content, modulo any single path. So
+    the tree test could never pass for a red, and since a slice entry requires both
+    halves, every cross-attempt pair fell closed on its red however untouched its
+    code was. A red's standing never rested on its tree in the first place: it
+    rests on the ordering rule, which reads sequence numbers, and on its own
+    recorded failure, which is read from the record two requires below.
+
+    What the red loses is that comparison and, with it, the scope that only ever
+    served it; there is nothing else in this function the attempt gates. What it
+    keeps is everything else: a non-zero exit that `checks.demonstrates_failure`
+    holds of, its place in the order, its phase and its stage.
+
+    The mirror is structural rather than a matter of statement order: the only
+    value `judged_with` takes is the green this same function has already returned,
+    so a red's citation cannot be written without the green's comparison having run
+    and raised. A pair whose green is refused fails as a pair, and a red is never
+    citable where its green is not. `_require_the_pair_is_one_round` is what ties
+    the two halves to the same work, and is honest about how far that goes.
     """
     require(isinstance(number, int) and not isinstance(number, bool),
             f'Not a record number: {number!r}')
@@ -727,7 +794,15 @@ def cited_check(records, number, phase, current, tree=None, repository=None,
     require(record['stage'] == current['stage'],
             f'Check {number} was recorded at the {record["stage"]} stage and this record belongs '
             f'to {current["stage"]}; a check counts only for the stage that produced it')
-    if record['attempt'] != current['attempt']:
+    if judged_with is not None:
+        # Never anything but a green, so no caller can exempt a check by handing
+        # this the check itself or the regression. The pair's green is confirmed
+        # by the time it can be passed here, which is the whole of the mechanism.
+        require(phase == 'red' and judged_with['data'].get('phase') == 'green',
+                f'Check {number} is cited as a {phase} and judged with check '
+                f'{judged_with["sequence"]}, a {judged_with["data"].get("phase")}. Only a red is '
+                'judged with its green')
+    if record['attempt'] != current['attempt'] and judged_with is None:
         # The ticket is read from the record being judged rather than from the
         # start record, because every record carries the ticket it belongs to and
         # the start record of a journal written before a field existed may not.
@@ -837,6 +912,7 @@ def _tdd(data, records, current, repository, thresholds):
     regression = cited_check(records, data['regression'], 'regression', current, tree,
                              repository, (None, WHOLE_SUITE, None))
     previous_green = 0
+    pairs = []
     for position, slice_ in enumerate(slices, start=1):
         require(isinstance(slice_, dict), f'Slice {position} must be an object')
         for key in ('behaviour', 'failure_reason'):
@@ -851,17 +927,32 @@ def _tdd(data, records, current, repository, thresholds):
         # what the journal says that check proved, and the record citing it does
         # not decide that by naming a position.
         declared = slice_.get('position')
-        red = cited_check(records, slice_.get('red'), 'red', current, tree, repository,
-                          _the_scope_a_citation_is_judged_in(records, slice_.get('red'),
-                                                             declared))
+        # The green first, and the red with it in hand: a slice's pair is judged
+        # by its green, because a red's tree is unfindable by construction and
+        # the pair is one round. `cited_check` argues it and record 54 decided it.
+        # Passing the confirmed green is what makes the red's exemption reachable
+        # only through the green's comparison, so a pair whose green is refused
+        # cannot half survive. The red gets no scope, because with the comparison
+        # carried by the green nothing reads one for it, and computing a scope
+        # nothing reads is how a reader is left thinking something checks it.
         green = cited_check(records, slice_.get('green'), 'green', current, tree, repository,
                             _the_scope_a_citation_is_judged_in(records, slice_.get('green'),
                                                                declared))
+        red = cited_check(records, slice_.get('red'), 'red', current, tree, repository,
+                          judged_with=green)
         require(previous_green < red['sequence'] < green['sequence'] <= regression['sequence'],
                 f'Slice {position} is out of order; each red must precede its green, slices '
                 'must not overlap, and the regression must be the last check')
         _require_the_routed_slice(records, slice_, position, (red, green), thresholds)
         previous_green = green['sequence']
+        pairs.append((position, red, green))
+    # After the ordering pass and not inside it. The ordering rule reads across
+    # entries, so it is a property of the whole record: a record whose entries
+    # overlap gets the sentence about overlapping, which is the one a session can
+    # act on, rather than a sentence about a pair that rule was going to refuse
+    # anyway.
+    for position, red, green in pairs:
+        _require_the_pair_is_one_round(position, red, green)
     return {}
 
 
