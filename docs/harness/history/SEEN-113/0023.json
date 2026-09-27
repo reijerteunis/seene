@@ -1,0 +1,33 @@
+{
+  "sequence": 23,
+  "ticket": "SEEN-113",
+  "timestamp": "2026-09-27T15:15:51.806817+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "d0063eae6e6c49faafb99b7fcd7546467db6aeec",
+  "prev_hash": "4af00cf3de31e3e9d1427ff086a8d8f857f6cdc6c9837e6f5699251d8f6e83b2",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_stage_gates",
+      "harness.tests.test_session_cap"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "model": "claude-opus-5",
+    "model_declared": "opus",
+    "agent_declared": "seen-implementer",
+    "duration_ms": 50428,
+    "output": "..................................................................................................................................................................F...F...............................................................................................................................................\n======================================================================\nFAIL: test_a_regression_from_an_earlier_attempt_says_why_it_is_the_whole_tree (harness.tests.test_stage_gates.TheRegressionIsHeldToTheWholeTree.test_a_regression_from_an_earlier_attempt_says_why_it_is_the_whole_tree)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_stage_gates.py\", line 1247, in test_a_regression_from_an_earlier_attempt_says_why_it_is_the_whole_tree\n    self.assertIn('covers the suite rather than a slice', message)\n    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 'covers the suite rather than a slice' not found in 'The tree moved under check 5: it ran against 9d4519b0460b and this record is written against cd66624ed26c, compared over the whole tree because None. Its evidence is about code this ticket has changed since, so it does not support a citation here; run it again in this attempt'\n\n======================================================================\nFAIL: test_the_reason_is_a_sentence_rather_than_a_missing_one (harness.tests.test_stage_gates.TheRegressionIsHeldToTheWholeTree.test_the_reason_is_a_sentence_rather_than_a_missing_one)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_stage_gates.py\", line 1253, in test_the_reason_is_a_sentence_rather_than_a_missing_one\n    self.assertNotIn('because None', message)\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 'because None' unexpectedly found in 'The tree moved under check 5: it ran against 9d4519b0460b and this record is written against cd66624ed26c, compared over the whole tree because None. Its evidence is about code this ticket has changed since, so it does not support a citation here; run it again in this attempt'\n\n----------------------------------------------------------------------\nRan 310 tests in 50.328s\n\nFAILED (failures=2)\n",
+    "output_sha256": "aa79255ca675ce7a2b501214ea7c83f543993e2675fc2b40e60994e53ad757eb",
+    "output_truncated": false,
+    "before": "a1185bafb6d5424e58968f4e3dd171d8f3c9c4672a32c636c24dfadf0fa66c3a",
+    "after": "a1185bafb6d5424e58968f4e3dd171d8f3c9c4672a32c636c24dfadf0fa66c3a"
+  }
+}

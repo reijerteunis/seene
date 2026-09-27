@@ -706,5 +706,112 @@ class ReplanCarriesForward(SessionEnvironment):
         self.assertIn('Slice 1, reworked', pack)
 
 
+def green_check(sequence, attempt=1):
+    """A green the way `harness check` records one."""
+    return dict(sequence=sequence, ticket='SEEN-001', kind='check', stage='tdd', attempt=attempt,
+                actor='claude:implementer',
+                data=dict(phase='green', exit_code=0, command=['pytest']))
+
+
+def plan_accepted(sequence, slices, attempt=1):
+    return dict(sequence=sequence, ticket='SEEN-001', kind='advance', stage='solution',
+                attempt=attempt, actor='claude:implementer',
+                data=dict(from_stage='solution', to_stage='tdd',
+                          evidence=dict(mode='code', slices=slices), decisions=[]))
+
+
+def slices_proved(sequence, positions, attempt=1):
+    """A tdd record saying which slice of the plan each cited green proved."""
+    return dict(sequence=sequence, ticket='SEEN-001', kind='advance', stage='tdd',
+                attempt=attempt, actor='claude:implementer',
+                data=dict(from_stage='tdd', to_stage='review', decisions=[],
+                          evidence=dict(
+                              mode='code',
+                              slices=[dict(position=position, behaviour='proved',
+                                           failure_reason='it failed first', red=green - 1,
+                                           green=green)
+                                      for green, position in sorted(positions.items())],
+                              regression=max(positions) + 1)))
+
+
+class ReworkAfterAReplanDoesNotAdvanceTheCount(ReplanCarriesForward):
+    """F3 of this ticket's second review, and a regression the carry forward caused.
+
+    One slice proved, a return to solution that re-accepted the same plan, the
+    same slice reworked and proved again: the count read two greens as two slices
+    and the pack said "Slice 3 of 3, 2 of 3 done" while slice 2 had never been
+    worked, with the guard then refusing slice 2's files. Before the carry
+    forward it read "Slice 2 of 3, 1 of 3 done", which is right, so this was
+    worse than what it replaced and it was the exact harm the ticket exists to
+    stop. A green is not a slice: what counts is how far into the plan a run at
+    tdd got.
+    """
+
+    def one_slice_then_a_replan_then_rework(self):
+        self.green()
+        self.replan()
+        self.green()
+        return self.run_harness('status', self.ticket_id, '--brief')['pack']
+
+    def test_a_second_green_for_the_same_slice_does_not_count_twice(self):
+        self.assertIn('1 of 3', self.one_slice_then_a_replan_then_rework())
+
+    def test_the_pack_does_not_hand_over_a_slice_nobody_has_worked(self):
+        self.assertIn('Slice 2', self.one_slice_then_a_replan_then_rework())
+
+    def test_the_guard_allows_the_files_of_the_slice_that_is_really_next(self):
+        self.one_slice_then_a_replan_then_rework()
+        decision = self.run_harness('guard', 'harness/slice2.py')
+        self.assertTrue(decision['allowed'], decision['reason'])
+
+
+class SlicesProvedRatherThanGreensCounted(unittest.TestCase):
+    """The count is how far into the plan a run at tdd got, not how many greens it ran.
+
+    A unit test of the counting itself, because what separates the two is a tdd
+    record declaring which slice each round proved, which is what the journal
+    carries and what the pack reads.
+    """
+
+    def setUp(self):
+        self.plan = named_plan()
+
+    def done(self, *later):
+        from harness import handoff
+        records = [dict(sequence=1, ticket='SEEN-001', kind='start', stage='clarify', attempt=1,
+                        actor='claude:implementer', data={}), *later]
+        return handoff.current_slice(records, {})['done']
+
+    def test_a_green_no_record_attributes_counts_as_the_next_slice(self):
+        self.assertEqual(self.done(plan_accepted(2, self.plan), green_check(3)), 1)
+
+    def test_two_greens_in_one_run_still_count_as_two(self):
+        """The limit --slice-done exists for, unchanged by counting slices."""
+        self.assertEqual(self.done(plan_accepted(2, self.plan), green_check(3),
+                                   green_check(4)), 2)
+
+    def test_a_rework_green_after_the_plan_was_accepted_again_does_not_advance_it(self):
+        self.assertEqual(self.done(plan_accepted(2, self.plan), green_check(3),
+                                   plan_accepted(4, self.plan, attempt=2),
+                                   green_check(5, attempt=2)), 1)
+
+    def test_a_position_a_tdd_record_declares_carries_the_count_to_it(self):
+        """Rework is not what a declared position says: a run that says it proved
+        slice 3 proved slice 3, whatever number of greens came before it."""
+        self.assertEqual(self.done(plan_accepted(2, self.plan), green_check(3),
+                                   plan_accepted(4, self.plan, attempt=2),
+                                   green_check(5, attempt=2),
+                                   slices_proved(6, {5: 3}, attempt=2)), 3)
+
+    def test_a_declared_position_does_not_count_on_top_of_the_greens_before_it(self):
+        """Positions are places in the plan and greens are a tally; adding one to
+        the other is how a count runs past the plan it is counting."""
+        self.assertEqual(self.done(plan_accepted(2, self.plan), green_check(3),
+                                   green_check(4),
+                                   plan_accepted(5, self.plan, attempt=2),
+                                   green_check(6, attempt=2),
+                                   slices_proved(7, {6: 2}, attempt=2)), 2)
+
+
 if __name__ == '__main__':  # pragma: no cover - a module must run on its own
     unittest.main()

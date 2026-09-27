@@ -35,6 +35,13 @@ ESCAPING_SEVERITIES = ('high', 'blocking')
 # carried the work it proved, which is the next commit on the branch; fifty is
 # past the longest ticket on record and keeps the search bounded.
 TREE_SEARCH_LIMIT = 50
+# Why a citation is compared over the whole tree when nothing scopes it. The
+# regression is the deliberate case: it covers the suite and not a slice, so it
+# has no files to be judged over and never had. The second is the reason of last
+# resort, for a caller that named no scope and no reason of its own.
+WHOLE_SUITE = ('the regression covers the suite rather than a slice, so there are no files to '
+               'scope the comparison to')
+UNSCOPED = 'nothing scopes this citation to the code it covered'
 
 
 def template_name(stage, mode=None):
@@ -232,7 +239,88 @@ def _files_the_slice_covers(records, position):
     return named or None
 
 
-def _require_the_check_is_about_this_code(record, number, tree, current, repository, files):
+def _unresolved_in(repository, commit, files):
+    """Which of these entries match nothing git can see in that commit.
+
+    `git diff --name-only <commit> -- harness/typo.py` exits 0 with no output, so
+    an entry that matches no path made the comparison vacuous rather than empty:
+    a slice naming a typo for the file its work is in, or a gitignored path,
+    accepted a citation however much the code had moved, and the realistic case
+    is a typo beside a test file that stood still. An entry nothing resolves is
+    an untrustworthy scope and not an empty one, so it costs the whole scope. F2
+    of SEEN-113's second review, reproduced end to end.
+
+    Asked of the commit the comparison is made against, because that is the tree
+    the check ran on: a path that was not in it is not code that check covered.
+    """
+    return [path for path in files
+            if not repository.git('ls-tree', '-r', '--name-only', commit, '--', path).strip()]
+
+
+def _positions_declared_for(records, number):
+    """Which slice of the plan the accepted tdd records say this check proved.
+
+    Every answer found rather than the last one read, so that two records
+    disagreeing stays a disagreement: the scope is granted on one answer and on
+    nothing else. None stands for a round that declared no position, which is a
+    claim that the round belongs to no single slice and so lends no mapping.
+    """
+    if not isinstance(number, int) or isinstance(number, bool):
+        return set()
+    declared = set()
+    for record in records:
+        if record['kind'] != 'advance' or record['data'].get('from_stage') != 'tdd':
+            continue
+        for entry in (record['data'].get('evidence') or {}).get('slices') or []:
+            if not isinstance(entry, dict):
+                continue
+            if number not in (entry.get('red'), entry.get('green')):
+                continue
+            position = entry.get('position')
+            declared.add(position if isinstance(position, int)
+                         and not isinstance(position, bool) else None)
+    return declared
+
+
+def _the_scope_a_citation_is_judged_in(records, number, position):
+    """The files a cited check's evidence is about, and why there are none.
+
+    Two answers and not one, because the reason there is no scope is what the
+    refusal has to say. The position is named by the record making the citation,
+    which is exactly why it cannot settle the scope by itself: naming another
+    slice's position was all it took to be compared against files that had not
+    moved, and the same citation declared honestly was refused. F1 of SEEN-113's
+    second review, reproduced end to end.
+
+    So it is corroborated from a record that is not the one asking: the tdd
+    record of the round that recorded the check, which passed this gate when the
+    check was fresh and is in the hash chain since. A check no accepted tdd
+    record cites is corroborated by nothing, and a round that declared no
+    position declares no mapping, which is this ticket's own record 17. Both are
+    absences, and an absence fails closed to the whole-tree comparison.
+    """
+    if position is None:
+        return None, ('this citation names no slice, so there is nothing to scope the '
+                      'comparison to')
+    declared = _positions_declared_for(records, number)
+    if not declared:
+        return None, (f'no accepted tdd record says which slice of the plan check {number} '
+                      'proved, so the position this record names for it is corroborated by '
+                      'nothing but itself')
+    if declared != {position}:
+        named = ', '.join('no slice at all' if value is None else f'slice {value}'
+                          for value in sorted(declared, key=lambda value: (value is None, value)))
+        return None, (f'this record names slice {position} for check {number} and the tdd record '
+                      f'of the round that recorded it named {named}, so which files it covered '
+                      'is not settled')
+    files = _files_the_slice_covers(records, position)
+    if not files:
+        return None, (f'nothing in the plan or the route says which files slice {position} '
+                      'covers, so there is nothing to scope the comparison to')
+    return files, None
+
+
+def _require_the_check_is_about_this_code(record, number, tree, current, repository, scope):
     """A check from an earlier attempt still describes the code it covered.
 
     The second of the two refusals, and the one that carries the reason: a check
@@ -258,7 +346,17 @@ def _require_the_check_is_about_this_code(record, number, tree, current, reposit
     it is not evidence that the tree moved, it is the absence of the evidence
     that it did not, and every journal written before SEEN-086 recorded one is in
     that position.
+
+    `scope` is the files and, when there are none, the reason there are none: a
+    scope is granted only where the journal corroborates the slice it belongs to
+    and git can resolve every path that slice names, and everything else is an
+    absence that falls back to the whole tree.
     """
+    files, because = scope
+    # Never an empty reason. The whole-tree refusal is the one a reader meets
+    # with nothing else to go on, and "because None" is what a caller that
+    # passed files and no reason used to leave them with.
+    because = because or UNSCOPED
     after = record['data'].get('after')
     require(after is not None,
             f'Check {number} was recorded in attempt {record["attempt"]} and this record is '
@@ -269,16 +367,20 @@ def _require_the_check_is_about_this_code(record, number, tree, current, reposit
         return
     commit = _the_commit_holding(repository, after) if files and repository else None
     if commit is not None:
-        moved = _moved_since(repository, commit, files)
-        require(not moved,
-                f'The code check {number} covers has changed since it ran: '
-                f'{", ".join(moved)}. Its slice names {", ".join(files)}, and its evidence is '
-                'about those files as they were, not as they are; run it again in this attempt')
-        return
-    because = ('this citation names no slice, so there is nothing to scope the comparison to'
-               if not files else
-               'no commit on this branch carries the tree it ran against, so which files moved '
-               'cannot be told')
+        unresolved = _unresolved_in(repository, commit, files)
+        if not unresolved:
+            moved = _moved_since(repository, commit, files)
+            require(not moved,
+                    f'The code check {number} covers has changed since it ran: '
+                    f'{", ".join(moved)}. Its slice names {", ".join(files)}, and its evidence '
+                    'is about those files as they were, not as they are; run it again in this '
+                    'attempt')
+            return
+        because = (f'its slice names {", ".join(unresolved)}, which git cannot see in the tree '
+                   'it ran against, so a comparison over those names is a comparison of nothing')
+    elif files:
+        because = ('no commit on this branch carries the tree it ran against, so which files '
+                   'moved cannot be told')
     require(False,
             f'The tree moved under check {number}: it ran against {after[:12]} and this record '
             f'is written against {tree[:12]}, compared over the whole tree because {because}. '
@@ -287,7 +389,7 @@ def _require_the_check_is_about_this_code(record, number, tree, current, reposit
 
 
 def cited_check(records, number, phase, current, tree=None, repository=None,
-                files=None):
+                scope=(None, None)):
     """A check a stage record points at, confirmed to be usable evidence here.
 
     A check counts only for the stage that produced it, and only while it is
@@ -303,8 +405,9 @@ def cited_check(records, number, phase, current, tree=None, repository=None,
     So the test is the code rather than the attempt, which keeps the original
     protection whole: what it defended against was evidence reused for code that
     changed, and the fingerprint is the thing that says whether it did. `tree` is
-    the tree the citing record is written against and `files` are the files the
-    cited check's own slice names, which is the scope the question is asked in.
+    the tree the citing record is written against and `scope` is the files the
+    cited check's own slice covers with the reason there are none, which is the
+    scope the question is asked in.
     Given no tree, only this attempt's own checks count, because a comparison
     with nothing is not one.
 
@@ -323,7 +426,7 @@ def cited_check(records, number, phase, current, tree=None, repository=None,
             f'Check {number} was recorded at the {record["stage"]} stage and this record belongs '
             f'to {current["stage"]}; a check counts only for the stage that produced it')
     if record['attempt'] != current['attempt']:
-        _require_the_check_is_about_this_code(record, number, tree, current, repository, files)
+        _require_the_check_is_about_this_code(record, number, tree, current, repository, scope)
     require(record['data']['phase'] == phase,
             f'Expected a {phase} check at record {number}, found {record["data"]["phase"]}')
     if phase == 'red':
@@ -423,7 +526,7 @@ def _tdd(data, records, current, repository, thresholds):
     # not a slice: it is held to the whole tree.
     tree = repository.fingerprint()
     regression = cited_check(records, data['regression'], 'regression', current, tree,
-                             repository)
+                             repository, (None, WHOLE_SUITE))
     previous_green = 0
     for position, slice_ in enumerate(slices, start=1):
         require(isinstance(slice_, dict), f'Slice {position} must be an object')
@@ -435,10 +538,16 @@ def _tdd(data, records, current, repository, thresholds):
                 'slice, which is a claim on the record rather than a gap in it: left out, it '
                 'skips the route comparison and is indistinguishable from a record written '
                 'before the field existed')
-        covers = _files_the_slice_covers(records, slice_.get('position'))
-        red = cited_check(records, slice_.get('red'), 'red', current, tree, repository, covers)
+        # Per cited check and not per slice entry: the scope of a citation is
+        # what the journal says that check proved, and the record citing it does
+        # not decide that by naming a position.
+        declared = slice_.get('position')
+        red = cited_check(records, slice_.get('red'), 'red', current, tree, repository,
+                          _the_scope_a_citation_is_judged_in(records, slice_.get('red'),
+                                                             declared))
         green = cited_check(records, slice_.get('green'), 'green', current, tree, repository,
-                            covers)
+                            _the_scope_a_citation_is_judged_in(records, slice_.get('green'),
+                                                               declared))
         require(previous_green < red['sequence'] < green['sequence'] <= regression['sequence'],
                 f'Slice {position} is out of order; each red must precede its green, slices '
                 'must not overlap, and the regression must be the last check')

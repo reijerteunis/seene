@@ -1,0 +1,38 @@
+{
+  "sequence": 28,
+  "ticket": "SEEN-113",
+  "timestamp": "2026-09-27T15:29:15.696851+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "d0063eae6e6c49faafb99b7fcd7546467db6aeec",
+  "prev_hash": "9ce50065a66cd0bca13303636e4236aa82dd01a70eacb284b5b1b56bf92fb684",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": null,
+          "behaviour": "The rule as it now stands after the review returned it, both slices' work plus the three high findings closed, in one round because the fixes touch the same files the slices named. `cited_check` keeps its phase and stage requirements and replaces the attempt requirement with a content test, scoped to the files the cited check's slice names. The scope is granted per cited check and only when the position the citing record claims is corroborated by the positions other accepted tdd records declared for that same check number, so a citation cannot vouch for its own scope; anything unclear falls closed to the whole tree, naming which slice the journal named instead. Every entry in a granted scope must resolve in the commit the comparison is made against, so a typo, a gitignored path or a file created after the check discards the whole scope rather than comparing nothing. The regression citation stays on the whole-tree rule because it covers the suite and not a slice, and the reason it gives says so rather than the literal None. `handoff` counts slices proved from the positions the journal's tdd records declare, replacing a count of greens that let rework advance past a slice nobody worked. The round belongs to no single slice: it is slice 1's rule rescoped by slice 2 and then corrected by the review.",
+          "failure_reason": "`python3 -m unittest harness.tests.test_stage_gates harness.tests.test_session_cap` exited 1 on 310 tests, with the fallback reason unset for the one citation that is deliberately unscoped: `AssertionError: 'covers the suite rather than a slice' not found in 'The tree moved under check 5: it ran against ... compared over the whole tree because None. Its evidence is about code this ticket has changed since'`. The round before it, records 21 and 22, failed 13 of 299 with `AssertionError: HarnessError not raised` for the uncorroborated position and the unresolvable path, `AssertionError: '1 of 3' not found in '...Slice 3 of 3, 2 of 3 done...'`, and `harness.cli.GuardRefusal: harness/slice2.py is not one of the files slice 3 of 3 names: harness/slice3.py`, which is the review's third finding in the guard's own words.",
+          "red": 23,
+          "green": 24
+        }
+      ],
+      "regression": 27,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "a00943ab9615",
+      "output_tokens": 603873,
+      "tool_calls": 310,
+      "unavailable": null
+    }
+  }
+}

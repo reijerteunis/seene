@@ -30,10 +30,11 @@ def coverage_record(sequence, delta=0.5, attempt=1):
                         lines=90.0, baseline=None if delta is None else 90.0 - delta, delta=delta)
 
 
-def advance_record(sequence, from_stage, evidence, attempt=1):
+def advance_record(sequence, from_stage, evidence, attempt=1, to_stage='tdd'):
     return dict(sequence=sequence, ticket='SEEN-001', kind='advance', stage=from_stage,
                 attempt=attempt, actor='claude:implementer',
-                data=dict(from_stage=from_stage, to_stage='tdd', evidence=evidence, decisions=[]))
+                data=dict(from_stage=from_stage, to_stage=to_stage, evidence=evidence,
+                          decisions=[]))
 
 
 class GateTest(ProjectTest):
@@ -853,6 +854,11 @@ class ScopedToTheSlicesFiles(TddGateTest):
                      dict(name='Slice three', points=1, files=['harness/slice_three.py'],
                           red='Nothing yet proves three')]
         self.write('harness/slice_one.py', 'def one():\n    return 1\n')
+        # Slice two's file is committed here too and never moves again, so a
+        # citation mis-attributed to slice 2 is compared against a file that
+        # really has not moved: the fixture must not close that hole for want of
+        # a file to name.
+        self.write('harness/slice_two.py', 'def two():\n    return 2\n')
         self.commit('feat(SEEN-001): slice one')
         # The tree slice one's red and green ran against, which is this commit's
         # content: the session proved the work and then committed it.
@@ -867,18 +873,37 @@ class ScopedToTheSlicesFiles(TddGateTest):
         plan[0].update(changes)
         return plan
 
-    def journal(self, plan=None, proved=None):
-        """Slice one proved in attempt 1, slice three in attempt 2, which is now."""
+    def journal(self, plan=None, proved=None, corroborated=1, corroborating=True):
+        """Slice one proved in attempt 1, slice three in attempt 2, which is now.
+
+        Attempt 1 advanced out of tdd, and its record is what says which slice of
+        the plan checks 3 and 4 proved: the scope of a cross-attempt citation is
+        read from that record rather than from the record citing them, which
+        names the position itself and is the thing being checked. `corroborated`
+        is the position that record declared, null for a round that declared
+        none, and `corroborating` False for an attempt that never advanced out of
+        tdd at all.
+        """
         now = self.repository.fingerprint()
+        earlier = [advance_record(
+            5, 'tdd',
+            dict(mode='code',
+                 slices=[dict(position=corroborated,
+                              behaviour='Slice one, proved in attempt 1',
+                              failure_reason='expected 1, received nothing',
+                              red=3, green=4)],
+                 regression=4),
+            attempt=1, to_stage='review')] if corroborating else []
         return self.records + [
             advance_record(2, 'solution',
                            dict(mode='code', slices=plan or self.plan), attempt=1),
             check_record(3, 'red', attempt=1, after=proved or self.proved),
             check_record(4, 'green', attempt=1, after=proved or self.proved),
-            check_record(5, 'red', attempt=2, after=now),
-            check_record(6, 'green', attempt=2, after=now),
-            check_record(7, 'regression', attempt=2, after=now),
-            coverage_record(8, attempt=2)]
+            *earlier,
+            check_record(6, 'red', attempt=2, after=now),
+            check_record(7, 'green', attempt=2, after=now),
+            check_record(8, 'regression', attempt=2, after=now),
+            coverage_record(9, attempt=2)]
 
     def citing(self, position=1, **changes):
         data = self.template(
@@ -888,8 +913,8 @@ class ScopedToTheSlicesFiles(TddGateTest):
                          red=3, green=4),
                     dict(position=3, behaviour='Slice three, proved in this attempt',
                          failure_reason='expected 3, received nothing',
-                         red=5, green=6)],
-            regression=7)
+                         red=6, green=7)],
+            regression=8)
         data.update(changes)
         return data
 
@@ -1011,6 +1036,230 @@ class UnattributableCitationFallsBack(ScopedToTheSlicesFiles):
         wrong commit."""
         self.assertEqual(gates.content_fingerprint(self.repository, 'HEAD'),
                          self.repository.fingerprint())
+
+
+class ThePositionIsCorroborated(ScopedToTheSlicesFiles):
+    """The scope may not be taken on the word of the record that wants it.
+
+    F1 of this ticket's second review, reproduced end to end: the plan's slice 2
+    names a file of its own, so a record citing slice 1's checks under position 2
+    was compared against a file that had not moved and kept its evidence for code
+    it had since rewritten. Declared honestly as position 1 the same citation was
+    refused, which is the whole tell: the position decided the scope and nothing
+    decided the position. What corroborates it now is the tdd record of the round
+    that recorded the check, and a position nothing corroborates buys no scope at
+    all.
+    """
+
+    def slice_one_is_rewritten(self):
+        self.write('harness/slice_one.py', 'def one():\n    return 999\n')
+        self.commit('fix(SEEN-001): rewrite the file slice one covered')
+
+    def test_naming_another_slices_position_does_not_buy_that_slices_files(self):
+        self.slice_one_is_rewritten()
+        message = self.refusal(data=self.citing(position=2))
+        self.assertIn('tree moved under check 3', message)
+        self.assertIn('whole tree', message)
+
+    def test_the_refusal_says_which_slice_the_journal_declared_instead(self):
+        self.slice_one_is_rewritten()
+        self.assertIn('slice 1', self.refusal(data=self.citing(position=2)))
+
+    def test_the_slice_it_named_really_had_not_moved(self):
+        """Without this the refusal above could be a comparison with nothing to
+        accept, which would pass whatever the rule did."""
+        self.slice_one_is_rewritten()
+        commit = gates._the_commit_holding(self.repository, self.proved)
+        self.assertEqual(gates._moved_since(self.repository, commit, ['harness/slice_two.py']),
+                         [])
+        self.assertEqual(gates._moved_since(self.repository, commit, ['harness/slice_one.py']),
+                         ['harness/slice_one.py'])
+
+    def test_the_position_the_journal_declares_still_buys_its_own_files(self):
+        """Corroboration grants the scope as well as withholding it: this is the
+        citation SEEN-112 needed, and it still stands."""
+        self.slice_three_writes_its_own_file()
+        self.evaluate('tdd', self.citing(position=1), records=self.journal(), attempt=2)
+
+    def test_an_attempt_that_never_advanced_out_of_tdd_corroborates_nothing(self):
+        self.slice_three_writes_its_own_file()
+        message = self.refusal(records=self.journal(corroborating=False))
+        self.assertIn('tree moved under check 3', message)
+        self.assertIn('whole tree', message)
+
+    def test_a_round_that_declared_no_position_lends_no_scope(self):
+        """This ticket's own record 17 declares position 2 for a round whose
+        behaviour says it belongs to no single slice. A round that declares null
+        declares no mapping, and no mapping is not a mapping to anything."""
+        self.slice_three_writes_its_own_file()
+        message = self.refusal(records=self.journal(corroborated=None))
+        self.assertIn('tree moved under check 3', message)
+        self.assertIn('whole tree', message)
+
+
+class EveryEntryInTheScopeResolves(ScopedToTheSlicesFiles):
+    """A file entry that matches no path makes the comparison vacuous.
+
+    F2 of this ticket's second review. `git diff --name-only <commit> --
+    harness/typo.py` exits 0 with no output, so a slice naming a path git cannot
+    see accepted a citation however much the code had moved, and the realistic
+    case is worse than a slice naming one path: a typo beside a test file that
+    stood still. Every entry must resolve to something git can see in the commit
+    the comparison is made against; one that does not is an untrustworthy scope
+    rather than an empty one, so it falls back to the whole tree and says which
+    entry could not be resolved.
+    """
+
+    def rewrite_the_file_slice_one_really_covered(self):
+        self.write('harness/slice_one.py', 'def one():\n    return 999\n')
+        self.commit('fix(SEEN-001): rewrite the file slice one covered')
+
+    def test_a_typo_for_the_file_the_work_is_in_is_no_scope_at_all(self):
+        self.rewrite_the_file_slice_one_really_covered()
+        message = self.refusal(records=self.journal(
+            plan=self.plan_with(files=['harness/slice_one_typo.py'])))
+        self.assertIn('harness/slice_one_typo.py', message)
+        self.assertIn('whole tree', message)
+
+    def test_one_unresolvable_entry_beside_a_file_that_stood_still_is_refused(self):
+        """The partial case: the scope is not trustworthy because part of it is
+        not, however still the rest of it was."""
+        self.rewrite_the_file_slice_one_really_covered()
+        message = self.refusal(records=self.journal(
+            plan=self.plan_with(files=['harness/slice_one_typ.py', 'harness/slice_two.py'])))
+        self.assertIn('harness/slice_one_typ.py', message)
+        self.assertNotIn('harness/slice_two.py', message)
+        self.assertIn('whole tree', message)
+
+    def test_a_gitignored_path_matches_nothing_git_can_see(self):
+        self.write('.gitignore', '.harness-drafts/\n.harness.lock\n.env\n.env.local\n'
+                                 'harness/ignored.py\n')
+        self.write('harness/ignored.py', 'ignored = True\n')
+        self.commit('chore(SEEN-001): ignore a path')
+        message = self.refusal(records=self.journal(
+            plan=self.plan_with(files=['harness/ignored.py'])))
+        self.assertIn('harness/ignored.py', message)
+        self.assertIn('whole tree', message)
+
+    def test_the_entry_is_asked_of_the_commit_the_check_ran_against(self):
+        """A file that did not exist yet is not code that check covered."""
+        self.slice_three_writes_its_own_file()
+        message = self.refusal(records=self.journal(
+            plan=self.plan_with(files=['harness/slice_one.py', 'harness/slice_three.py'])))
+        self.assertIn('harness/slice_three.py', message)
+        self.assertIn('whole tree', message)
+
+    def test_a_scope_whose_every_entry_resolves_is_compared_rather_than_refused(self):
+        self.slice_three_writes_its_own_file()
+        self.evaluate('tdd', self.citing(), attempt=2, records=self.journal(
+            plan=self.plan_with(files=['harness/slice_one.py', 'harness/slice_two.py'])))
+
+
+class TheFingerprintTheRuleReads(ScopedToTheSlicesFiles):
+    """Both halves of the fingerprint, because this rule needs both.
+
+    F5 of this ticket's second review: the two readings were pinned to each other
+    on a clean tree only, so a change to the pending-and-untracked half, or to
+    `excluding`, would have left the pinning passing while `_the_commit_holding`
+    stopped matching any check recorded on a tree with untracked files. Every
+    cross-attempt citation would then fall back and be refused: closed rather
+    than open, so the cost is the feature quietly ceasing to work with nothing
+    failing.
+    """
+
+    def test_a_tree_with_an_untracked_file_is_found_in_the_commit_that_carries_it(self):
+        self.write('harness/slice_four.py', 'def four():\n    return 4\n')
+        taken = self.repository.fingerprint()
+        self.assertNotEqual(taken, gates.content_fingerprint(self.repository, 'HEAD'),
+                            'the untracked half of the fingerprint counted nothing')
+        self.commit('feat(SEEN-001): slice four')
+        self.assertEqual(gates.content_fingerprint(self.repository, 'HEAD'), taken)
+        self.assertEqual(gates._the_commit_holding(self.repository, taken),
+                         self.repository.head())
+
+    def test_a_modified_tracked_file_is_found_in_the_commit_that_carries_it(self):
+        self.write('harness/slice_one.py', 'def one():\n    return 4\n')
+        taken = self.repository.fingerprint()
+        self.assertNotEqual(taken, gates.content_fingerprint(self.repository, 'HEAD'))
+        self.commit('fix(SEEN-001): slice one again')
+        self.assertEqual(gates.content_fingerprint(self.repository, 'HEAD'), taken)
+
+    def test_a_deleted_file_is_found_in_the_commit_that_carries_the_deletion(self):
+        (self.root / 'harness' / 'slice_two.py').unlink()
+        taken = self.repository.fingerprint()
+        self.assertNotEqual(taken, gates.content_fingerprint(self.repository, 'HEAD'))
+        self.commit('fix(SEEN-001): drop slice two')
+        self.assertEqual(gates.content_fingerprint(self.repository, 'HEAD'), taken)
+
+    def test_excluding_leaves_a_path_out_and_excluding_nothing_is_the_plain_reading(self):
+        self.assertEqual(self.repository.fingerprint(excluding=()),
+                         self.repository.fingerprint())
+        self.assertNotEqual(self.repository.fingerprint(excluding=('harness/slice_one.py',)),
+                            self.repository.fingerprint())
+
+    def test_the_journal_is_left_out_of_both_readings(self):
+        """The exclusion the two readings must agree on: a check's tree is
+        recorded in the journal that the commit after it carries."""
+        self.write('docs/harness/history/SEEN-001/0001.json', '{"sequence": 1}\n')
+        taken = self.repository.fingerprint()
+        self.commit('docs(SEEN-001): a record')
+        self.assertEqual(gates.content_fingerprint(self.repository, 'HEAD'), taken)
+
+
+class TheRegressionIsHeldToTheWholeTree(ScopedToTheSlicesFiles):
+    """The one citation that is scoped to nothing on purpose, and says so.
+
+    The regression covers the suite rather than a slice, so it is compared over
+    the whole tree by design. Scoped to nothing is not the same as unexplained:
+    every other way a comparison falls back to the whole tree names its reason,
+    and this one has to name its own or the refusal reads as a gap in the gate.
+    """
+
+    def an_attempt_that_finished(self):
+        """Attempt 1 proved slice one and ran its regression, then advanced."""
+        return self.records + [
+            advance_record(2, 'solution', dict(mode='code', slices=self.plan), attempt=1),
+            check_record(3, 'red', attempt=1, after=self.proved),
+            check_record(4, 'green', attempt=1, after=self.proved),
+            check_record(5, 'regression', attempt=1, after=self.proved),
+            advance_record(6, 'tdd',
+                           dict(mode='code',
+                                slices=[dict(position=1, behaviour='Slice one, proved here',
+                                             failure_reason='expected 1, received nothing',
+                                             red=3, green=4)],
+                                regression=5),
+                           attempt=1, to_stage='review'),
+            coverage_record(7, attempt=2)]
+
+    def citing_that_regression(self):
+        return self.template('tdd',
+                             slices=[dict(position=1,
+                                          behaviour='Slice one, proved in attempt 1',
+                                          failure_reason='expected 1, received nothing',
+                                          red=3, green=4)],
+                             regression=5)
+
+    def test_a_regression_from_an_earlier_attempt_says_why_it_is_the_whole_tree(self):
+        self.slice_three_writes_its_own_file()
+        message = self.refusal(data=self.citing_that_regression(),
+                               records=self.an_attempt_that_finished())
+        self.assertIn('tree moved under check 5', message)
+        self.assertIn('covers the suite rather than a slice', message)
+
+    def test_the_reason_is_a_sentence_rather_than_a_missing_one(self):
+        self.slice_three_writes_its_own_file()
+        message = self.refusal(data=self.citing_that_regression(),
+                               records=self.an_attempt_that_finished())
+        self.assertNotIn('because None', message)
+
+    def test_the_slice_beside_it_keeps_the_scope_the_journal_corroborates(self):
+        """The regression falling back does not take slice one's evidence with it:
+        the refusal above is about check 5 and not about checks 3 and 4."""
+        self.slice_three_writes_its_own_file()
+        records = self.an_attempt_that_finished()
+        for number in (3, 4):
+            files, because = gates._the_scope_a_citation_is_judged_in(records, number, 1)
+            self.assertEqual(files, ['harness/slice_one.py'], because)
 
 
 if __name__ == '__main__':  # pragma: no cover - a module must run on its own

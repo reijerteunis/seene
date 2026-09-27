@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-104, SEEN-112]
-status: doing
+status: review
 ---
 # SEEN-113: Let a tdd record cite the evidence a return did not invalidate
 
@@ -23,7 +23,7 @@ status: doing
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | doing |
+| Status | review |
 
 ## Description
 
@@ -39,12 +39,12 @@ What this ticket must not do is weaken the rule it is loosening. A refusal has t
 
 ## Acceptance criteria
 
-- [ ] A tdd record may cite a red or green recorded in an earlier attempt when that check's recorded tree fingerprint matches the tree the citing record is written against, and the gate accepts it without the cited work being re-proven
-- [ ] A check is refused across attempts whenever the code it covers has changed, and the refusal names which reason applied: the code this check covers has changed, naming the files; the tree moved and the comparison had to fall back, naming why; or there is no such check (amended, see `## Amendment`)
-- [ ] The ordering rule survives the change: each red still precedes its green, slices still do not overlap, and the regression is still the last check, whichever attempts the cited checks come from
-- [ ] A replan carries forward the greens of slices whose work is still in the branch, so the handoff pack and `harness guard` read a returned ticket as the slices it has actually finished rather than as none of them
-- [ ] Proven on a journal shaped like SEEN-112's, five attempts with slices proven in the first two and a tdd record in the fifth citing them, which the gate accepts, and on the mirror case where one cited check's tree has moved, which it refuses by name
-- [ ] No evidence is revived for code that changed: a test shows a check from an earlier attempt refused after its files are edited, with the fingerprint difference as the stated reason
+- [x] A tdd record may cite a red or green recorded in an earlier attempt when that check's recorded tree fingerprint matches the tree the citing record is written against, and the gate accepts it without the cited work being re-proven
+- [x] A check is refused across attempts whenever the code it covers has changed, and the refusal names which reason applied: the code this check covers has changed, naming the files; the tree moved and the comparison had to fall back, naming why; or there is no such check (amended, see `## Amendment`)
+- [x] The ordering rule survives the change: each red still precedes its green, slices still do not overlap, and the regression is still the last check, whichever attempts the cited checks come from
+- [x] A replan carries forward the greens of slices whose work is still in the branch, so the handoff pack and `harness guard` read a returned ticket as the slices it has actually finished rather than as none of them
+- [x] Proven on a journal shaped like SEEN-112's, five attempts with slices proven in the first two and a tdd record in the fifth citing them, which the gate accepts, and on the mirror case where one cited check's tree has moved, which it refuses by name
+- [x] No evidence is revived for code that changed: a test shows a check from an earlier attempt refused after its files are edited, with the fingerprint difference as the stated reason
 
 ## Amendment
 
@@ -70,6 +70,60 @@ of them.
 What went wrong is worth naming rather than only fixing: the box was ticked while the delivered rule
 contradicted the criterion's first clause, in a ticket whose sibling SEEN-112 carries a criterion about
 never ticking what the evidence does not support. The review caught it; the Outcome had not.
+
+## Outcome
+
+`gates.cited_check` keeps its phase and stage requirements and replaces the attempt requirement with a
+content test: a check counts when it was recorded in this attempt, or when the code it covers has not
+changed since it ran. Three things make that safe rather than merely convenient, and two of them exist
+because the review found the first version without them.
+
+The scope is the files the cited check's slice names, **granted per cited check and only when the position
+the citing record claims is corroborated** by the positions other accepted tdd records declared for that
+same check number. A record cannot vouch for its own scope: the record under evaluation is not among those
+consulted. Nothing found, a round that declared no position, or two records disagreeing all fall closed to
+the whole-tree comparison, naming which slice the journal named instead. Every entry in a granted scope must
+resolve in the commit the comparison is made against, so a typo, a gitignored path or a file created after
+the check discards the whole scope rather than comparing nothing. The regression citation is deliberately
+unscoped, because it covers the suite and not a slice, and it says so.
+
+`handoff` counts **slices proved**, read from the positions the journal's tdd records declare, replacing a
+count of greens that let rework after a replan advance the count past a slice nobody had worked and then
+had the guard refuse that slice's files.
+
+One sentence used to answer four situations. There are four now, each saying what it compared: the code this
+check covers has changed, naming the files; the tree moved and the comparison had to fall back, naming why;
+there is no such check; and the check recorded no fingerprint at all.
+
+**What the review cost and bought.** It returned the ticket with criterion 6 unmet and three high findings,
+every one reproduced end to end: a citation declared under another slice's position was compared against
+that slice's files and accepted; a file entry matching no path made the comparison vacuous, because git's
+pathspec reports nothing moved over a name that matches nothing; and the carry-forward counted greens rather
+than slices, which read worse than the code it replaced. The first two are the difference between a rule
+that refuses stale evidence and one that can be talked into accepting it, and neither was visible from the
+diff without constructing the input.
+
+**What this does not do, measured twice.** It does not unblock SEEN-112, the ticket that found the defect.
+Re-measured over its branch before and after the fixes, all three of its slices' reds and greens are refused
+both ways, with the refusal sentences identical word for word: attempts 3 and 4 reworked exactly the files
+slices 1 and 2 named, so that evidence really is about code the ticket changed since, and the corroboration
+was satisfied rather than missing. The rule was not bent toward the ticket that motivated it, and the review
+verified that independently.
+
+**The named next step, which is not this ticket.** A cross-attempt RED can never pass a content test by
+construction: a red runs against the pre-fix tree, and the files its slice names must change before its
+green. None of SEEN-112's five red trees is carried by any commit, against three of five green trees. Since
+a tdd record needs a red and a green per slice, it can never accept a real cross-attempt slice pair. Judging
+a slice's pair by its green, whose standing the ordering rule and the red's own recorded failure already
+carry, is the next step. Reaching for it here would have been the motivated reasoning this ticket was warned
+about twice.
+
+Two narrowings to own. The corroboration rule means a slice proved in an attempt that never advanced out of
+tdd can never be cited later: fail-closed, and a real limit on what a heavily reworked ticket can accumulate.
+And `_require_the_routed_model` still returns immediately while `[routing] shadow` is true, so the route
+comparison catches none of this. `content_fingerprint` reads the fingerprint definition a second time because
+`harness/repository.py` was outside the slice's files; the pinning test now compares on a dirty tree as well
+as a clean one, and its honest home is still `Repository`.
 
 ## Slices
 

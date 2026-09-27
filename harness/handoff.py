@@ -54,18 +54,77 @@ def plan_of(records):
     return (gates.latest_evidence(records, 'solution') or {}).get('slices') or []
 
 
-def accepted_greens(records, after=0):
-    """Greens recorded since the plan was accepted, whatever attempt wrote them.
-
-    A slice that was proved green does not become unproved because a review sent
-    the ticket back: the code is in the branch either way, and the rework is work
-    on top of it. H4 of SEEN-105's third review.
-    """
-    return [record for record in records
-            if record['sequence'] > after and record['kind'] == 'check'
-            and record['stage'] == 'tdd'
+def _is_an_accepted_green(record):
+    """A green the journal kept: a tdd check of that phase that really passed."""
+    return (record['kind'] == 'check' and record['stage'] == 'tdd'
             and record['data'].get('phase') == 'green'
-            and record['data'].get('exit_code') == 0]
+            and record['data'].get('exit_code') == 0)
+
+
+def _positions_the_journal_declares(records, after=0):
+    """Which slice of the plan each cited green proved, where a tdd record says.
+
+    The journal's own answer to a question counting cannot ask. A green is a
+    check that passed; which slice it proved is a claim, and the tdd records are
+    where that claim is made, one position per round beside the red and the green
+    that proved it.
+    """
+    declared = {}
+    for record in records:
+        if (record['sequence'] <= after or record['kind'] != 'advance'
+                or record['data'].get('from_stage') != 'tdd'):
+            continue
+        for entry in (record['data'].get('evidence') or {}).get('slices') or []:
+            if not isinstance(entry, dict):
+                continue
+            position, green = entry.get('position'), entry.get('green')
+            if (isinstance(position, int) and not isinstance(position, bool)
+                    and isinstance(green, int) and not isinstance(green, bool)):
+                declared[green] = max(declared.get(green, 0), position)
+    return declared
+
+
+def slices_proved(records, after=0, done=0):
+    """How far into the plan the work has got, counting slices and not greens.
+
+    A slice proved green does not become unproved because a review sent the
+    ticket back: the code is in the branch either way, and the rework is work on
+    top of it. That is H4 of SEEN-105's third review, and counting the greens
+    since the plan was accepted was how it was answered. With the count starting
+    at the first acceptance of a plan that still stands, counting greens became
+    worse than what it replaced: one slice proved, a return to solution that
+    re-accepted the same plan, the same slice reworked and proved again, and two
+    greens read as two slices, so the pack handed over slice 3 with slice 2
+    unworked and the guard refused slice 2's files. F3 of SEEN-113's second
+    review.
+
+    A green is not a slice. What a run at tdd reached is how far into the plan it
+    got: a green nothing attributes is the next slice of that run, and a green a
+    tdd record attributes is the slice that record names, which never carries the
+    count past the position it names. A run begins where the plan was accepted
+    again, because a plan somebody went back to is worked to fix something rather
+    than to carry on, and a green recorded after it may be rework of a slice
+    already counted. So each run starts its own reckoning from the count that
+    stood, and the answer is the furthest any of them reached.
+
+    Under-counting is the direction this errs in: a run that really did carry the
+    plan on after a return, and whose tdd record has not been written yet,
+    reaches a lower number than it earned, and the session that worked it says so
+    with --slice-done. Over-counting is the harm, because it points the next
+    session past a slice nobody worked.
+    """
+    declared = _positions_the_journal_declares(records, after)
+    reached = furthest = done
+    for record in records:
+        if record['sequence'] <= after:
+            continue
+        if record['kind'] == 'advance' and record['data'].get('from_stage') == 'solution':
+            reached = done
+        elif _is_an_accepted_green(record):
+            reached = (max(reached, declared[record['sequence']])
+                       if record['sequence'] in declared else reached + 1)
+            furthest = max(furthest, reached)
+    return furthest
 
 
 def _slice_key(entry):
@@ -142,13 +201,15 @@ def last_declaration(records, after=0):
 
 
 def current_slice(records, state, declared=None):
-    """The slice a fresh session picks up, declared or counted from the greens.
+    """The slice a fresh session picks up, declared or counted from the journal.
 
     The plan is ordered and the tdd stage gate refuses slices out of order, so
-    the number of accepted greens in this attempt is usually how many slices are
-    behind us. Usually: a slice that records a second green, which is what a
+    how far a run at tdd reached is usually how many slices are behind us.
+    Usually: a slice that records a second green inside one run, which is what a
     correction inside a slice looks like, counts twice and sends the next session
-    past a slice nobody worked. It happened on SEEN-105's own slice 1.
+    past a slice nobody worked. It happened on SEEN-105's own slice 1, and
+    `slices_proved` closes it only where the journal says which slice a green
+    proved.
 
     Only the session that worked the slice knows it finished it, so it may say so
     with --slice-done and the record keeps which of the two numbers this was. The
@@ -167,7 +228,7 @@ def current_slice(records, state, declared=None):
     # numbers are needed.
     planned_at = plan_accepted_at(records)
     at_boundary, since = last_declaration(records, planned_at)
-    inferred = min(at_boundary + len(accepted_greens(records, since)), len(slices))
+    inferred = min(slices_proved(records, since, at_boundary), len(slices))
     if declared is None:
         done = inferred
     else:
