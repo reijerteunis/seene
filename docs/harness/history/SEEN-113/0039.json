@@ -1,0 +1,38 @@
+{
+  "sequence": 39,
+  "ticket": "SEEN-113",
+  "timestamp": "2026-09-27T16:54:50.809881+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 4,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "971a088a560df5f919dd2401b5ab34f7c7a64b75",
+  "prev_hash": "1a278cc92c5491cd5fa0aabb9334ccec6ca6b714a30c983bb30a846a676b41e6",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": null,
+          "behaviour": "The rule after three review rounds. `cited_check` keeps its phase and stage requirements and replaces the attempt requirement with a content test: a check counts when it was recorded in this attempt, or when the code it covers has not changed since it ran. What that code is no longer rests on any record's claim: `_the_files_the_round_moved` takes the commit whose content is the tree the check ran against, diffs it against its first parent and filters to the paths the fingerprint counts, walking back over commits that moved nothing counted, because the newest matching commit in this harness is usually a journal-only one whose change the fingerprint excludes. The comparison is the union of those files and the ones the declared slice names, so a declaration can only add files and never remove one, and a position the citing record claims must still be corroborated by other accepted tdd records. Every entry in a granted scope must resolve in the commit compared against, or the whole scope is discarded. Nine reasons say why a citation fell back to the whole tree, and the regression is always one of them because it covers the suite. On the handoff side, each run is capped by the plan it ran against so a shorter plan's correction greens cannot survive a plan that grew, and a green two records disagree about does not advance the count at all, which is the gate's fail-closed reading rather than a vote for the larger number. It belongs to no single slice: it is slice 1's rule, rescoped by slice 2, corrected by the first review and corrected again by the second.",
+          "failure_reason": "`python3 -m unittest harness.tests.test_stage_gates harness.tests.test_session_cap` exited 1 with one failure and two errors of 347 tests: `AssertionError: None != ['harness/slice_one.py', 'harness/slice_two.py']`, and `harness.errors.HarnessError: The tree moved under check 3: ... compared over the whole tree because the commit carrying the tree it ran against does not say which files that round moved`, which is the over-refusal the round before it introduced by taking the newest matching commit rather than the round's own. The round before, records 32 and 33, failed 11 of 299 with `AssertionError: HarnessError not raised` three times for the mis-declared position, the file a round moved that its slice never names and the round whose commit has no parent; `AttributeError: module 'harness.gates' has no attribute '_the_files_the_round_moved'`; git's own `fatal: ../outside.py ... is outside repository` for the unresolvable pathspec; and the counting failures `2 != 1`, `3 != 1`, `3 != 0` and `3 == 3`.",
+          "red": 34,
+          "green": 35
+        }
+      ],
+      "regression": 38,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "a00943ab9615",
+      "output_tokens": 649924,
+      "tool_calls": 341,
+      "unavailable": null
+    }
+  }
+}

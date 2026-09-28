@@ -1,0 +1,38 @@
+{
+  "sequence": 71,
+  "ticket": "SEEN-113",
+  "timestamp": "2026-09-28T05:03:01.141995+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 6,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "1d553954f832120a2e02d87d0080d34f41681c1c",
+  "prev_hash": "e969d930ce83fc73af5afa4ffa88db63c3281e18e2a64f7bc09f2745f877da1d",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": 2,
+          "behaviour": "The fourth review's two findings, closing a regression the judge-by-green change opened. An exempted red now skips only the tree comparison: `_the_journal_puts_it_elsewhere` owns the contradiction question in both directions, a number the chain contradicts and a null where the chain named a slice, and the exemption block asks it, so a slice entry can no longer join one round's red to another round's green where the journal attributes that red elsewhere. `cited_check`'s docstring now states what a red is held to (a non-zero exit, its phase, its stage, its place in the order, the route of its declared position, the attempt of its green, and the journal's attribution wherever an accepted record made one) and what is not checked (the tree, which is the exemption, and the pairing inside one attempt, because an accepted record can only attribute a check recorded before it), replacing a claim that was false. And a round belonging to no single slice is held to the strictest route in the plan as a floor rather than an equality, because an equality is unsatisfiable on a two-tier plan and the way out of an unsatisfiable rule is to name a position the round does not have. The handoff pack tells a session that rework declares null and runs on the plan's strictest route, so the refusal is a rule the pack gave rather than one it discovers.",
+          "failure_reason": "`python3 -m unittest harness.tests.test_stage_gates harness.tests.test_session_cap` exited 1 on 481 tests with thirteen failures and no errors: nine `AssertionError: HarnessError not raised`, which is the gate accepting what must be refused, including the reviewer's own reproduction of a red joined to another round's green; `AssertionError: 'attribution' not found in ...` and `AssertionError: 'Nothing else.' unexpectedly found in ...`, the two disclosure tests; and `'opus' not found in ...` and `'null' not found in ...` from the pack.",
+          "red": 65,
+          "green": 66
+        }
+      ],
+      "regression": 69,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "a00943ab9615",
+      "output_tokens": 948610,
+      "tool_calls": 519,
+      "unavailable": null
+    }
+  }
+}

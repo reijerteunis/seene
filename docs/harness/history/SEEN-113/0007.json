@@ -1,0 +1,36 @@
+{
+  "sequence": 7,
+  "ticket": "SEEN-113",
+  "timestamp": "2026-09-27T13:44:26.497817+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "e94bfe7d5943c78b5549d50da189ec8e11c7b97c",
+  "prev_hash": "8321c9f4b5d4c5f877a14c6ab8d4eb2777a60e2dd1583154a61b479402c95fc9",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "pytest",
+      "harness/tests/test_stage_gates.py",
+      "harness/tests/test_session_cap.py",
+      "-q",
+      "-k",
+      "CiteAcrossAttempts or TreeMovedUnderTheCheck or OrderingAcrossAttempts or EvidenceForChangedCode or ReplanCarriesForward"
+    ],
+    "phase": "green",
+    "exit_code": 0,
+    "model": "claude-opus-5",
+    "model_declared": "opus",
+    "agent_declared": "seen-implementer",
+    "duration_ms": 10137,
+    "output": ".................................................                        [100%]\n49 passed, 150 deselected in 9.94s\n",
+    "output_sha256": "089683d741161abb3bcf410a52161c27a524ddffcb526d2ed914e494e4f0e34a",
+    "output_truncated": false,
+    "before": "deedc1576ebe569cc711f4f58ad2b4ae2aa6820ccbfc28e6545c1f3aeb34c2d6",
+    "after": "deedc1576ebe569cc711f4f58ad2b4ae2aa6820ccbfc28e6545c1f3aeb34c2d6"
+  }
+}

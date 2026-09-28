@@ -1,0 +1,135 @@
+{
+  "sequence": 10,
+  "ticket": "SEEN-113",
+  "timestamp": "2026-09-27T13:46:03.298024+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "solution",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "e94bfe7d5943c78b5549d50da189ec8e11c7b97c",
+  "prev_hash": "6f02a4dd19e67b59b0e8bfa8c04188c1757a498ffacfb51af70e64c5c4f5243f",
+  "data": {
+    "from_stage": "solution",
+    "to_stage": "tdd",
+    "evidence": {
+      "mode": "code",
+      "approach": "Replace the attempt test in `gates.cited_check` with a tree test, keeping the stage test as it is. A check counts when it is the right phase, for the right stage, and either it was recorded in the citing record's own attempt, or its recorded after-fingerprint equals the tree the citing record is written against. That keeps the original protection whole, because what it defended against was evidence reused for code that changed, and the fingerprint is the thing that says whether it did. The refusal splits into two sentences, one for a check whose tree has moved and one for a check that is not there, because a gate answering 'another attempt' where it means 'different code' is what made this take five returns to find. The ordering line at harness/gates.py:258 is untouched: it reads sequence numbers, which are monotonic across attempts, so it holds without a change and gets a test that says so. `handoff.plan_accepted_at` gains the same correction from the other side: a replan carries forward the greens of slices whose work is still in the branch, judged the same way, by the fingerprint the green recorded. Amended at record 9, because the scope was wrong rather than the mechanism. The comparison is scoped to the files the cited check's slice names, read from the route or the accepted plan that named them, and the whole-tree comparison survives only as the fallback when a citation cannot be attributed to a slice at all. A green proving slice 1 is still evidence about slice 1 when slice 3 has since added code elsewhere, and stops being evidence the moment slice 1's own files move. The measurement that forced this: every green records a distinct tree, SEEN-107 13 of 13, SEEN-109 13 of 13, SEEN-111 5 of 5, so a whole-tree comparison can never accept an earlier slice's green on a ticket whose later slices added code. The handoff side adopts plan identity rather than a fingerprint, because neither caller can supply a tree (cli.build_pack passes no repository to handoff.pack and guard.decide passes only records) and because a whole-tree comparison there would carry forward only the most recent green and still hand out the wrong slice.",
+      "changes": [
+        "harness/gates.py, `cited_check`: the attempt requirement becomes a tree requirement, with the stage requirement unchanged and two distinct refusal messages, one naming the fingerprint difference and one naming the absent check. Its docstring says the rule and why the fingerprint replaces the attempt.",
+        "harness/handoff.py, `plan_accepted_at` and `accepted_greens`: a green recorded before the current plan was accepted counts as a finished slice when its recorded fingerprint still matches, so the pack and the guard read a returned ticket as the slices it has finished.",
+        "harness/tests/test_stage_gates.py: the citation tests, the two refusal messages and the ordering across attempts.",
+        "harness/tests/test_session_cap.py: the pack and guard reading a replanned ticket.",
+        "harness/gates.py, the fingerprint comparison: scope it to the files the cited check's slice names, attributed through the route record or the accepted plan, with the whole-tree comparison as the fallback when no slice can be attributed, and the refusal naming which files moved rather than which tree.",
+        "harness/handoff.py: plan_accepted_at returns the first acceptance of the plan that still stands, by slice identity on every slice two acceptances have in common, so a replan that changed the slices restarts its own count."
+      ],
+      "migrations": [],
+      "tests_first": [
+        "A tdd record cites a green from an earlier attempt whose tree has not moved. `python3 -m pytest harness/tests/test_stage_gates.py -q -k CiteAcrossAttempts`. The RED must fail with the gate's present words, `Check {n} belongs to another stage or attempt; run it again`, on a journal shaped like SEEN-112's: five attempts, slices proven in the first two, a fifth-attempt tdd record citing them.",
+        "A check whose tree has moved is refused, and by name. `python3 -m pytest harness/tests/test_stage_gates.py -q -k TreeMovedUnderTheCheck`. The RED must show the two cases answered by one sentence today, and the GREEN must give them different sentences: the tree moved under this check, against there is no such check.",
+        "The ordering rule holds across attempts. `python3 -m pytest harness/tests/test_stage_gates.py -q -k OrderingAcrossAttempts`. The RED must show a red cited after its green being accepted or refused for the wrong reason when the two come from different attempts, so the ordering is proven to read sequence and not attempt.",
+        "Evidence is not revived for code that changed. `python3 -m pytest harness/tests/test_stage_gates.py -q -k EvidenceForChangedCode`. The RED edits a file the cited check covered so the fingerprint differs, and the refusal must name the fingerprint difference.",
+        "A replan reads the slices it has finished. `python3 -m pytest harness/tests/test_session_cap.py -q -k ReplanCarriesForward`. The RED must show the pack and `guard` reading 'slice 1 of 3, 0 of 3 done' on a journal with a return to solution after two green slices, which is SEEN-112's own state at record 44.",
+        "A green survives a later slice changing other files. `python3 -m pytest harness/tests/test_stage_gates.py -q -k CitedAcrossAttemptsByItsOwnFiles`. The RED must show slice 1's green refused after slice 3 added a file slice 1 does not name, with the whole-tree comparison as the stated reason, which is the state every real journal is in.",
+        "A green dies when its own files move. `python3 -m pytest harness/tests/test_stage_gates.py -q -k TheSlicesOwnFilesMoved`. The RED must show it accepted when a file the cited slice names has changed, and the GREEN must refuse it naming those files.",
+        "A citation that belongs to no slice falls back to the whole tree. `python3 -m pytest harness/tests/test_stage_gates.py -q -k UnattributableCitationFallsBack`. The RED must show it accepted on a moved tree, and the GREEN must refuse it as before."
+      ],
+      "slices": [
+        {
+          "name": "The fingerprint rule in cited_check, its two refusal reasons, the ordering held across attempts, and the replan carrying forward",
+          "points": 2,
+          "files": [
+            "harness/gates.py",
+            "harness/handoff.py",
+            "harness/tests/test_stage_gates.py",
+            "harness/tests/test_session_cap.py"
+          ],
+          "red": "CiteAcrossAttempts fails with `Check {n} belongs to another stage or attempt; run it again` on a journal shaped like SEEN-112's; TreeMovedUnderTheCheck shows one sentence answering two different situations; OrderingAcrossAttempts shows the ordering untested across attempts; EvidenceForChangedCode shows no fingerprint reason in any refusal; and ReplanCarriesForward shows the pack reading 0 of 3 done with two slices green."
+        },
+        {
+          "name": "Scope the comparison to the cited check's own slice files, with the whole tree as the fallback",
+          "points": 1,
+          "files": [
+            "harness/gates.py",
+            "harness/handoff.py",
+            "harness/tests/test_stage_gates.py",
+            "harness/tests/test_session_cap.py"
+          ],
+          "red": "CitedAcrossAttemptsByItsOwnFiles shows slice 1's green refused because an unrelated file moved, which is the state every real journal is in; TheSlicesOwnFilesMoved shows a green accepted although a file its own slice names has changed; UnattributableCitationFallsBack shows a citation belonging to no slice accepted on a moved tree."
+        }
+      ],
+      "alternatives": [
+        "Letting a tdd record cite any check from any attempt, with the review's fingerprint check catching a stale one later. Rejected because the tdd gate is where the evidence is assembled and a gate that accepts what a later gate must undo is two refusals for one mistake, with the second arriving after a reviewer has been spawned.",
+        "Carrying the earlier attempt's checks forward into the new attempt as copied records. Rejected outright: the journal is append-only and hash-chained, and a copied check is a second record asserting a run that happened once, which is the one thing the chain exists to make impossible.",
+        "Raising `criterion_evidenced` out of the way, or lowering it so 0.58 passes. Rejected because the threshold was not wrong: the evidence really was missing from the record it was asked about, and moving a bar to fit a measurement is what the coverage defect in SEEN-112 was hiding.",
+        "Fixing only `cited_check` and leaving the pack. Rejected because a pack saying none of three slices is done while the gate accepts the two that are is the harness contradicting itself, and the session reading the pack pays for it."
+      ],
+      "risks": [
+        "The rule only ever accepts more than before, so a recorded refusal in a delivered journal might have been load-bearing. Mitigated by running the rule over every journal under docs/harness/history as part of the regression, and naming in the tdd record any verdict that moves rather than smoothing it over.",
+        "A fingerprint comparison could be made against the wrong tree and quietly accept anything. Mitigated by EvidenceForChangedCode, which edits a covered file and requires the refusal to name the difference, so an always-true comparison fails a test rather than passing everything.",
+        "The two refusal messages could drift into saying the same thing again. Mitigated by the test asserting they differ, which is cheap and is the whole point of the second criterion.",
+        "Loosening a gate on the ticket whose own delivery is blocked by that gate invites motivated reasoning. Mitigated by the shape of the fix: it accepts evidence only when the code has not moved, it is proven on SEEN-112's shape and on the mirror that must still refuse, and the review is a context that did not write it.",
+        "Scoping to a slice's files is a wider rule than scoping to the tree, and a slice that names a directory now carries everything under it. Mitigated by TheSlicesOwnFilesMoved, which must refuse on a change to a file the slice names, and by the refusal naming the files rather than the tree so a reader can see what was compared.",
+        "A citation could be attributed to the wrong slice and so compared against the wrong files. Mitigated by the fallback being the strict whole-tree comparison rather than acceptance: a citation nobody can attribute is held to the old rule, so a mis-attribution fails closed."
+      ],
+      "rollback": "Nothing here runs in production; the harness is a development tool with no runtime in apps/ or packages/. Reverting the branch restores the attempt test, and journals written under the new rule stay readable because nothing about the record shape changes: a tdd record still cites record numbers, and only which of them a gate accepts differs.",
+      "new_dependencies": [],
+      "tenant_tables": [
+        "none: this ticket touches no database table and no tenant data. It changes harness/ only."
+      ],
+      "buyer_pii": "none",
+      "policy_gate_action": null,
+      "slice_points": 3,
+      "forecast": {
+        "available": false,
+        "observed_tickets": 3,
+        "required": 10
+      }
+    },
+    "decisions": [
+      {
+        "key": "solution_complete",
+        "question": "solution_complete",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.62,
+          "no": 0.38
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "key": "touches_billing_or_policy_gate",
+        "question": "touches_billing_or_policy_gate",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.07,
+          "no": 0.93
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

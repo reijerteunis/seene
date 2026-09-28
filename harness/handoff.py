@@ -54,22 +54,172 @@ def plan_of(records):
     return (gates.latest_evidence(records, 'solution') or {}).get('slices') or []
 
 
-def accepted_greens(records, after=0):
-    """Greens recorded since the plan was accepted, whatever attempt wrote them.
-
-    A slice that was proved green does not become unproved because a review sent
-    the ticket back: the code is in the branch either way, and the rework is work
-    on top of it. H4 of SEEN-105's third review.
-    """
-    return [record for record in records
-            if record['sequence'] > after and record['kind'] == 'check'
-            and record['stage'] == 'tdd'
+def _is_an_accepted_green(record):
+    """A green the journal kept: a tdd check of that phase that really passed."""
+    return (record['kind'] == 'check' and record['stage'] == 'tdd'
             and record['data'].get('phase') == 'green'
-            and record['data'].get('exit_code') == 0]
+            and record['data'].get('exit_code') == 0)
+
+
+def _positions_the_journal_declares(records, after=0):
+    """Which slice of the plan each cited green proved, where a tdd record says.
+
+    The journal's own answer to a question counting cannot ask. A green is a
+    check that passed; which slice it proved is a claim, and the tdd records are
+    where that claim is made, one position per round beside the red and the green
+    that proved it.
+
+    Every position found rather than one of them, so that two records disagreeing
+    about the same green stays a disagreement. It used to be resolved with `max`,
+    which is a vote for the larger number in the one direction this function's
+    own docstring calls the harm, while the tdd gate treats the identical
+    disagreement as an absence and falls back to the whole tree. F3 of the third
+    review. A round declaring null is in the set as None, for the same reason the
+    gate keeps it there: a round that belongs to no single slice is a claim about
+    the green and not a gap in the record.
+    """
+    declared = {}
+    for record in records:
+        if (record['sequence'] <= after or record['kind'] != 'advance'
+                or record['data'].get('from_stage') != 'tdd'):
+            continue
+        for entry in (record['data'].get('evidence') or {}).get('slices') or []:
+            if not isinstance(entry, dict):
+                continue
+            position, green = entry.get('position'), entry.get('green')
+            if not isinstance(green, int) or isinstance(green, bool):
+                continue
+            declared.setdefault(green, set()).add(
+                position if isinstance(position, int) and not isinstance(position, bool)
+                else None)
+    return declared
+
+
+def _the_position_the_journal_settles(declared, green):
+    """The one position the journal settles on for that green, or nothing.
+
+    Three answers in two values, so the caller can tell them apart by asking
+    twice: no tdd record mentions this green, which is a green nothing attributes;
+    one position, which is the slice it proved; and anything else, which is a
+    disagreement or a declared null and settles nothing at all.
+    """
+    positions = declared.get(green)
+    if positions is None:
+        return None, False
+    if len(positions) == 1 and None not in positions:
+        return next(iter(positions)), True
+    return None, True
+
+
+def _plan_length_at(records, sequence):
+    """How many slices the plan in force at that point in the journal had.
+
+    Read from the acceptance that set it, because a count of slices proved is a
+    count against a plan and means nothing against a longer one. None where no
+    plan had been accepted yet, which is a count with nothing to be held to.
+    """
+    length = None
+    for record in records:
+        if record['sequence'] > sequence:
+            break
+        if record['kind'] == 'advance' and record['data'].get('from_stage') == 'solution':
+            length = len((record['data'].get('evidence') or {}).get('slices') or [])
+    return length
+
+
+def slices_proved(records, after=0, done=0):
+    """How far into the plan the work has got, counting slices and not greens.
+
+    A slice proved green does not become unproved because a review sent the
+    ticket back: the code is in the branch either way, and the rework is work on
+    top of it. That is H4 of SEEN-105's third review, and counting the greens
+    since the plan was accepted was how it was answered. With the count starting
+    at the first acceptance of a plan that still stands, counting greens became
+    worse than what it replaced: one slice proved, a return to solution that
+    re-accepted the same plan, the same slice reworked and proved again, and two
+    greens read as two slices, so the pack handed over slice 3 with slice 2
+    unworked and the guard refused slice 2's files. F3 of SEEN-113's second
+    review.
+
+    A green is not a slice. What a run at tdd reached is how far into the plan it
+    got: a green nothing attributes is the next slice of that run, and a green a
+    tdd record attributes is the slice that record names, which never carries the
+    count past the position it names. A run begins where the plan was accepted
+    again, because a plan somebody went back to is worked to fix something rather
+    than to carry on, and a green recorded after it may be rework of a slice
+    already counted. So each run starts its own reckoning from the count that
+    stood, and the answer is the furthest any of them reached.
+
+    A run is held to the plan it ran against, which is what `min(…, len(slices))`
+    at the caller could not do: the clamp is the plan that stands now, so an
+    earlier shorter plan's over-count was hidden only while the plan stayed that
+    length and was let out the moment it grew. One slice planned, proved with a
+    correction, so two greens; a return to solution growing the plan to three
+    whose first slice is unchanged; the run before the return had its count
+    carried forward and the pack read "Slice 3 of 3, 2 of 3 done" with slice 2
+    never worked, or "the plan is complete" with two corrections. F2 of the third
+    review, and this ticket's own journal was one green short of it. A run cannot
+    have proved more slices than the plan in force had, so each is capped there
+    and not at the length of a plan it never saw.
+
+    Under-counting is the direction this errs in: a run that really did carry the
+    plan on after a return, and whose tdd record has not been written yet,
+    reaches a lower number than it earned, and the session that worked it says so
+    with --slice-done. Over-counting is the harm, because it points the next
+    session past a slice nobody worked.
+    """
+    declared = _positions_the_journal_declares(records, after)
+    reached = furthest = done
+    planned = _plan_length_at(records, after)
+    for record in records:
+        if record['sequence'] <= after:
+            continue
+        if record['kind'] == 'advance' and record['data'].get('from_stage') == 'solution':
+            reached = done
+            planned = len((record['data'].get('evidence') or {}).get('slices') or [])
+        elif _is_an_accepted_green(record):
+            position, spoken = _the_position_the_journal_settles(declared, record['sequence'])
+            if position is not None:
+                reached = max(reached, position)
+            elif not spoken:
+                reached += 1
+            # Otherwise the journal's records name no one slice for this green,
+            # by disagreeing or by declaring null, and a count does not advance
+            # on a question the journal left open.
+            if planned is not None:
+                reached = min(reached, planned)
+            furthest = max(furthest, reached)
+    return furthest
+
+
+def _slice_key(entry):
+    """What makes a slice the same slice across two acceptances of one plan."""
+    return (entry.get('name'), entry.get('points'),
+            tuple(entry.get('files') or []), entry.get('red'))
+
+
+def _slices_accepted_by(record):
+    return [_slice_key(entry)
+            for entry in (record['data'].get('evidence') or {}).get('slices') or []]
+
+
+def _is_the_same_plan(earlier, current):
+    """Whether an earlier acceptance accepted the plan that stands now.
+
+    The slices the two have in common, rather than the whole list, because a
+    replan that appends a slice or drops the last one leaves the slices already
+    proved exactly where they were. An acceptance that planned no slices at all
+    can never be the start of this plan's count: there was no slice then for a
+    green to have proved.
+    """
+    if not earlier:
+        return False
+    shared = min(len(earlier), len(current))
+    return earlier[:shared] == current[:shared]
 
 
 def plan_accepted_at(records):
-    """Where the plan the pack counts against was last accepted.
+    """Where the plan the pack counts against was first accepted.
 
     Slices belong to a plan, and a plan is set by the solution record. Counting
     from there rather than from the attempt is what H4 in SEEN-105's third review
@@ -77,11 +227,28 @@ def plan_accepted_at(records):
     and scoping the count to the attempt threw the declaration away and pointed the
     next session at work already delivered. A plan changed by a return to solution
     starts its own count, which is the one case an attempt boundary got right.
+
+    SEEN-113: reading only the last acceptance made every replan a changed plan,
+    so a return that re-accepted the same slices discarded the greens that proved
+    them. The count starts at the earliest acceptance whose slices still agree
+    with the current plan's on every slice the two have in common; the first one
+    that disagrees is where the plan really changed, and the count starts after
+    it. On SEEN-112 at its record 44 the pack read "slice 1 of 3, 0 of 3 done"
+    with slices 1 and 2 green and committed, and handed a session slice 1's file
+    list for work that belonged to slice 3.
     """
-    for record in reversed(records):
-        if record['kind'] == 'advance' and record['data'].get('from_stage') == 'solution':
-            return record['sequence']
-    return 0
+    acceptances = [record for record in records
+                   if record['kind'] == 'advance'
+                   and record['data'].get('from_stage') == 'solution']
+    if not acceptances:
+        return 0
+    current = _slices_accepted_by(acceptances[-1])
+    first = acceptances[-1]
+    for record in reversed(acceptances[:-1]):
+        if not _is_the_same_plan(_slices_accepted_by(record), current):
+            break
+        first = record
+    return first['sequence']
 
 
 def last_declaration(records, after=0):
@@ -99,13 +266,15 @@ def last_declaration(records, after=0):
 
 
 def current_slice(records, state, declared=None):
-    """The slice a fresh session picks up, declared or counted from the greens.
+    """The slice a fresh session picks up, declared or counted from the journal.
 
     The plan is ordered and the tdd stage gate refuses slices out of order, so
-    the number of accepted greens in this attempt is usually how many slices are
-    behind us. Usually: a slice that records a second green, which is what a
+    how far a run at tdd reached is usually how many slices are behind us.
+    Usually: a slice that records a second green inside one run, which is what a
     correction inside a slice looks like, counts twice and sends the next session
-    past a slice nobody worked. It happened on SEEN-105's own slice 1.
+    past a slice nobody worked. It happened on SEEN-105's own slice 1, and
+    `slices_proved` closes it only where the journal says which slice a green
+    proved.
 
     Only the session that worked the slice knows it finished it, so it may say so
     with --slice-done and the record keeps which of the two numbers this was. The
@@ -124,7 +293,7 @@ def current_slice(records, state, declared=None):
     # numbers are needed.
     planned_at = plan_accepted_at(records)
     at_boundary, since = last_declaration(records, planned_at)
-    inferred = min(at_boundary + len(accepted_greens(records, since)), len(slices))
+    inferred = min(slices_proved(records, since, at_boundary), len(slices))
     if declared is None:
         done = inferred
     else:
@@ -162,6 +331,30 @@ def _route_line(records, position):
            else f'by Jev at {entry["model_probability"]}' if source == 'jev'
            else 'by neither: routed to the strongest because nobody answered')
     return f'Runs on: {entry["model"]} at {entry["effort"]} effort, {how}.'
+
+
+def _rework_line(records, thresholds):
+    """What a round that belongs to no single slice runs on, or nothing.
+
+    `_route_line` is how a route reaches the session that works a slice, one slice
+    at a time, and a plan whose every slice is proved has no slice left to name. A
+    return puts such a ticket back at tdd, and what a return produces is rework: a
+    round that touches more than one slice's work, declares null for its position
+    by the template's own instruction, and is held by the tdd gate to the strictest
+    route in the plan. Told nothing here, the session would be refused by a rule
+    the pack never gave it, which is the one thing the pack exists to prevent.
+
+    Nothing where nothing was routed, for the reason `strictest_route` gives: there
+    is no route to report and the gate refuses nothing either.
+    """
+    strictest = gates.strictest_route(records, thresholds)
+    if strictest is None:
+        return None
+    return (f'If this is a round of rework rather than the regression, it belongs to no single '
+            f'slice: declare null for its position and run it on {strictest["model"]} at '
+            f'{strictest["effort"]} effort, which is slice {strictest["position"]}\'s route and '
+            'the strictest in the plan. A round that may have touched any slice answers to the '
+            'strongest model any of them was routed to.')
 
 
 def _graph_answers(records):
@@ -256,6 +449,11 @@ def pack(records, state, thresholds, branch=None, next_command='', slice_done=No
             finished += (' What is left is the regression, the coverage measurement and the '
                          'advance to review.')
         lines.append(finished)
+        # The route for the one kind of work a complete plan still has in front of
+        # it, and only at the stage that work is done at.
+        rework = _rework_line(records, thresholds) if state['stage'] == 'tdd' else None
+        if rework:
+            lines += ['', rework]
     else:
         entry = slice_now['entry']
         lines += [f'Slice {slice_now["position"]} of {slice_now["total"]}, '

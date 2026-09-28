@@ -1,0 +1,79 @@
+{
+  "sequence": 31,
+  "ticket": "SEEN-113",
+  "timestamp": "2026-09-27T15:51:00.930693+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 3,
+  "actor": "claude:reviewer",
+  "session": "a00943ab9615",
+  "head": "8e38e14e14bde19e94a1c6d1c1e96bdfca3918a3",
+  "prev_hash": "4ec91cb7072198f702ac3edf0afb986c94420514fb85444f94673512f5bc7589",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 4,
+    "reason": "Second review round. Two of the three high findings from the first round are genuinely closed and the reviewer could not break the file-entry rule or the fingerprint pinning across fifteen constructed inputs. Two new high findings, both reproduced end to end, and both against criteria the ticket ticked: the corroboration is only one round deep, because a same-attempt citation skips the content test and the route comparison returns immediately in shadow, so a position mis-declared in an earlier round self-corroborates for the rest of the ticket and buys another slice's files as the scope (F1, criterion 6); and slices_proved carries a shorter plan's correction greens across a plan that grew, because furthest is never reset at a solution advance, so rework still advances the count past a slice nobody worked (F2, criterion 4, and this ticket's own journal is one green short of the harm). Also the disagreement between two records is resolved toward the larger number where the gate treats the same disagreement as fail-closed (F3), and three low findings in the documents and one refusal message. The reviewer verified independently, again, that the rule was not bent toward SEEN-112.",
+    "findings": [
+      {
+        "id": "F1",
+        "severity": "high",
+        "file": "harness/gates.py:285",
+        "claim": "The corroboration is one round deep: the position the corroborating tdd record declared was itself never checked against any code, so a position mis-declared in an earlier round, or copied forward from it, still buys another slice's files as the scope and revives evidence for code that changed.",
+        "failure_scenario": "Plan: slice 1 names harness/slice_one.py, slice 2 names harness/slice_two.py, both committed. Attempt 1 records red 3 and green 4 proving slice 1, then writes a tdd record whose slice entry declares position 2 for them. That record is accepted, because cited_check skips the content test entirely for a same-attempt check, _require_the_routed_slice only range-checks the position against the plan's length, and _require_the_routed_model returns immediately while [routing] shadow is true. Attempt 2 rewrites harness/slice_one.py and commits it, then cites red 3 and green 4 under position 2: _positions_declared_for returns {2}, the corroboration is satisfied, the scope becomes harness/slice_two.py, nothing moved among those files, and the citation is accepted although the file it covered was rewritten. Declared honestly as position 1 it is refused by name. Reproduced end to end, all three steps. A later record citing earlier checks naturally copies the position it reads, so one mis-declaration self-corroborates for the rest of the ticket. It contradicts the Outcome's stated property that a record cannot vouch for its own scope, which holds within a round but not across rounds, where the same author's earlier unchecked claim is the authority. A check that depends on no claim is available and unused: the commit _the_commit_holding already finds names which files that round actually moved, against its parent.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F2",
+        "severity": "high",
+        "file": "harness/handoff.py:126",
+        "claim": "slices_proved carries an earlier run's undeclared greens across a plan that grew, so rework still advances the count past a slice nobody worked; furthest is never reset at a solution advance and the min clamp that used to hide it is widened by the growth.",
+        "failure_scenario": "A one-slice plan is accepted; the session proves slice 1 and records a correction, so two greens; the review returns the ticket to solution and the plan grows to three slices whose first slice is unchanged. _is_the_same_plan compares the shared prefix, finds them equal and starts the count at the first acceptance; the solution advance resets reached but not furthest, so slices_proved returns 2. The pack reads 'Slice 3 of 3, 2 of 3 done' and harness guard refuses slice 2's files, in the implementer's own words from record 25. Slice 2 was never worked. With two corrections the pack reads 'The plan is complete: 3 of 3 slices done' while only slice 1 was ever worked. Main reads '0 of 3, next slice 1' for the same journal, so this is last round's regression reached by a plan that grew rather than one re-accepted unchanged, and it is untested because both existing tests hold the plan's length fixed or change its first slice. This ticket's own journal is one green short of the harm: slices_proved returns 4 against a 2-slice plan and only min(4, 2) hides it.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F3",
+        "severity": "medium",
+        "file": "harness/handoff.py:83",
+        "claim": "Two tdd records disagreeing about which slice one green proved are resolved with max, the over-counting direction the function's own docstring names as the harm, where gates.py treats the identical disagreement as fail-closed.",
+        "failure_scenario": "A three-slice plan; one green proves slice 1 and attempt 1's tdd record declares position 1; the ticket is returned to review and back to tdd with no code change, and attempt 2's record re-cites the same green under position 2. cited_check accepts that record because the cited check's recorded tree still equals the current tree, so the scope is never consulted. _positions_the_journal_declares then takes max(1, 2) = 2, the pack reads '2 of 3 done, Slice 3 of 3' and the guard refuses slice 2's files. Reproduced in both orderings. gates.py treats the same disagreement as an absence and falls closed to the whole tree; handoff resolves it toward the larger number.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F4",
+        "severity": "low",
+        "file": "docs/tickets/SEEN-113-let-a-tdd-record-cite-the-evidence-a-return.md:43",
+        "claim": "The Amendment and the Outcome contradict each other on how many refusal reasons there are, and the restated criterion 2 lists three while the code has four.",
+        "failure_scenario": "The Amendment says there are three refusal reasons rather than two and the restated criterion names three; the Outcome eleven lines below says there are four now and lists the fourth as the check that recorded no fingerprint at all, which is a distinct refusal in the code with its own test. A reader auditing the gate against criterion 2 would not know the fourth refusal exists and would read the two sections as describing different code.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F5",
+        "severity": "low",
+        "file": "docs/tickets/README.md:3",
+        "claim": "The two indexes now disagree on the ticket count, and the README row for this ticket says todo while the ticket is at review, against the README's own instruction.",
+        "failure_scenario": "CLAUDE.md was updated to 113 tickets and 361 points but README.md still opens with 110 tickets for the Seen MVP and its Sprint 0 heading still says 38 tickets and 92 build points over 41 rows, so reconciling the two indexes gives 113 from one and 110 from the other. The README row also carries status todo while the frontmatter says review, against the README's own line about updating both. Both counts were already stale by two on main, so this ticket inherited the drift and made it one worse; the status column is stale for SEEN-111 too.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F6",
+        "severity": "low",
+        "file": "harness/gates.py",
+        "claim": "A slice file entry that resolves outside the repository makes the gate refuse with a raw git fatal instead of a harness sentence.",
+        "failure_scenario": "A plan entry of ../outside.py or an absolute path makes _unresolved_in run git ls-tree with that pathspec, which exits non-zero, so Repository.git raises with git's own stderr naming a temp path and a git internal. The refusal is fail-closed, so nothing stale is accepted, but the session is told about a git internal rather than which slice entry is wrong and what to do, where every other unresolvable entry gets the harness sentence.",
+        "status": "open",
+        "resolution": ""
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": [
+      6
+    ]
+  }
+}

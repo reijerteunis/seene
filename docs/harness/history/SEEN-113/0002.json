@@ -1,0 +1,25 @@
+{
+  "sequence": 2,
+  "ticket": "SEEN-113",
+  "timestamp": "2026-09-27T13:25:23.183115+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "e94bfe7d5943c78b5549d50da189ec8e11c7b97c",
+  "prev_hash": "cb0b0cac7130e6aa27f81ab6de1fe466ee1052de52d5bcd8bf103b4012e0250d",
+  "data": {
+    "source": "repowise",
+    "mode": "risk",
+    "command": [
+      "repowise",
+      "risk"
+    ],
+    "exit_code": 0,
+    "duration_ms": 1569,
+    "answer": "Sampling up to 200 recent commits…\n\nBenchmarked review priority: Typical · 40th percentile of recent commits by size and spread\n  Typical diff size and spread for this repo.\n\nChange risk for HEAD: touches files that have broken before · 40th percentile of this repo's recent commits\n  docs(SEEN-113): open the ticket and start it\n  +92 / -2 lines · 4 files · 3 dirs · 2 subsystems · entropy 1.09 · author exp 148\n┏━━━━━━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━┓\n┃ File      ┃ Lines ┃ Prior fixes ┃\n┡━━━━━━━━━━━╇━━━━━━━╇━━━━━━━━━━━━━┩\n│ CLAUDE.md │     3 │         1.0 │\n└───────────┴───────┴─────────────┘\n  Prior fixes are recency-weighted against this change's own date — one from a year earlier counts a half.\n  Diff-size score: 7.4/10 — how big and spread out the change is, not where it lands. Corpus-anchored to a single commit.\n Diff shape (each driver vs. the model's baseline commit)  \n┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━┓\n┃ Driver                                ┃   Value ┃  Push ┃\n┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━┩\n│ more lines added than baseline        │      92 │ +1.66 │\n│ more scattered than baseline          │ 1.09057 │ +0.11 │\n│ more experienced author than baseline │     148 │ -0.06 │\n│ fewer lines deleted than baseline     │       2 │ -0.01 │\n└───────────────────────────────────────┴─────────┴───────┘\n",
+    "answer_truncated": false
+  }
+}

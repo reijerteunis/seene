@@ -1,0 +1,38 @@
+{
+  "sequence": 17,
+  "ticket": "SEEN-113",
+  "timestamp": "2026-09-27T14:23:45.092420+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "e94bfe7d5943c78b5549d50da189ec8e11c7b97c",
+  "prev_hash": "a207dba09fbf581a57fd344f649f6d742a8598da2dc1c8cf6f90d9b23e6f1a0a",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": 2,
+          "behaviour": "The whole rule as it now stands, both slices' work in one round because the return reworked slice 1's own files. `cited_check` keeps its phase and stage requirements and replaces the attempt requirement with a content test: a check counts when it was recorded in this attempt, or when the code it covers has not changed since it ran. The scope is the files the cited check's slice names, attributed through the route record first and the accepted plan second, with the whole-tree comparison kept as the fallback for a citation that belongs to no slice, so a mis-attribution fails closed. `content_fingerprint` and `_the_commit_holding` find the commit whose content is the tree a check ran against, `_moved_since` names the files through git's own pathspec, and the regression citation is deliberately left on the whole-tree rule because it covers the suite rather than a slice. Three distinct refusals replace the one sentence that answered four situations: the code this check covers has changed, naming the files; the tree moved, naming why the comparison fell back; and there is no such check. `handoff.plan_accepted_at` returns the first acceptance of the plan that still stands, by slice identity over every slice two acceptances have in common, so a replan carries forward the greens of slices whose work is still in the branch while a replan that changed the slices restarts its own count. It belongs to no single slice because it is slice 1's rule rescoped: the ticket returned to solution at record 9 when the measurement showed the whole-tree scope could not do the job.",
+          "failure_reason": "`python3 -m unittest harness.tests.test_stage_gates harness.tests.test_session_cap` exited 1 with 6 failures and 5 errors of 246 tests. In the runner's words: `HarnessError: The tree moved under check 3: it ran against fc1b2cc72c1c and this record is written against 8c988de3b054. Its evidence is about code this ticket has changed since`, which is the whole-tree comparison as the stated reason and the state every real journal is in; `AssertionError: 'harness/slice_one.py' not found in 'The tree moved under check 3: it ran against fc1b2cc72c1c...'`; `AssertionError: 'whole tree' not found in 'The tree moved under check 3...'`; and `AttributeError: module 'harness.gates' has no attribute 'content_fingerprint'`.",
+          "red": 12,
+          "green": 13
+        }
+      ],
+      "regression": 16,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "a00943ab9615",
+      "output_tokens": 558195,
+      "tool_calls": 279,
+      "unavailable": null
+    }
+  }
+}

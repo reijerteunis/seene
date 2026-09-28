@@ -1,0 +1,101 @@
+{
+  "sequence": 5,
+  "ticket": "SEEN-113",
+  "timestamp": "2026-09-27T13:26:04.854080+00:00",
+  "harness_version": "2",
+  "kind": "route",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "e94bfe7d5943c78b5549d50da189ec8e11c7b97c",
+  "prev_hash": "510882c09b4b7447346fe7e7a1e52be5da410d397f59233d5beebe346e607b30",
+  "data": {
+    "solution": 4,
+    "shadow": true,
+    "strongest": "opus",
+    "tiers": [
+      "haiku",
+      "sonnet",
+      "opus"
+    ],
+    "rules": [],
+    "jev": {
+      "asked": true,
+      "model": "jev-1.13.0",
+      "reason": null,
+      "answers": [
+        {
+          "key": "implementation_model#1",
+          "question": "implementation_model",
+          "type": "score",
+          "options": [
+            "haiku",
+            "sonnet",
+            "opus"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "opus",
+          "probabilities": {
+            "haiku": 0.03,
+            "sonnet": 0.44,
+            "opus": 0.53
+          },
+          "confidence": 0.24,
+          "score": 1.49,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_effort#1",
+          "question": "implementation_effort",
+          "type": "score",
+          "options": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "high",
+          "probabilities": {
+            "low": 0.0,
+            "medium": 0.07,
+            "high": 0.93
+          },
+          "confidence": 0.89,
+          "score": 1.92,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        }
+      ]
+    },
+    "execution": [
+      {
+        "position": 1,
+        "name": "The fingerprint rule in cited_check, its two refusal reasons, the ordering held across attempts, and the replan carrying forward",
+        "points": 2,
+        "files": [
+          "harness/gates.py",
+          "harness/handoff.py",
+          "harness/tests/test_stage_gates.py",
+          "harness/tests/test_session_cap.py"
+        ],
+        "red": "CiteAcrossAttempts fails with `Check {n} belongs to another stage or attempt; run it again` on a journal shaped like SEEN-112's; TreeMovedUnderTheCheck shows one sentence answering two different situations; OrderingAcrossAttempts shows the ordering untested across attempts; EvidenceForChangedCode shows no fingerprint reason in any refusal; and ReplanCarriesForward shows the pack reading 0 of 3 done with two slices green.",
+        "model": "opus",
+        "effort": "high",
+        "source": "jev",
+        "rule": null,
+        "reason": null,
+        "model_probability": 0.53,
+        "effort_probability": 0.93,
+        "model_passed": true,
+        "model_threshold": 0.5,
+        "implementer_task": "Work slice 1 of SEEN-113: The fingerprint rule in cited_check, its two refusal reasons, the ordering held across attempts, and the replan carrying forward.\n\nRun it on opus at high effort, because Jev chose it at 0.53.\nThe model is what reaches the work: in Claude Code as the per-invocation model on the seen-implementer agent, and in Codex as the model this instruction names when you spawn it. The effort is recorded, carried and reported rather than applied, on either assistant: the generated copies do not vary by slice, because a file whose content depended on the ticket in hand was wrong on a detached HEAD, after a replan and after the receipt. Neither is yours to change.\n\nPoints: 2.\nFiles: harness/gates.py, harness/handoff.py, harness/tests/test_stage_gates.py, harness/tests/test_session_cap.py\n\nIts RED must demonstrate: CiteAcrossAttempts fails with `Check {n} belongs to another stage or attempt; run it again` on a journal shaped like SEEN-112's; TreeMovedUnderTheCheck shows one sentence answering two different situations; OrderingAcrossAttempts shows the ordering untested across attempts; EvidenceForChangedCode shows no fingerprint reason in any refusal; and ReplanCarriesForward shows the pack reading 0 of 3 done with two slices green.\n\nWrite the test first and record it with:\n  python3 harness/run.py check SEEN-113 --phase red --actor <tool>:implementer --model opus -- <command>\nThen write only what turns it green and record that the same way. The `--model opus` is not optional: a subagent inherits its parent's session id, so the log records the model of the session that spawned you and not yours, and without the declaration the tdd gate compares the wrong two names. Then stop: do not start the next slice and do not advance the stage."
+      }
+    ]
+  }
+}

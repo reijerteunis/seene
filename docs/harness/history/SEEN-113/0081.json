@@ -1,0 +1,38 @@
+{
+  "sequence": 81,
+  "ticket": "SEEN-113",
+  "timestamp": "2026-09-28T06:48:33.901379+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 7,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "a3e91938c3188f5d8343ed4527aaabe6ac91506e",
+  "prev_hash": "8c918e2ba950f9f0c1d8322bc004c139e8d27c33a5b500d9ab46e4b781ce858d",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": 2,
+          "behaviour": "The fifth review's two code findings. The attribution now reads the round and not only the position: `_the_journal_pairs_it_with_another_check` refuses a citation that joins a red to a green an accepted tdd record recorded it apart from, in both directions, and is silent on silence and on unanimous agreement. That closes the case the previous fix left open, where an accepted record declaring null for the red made the contradiction read as agreement, which is the declaration the template asks every rework round to make. The mirror at the green's end is closed with it, an accepted record naming another red for this green, because closing one end is what the round before was returned for. And the disclosures are corrected where they are made rather than three places away: `_the_journal_puts_it_elsewhere` says it reads only the position, the pair rule's list is five rules with the fifth naming the next omission, `cited_check`'s statement of what a red is held to adds the round, and the route clause now says it refuses nothing at all while `[routing] shadow` is true, because every route comparison returns before it compares in the shadow window.",
+          "failure_reason": "`python3 -m unittest harness.tests.test_stage_gates harness.tests.test_session_cap harness.tests.test_routing` exited 1 on 631 tests with six failures: five `AssertionError: HarnessError not raised`, the gate accepting what must be refused, being the fifth review's scenario verbatim, its cleaner one-record variant, the numbered direction through two rounds at one position, the null round taking the other round's green, and the mirror at the green's end; and one `ValueError: substring not found`, where the disclosure test looked for the shadow qualification inside the route clause and did not find it.",
+          "red": 76,
+          "green": 77
+        }
+      ],
+      "regression": 80,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "a00943ab9615",
+      "output_tokens": 990633,
+      "tool_calls": 540,
+      "unavailable": null
+    }
+  }
+}

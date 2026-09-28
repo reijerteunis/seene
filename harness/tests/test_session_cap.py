@@ -450,6 +450,70 @@ class NoPlanYetTest(SessionEnvironment):
                       self.run_harness('status', self.ticket_id, '--brief')['pack'])
 
 
+class ReworkIsToldWhatItRunsOn(PackEdgesTest):
+    """A plan with no slice left in front of the session still has a route to give.
+
+    The pack is the only thing that crosses a slice boundary, and `_route_line`
+    is where the route reaches the session one slice at a time. A returned ticket
+    whose plan is complete has no next slice, so it was told nothing, and the tdd
+    gate now holds a round that belongs to no single slice to the strictest route
+    in the plan. A session refused by a rule the pack never told it is the one
+    thing the pack exists to prevent, so the pack says it.
+    """
+
+    def route(self, models=('sonnet', 'opus', 'sonnet')):
+        """A route record of the plan in hand, one model per planned slice."""
+        from harness import journal
+        folder = self.root / 'docs' / 'harness' / 'history' / self.ticket_id
+        records = journal.read(folder)
+        solution = next(record['sequence'] for record in records
+                        if record['kind'] == 'advance'
+                        and record['data'].get('from_stage') == 'solution')
+        execution = [dict(position=position, name=f'Slice {position}', points=1,
+                          files=['harness/journal.py'], red='Nothing yet proves it',
+                          model=model, effort='high', source='jev', rule=None, reason=None,
+                          model_probability=0.7, effort_probability=0.7,
+                          model_passed=True, model_threshold=0.5)
+                     for position, model in enumerate(models, start=1)]
+        return journal.append(folder, records, kind='route', stage='tdd', attempt=1,
+                              actor='claude:implementer', head=self.git('rev-parse', 'HEAD'),
+                              ticket=self.ticket_id,
+                              data=dict(solution=solution, shadow=True, strongest='opus',
+                                        tiers=['haiku', 'sonnet', 'opus'], rules=[],
+                                        jev=dict(asked=False, model=None, answers=[],
+                                                 reason='a fixture'),
+                                        execution=execution))
+
+    def built(self, stage='tdd'):
+        from harness import handoff as building
+        records, rules = self.complete_the_plan()
+        return building.pack(records, dict(stage=stage, attempt=1), rules)['markdown']
+
+    def test_it_names_the_strictest_route_in_the_plan(self):
+        self.route()
+        text = self.built()
+        self.assertIn('opus', text)
+        self.assertIn('strictest', text)
+
+    def test_it_says_such_a_round_declares_null_for_its_position(self):
+        self.route()
+        self.assertIn('null', self.built())
+
+    def test_a_plan_nobody_routed_claims_no_route_for_rework_either(self):
+        self.assertNotIn('strictest', self.built())
+
+    def test_the_regression_is_still_what_the_pack_names_first(self):
+        """The line is an answer to "if this is rework", not a replacement for what
+        a complete plan at tdd has left to do."""
+        self.route()
+        self.assertIn('What is left is the regression', self.built())
+
+    def test_at_review_there_is_no_rework_to_route(self):
+        """A return puts a ticket back at tdd, so that is where the line belongs."""
+        self.route()
+        self.assertNotIn('strictest', self.built(stage='review'))
+
+
 class StatusBriefTest(AtTddTest):
     """What a fresh session reads before it does anything else."""
 
@@ -628,6 +692,245 @@ class SessionThresholdTest(unittest.TestCase):
         self.assertEqual(section['max_slices_per_ticket'], 4)
         self.assertEqual(section['output_token_budget'], 60000)
         self.assertEqual(section['handoff_token_limit'], 2000)
+
+
+def named_plan(count=3):
+    """A plan whose slices name different files, so the guard can tell them apart."""
+    return [dict(name=f'Slice {position}',
+                 points=1,
+                 files=[f'harness/slice{position}.py'],
+                 red=f'Nothing yet proves behaviour {position}')
+            for position in range(1, count + 1)]
+
+
+class ReplanCarriesForward(SessionEnvironment):
+    """SEEN-112 at its record 44: two slices green, a return, the same plan again.
+
+    `plan_accepted_at` moved to the second acceptance and `accepted_greens`
+    counted only the greens after it, so the pack and the guard read
+    "slice 1 of 3, 0 of 3 done" while slices 1 and 2 were green and committed.
+    The session that walked into it was handed slice 1's file list for work that
+    belonged to slice 3. A return does not unprove a slice: the code is in the
+    branch either way, and a plan re-accepted unchanged is the same plan.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.start()
+        self.submit('clarify', clarify_evidence())
+        self.submit('solution', solution_evidence(slices=named_plan()))
+
+    def green(self):
+        script = self.root / 'passes.sh'
+        script.write_text('#!/bin/sh\nexit 0\n')
+        script.chmod(0o755)
+        return self.run_harness('check', self.ticket_id, '--phase', 'green',
+                                '--actor', 'claude:implementer', '--', str(script))
+
+    def replan(self, slices=None):
+        self.run_harness('return', self.ticket_id, '--to', 'solution', '--reason',
+                         'A finding from the review', '--actor', 'claude:reviewer')
+        return self.submit('solution',
+                           solution_evidence(slices=slices or named_plan()))
+
+    def two_slices_then_a_replan(self, slices=None):
+        self.green()
+        self.green()
+        self.replan(slices)
+        return self.run_harness('status', self.ticket_id, '--brief')['pack']
+
+    def test_the_pack_counts_the_slices_the_branch_has_finished(self):
+        self.assertIn('2 of 3', self.two_slices_then_a_replan())
+
+    def test_the_pack_hands_over_the_slice_that_is_actually_next(self):
+        self.assertIn('Slice 3', self.two_slices_then_a_replan())
+
+    def test_the_guard_allows_the_files_of_the_slice_in_front_of_the_session(self):
+        self.two_slices_then_a_replan()
+        decision = self.run_harness('guard', 'harness/slice3.py')
+        self.assertTrue(decision['allowed'], decision['reason'])
+
+    def test_the_guard_still_refuses_a_file_of_a_slice_already_done(self):
+        self.two_slices_then_a_replan()
+        with self.assertRaises(HarnessError) as raised:
+            self.run_harness('guard', 'harness/slice1.py')
+        self.assertIn('slice 3 of 3', str(raised.exception))
+
+    def test_a_replan_that_changed_the_slices_starts_its_own_count(self):
+        """The one case the attempt boundary got right, and it is kept.
+
+        A plan whose slices changed is a different plan, and greens proving the
+        slices it replaced prove nothing about the slices it names.
+        """
+        changed = named_plan()
+        changed[0] = dict(changed[0], name='Slice 1, reworked',
+                          files=['harness/reworked.py'])
+        pack = self.two_slices_then_a_replan(slices=changed)
+        self.assertIn('0 of 3', pack)
+        self.assertIn('Slice 1, reworked', pack)
+
+
+def green_check(sequence, attempt=1):
+    """A green the way `harness check` records one."""
+    return dict(sequence=sequence, ticket='SEEN-001', kind='check', stage='tdd', attempt=attempt,
+                actor='claude:implementer',
+                data=dict(phase='green', exit_code=0, command=['pytest']))
+
+
+def plan_accepted(sequence, slices, attempt=1):
+    return dict(sequence=sequence, ticket='SEEN-001', kind='advance', stage='solution',
+                attempt=attempt, actor='claude:implementer',
+                data=dict(from_stage='solution', to_stage='tdd',
+                          evidence=dict(mode='code', slices=slices), decisions=[]))
+
+
+def slices_proved(sequence, positions, attempt=1):
+    """A tdd record saying which slice of the plan each cited green proved."""
+    return dict(sequence=sequence, ticket='SEEN-001', kind='advance', stage='tdd',
+                attempt=attempt, actor='claude:implementer',
+                data=dict(from_stage='tdd', to_stage='review', decisions=[],
+                          evidence=dict(
+                              mode='code',
+                              slices=[dict(position=position, behaviour='proved',
+                                           failure_reason='it failed first', red=green - 1,
+                                           green=green)
+                                      for green, position in sorted(positions.items())],
+                              regression=max(positions) + 1)))
+
+
+class ReworkAfterAReplanDoesNotAdvanceTheCount(ReplanCarriesForward):
+    """F3 of this ticket's second review, and a regression the carry forward caused.
+
+    One slice proved, a return to solution that re-accepted the same plan, the
+    same slice reworked and proved again: the count read two greens as two slices
+    and the pack said "Slice 3 of 3, 2 of 3 done" while slice 2 had never been
+    worked, with the guard then refusing slice 2's files. Before the carry
+    forward it read "Slice 2 of 3, 1 of 3 done", which is right, so this was
+    worse than what it replaced and it was the exact harm the ticket exists to
+    stop. A green is not a slice: what counts is how far into the plan a run at
+    tdd got.
+    """
+
+    def one_slice_then_a_replan_then_rework(self):
+        self.green()
+        self.replan()
+        self.green()
+        return self.run_harness('status', self.ticket_id, '--brief')['pack']
+
+    def test_a_second_green_for_the_same_slice_does_not_count_twice(self):
+        self.assertIn('1 of 3', self.one_slice_then_a_replan_then_rework())
+
+    def test_the_pack_does_not_hand_over_a_slice_nobody_has_worked(self):
+        self.assertIn('Slice 2', self.one_slice_then_a_replan_then_rework())
+
+    def test_the_guard_allows_the_files_of_the_slice_that_is_really_next(self):
+        self.one_slice_then_a_replan_then_rework()
+        decision = self.run_harness('guard', 'harness/slice2.py')
+        self.assertTrue(decision['allowed'], decision['reason'])
+
+
+class SlicesProvedRatherThanGreensCounted(unittest.TestCase):
+    """The count is how far into the plan a run at tdd got, not how many greens it ran.
+
+    A unit test of the counting itself, because what separates the two is a tdd
+    record declaring which slice each round proved, which is what the journal
+    carries and what the pack reads.
+    """
+
+    def setUp(self):
+        self.plan = named_plan()
+
+    def done(self, *later):
+        from harness import handoff
+        records = [dict(sequence=1, ticket='SEEN-001', kind='start', stage='clarify', attempt=1,
+                        actor='claude:implementer', data={}), *later]
+        return handoff.current_slice(records, {})['done']
+
+    def test_a_green_no_record_attributes_counts_as_the_next_slice(self):
+        self.assertEqual(self.done(plan_accepted(2, self.plan), green_check(3)), 1)
+
+    def test_two_greens_in_one_run_still_count_as_two(self):
+        """The limit --slice-done exists for, unchanged by counting slices."""
+        self.assertEqual(self.done(plan_accepted(2, self.plan), green_check(3),
+                                   green_check(4)), 2)
+
+    def test_a_rework_green_after_the_plan_was_accepted_again_does_not_advance_it(self):
+        self.assertEqual(self.done(plan_accepted(2, self.plan), green_check(3),
+                                   plan_accepted(4, self.plan, attempt=2),
+                                   green_check(5, attempt=2)), 1)
+
+    def test_a_position_a_tdd_record_declares_carries_the_count_to_it(self):
+        """Rework is not what a declared position says: a run that says it proved
+        slice 3 proved slice 3, whatever number of greens came before it."""
+        self.assertEqual(self.done(plan_accepted(2, self.plan), green_check(3),
+                                   plan_accepted(4, self.plan, attempt=2),
+                                   green_check(5, attempt=2),
+                                   slices_proved(6, {5: 3}, attempt=2)), 3)
+
+    def test_a_run_is_held_to_the_plan_it_ran_against_when_the_plan_grows(self):
+        """F2 of the third review. One slice planned and proved with a correction,
+        so two greens; a return to solution grows the plan to three whose first
+        slice is unchanged, so the count starts at the first acceptance and the
+        clamp that hid the over-count widens with the plan. The pack read
+        "Slice 3 of 3, 2 of 3 done" with slice 2 never worked."""
+        self.assertEqual(self.done(plan_accepted(2, self.plan[:1]), green_check(3),
+                                   green_check(4),
+                                   plan_accepted(5, self.plan, attempt=2)), 1)
+
+    def test_two_corrections_under_a_one_slice_plan_do_not_complete_a_three_slice_one(self):
+        self.assertEqual(self.done(plan_accepted(2, self.plan[:1]), green_check(3),
+                                   green_check(4), green_check(5),
+                                   plan_accepted(6, self.plan, attempt=2)), 1)
+
+    def test_the_run_after_the_growth_counts_against_the_plan_it_ran_against(self):
+        """The cap is per run and not a ceiling on the answer: work after the
+        growth still reaches the slices the longer plan added."""
+        self.assertEqual(self.done(plan_accepted(2, self.plan[:1]), green_check(3),
+                                   plan_accepted(4, self.plan, attempt=2),
+                                   green_check(5, attempt=2), green_check(6, attempt=2)), 2)
+
+    def test_two_records_disagreeing_about_one_green_settle_nothing(self):
+        """F3 of the third review: the disagreement was resolved with `max`, the
+        over-counting direction this function's own docstring names as the harm,
+        while the tdd gate treats the identical disagreement as an absence and
+        falls back to the whole tree. A green two records cannot agree on does not
+        carry the count anywhere."""
+        self.assertEqual(self.done(plan_accepted(2, self.plan), green_check(3),
+                                   slices_proved(4, {3: 1}),
+                                   slices_proved(5, {3: 3}, attempt=2)), 0)
+
+    def test_the_larger_number_is_what_the_disagreement_used_to_buy(self):
+        """Without this the test above could pass on the smaller claim being
+        taken, which is a vote and not an absence."""
+        self.assertNotEqual(self.done(plan_accepted(2, self.plan), green_check(3),
+                                      slices_proved(4, {3: 1}),
+                                      slices_proved(5, {3: 3}, attempt=2)), 3)
+
+    def test_a_disagreement_does_not_advance_a_count_it_has_already_passed(self):
+        """The direction that rules out reading the disagreement as a green
+        nothing attributes: that reading adds one, which runs the count past a
+        slice nobody worked whenever it has already reached the larger claim."""
+        self.assertEqual(self.done(plan_accepted(2, self.plan), green_check(3),
+                                   green_check(4), green_check(5),
+                                   slices_proved(6, {5: 1}),
+                                   slices_proved(7, {5: 2}, attempt=2)), 2)
+
+    def test_a_round_declaring_null_for_a_green_lends_it_no_position(self):
+        """A round that says it belongs to no single slice says so about the green
+        it names, which is a claim and not a gap: the gate reads it that way and
+        the count does now too."""
+        self.assertEqual(self.done(plan_accepted(2, self.plan), green_check(3),
+                                   slices_proved(4, {3: None})), 0)
+
+    def test_a_declared_position_does_not_count_on_top_of_the_greens_before_it(self):
+        """Positions are places in the plan and greens are a tally; adding one to
+        the other is how a count runs past the plan it is counting."""
+        self.assertEqual(self.done(plan_accepted(2, self.plan), green_check(3),
+                                   green_check(4),
+                                   plan_accepted(5, self.plan, attempt=2),
+                                   green_check(6, attempt=2),
+                                   slices_proved(7, {6: 2}, attempt=2)), 2)
+
 
 if __name__ == '__main__':  # pragma: no cover - a module must run on its own
     unittest.main()

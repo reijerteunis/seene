@@ -1,0 +1,50 @@
+{
+  "sequence": 74,
+  "ticket": "SEEN-113",
+  "timestamp": "2026-09-28T05:30:23.011487+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 6,
+  "actor": "claude:reviewer",
+  "session": "a00943ab9615",
+  "head": "fc7a45f3c6e4163cb0308feb49e095ed68204f4c",
+  "prev_hash": "0ffdc7e6823e4e2dc0943d61dc3399728898b5961cfff4e1b2577b1a9b049952",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 7,
+    "reason": "The fifth review reproduced rather than accepted every claim and closed F2 of the fourth round: the strictest-route floor holds on all three axes, scope, model and context, and null is no longer the cheaper declaration; the counterfactual reproduces exactly at 16 null entries, 14 refused with shadow off, all on the context half. It returns the ticket on three findings. F1 is closed only for the adjacent case: the attribution compares positions rather than rounds, so where the accepted record declared null for the red, which is what the template asks every rework round to declare, the contradiction reads as agreement and the previous round's own scenario is still accepted. F2 is a correction of this session's own account: the fourth review's return was recorded at 63 and the checks that followed are stamped after it, so the sentence saying it was never recorded is false, and what git forces is worse, that the fix was written while the ticket stood at review because the fix round was spawned before the return was recorded. F3 is the disclosure listing the route among a red's rules without saying every route comparison returns immediately while shadow is true, measured at 0 of 30 entries refused today and 24 of 30 with it off.",
+    "findings": [
+      {
+        "id": "F1",
+        "severity": "medium",
+        "file": "harness/gates.py:540",
+        "claim": "The fourth review's F1 is closed only where the earlier record named a number: _the_journal_puts_it_elsewhere compares positions and not rounds, so where the accepted record declared null for the red, which is what the template asks every rework round to declare, the contradiction is read as agreement and one round's red is still joined to another round's green.",
+        "failure_scenario": "The previous round's own scenario, run verbatim against this HEAD and accepted. Attempt 1 records red 3 with green 4, and a second round whose own red 5 exited 0 with green 6; the accepted tdd record carries one entry, position null, red 3, green 4. In attempt 2 the tdd record carries position null, red 3, green 6. _positions_declared_for(3) returns a set holding only null, the citation declares null, the numbered set is empty and the helper returns nothing, so nothing refuses; green 6 is mentioned by no accepted record, reaches the plan's union and passes. The round whose own red passed advances on a red the journal recorded beside a different green, while the honest citation of red 5 is refused for not having failed. The cleaner variant is worse: one accepted record carrying both rounds at position null, where red 3 may still be cited beside green 6 although that record states red 3's green was 4. The repository's own test for this case declares a number in the earlier record rather than the null the finding gave, so it proves the adjacent case. The disclosure inherits the defect one level up: cited_check says a red is held to the journal's attribution wherever an accepted record made one, and here an accepted record made one, a position and a green, and none of it is read.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F2",
+        "severity": "medium",
+        "file": "docs/tickets/SEEN-113-let-a-tdd-record-cite-the-evidence-a-return.md:159",
+        "claim": "The first of the two disclosed procedural mistakes is misdescribed in both the Outcome and record 67: the fourth review's return was recorded, and the journal shows the opposite cause from the one written down.",
+        "failure_scenario": "Record 63 is the fourth review's return, kind return, review to tdd, timestamped 2026-09-28T00:16:16Z, carrying the two findings. Records 64, 65 and 66 are all stage tdd, attempt 6, at 00:18:05, 00:20:17 and 00:21:47, after it. So the sentence that the return was never recorded is contradicted by the record it is written beside, and record 64 was refused by no stage: it is in the journal and it exited 0 because its before and after are both the tree that already held the fix. The account git forces is the reverse and is worse for the session: commit c11c903, at 00:16:26, carries record 63 together with a 231-line addition to harness/gates.py and four other files, and a change that size cannot have been made in the ten seconds between the return and the commit, so the fix was written while the ticket was still at review, and that, not a missing return, is why the RED at 00:18 could not fail. A reader trusting the Outcome learns a harness limitation that does not exist and misses a workflow breach that does. The second disclosed mistake is accurate as written.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F3",
+        "severity": "low",
+        "file": "harness/gates.py:837",
+        "claim": "cited_check's statement of what a red is held to lists the route of its declared position among the rules without saying that every route comparison returns immediately while [routing] shadow is true, so the one clause a reader would most want qualified is stated unqualified.",
+        "failure_scenario": "A session reading the exemption's disclosure to decide whether a cross-attempt red is safe reads that the red is held to the route of the position its entry declares and concludes the model and the context were checked. Measured over every journal at today's thresholds: 0 of 30 slice entries are refused by any route rule with shadow on, and 24 of 30 with it off. The Outcome discloses the shadow under what is left open, and the two route functions each say it in their own docstrings, so the fact is written down three places away from the sentence that needs it, which is the same distance the previous finding was about.",
+        "status": "open",
+        "resolution": ""
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}

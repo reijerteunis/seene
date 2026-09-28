@@ -1,0 +1,97 @@
+{
+  "ticket": "SEEN-113",
+  "delivered_at": "2026-09-28T21:30:04.887580+00:00",
+  "points": null,
+  "cycle_time_seconds": 115520,
+  "stage_seconds": {
+    "clarify": 40,
+    "solution": 62,
+    "tdd": 55440,
+    "review": 57379,
+    "deliver": 2596
+  },
+  "attempts": 8,
+  "rework": 7,
+  "red_before_green": true,
+  "coverage": {
+    "package": "@seen/core",
+    "lines": 100.0,
+    "delta": 0.0
+  },
+  "findings": {
+    "by_severity": {
+      "high": 5,
+      "medium": 6,
+      "low": 10
+    },
+    "fixed": 21,
+    "waived": 0
+  },
+  "first_pass_ci": true,
+  "tokens": null,
+  "cost": null,
+  "escaped_defects": [],
+  "slices": {
+    "planned": 2,
+    "proven": 7
+  },
+  "sessions": 1,
+  "subagents": {
+    "briefs": 0,
+    "agents": [],
+    "review": "self-review",
+    "both": false
+  },
+  "review_triage": {
+    "record": 93,
+    "depth": "full",
+    "model_depth": "full",
+    "shadow": true,
+    "asked": true,
+    "rules": [
+      "fingerprint did not pass, so the reviewer reads everything: The tree changed after check 87: it ran against 804bab59a5d4 and this triage reads d923cbf1d97e. The tests that passed are not the tests for this tree",
+      "slice_files did not pass, so the reviewer reads everything: Changed but named by no slice and no changes entry: CLAUDE.md, docs/tickets/README.md, harness/tests/test_routing.py"
+    ],
+    "files": 8,
+    "focus": 8,
+    "excluded": 0,
+    "excluded_share": 0.0,
+    "reviewer_output_tokens": null,
+    "reviewer_tokens": null
+  },
+  "execution": [
+    {
+      "position": 1,
+      "name": "The fingerprint rule in cited_check, its two refusal reasons, the ordering held across attempts, and the replan carrying forward",
+      "points": 2,
+      "model": "opus",
+      "effort": "high",
+      "source": "jev",
+      "rule": null,
+      "ran_on": "claude-opus-5",
+      "ran_on_tier": "opus",
+      "output_tokens": 558195,
+      "cost_cents": 4186,
+      "routed_cost_cents": 4186,
+      "cost_basis": "output tokens only, at the price of the model the slice ran on: a handoff record carries the session's output tokens and tool calls and nothing about input. routed_cost_cents prices the same tokens at the model the route chose, which in shadow is a counterfactual and not a cost"
+    },
+    {
+      "position": 2,
+      "name": "Scope the comparison to the cited check's own slice files, with the whole tree as the fallback",
+      "points": 1,
+      "model": "opus",
+      "effort": "high",
+      "source": "jev",
+      "rule": null,
+      "ran_on": "claude-opus-5",
+      "ran_on_tier": "opus",
+      "output_tokens": 44800,
+      "cost_cents": 336,
+      "routed_cost_cents": 336,
+      "cost_basis": "output tokens only, at the price of the model the slice ran on: a handoff record carries the session's output tokens and tool calls and nothing about input. routed_cost_cents prices the same tokens at the model the route chose, which in shadow is a counterfactual and not a cost"
+    }
+  ],
+  "output_tokens_per_slice": null,
+  "harness_version": "2",
+  "note": null
+}

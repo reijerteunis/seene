@@ -1,0 +1,16 @@
+{
+  "sequence": 47,
+  "ticket": "SEEN-113",
+  "timestamp": "2026-09-27T19:52:38.012130+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 5,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "00a3f0fba8672c4c9874911b7931589683ae6536",
+  "prev_hash": "652cbaddfc4a065e1de06f0077146265bf2ca21ccd593f1f27ecab0e015c930c",
+  "data": {
+    "text": "# The rule refuses the commonest shape of a rework round, and it is its own journal that shows it\n\nAttempting to advance attempt 5 by citing attempt 4's pair produced three refusals in succession, and each was\nthe rule working as specified. First the regression at record 38, because the regression is deliberately\nunscoped and a documentation change moved the tree under it; that was answered by running it again at record\n46, 1,277 tests. Then the RED at record 34:\n\n> The tree moved under check 34: it ran against 5631eac3beff and this record is written against 32324da33285,\n> compared over the whole tree because **this citation names no slice**, so there is nothing to scope the\n> comparison to.\n\n**The citation names no slice because the round honestly belonged to none.** Record 39, attempt 4's accepted tdd\nrecord, declared `position: null` for checks 34 and 35, which is what the template asks for: \"null for a round\nthat belongs to no single slice, which is a claim on the record rather than a gap in it\". Attempt 4 rescoped\nslice 1's rule and then corrected it twice under review, so null was the truthful answer.\n\nSo the rule as built gives a null-position round no scope, falls closed to the whole tree, and refuses it. And a\nnull-position round is **the commonest shape a rework round has**: every round after a return that touches more\nthan one slice's work declares null, by the template's own instruction. The rule therefore carries forward the\nevidence of a tidy single-slice round and refuses the evidence of exactly the rounds a return produces, which\nis the case it was written for.\n\nTwo things it would be dishonest to do here, both available and both refused. Declaring `position: 2` now would\nbuy slice 2's files as a scope, and although slice 2 is arguably where that work belongs, the corroboration rule\ncorrectly denies it: record 39 declared null for those checks, so the journal's own earlier record and this one\nwould disagree and the gate falls closed. That is the second review's F1 working, on the session that wrote it.\nAnd manufacturing a RED for code that is already green is the one thing this harness refuses outright.\n\n**The fix, which is this ticket's subject rather than an addition to it.** A round that belongs to no single\nslice belongs to the plan, not to nothing: its scope should be the union of every slice's files, which is the\nsame reading `handoff` already takes for a plan whose slices are all done, and the same union the guard's\n`outside-plan` rule uses. Falling back to the whole tree for a null position treats \"several slices\" as\n\"unknowable\", and those are different, exactly as \"no plan accepted\" and \"every slice done\" were different in\nthe defect that started this ticket.\n\nRecorded rather than worked around, and the gate is not tried again on a guess. Three attempts at this\ncitation is where a person should stop and say what the evidence shows.\n"
+  }
+}

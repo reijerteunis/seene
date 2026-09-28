@@ -1,0 +1,70 @@
+{
+  "sequence": 20,
+  "ticket": "SEEN-113",
+  "timestamp": "2026-09-27T14:48:42.519642+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 2,
+  "actor": "claude:reviewer",
+  "session": "a00943ab9615",
+  "head": "937f0880bbaa66d4b60965e2c30a9aee7c8584d5",
+  "prev_hash": "b70cd2b61b2e7f7e79ccca444ba3405a179dcfe6a4a796e53c867eeac9806163",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 3,
+    "reason": "The review reproduced three high findings end to end against the delivered code. Two are ways the content test accepts stale evidence, which is criterion 6 unmet: the scope is taken from the tdd record's own position with nothing corroborating it, so a citation declared under another slice is compared against the wrong files and accepted (F1, and this ticket's own record 17 shows a loose position is plausible), and a file entry that matches no path makes the comparison vacuous because git's pathspec reports nothing moved (F2). The third is a regression that makes the pack worse than before the change: the carry-forward counts greens rather than matching them to slices, so a rework green after a replan advances the count past a slice nobody worked and the guard then refuses that slice's files (F3). Criterion 2's wording no longer describes the delivered behaviour and was ticked anyway (F4), and the fingerprint pinning test only compares on a clean tree (F5). The review also verified independently that the rule was not bent to pass SEEN-112.",
+    "findings": [
+      {
+        "id": "F1",
+        "severity": "high",
+        "file": "harness/gates.py:438",
+        "claim": "The scope of the content test is taken from the tdd record's own position field, so a citation attributed to another slice is compared against that slice's files and stale evidence is accepted.",
+        "failure_scenario": "Plan: slice 1 names harness/slice_one.py, slice 2 names harness/slice_two.py, both committed. Slice 1's red and green are recorded in attempt 1 against that commit; attempt 2 rewrites harness/slice_one.py and commits it. A tdd record in attempt 2 cites slice 1's pair in a slice entry declaring position 2. `_files_the_slice_covers` returns slice 2's files, `_moved_since` finds nothing moved, and the gate accepts. Declared honestly as position 1 the same citation is refused. Reproduced end to end. Nothing cross-checks the position: `_require_the_routed_model` returns immediately while `[routing] shadow` is true, which it is. This contradicts the Outcome's sentence that a mis-attribution fails closed rather than open, and the identically worded mitigation in the solution record's risk register: only an unattributable citation fails closed, and a misattributed one fails open. That a loose position is plausible is shown by this ticket's own record 17, which declares position 2 for a round whose behaviour text says it belongs to no single slice.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F2",
+        "severity": "high",
+        "file": "harness/gates.py:231",
+        "claim": "A slice file list whose entries match no path makes the comparison vacuous rather than falling back, so a citation is accepted whatever changed.",
+        "failure_scenario": "`_files_the_slice_covers` rejects an empty list and blank strings, but not a path that resolves to nothing, and `git diff --name-only <commit> -- harness/typo.py` exits 0 with no output. Plan: slice 1 names harness/slice_one_typo.py while its work is in harness/slice_one.py. Attempt 2 rewrites harness/slice_one.py and commits it. The attempt-1 green is accepted in attempt 2 because `_moved_since` returns nothing over a pathspec that matches nothing. Reproduced end to end. The same holds for a gitignored path and for the realistic partial case: a slice naming harness/gate.py plus a test file that did not move accepts a citation although harness/gates.py was rewritten. The empty-list case is guarded and tested; the names-nothing case has no guard and no test, so the claim that an absence of scope is not an empty one holds only for the absence the code can see.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F3",
+        "severity": "high",
+        "file": "harness/handoff.py:97",
+        "claim": "The carry-forward counts greens rather than matching them to slices, so a rework green after a replan advances the count past a slice nobody worked, and the guard then refuses that slice's files.",
+        "failure_scenario": "Plan of three slices accepted; slice 1 proved green; a return to solution re-accepts the same plan; the session reworks slice 1 and records a second green. `plan_accepted_at` now walks back to the first acceptance, so `accepted_greens` counts both greens and `current_slice` reports two done. The pack reads 'Slice 3 of 3, 2 of 3 done' and `harness guard harness/slice2.py` refuses because slice 3 does not name it. Slice 2 was never worked, and the session is handed slice 3 and blocked from slice 2's files. Reproduced end to end. Before this change `plan_accepted_at` returned the second acceptance and the pack read 'Slice 2 of 3, 1 of 3 done', which is correct, so this is a regression, and it is the same harm the ticket's own description gives as its reason: a session handed the wrong slice's file list and a hook it can only get past by going around.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F4",
+        "severity": "medium",
+        "file": "docs/tickets/SEEN-113-let-a-tdd-record-cite-the-evidence-a-return.md:43",
+        "claim": "Criterion 2 is ticked while the delivered rule deliberately contradicts its first clause, and no record reconciles the two.",
+        "failure_scenario": "Criterion 2 reads that a check whose recorded fingerprint has moved since it ran is still refused across attempts, and names two reasons. After the record 9 amendment the rule accepts a check whose recorded fingerprint has moved whenever its slice's files have not, which is the whole point of the scoping, and there are three reasons rather than two. Records 8, 9, 10 and 14 amend the plan and the Outcome says there are three now, but nothing says the criterion's wording no longer describes the behaviour, and the box is ticked. A reader auditing the harness from the ticket file would conclude that a moved fingerprint always costs a citation its evidence and would rely on a property the code does not provide.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F5",
+        "severity": "low",
+        "file": "harness/tests/test_stage_gates.py",
+        "claim": "The test that pins gates.content_fingerprint to Repository.fingerprint compares them only on a clean tree, so the half of the definition it cannot mirror is unpinned.",
+        "failure_scenario": "The pinning test asserts equality at a commit with no pending changes, so it catches a change to the listing format, the blob column or FINGERPRINT_EXCLUDED, but not a change to Repository.fingerprint's pending-and-untracked half or to its excluding parameter, which content_fingerprint has no counterpart for. If that half were changed to count a path it currently skips, the pinning test would still pass while `_the_commit_holding` stopped matching any check recorded on a tree with untracked files, and every cross-attempt citation would silently fall back to the whole tree and be refused. The failure is closed rather than open, so the cost is the feature quietly ceasing to work with no test failing.",
+        "status": "open",
+        "resolution": ""
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": [
+      6
+    ]
+  }
+}
