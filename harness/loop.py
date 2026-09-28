@@ -691,9 +691,27 @@ def _coverage(records, current):
 
 
 def _regression(records, current):
-    """A passing regression recorded after the last green of the plan in hand."""
-    greens = handoff.accepted_greens(records, handoff.plan_accepted_at(records))
-    last = greens[-1]['sequence'] if greens else 0
+    """A passing regression recorded after the last green it would have to cover.
+
+    What this reader needs is a position in the journal and not a count. The tdd
+    gate requires green['sequence'] <= regression['sequence'] for every pair it
+    reads, so what decides whether a regression is still current is which record
+    it comes after. `handoff.slices_proved`, which SEEN-113 put where the greens
+    used to be read, answers a different question: how far into the plan the work
+    has got. A plan of three slices proved to two says nothing about which record
+    a regression has to follow, and a count is not a sequence.
+
+    So it is the last green in the journal, and unscoped where the removed
+    `handoff.accepted_greens` read only the greens recorded since the plan in
+    hand was accepted. The tdd gate decides a citation by the tree the check ran
+    against rather than by which acceptance came first, so a record can cite a
+    green older than the acceptance the count now starts at, and a regression
+    recorded before that green is one the gate refuses. Sequences only grow, so
+    the last green of the journal is the last green of the plan in hand wherever
+    the plan has one; where it has none this is the stricter reading of the same
+    rule rather than a different rule.
+    """
+    last = _last_green(records)
     for record in reversed(records):
         if (record['kind'] == 'check' and record['attempt'] == current['attempt']
                 and record['data'].get('phase') == 'regression'
@@ -701,6 +719,23 @@ def _regression(records, current):
                 and record['sequence'] > last):
             return record
     return None
+
+
+def _last_green(records):
+    """Where the last passing GREEN sits in the journal, or 0 where there is none.
+
+    A sequence and never the greens themselves, which is the whole difference
+    between this and the `handoff.accepted_greens` SEEN-113 removed: that handed
+    back a list, and a list of greens invites being counted, which is how rework
+    after a replan carried a count past a slice nobody had worked. One number
+    cannot be counted with, and ordering is all this reader ever wanted.
+    """
+    for record in reversed(records):
+        if (record['kind'] == 'check' and record['stage'] == 'tdd'
+                and record['data'].get('phase') == 'green'
+                and record['data'].get('exit_code') == 0):
+            return record['sequence']
+    return 0
 
 
 def regression_command(records):

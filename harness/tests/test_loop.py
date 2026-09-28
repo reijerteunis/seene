@@ -925,5 +925,72 @@ class RunEvidenceTest(RunMixin, SessionEnvironment):
         self.assertEqual(len(self.records()), before)
 
 
+class RegressionOrderTest(RunMixin, SessionEnvironment):
+    """When a regression counts: after the work it covers, and never before it.
+
+    Attempt 6, and the break the rebase onto SEEN-113 exposed. `_regression` read
+    `handoff.accepted_greens`, which SEEN-113 removed along with the counting
+    defect it carried, so every run that reached the tdd stage with its plan
+    complete raised AttributeError instead of naming an action. What the reader
+    needs back is not the greens but the record a regression has to follow, and
+    the property that decides it is asserted here rather than left to the walk in
+    LoopTest, which only ever records its checks in order: a regression recorded
+    before the green it is supposed to cover is not this run's regression, and
+    the loop asks for another one.
+    """
+
+    COVERAGE = '{"total": {"lines": {"total": 10, "covered": 9, "skipped": 0, "pct": 90.0}}}'
+
+    def setUp(self):
+        super().setUp()
+        self.start()
+        self.submit('clarify', clarify_evidence())
+        self.submit('solution', solution_evidence(slices=plan(count=1)))
+        self.run_harness('route', self.ticket_id, '--actor', 'claude:implementer')
+
+    def check(self, phase, *command):
+        return self.run_harness('check', self.ticket_id, '--phase', phase, '--actor',
+                                'claude:implementer', '--', *(command or ('true',)))
+
+    def prove(self):
+        """The one slice of the plan, proved: a RED that fails and a GREEN that passes."""
+        self.check('red', 'sh', '-c', 'echo expected 1, got 0; exit 1')
+        return self.check('green')
+
+    def measure(self):
+        """The coverage the loop asks for before it asks for the regression."""
+        self.write('packages/core/coverage/coverage-summary.json', self.COVERAGE)
+        self.run_harness('coverage', self.ticket_id, '--actor', 'claude:implementer', '--', 'true')
+
+    def test_the_regression_is_what_the_loop_asks_for_once_the_plan_is_proved(self):
+        self.prove()
+        self.measure()
+        action = self.assert_runnable(self.ask())
+        self.assertEqual(self.named(action), 'check')
+        self.assertIn('regression', action['argv'])
+
+    def test_a_regression_recorded_before_the_green_it_covers_does_not_count(self):
+        self.check('red', 'sh', '-c', 'echo expected 1, got 0; exit 1')
+        stale = self.check('regression')
+        green = self.check('green')
+        self.assertLess(stale['sequence'], green['sequence'])
+        self.measure()
+        # The suite ran over code the slice had not written yet, so it says
+        # nothing about it and the loop asks for the regression again.
+        action = self.assert_runnable(self.ask())
+        self.assertEqual(self.named(action), 'check')
+        self.assertIn('regression', action['argv'])
+
+    def test_a_regression_recorded_after_the_green_is_the_one_the_gate_reads(self):
+        self.check('red', 'sh', '-c', 'echo expected 1, got 0; exit 1')
+        self.check('regression')
+        self.check('green')
+        self.measure()
+        self.check('regression')
+        # The tdd evidence is drafted next, which is the run saying the checks
+        # before the gate are all in hand.
+        self.assertEqual(self.named(self.assert_runnable(self.ask())), 'draft')
+
+
 if __name__ == '__main__':
     unittest.main()
