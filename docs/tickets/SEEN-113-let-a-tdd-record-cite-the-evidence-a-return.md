@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-104, SEEN-112]
-status: doing
+status: review
 ---
 # SEEN-113: Let a tdd record cite the evidence a return did not invalidate
 
@@ -23,7 +23,7 @@ status: doing
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | doing |
+| Status | review |
 
 ## Description
 
@@ -39,12 +39,12 @@ What this ticket must not do is weaken the rule it is loosening. A refusal has t
 
 ## Acceptance criteria
 
-- [ ] A tdd record may cite a red or green recorded in an earlier attempt when that check's recorded tree fingerprint matches the tree the citing record is written against, and the gate accepts it without the cited work being re-proven
-- [ ] A check is refused across attempts whenever the code it covers has changed, and the refusal says which situation it is refusing rather than giving one sentence for every situation (amended twice, see `## Amendment`)
-- [ ] The ordering rule survives the change: each red still precedes its green, slices still do not overlap, and the regression is still the last check, whichever attempts the cited checks come from
-- [ ] A replan carries forward the greens of slices whose work is still in the branch, so the handoff pack and `harness guard` read a returned ticket as the slices it has actually finished rather than as none of them
-- [ ] Proven on a journal shaped like SEEN-112's, five attempts with slices proven in the first two and a tdd record in the fifth citing them, which the gate accepts, and on the mirror case where one cited check's tree has moved, which it refuses by name
-- [ ] No evidence is revived for code that changed: a test shows a check from an earlier attempt refused after its files are edited, with the fingerprint difference as the stated reason
+- [x] A tdd record may cite a red or green recorded in an earlier attempt when that check's recorded tree fingerprint matches the tree the citing record is written against, and the gate accepts it without the cited work being re-proven
+- [x] A check is refused across attempts whenever the code it covers has changed, and the refusal says which situation it is refusing rather than giving one sentence for every situation (amended twice, see `## Amendment`)
+- [x] The ordering rule survives the change: each red still precedes its green, slices still do not overlap, and the regression is still the last check, whichever attempts the cited checks come from
+- [x] A replan carries forward the greens of slices whose work is still in the branch, so the handoff pack and `harness guard` read a returned ticket as the slices it has actually finished rather than as none of them
+- [x] Proven on a journal shaped like SEEN-112's, five attempts with slices proven in the first two and a tdd record in the fifth citing them, which the gate accepts, and on the mirror case where one cited check's tree has moved, which it refuses by name
+- [x] No evidence is revived for code that changed: a test shows a check from an earlier attempt refused after its files are edited, with the fingerprint difference as the stated reason
 
 ## Amendment
 
@@ -99,6 +99,80 @@ The reading it was refused on, and why the threshold was not touched instead: 0.
 reports two counted tickets against a window of ten, and the window's own rule says an unfull window is a reason
 to conclude nothing rather than to override a switch. Two of the three readings that have crossed this bar are
 this session's own blocked tickets, which is the worst position from which to lower it.
+
+## Outcome
+
+`gates.cited_check` keeps its phase and stage requirements and replaces the attempt requirement with a content
+test: a check counts when it was recorded in this attempt, or when the code it covers has not changed since it
+ran. Six reviews shaped what that sentence means, and every clause exists because using the rule found something
+reading it had not.
+
+**The scope is the code the check covered.** Every green records a distinct tree, so a whole-tree comparison can
+never accept an earlier slice's green on a ticket whose later slices added code. The scope is the files the cited
+check's slice names, widened by what the round's own commit moved, so a declaration can only add files and never
+remove one. A citation cannot vouch for its own scope: the position it claims must be corroborated by other
+accepted tdd records, every entry must resolve in the commit compared against, and a disagreement or a silence
+falls closed to the whole tree. A round belonging to no single slice is scoped by the plan's union, because null
+is what the template asks a rework round to declare and treating it as unknowable refused exactly the rounds a
+return produces; it is also held to the strictest route in the plan, as a floor rather than an equality, because
+an equality is unsatisfiable on a two-tier plan and the way out of an unsatisfiable rule is to name a position the
+round does not have.
+
+**The commit search tolerates the one path the procedure forces.** The workflow requires the `## Outcome`, the
+`status` and the ticks before review is left, so the ticket file always moves between a check and the commit
+carrying its work. The fingerprint is untouched, because covering the whole ticket file is what gives the receipt
+its meaning; only the search became tolerant, of that one path, and a candidate differing in it and anything else
+is refused by name.
+
+**A slice's pair is judged by its green**, Ruud's decision at record 57, because a red runs on a tree holding the
+test without the code that answers it, so no commit ever carries a red's tree. An exempted red skips only the
+tree comparison: it keeps its non-zero exit, its phase, its stage, its place in the order, the attempt of its
+green, the route of its declared position, the journal's attribution of that position, and the round the journal
+recorded it in. A citation joining a red to a green an accepted record recorded it apart from is refused in both
+directions. Re-citing a red beside a different green is never legitimate, and the sixth review checked that
+structurally rather than accepting it: `advance` moves forward only and every path back to tdd increments the
+attempt, so a corrected green always belongs to a later attempt, which the pair rule refuses. **Both rules refuse
+that case; the pair rule runs after the slice loop and the attribution inside it, so the attribution is what a
+session actually sees.** An earlier note put that ordering the other way round and record 85 corrects it.
+
+**What is not checked, written where the claim is made rather than elsewhere:** the tree an exempted red ran
+against; the pairing inside a single attempt, before any accepted record exists, which rests on the citing
+record's word and which the sixth review verified is irreducible; and the route, which refuses nothing at all
+while `[routing] shadow` is true, because every route comparison returns before it compares in the shadow window.
+
+**What the rule refuses.** It refused this ticket's own citation in every attempt until this one: records 34 and
+35 are not citable, the failing half the green, on the files the later rounds rewrote. It carries records 76 and
+77 into attempt 8, and only because nothing but the ticket file and the journal moved, which is the case it was
+built for. Across every journal and SEEN-112's: 297 citations in 108 pairs, none cross-attempt, none split across
+attempts, no red an accepted record puts at another slice, and no pair an accepted record recorded as another
+round. On SEEN-112's branch slice 3's pair is citable whole while slices 1 and 2 stay refused by name on the files
+attempts 3 and 4 reworked.
+
+Six reviews, fifteen findings, all closed, and none visible from the diff without constructing the input. Five
+were about disclosures rather than code, and the last four were about this session's own records.
+
+**What this session got wrong, and the rule that follows.** The fix round for the fourth review was spawned before
+that review's return was recorded, so it worked while the ticket stood at review; the implementer reported being
+blocked, and that report was accurate for the moment it was written, because the return did not yet exist. **No
+stage refusal is recorded anywhere in this repository**: records 64 to 66 are all in the journal at tdd attempt 6,
+none refused, and record 64 is a RED that exited 0 because its tree already held the fix. My first account of this
+blamed a missing return record, which the fifth review showed was false; my second dropped the hedge, which the
+sixth review caught. The rule that follows is the one both accounts obscured: **record the review's verdict before
+spawning anything that acts on it.**
+
+**And the commits do not say what they carry, in both directions.** Commit `c11c903`, whose subject announces the
+fourth review's return, carries that return together with the whole of attempt 6's production half, 231 inserted
+lines in `harness/gates.py` plus `handoff.py` and three test files, because a `git add -A` swept them in. Its
+mirror is that commit `34f2511`, whose subject announces that fix, carries six journal records and **no code at
+all**. Anyone tracing which commit introduced `_the_journal_puts_it_elsewhere` reads the log, opens the commit
+named as the fix, and finds nothing of it there.
+
+Left open and owned by nobody here: `criterion_evidenced` remains an uncalibrated 0.6 with two counted tickets
+against a window of ten, which record 44 records rather than moves; `content_fingerprint` reads the fingerprint
+definition a second time because `harness/repository.py` was outside the plan; a malformed position normalises to
+null, which is safe because an unreadable position falls to the plan's union, the wider and stricter scope, and
+whose real reach is the **absent** key, carried by 72 of the 103 slice entries in this repository's journals,
+every one of them in a delivered ticket.
 
 ## Slices
 

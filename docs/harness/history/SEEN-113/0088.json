@@ -1,0 +1,38 @@
+{
+  "sequence": 88,
+  "ticket": "SEEN-113",
+  "timestamp": "2026-09-28T20:21:55.019669+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 8,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "1a7f8e784627703d8d5c38ef227ea47ba316b4f5",
+  "prev_hash": "2999fe27177b4fabafa620b44a0924d22203cbd1b30dde42e794f3cdb079efc5",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": 2,
+          "behaviour": "No code changed in this attempt. The sixth review returned the ticket on four findings and every one is about what this session wrote rather than what the rule does, so the round's work is record 85, correcting records 78 and 81 and the Outcome, and the slice's own evidence is carried across the attempt boundary by the rule this ticket built: records 76 and 77 are cited from attempt 8 because the only paths that have moved since are the ticket file, which the commit search tolerates because the procedure forces it, and the journal, which the fingerprint never counted. That is the first time this ticket's rule has carried its own evidence, and it does so honestly, because the code it covers genuinely has not moved; the regression is re-run at record 87 rather than carried, because it covers the suite and not a slice and the whole tree did move.",
+          "failure_reason": "Records 76 and 77 are the pair, and the RED's words are unchanged: `python3 -m unittest harness.tests.test_stage_gates harness.tests.test_session_cap harness.tests.test_routing` exited 1 on 631 tests with six failures, five `AssertionError: HarnessError not raised`, the gate accepting what must be refused, and one `AssertionError: shadow not found in the route of the position its entry declares`. That sixth sentence is stated here from record 76's own captured output rather than from the implementing round's report, which called it a `ValueError: substring not found`; record 81 repeated that error and record 85 corrects it, because a ValueError would have meant the clause was absent from the docstring altogether and the AssertionError means it was present and unqualified, which is the defect the finding was about.",
+          "red": 76,
+          "green": 77
+        }
+      ],
+      "regression": 87,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "a00943ab9615",
+      "output_tokens": 1018596,
+      "tool_calls": 560,
+      "unavailable": null
+    }
+  }
+}
