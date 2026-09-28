@@ -1,0 +1,73 @@
+{
+  "sequence": 95,
+  "ticket": "SEEN-113",
+  "timestamp": "2026-09-28T21:30:04.887580+00:00",
+  "harness_version": "2",
+  "kind": "receipt",
+  "stage": "deliver",
+  "attempt": 8,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "4e6a756095ee1a4964adf02ece60c1c7f88cdfdf",
+  "prev_hash": "105b35935f488e0bb7784bcf84cf8b67b02062165185953f096369df14da618d",
+  "data": {
+    "from_stage": "deliver",
+    "to_stage": "delivered",
+    "commit": "4e6a756095ee1a4964adf02ece60c1c7f88cdfdf",
+    "branch": "claude/SEEN-113-let-a-tdd-record-cite-the-evidence-a-return-did-not-invalidate",
+    "remote": "origin",
+    "tree": "d923cbf1d97e6bb90c252d2554959e5dc56d11957b5246239575c9dec3e6a067",
+    "pull_request": "https://github.com/reijerteunis/seene/pull/29",
+    "limits": [
+      "A cross-attempt RED can never pass a content test, by construction: a red runs on a tree holding the test without the code that answers it, and what gets committed is the green. So a slice's pair is judged by its green, which is a founder decision recorded at record 57, and an exempted red keeps every other rule it ever had.",
+      "Inside one attempt the pairing of a red to a green rests on the citing record's word: an accepted tdd record can only attribute a check recorded before it, so there is nothing to corroborate against. The seventh review verified that this is irreducible rather than merely unfixed.",
+      "The route refuses nothing at all while `[routing] shadow` is true, because every route comparison returns before it compares in the shadow window. Measured: 0 of 30 slice entries refused today and 24 of 30 with it off.",
+      "`criterion_evidenced` remains an uncalibrated 0.6 with two counted tickets against a window of ten. Record 44 records that rather than moving it: three readings crossed the bar at 0.59, 0.58 and 0.52 and none of the three because the work changed, which is calibration evidence for SEEN-109 and not a reason to lower a bar from the position of having two blocked tickets.",
+      "`content_fingerprint` reads the fingerprint definition a second time, because `harness/repository.py` was outside the accepted plan. A test requires the two readings to agree on a dirty tree as well as a clean one; its honest home is `Repository`.",
+      "A malformed `position` normalises to null, which is safe in the direction that matters because an unreadable position falls to the plan's union, the wider and therefore stricter scope. Its real reach is the absent key, carried by 72 of the 103 slice entries in this repository's journals, every one of them in a delivered ticket.",
+      "Two commits on this branch do not say what they carry, and the Outcome discloses both directions: `c11c903`, whose subject announces the fourth review's return, carries that return together with 231 inserted lines of `harness/gates.py` and four other code files; and `34f2511`, whose subject announces that fix, carries six journal records and no code at all.",
+      "The review is a self-review and says so: every record on this ticket was written by one session, and a Claude Code subagent inherits its parent's session id, so the reviewing context is a context boundary rather than an independent one. Seven rounds were run and sixteen findings closed, but none of them came from another tool."
+    ],
+    "evidence": {
+      "remote": "origin",
+      "pull_request": "https://github.com/reijerteunis/seene/pull/29",
+      "limits": [
+        "A cross-attempt RED can never pass a content test, by construction: a red runs on a tree holding the test without the code that answers it, and what gets committed is the green. So a slice's pair is judged by its green, which is a founder decision recorded at record 57, and an exempted red keeps every other rule it ever had.",
+        "Inside one attempt the pairing of a red to a green rests on the citing record's word: an accepted tdd record can only attribute a check recorded before it, so there is nothing to corroborate against. The seventh review verified that this is irreducible rather than merely unfixed.",
+        "The route refuses nothing at all while `[routing] shadow` is true, because every route comparison returns before it compares in the shadow window. Measured: 0 of 30 slice entries refused today and 24 of 30 with it off.",
+        "`criterion_evidenced` remains an uncalibrated 0.6 with two counted tickets against a window of ten. Record 44 records that rather than moving it: three readings crossed the bar at 0.59, 0.58 and 0.52 and none of the three because the work changed, which is calibration evidence for SEEN-109 and not a reason to lower a bar from the position of having two blocked tickets.",
+        "`content_fingerprint` reads the fingerprint definition a second time, because `harness/repository.py` was outside the accepted plan. A test requires the two readings to agree on a dirty tree as well as a clean one; its honest home is `Repository`.",
+        "A malformed `position` normalises to null, which is safe in the direction that matters because an unreadable position falls to the plan's union, the wider and therefore stricter scope. Its real reach is the absent key, carried by 72 of the 103 slice entries in this repository's journals, every one of them in a delivered ticket.",
+        "Two commits on this branch do not say what they carry, and the Outcome discloses both directions: `c11c903`, whose subject announces the fourth review's return, carries that return together with 231 inserted lines of `harness/gates.py` and four other code files; and `34f2511`, whose subject announces that fix, carries six journal records and no code at all.",
+        "The review is a self-review and says so: every record on this ticket was written by one session, and a Claude Code subagent inherits its parent's session id, so the reviewing context is a context boundary rather than an independent one. Seven rounds were run and sixteen findings closed, but none of them came from another tool."
+      ]
+    },
+    "checks": [
+      {
+        "name": "Harness tests (Python 3.12)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Knowledge graph",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Monorepo (Node 24)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Secrets and supply chain",
+        "conclusion": "success",
+        "runs": 1
+      }
+    ],
+    "coverage": {
+      "package": "@seen/core",
+      "lines": 100.0,
+      "delta": 0.0
+    }
+  }
+}
