@@ -1,0 +1,59 @@
+{
+  "sequence": 84,
+  "ticket": "SEEN-113",
+  "timestamp": "2026-09-28T19:29:24.064412+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 7,
+  "actor": "claude:reviewer",
+  "session": "a00943ab9615",
+  "head": "82e181b71bc936a4c0dc94a5e67d976c6c5f3ea2",
+  "prev_hash": "4a90ce2c6602533c91857f4a3fcc73a9aac668010dfe6e674efe42b49482c469",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 8,
+    "reason": "The sixth review closed the fifth's F1 and F3 and could not break either: the scenario is refused by name in both directions with the guards holding, and the decision that re-citing a red beside a different green is never legitimate was checked structurally rather than accepted, advance moving forward only and every path back to tdd incrementing the attempt, so the corrected green always belongs to a later attempt. It returns the ticket on four findings, every one about this session's records rather than its code. The Outcome states as fact a stage refusal the journal does not carry, dropping a hedge record 75 wrote deliberately (F1). The accepted tdd record's failure reason names a ValueError where the stored output shows an AssertionError, which is a different defect and the one the finding was about (F2). The git add -A disclosure names only the half where the return commit carries the fix, not the half where the commit announcing the fix carries no code at all (F3). And the safety argument's ordering claim is false, the pair rule running after the slice loop rather than before the attribution, though both refuse so the conclusion survives (F4).",
+    "findings": [
+      {
+        "id": "F1",
+        "severity": "medium",
+        "file": "docs/tickets/SEEN-113-let-a-tdd-record-cite-the-evidence-a-return.md:158",
+        "claim": "The Outcome states as fact that the stage refused the fix round's evidence, a claim record 75 deliberately hedged and that nothing in the repository supports, while the evidence that did reach the journal was refused by nothing.",
+        "failure_scenario": "A reader of the delivery receipt reads the Outcome's account of the fourth-review breach, opens the journal to find the refusal, and finds records 64, 65 and 66 all present at stage tdd attempt 6, none refused, with record 64 a RED that exited 0 against the tree the fix commit itself carries. No refusal is recorded anywhere in the repository. Record 75 says the opposite in as many words, that it was not refused by a stage and is in the journal. The reader reaches the same verdict the fifth review reached on the same paragraph of the same file, that the Outcome describes a refusal the journal does not have. The reading that saves the sentence, a refusal in the minutes before the return that left no record, is exactly the hedge record 75 wrote and the Outcome dropped when it compressed records 67 and 75 into one clause.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F2",
+        "severity": "low",
+        "file": "docs/harness/history/SEEN-113/0081.json",
+        "claim": "The accepted tdd record's failure_reason misdescribes the RED it cites: it names a ValueError where record 76's own captured output shows an AssertionError, and the two mean different defects.",
+        "failure_scenario": "The triage hands red_before_green's unproven half to the reviewer, whose job is to read the stated failure reason against the runner's output. Record 81 says the sixth failure was a ValueError, substring not found, where the disclosure test looked for the shadow qualification inside the route clause. Record 76's stored output shows an AssertionError, shadow not found in the route of the position its entry declares. Reproduced by replacing gates.py with the pre-fix revision: exactly six failures, five HarnessError not raised and one AssertionError, no ValueError. A ValueError from an index call would mean the clause was absent from the docstring entirely; the AssertionError means it was present and unqualified, which is a different defect and the one the finding was actually about. Record 78 repeats the same claim.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F3",
+        "severity": "low",
+        "file": "docs/tickets/SEEN-113-let-a-tdd-record-cite-the-evidence-a-return.md:159",
+        "claim": "The disclosure of the git add -A consequence names one half and not its mirror: the commit whose subject announces attempt 6's fix carries no code at all.",
+        "failure_scenario": "The commit named as the fix contains six journal records and nothing else, although its subject announces the exempted red and the strictest route. The diff between the return commit and it is empty outside the journal, so the whole of attempt 6's production half, 231 inserted lines in harness/gates.py plus handoff.py and three test files, sits in the commit whose subject is that the fourth review returns the ticket. A session or auditor tracing which commit introduced the new helper reads the log, opens the commit named as the fix, and finds no such change in it. Record 75 and the Outcome disclose only the direction where the return commit carries the fix, not the direction where the fix commit carries none.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F4",
+        "severity": "low",
+        "file": "harness/tests/test_stage_gates.py:2085",
+        "claim": "The safety argument's ordering claim is false: the pair rule runs after the slice loop, so the new rule refuses a cross-attempt-split pair first rather than second.",
+        "failure_scenario": "A red at attempt 1 cited beside a green at attempt 2, with an accepted record naming the red's real green, is the corrected-green case the argument says cannot arise. The gate returns the journal-records-it-in-another-round sentence, not the split-pair sentence, because the pair rule runs after the whole slice loop while the new attribution runs inside cited_check during it. A session debugging a refusal, or a reviewer auditing why the general rule was written rather than the null-only one, is told the net it rests on sits earlier in the path than it does. The conclusion survives, because both rules refuse; only the ordering does not. Record 78 makes the same claim; the code's own docstring does not and is accurate.",
+        "status": "open",
+        "resolution": ""
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}
