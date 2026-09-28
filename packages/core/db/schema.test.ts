@@ -30,9 +30,9 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import {
   APPEND_ONLY_PRIVILEGES, APPEND_ONLY_TABLES, BUYER_PII_COLUMNS, BUYER_PII_COMMENT_TERMS,
-  DATA_API_ROLES, FORBIDDEN_PRIVILEGE_STATEMENTS, GOVERNED_PRIVILEGES, MIGRATION_SET_HEADER,
-  MIGRATIONS_DIRECTORY, TABLE_PRIVILEGES, TENANT_CLAIM, TRADE_RECORD_MIGRATION_MARKER,
-  TRADE_RECORD_TABLES,
+  CROSS_TENANT_FOREIGN_KEY_EXEMPTIONS, DATA_API_ROLES, FORBIDDEN_PRIVILEGE_STATEMENTS,
+  GOVERNED_PRIVILEGES, MIGRATION_SET_HEADER, MIGRATIONS_DIRECTORY, TABLE_PRIVILEGES, TENANT_CLAIM,
+  TRADE_RECORD_MIGRATION_MARKER, TRADE_RECORD_TABLES,
 } from './tables';
 
 /** The repository root, from this file's own location: `packages/core/db`. */
@@ -865,5 +865,152 @@ describe('the append-only guarantee on audit_events', () => {
     );
     expect(rows, "the erased tenant's audit events survived the erasure").toEqual([]);
     tenant = undefined;
+  });
+});
+
+/**
+ * CODEX-01: a foreign key that references the parent's id alone lets a child row
+ * name a parent belonging to another tenant, and the cascade then carries one
+ * tenant's erasure into another tenant's trade record.
+ *
+ * Row-level security is per row and per table. It has nothing to say about the
+ * relationship between two rows, so `orders_connection_id_fkey` written as
+ * `references public.connections (id)` accepts any connection in the database
+ * beside any `tenant_id`, and `orders_tenant_id_fkey` accepts any tenant beside
+ * any connection. Each key is satisfied; the pair of them is a cross-tenant edge,
+ * and `on delete cascade` makes it a destructive one.
+ *
+ * The behavioural half of this guarantee, the insert the database now refuses and
+ * the erasure that no longer reaches the other tenant, is in `rls.test.ts`. This
+ * block is the catalogue half: it reads every foreign key in the schema rather
+ * than the ones this ticket wrote, so the twenty-ninth table added by a later
+ * sprint cannot reintroduce the shape without a test naming it.
+ */
+describe('the foreign keys between tenant-owned tables', () => {
+  let client: Client;
+
+  /** Every foreign key joining two tables that carry `tenant_id` without carrying
+   * `tenant_id` across the join, named with what it is written as today. */
+  async function crossTenantKeys(schema: string): Promise<string[]> {
+    const { rows } = await client.query<{
+      name: string; child: string; parent: string; definition: string;
+    }>(
+      `select con.conname as name,
+              src.relname as child,
+              tgt.relname as parent,
+              pg_catalog.pg_get_constraintdef(con.oid) as definition
+         from pg_catalog.pg_constraint con
+         join pg_catalog.pg_class src on src.oid = con.conrelid
+         join pg_catalog.pg_class tgt on tgt.oid = con.confrelid
+         join pg_catalog.pg_namespace n on n.oid = src.relnamespace
+        where con.contype = 'f' and n.nspname = $1
+          and exists (select 1 from pg_catalog.pg_attribute a
+                       where a.attrelid = src.oid and a.attname = 'tenant_id'
+                         and a.attnum > 0 and not a.attisdropped)
+          and exists (select 1 from pg_catalog.pg_attribute a
+                       where a.attrelid = tgt.oid and a.attname = 'tenant_id'
+                         and a.attnum > 0 and not a.attisdropped)
+          and not exists (
+            select 1
+              from unnest(con.conkey, con.confkey) as pair(child_attnum, parent_attnum)
+              join pg_catalog.pg_attribute ca
+                on ca.attrelid = src.oid and ca.attnum = pair.child_attnum
+              join pg_catalog.pg_attribute pa
+                on pa.attrelid = tgt.oid and pa.attnum = pair.parent_attnum
+             where ca.attname = 'tenant_id' and pa.attname = 'tenant_id')
+        order by src.relname, con.conname`,
+      [schema],
+    );
+    return rows
+      .filter((row) => !CROSS_TENANT_FOREIGN_KEY_EXEMPTIONS.includes(row.name))
+      .map((row) => `${row.child}.${row.name} -> ${row.parent}: ${row.definition}`);
+  }
+
+  /** How many foreign keys there are at all, so an empty answer above is read as
+   * a schema with keys that all carry the tenant and not as a schema with none. */
+  async function foreignKeyCount(schema: string): Promise<number> {
+    const { rows } = await client.query<{ total: string }>(
+      `select count(*) as total
+         from pg_catalog.pg_constraint con
+         join pg_catalog.pg_class src on src.oid = con.conrelid
+         join pg_catalog.pg_namespace n on n.oid = src.relnamespace
+        where con.contype = 'f' and n.nspname = $1`,
+      [schema],
+    );
+    return Number(rows[0].total);
+  }
+
+  beforeAll(async () => {
+    client = await connect();
+    const present = await tablesIn(client, 'public');
+    assertPopulated(present, 'the foreign keys between tenant-owned tables');
+  });
+
+  afterAll(async () => {
+    await client?.end();
+  });
+
+  it('carries tenant_id across every key that joins one tenant-owned table to another',
+    async () => {
+      const total = await foreignKeyCount('public');
+      expect(
+        total,
+        'The public schema has no foreign keys at all, so an assertion about the tenant they '
+        + 'carry proves nothing. Apply the migrations with `pnpm db:reset`.',
+      ).toBeGreaterThan(0);
+      const offenders = await crossTenantKeys('public');
+      expect(
+        offenders,
+        `${offenders.length} of the ${total} foreign keys in the public schema reference their `
+        + 'parent by id alone, so a child row may name a parent belonging to another tenant and '
+        + "one tenant's erasure cascades into another tenant's trade record: "
+        + offenders.join('; '),
+      ).toEqual([]);
+    });
+
+  it('would see a key that referenced its parent by id alone', async () => {
+    // The assertion above passes when it finds nothing, and finding nothing is
+    // also what a query with a mistake in it does. So the shape the fix removed is
+    // put back, inside a transaction that is rolled back, and has to be reported.
+    await client.query('begin');
+    try {
+      await client.query(
+        `alter table public.orders
+           add constraint orders_connection_id_by_id_alone
+           foreign key (connection_id) references public.connections (id) on delete cascade`,
+      );
+      const offenders = await crossTenantKeys('public');
+      expect(
+        offenders.filter((offender) => offender.includes('orders_connection_id_by_id_alone')),
+        'A foreign key from orders to connections written as `references public.connections (id)` '
+        + `was not reported, and the assertion found ${offenders.length === 0 ? 'nothing at all' : offenders.join('; ')}`,
+      ).not.toEqual([]);
+    } finally {
+      await client.query('rollback');
+    }
+  });
+
+  it('blocks no erasure, because a tenant must still be deletable on request', async () => {
+    // A composite key is the fix, and `on delete restrict` is the way to write one
+    // that makes deletion on request impossible: the cascade from public.tenants
+    // reaches the child, the restrict refuses it mid-statement, and the whole
+    // erasure rolls back. The PRD promises deletion within 30 days and SEEN-083
+    // has to perform it, so no key between tenant-owned tables may restrict.
+    const { rows } = await client.query<{ name: string; child: string; definition: string }>(
+      `select con.conname as name,
+              src.relname as child,
+              pg_catalog.pg_get_constraintdef(con.oid) as definition
+         from pg_catalog.pg_constraint con
+         join pg_catalog.pg_class src on src.oid = con.conrelid
+         join pg_catalog.pg_namespace n on n.oid = src.relnamespace
+        where con.contype = 'f' and n.nspname = 'public' and con.confdeltype = 'r'
+        order by src.relname, con.conname`,
+    );
+    const restricting = rows.map((row) => `${row.child}.${row.name}: ${row.definition}`);
+    expect(
+      restricting,
+      `${restricting.length} foreign keys refuse a delete of the parent outright, which a `
+      + "tenant's erasure is: " + restricting.join('; '),
+    ).toEqual([]);
   });
 });

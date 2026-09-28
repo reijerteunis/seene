@@ -1,4 +1,4 @@
--- Trade record v1, part 4 of 4: the Data API roles read, and nothing more.
+-- Trade record v1, part 4 of 5: the Data API roles read, and nothing more.
 --
 -- The set is these four files, the migrations whose names carry `trade_record_v1`,
 -- and not everything in supabase/migrations: the evidence bucket migration of

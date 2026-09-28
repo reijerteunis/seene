@@ -554,3 +554,253 @@ describe('the writes a client-bound request cannot make', () => {
       .toMatch(REFUSED);
   });
 });
+
+/**
+ * CODEX-01: what a policy cannot say anything about, which is whose parent a row
+ * has.
+ *
+ * Every table carries `tenant_id` and a tenancy policy, and the first three blocks
+ * of this file prove that a request bound to tenant A reads none of tenant B's
+ * rows. None of that is a statement about the relationship between two rows. A key
+ * written `references public.connections (id)` accepts any connection in the
+ * database beside any `tenant_id`, so an ingest run that carries a mismatched
+ * parent id writes a child row of tenant B hanging from a parent of tenant A, and
+ * the cascade then makes tenant A's erasure delete tenant B's row. Measured
+ * against the local stack before the fix: the insert was accepted, deleting
+ * tenant A removed the order, and tenant B was still there to notice it gone.
+ *
+ * These tests are written as `service_role`, not as `authenticated`, because that
+ * is the role the workers ingest with and the only role that can reach the insert
+ * at all. Everything is inside a transaction that is rolled back, including the
+ * erasures, so the block leaves the database as it found it.
+ */
+describe('a parent row belonging to another tenant', () => {
+  let client: Client;
+
+  /** The SQLSTATE the database answered with, or `accepted` when it did not
+   * refuse. 23503 is a foreign key violation, which is the refusal wanted here.
+   *
+   * Behind a savepoint, because the erasure test has to carry on asking questions
+   * after the refusal and a failed statement otherwise aborts the whole
+   * transaction. Before the fix there was nothing to recover from and the
+   * savepoint was dead code; that is the shape of a test that has to pass in both
+   * states to be worth recording. */
+  async function said(body: () => Promise<unknown>): Promise<string> {
+    await client.query('savepoint attempted');
+    try {
+      await body();
+      await client.query('release savepoint attempted');
+      return 'accepted';
+    } catch (error) {
+      await client.query('rollback to savepoint attempted');
+      return (error as { code?: string }).code ?? (error as Error).message;
+    }
+  }
+
+  /** One tenant with a connection of its own, written as `service_role`. */
+  async function seed(name: string, marketplace: string): Promise<{
+    tenant: string; connection: string;
+  }> {
+    const tenant = await client.query<{ tenant_id: string }>(
+      'insert into public.tenants (name) values ($1) returning tenant_id',
+      [name],
+    );
+    const tenantId = tenant.rows[0].tenant_id;
+    const connection = await client.query<{ id: string }>(
+      `insert into public.connections (tenant_id, marketplace, country, status)
+       values ($1, $2, 'NL', 'active') returning id`,
+      [tenantId, marketplace],
+    );
+    return { tenant: tenantId, connection: connection.rows[0].id };
+  }
+
+  /** How many rows of `table` this tenant has, read with the role reset. */
+  async function countFor(table: string, tenant: string): Promise<number> {
+    const { rows } = await client.query<{ total: string }>(
+      `select count(*) as total from public.${table} where tenant_id = $1`,
+      [tenant],
+    );
+    return Number(rows[0].total);
+  }
+
+  /** Everything inside, rolled back: the erasures below are real deletes. */
+  async function rolledBack<T>(body: () => Promise<T>): Promise<T> {
+    await client.query('begin');
+    try {
+      await client.query('set local role service_role');
+      return await body();
+    } finally {
+      await client.query('rollback');
+    }
+  }
+
+  beforeAll(async () => {
+    client = await connect();
+    const missing = await absent(client, [
+      'tenants', 'connections', 'orders', 'order_lines', 'products', 'audit_events',
+      'agent_runs', 'agent_actions', 'approvals', 'settlements', 'settlement_lines',
+      'claims', 'invoices', 'statements',
+    ]);
+    if (missing.length > 0) {
+      throw new Error(
+        'This test cannot say anything about whose parent a row has: '
+        + `${missing.join(', ')} ${missing.length === 1 ? 'does' : 'do'} not exist in the public `
+        + 'schema. The trade record migrations have not been applied; apply them with '
+        + '`pnpm db:reset`.',
+      );
+    }
+  });
+
+  afterAll(async () => {
+    await client?.end();
+  });
+
+  it("refuses an order whose connection belongs to another tenant", async () => {
+    // The reviewer's own scenario, written out: tenants A and B, a Bol connection
+    // belonging to A, and an order carrying B's tenant_id and A's connection_id.
+    // Two independent keys each see something they recognise; the pair of them is
+    // a row of tenant B hanging from a parent of tenant A.
+    const answer = await rolledBack(async () => {
+      const a = await seed('Tenant parent A', 'bol');
+      const b = await seed('Tenant parent B', 'bol');
+      return said(() => client.query(
+        `insert into public.orders (tenant_id, connection_id, marketplace, external_id, placed_at)
+         values ($1, $2, 'bol', 'cross-tenant-probe', now())`,
+        [b.tenant, a.connection],
+      ));
+    });
+    expect(
+      answer,
+      'An order carrying tenant B\'s tenant_id and tenant A\'s connection_id was '
+      + `${answer === 'accepted' ? 'accepted' : `refused with SQLSTATE ${answer}`}, where a `
+      + 'foreign key violation (23503) is what keeps one tenant\'s ingest run out of another '
+      + 'tenant\'s trade record',
+    ).toBe('23503');
+  });
+
+  it("does not let one tenant's erasure reach another tenant's rows", async () => {
+    // The consequence the insert above is refused for. Whatever the database let
+    // be written, erasing tenant A must not change how many rows tenant B has.
+    const { before, after, probe, survived } = await rolledBack(async () => {
+      const a = await seed('Tenant erasure A', 'bol');
+      const b = await seed('Tenant erasure B', 'ebay');
+      await client.query(
+        `insert into public.orders (tenant_id, connection_id, marketplace, external_id, placed_at)
+         values ($1, $2, 'ebay', 'tenant-b-own-order', now())`,
+        [b.tenant, b.connection],
+      );
+      const accepted = await said(() => client.query(
+        `insert into public.orders (tenant_id, connection_id, marketplace, external_id, placed_at)
+         values ($1, $2, 'bol', 'cross-tenant-probe', now())`,
+        [b.tenant, a.connection],
+      ));
+      const held = await countFor('orders', b.tenant);
+      await client.query('delete from public.tenants where tenant_id = $1', [a.tenant]);
+      return {
+        before: held,
+        after: await countFor('orders', b.tenant),
+        probe: accepted,
+        survived: await countFor('tenants', b.tenant),
+      };
+    });
+    expect(survived, 'tenant B did not survive tenant A\'s erasure at all').toBe(1);
+    expect(
+      after,
+      `Tenant B had ${before} ${before === 1 ? 'order' : 'orders'} and has ${after} after tenant `
+      + `A was erased, because the cross-tenant order was ${probe === 'accepted' ? 'accepted' : `refused with SQLSTATE ${probe}`} `
+      + "and the cascade from tenant A then carried it away. One tenant's deletion on request "
+      + "destroyed part of another tenant's trade record",
+    ).toBe(before);
+  });
+
+  it('still erases a tenant completely, through every key the fix touches', async () => {
+    // The other side of the same constraint. Deletion on request is a promise of
+    // the PRD and SEEN-083 has to keep it, so the cascade must still empty the
+    // trade record: a composite key with `on delete restrict` would refuse the
+    // delete mid-statement, and one whose `set null` reached tenant_id would fail
+    // the not-null constraint on the way through. Each table here is on the far
+    // side of a key of one of those shapes, including audit_events, whose
+    // append-only trigger permits exactly this one delete.
+    const left = await rolledBack(async () => {
+      const a = await seed('Tenant erased whole', 'bol');
+      const product = await client.query<{ id: string }>(
+        `insert into public.products (tenant_id, sku) values ($1, 'erasure-sku') returning id`,
+        [a.tenant],
+      );
+      const order = await client.query<{ id: string }>(
+        `insert into public.orders (tenant_id, connection_id, marketplace, external_id, placed_at)
+         values ($1, $2, 'bol', 'erasure-order', now()) returning id`,
+        [a.tenant, a.connection],
+      );
+      const line = await client.query<{ id: string }>(
+        `insert into public.order_lines (tenant_id, order_id, product_id, quantity)
+         values ($1, $2, $3, 1) returning id`,
+        [a.tenant, order.rows[0].id, product.rows[0].id],
+      );
+      const settlement = await client.query<{ id: string }>(
+        `insert into public.settlements (tenant_id, connection_id, marketplace, external_id)
+         values ($1, $2, 'bol', 'erasure-settlement') returning id`,
+        [a.tenant, a.connection],
+      );
+      const settlementLine = await client.query<{ id: string }>(
+        `insert into public.settlement_lines
+           (tenant_id, settlement_id, order_line_id, marketplace, external_id, line_type,
+            amount_cents)
+         values ($1, $2, $3, 'bol', 'erasure-line', 'compensation', 1250) returning id`,
+        [a.tenant, settlement.rows[0].id, line.rows[0].id],
+      );
+      await client.query(
+        `insert into public.claims
+           (tenant_id, marketplace, rule, mode, amount_cents, status,
+            credited_by_settlement_line_id)
+         values ($1, 'bol', 'commission_overcharged', 'assisted', 1250, 'credited', $2)`,
+        [a.tenant, settlementLine.rows[0].id],
+      );
+      const invoice = await client.query<{ id: string }>(
+        `insert into public.invoices (tenant_id, period_start, period_end, total_cents, status)
+         values ($1, date '2026-08-01', date '2026-08-31', 1250, 'open') returning id`,
+        [a.tenant],
+      );
+      await client.query(
+        `insert into public.statements
+           (tenant_id, invoice_id, period_start, period_end, total_recovered_cents)
+         values ($1, $2, date '2026-08-01', date '2026-08-31', 1250)`,
+        [a.tenant, invoice.rows[0].id],
+      );
+      const approval = await client.query<{ id: string }>(
+        'insert into public.approvals (tenant_id) values ($1) returning id',
+        [a.tenant],
+      );
+      const run = await client.query<{ id: string }>(
+        'insert into public.agent_runs (tenant_id) values ($1) returning id',
+        [a.tenant],
+      );
+      const action = await client.query<{ id: string }>(
+        `insert into public.agent_actions (tenant_id, agent_run_id, approval_id, tool)
+         values ($1, $2, $3, 'erasure_probe') returning id`,
+        [a.tenant, run.rows[0].id, approval.rows[0].id],
+      );
+      await client.query(
+        `insert into public.audit_events (tenant_id, agent_action_id, event_type, actor)
+         values ($1, $2, 'test.erasure', 'test')`,
+        [a.tenant, action.rows[0].id],
+      );
+      await client.query('delete from public.tenants where tenant_id = $1', [a.tenant]);
+      const remaining: string[] = [];
+      for (const table of [
+        'tenants', 'connections', 'products', 'orders', 'order_lines', 'settlements',
+        'settlement_lines', 'claims', 'invoices', 'statements', 'approvals', 'agent_runs',
+        'agent_actions', 'audit_events',
+      ]) {
+        const held = await countFor(table, a.tenant);
+        if (held > 0) remaining.push(`${table}: ${held}`);
+      }
+      return remaining;
+    });
+    expect(
+      left,
+      'The erased tenant still has rows, so deletion on request no longer empties the trade '
+      + `record: ${left.join('; ')}`,
+    ).toEqual([]);
+  });
+});

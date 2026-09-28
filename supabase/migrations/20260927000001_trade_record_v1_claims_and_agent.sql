@@ -1,4 +1,4 @@
--- Trade record v1, part 2 of 4: findings, claims, evidence, correspondence and
+-- Trade record v1, part 2 of 5: findings, claims, evidence, correspondence and
 -- the agent's own record. SEEN-008.
 --
 -- Part 1 created the tenancy, the policy helper seen.current_tenant() and the

@@ -122,6 +122,33 @@ export const BUYER_PII_COMMENT_TERMS = [
   'SEEN-082',
 ] as const;
 
+/**
+ * The foreign keys allowed to join two tenant-owned tables without carrying
+ * `tenant_id` across the join. There are none, and the list is empty on purpose.
+ *
+ * Every table here carries `tenant_id` and a row-level security policy, and both
+ * were read as the whole of tenant isolation until the first Codex review of
+ * SEEN-008 (CODEX-01). They are not. A policy decides which rows a request sees;
+ * it says nothing about whether a child row's parent belongs to the same tenant,
+ * and a key written `references public.connections (id)` accepts any connection
+ * in the database beside any `tenant_id`. Measured against the local stack before
+ * the fifth migration: `service_role` wrote an order with tenant B's `tenant_id`
+ * and tenant A's `connection_id`, both keys accepted it, and erasing tenant A
+ * then deleted that order through the cascade while tenant B stood. One tenant's
+ * deletion on request destroyed another tenant's trade record.
+ *
+ * So every foreign key between two tables that carry `tenant_id` maps `tenant_id`
+ * to `tenant_id` as part of the key, which the database then enforces on every
+ * insert and update with no code on the ingest side having to remember. The keys
+ * to `public.tenants` already satisfy this by their nature, because the column
+ * they reference is `tenant_id` itself.
+ *
+ * `schema.test.ts` reads this list rather than a hard-coded set of key names, so
+ * an exemption is possible and costs whoever wants one an entry here with the
+ * reason. An empty list is the claim that no key in the schema needs one.
+ */
+export const CROSS_TENANT_FOREIGN_KEY_EXEMPTIONS: readonly string[] = [];
+
 /** Where the migrations live, relative to the repository root. */
 export const MIGRATIONS_DIRECTORY = 'supabase/migrations';
 
@@ -129,10 +156,10 @@ export const MIGRATIONS_DIRECTORY = 'supabase/migrations';
  * How a file under `supabase/migrations` declares itself a member of the trade
  * record v1 set, and the header line every member has to carry.
  *
- * The set is the four SEEN-008 migrations, recognised by the `trade_record_v1`
+ * The set is the five SEEN-008 migrations, recognised by the `trade_record_v1`
  * segment of their filenames, and not every file in the directory: the evidence
  * bucket migration of 24 September creates a storage bucket for the environment,
- * takes no part in the privilege boundary the four parts hand to each other, and
+ * takes no part in the privilege boundary the parts hand to each other, and
  * numbering it in would make every later ticket's migration renumber these
  * headers. So the header reads `Trade record v1, part N of M`, counting the set it
  * names, and `schema.test.ts` compares M with the number of members on disk rather
