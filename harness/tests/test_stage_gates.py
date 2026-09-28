@@ -1961,19 +1961,23 @@ class WhereTheJournalPutsAnExemptRed(ScopedToTheSlicesFiles):
         self.commit('feat(SEEN-001): slice three, before the rounds that are cited')
         self.proved = self.repository.fingerprint()
 
-    def rounds(self, mentioning=(1, 2)):
+    def rounds(self, mentioning=(1, 2), positions=(1, 2)):
         """Two rounds in attempt 1, and the tdd record that attributed them.
 
-        `mentioning` is which of the two that record carries, because a check no
-        accepted record mentions at all is an absence and not a contradiction.
+        `mentioning` is which of the two rounds that record carries, by round
+        number rather than by position, because a check no accepted record
+        mentions at all is an absence and not a contradiction. `positions` is
+        what it declared for each, null included: the template asks a round that
+        belongs to no single slice to declare null, so that is the commonest
+        thing an accepted record says and not an odd case.
         Each red ran against a tree no commit carries, which is every real red's
         shape and the reason the exemption exists.
         """
-        attributed = [dict(position=1, behaviour='Round one, which proved slice one',
+        attributed = [dict(position=positions[0], behaviour='Round one, which proved slice one',
                            failure_reason='expected 1, received nothing', red=3, green=4),
-                      dict(position=2, behaviour='Round two, which proved slice two',
+                      dict(position=positions[1], behaviour='Round two, which proved slice two',
                            failure_reason='expected 2, received nothing', red=5, green=6)]
-        entries = [entry for entry in attributed if entry['position'] in mentioning]
+        entries = [entry for round_, entry in zip((1, 2), attributed) if round_ in mentioning]
         now = self.repository.fingerprint()
         return self.records + [
             advance_record(2, 'solution', dict(mode='code', slices=self.plan), attempt=1),
@@ -2055,6 +2059,107 @@ class WhereTheJournalPutsAnExemptRed(ScopedToTheSlicesFiles):
                       records=self.rounds(mentioning=(1,)), attempt=2)
 
 
+class TheRoundTheJournalRecordedItIn(WhereTheJournalPutsAnExemptRed):
+    """F1 of the fifth review again, where the earlier record declared null.
+
+    The attribution put back above compares positions, and the template asks
+    every rework round to declare null for the slice it belongs to none of. So
+    where the accepted record declared null for the red and the citing record
+    declares null too, the one answer in the set was null, the citation agreed
+    with it, and the theft the class above refuses walked through one line later.
+    The reviewer ran that class's own scenario against the fixed gate with null in
+    the earlier record and it was accepted.
+
+    **What an accepted tdd record says about a red is not only which slice it
+    proved.** It says which green it was recorded beside, and that is the round
+    itself. A citation joining that red to another green contradicts the record
+    whatever position either side declares, and the position is the weaker half
+    of what the record said: two rounds may honestly share a position, and then
+    the positions agree while the rounds do not.
+
+    **Is re-citing an earlier round's red beside a different green ever
+    legitimate?** No, and that is why this is written as the general rule rather
+    than as a null-only repair. A green re-run because the code moved belongs to
+    a later attempt, and `_require_the_pair_is_one_round` refuses that pair
+    before this rule is reached, so the corrected-green case cannot arise across
+    a return. Inside one attempt a second green is one the accepted record of
+    that attempt could have named and did not, and it was written when the checks
+    were fresh and has been in the hash chain since. Measured over every journal
+    under `docs/harness/history` plus SEEN-112's on its branch, 294 citations and
+    107 pairs: the null-only repair moves no recorded verdict and the general
+    rule moves no recorded verdict either, so nothing in the repository
+    distinguishes them and the argument decides.
+
+    Both halves, because a pair names two checks and the contradiction reads from
+    either end: an accepted record naming another green for this red, and one
+    naming another red for this green. Closing one of those is what the finding
+    above this one was about.
+    """
+
+    def test_a_null_round_may_not_take_the_other_rounds_green(self):
+        """The finding, verbatim: the earlier record declares null for round one,
+        the citation declares null, and both of them saying nothing about a slice
+        used to be an agreement."""
+        message = self.refusal(data=self.citing(position=None, red=3, green=6),
+                               records=self.rounds(mentioning=(1,), positions=(None, None)))
+        self.assertIn('check 3', message)
+        self.assertIn('check 4', message)
+
+    def test_that_theft_is_refused_about_the_round_and_not_about_a_tree(self):
+        """The exemption is kept whole: a red is compared against no tree, so this
+        cannot be the refusal a moved tree gives."""
+        message = self.refusal(data=self.citing(position=None, red=3, green=6),
+                               records=self.rounds(mentioning=(1,), positions=(None, None)))
+        self.assertNotIn('tree moved', message)
+        self.assertNotIn('whole tree', message)
+
+    def test_one_record_carrying_both_rounds_at_null_refuses_it_too(self):
+        """The cleaner variant the reviewer named, which is worse: the very record
+        that says check 3's green was 4 carries round two as well, so the citation
+        contradicts a single record rather than two of them."""
+        message = self.refusal(data=self.citing(position=None, red=3, green=6),
+                               records=self.rounds(positions=(None, None)))
+        self.assertIn('check 3', message)
+        self.assertIn('check 4', message)
+
+    def test_the_null_pair_that_record_names_is_still_citable_whole(self):
+        """Without this the refusals above could be null being refused as such:
+        round two's own pair, declared null as the record declared it, passes."""
+        self.evaluate('tdd', self.citing(position=None, red=5, green=6),
+                      records=self.rounds(positions=(None, None)), attempt=2)
+
+    def test_two_rounds_at_one_position_may_not_be_joined_either(self):
+        """The numbered direction, which the position comparison cannot see: an
+        accepted record that proved one slice twice names the same position for
+        both rounds, so the citation agrees with it about the slice and still
+        claims a round the journal does not have."""
+        message = self.refusal(data=self.citing(position=1, red=3, green=6),
+                               records=self.rounds(positions=(1, 1)))
+        self.assertIn('check 3', message)
+        self.assertIn('check 4', message)
+
+    def test_the_honest_citation_of_that_second_round_still_stands(self):
+        """The same record, the same position, the pair it really names."""
+        self.evaluate('tdd', self.citing(position=1, red=5, green=6),
+                      records=self.rounds(positions=(1, 1)), attempt=2)
+
+    def test_a_green_the_journal_recorded_beside_another_red_is_refused_too(self):
+        """The mirror, from the green's end. The accepted record carries round two
+        alone, so nothing it says attributes check 3 at all and the position rule
+        has no objection; what it does say is that check 6's red was 5."""
+        message = self.refusal(data=self.citing(position=2, red=3, green=6),
+                               records=self.rounds(mentioning=(2,)))
+        self.assertIn('check 6', message)
+        self.assertIn('check 5', message)
+
+    def test_a_pair_no_accepted_record_mentions_at_all_is_still_citable(self):
+        """Where the line stays. Silence is an absence, and the citation this
+        ticket exists for is a rework round whose own tdd advance never happened.
+        """
+        self.evaluate('tdd', self.citing(position=None, red=5, green=6),
+                      records=self.rounds(mentioning=(1,)), attempt=2)
+
+
 class TheDisclosureNamesWhatARedIsHeldTo(unittest.TestCase):
     """What a red is held to, said where a reader of the rule will meet it.
 
@@ -2075,6 +2180,20 @@ class TheDisclosureNamesWhatARedIsHeldTo(unittest.TestCase):
 
     def test_it_no_longer_says_three_rules_are_all_of_them(self):
         self.assertNotIn('Nothing else.', gates._require_the_pair_is_one_round.__doc__)
+
+    def test_the_route_clause_says_the_shadow_window_silences_it(self):
+        """F3 of the fifth review. The list says a red is held to the route of the
+        position its entry declares, and every route comparison returns before it
+        compares while `[routing] shadow` is true. Measured: 0 of 30 slice entries
+        in this repository's journals are refused by any route rule with shadow
+        on, 24 of 30 with it off, so the qualification is the difference between
+        a rule that refuses nothing and one that refuses most of them. The fact is
+        written at each of the three route gates, which is exactly the distance
+        the other half of this review's F1 was about.
+        """
+        held_to = gates.cited_check.__doc__ or ''
+        clause = held_to[held_to.index('the route of the position'):]
+        self.assertIn('shadow', clause[:clause.index(';')])
 
     def test_it_still_says_what_is_not_checked(self):
         """Within one attempt no accepted tdd record can mention the checks being

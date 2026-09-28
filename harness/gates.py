@@ -535,6 +535,13 @@ def _the_journal_puts_it_elsewhere(records, number, position):
 
     Both directions, because a declaration is a claim whichever value it takes: a
     number the chain contradicts, and a null where the chain named a slice.
+
+    The position and not the round, which is the weaker half of what an accepted
+    record says and is why this is not the whole of the attribution: two rounds
+    may honestly share a position, and a rework round declares null, so a
+    citation joining one round's red to another's green agrees with this
+    comparison wherever the two rounds said the same thing about their slice.
+    `_the_journal_pairs_it_with_another_check` reads the other half.
     """
     declared = _positions_declared_for(records, number)
     if position is None:
@@ -550,6 +557,72 @@ def _the_journal_puts_it_elsewhere(records, number, position):
                       for value in sorted(declared, key=lambda value: (value is None, value)))
     return (f'this record names slice {position} for check {number} and the tdd record of the '
             f'round that recorded it named {named}')
+
+
+def _a_record_number(value):
+    """The value where it could be a record number, and nothing where it could not."""
+    return value if isinstance(value, int) and not isinstance(value, bool) else None
+
+
+def _named_checks(numbers):
+    return ', '.join('no check at all' if number is None else f'check {number}'
+                     for number in sorted(numbers, key=lambda number: (number is None, number)))
+
+
+def _the_journal_pairs_it_with_another_check(records, red, green):
+    """The sentence saying an accepted tdd record recorded this pair differently.
+
+    What an accepted tdd record says about a red is not only which slice it
+    proved. It says which green it was recorded beside, and that is the round
+    itself, so a citation joining that red to another green claims a round no
+    record of this journal has. The position is the weaker half of the same
+    statement, and `_the_journal_puts_it_elsewhere` reads only that half: two
+    rounds may honestly share a position, and a rework round declares null, which
+    the template asks for in as many words, so both directions of that comparison
+    read a contradiction as agreement wherever the two rounds said the same thing
+    about their slice. F1 of this ticket's fifth review, which the round before
+    closed for the adjacent case alone.
+
+    **Whether a red may ever be re-cited beside a different green, which is what
+    decides how wide this is.** It may not, so this compares the green in every
+    case rather than only where a null was declared. A green re-run because the
+    code moved belongs to a later attempt, and `_require_the_pair_is_one_round`
+    refuses that pair for being two halves of different work, so the corrected
+    green cannot arise across a return. Within one attempt a second green is one
+    the accepted record of that attempt could have named and did not, and that
+    record was written while the checks were fresh and has been in the hash chain
+    since. Measured over every journal under `docs/harness/history` and SEEN-112's
+    on its branch, 294 citations in 107 pairs: the null-only repair moves no
+    recorded verdict and this rule moves none either, so no journal distinguishes
+    them and the narrower one would only be the same rule with a hole kept in it.
+
+    Both ends of the pair, because a pair names two checks and the contradiction
+    reads from either: an accepted record naming another green for this red, and
+    one naming another red for this green. The red is where it is spent, because
+    that is where a pair is judged once, but a rule that asked only about the red
+    would leave the same theft available with the halves the other way round.
+
+    Nothing where no accepted record names either half, which is silence and not
+    agreement, and nothing where every record that names them names this pair.
+    """
+    named_greens, named_reds = set(), set()
+    for record in records:
+        if record['kind'] != 'advance' or record['data'].get('from_stage') != 'tdd':
+            continue
+        for entry in (record['data'].get('evidence') or {}).get('slices') or []:
+            if not isinstance(entry, dict):
+                continue
+            if _a_record_number(entry.get('red')) == red:
+                named_greens.add(_a_record_number(entry.get('green')))
+            if _a_record_number(entry.get('green')) == green:
+                named_reds.add(_a_record_number(entry.get('red')))
+    if named_greens and named_greens != {green}:
+        return (f'this record cites check {red} beside green {green} and the tdd record of the '
+                f'round that recorded it names {_named_checks(named_greens)} as its green')
+    if named_reds and named_reds != {red}:
+        return (f'this record cites check {green} beside red {red} and the tdd record of the '
+                f'round that recorded it names {_named_checks(named_reds)} as its red')
+    return None
 
 
 def _the_scope_a_citation_is_judged_in(records, number, position):
@@ -751,20 +824,28 @@ def _require_the_pair_is_one_round(position, red, green):
     **What ties the halves together, in full.** This rule; the ordering rule,
     which puts the red after the previous entry's green and before its own; the
     route, which holds both halves to the model and the context the position was
-    routed to; and the journal's own attribution, which refuses a red an accepted
-    tdd record puts at another slice, in `_the_journal_puts_it_elsewhere`. That
-    fourth one was being checked all along for every red a tdd record had
-    attributed, because the scope the comparison read carried it, and the first
-    version of the exemption dropped it while this paragraph went on saying three
-    rules were all of them. F1 of the fifth review, whose second half was the
-    disclosure and was weighed the same.
+    routed to, and which refuses nothing while `[routing] shadow` is true; the
+    journal's own attribution, which refuses a red an accepted
+    tdd record puts at another slice, in `_the_journal_puts_it_elsewhere`; and the
+    round that record recorded the red in, which refuses a pair an accepted record
+    joined differently however its position reads, in
+    `_the_journal_pairs_it_with_another_check`. The fourth was being checked all
+    along for every red a tdd record had attributed, because the scope the
+    comparison read carried it, and the first version of the exemption dropped it
+    while this paragraph went on saying three rules were all of them. The fifth is
+    the same paragraph's next omission: the attribution was put back comparing
+    positions, and a position two rounds share, or the null the template asks
+    every rework round to declare, reads as agreement there. F1 of the fifth
+    review, twice over, and its second half was the disclosure and was weighed the
+    same.
 
     **Where the attribution stops, which is what is not tied.** An accepted tdd
     record can only attribute a check recorded before it, so within one attempt
     there is nothing to attribute the checks a record cites: the record writing
     that attribution is the record being judged. So inside an attempt a session
     may record two rounds and the pairing rests on the record's word, and slice
-    B's green cited beside slice A's red there is taken at its word. The nearest
+    B's green cited beside slice A's red there is taken at its word, until some
+    later accepted record has said which green belonged to which red. The nearest
     red before the green is not the missing rule either, and that was measured
     rather than assumed: SEEN-098's green 8 belongs to red 6 with another red
     recorded at 7, so a nearest-red rule would refuse a real pair. Nor is the
@@ -834,10 +915,16 @@ def cited_check(records, number, phase, current, tree=None, repository=None,
 
     **What a red is held to, in full.** A non-zero exit that
     `checks.demonstrates_failure` holds of; its phase and its stage; its place in
-    the order; the route of the position its entry declares; the attempt of its
-    green, through `_require_the_pair_is_one_round`; and the journal's own
+    the order; the route of the position its entry declares, which refuses
+    nothing at all while `[routing] shadow` is true, because every route
+    comparison returns before it compares in the shadow window; the attempt of its
+    green, through `_require_the_pair_is_one_round`; the journal's own
     attribution, through `_the_journal_puts_it_elsewhere`, wherever an accepted
-    tdd record has made one. **What is not checked**, said as plainly: the tree it
+    tdd record has made one; and the round that record recorded it in, through
+    `_the_journal_pairs_it_with_another_check`, which is the same statement read
+    at its stronger half and refuses the pair that a position two rounds share,
+    or a null they both declare, reads to the attribution as agreement.
+    **What is not checked**, said as plainly: the tree it
     ran against, which is the exemption; and the fingerprint it recorded, which is
     not read here at all, because a red that recorded none was recorded beside a
     green that recorded none and the green is refused for both. Where the journal
@@ -882,6 +969,21 @@ def cited_check(records, number, phase, current, tree=None, repository=None,
                     'round that recorded it, so a red that record puts elsewhere is not this '
                     "round's red. Cite the red of the round that recorded the green, or declare "
                     'the position the journal names for the pair')
+        # After the position and not instead of it, because where both fire the
+        # position names the slice a session can act on. It is the wider of the
+        # two: a position two rounds honestly share, and a null the template asks
+        # every rework round to declare, are both agreements to the comparison
+        # above and neither is one about the round.
+        joined = _the_journal_pairs_it_with_another_check(records, number,
+                                                          judged_with['sequence'])
+        if joined:
+            require(False,
+                    f'The journal records check {number} in another round: {joined}. A red is '
+                    "judged by its green here, so which green it belongs to is the whole of what "
+                    'the exemption rests on, and an accepted tdd record has already said which '
+                    'one that is: the pair it names is one round, and joining either half to a '
+                    'check from the other is a round this journal does not have. Cite the pair '
+                    'that record names, or the red of the round that recorded the green')
     if record['attempt'] != current['attempt'] and judged_with is None:
         # The ticket is read from the record being judged rather than from the
         # start record, because every record carries the ticket it belongs to and
