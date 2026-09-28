@@ -1,0 +1,136 @@
+{
+  "sequence": 94,
+  "ticket": "SEEN-113",
+  "timestamp": "2026-09-28T20:46:48.491163+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "review",
+  "attempt": 8,
+  "actor": "claude:reviewer",
+  "session": "a00943ab9615",
+  "head": "3cbdf2e5edf4641a1d87fc6f9ba0b32102710ed9",
+  "prev_hash": "52707eac605ba4c4b59764d0d8048e61422c5fd99a7bddba914c755795439bf1",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "deliver",
+    "evidence": {
+      "reviewer": "claude:reviewer",
+      "independence": "self-review",
+      "reviewer_session": "a00943ab9615",
+      "read": [
+        "docs/tickets/SEEN-113-let-a-tdd-record-cite-the-evidence-a-return.md",
+        "docs/harness/history/SEEN-113/0064.json",
+        "docs/harness/history/SEEN-113/0065.json",
+        "docs/harness/history/SEEN-113/0066.json",
+        "docs/harness/history/SEEN-113/0067.json",
+        "docs/harness/history/SEEN-113/0075.json",
+        "docs/harness/history/SEEN-113/0076.json",
+        "docs/harness/history/SEEN-113/0077.json",
+        "docs/harness/history/SEEN-113/0078.json",
+        "docs/harness/history/SEEN-113/0084.json",
+        "docs/harness/history/SEEN-113/0085.json",
+        "docs/harness/history/SEEN-113/0086.json",
+        "docs/harness/history/SEEN-113/0087.json",
+        "docs/harness/history/SEEN-113/0088.json",
+        "docs/harness/history/SEEN-113/0089.json",
+        "docs/harness/history/SEEN-113/0090.json",
+        "CLAUDE.md",
+        "docs/tickets/README.md",
+        "harness/gates.py",
+        "harness/handoff.py",
+        "harness/tests/test_routing.py",
+        "harness/tests/test_session_cap.py",
+        "harness/tests/test_stage_gates.py",
+        "harness/errors.py"
+      ],
+      "acceptance_evidence": [
+        "Criterion 1, a cross-attempt citation accepted on an unmoved tree: records 76 and 77 cited from attempt 8 at record 88, replayed independently by the reviewer and accepted at both the advance tree and the delivered tree; CiteAcrossAttempts at harness/tests/test_stage_gates.py:710.",
+        "Criterion 2, refused whenever the covered code changed with the situation named: the 65/66 and 76/77 rounds; TreeMovedUnderTheCheck, UnattributableCitationFallsBack, EveryEntryInTheScopeResolves and AnEntryGitWillNotTakeAsAPathspec, with the replayed refusal of green 66 naming harness/gates.py and harness/tests/test_stage_gates.py.",
+        "Criterion 3, the ordering rule survives: OrderingAcrossAttempts and WhatTiesARedToItsGreen, with red 76 before green 77 before regression 87 in record 88.",
+        "Criterion 4, a replan carries forward the greens still in the branch: handoff.slices_proved and plan_accepted_at, with ReplanCarriesForward and SlicesProvedRatherThanGreensCounted driven through the pack and the guard.",
+        "Criterion 5, proven on SEEN-112's shape and on the mirror: the SeenOneTwelveShape fixture of five attempts with slices proved in the first two, accepted at CiteAcrossAttempts and refused by name at the moved-tree case; and measured on SEEN-112's own branch, where slice 3's pair is citable whole and slices 1 and 2 are refused by name.",
+        "Criterion 6, no evidence revived for code that changed: EvidenceForChangedCode and TheSlicesOwnFilesMoved, the refusal naming the fingerprint difference and the moved files; and the rule refusing this ticket's own records 34 and 35 in every attempt until the code stopped moving.",
+        "The regression was re-run rather than carried, at record 87, 1,436 passed, which is what the unscoped whole-tree rule requires of a citation that covers the suite; the review qa at records 89 and 92 is the same suite at the reviewed tree."
+      ],
+      "findings": [
+        {
+          "id": "F1",
+          "severity": "low",
+          "file": "docs/harness/history/SEEN-113/0088.json",
+          "claim": "The attempt 8 tdd record attributes its own cross-attempt citation to the commit search tolerating the ticket file, but at the tree that record was written against nothing counted had moved at all, so the acceptance came from the exact-tree branch and the tolerance never ran.",
+          "failure_scenario": "Green 77 recorded tree 804bab59a5d4. A commit reverted the ticket file by exactly the inverse of the commit before it, so its content fingerprint is 804bab59a5d4 as well, and record 88 was written at that head. Replaying cited_check with those records returns at the identity branch: no commit search, no ticket-file substitution, no scoped comparison. A later session, or the calibration asking which record first carried evidence through the procedure-rewrite tolerance, would point at record 88 and find the identity branch instead. The claim becomes true only once the Outcome moved the ticket file again, and the same citation was verified accepted through the scoped path at the delivered tree, so nothing was granted that should not have been.",
+          "status": "resolved",
+          "resolution": "Corrected at record 91 and in the Outcome, which now records the distinction rather than the more generous of the two readings: at the tree the tdd record was written against the identity branch granted it and the tolerance never ran, and at the tree being delivered the tolerant path does run and accepts the same pair, both verified by the review. Record 88 is accepted and the journal is append-only, so the note is the correction rather than an edit. The finding cuts the safe way, the gate having accepted on an exactly equal tree rather than on a weaker ground."
+        }
+      ],
+      "checks": [
+        "No production change this round: the diff over harness/ between the sixth review's return commit and this tree is empty, and the only tracked movement is the journal and the ticket file, so the round's work is the four corrections and the effort went to the records.",
+        "The stage-refusal claim is now the right form: no refusal kind exists in any journal in this repository, the kinds across all of them being check, advance, receipt, note, start, return, route, triage, handoff, decision and reopen, and a harness refusal raises without writing. Records 64, 65 and 66 are all stage tdd attempt 6 with none refused, and record 64 is a red at exit 0 whose before and after are both the content of the commit carrying the fix.",
+        "The failure reason is corrected: record 76's stored output holds six failures, five HarnessError not raised and one AssertionError naming the shadow qualification, and the string ValueError does not occur in it. Record 85 corrects records 78 and 81, and record 88 states the AssertionError rather than repeating the error.",
+        "Both halves of the commit disclosure verified by numstat: the return commit carries three journal records, the ticket file, and 231 inserted lines of harness/gates.py with four other code files; the commit whose subject announces the fix carries six journal records and nothing else.",
+        "The ordering is corrected and accurate: the pair rule runs in a second loop after the slice loop, and the attribution runs inside cited_check during it, so the attribution is the sentence a session sees.",
+        "The cross-attempt citation judged rather than taken: the scope is granted through corroboration, position 2 for checks 76 and 77 being declared by accepted record 81, which the citing record is not, so the positions agree and the scope resolves to the slice's four planned files, none of which moved. The counterfactual is a clear yes and was not taken from the code: replaying the same shape with a pair whose slice files did move is refused by name, and the comparison bites on each of the four files individually.",
+        "Triage leftovers: the fingerprint failure is the ticket file carrying the Outcome, the status and the ticks, which the workflow mandates before review is left; slice_files names the two ticket-index files and the test_routing.py flip an earlier review judged right; the index table showing doing where the frontmatter says review is pre-existing repository-wide drift. The pull request belongs to the merge gate.",
+        "Ground rules: no euro sign, no em dash or en dash, no live marketplace host, no browser automation, no credential, no tenant table, no billable path, and changes_agent_action is false and correctly so."
+      ],
+      "verdict": "pass",
+      "security_checklist": [
+        "No secret in the diff: gitleaks clean on every commit of this branch, run by the pre-commit hook.",
+        "No new dependency: nothing was added to any manifest or lockfile; the change is harness/ and its tests only.",
+        "No live marketplace host in test code: harness lint exits 0.",
+        "No buyer PII and no tenant table: this ticket touches no database, no migration and no product package.",
+        "No tool and no agent action, so no policy-gate declaration is owed; changes_agent_action is false and correctly so.",
+        "The change loosens a stage gate, which is the risk it carries rather than a secret one. Every clause of the loosening was probed adversarially across seven review rounds and the acceptance could not be made to fire loosely: 297 citations in 108 pairs across every journal move no recorded verdict, and the rule refuses its own author's evidence wherever the code it covers has moved."
+      ],
+      "tree": "d923cbf1d97e6bb90c252d2554959e5dc56d11957b5246239575c9dec3e6a067"
+    },
+    "decisions": [
+      {
+        "key": "severity",
+        "question": "severity",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high",
+          "blocking"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "medium",
+        "probabilities": {
+          "low": 0.15,
+          "medium": 0.69,
+          "high": 0.04,
+          "blocking": 0.12
+        },
+        "confidence": 0.58,
+        "score": 1.13,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      },
+      {
+        "key": "must_fix",
+        "question": "must_fix",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.17,
+          "no": 0.83
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.7,
+        "passed": false,
+        "fallback_reason": null
+      }
+    ]
+  }
+}
