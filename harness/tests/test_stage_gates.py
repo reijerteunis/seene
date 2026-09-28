@@ -37,6 +37,24 @@ def advance_record(sequence, from_stage, evidence, attempt=1, to_stage='tdd'):
                           decisions=[]))
 
 
+def routed_slice(position, model, effort='high', files=('harness/journal.py',)):
+    """One entry of a route record's execution list, as routing.run writes it."""
+    return dict(position=position, name=f'Slice {position}', points=1, files=list(files),
+                red=f'Nothing yet proves behaviour {position}', model=model, effort=effort,
+                source='jev', rule=None, reason=None, model_probability=0.7,
+                effort_probability=0.7, model_passed=True, model_threshold=0.5)
+
+
+def route_record(sequence, solution, entries, attempt=1):
+    """A route record naming the solution advance it routes, which is how it is read."""
+    return dict(sequence=sequence, ticket='SEEN-001', kind='route', stage='tdd',
+                attempt=attempt, actor='claude:implementer',
+                data=dict(solution=solution, shadow=False, strongest='opus',
+                          tiers=['haiku', 'sonnet', 'opus'], rules=[],
+                          jev=dict(asked=False, model=None, answers=[], reason='a fixture'),
+                          execution=entries))
+
+
 class GateTest(ProjectTest):
 
     def setUp(self):
@@ -1912,6 +1930,160 @@ class NoPairSurvivesItsGreensRefusal(ScopedToTheSlicesFiles):
         self.assertIn('harness/slice_one.py', message)
 
 
+class WhereTheJournalPutsAnExemptRed(ScopedToTheSlicesFiles):
+    """A red judged by its green is still the red the journal says it is.
+
+    F1 of the fifth review, reproduced end to end. Exempting a red from the tree
+    comparison took its attribution with it, because the attribution had nowhere
+    else to be spent: a contradicted position wins no scope, the comparison falls
+    back to the whole tree, and the refusal carries the disagreement. With the
+    comparison gone for a red there was nothing left for the contradiction to be
+    spent on, so a slice entry could join one round's red to another round's green
+    and the gate took its word for it, although the accepted tdd record of the
+    round that recorded the red named another slice for it. The motive is in the
+    same reproduction: the honest citation of the second round's own red, which
+    exited zero, is refused for not having failed, and stealing a red that did
+    fail cost nothing at all.
+
+    Two rounds in attempt 1 with one accepted tdd record naming both is what makes
+    the theft reachable. The pair passes every other rule: both halves are from one
+    attempt, the ordering has no objection, and the green is attributed to the very
+    position the citing record declares, so its own comparison is made over its own
+    slice's files and accepted.
+    """
+
+    def setUp(self):
+        super().setUp()
+        # Slice three's file exists in the tree the cited checks ran against,
+        # because the plan reading below is held to every entry resolving and an
+        # entry git cannot see costs the scope whoever named it.
+        self.write('harness/slice_three.py', 'def three():\n    return 3\n')
+        self.commit('feat(SEEN-001): slice three, before the rounds that are cited')
+        self.proved = self.repository.fingerprint()
+
+    def rounds(self, mentioning=(1, 2)):
+        """Two rounds in attempt 1, and the tdd record that attributed them.
+
+        `mentioning` is which of the two that record carries, because a check no
+        accepted record mentions at all is an absence and not a contradiction.
+        Each red ran against a tree no commit carries, which is every real red's
+        shape and the reason the exemption exists.
+        """
+        attributed = [dict(position=1, behaviour='Round one, which proved slice one',
+                           failure_reason='expected 1, received nothing', red=3, green=4),
+                      dict(position=2, behaviour='Round two, which proved slice two',
+                           failure_reason='expected 2, received nothing', red=5, green=6)]
+        entries = [entry for entry in attributed if entry['position'] in mentioning]
+        now = self.repository.fingerprint()
+        return self.records + [
+            advance_record(2, 'solution', dict(mode='code', slices=self.plan), attempt=1),
+            check_record(3, 'red', attempt=1, after='f' * 64),
+            check_record(4, 'green', attempt=1, after=self.proved),
+            check_record(5, 'red', attempt=1, after='e' * 64),
+            check_record(6, 'green', attempt=1, after=self.proved),
+            advance_record(7, 'tdd', dict(mode='code', slices=entries, regression=6),
+                           attempt=1, to_stage='review'),
+            check_record(8, 'red', attempt=2, after=now),
+            check_record(9, 'green', attempt=2, after=now),
+            check_record(10, 'regression', attempt=2, after=now),
+            coverage_record(11, attempt=2)]
+
+    def citing(self, position=2, red=3, green=6, **changes):
+        """Attempt 2 citing a pair from attempt 1, beside the slice it proved here."""
+        data = self.template(
+            'tdd',
+            slices=[dict(position=position, behaviour='The pair this record calls one round',
+                         failure_reason='expected a refusal, received none',
+                         red=red, green=green),
+                    dict(position=3, behaviour='Slice three, proved in this attempt',
+                         failure_reason='expected 3, received nothing', red=8, green=9)],
+            regression=10)
+        data.update(changes)
+        return data
+
+    def refusal(self, data=None, records=None):
+        return super().refusal(data or self.citing(), records or self.rounds())
+
+    def test_a_red_the_journal_puts_at_another_slice_is_refused(self):
+        """The reviewer's reproduction: position 2, round two's green, round one's
+        red, and an accepted record that says check 3 proved slice 1."""
+        message = self.refusal()
+        self.assertIn('check 3', message)
+        self.assertIn('slice 1', message)
+        self.assertIn('slice 2', message)
+
+    def test_the_refusal_is_about_where_the_red_belongs_and_not_about_a_tree(self):
+        """The exemption is kept whole: a red is still compared against no tree, so
+        the refusal cannot be the one a moved tree gives."""
+        message = self.refusal()
+        self.assertNotIn('tree moved', message)
+        self.assertNotIn('whole tree', message)
+
+    def test_the_green_it_was_joined_to_is_accepted_on_its_own_terms(self):
+        """Without this the refusal above could be the green's rather than the
+        red's: round two's own pair, under the same position, passes everything."""
+        self.evaluate('tdd', self.citing(red=5), records=self.rounds(), attempt=2)
+
+    def test_the_position_the_journal_declares_is_still_citable_across_attempts(self):
+        """The legitimate case the fix may not cost: round one whole, declared at
+        the position its own accepted record names for both halves."""
+        self.evaluate('tdd', self.citing(position=1, red=3, green=4), records=self.rounds(),
+                      attempt=2)
+
+    def test_declaring_null_for_a_red_the_journal_names_is_refused_too(self):
+        """The mirror the scope rule already draws for a green, read the other way
+        round: null is a claim, and a claim an accepted record contradicts settles
+        nothing. The green cited here is one no accepted record mentions, so it
+        reaches the plan's files on its own and the refusal can only be the red's.
+        """
+        message = self.refusal(data=self.citing(position=None, red=3, green=6),
+                               records=self.rounds(mentioning=(1,)))
+        self.assertIn('check 3', message)
+        self.assertIn('slice 1', message)
+        self.assertNotIn('tree moved', message)
+
+    def test_a_red_no_accepted_record_mentions_is_still_citable(self):
+        """Where the line is drawn and why. Silence is an absence and not a
+        contradiction, and the pair has already paid for it at the half that can
+        pay: the green resolves to no scope for the same silence and is compared
+        over the whole tree, or to the plan's files where it declares null, and
+        only survives what that comparison lets through. A rework round whose own
+        tdd advance never happened is exactly this shape, and it is the citation
+        this ticket exists for.
+        """
+        self.evaluate('tdd', self.citing(position=None, red=5, green=6),
+                      records=self.rounds(mentioning=(1,)), attempt=2)
+
+
+class TheDisclosureNamesWhatARedIsHeldTo(unittest.TestCase):
+    """What a red is held to, said where a reader of the rule will meet it.
+
+    The second half of F1 of the fifth review, and it is weighed the same: the
+    exemption's docstring said what ties a pair together "in full" and listed
+    three rules, when a fourth was being checked all along for every red an
+    accepted tdd record has attributed, and this ticket removed that one without
+    recording that it had. A rule whose disclosure understates what it checks
+    costs a later reader exactly what the check was for.
+    """
+
+    def disclosure(self):
+        return ((gates._require_the_pair_is_one_round.__doc__ or '')
+                + (gates.cited_check.__doc__ or ''))
+
+    def test_it_names_the_journals_attribution_as_one_of_the_rules(self):
+        self.assertIn('attribution', self.disclosure())
+
+    def test_it_no_longer_says_three_rules_are_all_of_them(self):
+        self.assertNotIn('Nothing else.', gates._require_the_pair_is_one_round.__doc__)
+
+    def test_it_still_says_what_is_not_checked(self):
+        """Within one attempt no accepted tdd record can mention the checks being
+        cited, because it would have to have been written before they existed, so
+        there the pairing really does rest on the record's word. The honest
+        statement says both halves, so it has to keep saying this one."""
+        self.assertIn("rests on the record's word", self.disclosure())
+
+
 class WhatTiesARedToItsGreen(SeenOneTwelveShape):
     """A pair is one round, and the attempt is what a gate can check of that.
 
@@ -1984,6 +2156,142 @@ class WhatTiesARedToItsGreen(SeenOneTwelveShape):
         data['slices'][1].update(red=4, green=7)
         data['slices'][2].update(red=6, green=7)
         self.assertIn('out of order', self.refusal(data=data))
+
+
+class ANullRoundIsHeldToTheStrictestRoute(TddGateTest):
+    """F2 of the fifth review: null is not the cheapest thing a record can declare.
+
+    A null position buys the plan's whole file union for its scope, which is
+    stricter than one slice's files and is the point of that rule. What it also
+    bought was the route for nothing: `_require_the_routed_slice` returned before
+    the comparison, so a slice routed to opus and worked on sonnet was refused
+    when it declared its position and accepted when it declared null. Before the
+    plan's union a null declaration at least cost the citation its evidence, which
+    was the counter-pressure; once that price was gone the cheapest true-looking
+    thing a record could say was that it belonged to no single slice.
+
+    A round that belongs to no single slice touches several, so it answers to
+    several routes, and it is held to the strictest of them on the same reasoning
+    that makes its scope the union rather than nothing. Strictest is a floor and
+    not an equality: a plan routed to sonnet and to opus can be met by neither
+    model under an equality, and a rule nobody can satisfy is a rule that forces
+    the record to name a position it does not have. What the route guards against
+    is work done under a weaker model than the plan judged necessary; a stronger
+    one is a cost, and a round that belongs to no single slice has no routed cost
+    of its own to be held to.
+    """
+
+    def setUp(self):
+        super().setUp()
+        # Out of shadow, because in shadow no route refuses anything at all and
+        # this class is about what the comparison says when it is made.
+        self.thresholds = dict(self.thresholds,
+                               routing=dict(self.thresholds['routing'], shadow=False))
+
+    def journal(self, models=('sonnet', 'opus'), model='claude-sonnet-5', declared=None,
+                agent='seen-implementer', routed=True):
+        """A plan, its route, and one round proved under one model in this attempt.
+
+        Every check is from the attempt the record is written in, so nothing here
+        is about the citation rules: what is left to refuse is the route.
+        """
+        plan = [dict(name=f'Slice {position}', points=1, files=['harness/journal.py'],
+                     red=f'Nothing yet proves behaviour {position}')
+                for position in range(1, len(models) + 1)]
+        route = [route_record(3, 2, [routed_slice(position, tier)
+                                     for position, tier in enumerate(models, start=1)])]
+        def check(sequence, phase):
+            return check_record(sequence, phase, attempt=1, model=model,
+                                model_declared=declared, agent_declared=agent)
+        return self.records + [
+            advance_record(2, 'solution', dict(mode='code', slices=plan), attempt=1),
+            *(route if routed else []),
+            check(4, 'red'), check(5, 'green'), check(6, 'regression'),
+            coverage_record(7, attempt=1)]
+
+    def citing(self, position=None):
+        return self.code_tdd(slices=[dict(position=position,
+                                          behaviour='A round of rework across the plan',
+                                          failure_reason='expected a refusal, received none',
+                                          red=4, green=5)],
+                             regression=6)
+
+    def refusal(self, data=None, records=None):
+        with self.assertRaises(HarnessError) as raised:
+            self.evaluate('tdd', data or self.citing(), records=records or self.journal())
+        return str(raised.exception)
+
+    def test_a_null_round_worked_below_the_plans_strictest_route_is_refused(self):
+        message = self.refusal()
+        self.assertIn('opus', message)
+        self.assertIn('claude-sonnet-5', message)
+
+    def test_the_refusal_says_it_is_the_strictest_route_in_the_plan(self):
+        message = self.refusal()
+        self.assertIn('no single slice', message)
+        self.assertIn('strictest', message)
+
+    def test_the_same_round_on_the_strictest_route_is_not_refused(self):
+        self.evaluate('tdd', self.citing(), records=self.journal(model='claude-opus-5'))
+
+    def test_declaring_null_is_not_cheaper_than_declaring_the_position(self):
+        """The finding's own sentence: work routed to opus and done on sonnet was
+        refused when it declared its position and accepted when it declared null.
+        Both are refused now, and what still passes is the one declaration that
+        would be true of work done on sonnet: the slice routed to sonnet."""
+        self.assertIn('Slice 2', self.refusal(data=self.citing(position=2)))
+        self.refusal(data=self.citing(position=None))
+        self.evaluate('tdd', self.citing(position=1), records=self.journal())
+
+    def test_a_round_stronger_than_every_slice_of_the_plan_is_not_refused(self):
+        """The floor, argued in the class docstring: an equality against the
+        strongest tier could not be met by any model a plan of two tiers routed."""
+        self.evaluate('tdd', self.citing(),
+                      records=self.journal(models=('sonnet', 'sonnet'), model='claude-opus-5'))
+
+    def test_in_shadow_nothing_is_refused(self):
+        """The window SEEN-109 exists to close, and no refusal crosses it."""
+        self.thresholds = dict(self.thresholds,
+                               routing=dict(self.thresholds['routing'], shadow=True))
+        self.evaluate('tdd', self.citing(),
+                      records=self.journal(model='claude-haiku-4-5-20251001'))
+
+    def test_a_plan_nobody_routed_is_a_comparison_with_nothing(self):
+        self.evaluate('tdd', self.citing(),
+                      records=self.journal(routed=False, model='claude-haiku-4-5-20251001'))
+
+    def test_a_model_id_nobody_wrote_down_is_not_compared(self):
+        """The same absence the numbered rule allows: an id no tier names cannot be
+        placed against a floor, and a comparison with nothing is not one."""
+        self.evaluate('tdd', self.citing(), records=self.journal(model='claude-sonnet-4-5-none'))
+
+    def test_a_declared_tier_is_what_the_gate_reads_first(self):
+        """The disclosure before the log, exactly as the numbered rule reads it: a
+        subagent inherits its parent's session id, so the log of its check carries
+        the parent's model and only the declaration knows."""
+        message = self.refusal(records=self.journal(model='claude-opus-5', declared='sonnet'))
+        self.assertIn('sonnet', message)
+        self.assertIn('opus', message)
+
+    def test_a_declaration_at_the_floor_stands_whatever_the_log_says(self):
+        self.evaluate('tdd', self.citing(),
+                      records=self.journal(model='claude-haiku-4-5-20251001', declared='opus'))
+
+    def test_a_declared_tier_no_route_names_cannot_meet_the_floor(self):
+        """Fail closed rather than crash on it: a tier nobody routes has no place
+        in the order, so nothing can show it met the floor."""
+        message = self.refusal(records=self.journal(model='claude-opus-5', declared='wizard'))
+        self.assertIn('wizard', message)
+
+    def test_a_null_round_in_the_orchestrating_sessions_own_context_is_refused(self):
+        """The second half of what a position bought: a slice routed at all is
+        routed to a context of its own, so a round that may have touched any of
+        them is too."""
+        message = self.refusal(records=self.journal(model='claude-opus-5', agent=None))
+        self.assertIn('context of its own', message)
+
+    def test_a_null_round_a_subagent_worked_is_not_refused_for_its_context(self):
+        self.evaluate('tdd', self.citing(), records=self.journal(model='claude-opus-5'))
 
 
 if __name__ == '__main__':  # pragma: no cover - a module must run on its own

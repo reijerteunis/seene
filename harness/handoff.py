@@ -333,6 +333,30 @@ def _route_line(records, position):
     return f'Runs on: {entry["model"]} at {entry["effort"]} effort, {how}.'
 
 
+def _rework_line(records, thresholds):
+    """What a round that belongs to no single slice runs on, or nothing.
+
+    `_route_line` is how a route reaches the session that works a slice, one slice
+    at a time, and a plan whose every slice is proved has no slice left to name. A
+    return puts such a ticket back at tdd, and what a return produces is rework: a
+    round that touches more than one slice's work, declares null for its position
+    by the template's own instruction, and is held by the tdd gate to the strictest
+    route in the plan. Told nothing here, the session would be refused by a rule
+    the pack never gave it, which is the one thing the pack exists to prevent.
+
+    Nothing where nothing was routed, for the reason `strictest_route` gives: there
+    is no route to report and the gate refuses nothing either.
+    """
+    strictest = gates.strictest_route(records, thresholds)
+    if strictest is None:
+        return None
+    return (f'If this is a round of rework rather than the regression, it belongs to no single '
+            f'slice: declare null for its position and run it on {strictest["model"]} at '
+            f'{strictest["effort"]} effort, which is slice {strictest["position"]}\'s route and '
+            'the strictest in the plan. A round that may have touched any slice answers to the '
+            'strongest model any of them was routed to.')
+
+
 def _graph_answers(records):
     """What has already been asked of the graphs, so it is not asked twice."""
     found = []
@@ -425,6 +449,11 @@ def pack(records, state, thresholds, branch=None, next_command='', slice_done=No
             finished += (' What is left is the regression, the coverage measurement and the '
                          'advance to review.')
         lines.append(finished)
+        # The route for the one kind of work a complete plan still has in front of
+        # it, and only at the stage that work is done at.
+        rework = _rework_line(records, thresholds) if state['stage'] == 'tdd' else None
+        if rework:
+            lines += ['', rework]
     else:
         entry = slice_now['entry']
         lines += [f'Slice {slice_now["position"]} of {slice_now["total"]}, '

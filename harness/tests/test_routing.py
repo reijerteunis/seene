@@ -912,19 +912,38 @@ class SlicePositionTest(GateTest):
             self.submit('tdd', self.rework_of(2, declared='haiku'))
         self.assertIn('Slice 2', str(raised.exception))
 
-    def test_a_declared_absence_is_not_refused(self):
-        """A round that belongs to no single slice says so, and is held to no route.
+    def test_a_declared_absence_is_held_to_the_strictest_route_in_the_plan(self):
+        """A round that belongs to no single slice answers to every one of them.
 
         This asserted that an omitted field was not refused until F2 of the
         fifth review found that omitting it was a way past the refusal nobody
-        could tell from a record written before the field existed. The absence
-        is declared now, and only the declaration is required.
+        could tell from a record written before the field existed. It then
+        asserted that the declared absence was held to no route at all, and the
+        same review found that too: with the plan's file union granted for its
+        scope, a null declaration bought the evidence and paid nothing for the
+        route, so it was cheaper than the truth. Slice 2 here is the money rule's
+        opus, and a rework round worked on haiku may have touched it.
         """
         self.use(route_stub(model=(0.7, 0.2, 0.1)))
         self.reach_tdd(self.plan())
         self.route()
         self.set_shadow(False)
-        record = self.submit('tdd', self.rework_of(None, declared='haiku'))
+        with self.assertRaises(HarnessError) as raised:
+            self.submit('tdd', self.rework_of(None, declared='haiku'))
+        self.assertIn('no single slice', str(raised.exception))
+
+    def test_a_declared_absence_at_the_strictest_route_advances(self):
+        """The way through, and there is one: the strongest tier the plan routed.
+
+        A floor and not an equality, so the round is not refused for being
+        stronger than slice 1's haiku. Without this test the rule above could be
+        one no honest record could satisfy.
+        """
+        self.use(route_stub(model=(0.7, 0.2, 0.1)))
+        self.reach_tdd(self.plan())
+        self.route()
+        self.set_shadow(False)
+        record = self.submit('tdd', self.rework_of(None, declared='opus'))
         self.assertEqual(record['data']['to_stage'], 'review')
 
     def test_a_position_outside_the_plan_is_refused(self):

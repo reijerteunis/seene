@@ -1,0 +1,41 @@
+{
+  "sequence": 63,
+  "ticket": "SEEN-113",
+  "timestamp": "2026-09-28T00:16:16.861505+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 5,
+  "actor": "claude:reviewer",
+  "session": "a00943ab9615",
+  "head": "671ebc6f86a6c413f93938294c2bda312f8793ea",
+  "prev_hash": "92792d1d0b9fd0478a69b511d6fbba2453b69a5b261db1c349318b89d194c8cc",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 6,
+    "reason": "The fourth review probed the three new mechanisms and passed two of them: the null-position scope could not be widened beyond the plan, made narrower than the truth, or granted where the plan names nothing, and the commit search's single-path substitution could not be widened by a second path, a foreign blob, another file's blob, or a blob outside the window, with the exact pass genuinely preferred and the bound holding at 0.393s. It returns the ticket on a regression the judge-by-green change introduced: an exempted red skips every attribution check and not only the tree comparison, so a slice entry may join one round's red to another round's green even where the journal attributes it elsewhere, and the docstring's claim that nothing distinguishes one slice's red from another's is false because _positions_declared_for does (F1). And a null position has become the cheapest declaration, buying the plan's union with no corroboration while still escaping the route comparison, where before it cost the citation its evidence (F2). It also verified that criterion 2's third wording gives up nothing: the second committed the criterion to nine reasons and a commit one later in this same ticket made it ten, so that wording would have been false at delivery.",
+    "findings": [
+      {
+        "id": "F1",
+        "severity": "medium",
+        "file": "harness/gates.py:805",
+        "claim": "A red exempted by its green skips every attribution check as well as the tree comparison, so a slice entry may join one round's red to another round's green even where the journal's own accepted tdd record says the red belongs to a different round, and the corroboration function this ticket wrote is never asked.",
+        "failure_scenario": "Attempt 1 records red 3 with green 4 for one round, and a second round whose own red 5 exited 0 with green 6; only the first round advances out of tdd, declaring position null for red 3 and green 4. In attempt 2 the tdd record carries one entry, position null, red 3, green 6. The gate accepts it: green 6 is judged over the union of the plan's files with nothing moved, and red 3 never reaches the code that would ask where it belongs, so _positions_declared_for is never read. The round whose own red passed advances on a red the journal attributes elsewhere, while the honest citation of its own red 5 is refused for not having failed. Reproduced: accepted at 671ebc6, refused at c1c5171 with the corroboration sentence. The numbered variant behaves the same. And the disclosure understates what is checkable: the docstring and the Outcome both say nothing distinguishes one slice's red from another's, while _positions_declared_for distinguishes them for every red an accepted tdd record has cited, so a refusal that used to exist was removed without being recorded anywhere.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F2",
+        "severity": "low",
+        "file": "harness/gates.py:976",
+        "claim": "A null position is now the cheapest declaration a tdd record can make: it buys the plan's whole file union with no corroboration and remains exempt from the route comparison, so the only price it used to pay for skipping that comparison is gone.",
+        "failure_scenario": "With [routing] shadow set false, a slice routed to opus is worked on sonnet. Declaring position 2 is refused by _require_the_routed_model; declaring position null returns early from _require_the_routed_slice and still gets the plan's union as the scope for its cross-attempt citations, so the routing gate is bypassed at no cost to the evidence. Before the null-scope change a null declaration fell back to the whole tree and cost the citation its evidence, which was the counter-pressure. The remaining price is that handoff.slices_proved does not advance on a null-declared green, which --slice-done answers.",
+        "status": "open",
+        "resolution": ""
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}

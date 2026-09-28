@@ -450,6 +450,70 @@ class NoPlanYetTest(SessionEnvironment):
                       self.run_harness('status', self.ticket_id, '--brief')['pack'])
 
 
+class ReworkIsToldWhatItRunsOn(PackEdgesTest):
+    """A plan with no slice left in front of the session still has a route to give.
+
+    The pack is the only thing that crosses a slice boundary, and `_route_line`
+    is where the route reaches the session one slice at a time. A returned ticket
+    whose plan is complete has no next slice, so it was told nothing, and the tdd
+    gate now holds a round that belongs to no single slice to the strictest route
+    in the plan. A session refused by a rule the pack never told it is the one
+    thing the pack exists to prevent, so the pack says it.
+    """
+
+    def route(self, models=('sonnet', 'opus', 'sonnet')):
+        """A route record of the plan in hand, one model per planned slice."""
+        from harness import journal
+        folder = self.root / 'docs' / 'harness' / 'history' / self.ticket_id
+        records = journal.read(folder)
+        solution = next(record['sequence'] for record in records
+                        if record['kind'] == 'advance'
+                        and record['data'].get('from_stage') == 'solution')
+        execution = [dict(position=position, name=f'Slice {position}', points=1,
+                          files=['harness/journal.py'], red='Nothing yet proves it',
+                          model=model, effort='high', source='jev', rule=None, reason=None,
+                          model_probability=0.7, effort_probability=0.7,
+                          model_passed=True, model_threshold=0.5)
+                     for position, model in enumerate(models, start=1)]
+        return journal.append(folder, records, kind='route', stage='tdd', attempt=1,
+                              actor='claude:implementer', head=self.git('rev-parse', 'HEAD'),
+                              ticket=self.ticket_id,
+                              data=dict(solution=solution, shadow=True, strongest='opus',
+                                        tiers=['haiku', 'sonnet', 'opus'], rules=[],
+                                        jev=dict(asked=False, model=None, answers=[],
+                                                 reason='a fixture'),
+                                        execution=execution))
+
+    def built(self, stage='tdd'):
+        from harness import handoff as building
+        records, rules = self.complete_the_plan()
+        return building.pack(records, dict(stage=stage, attempt=1), rules)['markdown']
+
+    def test_it_names_the_strictest_route_in_the_plan(self):
+        self.route()
+        text = self.built()
+        self.assertIn('opus', text)
+        self.assertIn('strictest', text)
+
+    def test_it_says_such_a_round_declares_null_for_its_position(self):
+        self.route()
+        self.assertIn('null', self.built())
+
+    def test_a_plan_nobody_routed_claims_no_route_for_rework_either(self):
+        self.assertNotIn('strictest', self.built())
+
+    def test_the_regression_is_still_what_the_pack_names_first(self):
+        """The line is an answer to "if this is rework", not a replacement for what
+        a complete plan at tdd has left to do."""
+        self.route()
+        self.assertIn('What is left is the regression', self.built())
+
+    def test_at_review_there_is_no_rework_to_route(self):
+        """A return puts a ticket back at tdd, so that is where the line belongs."""
+        self.route()
+        self.assertNotIn('strictest', self.built(stage='review'))
+
+
 class StatusBriefTest(AtTddTest):
     """What a fresh session reads before it does anything else."""
 

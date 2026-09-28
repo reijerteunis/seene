@@ -37,9 +37,13 @@ ESCAPING_SEVERITIES = ('high', 'blocking')
 # tolerant half of that search too, and squarely: the blobs tried for the path
 # the procedure rewrites are the ones it held inside the same window, so the work
 # is at most this many hashes of this many listings and no extra git call.
-# Measured on this branch at the current limit: the window walk costs 0.36
-# seconds in fifty ls-tree calls, and 2,500 substituted hashes of a 299-path
-# listing cost 0.08 on top of it. The longest branch on record is nine commits.
+# Measured on this branch at the current limit: the window walk costs 0.32
+# seconds in fifty ls-tree calls, and the worst case of the tolerant half, 2,500
+# substituted hashes of a 299-path listing, costs 0.07 on top of it, which is
+# 0.39 seconds in all. The figures here used to be 0.36 and 0.08, which add to
+# 0.44 against a claim of under 0.4: the fifth review caught the arithmetic and
+# re-measurement settled every figure above. The longest branch on record is
+# nine commits.
 TREE_SEARCH_LIMIT = 50
 # Why a citation is compared over the whole tree when nothing scopes it. The
 # regression is the deliberate case: it covers the suite and not a slice, so it
@@ -278,8 +282,8 @@ def _the_commit_holding(repository, tree, rewritten=None):
     the listings the exact pass already read are what the substitutions are built
     from. That bounds the added work at `TREE_SEARCH_LIMIT` squared hashes and no
     subprocess at all, which is 2,500 hashes of a 299-path listing at the current
-    limit, measured at under 0.1 seconds against the 0.36 seconds the window walk
-    itself costs.
+    limit, measured at 0.07 seconds against the 0.32 the window walk itself
+    costs.
 
     None when no commit carries it, which is a check whose tree was never
     committed as it stood, and every RED is in that shape: its tree holds the
@@ -511,6 +515,43 @@ def _positions_declared_for(records, number):
     return declared
 
 
+def _the_journal_puts_it_elsewhere(records, number, position):
+    """The sentence saying an accepted tdd record puts this check at another slice.
+
+    Nothing where no accepted record disagrees, which is either agreement or
+    silence, and the two are told apart by the caller and not here: silence is an
+    absence and falls closed to the strictest thing the caller has, while a
+    disagreement is settled the other way and no comparison can answer it.
+
+    Split out of the scope question because a red needs this answer without the
+    files. For a green the two are one: a contradicted position wins no scope, the
+    comparison falls back to the whole tree, and the refusal carries the
+    disagreement. A red judged by its green has no comparison left to fall back
+    to, so the contradiction had nowhere to be spent and passed in silence: a
+    slice entry could join one round's red to another round's green and the gate
+    took its word for it, although the accepted tdd record of the round that
+    recorded the red named a different slice for it. F1 of this ticket's fifth
+    review.
+
+    Both directions, because a declaration is a claim whichever value it takes: a
+    number the chain contradicts, and a null where the chain named a slice.
+    """
+    declared = _positions_declared_for(records, number)
+    if position is None:
+        numbered = sorted(value for value in declared if value is not None)
+        if not numbered:
+            return None
+        named = ', '.join(f'slice {value}' for value in numbered)
+        return (f'this record says check {number} belongs to no single slice and the tdd record '
+                f'of the round that recorded it named {named}')
+    if not declared or declared == {position}:
+        return None
+    named = ', '.join('no slice at all' if value is None else f'slice {value}'
+                      for value in sorted(declared, key=lambda value: (value is None, value)))
+    return (f'this record names slice {position} for check {number} and the tdd record of the '
+            f'round that recorded it named {named}')
+
+
 def _the_scope_a_citation_is_judged_in(records, number, position):
     """The files a cited check's evidence is about, whose they are, and why none.
 
@@ -541,6 +582,11 @@ def _the_scope_a_citation_is_judged_in(records, number, position):
     numbered direction falls closed on, read the other way round: null is a claim,
     a claim the chain contradicts settles nothing, and neither reading wins.
 
+    Both disagreements are answered by `_the_journal_puts_it_elsewhere`, which is
+    where the numbered and the null readings of the same contradiction live
+    together, and which a red is held to on its own now that its comparison is
+    carried by its green.
+
     This is the plan's half of the answer and not the whole of it. Corroboration
     is a record vouching for a record, and the earlier record's position was
     never itself checked against any code, so the comparison is widened by what
@@ -549,13 +595,13 @@ def _the_scope_a_citation_is_judged_in(records, number, position):
     files to that comparison, never take one away.
     """
     declared = _positions_declared_for(records, number)
+    # The attribution first, in whichever direction it disagrees: it is the one
+    # answer that settles the question rather than leaving it open, and it is the
+    # half a red is held to on its own.
+    elsewhere = _the_journal_puts_it_elsewhere(records, number, position)
+    if elsewhere:
+        return None, f'{elsewhere}, so which files it covered is not settled', None
     if position is None:
-        numbered = sorted(value for value in declared if value is not None)
-        if numbered:
-            named = ', '.join(f'slice {value}' for value in numbered)
-            return None, (f'this record says check {number} belongs to no single slice and the '
-                          f'tdd record of the round that recorded it named {named}, so which '
-                          'files it covered is not settled'), None
         files = _the_files_the_plan_covers(records)
         if not files:
             return None, (f'check {number} belongs to no single slice, and nothing in the plan or '
@@ -566,12 +612,6 @@ def _the_scope_a_citation_is_judged_in(records, number, position):
         return None, (f'no accepted tdd record says which slice of the plan check {number} '
                       'proved, so the position this record names for it is corroborated by '
                       'nothing but itself'), None
-    if declared != {position}:
-        named = ', '.join('no slice at all' if value is None else f'slice {value}'
-                          for value in sorted(declared, key=lambda value: (value is None, value)))
-        return None, (f'this record names slice {position} for check {number} and the tdd record '
-                      f'of the round that recorded it named {named}, so which files it covered '
-                      'is not settled'), None
     files = _files_the_slice_covers(records, position)
     if not files:
         return None, (f'nothing in the plan or the route says which files slice {position} '
@@ -708,20 +748,29 @@ def _require_the_pair_is_one_round(position, red, green):
     any journal has recorded, and it does not narrow the citation this ticket
     exists for: what has to be old is the pair, not either half of it separately.
 
-    **What ties the halves together, in full, because the honest answer is shorter
-    than it looks.** This rule, the ordering rule, which puts the red after the
-    previous entry's green and before its own, and the route, which holds both
-    halves to the model and the context the position was routed to. Nothing else.
-    Within one attempt a session may record two rounds, and no rule here tells one
-    round's red from the other's: cite slice B's green beside slice A's red inside
-    one attempt and the gate takes the record's word for it. The nearest red before
-    the green is not the missing rule either, and that was measured rather than
-    assumed: SEEN-098's green 8 belongs to red 6 with another red recorded at 7, so
-    a nearest-red rule would refuse a real pair. Nor is the failure reason a check
-    of it: `failure_reason` is prose a reviewer reads against the runner's output
-    at the triage, and `triage` says so in as many words. So inside an attempt the
-    pairing rests on the record's word, and this docstring is the place that says
-    so rather than a comment implying a check that is not there.
+    **What ties the halves together, in full.** This rule; the ordering rule,
+    which puts the red after the previous entry's green and before its own; the
+    route, which holds both halves to the model and the context the position was
+    routed to; and the journal's own attribution, which refuses a red an accepted
+    tdd record puts at another slice, in `_the_journal_puts_it_elsewhere`. That
+    fourth one was being checked all along for every red a tdd record had
+    attributed, because the scope the comparison read carried it, and the first
+    version of the exemption dropped it while this paragraph went on saying three
+    rules were all of them. F1 of the fifth review, whose second half was the
+    disclosure and was weighed the same.
+
+    **Where the attribution stops, which is what is not tied.** An accepted tdd
+    record can only attribute a check recorded before it, so within one attempt
+    there is nothing to attribute the checks a record cites: the record writing
+    that attribution is the record being judged. So inside an attempt a session
+    may record two rounds and the pairing rests on the record's word, and slice
+    B's green cited beside slice A's red there is taken at its word. The nearest
+    red before the green is not the missing rule either, and that was measured
+    rather than assumed: SEEN-098's green 8 belongs to red 6 with another red
+    recorded at 7, so a nearest-red rule would refuse a real pair. Nor is the
+    failure reason a check of it: `failure_reason` is prose a reviewer reads
+    against the runner's output at the triage, and `triage` says so in as many
+    words.
     """
     require(red['attempt'] == green['attempt'],
             f'Slice {position} cites red {red["sequence"]} from attempt {red["attempt"]} beside '
@@ -733,7 +782,7 @@ def _require_the_pair_is_one_round(position, red, green):
 
 
 def cited_check(records, number, phase, current, tree=None, repository=None,
-                scope=(None, None, None), judged_with=None):
+                scope=(None, None, None), judged_with=None, declared_position=None):
     """A check a stage record points at, confirmed to be usable evidence here.
 
     A check counts only for the stage that produced it, and only while it is
@@ -772,10 +821,29 @@ def cited_check(records, number, phase, current, tree=None, repository=None,
     rests on the ordering rule, which reads sequence numbers, and on its own
     recorded failure, which is read from the record two requires below.
 
-    What the red loses is that comparison and, with it, the scope that only ever
-    served it; there is nothing else in this function the attempt gates. What it
-    keeps is everything else: a non-zero exit that `checks.demonstrates_failure`
-    holds of, its place in the order, its phase and its stage.
+    What the red loses is that comparison and nothing else, and the difference is
+    the whole of F1 of the fifth review: the first version of this exemption
+    skipped the cross-attempt branch entire, and the attribution the scope carried
+    went with it, so a slice entry could join one round's red to another round's
+    green and be taken at its word. `declared_position` is what puts it back. It
+    is the position the citing record declares, read on this path and nowhere
+    else, and its default is the null reading, which is the fail-closed one: a
+    caller that exempts a red without saying where its record puts it meets the
+    refusal a null declaration meets against a journal naming a slice, rather than
+    silence.
+
+    **What a red is held to, in full.** A non-zero exit that
+    `checks.demonstrates_failure` holds of; its phase and its stage; its place in
+    the order; the route of the position its entry declares; the attempt of its
+    green, through `_require_the_pair_is_one_round`; and the journal's own
+    attribution, through `_the_journal_puts_it_elsewhere`, wherever an accepted
+    tdd record has made one. **What is not checked**, said as plainly: the tree it
+    ran against, which is the exemption; and the fingerprint it recorded, which is
+    not read here at all, because a red that recorded none was recorded beside a
+    green that recorded none and the green is refused for both. Where the journal
+    has attributed nothing the attribution refuses nothing either, and that is an
+    absence the pair has already paid for at the half that can pay: the green
+    resolves to no scope for the same silence and is compared over the whole tree.
 
     The mirror is structural rather than a matter of statement order: the only
     value `judged_with` takes is the green this same function has already returned,
@@ -802,6 +870,18 @@ def cited_check(records, number, phase, current, tree=None, repository=None,
                 f'Check {number} is cited as a {phase} and judged with check '
                 f'{judged_with["sequence"]}, a {judged_with["data"].get("phase")}. Only a red is '
                 'judged with its green')
+        # Reached by every exempted red and by no other path, because the
+        # exemption is this block: what the green stands in for is the tree, and
+        # where the journal says the red belongs is not a question about a tree.
+        elsewhere = _the_journal_puts_it_elsewhere(records, number, declared_position)
+        if elsewhere:
+            require(False,
+                    f'The journal puts check {number} at another slice: {elsewhere}. A red is '
+                    "judged by its green here, which lends it the green's tree and nothing else: "
+                    'which slice it proved is still read from the accepted tdd record of the '
+                    'round that recorded it, so a red that record puts elsewhere is not this '
+                    "round's red. Cite the red of the round that recorded the green, or declare "
+                    'the position the journal names for the pair')
     if record['attempt'] != current['attempt'] and judged_with is None:
         # The ticket is read from the record being judged rather than from the
         # start record, because every record carries the ticket it belongs to and
@@ -939,7 +1019,7 @@ def _tdd(data, records, current, repository, thresholds):
                             _the_scope_a_citation_is_judged_in(records, slice_.get('green'),
                                                                declared))
         red = cited_check(records, slice_.get('red'), 'red', current, tree, repository,
-                          judged_with=green)
+                          judged_with=green, declared_position=declared)
         require(previous_green < red['sequence'] < green['sequence'] <= regression['sequence'],
                 f'Slice {position} is out of order; each red must precede its green, slices '
                 'must not overlap, and the regression must be the last check')
@@ -966,14 +1046,19 @@ def _require_the_routed_slice(records, slice_, order, checks_cited, thresholds):
     F1 of this ticket's fourth review.
 
     A slice may declare no position, as null, for a rework round that belongs to
-    no single slice; it is then held to no route, because the mapping it says it
-    does not have cannot be inferred. The declaration is required and only its
-    value may be empty: left optional, omitting it was a way past the refusal
-    that no reader could tell from a record written before the field existed.
-    F2 of the fifth review.
+    no single slice. It was held to no route at all, on the reasoning that a
+    mapping the record says it does not have cannot be inferred, and that made
+    null the cheapest thing a record could declare: it bought the plan's whole
+    file union for its scope and paid nothing for the route. It is held to the
+    strictest route in the plan instead, argued in
+    `_require_the_strictest_route_in_the_plan`. The declaration is required and
+    only its value may be empty: left optional, omitting it was a way past the
+    refusal that no reader could tell from a record written before the field
+    existed. F2 of the fifth review, twice over.
     """
     position = slice_.get('position')
     if position is None:
+        _require_the_strictest_route_in_the_plan(records, checks_cited, thresholds)
         return
     planned = len((latest_evidence(records, 'solution') or {}).get('slices') or [])
     require(isinstance(position, int) and not isinstance(position, bool) and position >= 1,
@@ -988,6 +1073,110 @@ def _require_the_routed_slice(records, slice_, order, checks_cited, thresholds):
             f'{planned} slices')
     _require_the_routed_model(records, position, checks_cited, thresholds)
     _require_a_context_of_its_own(records, position, checks_cited, thresholds)
+
+
+def strictest_route(records, thresholds):
+    """The route a round that belongs to no single slice is held to, or nothing.
+
+    The strongest tier any slice of the plan in hand was routed to, and the entry
+    carrying it, because a refusal and a handoff pack both have to say whose route
+    it is. A tie goes to the earliest slice, which decides only which position is
+    named: the tier is the same either way.
+
+    Nothing where no plan is accepted, where no slice of it was routed, and where
+    every route names a tier this thresholds file does not: each is an absence, and
+    a comparison with nothing is not a comparison. Read by the tdd gate, which
+    refuses under it, and by `handoff._rework_line`, which is how it reaches the
+    session working the round: a session refused by a rule the pack never told it
+    is the thing the pack exists to prevent.
+    """
+    from . import routing
+    order = routing.tiers(thresholds)
+    planned = len((latest_evidence(records, 'solution') or {}).get('slices') or [])
+    strictest = None
+    for position in range(1, planned + 1):
+        entry = routing.for_slice(records, position)
+        if entry is None or entry.get('model') not in order:
+            continue
+        if strictest is None or order.index(entry['model']) > order.index(strictest['model']):
+            strictest = entry
+    return strictest
+
+
+def _require_the_strictest_route_in_the_plan(records, checks_cited, thresholds):
+    """A round that belongs to no single slice answers to every route it may carry.
+
+    F2 of the fifth review. A null position had become the cheapest declaration a
+    record could make: it buys the plan's whole file union for its scope, which is
+    wider than one slice's files and so stricter, and it returned from here before
+    any route comparison was made, so a slice routed to opus and worked on sonnet
+    was refused when it declared its position and accepted when it declared null.
+    Before the union, a null declaration cost the citation its evidence and fell
+    back to the whole tree, which was the counter-pressure; once the scope was
+    granted for nothing, the truth was the more expensive thing to say.
+
+    So it is held to the strictest route in the plan, on the same reasoning that
+    makes its scope the union rather than nothing: a round that belongs to no
+    single slice touches several, and what it must satisfy is what all of them ask.
+
+    A floor and not an equality, which is the one place this departs from
+    `_require_the_routed_model`. Under an equality a plan routed to sonnet and to
+    opus could be met by neither model, so the rule would be one nobody could
+    satisfy and the way out of it would be to name a position the round does not
+    have, which is the lie this whole gate is built to make unnecessary. What a
+    route guards against is work done under a weaker model than the plan judged
+    necessary; a stronger one is a cost, and a round that belongs to no single
+    slice has no routed cost of its own to be held to.
+
+    The context of its own with it, because a slice routed at all is routed to one:
+    a round that may have touched any of them is not excused by belonging to none.
+    Nothing is refused in shadow and nothing without a route to compare against,
+    exactly as the numbered rule reads both absences.
+    """
+    from . import routing
+    if routing.shadow(thresholds):
+        return
+    strictest = strictest_route(records, thresholds)
+    if strictest is None:
+        return
+    order = routing.tiers(thresholds)
+    floor = order.index(strictest['model'])
+    held_to = (f'Such a round is held to the strictest route in the plan, which is slice '
+               f'{strictest["position"]}\'s {strictest["model"]}, or stronger: it may have '
+               'touched any slice of the plan, so it answers to the strongest model any of them '
+               'was routed to. Declare the position the round really proved, or work it on the '
+               "model the plan's strictest slice was routed to")
+    for record in checks_cited:
+        data = record['data']
+        # The declaration first, for the reason the numbered rule reads it first:
+        # a Claude Code subagent inherits its parent's session id, so the log of
+        # its check carries the parent's model and only the declaration knows.
+        declared = data.get('model_declared')
+        if declared:
+            require(declared in order and order.index(declared) >= floor,
+                    f'This record says its round belongs to no single slice, and check '
+                    f'{record["sequence"]}, its {data["phase"]}, declared {declared}. {held_to}')
+            continue
+        ran_on = data.get('model')
+        tier = routing.tier_of(thresholds, ran_on) if ran_on else None
+        # An id no tier names is an absence and not a weaker model: nothing can
+        # place it against the floor, and a comparison with nothing is not one.
+        if tier is None or order.index(tier) >= floor:
+            continue
+        require(False,
+                f'This record says its round belongs to no single slice, and check '
+                f'{record["sequence"]}, its {data["phase"]}, was recorded under {ran_on}, which '
+                f'is {tier}, and declared nothing. {held_to}')
+    if any(record['data'].get('agent_declared') for record in checks_cited):
+        return
+    check_names = ' nor '.join(f'check {record["sequence"]} ({record["data"]["phase"]})'
+                               for record in checks_cited)
+    require(False,
+            f'This record says its round belongs to no single slice, and neither {check_names} '
+            'declares an agent. Every slice this plan routed was routed to a context of its own, '
+            'and a round that may have touched any of them is not excused by belonging to none: '
+            'run the implementer as a subagent and pass its check command --agent <name>, or if a '
+            'subagent worked it, declare which check is theirs')
 
 
 def _require_the_routed_model(records, position, checks_cited, thresholds):
