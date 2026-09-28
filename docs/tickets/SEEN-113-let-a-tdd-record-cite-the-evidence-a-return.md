@@ -142,8 +142,14 @@ while `[routing] shadow` is true, because every route comparison returns before 
 
 **What the rule refuses.** It refused this ticket's own citation in every attempt until this one: records 34 and
 35 are not citable, the failing half the green, on the files the later rounds rewrote. It carries records 76 and
-77 into attempt 8, and only because nothing but the ticket file and the journal moved, which is the case it was
-built for. Across every journal and SEEN-112's: 297 citations in 108 pairs, none cross-attempt, none split across
+77 into attempt 8, and only because nothing but the ticket file and the journal moved. **Which branch granted that
+depends on when it was asked, and record 91 records the distinction**: at the tree the tdd record was written
+against, a revert had made the ticket file identical again, so the citation was accepted by the exact-tree branch
+and the tolerance never ran; at the tree being delivered, where this Outcome has moved that file, the tolerant
+path does run and accepts the same pair. The seventh review verified both, and verified the counterfactual that
+matters: replaying the citation with a pair whose slice files did move is refused by name, and the comparison
+bites on each of the four planned files individually, so the rule did not accept its own author's evidence on a
+weaker test than it applies to anyone else. Across every journal and SEEN-112's: 297 citations in 108 pairs, none cross-attempt, none split across
 attempts, no red an accepted record puts at another slice, and no pair an accepted record recorded as another
 round. On SEEN-112's branch slice 3's pair is citable whole while slices 1 and 2 stay refused by name on the files
 attempts 3 and 4 reworked.
