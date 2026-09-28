@@ -1,0 +1,45 @@
+{
+  "sequence": 63,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-28T23:34:26.720917+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 5,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "193d032ae4552f817bd624c042512b13438a4591",
+  "prev_hash": "8da4df8b9c2f7e8cec5599f861d3b94e4eb72e6cf82370b87f4ea616d4c01a79",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": null,
+          "behaviour": "CODEX-01, the high finding of the first review from the other assistant, and a class no Claude round had looked for: foreign keys between tenant-owned records referenced the parent by id alone, so RLS enforced that a row belongs to your tenant but not that its parent does. Reproduced against the live database before any schema change, exactly as Codex derived it from the SQL without being able to run it. 28 of the 57 keys now read `(tenant_id, child_col) references parent (tenant_id, id)` under their own names, 20 keeping cascade and 8 keeping set-null in the column-list form, because a bare set-null would null `tenant_id` and abort a tenant's erasure mid-statement. The 28 keys to `tenants` are left alone, their referenced column being the tenant itself, and nothing became restrict. It belongs to no single slice: it rewrites keys across every slice's tables.",
+          "failure_reason": "`pnpm --filter @seen/core test` exited 1 with three failures of 69. In the runner's words: \"An order carrying tenant B's tenant_id and tenant A's connection_id was accepted, where a foreign key violation (23503) is what keeps one tenant's ingest run out of another tenant's trade record\"; \"Tenant B had 2 orders and has 1 after tenant A was erased, because the cross-tenant order was accepted and the cascade from tenant A then carried it away. One tenant's deletion on request destroyed part of another tenant's trade record\"; and \"28 of the 57 foreign keys in the public schema reference their parent by id alone\", which named all 28 and so decided the scope by measurement rather than by judgement.",
+          "red": 54,
+          "green": 55
+        },
+        {
+          "position": null,
+          "behaviour": "CODEX-02 and CODEX-03. Tenant isolation is now proved behaviourally across all 29 tables by a catalogue-driven probe that seeds both tenants from `pg_catalog` in topological order and reads each table back as `authenticated`, so a policy exposing another tenant's rows fails because it does; being catalogue-driven, a table a later migration adds is probed with nobody remembering. The textual check stayed and changed shape, from a deny-list searching for the substring `current_tenant` to an allow-list comparing the whole clause, because `OR true` beat the substring test and `IS NOT NULL` beat it and a deny-list has to anticipate. It earns its place on three things the read probe cannot see: the `with check` half, unreachable because `authenticated` holds only select after CODEX-01 so a cross-tenant write is refused on privilege before the policy is consulted; a table with no permissive policy, which leaks nothing and is still wrong; and a policy bound to a role the probe does not wear. And `docs/architecture.md` joins the test task's cache inputs, since the marketplace test reads it as an authority.",
+          "failure_reason": "`pnpm --filter @seen/core test` exited 1. In the runner's words: \"3 of the 4 permissive policies on public.evidence that expose every tenant's rows were reported as binding the tenant, so the assertion reads the clause for a word rather than for a comparison\", naming `using (seen.current_tenant() is not null)`, `using (tenant_id = seen.current_tenant() or true)` and the with-check variant; and \"The cache key of @seen/core#test covers 17 files and none of these, which this suite reads from outside its own package and compares the database against, so a turbo cache hit can report the comparison as passed against a document it never read: docs/architecture.md\".",
+          "red": 58,
+          "green": 59
+        }
+      ],
+      "regression": 62,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "a00943ab9615",
+      "output_tokens": 1164735,
+      "tool_calls": 678,
+      "unavailable": null
+    }
+  }
+}

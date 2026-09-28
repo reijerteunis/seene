@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-006, SEEN-092, SEEN-094]
-status: doing
+status: review
 ---
 # SEEN-008: Create trade-record schema v1 with tenant_id and RLS on every table
 
@@ -23,7 +23,7 @@ status: doing
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | doing |
+| Status | review |
 
 ## Description
 
@@ -31,11 +31,11 @@ Write the Supabase migration for trade-record schema v1 in packages/core/db: ten
 
 ## Acceptance criteria
 
-- [ ] Migration applies on an empty database and pnpm db:reset re-applies it without error
-- [ ] A test that lists every table in the public schema finds tenant_id and an enabled RLS policy on 100% of them
-- [ ] A query with tenant A's JWT returns zero rows from tenant B's orders in an integration test
-- [ ] Unique index on (tenant_id, marketplace, external_id) exists on orders, shipments, returns, settlements and settlement_lines
-- [ ] marketplaces seed contains the six marketplaces with capability flags matching the routing table in architecture.md
+- [x] Migration applies on an empty database and pnpm db:reset re-applies it without error
+- [x] A test that lists every table in the public schema finds tenant_id and an enabled RLS policy on 100% of them
+- [x] A query with tenant A's JWT returns zero rows from tenant B's orders in an integration test
+- [x] Unique index on (tenant_id, marketplace, external_id) exists on orders, shipments, returns, settlements and settlement_lines
+- [x] marketplaces seed contains the six marketplaces with capability flags matching the routing table in architecture.md
 
 ## Outcome
 
@@ -208,6 +208,51 @@ introduced by this session's own writing rather than by the schema.
 
 No SQL statement changed in that round: the diff over `supabase/migrations` filtered to non-comment lines is
 empty, so the privilege set the review measured three times is byte-identical.
+
+### The Codex review, and the four findings it returned
+
+This ticket answered `touches_billing_or_policy_gate` yes at its solution gate, so the harness requires a second
+reviewer and one of them from the other assistant. Four Claude Code reviews had already closed fifteen findings,
+and every one of them came from a subagent inheriting the implementing session's id, which is a context boundary
+and not independence. An independent Codex session then read it and returned it on four more.
+
+**The one that matters most was a class nobody had looked for.** Foreign keys between tenant-owned records
+referenced their parent by `id` alone, so row-level security enforced that a row belongs to your tenant and never
+that its **parent** does. Reproduced against the live database before anything was changed, exactly as Codex
+derived it from reading SQL it could not run: an order carrying tenant B's `tenant_id` and tenant A's
+`connection_id` was accepted by both keys independently, and deleting tenant A then destroyed tenant B's order
+while tenant B remained. One tenant's erasure on request could take part of another tenant's trade record with it.
+
+28 of the 57 keys now carry the tenant, `(tenant_id, child_col) references parent (tenant_id, id)`, at a cost of 16
+unique constraints Postgres will not infer. Eight keep set-null in the column-list form, because a bare set-null
+would null `tenant_id` too and the not-null constraint would abort a tenant's erasure mid-statement. The 28 keys to
+`tenants` are deliberately untouched: the column they reference is the tenant. Nothing became restrict, and a test
+refuses one.
+
+**Tenant isolation is now proved behaviourally rather than textually.** The assertion had matched the substring
+`current_tenant`, so a policy reading `using (seen.current_tenant() is not null)` passed while exposing every
+tenant's rows, and so did a tenancy comparison `or true`. A catalogue-driven probe now seeds both tenants into all
+29 tables and reads each back, so such a policy fails because it leaks. The textual check was kept and reshaped
+into an allow-list, because a deny-list has to anticipate the next expression and an allow-list has a finite
+answer; it earns its place on the `with check` half, which no read probe can reach while `authenticated` holds
+only select, on a table with no permissive policy, which leaks nothing and is still wrong, and on a policy bound
+to a role the probe does not wear.
+
+**And two record-keeping findings.** `docs/architecture.md` was missing from the test task's cache inputs although
+the marketplace test reads it as an authority, so a routing-table edit could have replayed a cached pass; proved
+by running the cache rather than reading the configuration. And an earlier return declared it had no findings while
+its own reason named three, because the flag was read as "this return is not about a defect" on a return to the
+solution stage; record 57 restates those three so the calibration window can see them again.
+
+**Two limits Codex declared rather than hid**, and both bear on how much its verdict carries: its sandbox refused
+the database with `EPERM`, so the two privilege findings could not be independently closed and the cross-tenant
+defect was derived rather than executed; and the account does not support opus, so the route's model rule was not
+met. The first was answered here by reproducing its finding before fixing it.
+
+One environment fact worth carrying, because it cost a round: **the Supabase stack runs under the `colima` Docker
+context** while the active context is `desktop-linux`, so `supabase db reset` cannot see its own containers even
+though Postgres answers on 54322. With `DOCKER_HOST` pointed at colima's socket, `pnpm db:reset` applies all six
+migrations from empty.
 
 ## Slices
 
