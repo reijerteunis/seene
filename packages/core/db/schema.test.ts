@@ -31,7 +31,8 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   APPEND_ONLY_PRIVILEGES, APPEND_ONLY_TABLES, BUYER_PII_COLUMNS, BUYER_PII_COMMENT_TERMS,
   CROSS_TENANT_FOREIGN_KEY_EXEMPTIONS, DATA_API_ROLES, FORBIDDEN_PRIVILEGE_STATEMENTS,
-  GOVERNED_PRIVILEGES, MIGRATION_SET_HEADER, MIGRATIONS_DIRECTORY, TABLE_PRIVILEGES, TENANT_CLAIM,
+  GOVERNED_PRIVILEGES, HASHED_REPOSITORY_DOCUMENTS, MIGRATION_SET_HEADER, MIGRATIONS_DIRECTORY,
+  TABLE_PRIVILEGES, TENANCY_CLAUSES, TENANT_CLAIM,
   TRADE_RECORD_MIGRATION_MARKER, TRADE_RECORD_TABLES,
 } from './tables';
 
@@ -159,6 +160,12 @@ async function policiesIn(client: Client, schema: string): Promise<PolicyRow[]> 
   return rows;
 }
 
+/** One clause with its whitespace collapsed, so that a Postgres release which
+ * re-renders the same expression with different spacing does not read as a leak. */
+function collapsed(clause: string): string {
+  return clause.replace(/\s+/g, ' ').trim();
+}
+
 /**
  * Every way the schema's policy set fails to bind a table to the one tenancy
  * expression, named one by one.
@@ -182,6 +189,19 @@ async function tenancyGapsIn(client: Client, schema: string): Promise<string[]> 
   // One helper, `seen.current_tenant()`, rather than the expression copied per
   // table: a policy that spells its own comparison is a policy that can be
   // subtly different from the other twenty-eight.
+  //
+  // A clause is compared with `TENANCY_CLAUSES` as a whole and not searched for a
+  // word in. The first version of this asked whether the clause contained the text
+  // `current_tenant`, which is a deny-list of one pattern, and the second Codex
+  // review of SEEN-008 walked two clauses past it: `seen.current_tenant() IS NOT
+  // NULL`, which shows every tenant's rows to anyone holding any tenant claim, and
+  // the tenancy comparison with `OR true` after it. Both read the helper and
+  // neither compares anything to it. There is always another expression, so the
+  // question asked is the one that has a finite answer: is this clause one of the
+  // clauses the schema is allowed to carry. Anything else is a gap, including a
+  // clause that narrows further and is perfectly safe, which costs its author a
+  // line in that list and a reviewer's eye on it.
+  const recognised = new Set(TENANCY_CLAUSES.map(collapsed));
   const gaps: string[] = [];
   for (const table of tables) {
     const permissive = rows.filter(
@@ -201,10 +221,10 @@ async function tenancyGapsIn(client: Client, schema: string): Promise<string[]> 
         continue;
       }
       for (const [name, clause] of written) {
-        if (!(clause ?? '').includes('current_tenant')) {
+        if (!recognised.has(collapsed(clause ?? ''))) {
           gaps.push(
-            `${table}.${policy.policyname} (${policy.cmd}): its ${name} clause does not read `
-            + `seen.current_tenant(), it reads ${clause}`,
+            `${table}.${policy.policyname} (${policy.cmd}): its ${name} clause is not one of the `
+            + `tenancy expressions this schema binds a table with, it reads ${clause}`,
           );
         }
       }
@@ -509,6 +529,52 @@ describe('the trade record schema', () => {
     }
   });
 
+  it('names a clause that does not compare the tenant, however the clause is spelled', async () => {
+    // The two tests above show a clause of `true` being caught. `true` is the
+    // spelling nobody writes. The second Codex review of SEEN-008 (CODEX-02) ran
+    // the checker in memory against catalogue rows and found two clauses it
+    // accepted: `seen.current_tenant() IS NOT NULL`, which asks only whether the
+    // caller has a tenant and then shows them every tenant's rows, and the tenancy
+    // comparison with `OR true` after it, which names the tenant and discards the
+    // comparison. Both contain the text `current_tenant`, which was the whole of
+    // the test, and the first of them on `public.evidence` hands every tenant's
+    // buyer name and buyer address to any signed-in user of any other tenant.
+    //
+    // Each is written here as the clause an author would actually type, not as the
+    // text the catalogue renders back, so what is exercised is the route a policy
+    // takes from a migration into `pg_policies`. The with-check case is here as
+    // well because that half of a policy cannot be exercised by reading at all:
+    // `authenticated` holds no insert privilege, so no cross-tenant write probe can
+    // reach the clause and this assertion is the only thing that reads it.
+    const leaking = [
+      { cmd: 'select', clause: 'using (seen.current_tenant() is not null)' },
+      { cmd: 'select', clause: 'using (tenant_id = seen.current_tenant() or true)' },
+      { cmd: 'insert', clause: 'with check (tenant_id = seen.current_tenant() or true)' },
+      { cmd: 'select', clause: 'using (true)' },
+    ];
+    const accepted: string[] = [];
+    for (const { cmd, clause } of leaking) {
+      await client.query('begin');
+      try {
+        await client.query(
+          `create policy leak_spelling on public.evidence for ${cmd} to authenticated ${clause}`,
+        );
+        const gaps = await tenancyGapsIn(client, 'public');
+        if (gaps.filter((gap) => gap.startsWith('evidence')).length === 0) {
+          accepted.push(`for ${cmd} ${clause}`);
+        }
+      } finally {
+        await client.query('rollback');
+      }
+    }
+    expect(
+      accepted,
+      `${accepted.length} of the ${leaking.length} permissive policies on public.evidence that `
+      + 'expose every tenant\'s rows were reported as binding the tenant, so the assertion reads '
+      + 'the clause for a word rather than for a comparison: ' + accepted.join('; '),
+    ).toEqual([]);
+  });
+
   it('grants each Data API role exactly what it is meant to hold, on every table', async () => {
     // The privilege half of the tenancy boundary, on all twenty-nine tables
     // rather than on audit_events alone. A policy decides which rows a role
@@ -655,6 +721,30 @@ describe('the migrations that write the schema', () => {
         + `${hashed.length} of ${migrations.length} migrations, so a turbo cache hit can report `
         + 'these database tests as passed without ever running them against a changed schema. '
         + `turbo hashes: ${inputs.join(', ')}`,
+      ).toEqual([]);
+    });
+
+  it('hashes the documents the suite reads as an authority, not the migrations alone',
+    () => {
+      // The same hole as the migrations, in the other direction. `marketplaces.test.ts`
+      // parses the routing table of docs/architecture.md and compares it cell by
+      // cell with the seeded catalogue, and the document is the authority in that
+      // comparison: change Amazon's ingest-orders cell from `API` to `assisted` and
+      // the seed is wrong and the test has to say so. Nothing under packages/core
+      // changes when the document does, so turbo replays the recorded pass and the
+      // comparison never runs. Measured by the second Codex review: sixteen inputs,
+      // every migration among them and no document at all.
+      const inputs = testTaskInputs();
+      expect(inputs.length, 'turbo reported no inputs at all for @seen/core#test').toBeGreaterThan(0);
+      const unhashed = HASHED_REPOSITORY_DOCUMENTS.filter(
+        (document) => !inputs.some((input) => input.replace(/\\/g, '/').endsWith(document)),
+      );
+      expect(
+        unhashed,
+        `The cache key of @seen/core#test covers ${inputs.length} files and none of these, which `
+        + 'this suite reads from outside its own package and compares the database against, so a '
+        + 'turbo cache hit can report the comparison as passed against a document it never read: '
+        + `${unhashed.join(', ')}. turbo hashes: ${inputs.join(', ')}`,
       ).toEqual([]);
     });
 

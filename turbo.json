@@ -32,9 +32,21 @@
       // simply notices a migration. $TURBO_DEFAULT$ keeps the package's own files,
       // which naming any input at all would otherwise replace, and $TURBO_ROOT$ is
       // how a task reaches a path outside its package.
+      //
+      // The architecture document is here for the same reason, one round later.
+      // The marketplaces test parses the routing table of docs/architecture.md and
+      // compares it cell by cell with the seeded catalogue, with the document as
+      // the authority: change Amazon's ingest-orders cell from `API` to `assisted`
+      // and the seed no longer matches the document and the test has to say so.
+      // Nothing under packages/core changes when the document does, so the cache
+      // replayed the old pass and the comparison never ran. Measured before this
+      // line was written: seventeen inputs, every migration among them and no
+      // document; measured after, `cache miss, executing` on that one edited cell
+      // and the comparison failing as it should.
       "inputs": [
         "$TURBO_DEFAULT$",
-        "$TURBO_ROOT$/supabase/migrations/**"
+        "$TURBO_ROOT$/supabase/migrations/**",
+        "$TURBO_ROOT$/docs/architecture.md"
       ]
     },
     "lint": {

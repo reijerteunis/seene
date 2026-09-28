@@ -804,3 +804,359 @@ describe('a parent row belonging to another tenant', () => {
     ).toEqual([]);
   });
 });
+
+/**
+ * Criterion 3 against every table in the public schema, rather than against the
+ * three the blocks above seed by hand.
+ *
+ * The first two blocks read `orders`, `findings` and `claims`, which was read as
+ * proof of tenant isolation until the second Codex review of SEEN-008 (CODEX-02)
+ * pointed at the twenty-six tables nothing queries. A permissive select policy on
+ * `public.evidence` reading `using (seen.current_tenant() is not null)` hands
+ * every tenant's buyer name and buyer address to any signed-in user of any other
+ * tenant, and every test in this repository passed with it in place: the
+ * behavioural tests never touched the table, and the catalogue assertion in
+ * `schema.test.ts` was reading the clause for the word `current_tenant`.
+ *
+ * A test that reads the text of a policy is beaten by the next expression somebody
+ * writes; `OR true` beat the first version of that assertion and `IS NOT NULL` beat
+ * it too. This block asks the database instead. It seeds a row into every table of
+ * the public schema for two tenants, from the catalogue rather than from a list of
+ * table names, and reads each table back as `authenticated` carrying one tenant's
+ * claim. A policy that exposes another tenant's rows fails here because it does,
+ * whatever its clause says, and a table a later migration adds is probed without
+ * anyone remembering to extend this file.
+ *
+ * The fixture is built from `pg_catalog` for the same reason: the required columns
+ * of a table, and the parents its mandatory foreign keys demand, are facts the
+ * database already holds, and a hand-written fixture would go stale one migration
+ * later and start passing by seeding nothing.
+ *
+ * What this cannot reach is the WITH CHECK half of a policy: `authenticated` holds
+ * no insert privilege on any table, so no cross-tenant write probe gets as far as
+ * the clause. That half is asserted from the catalogue in `schema.test.ts`.
+ */
+describe('tenant isolation on every table in the public schema', () => {
+  let client: Client;
+  /** Every table of the public schema, in the order a row can be seeded into them. */
+  let governed: string[];
+  let a: string;
+  let b: string;
+
+  /** A column a row cannot be written without: not null, no default, not generated. */
+  interface Required { table: string; column: string; type: string }
+
+  /** A foreign key whose child columns are all required, so a parent must exist first. */
+  interface Mandatory { table: string; columns: string[]; parent: string; parentColumns: string[] }
+
+  let required: Required[];
+  let mandatory: Mandatory[];
+
+  async function requiredColumns(): Promise<Required[]> {
+    const { rows } = await client.query<Required>(
+      `select c.relname as table, a.attname as column,
+              format_type(a.atttypid, a.atttypmod) as type
+         from pg_catalog.pg_attribute a
+         join pg_catalog.pg_class c on c.oid = a.attrelid
+         join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+         left join pg_catalog.pg_attrdef d on d.adrelid = c.oid and d.adnum = a.attnum
+        where n.nspname = 'public' and c.relkind = 'r'
+          and a.attnum > 0 and not a.attisdropped and a.attnotnull
+          and d.adbin is null and a.attidentity = '' and a.attgenerated = ''
+        order by c.relname, a.attnum`,
+    );
+    return rows;
+  }
+
+  /**
+   * The foreign keys every one of whose child columns is required, which are the
+   * only ones a seeded row has to satisfy. Reading all of them instead would make
+   * the seeding order cyclic over keys that are nullable and need no parent at all.
+   */
+  async function mandatoryKeys(): Promise<Mandatory[]> {
+    const { rows } = await client.query<Mandatory>(
+      `select c.relname as table, p.relname as parent,
+              (select array_agg(att.attname order by k.ord)
+                 from unnest(con.conkey) with ordinality k(attnum, ord)
+                 join pg_catalog.pg_attribute att
+                   on att.attrelid = con.conrelid and att.attnum = k.attnum)::text[] as columns,
+              (select array_agg(att.attname order by k.ord)
+                 from unnest(con.confkey) with ordinality k(attnum, ord)
+                 join pg_catalog.pg_attribute att
+                   on att.attrelid = con.confrelid and att.attnum = k.attnum)::text[]
+                as "parentColumns"
+         from pg_catalog.pg_constraint con
+         join pg_catalog.pg_class c on c.oid = con.conrelid
+         join pg_catalog.pg_class p on p.oid = con.confrelid
+         join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+        where n.nspname = 'public' and con.contype = 'f'`,
+    );
+    const isRequired = (table: string, column: string): boolean =>
+      required.some((entry) => entry.table === table && entry.column === column);
+    return rows.filter((key) => key.columns.every((column) => isRequired(key.table, column)));
+  }
+
+  /** The tables in an order that puts every mandatory parent before its child. */
+  function seedOrder(tables: readonly string[]): string[] {
+    const ordered: string[] = [];
+    const placed = new Set<string>();
+    const visit = (table: string, chain: string[]): void => {
+      if (placed.has(table)) return;
+      if (chain.includes(table)) {
+        throw new Error(
+          'The mandatory foreign keys of the public schema form a cycle, so no order seeds them '
+          + `all: ${chain.concat(table).join(' -> ')}. A key in that cycle has to become `
+          + 'nullable before a row can be written at all.',
+        );
+      }
+      for (const key of mandatory) {
+        if (key.table === table && key.parent !== table) visit(key.parent, chain.concat(table));
+      }
+      placed.add(table);
+      ordered.push(table);
+    };
+    for (const table of tables) visit(table, []);
+    return ordered;
+  }
+
+  /**
+   * A value of this type, unique to this tenant and column so that a tenant-scoped
+   * unique index never refuses the second tenant's row. A type nobody has written
+   * a case for refuses loudly: a silent skip would write no row and leave the
+   * table empty, which is how the probe below would pass by finding nothing.
+   */
+  function valueFor(type: string, label: string): string | number | boolean {
+    if (type === 'uuid') return randomUUID();
+    if (type === 'text' || type.startsWith('character')) return label;
+    if (type === 'bigint' || type === 'integer' || type === 'smallint') return 1;
+    if (type.startsWith('numeric')) return 1;
+    if (type === 'date') return '2026-09-29';
+    if (type.startsWith('timestamp')) return new Date().toISOString();
+    if (type === 'boolean') return false;
+    if (type === 'jsonb' || type === 'json') return '{}';
+    throw new Error(
+      `This fixture has no value for a column of type ${type}, so it cannot seed a row and the `
+      + 'cross-tenant read below would pass against an empty table. Add the type to valueFor.',
+    );
+  }
+
+  /** One tenant with a row in every table of the public schema, as the owner role. */
+  async function seedTenant(label: string): Promise<string> {
+    const created = await client.query<{ tenant_id: string }>(
+      'insert into public.tenants (name) values ($1) returning tenant_id',
+      [label],
+    );
+    const tenant = created.rows[0].tenant_id;
+    for (const table of governed) {
+      if (table === 'tenants') continue;
+      // A trigger seeds the marketplaces catalogue for a new tenant, and a row a
+      // trigger wrote is as much this tenant's row as one written here.
+      const already = await client.query(
+        `select 1 from public.${table} where tenant_id = $1 limit 1`,
+        [tenant],
+      );
+      if ((already.rowCount ?? 0) > 0) continue;
+      const row: Record<string, unknown> = { tenant_id: tenant };
+      for (const key of mandatory.filter((entry) => entry.table === table)) {
+        if (key.parent === 'tenants') continue;
+        const parent = await client.query<Record<string, unknown>>(
+          `select ${key.parentColumns.join(', ')} from public.${key.parent}
+            where tenant_id = $1 limit 1`,
+          [tenant],
+        );
+        if (parent.rowCount === 0) {
+          throw new Error(
+            `No row in public.${key.parent} for ${label} to hang a row of public.${table} from, `
+            + 'so this fixture cannot seed the table and the cross-tenant read below would pass '
+            + 'against an empty table.',
+          );
+        }
+        key.columns.forEach((column, index) => {
+          row[column] = parent.rows[0][key.parentColumns[index]];
+        });
+      }
+      for (const column of required.filter((entry) => entry.table === table)) {
+        if (row[column.column] !== undefined) continue;
+        row[column.column] = valueFor(
+          column.type,
+          `${label} ${table}.${column.column} ${randomUUID().slice(0, 8)}`,
+        );
+      }
+      const names = Object.keys(row);
+      try {
+        await client.query(
+          `insert into public.${table} (${names.join(', ')})
+           values (${names.map((_, index) => `$${index + 1}`).join(', ')})`,
+          names.map((name) => row[name]),
+        );
+      } catch (cause) {
+        throw new Error(
+          `This fixture could not seed public.${table} for ${label}, so the cross-tenant read `
+          + `below would pass against an empty table. Postgres said: ${(cause as Error).message}`,
+          { cause },
+        );
+      }
+    }
+    return tenant;
+  }
+
+  /**
+   * Which tables a request carrying these claims can read rows of `owner` from, and
+   * how many of them, read as `authenticated` the way PostgREST reads. Runs inside
+   * a savepoint of an already open transaction, so a policy injected by the caller
+   * is in force and the role and the claim are gone again afterwards.
+   */
+  async function visibleTo(
+    claims: Record<string, string> | null, owner: string,
+  ): Promise<Record<string, number>> {
+    await client.query('savepoint probe');
+    try {
+      if (claims !== null) {
+        await client.query('select set_config($1, $2, true)', [
+          'request.jwt.claims',
+          JSON.stringify(claims),
+        ]);
+      }
+      await client.query('set local role authenticated');
+      const seen: Record<string, number> = {};
+      for (const table of governed) {
+        const { rows } = await client.query<{ total: string }>(
+          `select count(*) as total from public.${table} where tenant_id = $1`,
+          [owner],
+        );
+        if (Number(rows[0].total) > 0) seen[table] = Number(rows[0].total);
+      }
+      return seen;
+    } finally {
+      await client.query('rollback to savepoint probe');
+    }
+  }
+
+  /** Everything inside, rolled back: the policies injected below are real policies. */
+  async function rolledBack<T>(body: () => Promise<T>): Promise<T> {
+    await client.query('begin');
+    try {
+      return await body();
+    } finally {
+      await client.query('rollback');
+    }
+  }
+
+  beforeAll(async () => {
+    client = await connect();
+    const { rows } = await client.query<{ name: string }>(
+      `select c.relname as name
+         from pg_catalog.pg_class c
+         join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+        where n.nspname = 'public' and c.relkind = 'r'
+        order by c.relname`,
+    );
+    if (rows.length === 0) {
+      throw new Error(
+        'There is not one table in the public schema, so a cross-tenant read proves nothing '
+        + 'about any policy. The trade record migrations have not been applied; apply them with '
+        + '`pnpm db:reset`.',
+      );
+    }
+    required = await requiredColumns();
+    mandatory = await mandatoryKeys();
+    governed = seedOrder(rows.map((row) => row.name));
+    a = await seedTenant('Tenant every table A');
+    b = await seedTenant('Tenant every table B');
+  });
+
+  afterAll(async () => {
+    if (a) {
+      await client.query('delete from public.tenants where tenant_id = any($1)', [
+        [a, b].filter(Boolean),
+      ]);
+    }
+    await client?.end();
+  });
+
+  it('holds a row of each tenant in every table, so no table passes by being empty', async () => {
+    // The guard on the three assertions below. Each of them is of the shape "the
+    // tables this request could read another tenant's rows from are none", and a
+    // table with no rows in it answers that with nothing whatever its policy says.
+    const empty: string[] = [];
+    for (const table of governed) {
+      for (const [name, tenant] of [['A', a], ['B', b]] as const) {
+        const { rows } = await client.query<{ total: string }>(
+          `select count(*) as total from public.${table} where tenant_id = $1`,
+          [tenant],
+        );
+        if (Number(rows[0].total) === 0) empty.push(`${table} for tenant ${name}`);
+      }
+    }
+    expect(
+      empty,
+      `${empty.length} of the ${governed.length * 2} tenant-and-table pairs this block reads hold `
+      + 'no row at all, so a policy on them could expose every tenant and the read below would '
+      + `still find nothing: ${empty.join(', ')}`,
+    ).toEqual([]);
+  });
+
+  it("shows a request carrying tenant A's claim none of tenant B's rows, in any table", async () => {
+    const leaked = await rolledBack(() => visibleTo({ [TENANT_CLAIM]: a }, b));
+    expect(
+      Object.keys(leaked),
+      'A request carrying tenant A\'s claim read rows belonging to tenant B from '
+      + `${Object.keys(leaked).length} of the ${governed.length} tables in the public schema: `
+      + Object.entries(leaked).map(([table, total]) => `${table} (${total})`).join(', '),
+    ).toEqual([]);
+  });
+
+  it("shows a request carrying tenant B's claim none of tenant A's rows, in any table", async () => {
+    const leaked = await rolledBack(() => visibleTo({ [TENANT_CLAIM]: b }, a));
+    expect(
+      Object.keys(leaked),
+      'A request carrying tenant B\'s claim read rows belonging to tenant A from '
+      + `${Object.keys(leaked).length} of the ${governed.length} tables in the public schema: `
+      + Object.entries(leaked).map(([table, total]) => `${table} (${total})`).join(', '),
+    ).toEqual([]);
+  });
+
+  it('shows a request carrying no claim at all nothing, in any table', async () => {
+    // A policy that is permissive when the claim is missing passes both comparisons
+    // above and still leaks the whole schema to a caller who never authenticated.
+    const leaked = await rolledBack(() => visibleTo(null, a));
+    expect(
+      Object.keys(leaked),
+      'A request carrying no tenant claim read rows from '
+      + `${Object.keys(leaked).length} of the ${governed.length} tables in the public schema: `
+      + Object.entries(leaked).map(([table, total]) => `${table} (${total})`).join(', '),
+    ).toEqual([]);
+  });
+
+  it('reports the table a clause that never compares the tenant exposes, however it is spelled',
+    async () => {
+      // What the three assertions above are worth, measured rather than asserted.
+      // Each of these clauses was accepted by the catalogue assertion that read a
+      // policy for the word `current_tenant`, and the first of them is the review's
+      // own scenario: any signed-in user of any tenant reads every tenant's evidence,
+      // buyer name and buyer address included. A read of the table says so, and the
+      // clause it is written in makes no difference to what it says.
+      const spellings = [
+        'seen.current_tenant() is not null',
+        'tenant_id = seen.current_tenant() or true',
+        'true',
+      ];
+      const unnoticed: string[] = [];
+      for (const clause of spellings) {
+        const leaked = await rolledBack(async () => {
+          await client.query(
+            `create policy leak_spelling on public.evidence for select to authenticated
+             using (${clause})`,
+          );
+          return visibleTo({ [TENANT_CLAIM]: a }, b);
+        });
+        if (!Object.keys(leaked).includes('evidence')) unnoticed.push(clause);
+      }
+      expect(
+        unnoticed,
+        `${unnoticed.length} of the ${spellings.length} permissive policies on public.evidence `
+        + "that expose every tenant's evidence to every other tenant were not seen by a request "
+        + `reading the table: using (${unnoticed.join('), using (')})`,
+      ).toEqual([]);
+    });
+});

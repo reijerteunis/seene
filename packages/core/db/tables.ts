@@ -66,6 +66,36 @@ export const EXTERNALLY_SOURCED_TABLES = [
 export const TENANT_CLAIM = 'tenant_id';
 
 /**
+ * Every clause a permissive policy in the public schema is allowed to carry,
+ * spelled as `pg_policies` renders it back.
+ *
+ * An allow-list, and that is the whole point of it. The first version of the
+ * tenancy checker asked whether a clause contained the text `current_tenant`,
+ * which is a deny-list of one pattern written the other way round, and the second
+ * Codex review of SEEN-008 (CODEX-02) ran two clauses straight past it: `using
+ * (seen.current_tenant() IS NOT NULL)`, which admits every row to any caller who
+ * has any tenant claim at all, and `using (tenant_id = seen.current_tenant() OR
+ * true)`, which names the tenant and then throws the comparison away. Both
+ * mention `current_tenant`; neither compares anything to it. The next expression
+ * past a deny-list is always cheap to write, so the checker does not try to
+ * recognise the bad ones: a clause is bound when it is one of these and unbound
+ * otherwise, and there is no third answer for an expression nobody anticipated.
+ *
+ * The cost is that a policy which legitimately narrows further, say the tenancy
+ * comparison AND a status, is reported until its exact clause is added here. That
+ * is the trade taken on purpose: adding a line to this list is a decision somebody
+ * writes down and a reviewer reads, and a conjunct that only narrows is safe to
+ * add, while an `OR` that widens is exactly what should cost an argument. What
+ * proves a clause on this list does not expose another tenant's rows is not its
+ * text at all, it is the cross-tenant read `rls.test.ts` performs against every
+ * governed table.
+ *
+ * Compared after whitespace is collapsed, so a Postgres release that re-renders
+ * the same expression with different spacing does not read as a leak.
+ */
+export const TENANCY_CLAUSES = ['(tenant_id = seen.current_tenant())'] as const;
+
+/**
  * The tables no row may ever be rewritten in.
  *
  * `audit_events` is the record the policy gate writes before every side effect
@@ -151,6 +181,22 @@ export const CROSS_TENANT_FOREIGN_KEY_EXEMPTIONS: readonly string[] = [];
 
 /** Where the migrations live, relative to the repository root. */
 export const MIGRATIONS_DIRECTORY = 'supabase/migrations';
+
+/**
+ * The documents outside this package that its tests read as an authority, so the
+ * turbo cache has to hash them, relative to the repository root.
+ *
+ * `marketplaces.test.ts` parses the routing table of `docs/architecture.md` and
+ * compares it cell by cell with the seeded catalogue, with the document as the
+ * authority. The task's cache key is the files of its own package plus whatever is
+ * named in `turbo.json`, so an edit to a routing cell changed nothing turbo
+ * hashed: the second Codex review of SEEN-008 (CODEX-03) measured sixteen inputs,
+ * every migration among them and no document, and a cached pass could therefore be
+ * replayed over a document the catalogue no longer matches. The migrations were
+ * added to the input list for the same reason one round earlier; this is the other
+ * file the suite reads from outside its own package.
+ */
+export const HASHED_REPOSITORY_DOCUMENTS = ['docs/architecture.md'] as const;
 
 /**
  * How a file under `supabase/migrations` declares itself a member of the trade
