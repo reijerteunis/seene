@@ -1,0 +1,45 @@
+{
+  "sequence": 85,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-29T05:59:28.964173+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 7,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "d899f2e7266a2075ea818c55bdc237bdb54426e6",
+  "prev_hash": "fbb40c62f1369e9984323a5b68a7efd05286ace83f0f78954d12881c480c7be7",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": null,
+          "behaviour": "CODEX-01: 28 of the 57 foreign keys now carry the tenant, so a child row's parent must belong to the same tenant, with eight keeping set-null in the column-list form because a bare set-null would null tenant_id and abort a tenant's erasure mid-statement. Re-proved in this attempt against the rebased tree rather than cited from attempt 5: the rebase onto the main that carries SEEN-113 gave every commit a new tree, so the content test lost the anchor commit it scopes its comparison with and refused, correctly, since once the anchor is gone it cannot tell a slice whose files are identical from one whose files changed. Record 71 measures what the rebase actually moved and shows every file of both slices byte-identical across it. Cited again from attempt 6 after the third Codex round returned the ticket on F18, a correction to the Outcome's prose that moved no file either slice covers: this is the case SEEN-113's content test was built for, and unlike the earlier refusal the anchor commit is on the branch because nothing has been rebased since.",
+          "failure_reason": "`pnpm --filter @seen/core test` exited 1 with four failures of 76: an order carrying tenant B's tenant_id and tenant A's connection_id was accepted where a foreign key violation (23503) is what keeps one tenant's ingest run out of another tenant's trade record; tenant B had 2 orders and has 1 after tenant A was erased, so one tenant's deletion on request destroyed part of another tenant's record; 28 of the 57 foreign keys in the public schema reference their parent by id alone, which named all 28 and so decided the scope by measurement; and 4 of the 4 migrations state a set size the directory contradicts, because the file that decides every table's privileges was outside the set its own parts count.",
+          "red": 72,
+          "green": 73
+        },
+        {
+          "position": null,
+          "behaviour": "CODEX-02 and CODEX-03: the clause reader reshaped from a substring deny-list into a whole-clause allow-list, `TENANCY_CLAUSES`, with tenant isolation proved behaviourally across all 29 governed tables by a catalogue-driven probe beside it, and docs/architecture.md added to the test task's cache inputs. Re-proved in this attempt on the same ground as slice 1, by reverting the two production decisions the fix made while leaving its tests in place.",
+          "failure_reason": "`pnpm --filter @seen/core test` exited 1 with the same two failures record 58 recorded, in the same words: \"3 of the 4 permissive policies on public.evidence that expose every tenant's rows were reported as binding the tenant, so the assertion reads the clause for a word rather than for a comparison\", and \"The cache key of @seen/core#test covers 17 files and none of these, which this suite reads from outside its own package and compares the database against, so a turbo cache hit can report the comparison as passed against a document it never read\".",
+          "red": 74,
+          "green": 75
+        }
+      ],
+      "regression": 84,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "a00943ab9615",
+      "output_tokens": 1317390,
+      "tool_calls": 774,
+      "unavailable": null
+    }
+  }
+}
