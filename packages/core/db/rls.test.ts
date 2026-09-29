@@ -19,7 +19,9 @@ import { randomUUID } from 'node:crypto';
 import { Client } from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
-import { BILLING_CRITICAL_TABLES, CLIENT_BOUND_ROLES, TENANT_CLAIM } from './tables';
+import {
+  BILLING_CRITICAL_TABLES, CLIENT_BOUND_ROLES, ERASURE_REGISTRY_TABLE, TENANT_CLAIM,
+} from './tables';
 
 // The local Supabase stack's Postgres, the address `pnpm dev:up` prints when it
 // starts. Overridden by SEEN_DATABASE_URL so CI or a second stack needs no code
@@ -90,6 +92,32 @@ interface ClaimFixture {
   finding: string;
 }
 
+/** Refuses the erasure registry holding a tombstone for any tenant this file
+ * created. Part 8 makes a tombstone permanent on purpose and nothing can remove
+ * one, so a fixture that erases its tenant outside a transaction leaves a row in
+ * `seen.erased_tenants` on every run, in every database the suite is pointed at.
+ * The fixtures here live in a transaction that is rolled back instead, which
+ * takes the tombstone with them. This is hygiene and not correctness: every
+ * tenant id in this suite is server-generated and never supplied, so no test can
+ * collide with a tombstone and the growth can fail nothing.
+ */
+async function assertNoTombstones(
+  client: Client,
+  tenants: (string | undefined)[],
+): Promise<void> {
+  const created = tenants.filter((id): id is string => Boolean(id));
+  if (created.length === 0) return;
+  const { rows } = await client.query<{ tenant_id: string }>(
+    `select tenant_id from ${ERASURE_REGISTRY_TABLE} where tenant_id = any($1)`,
+    [created],
+  );
+  expect(
+    rows.map((row) => row.tenant_id),
+    'Tenants this file created are tombstoned in the erasure registry, so its fixtures erased '
+    + 'them outside a transaction and nothing can take those rows back',
+  ).toEqual([]);
+}
+
 describe('tenant isolation on orders', () => {
   let client: Client;
   let a: Fixture;
@@ -118,7 +146,7 @@ describe('tenant isolation on orders', () => {
   /** What `select * from orders` returns for a request carrying these claims, or
    * carrying none at all, read as `authenticated` the way PostgREST reads. */
   async function ordersFor(claims: Record<string, string> | null): Promise<string[]> {
-    await client.query('begin');
+    await client.query('savepoint probe');
     try {
       if (claims !== null) {
         await client.query('select set_config($1, $2, true)', [
@@ -130,7 +158,8 @@ describe('tenant isolation on orders', () => {
       const { rows } = await client.query<{ id: string }>('select id from public.orders');
       return rows.map((row) => row.id);
     } finally {
-      await client.query('rollback');
+      await client.query('rollback to savepoint probe');
+      await client.query('release savepoint probe');
     }
   }
 
@@ -145,16 +174,20 @@ describe('tenant isolation on orders', () => {
         + 'prove anything about. Apply it with `pnpm db:reset`.',
       );
     }
+    // The fixtures are written inside a transaction that is never committed, and
+    // the whole describe runs in it. Deleting them at the end would clean up just
+    // as well, but erasing a tenant writes a tombstone into the erasure registry
+    // that nothing can remove by design, so a suite that tidies up by erasing its
+    // tenants grows that table by a row on every run, in every database it is
+    // pointed at. A rollback takes the tombstone back with the rows.
+    await client.query('begin');
     a = await seed('Tenant A', 'bol', 'rls-test-a');
     b = await seed('Tenant B', 'ebay', 'rls-test-b');
   });
 
   afterAll(async () => {
-    if (a) {
-      await client.query('delete from public.tenants where tenant_id = any($1)', [
-        [a.tenant, b?.tenant].filter(Boolean),
-      ]);
-    }
+    await client?.query('rollback');
+    if (client) await assertNoTombstones(client, [a?.tenant, b?.tenant]);
     await client?.end();
   });
 
@@ -221,7 +254,7 @@ describe('tenant isolation on findings and claims', () => {
 
   /** The ids one table yields for a request carrying these claims, or none. */
   async function idsFor(table: string, claims: Record<string, string> | null): Promise<string[]> {
-    await client.query('begin');
+    await client.query('savepoint probe');
     try {
       if (claims !== null) {
         await client.query('select set_config($1, $2, true)', [
@@ -233,7 +266,8 @@ describe('tenant isolation on findings and claims', () => {
       const { rows } = await client.query<{ id: string }>(`select id from public.${table}`);
       return rows.map((row) => row.id);
     } finally {
-      await client.query('rollback');
+      await client.query('rollback to savepoint probe');
+      await client.query('release savepoint probe');
     }
   }
 
@@ -248,16 +282,17 @@ describe('tenant isolation on findings and claims', () => {
         + 'policy to prove anything about. Apply it with `pnpm db:reset`.',
       );
     }
+    // In a transaction that is never committed, for the reason the first describe
+    // of this file gives: an erasure leaves a tombstone nothing can remove, and a
+    // rollback does not.
+    await client.query('begin');
     a = await seed('Tenant A findings', 'bol');
     b = await seed('Tenant B findings', 'ebay');
   });
 
   afterAll(async () => {
-    if (a) {
-      await client.query('delete from public.tenants where tenant_id = any($1)', [
-        [a.tenant, b?.tenant].filter(Boolean),
-      ]);
-    }
+    await client?.query('rollback');
+    if (client) await assertNoTombstones(client, [a?.tenant, b?.tenant]);
     await client?.end();
   });
 
@@ -337,7 +372,7 @@ describe('the writes a client-bound request cannot make', () => {
     claims: Record<string, string> | null,
     statements: readonly Attempted[],
   ): Promise<Attempt> {
-    await client.query('begin');
+    await client.query('savepoint attempt_probe');
     try {
       if (claims !== null) {
         await client.query('select set_config($1, $2, true)', [
@@ -364,7 +399,8 @@ describe('the writes a client-bound request cannot make', () => {
       await client.query('reset role');
       return { outcome, audit: await countFor('audit_events'), orders: await countFor('orders') };
     } finally {
-      await client.query('rollback');
+      await client.query('rollback to savepoint attempt_probe');
+      await client.query('release savepoint attempt_probe');
     }
   }
 
@@ -387,6 +423,10 @@ describe('the writes a client-bound request cannot make', () => {
         + '`pnpm db:reset`.',
       );
     }
+    // In a transaction that is never committed, for the reason the first describe
+    // of this file gives: an erasure leaves a tombstone nothing can remove, and a
+    // rollback does not.
+    await client.query('begin');
     const seeded = await client.query<{ tenant_id: string }>(
       "insert into public.tenants (name) values ('Tenant writes') returning tenant_id",
     );
@@ -422,9 +462,8 @@ describe('the writes a client-bound request cannot make', () => {
   });
 
   afterAll(async () => {
-    if (tenant) {
-      await client.query('delete from public.tenants where tenant_id = $1', [tenant]);
-    }
+    await client?.query('rollback');
+    if (client) await assertNoTombstones(client, [tenant]);
     await client?.end();
   });
 
@@ -1037,13 +1076,17 @@ describe('tenant isolation on every table in the public schema', () => {
     }
   }
 
-  /** Everything inside, rolled back: the policies injected below are real policies. */
+  /** Everything inside, rolled back: the policies injected below are real policies.
+   * To a savepoint rather than in a transaction of its own, because the fixtures
+   * are themselves held in one that stays open for the whole describe, and a plain
+   * `rollback` would take them with it. */
   async function rolledBack<T>(body: () => Promise<T>): Promise<T> {
-    await client.query('begin');
+    await client.query('savepoint injected');
     try {
       return await body();
     } finally {
-      await client.query('rollback');
+      await client.query('rollback to savepoint injected');
+      await client.query('release savepoint injected');
     }
   }
 
@@ -1066,16 +1109,17 @@ describe('tenant isolation on every table in the public schema', () => {
     required = await requiredColumns();
     mandatory = await mandatoryKeys();
     governed = seedOrder(rows.map((row) => row.name));
+    // In a transaction that is never committed, for the reason the first describe
+    // of this file gives: an erasure leaves a tombstone nothing can remove, and a
+    // rollback does not.
+    await client.query('begin');
     a = await seedTenant('Tenant every table A');
     b = await seedTenant('Tenant every table B');
   });
 
   afterAll(async () => {
-    if (a) {
-      await client.query('delete from public.tenants where tenant_id = any($1)', [
-        [a, b].filter(Boolean),
-      ]);
-    }
+    await client?.query('rollback');
+    if (client) await assertNoTombstones(client, [a, b]);
     await client?.end();
   });
 

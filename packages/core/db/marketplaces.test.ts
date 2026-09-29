@@ -26,7 +26,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   MARKETPLACE_COLUMNS, MARKETPLACE_IDS, MarketplaceId, parseRoutingTable,
 } from './marketplaces';
-import { TENANT_CLAIM } from './tables';
+import { ERASURE_REGISTRY_TABLE, TENANT_CLAIM } from './tables';
 
 // The local Supabase stack's Postgres, the address `pnpm dev:up` prints when it
 // starts. Overridden by SEEN_DATABASE_URL so CI or a second stack needs no code
@@ -76,6 +76,32 @@ interface CatalogueRow {
   marketplace: string;
   name: string;
   capabilities: Record<string, { mode: string; detail: string | null }>;
+}
+
+/** Refuses the erasure registry holding a tombstone for any tenant this file
+ * created. Part 8 makes a tombstone permanent on purpose and nothing can remove
+ * one, so a fixture that erases its tenant outside a transaction leaves a row in
+ * `seen.erased_tenants` on every run, in every database the suite is pointed at.
+ * The fixtures here live in a transaction that is rolled back instead, which
+ * takes the tombstone with them. This is hygiene and not correctness: every
+ * tenant id in this suite is server-generated and never supplied, so no test can
+ * collide with a tombstone and the growth can fail nothing.
+ */
+async function assertNoTombstones(
+  client: Client,
+  tenants: (string | undefined)[],
+): Promise<void> {
+  const created = tenants.filter((id): id is string => Boolean(id));
+  if (created.length === 0) return;
+  const { rows } = await client.query<{ tenant_id: string }>(
+    `select tenant_id from ${ERASURE_REGISTRY_TABLE} where tenant_id = any($1)`,
+    [created],
+  );
+  expect(
+    rows.map((row) => row.tenant_id),
+    'Tenants this file created are tombstoned in the erasure registry, so its fixtures erased '
+    + 'them outside a transaction and nothing can take those rows back',
+  ).toEqual([]);
 }
 
 describe('the static marketplaces catalogue', () => {
@@ -168,7 +194,7 @@ describe('the catalogue a tenant reads through its own policy', () => {
   /** What `select marketplace from marketplaces` returns for a request carrying
    * these claims, or carrying none at all, read as `authenticated`. */
   async function visible(claims: Record<string, string> | null): Promise<string[]> {
-    await client.query('begin');
+    await client.query('savepoint probe');
     try {
       if (claims !== null) {
         await client.query('select set_config($1, $2, true)', [
@@ -181,12 +207,20 @@ describe('the catalogue a tenant reads through its own policy', () => {
       );
       return rows.map((row) => row.marketplace);
     } finally {
-      await client.query('rollback');
+      await client.query('rollback to savepoint probe');
+      await client.query('release savepoint probe');
     }
   }
 
   beforeAll(async () => {
     client = await connect();
+    // Both tenants are written inside a transaction that is never committed, and
+    // the whole describe runs in it. Deleting them at the end would clean up just
+    // as well, but erasing a tenant writes a tombstone into the erasure registry
+    // that nothing can remove by design, so a suite that tidies up by erasing its
+    // tenants grows that table by a row on every run, in every database it is
+    // pointed at. A rollback takes the tombstone back with the rows.
+    await client.query('begin');
     const a = await client.query<{ tenant_id: string }>(
       "insert into public.tenants (name) values ('Tenant catalogue A') returning tenant_id",
     );
@@ -198,9 +232,8 @@ describe('the catalogue a tenant reads through its own policy', () => {
   });
 
   afterAll(async () => {
-    await client.query('delete from public.tenants where tenant_id = any($1)', [
-      [first, second].filter(Boolean),
-    ]);
+    await client?.query('rollback');
+    if (client) await assertNoTombstones(client, [first, second]);
     await client?.end();
   });
 
@@ -256,7 +289,7 @@ describe('connections are bound to the catalogue', () => {
    * constraint's name would fail the day the key is rewritten as something that
    * keeps the same promise. Every write here is rolled back. */
   async function attempt(marketplace: string): Promise<string> {
-    await client.query('begin');
+    await client.query('savepoint probe');
     try {
       await client.query(
         `insert into public.connections (tenant_id, marketplace, country, status)
@@ -267,12 +300,17 @@ describe('connections are bound to the catalogue', () => {
     } catch (error) {
       return (error as { code?: string }).code ?? (error as Error).message;
     } finally {
-      await client.query('rollback');
+      await client.query('rollback to savepoint probe');
+      await client.query('release savepoint probe');
     }
   }
 
   beforeAll(async () => {
     client = await connect();
+    // In a transaction that is never committed, for the reason the describe above
+    // gives: an erasure leaves a tombstone nothing can remove, and a rollback does
+    // not.
+    await client.query('begin');
     const created = await client.query<{ tenant_id: string }>(
       "insert into public.tenants (name) values ('Tenant catalogue key') returning tenant_id",
     );
@@ -280,7 +318,8 @@ describe('connections are bound to the catalogue', () => {
   });
 
   afterAll(async () => {
-    if (tenant) await client.query('delete from public.tenants where tenant_id = $1', [tenant]);
+    await client?.query('rollback');
+    if (client) await assertNoTombstones(client, [tenant]);
     await client?.end();
   });
 

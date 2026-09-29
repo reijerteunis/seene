@@ -23,7 +23,7 @@
 import { Client } from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
-import { EXTERNALLY_SOURCED_TABLES } from './tables';
+import { ERASURE_REGISTRY_TABLE, EXTERNALLY_SOURCED_TABLES } from './tables';
 
 // The local Supabase stack's Postgres, the address `pnpm dev:up` prints when it
 // starts. Overridden by SEEN_DATABASE_URL so CI or a second stack needs no code
@@ -72,6 +72,32 @@ interface Fixture {
   connection: string;
   order: string;
   settlement: string;
+}
+
+/** Refuses the erasure registry holding a tombstone for any tenant this file
+ * created. Part 8 makes a tombstone permanent on purpose and nothing can remove
+ * one, so a fixture that erases its tenant outside a transaction leaves a row in
+ * `seen.erased_tenants` on every run, in every database the suite is pointed at.
+ * The fixtures here live in a transaction that is rolled back instead, which
+ * takes the tombstone with them. This is hygiene and not correctness: every
+ * tenant id in this suite is server-generated and never supplied, so no test can
+ * collide with a tombstone and the growth can fail nothing.
+ */
+async function assertNoTombstones(
+  client: Client,
+  tenants: (string | undefined)[],
+): Promise<void> {
+  const created = tenants.filter((id): id is string => Boolean(id));
+  if (created.length === 0) return;
+  const { rows } = await client.query<{ tenant_id: string }>(
+    `select tenant_id from ${ERASURE_REGISTRY_TABLE} where tenant_id = any($1)`,
+    [created],
+  );
+  expect(
+    rows.map((row) => row.tenant_id),
+    'Tenants this file created are tombstoned in the erasure registry, so its fixtures erased '
+    + 'them outside a transaction and nothing can take those rows back',
+  ).toEqual([]);
 }
 
 describe('the upsert key on every externally sourced table', () => {
@@ -160,13 +186,17 @@ describe('the upsert key on every externally sourced table', () => {
     }
   }
 
-  /** Every write here is rolled back: the fixtures are the only rows that stay. */
+  /** Every write here is rolled back: the fixtures are the only rows that stay.
+   * To a savepoint rather than in a transaction of its own, because the fixtures
+   * are themselves held in one that stays open for the whole file, and a plain
+   * `rollback` would take them with it. */
   async function rolledBack<T>(body: () => Promise<T>): Promise<T> {
-    await client.query('begin');
+    await client.query('savepoint probe');
     try {
       return await body();
     } finally {
-      await client.query('rollback');
+      await client.query('rollback to savepoint probe');
+      await client.query('release savepoint probe');
     }
   }
 
@@ -198,16 +228,20 @@ describe('the upsert key on every externally sourced table', () => {
         + 'upsert key to prove anything about. Apply the migrations with `pnpm db:reset`.',
       );
     }
+    // The fixtures are written inside a transaction that is never committed, and
+    // the whole file runs in it. Deleting them at the end would clean up just as
+    // well, but erasing a tenant writes a tombstone into the erasure registry that
+    // nothing can remove by design, so a suite that tidies up by erasing its
+    // tenants grows that table by a row on every run, in every database it is
+    // pointed at. A rollback takes the tombstone back with the rows.
+    await client.query('begin');
     a = await seed('Tenant uniqueness A', 'uniq-a');
     b = await seed('Tenant uniqueness B', 'uniq-b');
   });
 
   afterAll(async () => {
-    if (a) {
-      await client.query('delete from public.tenants where tenant_id = any($1)', [
-        [a.tenant, b?.tenant].filter(Boolean),
-      ]);
-    }
+    await client?.query('rollback');
+    if (client) await assertNoTombstones(client, [a?.tenant, b?.tenant]);
     await client?.end();
   });
 

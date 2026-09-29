@@ -620,6 +620,32 @@ function testTaskInputs(): string[] {
   return Object.keys(task.inputs ?? {});
 }
 
+/** Refuses the erasure registry holding a tombstone for any tenant this file
+ * created. Part 8 makes a tombstone permanent on purpose and nothing can remove
+ * one, so a fixture that erases its tenant outside a transaction leaves a row in
+ * `seen.erased_tenants` on every run, in every database the suite is pointed at.
+ * The fixtures here live in a transaction that is rolled back instead, which
+ * takes the tombstone with them. This is hygiene and not correctness: every
+ * tenant id in this suite is server-generated and never supplied, so no test can
+ * collide with a tombstone and the growth can fail nothing.
+ */
+async function assertNoTombstones(
+  client: Client,
+  tenants: (string | undefined)[],
+): Promise<void> {
+  const created = tenants.filter((id): id is string => Boolean(id));
+  if (created.length === 0) return;
+  const { rows } = await client.query<{ tenant_id: string }>(
+    `select tenant_id from ${ERASURE_REGISTRY_TABLE} where tenant_id = any($1)`,
+    [created],
+  );
+  expect(
+    rows.map((row) => row.tenant_id),
+    'Tenants this file created are tombstoned in the erasure registry, so its fixtures erased '
+    + 'them outside a transaction and nothing can take those rows back',
+  ).toEqual([]);
+}
+
 describe('the trade record schema', () => {
   let client: Client;
   let present: string[];
@@ -1157,6 +1183,14 @@ describe('the append-only guarantee on audit_events', () => {
         + 'update to. Apply it with `pnpm db:reset`.',
       );
     }
+    // The fixtures are written inside a transaction that is never committed, and
+    // the whole describe runs in it, the erasure below included. Deleting them at
+    // the end would clean up just as well, but erasing a tenant writes a tombstone
+    // into the erasure registry that nothing can remove by design, so a suite that
+    // tidies up by erasing its tenants grows that table by a row on every run, in
+    // every database it is pointed at. A rollback takes the tombstone back with
+    // the rows.
+    await client.query('begin');
     const seeded = await client.query<{ tenant_id: string }>(
       "insert into public.tenants (name) values ('Tenant append-only') returning tenant_id",
     );
@@ -1170,24 +1204,38 @@ describe('the append-only guarantee on audit_events', () => {
   });
 
   afterAll(async () => {
-    if (tenant) {
-      await client.query('delete from public.tenants where tenant_id = $1', [tenant]);
-    }
+    await client?.query('rollback');
+    if (client) await assertNoTombstones(client, [tenant]);
     await client?.end();
   });
+
+  /** One statement, inside a savepoint that is rolled back whatever it answers.
+   * The fixtures live in a transaction that stays open for the whole describe, and
+   * a refused statement aborts the transaction it was refused in: without the
+   * savepoint the first refusal asked for below would take every question after it
+   * with it. */
+  async function attempted(sql: string, params: unknown[]): Promise<void> {
+    await client.query('savepoint attempted');
+    try {
+      await client.query(sql, params);
+    } finally {
+      await client.query('rollback to savepoint attempted');
+      await client.query('release savepoint attempted');
+    }
+  }
 
   it('refuses an update of an audit event, to the owner of the table as well', async () => {
     // The connection is the owner role, which bypasses row-level security and
     // holds every privilege the table grants: if the update is refused here it is
     // refused for everyone SQL can bind.
     await expect(
-      client.query("update public.audit_events set actor = 'rewritten' where id = $1", [event]),
+      attempted("update public.audit_events set actor = 'rewritten' where id = $1", [event]),
     ).rejects.toThrow(/append-only/);
   });
 
   it('refuses a delete of an audit event, to the owner of the table as well', async () => {
     await expect(
-      client.query('delete from public.audit_events where id = $1', [event]),
+      attempted('delete from public.audit_events where id = $1', [event]),
     ).rejects.toThrow(/append-only/);
   });
 
@@ -1240,7 +1288,6 @@ describe('the append-only guarantee on audit_events', () => {
       [tenant],
     );
     expect(rows, "the erased tenant's audit events survived the erasure").toEqual([]);
-    tenant = undefined;
   });
 });
 
