@@ -34,8 +34,8 @@ import {
   ERASURE_REGISTRY_COLUMNS, ERASURE_REGISTRY_TABLE,
   FORBIDDEN_PRIVILEGE_STATEMENTS, FREE_TEXT_TYPE_NAMES, GOVERNED_PRIVILEGES,
   HASHED_REPOSITORY_DOCUMENTS, MIGRATION_SET_HEADER, MIGRATIONS_DIRECTORY,
-  NOT_BUYER_PII_MARKER, ROW_BEARING_RELKINDS,
-  TABLE_PRIVILEGES, TENANCY_CLAUSES, TENANT_CLAIM,
+  NON_TABLE_RELKINDS, NOT_BUYER_PII_MARKER, RELKIND_NAMES,
+  TABLE_PRIVILEGES, TABLE_RELKINDS, TENANCY_CLAUSES, TENANT_CLAIM,
   TRADE_RECORD_MIGRATION_MARKER, TRADE_RECORD_TABLES,
   VIEW_SECURITY_OPTION, VIEW_SECURITY_OPTION_TRUE,
 } from './tables';
@@ -84,14 +84,32 @@ async function connect(): Promise<Client> {
 /** A relation in a schema, with the single character `pg_class` names its kind by. */
 interface Relation { name: string; kind: string }
 
+/**
+ * Every relation in the schema that this database's own policies govern, which is
+ * what "every table in the public schema" means here and what every guard below
+ * is built on.
+ *
+ * `TABLE_RELKINDS` is `'r'` and `'p'`: an ordinary table and a partitioned table.
+ * This asked for `'r'` alone until the fifth Codex review of SEEN-008 (F29), which
+ * is a filter and not a sentence: a partitioned table is a table in the public
+ * schema, it holds rows, it is read through the Data API as a table is, and it can
+ * carry an enabled policy, so leaving it out made criterion 2 a claim about
+ * ordinary tables wearing the words "100% of them".
+ *
+ * A view, a materialised view and a foreign table are not here and are not an
+ * oversight: this schema's tenancy cannot be expressed over any of the three, so
+ * asking one for a `tenant_id` column and a policy would be asking for a guarantee
+ * the database cannot keep. Part 6 gives each of them the rule it can keep, and
+ * the guards for those are further down this file.
+ */
 async function tablesIn(client: Client, schema: string): Promise<string[]> {
   const { rows } = await client.query<{ name: string }>(
     `select c.relname as name
        from pg_catalog.pg_class c
        join pg_catalog.pg_namespace n on n.oid = c.relnamespace
-      where n.nspname = $1 and c.relkind = 'r'
+      where n.nspname = $1 and c.relkind = any($2)
       order by c.relname`,
-    [schema],
+    [schema, Object.keys(TABLE_RELKINDS)],
   );
   return rows.map((row) => row.name);
 }
@@ -100,15 +118,21 @@ async function tablesIn(client: Client, schema: string): Promise<string[]> {
  * Every relation in the schema that holds rows and is not an ordinary table,
  * with the kind `pg_class` gives it.
  *
- * `tablesIn` asks for `relkind = 'r'` and every guard in this suite is built on
- * it, which is the whole of the hole the third Codex review of SEEN-008 (F19)
- * found. A view added to `public` by a later migration answers to `'v'`, is born
- * holding the default access control list of schema `public`, which covers views
- * as surely as tables because `pg_default_acl` files both under
+ * `tablesIn` asks for the kinds a policy of this database governs and every guard
+ * above it is built on that, which is the whole of the hole the third Codex review
+ * of SEEN-008 (F19) found. A view added to `public` by a later migration answers to
+ * `'v'`, is born holding the default access control list of schema `public`, which
+ * covers views as surely as tables because `pg_default_acl` files both under
  * `defaclobjtype = 'r'`, and is not subject to the row-level security of the
  * tables underneath it unless it was created `with (security_invoker = true)`.
  * So the tenancy guard does not see it, the privilege guard does not see it, and
  * `anon` reads every tenant's rows through it.
+ *
+ * Three kinds rather than the four F19 listed. A partitioned table was in this set
+ * because nothing else looked at one, and it is a table: it now answers to
+ * `tablesIn` and owes what every other table owes. What is left here is the
+ * relations a tenancy policy of this database cannot be written on at all, which is
+ * why the rule for each of them is a privilege and a place rather than a policy.
  */
 async function nonTableRelationsIn(client: Client, schema: string): Promise<Relation[]> {
   const { rows } = await client.query<Relation>(
@@ -117,14 +141,14 @@ async function nonTableRelationsIn(client: Client, schema: string): Promise<Rela
        join pg_catalog.pg_namespace n on n.oid = c.relnamespace
       where n.nspname = $1 and c.relkind = any($2)
       order by c.relname`,
-    [schema, Object.keys(ROW_BEARING_RELKINDS)],
+    [schema, Object.keys(NON_TABLE_RELKINDS)],
   );
   return rows;
 }
 
 /** One such relation, named the way a failure message should name it. */
 function named(relation: Relation): string {
-  return `${relation.name} (${ROW_BEARING_RELKINDS[relation.kind] ?? `relkind ${relation.kind}`})`;
+  return `${relation.name} (${RELKIND_NAMES[relation.kind] ?? `relkind ${relation.kind}`})`;
 }
 
 /**
@@ -144,7 +168,10 @@ function assertPopulated(tables: string[], what: string): void {
   }
 }
 
-/** The tables in the schema with no `tenant_id` column. */
+/** The tables in the schema with no `tenant_id` column, over the same two kinds
+ * `tablesIn` lists: an ordinary table and a partitioned table. A partitioned table
+ * carries the column its partitions store, so a missing `tenant_id` on the parent
+ * is a missing `tenant_id` in every row underneath it. */
 async function tenantIdGapsIn(client: Client, schema: string): Promise<string[]> {
   const tables = await tablesIn(client, schema);
   assertPopulated(tables, `a tenant_id column on every table in schema ${schema}`);
@@ -152,18 +179,27 @@ async function tenantIdGapsIn(client: Client, schema: string): Promise<string[]>
     `select c.relname as name
        from pg_catalog.pg_class c
        join pg_catalog.pg_namespace n on n.oid = c.relnamespace
-      where n.nspname = $1 and c.relkind = 'r'
+      where n.nspname = $1 and c.relkind = any($2)
         and not exists (
           select 1 from pg_catalog.pg_attribute a
            where a.attrelid = c.oid and a.attname = 'tenant_id'
              and a.attnum > 0 and not a.attisdropped)
       order by c.relname`,
-    [schema],
+    [schema, Object.keys(TABLE_RELKINDS)],
   );
   return rows.map((row) => row.name);
 }
 
-/** The tables in the schema without row-level security enabled. */
+/**
+ * The tables in the schema without row-level security enabled, over the same two
+ * kinds again, and both are load-bearing rather than one covering the other.
+ *
+ * `relrowsecurity` is per relation and is not inherited either way. Measured on
+ * the local stack: enabling it on a partitioned table leaves it false on the
+ * partition, so a role holding select on the partition reads every tenant's rows
+ * through it; and enabling it on a partition does nothing for a query that goes
+ * through the parent. Each relation is asked for its own.
+ */
 async function rlsGapsIn(client: Client, schema: string): Promise<string[]> {
   const tables = await tablesIn(client, schema);
   assertPopulated(tables, `row-level security on every table in schema ${schema}`);
@@ -171,9 +207,9 @@ async function rlsGapsIn(client: Client, schema: string): Promise<string[]> {
     `select c.relname as name
        from pg_catalog.pg_class c
        join pg_catalog.pg_namespace n on n.oid = c.relnamespace
-      where n.nspname = $1 and c.relkind = 'r' and not c.relrowsecurity
+      where n.nspname = $1 and c.relkind = any($2) and not c.relrowsecurity
       order by c.relname`,
-    [schema],
+    [schema, Object.keys(TABLE_RELKINDS)],
   );
   return rows.map((row) => row.name);
 }
@@ -275,7 +311,15 @@ async function tenancyGapsIn(client: Client, schema: string): Promise<string[]> 
  * access control list, which is the only place the answer is complete: a default
  * privilege granted at schema level and a grant written in a migration both land
  * here, and a blanket `grant on all tables` that undid an earlier revoke is
- * visible here and nowhere in the migration that wrote it. */
+ * visible here and nowhere in the migration that wrote it.
+ *
+ * The same two kinds as the tenancy guards, so that the two halves of the boundary
+ * agree about a partitioned table: reading one through the parent is checked
+ * against the parent's privileges alone, measured on the local stack, so a
+ * partitioned table the Data API serves has to hold exactly what the trade record
+ * intends and nothing more. Reading a partition directly is checked against the
+ * partition's own, and a partition is a relation of kind `'r'` and is asked here on
+ * its own account. */
 async function privilegesIn(
   client: Client,
   schema: string,
@@ -287,9 +331,9 @@ async function privilegesIn(
        from pg_catalog.pg_class c
        join pg_catalog.pg_namespace n on n.oid = c.relnamespace
        cross join lateral aclexplode(c.relacl) a
-      where n.nspname = $1 and c.relkind = 'r'
-        and a.grantee::regrole::text = any($2)`,
-    [schema, [...DATA_API_ROLES]],
+      where n.nspname = $1 and c.relkind = any($2)
+        and a.grantee::regrole::text = any($3)`,
+    [schema, Object.keys(TABLE_RELKINDS), [...DATA_API_ROLES]],
   );
   const held = new Map<string, string[]>();
   for (const row of rows) {
@@ -304,10 +348,12 @@ async function privilegesIn(
  * Every privilege a client-bound role holds on a relation in the schema that is
  * not an ordinary table, named one by one.
  *
- * The privilege guard above reads `relkind = 'r'` and so measures nothing at all
- * about a view. `anon` and `authenticated` should hold nothing on one: a view
- * that a later ticket deliberately publishes has to grant its own select, and say
- * so in the migration that publishes it.
+ * The privilege guard above reads the kinds a policy governs and so measures
+ * nothing at all about a view. `anon` and `authenticated` should hold nothing on
+ * one: a view that a later ticket deliberately publishes has to grant its own
+ * select, and say so in the migration that publishes it. A partitioned table is
+ * not asked this question, because it is asked the other one: it holds the select
+ * `authenticated` holds on every table, and the guard above is what reads it.
  */
 async function clientPrivilegesOnNonTablesIn(client: Client, schema: string): Promise<string[]> {
   const { rows } = await client.query<{ name: string; kind: string; role: string; privilege: string }>(
@@ -320,7 +366,7 @@ async function clientPrivilegesOnNonTablesIn(client: Client, schema: string): Pr
       where n.nspname = $1 and c.relkind = any($2)
         and a.grantee::regrole::text = any($3)
       order by c.relname, role, privilege`,
-    [schema, Object.keys(ROW_BEARING_RELKINDS), [...CLIENT_BOUND_ROLES]],
+    [schema, Object.keys(NON_TABLE_RELKINDS), [...CLIENT_BOUND_ROLES]],
   );
   return rows
     .filter((row) => (GOVERNED_PRIVILEGES as readonly string[]).includes(row.privilege))
@@ -439,11 +485,11 @@ async function freeTextColumnsIn(client: Client, schema: string): Promise<FreeTe
        join pg_catalog.pg_attribute a on a.attrelid = c.oid
        join pg_catalog.pg_type t on t.oid = a.atttypid
        left join pg_catalog.pg_type e on e.oid = t.typelem
-      where n.nspname = $1 and c.relkind in ('r', 'p')
+      where n.nspname = $1 and c.relkind = any($3)
         and a.attnum > 0 and not a.attisdropped
         and (t.typname = any($2) or (t.typcategory = 'A' and e.typname = any($2)))
       order by 1`,
-    [schema, [...FREE_TEXT_TYPE_NAMES]],
+    [schema, [...FREE_TEXT_TYPE_NAMES], Object.keys(TABLE_RELKINDS)],
   );
   return rows;
 }
@@ -708,6 +754,66 @@ describe('the trade record schema', () => {
         tenancyGapsIn(client, 'seen_vacuity_probe'),
         'the tenancy assertion passes against a schema with no tables',
       ).rejects.toThrow(/proves nothing/);
+    } finally {
+      await client.query('rollback');
+    }
+  });
+
+  it('would see a partitioned table a later migration added, and its partitions', async () => {
+    // A partitioned table is a table in the public schema and answers to `relkind
+    // = 'p'`, so every guard above that asks for `relkind = 'r'` alone walks past
+    // one: it is not listed, it is not asked for a tenant_id column, it is not
+    // asked whether row-level security is on, and none of its policies is read.
+    // That is the fifth Codex review of SEEN-008 (F29), and it is the distance
+    // between criterion 2's sentence, "every table in the public schema", and what
+    // the guards were actually asserting.
+    //
+    // The partition is asserted beside the parent, and it is not the same question
+    // asked twice. A partition is a relation in its own right and answers to `'r'`,
+    // so the guards see it already, and it needs its own enabled policy rather than
+    // inheriting the parent's. Measured against this stack in a rolled-back
+    // transaction: enabling row-level security on the parent leaves
+    // `relrowsecurity` false on the partition, the policy created on the parent is
+    // the parent's alone in `pg_policies`, and `authenticated` reading the
+    // partition directly with select granted on it sees both tenants' rows while
+    // the same role reading through the parent sees one tenant's. So both have to
+    // be named, and this is the run that shows them being named.
+    await client.query('begin');
+    try {
+      await client.query(
+        'create table public.seen_partitioned_probe ('
+        + 'recorded_at timestamptz not null, note text) partition by range (recorded_at)',
+      );
+      await client.query(
+        'create table public.seen_partition_probe partition of public.seen_partitioned_probe '
+        + "for values from ('2026-01-01') to ('2027-01-01')",
+      );
+      const probes = ['seen_partition_probe', 'seen_partitioned_probe'];
+      // Each guard answers with either a bare relation name or a name followed by
+      // the way it failed, so a probe counts as named by either shape.
+      const probesAmong = (entries: readonly string[]): string[] => probes.filter(
+        (probe) => entries.some((entry) => entry === probe || entry.startsWith(`${probe}:`)),
+      );
+      const seen = {
+        listed: probesAmong(await tablesIn(client, 'public')),
+        withoutTenantId: probesAmong(await tenantIdGapsIn(client, 'public')),
+        withoutRowLevelSecurity: probesAmong(await rlsGapsIn(client, 'public')),
+        unboundByAPolicy: probesAmong(await tenancyGapsIn(client, 'public')),
+      };
+      expect(
+        seen,
+        'A partitioned table carrying neither tenant_id nor row-level security was added to the '
+        + 'public schema with one partition under it, and the guards named '
+        + `${JSON.stringify(seen)}. Each of the four owes both names: the parent because a query `
+        + "through it returns every partition's rows under the parent's own policy, and the "
+        + 'partition because a query against the partition itself is governed by the partition\'s '
+        + "policies and never by the parent's",
+      ).toEqual({
+        listed: probes,
+        withoutTenantId: probes,
+        withoutRowLevelSecurity: probes,
+        unboundByAPolicy: probes,
+      });
     } finally {
       await client.query('rollback');
     }
@@ -2413,10 +2519,16 @@ describe('the foreign keys between tenant-owned tables', () => {
 });
 
 describe('the relations in the public schema that are not tables', () => {
-  // Every guard above asks pg_catalog for `relkind = 'r'`, and so does part 4's
+  // Every guard above asked pg_catalog for `relkind = 'r'`, and so did part 4's
   // per-table revoke and its self-check. That is an ordinary table and nothing
   // else. Four other relation kinds hold rows, are served by the Data API exactly
   // as a table is, and were invisible to all of it.
+  //
+  // One of the four has since moved: a partitioned table is a table here, because
+  // this schema's tenancy can be written on one and is enforced for a query through
+  // it, so it is listed, asked for tenant_id and an enabled policy, and granted what
+  // a table is granted. The three left are the ones no policy of this database can
+  // govern, and they are governed by a privilege and a place instead.
   //
   // Measured against this stack in a rolled-back transaction by the third Codex
   // review of SEEN-008 (F19), with two tenants seeded: `anon` is refused
@@ -2489,6 +2601,69 @@ describe('the relations in the public schema that are not tables', () => {
       + 'ever applied to a request that reads it and no option makes one apply: '
       + stored.join('; '),
     ).toEqual([]);
+  });
+
+  it('counts a partitioned table as a table, and not as a relation that is not one', async () => {
+    // The other half of F29, and the reason the fix is not `('r', 'p')` pasted into
+    // every filter in the suite. The guards read this schema as two families. One
+    // is the relations whose rows this database's own policies govern, which owe a
+    // tenant_id column, an enabled policy that names the tenant, and exactly the
+    // privileges the trade record intends. The other is the relations whose rows
+    // those policies cannot reach, which owe a browser-bound role nothing at all.
+    //
+    // A partitioned table is in the first family: `enable row level security` and
+    // `create policy` are both accepted on one, and the policy is applied to every
+    // row a query through it returns. A foreign table is not, because its rows are
+    // on another server that no policy of this database governs, and a materialised
+    // view cannot be, which is why part 6 keeps one out of `public` rather than
+    // asking it for a policy.
+    //
+    // The two families have to agree about a partitioned table, and while it sat in
+    // the second they could not: the table guard would require `authenticated` to
+    // hold select on one exactly as on any other table, and the guard on the
+    // relations that are not tables would report that same select as a privilege a
+    // browser-bound role must not hold.
+    await client.query('begin');
+    try {
+      await client.query(
+        'create table public.seen_governed_partition_probe ('
+        + 'tenant_id uuid not null, recorded_at timestamptz not null) '
+        + 'partition by range (recorded_at)',
+      );
+      await client.query(
+        'alter table public.seen_governed_partition_probe enable row level security',
+      );
+      await client.query(
+        'create policy tenant_isolation on public.seen_governed_partition_probe '
+        + 'for all to authenticated using (tenant_id = seen.current_tenant()) '
+        + 'with check (tenant_id = seen.current_tenant())',
+      );
+      await client.query('grant select on public.seen_governed_partition_probe to authenticated');
+      const held = await privilegesIn(client, 'public');
+      const measured = {
+        amongTheRelationsThatAreNotTables: (await nonTableRelationsIn(client, 'public'))
+          .filter((relation) => relation.name === 'seen_governed_partition_probe')
+          .map(named),
+        objectedToByTheirPrivilegeGuard: (await clientPrivilegesOnNonTablesIn(client, 'public'))
+          .filter((entry) => entry.startsWith('seen_governed_partition_probe')),
+        readByAuthenticatedAsATable: held.get('seen_governed_partition_probe|authenticated') ?? [],
+      };
+      expect(
+        measured,
+        'A partitioned table carrying the tenancy policy and the select `authenticated` holds on '
+        + 'every other table was added to the public schema, and the guards answered '
+        + `${JSON.stringify(measured)}. It is a table here: the guard on the relations that are `
+        + 'not tables must not name it, must not report its select as a privilege no '
+        + 'browser-bound role may hold, and the privilege guard on the tables must be the one '
+        + 'that reads it',
+      ).toEqual({
+        amongTheRelationsThatAreNotTables: [],
+        objectedToByTheirPrivilegeGuard: [],
+        readByAuthenticatedAsATable: [...TABLE_PRIVILEGES.authenticated],
+      });
+    } finally {
+      await client.query('rollback');
+    }
   });
 
   it('would see a view and a materialised view a later migration added', async () => {

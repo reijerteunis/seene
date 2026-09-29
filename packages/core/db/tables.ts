@@ -457,15 +457,48 @@ export const BILLING_CRITICAL_TABLES = [
 export const CLIENT_BOUND_ROLES = ['anon', 'authenticated'] as const;
 
 /**
- * The relation kinds that hold rows and are not an ordinary table, named as a
+ * The relation kinds whose rows this database's own policies govern, named as a
  * failure message should name them.
  *
- * Every tenancy, privilege and append-only guard this ticket wrote asks
- * `pg_class` for `relkind = 'r'`, which is an ordinary table and nothing else,
- * and so does part 4's per-table revoke and its self-check. Four other kinds hold
- * rows and are reachable through the Data API exactly as a table is, and the
- * third Codex review of SEEN-008 (F19) measured what that costs on the two that
- * matter:
+ * These two are what criterion 2's sentence, "every table in the public schema",
+ * is about, and what every tenancy, `tenant_id`, row-level security and privilege
+ * guard asks the catalogue for. An ordinary table answers to `'r'`. A partitioned
+ * table answers to `'p'`: it holds its rows in its partitions, it is read through
+ * the Data API exactly as a table is, and it can carry the whole of this schema's
+ * tenancy, because `enable row level security` and `create policy` are both
+ * accepted on one and the policy is applied to every row a query through the
+ * parent returns.
+ *
+ * Every guard this ticket wrote asked for `'r'` alone until the fifth Codex review
+ * of SEEN-008 (F29). A partitioned table added by a later migration would have
+ * been asked for neither a `tenant_id` column nor an enabled policy, and every
+ * hundred-per-cent sentence in this ticket would have gone on passing. F19's round
+ * widened the privilege half to the kinds below and wrote the tenancy half down as
+ * a limit it was not closing; this is that limit closed.
+ *
+ * A partition of a partitioned table is a relation in its own right and answers to
+ * `'r'`, so it is asked these questions on its own account rather than through its
+ * parent, and that is what the guarantee needs rather than an accident of the
+ * filter. Measured against the local stack in a rolled-back transaction: enabling
+ * row-level security on the parent leaves `relrowsecurity` false on the partition,
+ * the policy created on the parent is the parent's alone in `pg_policies`, and
+ * `authenticated` reading the partition directly with select granted on it sees
+ * both tenants' rows where the same role reading through the parent sees one
+ * tenant's. A partition therefore owes its own enabled policy, and asking every
+ * relation of kind `'r'` for one is how it is asked for.
+ */
+export const TABLE_RELKINDS: Readonly<Record<string, string>> = {
+  p: 'a partitioned table',
+  r: 'an ordinary table',
+};
+
+/**
+ * The relation kinds that hold rows and that this schema's tenancy cannot be
+ * expressed over at all, named the same way.
+ *
+ * Each of them is reachable through the Data API exactly as a table is, and none
+ * of them was looked at by anything this ticket wrote until the third Codex review
+ * of SEEN-008 (F19) measured what that costs on the two that matter:
  *
  * A **view** is not subject to the row-level security of the tables underneath it
  * unless it is created `with (security_invoker = true)`; by default it runs with
@@ -479,17 +512,28 @@ export const CLIENT_BOUND_ROLES = ['anon', 'authenticated'] as const;
  * there is no request for a policy to be applied to. That is why the rule for one
  * is not `security_invoker` but "not in the public schema".
  *
- * A **partitioned table** carries rows in its partitions and answers to `relkind
- * = 'p'`, so the tenancy guard would not have seen one either. A **foreign table**
- * is rows on another server with no policy of this database's on them.
+ * A **foreign table** is rows on another server, and a policy of this database is
+ * not what decides which of them a caller sees. It is in this list and not in
+ * `TABLE_RELKINDS` for that reason and not because it is harmless: asking one for
+ * a `tenant_id` column and an enabled policy would be asking for a guarantee this
+ * database cannot keep, so the rule for one is the same as for a materialised
+ * view, that a browser-bound role holds nothing on it.
  *
  * SEEN-046 and SEEN-024 are the tickets that will want exactly such a view.
  */
-export const ROW_BEARING_RELKINDS: Readonly<Record<string, string>> = {
+export const NON_TABLE_RELKINDS: Readonly<Record<string, string>> = {
   f: 'a foreign table',
   m: 'a materialised view',
-  p: 'a partitioned table',
   v: 'a view',
+};
+
+/**
+ * Both families in one lookup, for a failure message that has to name a relation
+ * without knowing which family the caller drew it from.
+ */
+export const RELKIND_NAMES: Readonly<Record<string, string>> = {
+  ...TABLE_RELKINDS,
+  ...NON_TABLE_RELKINDS,
 };
 
 /**

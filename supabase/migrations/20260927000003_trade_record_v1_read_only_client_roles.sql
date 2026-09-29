@@ -80,11 +80,20 @@ do $$
 declare
   target text;
 begin
+  -- The relation kinds this schema's tenancy is written on: an ordinary table is
+  -- `'r'` and a partitioned table is `'p'`. A partitioned table is read through
+  -- the Data API exactly as a table is and can carry an enabled policy, so it is
+  -- granted what a table is granted rather than stripped like the kinds below;
+  -- the fifth Codex review of SEEN-008 (F29) is that it was on the wrong side of
+  -- that line here and invisible to the tenancy guards altogether. Reading through
+  -- the parent is checked against the parent's privileges alone, measured on the
+  -- local stack, and reading a partition directly is checked against the
+  -- partition's own, so both are granted here: a partition answers to `'r'`.
   for target in
     select c.relname
       from pg_catalog.pg_class c
       join pg_catalog.pg_namespace n on n.oid = c.relnamespace
-     where n.nspname = 'public' and c.relkind = 'r'
+     where n.nspname = 'public' and c.relkind in ('p', 'r')
      order by c.relname
   loop
     -- Everything, whatever granted it: the default privileges Supabase holds on
@@ -112,13 +121,13 @@ begin
     end if;
   end loop;
 
-  -- And the relations in this schema that are not ordinary tables, which the loop
-  -- above cannot reach because `relkind = 'r'` is a table and nothing else. A view
-  -- answers to `'v'`, a materialised view to `'m'`, a partitioned table to `'p'`
-  -- and a foreign table to `'f'`, all four hold rows, all four are served through
-  -- the Data API exactly as a table is, and none of them is subject to row-level
-  -- security the way the twenty-nine above are: a view only if it was created
-  -- `with (security_invoker = true)`, a materialised view never. So they are
+  -- And the relations in this schema that no policy of this database governs,
+  -- which the loop above deliberately does not reach. A view answers to `'v'`, a
+  -- materialised view to `'m'` and a foreign table to `'f'`, all three hold rows,
+  -- all three are served through the Data API exactly as a table is, and none of
+  -- them is subject to row-level security the way the twenty-nine above are: a
+  -- view only if it was created `with (security_invoker = true)`, a materialised
+  -- view never, and a foreign table's rows are on another server. So they are
   -- stripped rather than granted, and a later migration that wants to publish one
   -- writes its own grant and says why.
   --
@@ -131,7 +140,7 @@ begin
     select c.relname
       from pg_catalog.pg_class c
       join pg_catalog.pg_namespace n on n.oid = c.relnamespace
-     where n.nspname = 'public' and c.relkind in ('f', 'm', 'p', 'v')
+     where n.nspname = 'public' and c.relkind in ('f', 'm', 'v')
      order by c.relname
   loop
     execute format('revoke all privileges on public.%I from anon, authenticated', target);
@@ -170,9 +179,13 @@ begin
        a.grantee = 'anon'::regrole
        -- `authenticated` reads a table and holds nothing else anywhere. On a
        -- relation that is not a table it does not even read: a select there is a
-       -- read that row-level security may never have been applied to.
+       -- read that row-level security may never have been applied to. A
+       -- partitioned table is a table for this purpose and an ordinary one is, and
+       -- the two lists have to agree: the loop above grants select on both, so a
+       -- check that exempted only `'r'` would raise on the grant it had just
+       -- written (F29).
        or (a.grantee = 'authenticated'::regrole
-           and (a.privilege_type <> 'SELECT' or c.relkind <> 'r'))
+           and (a.privilege_type <> 'SELECT' or c.relkind not in ('p', 'r')))
        or (c.relname = 'audit_events' and a.privilege_type in ('UPDATE', 'DELETE', 'TRUNCATE'))
      );
 

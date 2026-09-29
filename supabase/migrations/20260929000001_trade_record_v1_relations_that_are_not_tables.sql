@@ -1,5 +1,6 @@
--- Trade record v1, part 6 of 8: nothing relation-shaped is born reachable, and a
--- view has to read its base tables as the caller. SEEN-008, F19.
+-- Trade record v1, part 6 of 8: nothing relation-shaped is born reachable, a view
+-- has to read its base tables as the caller, and a table owes the tenancy whichever
+-- of the two kinds of table it is. SEEN-008, F19 and F29.
 --
 -- What parts 1 to 5 secured and what they all stopped short of. Every tenancy,
 -- privilege and append-only guarantee this ticket writes is expressed over
@@ -31,6 +32,17 @@
 -- copy of the rows its owner could see when it was refreshed, so there is no
 -- request for a policy to be applied to, and the rule for one is therefore not how
 -- to create it but that it does not belong in a schema the Data API serves.
+--
+-- A fifth review came back to the same sentence from the other end. Of the four
+-- kinds, one is a table: a partitioned table answers to `relkind = 'p'`, holds its
+-- rows in its partitions, and can carry the whole of this schema's tenancy,
+-- because `enable row level security` and `create policy` are both accepted on one
+-- and the policy is applied to every row a query through the parent returns. F19
+-- widened the privilege half to all four kinds and wrote the tenancy half down as
+-- a limit it was not closing; F29 is that limit, and the rule for a partitioned
+-- table below is where it is closed. So this file now carries two rules and not
+-- one: what a relation this schema's policies cannot govern may hold, and what a
+-- table owes whichever of the two kinds of table it is.
 --
 -- Forward only, as parts 1 to 5: the local stack is reset rather than rolled back.
 
@@ -102,15 +114,21 @@ do $$
 declare
   offenders text;
 begin
-  -- Anything relation-shaped that is not an ordinary table is stripped of every
-  -- privilege the two browser-bound roles could hold on it, whatever granted it.
-  -- A no-op today, and the statement rather than the comment is what stays true
-  -- when this migration is re-applied against a schema that has one.
+  -- Anything relation-shaped whose rows no policy of this database governs is
+  -- stripped of every privilege the two browser-bound roles could hold on it,
+  -- whatever granted it. A no-op today, and the statement rather than the comment
+  -- is what stays true when this migration is re-applied against a schema that has
+  -- one.
+  --
+  -- A partitioned table is not in this set and was until F29. Stripping one would
+  -- undo the select part 4 grants it as a table and leave the product unable to
+  -- read its own record through it; what a partitioned table owes is the rule
+  -- below, which is the rule every other table is held to.
   for offenders in
     select c.relname
       from pg_catalog.pg_class c
       join pg_catalog.pg_namespace n on n.oid = c.relnamespace
-     where n.nspname = 'public' and c.relkind in ('f', 'm', 'p', 'v')
+     where n.nspname = 'public' and c.relkind in ('f', 'm', 'v')
      order by c.relname
   loop
     execute format('revoke all privileges on public.%I from anon, authenticated', offenders);
@@ -147,6 +165,92 @@ begin
     raise exception 'a materialised view is in schema public, and row-level security can never '
       'apply to one: it is a stored copy of the rows its owner could see. Put it in a schema the '
       'Data API does not serve, or make it a view with security_invoker: %', offenders;
+  end if;
+end;
+$$;
+
+-- The rule for a partitioned table -----------------------------------------
+--
+-- The three kinds above are told where they may be and what they may not hold,
+-- because this schema's tenancy cannot be expressed over any of them. A
+-- partitioned table is the one kind in F19's list of four that it can: `enable row
+-- level security` and `create policy` are both accepted on one and the policy is
+-- applied to every row a query through the parent returns. So the rule for one is
+-- not that it stays out of this schema but that it owes exactly what every other
+-- table owes, and the fifth Codex review of SEEN-008 (F29) is that nothing asked
+-- it for any of it. The do-loops in parts 1 to 3 enable row-level security on the
+-- tables they name, part 4's loop read `relkind = 'r'`, and so did every guard in
+-- packages/core/db/schema.test.ts, so a partitioned table added by a later
+-- migration would have carried no tenant_id, no enabled policy and no failing
+-- test, with criterion 2's "100% of them" still reading as a pass.
+--
+-- A partition is a relation of kind `'r'` and is therefore a row of this check in
+-- its own right rather than something its parent covers, and it has to be.
+-- Measured on this stack in a rolled-back transaction: enabling row-level security
+-- on the parent leaves `relrowsecurity` false on the partition, the policy created
+-- on the parent is the parent's alone in `pg_policies`, and `authenticated`
+-- granted select on the partition reads both tenants' rows through it where the
+-- same role reading through the parent reads one tenant's. The privilege half is
+-- closed by default in that case and the policy half is not, which is why the
+-- check below asks each relation for its own tenant_id, its own enabled
+-- row-level security and its own permissive policy.
+--
+-- What this check cannot do, stated rather than left to be assumed. It sees the
+-- schema as it stands when this migration runs, so a partitioned table added by a
+-- later ticket's migration is caught by packages/core/db/schema.test.ts on the
+-- next run of the suite and not by this file at the moment it is created. Only an
+-- event trigger would refuse it there, and this migration declines one above for
+-- the reason it gives: it would fire on every later ticket's DDL in a schema this
+-- ticket does not own the future of.
+do $$
+declare
+  offenders text;
+begin
+  select string_agg(format('%s, %s, %s', name, kind, problems), '; ' order by name)
+    into offenders
+    from (
+      select c.relname as name,
+             case c.relkind when 'p' then 'a partitioned table' else 'an ordinary table' end
+               as kind,
+             concat_ws(' and ',
+               case when not exists (
+                 select 1 from pg_catalog.pg_attribute a
+                  where a.attrelid = c.oid and a.attname = 'tenant_id'
+                    and a.attnum > 0 and not a.attisdropped
+               ) then 'carries no tenant_id column' end,
+               case when not c.relrowsecurity
+                 then 'does not have row-level security enabled' end,
+               -- The permissive policies are the ones that decide what a role may
+               -- see: row-level security ORs them together, and a table with none
+               -- of them shows an ordinary role nothing at all, which is a denial
+               -- rather than a tenancy. A restrictive policy can only narrow, so
+               -- it is not what this asks for.
+               case when not exists (
+                 select 1 from pg_catalog.pg_policy p
+                  where p.polrelid = c.oid and p.polpermissive
+               ) then 'carries no permissive policy' end) as problems
+        from pg_catalog.pg_class c
+        join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+       where n.nspname = 'public' and c.relkind in ('p', 'r')
+    ) as checked
+   where problems <> '';
+
+  if offenders is not null then
+    raise exception 'a table in schema public does not carry the tenancy every table in this '
+      'schema owes, so a row in it belongs to no tenant or is shown to every tenant: %', offenders;
+  end if;
+
+  -- And not vacuously: a check of the shape "the tables failing this are none"
+  -- passes against a schema with no tables, which is how record 8 of this ticket
+  -- read an empty database as a pass.
+  if not exists (
+    select 1
+      from pg_catalog.pg_class c
+      join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+     where n.nspname = 'public' and c.relkind in ('p', 'r')
+  ) then
+    raise exception 'there is not one table in schema public, so the tenancy check above proves '
+      'nothing about this schema and parts 1 to 3 of this set cannot have run';
   end if;
 end;
 $$;
