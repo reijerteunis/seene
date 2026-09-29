@@ -1,0 +1,73 @@
+{
+  "sequence": 121,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-29T20:43:31.395630+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 8,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "ce4f315cd8460953b014ea251e7d6fda676e6354",
+  "prev_hash": "241b8a6838ceee4d0013ed36d4f790c9ca12fec17e17080eefea0be92126fa7e",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": null,
+          "behaviour": "F19: a relation in public that is not a table cannot be born reachable. Part 6 revokes the default privileges for role postgres, strips any non-table relation of client-bound privileges, and raises on a view without security_invoker or on any materialised view in public; part 4's revoke loop and self-check now read all five row-bearing kinds.",
+          "failure_reason": "`pnpm --filter @seen/core test` exited 1: \"A view over public.shipments, which holds buyer name and buyer address, handed another tenant's buyer data to 2 of the 2 roles a browser request is bound to, while the same roles are refused the table itself\", and \"16 default privileges stand on schema public, so every table, view and materialised view a later migration creates there is born holding them\".",
+          "red": 90,
+          "green": 91
+        },
+        {
+          "position": null,
+          "behaviour": "F20: every column that can hold a sentence is classified rather than matched by name. Part 7 carries 114 column comments; nine columns are buyer PII, including claims.claim_text, messages.body and message_threads.subject, and 111 say why a buyer's name and address cannot reach them.",
+          "failure_reason": "`pnpm --filter @seen/core test` exited 1: \"114 of the 120 columns in schema public that can hold a sentence say neither that they hold buyer data nor why a buyer's name and address cannot reach them, so SEEN-083 cannot know which of them it has to expire\", naming every candidate, so it could not be cleared by adding three names to a list.",
+          "red": 95,
+          "green": 96
+        },
+        {
+          "position": null,
+          "behaviour": "F21: an erased tenant id is spent. Part 8 adds seen.erased_tenants, a tombstone of tenant_id and erased_at and nothing else, written after a delete on public.tenants, with an insert carrying a tombstoned id refused and the registry itself append-only for every role including the owner.",
+          "failure_reason": "`pnpm --filter @seen/core test` exited 1: \"An erased tenant id was inserted again, leaving 1 tenant row standing with 0 audit events behind it, so the erasure of that tenant is indistinguishable from no erasure having happened, where a refusal (23001) is what keeps the id spent and the erasure legible\".",
+          "red": 99,
+          "green": 100
+        },
+        {
+          "position": null,
+          "behaviour": "F23 and F22: the append-only exception asks whether the tenant is gone rather than whether it is visible, seen.refuse_audit_mutation now being security definer; and the stated reason for the eight column-list set-null keys is corrected to the one that reproduces, the ordinary parent-row delete.",
+          "failure_reason": "`pnpm --filter @seen/core test` exited 1: \"A role a request can be bound to asked to delete an audit event of a tenant that is there, carrying that tenant's own claim, and the database answered accepted, leaving 0 audit events. The caller could see 0 of the 1 tenant rows that exist, so an exception branch that reads invisibility as absence stood open.\"",
+          "red": 103,
+          "green": 105
+        },
+        {
+          "position": null,
+          "behaviour": "F24: why a restricting key is excluded is corrected in all four places that carried the claim, to the ordinary parent-row delete rather than a tenant's erasure, with a new test measuring what a restricting key actually does. Excluding restrict is unchanged and still enforced.",
+          "failure_reason": "`pnpm --filter @seen/core test` exited 1 with the claim encoded as behaviour rather than matched as text: \"With `on delete restrict` in place of the key a claim is credited by, deleting the settlement line answered 23503 and erasing the tenant answered accepted\", against an expected 23503.",
+          "red": 108,
+          "green": 110
+        },
+        {
+          "position": null,
+          "behaviour": "F25: the suite runs its test files one at a time, because they share one database, and the fixtures that erased a tenant now roll back so they leave no tombstone. fileParallelism is false with the hazard named in a comment.",
+          "failure_reason": "`pnpm --filter @seen/core test` exited 1 with 5 of 6 files failing: the configuration assertion, \"runs its test files one at a time, because they share one database: expected undefined to be false\", and eight afterAll failures of the form \"Tenants this file created are tombstoned in the erasure registry, so its fixtures erased them outside a transaction and nothing can take those rows back\".",
+          "red": 113,
+          "green": 114
+        }
+      ],
+      "regression": 118,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "a00943ab9615",
+      "output_tokens": 1581210,
+      "tool_calls": 868,
+      "unavailable": null
+    }
+  }
+}

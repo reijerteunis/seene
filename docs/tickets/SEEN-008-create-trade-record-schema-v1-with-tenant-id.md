@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-006, SEEN-092, SEEN-094]
-status: doing
+status: review
 ---
 # SEEN-008: Create trade-record schema v1 with tenant_id and RLS on every table
 
@@ -23,7 +23,7 @@ status: doing
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | doing |
+| Status | review |
 
 ## Description
 
@@ -31,11 +31,11 @@ Write the Supabase migration for trade-record schema v1 in packages/core/db: ten
 
 ## Acceptance criteria
 
-- [ ] Migration applies on an empty database and pnpm db:reset re-applies it without error
-- [ ] A test that lists every table in the public schema finds tenant_id and an enabled RLS policy on 100% of them
-- [ ] A query with tenant A's JWT returns zero rows from tenant B's orders in an integration test
-- [ ] Unique index on (tenant_id, marketplace, external_id) exists on orders, shipments, returns, settlements and settlement_lines
-- [ ] marketplaces seed contains the six marketplaces with capability flags matching the routing table in architecture.md
+- [x] Migration applies on an empty database and pnpm db:reset re-applies it without error
+- [x] A test that lists every table in the public schema finds tenant_id and an enabled RLS policy on 100% of them
+- [x] A query with tenant A's JWT returns zero rows from tenant B's orders in an integration test
+- [x] Unique index on (tenant_id, marketplace, external_id) exists on orders, shipments, returns, settlements and settlement_lines
+- [x] marketplaces seed contains the six marketplaces with capability flags matching the routing table in architecture.md
 
 ## Outcome
 
