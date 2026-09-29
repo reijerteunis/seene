@@ -1,0 +1,31 @@
+{
+  "sequence": 86,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-29T05:59:39.489241+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "review",
+  "attempt": 7,
+  "actor": "claude:reviewer",
+  "session": "a00943ab9615",
+  "head": "e65446aa006ee1f3228defa6f7e144c50b6668aa",
+  "prev_hash": "1c184b85e663ee85f22b31bf29f689c5723836b99aea325c9f52e2f13dfcfbaf",
+  "data": {
+    "command": [
+      "bash",
+      "-c",
+      "pnpm lint && pnpm --filter @seen/core test"
+    ],
+    "phase": "qa",
+    "exit_code": 0,
+    "model": "claude-opus-5",
+    "model_declared": null,
+    "agent_declared": null,
+    "duration_ms": 1557,
+    "output": "\n> seen@ lint /Users/ruudvanengelenhoven/Development/seene\n> turbo run lint\n\n• turbo 2.11.3\n\n   • Packages in scope: @seen/agent, @seen/api, @seen/connectors, @seen/core, @seen/providers, @seen/web, @seen/worker\n   • Running lint in 7 packages\n   • Remote caching disabled\n\n@seen/providers:lint: cache hit, replaying logs 92f4c52cc4119e9b\n@seen/core:lint: cache hit, replaying logs c0c4194b4f77395f\n@seen/agent:lint: cache hit, replaying logs 552d6d8a04f6c416\n@seen/api:lint: cache hit, replaying logs 32c9ac87524ffd15\n@seen/worker:lint: cache hit, replaying logs 6487c3dfec1be4c3\n@seen/connectors:lint: cache hit, replaying logs 9844af0f3258f9c5\n@seen/web:lint: cache hit, replaying logs 516ac35b22c02967\n@seen/providers:lint: \n@seen/providers:lint: > @seen/providers@0.0.0 lint /Users/ruudvanengelenhoven/Development/seene/packages/providers\n@seen/providers:lint: > eslint src\n@seen/providers:lint: \n@seen/core:lint: \n@seen/core:lint: > @seen/core@0.0.0 lint /Users/ruudvanengelenhoven/Development/seene/packages/core\n@seen/worker:lint: \n@seen/worker:lint: > @seen/worker@0.0.0 lint /Users/ruudvanengelenhoven/Development/seene/apps/worker\n@seen/worker:lint: > eslint src\n@seen/worker:lint: \n@seen/core:lint: > eslint src db\n@seen/core:lint: \n@seen/api:lint: \n@seen/api:lint: > @seen/api@0.0.0 lint /Users/ruudvanengelenhoven/Development/seene/apps/api\n@seen/api:lint: > eslint src\n@seen/api:lint: \n@seen/web:lint: \n@seen/web:lint: > @seen/web@0.0.0 lint /Users/ruudvanengelenhoven/Development/seene/apps/web\n@seen/web:lint: > eslint app src\n@seen/web:lint: \n@seen/agent:lint: \n@seen/agent:lint: > @seen/agent@0.0.0 lint /Users/ruudvanengelenhoven/Development/seene/packages/agent\n@seen/agent:lint: > eslint src\n@seen/agent:lint: \n@seen/connectors:lint: \n@seen/connectors:lint: > @seen/connectors@0.0.0 lint /Users/ruudvanengelenhoven/Development/seene/packages/connectors\n@seen/connectors:lint: > eslint src\n@seen/connectors:lint: \n\n Tasks:    7 successful, 7 total\nCached:    7 cached, 7 total\n  Time:    29ms >>> FULL TURBO\n\n\n> @seen/core@0.0.0 test /Users/ruudvanengelenhoven/Development/seene/packages/core\n> vitest run\n\n\n RUN  v3.2.7 /Users/ruudvanengelenhoven/Development/seene/packages/core\n\n ✓ src/index.test.ts (3 tests) 1ms\n ✓ db/marketplaces.test.ts (9 tests) 62ms\n ✓ db/uniqueness.test.ts (15 tests) 72ms\n• turbo 2.11.3\n• turbo 2.11.3\n ✓ db/schema.test.ts (26 tests) 229ms\n ✓ db/rls.test.ts (23 tests) 387ms\n\n Test Files  5 passed (5)\n      Tests  76 passed (76)\n   Start at  07:59:38\n   Duration  648ms (transform 123ms, setup 0ms, collect 269ms, tests 751ms, environment 0ms, prepare 194ms)\n\n",
+    "output_sha256": "9508113daef5583a78836b2f183e453a0df107ee25158c84fc092ed5e7fd6d29",
+    "output_truncated": false,
+    "before": "58938eb50416b206166e61672f16a4f7ac6adce87a47e40465456c227e5c86ac",
+    "after": "58938eb50416b206166e61672f16a4f7ac6adce87a47e40465456c227e5c86ac"
+  }
+}
