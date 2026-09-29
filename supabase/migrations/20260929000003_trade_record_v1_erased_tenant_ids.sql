@@ -44,6 +44,16 @@
 -- returned id fail on the primary key, which turned a reversible erasure into an
 -- erasure that could not be performed at all.
 --
+-- And the two sides cannot interleave. F28 found the refusal resting on a read,
+-- and a read at read committed answers from a snapshot, which holds nothing an
+-- uncommitted transaction has written. So one session could check the registry and
+-- find it empty because the tombstone was still another session's, wait on the
+-- primary key while that session finished erasing, and insert the id the moment the
+-- key came free: live and tombstoned at once, from two ordinary statements in two
+-- ordinary sessions. Both sides now take the same transaction-scoped advisory lock
+-- on the id before they touch it, so the check cannot run inside the window the
+-- erasure is open. What that costs and what it was chosen over is beside the lock.
+--
 -- The erasure itself is untouched and stays untouched. Deletion on request is a
 -- promise this schema has to keep, and a fix that made a tenant undeletable, or
 -- that held its audit events back from the cascade, would be a worse defect than
@@ -112,6 +122,98 @@ alter table seen.erased_tenants enable row level security;
 -- inference from a default that a later `alter default privileges` could change.
 revoke all on seen.erased_tenants from anon, authenticated, service_role;
 
+-- The lock the erasure and the refusal share -------------------------------------
+--
+-- F28, and what it is for. The refusal below asks whether a tombstone exists, and
+-- an existence test is a read of a snapshot. At read committed, which is Postgres's
+-- default and what the API and the workers run at, that snapshot holds nothing an
+-- uncommitted transaction has written. Measured against this stack on two
+-- connections as `service_role`: session A deletes the tenant and does not commit,
+-- session B inserts the same id, B's check finds no tombstone because A's is
+-- invisible to it, B then waits on the primary key against the row A is deleting, A
+-- commits, and B's insert succeeds. Neither session did anything unusual and
+-- neither one was refused.
+--
+-- The mechanism. Both sides take a transaction-scoped advisory lock keyed on the id
+-- before they do anything with it, through this one function so that the two can
+-- never drift onto different keys, which would be a fix that reads correct and
+-- locks nothing. The erasure takes it before the row goes and holds it to commit;
+-- the refusal takes it before it reads the registry. A refusal that would have read
+-- a stale snapshot therefore waits for the erasure to finish first, and the reason
+-- waiting helps is that the check is a separate statement inside a volatile
+-- function and so takes its own snapshot when it finally runs: it sees the tombstone
+-- the wait was spent on rather than the absence it started with.
+--
+-- What it costs, because a lock that serialised every tenant write would be a real
+-- price and should be a decision rather than an accident. The key is the id and not
+-- the table, so two tenants being written at the same moment never wait on each
+-- other. What serialises is an insert and an erasure of the same id, which is
+-- exactly the pair that must not interleave, and a refusal that waits is one that
+-- was going to refuse anyway. The second half of the key is a 32-bit digest, so two
+-- unrelated ids can share it: the price of a collision is a wait between two writes
+-- that had nothing to do with each other, never a wrong answer, because the registry
+-- is still read by the id itself and not by the digest. The lock is transaction
+-- scoped, so no path can leak one and a session that dies releases it by dying.
+--
+-- Why the erasure takes it before the delete rather than beside the tombstone. The
+-- tombstone is written after the row has gone, and a lock taken there is taken after
+-- the row is marked deleted: a second session that had already reached the primary
+-- key would be waiting on the erasure's transaction while the erasure waited on that
+-- session's advisory lock, and Postgres would break the cycle by refusing one of
+-- them with 40P01. Taken before the row is touched, the two sides always queue in
+-- the same order and only ever wait.
+--
+-- What was rejected. Asking the registry again in an `after insert` trigger costs no
+-- lock at all and would close this interleaving, because by then the insert has
+-- waited the erasure out; it was rejected because it is true only at read committed.
+-- Under repeatable read the transaction has one snapshot for its whole life, the
+-- second ask reads the same stale rows as the first, and the guarantee fails open
+-- silently in an isolation level a later application might reasonably choose.
+-- Making the registry authoritative through a constraint rather than a read was the
+-- other candidate: a table of every id ever issued, referenced by public.tenants,
+-- turns the check into a row lock the database takes without being asked. It was
+-- rejected because that table holds the ids of living tenants rather than only spent
+-- ones, which is a different table with a different meaning and a different privacy
+-- story, and because marking a row erased is an update, so the registry would have
+-- to stop being append-only to carry it. Raising the isolation level was not a
+-- candidate at all: this schema cannot decide what its callers run at.
+create or replace function seen.lock_tenant_id(id uuid)
+returns void
+language sql
+set search_path = ''
+as $$
+  select pg_advisory_xact_lock(
+    ('x' || substr(md5('seen.erased_tenants'), 1, 8))::bit(32)::int,
+    ('x' || substr(md5(id::text), 1, 8))::bit(32)::int);
+$$;
+
+comment on function seen.lock_tenant_id(uuid) is
+  'Takes the transaction-scoped advisory lock that an erasure and an insert of the same tenant id '
+  'queue on, so that the registry is never read inside the window another session is erasing that '
+  'id in. Keyed on the id, so writes of different tenants do not wait on each other.';
+
+-- Security definer for the reason the two functions below are: the lock function is
+-- revoked from public, and a call by name from inside a trigger running as
+-- `service_role` would be refused where a call from the owner is not.
+create or replace function seen.lock_tenant_id_for_erasure()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  perform seen.lock_tenant_id(old.tenant_id);
+  return old;
+end;
+$$;
+
+comment on function seen.lock_tenant_id_for_erasure() is
+  'Takes the tenant id''s advisory lock before the tenant row is deleted, so that an insert of the '
+  'same id cannot read the erasure registry while this erasure is uncommitted.';
+
+create trigger lock_before_erasure before delete on public.tenants
+  for each row execute function seen.lock_tenant_id_for_erasure();
+
 -- The tombstone is written by the erasure ---------------------------------------
 --
 -- Security definer, and that is the point rather than a convenience: the role that
@@ -164,6 +266,11 @@ create trigger record_erasure after delete on public.tenants
 -- rather than what is there, and a caller who can see nothing would be told the id
 -- is free. An existence test that is really a visibility test is the failure mode
 -- worth naming here, because it fails open and it fails silently.
+--
+-- And F28 is the same failure mode in time rather than in privilege: an existence
+-- test is also a test of what has committed. The lock comes first for that reason
+-- and is a statement of its own, because the check that follows it is what takes the
+-- fresh snapshot the waiting was for.
 create or replace function seen.refuse_erased_tenant_id()
 returns trigger
 language plpgsql
@@ -171,6 +278,8 @@ security definer
 set search_path = ''
 as $$
 begin
+  perform seen.lock_tenant_id(new.tenant_id);
+
   if exists (
     select 1 from seen.erased_tenants e where e.tenant_id = new.tenant_id
   ) then
@@ -252,6 +361,8 @@ create trigger refuse_tenant_id_change before update on public.tenants
 -- No function here is callable except through its trigger and this migration, as
 -- seen.seed_marketplaces is not: a security definer function reachable by name is
 -- a privilege handed to whoever can name it.
+revoke all on function seen.lock_tenant_id(uuid) from public;
+revoke all on function seen.lock_tenant_id_for_erasure() from public;
 revoke all on function seen.record_tenant_erasure() from public;
 revoke all on function seen.refuse_erased_tenant_id() from public;
 revoke all on function seen.refuse_tenant_id_change() from public;
@@ -320,13 +431,15 @@ begin
   if not exists (
     select 1 from pg_catalog.pg_trigger
      where tgrelid = 'public.tenants'::regclass and not tgisinternal
-       and tgname in ('record_erasure', 'refuse_erased_tenant_id', 'refuse_tenant_id_change')
-     group by tgrelid having count(*) = 3
+       and tgname in ('lock_before_erasure', 'record_erasure', 'refuse_erased_tenant_id',
+                      'refuse_tenant_id_change')
+     group by tgrelid having count(*) = 4
   ) then
-    raise exception 'public.tenants does not carry all three of the trigger that writes a '
-      'tombstone, the trigger that refuses a tombstoned id on insert and the trigger that '
-      'refuses any change of tenant_id, so an erasure is still reversible by one route or the '
-      'other';
+    raise exception 'public.tenants does not carry all four of the trigger that locks the id '
+      'before an erasure, the trigger that writes a tombstone, the trigger that refuses a '
+      'tombstoned id on insert and the trigger that refuses any change of tenant_id, so an '
+      'erasure is still reversible by one route or another, or is still raceable by two '
+      'sessions';
   end if;
 
   if not has_table_privilege('service_role', 'public.tenants', 'delete') then

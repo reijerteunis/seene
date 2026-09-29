@@ -1906,6 +1906,186 @@ describe('the tenant id an erasure has consumed', () => {
 });
 
 /**
+ * F28: the refusal above rests on a read, and a read does not see an erasure that
+ * has not committed yet.
+ *
+ * `seen.refuse_erased_tenant_id` asks whether a tombstone exists. At read
+ * committed, which is what Postgres defaults to and what the API and the workers
+ * run at, that question is answered from a snapshot, and a snapshot holds no row
+ * a concurrent transaction has written and not committed. So two sessions can
+ * interleave like this:
+ *
+ *   1. A deletes the tenant. The after-delete trigger writes the tombstone. A has
+ *      not committed.
+ *   2. B inserts a tenant carrying the same id. The existence check sees no
+ *      tombstone, because A's is invisible to it, and lets the insert through.
+ *   3. B's insert reaches the primary key, where the row is being deleted by A and
+ *      not yet committed, so B waits.
+ *   4. A commits. The row is gone and the tombstone stands.
+ *   5. B wakes, the key is free, and the insert succeeds.
+ *
+ * The id is then live and tombstoned at once, which is the state the whole of part
+ * 8 exists to make impossible, reached without disabling a trigger or holding the
+ * database: two ordinary statements from two ordinary sessions.
+ *
+ * Two connections, because one cannot say this. A check that passes because
+ * another transaction has not committed yet has no single-transaction form: inside
+ * one transaction the delete and the insert see each other, and the refusal fires.
+ * So the timing is forced rather than hoped for. B's insert is issued without being
+ * waited on, and the test then watches `pg_stat_activity` until Postgres reports
+ * B's backend waiting on a lock, which is the proof that B is inside the insert and
+ * past its guard; only then does A commit. If B never blocks the wait raises rather
+ * than carrying on, because a run in which the interleaving did not happen proves
+ * nothing and must not read as a pass.
+ *
+ * This is the one block here whose fixtures are committed, and it has to be: an
+ * erasure that is rolled back is not an erasure another session can race. It
+ * therefore leaves a tombstone in the registry on every run, permanently, as part 8
+ * intends and `assertNoTombstones` describes. That is hygiene and not correctness,
+ * for the same reason given there: every id is server-generated and never supplied,
+ * so nothing a later run creates can collide with one.
+ */
+describe('a tenant id being erased by one session while another inserts it', () => {
+  /** How long the second session is given to reach its lock wait. It is reached in
+   * milliseconds; the allowance is for a loaded machine, not for a hope. */
+  const BLOCKED_WITHIN_MS = 10_000;
+
+  let erasing: Client;
+  let inserting: Client;
+  let observer: Client;
+  let insertingPid: number;
+
+  /** What Postgres says the second session's backend is doing, as one string. */
+  async function backendState(pid: number): Promise<string> {
+    const { rows } = await observer.query<{
+      state: string | null; kind: string | null; event: string | null;
+    }>(
+      `select state, wait_event_type as kind, wait_event as event
+         from pg_catalog.pg_stat_activity where pid = $1`,
+      [pid],
+    );
+    const row = rows[0];
+    if (!row) return 'gone';
+    return `${row.state ?? 'no state'}, waiting on ${row.kind ?? 'nothing'}/${row.event ?? '-'}`;
+  }
+
+  /** Blocks until the second session is waiting on a lock, and answers what it is
+   * waiting on. Raises rather than returning when it never blocks, because the
+   * interleaving is the whole of what this test measures. */
+  async function waitUntilBlocked(pid: number): Promise<string> {
+    const deadline = Date.now() + BLOCKED_WITHIN_MS;
+    let last = 'nothing at all';
+    while (Date.now() < deadline) {
+      const { rows } = await observer.query<{ kind: string | null; event: string | null }>(
+        `select wait_event_type as kind, wait_event as event
+           from pg_catalog.pg_stat_activity where pid = $1`,
+        [pid],
+      );
+      const row = rows[0];
+      if (row?.kind === 'Lock') return `${row.kind}/${row.event ?? '-'}`;
+      last = await backendState(pid);
+      await new Promise((resume) => { setTimeout(resume, 20); });
+    }
+    throw new Error(
+      `The second session never blocked within ${BLOCKED_WITHIN_MS}ms, so it did not attempt its `
+      + 'insert while the erasure was uncommitted and this test proves nothing about the race. '
+      + `Postgres reported its backend as: ${last}.`,
+    );
+  }
+
+  /** A committed tenant, because an erasure that is rolled back is not one another
+   * session can race. */
+  async function seedCommitted(name: string): Promise<string> {
+    const { rows } = await observer.query<{ tenant_id: string }>(
+      'insert into public.tenants (name) values ($1) returning tenant_id',
+      [name],
+    );
+    return rows[0].tenant_id;
+  }
+
+  /** How many rows of `relation` carry this id, read on the third connection so
+   * that neither session's open transaction decides the answer. */
+  async function rowsFor(relation: string, tenant: string): Promise<number> {
+    const { rows } = await observer.query<{ total: string }>(
+      `select count(*) as total from ${relation} where tenant_id = $1`,
+      [tenant],
+    );
+    return Number(rows[0].total);
+  }
+
+  beforeAll(async () => {
+    [erasing, inserting, observer] = await Promise.all([connect(), connect(), connect()]);
+    const present = await tablesIn(observer, 'public');
+    if (!present.includes('tenants')) {
+      throw new Error(
+        'This test cannot say anything about two sessions racing over a tenant id: '
+        + 'public.tenants does not exist. Apply the trade record migrations with `pnpm db:reset`.',
+      );
+    }
+    const { rows } = await inserting.query<{ pid: number }>('select pg_backend_pid() as pid');
+    insertingPid = rows[0].pid;
+  });
+
+  afterAll(async () => {
+    await Promise.all([erasing?.end(), inserting?.end(), observer?.end()]);
+  });
+
+  it('is refused the insert that passed its guard before the erasure committed', async () => {
+    const tenant = await seedCommitted('Tenant erased while a second session inserts it');
+    let theInsert = 'not attempted';
+    let waitedOn = 'not observed';
+    let measured: Record<string, unknown> = {};
+    try {
+      await erasing.query('begin');
+      await erasing.query('set local role service_role');
+      await erasing.query('delete from public.tenants where tenant_id = $1', [tenant]);
+
+      await inserting.query('begin');
+      await inserting.query('set local role service_role');
+      // So that a fix which blocks for ever fails as a lock wait rather than as a
+      // test that hangs. Longer than the erasure is ever held for here.
+      await inserting.query("set local lock_timeout = '30s'");
+      // Deliberately not awaited: it has to be in flight while the erasure is
+      // uncommitted. The outcome is captured on the promise itself, so a refusal
+      // is a value this test reads rather than an unhandled rejection.
+      const attempt = inserting
+        .query('insert into public.tenants (tenant_id, name) values ($1, $2)',
+          [tenant, 'Tenant put back by the second session'])
+        .then(() => 'accepted')
+        .catch((error) => (error as { code?: string }).code ?? (error as Error).message);
+
+      waitedOn = await waitUntilBlocked(insertingPid);
+      await erasing.query('commit');
+      theInsert = await attempt;
+      await inserting.query(theInsert === 'accepted' ? 'commit' : 'rollback');
+
+      measured = {
+        theInsert,
+        liveRowsAfterwards: await rowsFor('public.tenants', tenant),
+        tombstones: await rowsFor(ERASURE_REGISTRY_TABLE, tenant),
+      };
+    } finally {
+      await erasing.query('rollback').catch(() => undefined);
+      await inserting.query('rollback').catch(() => undefined);
+      await observer
+        .query('delete from public.tenants where tenant_id = $1', [tenant])
+        .catch(() => undefined);
+    }
+    expect(
+      measured,
+      `The second session's insert of an id the first session was erasing was ${theInsert}, `
+      + `leaving ${measured.liveRowsAfterwards} tenant rows carrying that id and `
+      + `${measured.tombstones} tombstones for it. The interleaving was forced rather than `
+      + `hoped for: Postgres reported the second session waiting on ${waitedOn} while the `
+      + 'erasure was uncommitted, and the erasure committed only once it was. A refusal (23001) '
+      + 'is the only answer that keeps the id from being live and tombstoned at once; an '
+      + 'accepted insert is the existence check reading a snapshot taken before the erasure it '
+      + 'exists to see',
+    ).toEqual({ theInsert: '23001', liveRowsAfterwards: 0, tombstones: 1 });
+  }, 40_000);
+});
+
+/**
  * CODEX-01: a foreign key that references the parent's id alone lets a child row
  * name a parent belonging to another tenant, and the cascade then carries one
  * tenant's erasure into another tenant's trade record.
