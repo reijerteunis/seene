@@ -1,0 +1,70 @@
+{
+  "sequence": 124,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-29T20:58:35.726057+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 8,
+  "actor": "codex:reviewer",
+  "session": "a00943ab9615",
+  "head": "53b7df0c2c1bbe730e0e3fff9dba66d569093f29",
+  "prev_hash": "7e8e286be9822eb5212ca9fa123fe63d6f9173ea0a3facf70c5ca1914e88f66b",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 9,
+    "reason": "Fifth Codex review, and the first of its rounds whose sandbox reached Postgres: it built a disposable database and executed against it, so these findings are run rather than derived. Five new, all medium, F27 to F31. Criterion 2 is recorded unmet with --unmet 2 because the review's own acceptance evidence says 'Criterion 2: UNMET' while the record's unmet_criteria field is null, and the flag is what tells an escape from an ordinary return. F29 is the reason: the tenancy guards read relkind = 'r', so a partitioned table is a table in the public schema that the every-table test does not list, and the criterion claims 100 per cent of them. That is the limit F19's round declared and did not close, now judged reachable rather than theoretical. F27 is verified here before recording and defeats F21's fix: the erased-id guard fires on insert only, so clearing a fresh tenant's six seeded child rows and running update public.tenants set tenant_id to an erased id is accepted and the id is back. My own six probes of that fix all tested insert and none asked what other statement reaches the same state. F28 is a race on the same guard, F30 says the privilege inventory reads relation ACLs rather than effective privileges so it misses PUBLIC and column-level grants, and F31 says one of part 7's 111 not-PII rationales is unsound for mail, where an original Message-ID need not be opaque.",
+    "findings": [
+      {
+        "id": "F27",
+        "severity": "medium",
+        "file": "supabase/migrations/20260929000003_trade_record_v1_erased_tenant_ids.sql:170",
+        "claim": "The erased-ID guard runs only on INSERT, so an ordinary service-role UPDATE can resurrect an erased tenant ID and make its next erasure fail.",
+        "failure_scenario": "Executed against the supplied local Postgres with SET LOCAL ROLE service_role, entirely inside a rolled-back transaction. Create tenants A and B, add an audit event for A, delete A, delete B's six automatically seeded marketplace rows, then UPDATE public.tenants SET tenant_id = A WHERE tenant_id = B. The UPDATE succeeds without disabling any trigger or using DDL. The resulting state is one live tenant A, one tombstone A and zero audit events A. DELETE of the revived tenant fails with SQLSTATE 23505 on erased_tenants_pkey because record_tenant_erasure performs an unconditional INSERT. This violates the F21 contract that an erased ID is spent and obstructs deletion on request.",
+        "status": "open",
+        "resolution": "Required: make tenant IDs immutable, or enforce the spent-ID rule on every permitted identity-changing UPDATE as well as INSERT. Add a service-role regression covering this sequence and the resulting ability to erase legitimate tenants. No fix applied in this review."
+      },
+      {
+        "id": "F28",
+        "severity": "medium",
+        "file": "supabase/migrations/20260929000003_trade_record_v1_erased_tenant_ids.sql:152",
+        "claim": "The tombstone existence check races with an uncommitted erasure: an INSERT can pass the check, wait for the old tenant row to disappear, then recreate the erased ID.",
+        "failure_scenario": "Executed with three independent connections to the disposable database after applying all eight migrations. Under service_role, create tenant A and one audit event. Connection 1 begins and deletes A but does not commit. Connection 2 begins and inserts A with the same tenant_id. Its BEFORE INSERT trigger cannot see connection 1's uncommitted tombstone. A third connection observes connection 2 waiting on a transactionid lock. Commit connection 1: connection 2's INSERT then succeeds and commits. Measured state: live tenants=1, tombstones=1, audit events=0. A subsequent erasure fails with 23505 on erased_tenants_pkey. The registry's own primary key does not serialise this check with tenant creation, because the creation never writes to the registry.",
+        "status": "open",
+        "resolution": "Required: serialise creation and erasure for each ID with a design whose spent-ID validation remains valid after waiting for concurrent transactions. Add a deterministic two-connection regression that waits for the observed lock rather than relying on timing. Cover isolation levels the application supports. No fix applied."
+      },
+      {
+        "id": "F29",
+        "severity": "medium",
+        "file": "packages/core/db/schema.test.ts:92",
+        "claim": "Criterion 2 remains falsely ticked: the every-table tenancy checks exclude partitioned tables (relkind p).",
+        "failure_scenario": "Executed in the disposable database: CREATE TABLE public.seen_review_partition (tenant_id uuid, amount_cents bigint) PARTITION BY HASH (tenant_id); CREATE TABLE seen.seen_review_leaf PARTITION OF public.seen_review_partition FOR VALUES WITH (MODULUS 1, REMAINDER 0). Neither table has RLS or a tenant policy. The parent is a public table, but tablesIn, tenantIdGapsIn and the RLS checks filter relkind = 'r'; the child is outside public. The complete core suite still passes 95/95. This is the exact future-table omission criterion 2 and clarify record 4 say the catalogue-driven test must detect. The current 29 ordinary tables are protected; the finding is the untrue universal guard and its checked acceptance criterion.",
+        "status": "open",
+        "resolution": "Required: include public partitioned tables in the tenant_id, enabled-RLS and policy checks, with a failing partition-root fixture. Review every structural check built on the ordinary-table list rather than widening only the privilege inventory. Criterion 2 must remain unticked until its evidence covers this case."
+      },
+      {
+        "id": "F30",
+        "severity": "medium",
+        "file": "packages/core/db/schema.test.ts:279",
+        "claim": "The privilege inventory measures direct relation ACLs rather than effective privileges, missing both PUBLIC grants and column-level grants; the F19 defence can still pass while forbidden reads or writes work.",
+        "failure_scenario": "Two executed counterexamples, each followed by the full suite passing 95/95. First, on F29's partitioned parent, GRANT SELECT ON public.seen_review_partition TO PUBLIC; insert two distinct tenant IDs; SET LOCAL ROLE anon; SELECT returns both rows. clientPrivilegesOnNonTablesIn filters aclexplode(relacl) to direct anon/authenticated entries, so it drops grantee 0 (PUBLIC). Second, after dropping the partitioned table, GRANT UPDATE (total_cents) ON public.invoices TO authenticated. For an authenticated request carrying its own tenant claim, UPDATE public.invoices SET total_cents = 0 succeeds, changing a seeded invoice from 999 to 0. has_table_privilege(..., 'UPDATE') is false while has_column_privilege(..., 'total_cents', 'UPDATE') is true. privilegesIn ignores pg_attribute.attacl; the behavioural invoice probe also updates status, which is still forbidden, so that multi-column statement fails and masks the permitted amount-only write. These grants were injected as future-migration regressions, not found on the shipped schema. No current anonymous leak is claimed.",
+        "status": "open",
+        "resolution": "Required: check effective privileges for each client role, including privileges received through PUBLIC or role membership and column-level grants. Add separate negative regressions for PUBLIC relation access and a single writable invoice column; table-level has_table_privilege alone is insufficient. Apply the same effective-privilege model to migration self-checks where they assert this guarantee. No fix applied."
+      },
+      {
+        "id": "F31",
+        "severity": "medium",
+        "file": "supabase/migrations/20260929000002_trade_record_v1_free_text_classification.sql:281",
+        "claim": "The non-PII classification of message_threads.external_thread_id is unsound for mail: an original Message-ID is not necessarily an opaque ID assigned by the receiving rail.",
+        "failure_scenario": "The schema expressly stores the root Message-ID for mail threads here. RFC 5322 section 3.6.4 permits an id-left dot-atom and assigns uniqueness responsibility to the host generating the message; it does not require an anonymised value or replacement by a receiving marketplace. A syntactically valid incoming Message-ID such as <alice.smith.20260929@example.test> can therefore contain the buyer's name. Recording that root identifier fulfils the stated column contract, yet its comment says 'Not buyer PII' because it was allegedly assigned by the rail rather than written by a buyer. An expiry worker following this inventory would clear subject/body while retaining the identifying thread key. This is a protocol and data-contract counterexample, not a claim that a currently implemented connector has already stored this value. Primary source: https://www.rfc-editor.org/rfc/rfc5322.html#section-3.6.4 .",
+        "status": "open",
+        "resolution": "Required: classify raw mail Message-IDs as potentially identifying and define their retention, or explicitly require a non-identifying surrogate in this column and place any necessary raw identifier in a classified, expirable field. The rationale must distinguish marketplace-assigned IDs from sender-generated mail IDs. No fix applied."
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": [
+      2
+    ]
+  }
+}
