@@ -422,10 +422,86 @@ while this ticket's work is five SQL migrations no line-coverage provider instru
 question F26 really asks, which is what a line-coverage floor should mean for a package whose work is SQL.
 It belongs to whoever owns the harness fix.
 
-**Where the schema ended up.** Eight migrations rather than four: the original set, then tenant-scoped
-foreign keys, then relations that are not tables, then the free-text classification, then the erased-tenant
-registry. 95 tests in 6 files. Every finding of the second review is closed and each was verified by
-someone other than the agent that fixed it, which is the only reason this section can say so.
+**How the schema grew.** Eight migrations rather than four: the original set, then tenant-scoped foreign
+keys, then relations that are not tables, then the free-text classification, then the erased-tenant
+registry. Every finding of the second review is closed and each was verified by someone other than the
+agent that fixed it, which is the only reason this paragraph is entitled to say so. The counts are at the
+end of this section, because the fifth review moved them again.
+
+**The fifth review ran the database, and that is the whole story of this ticket.** Codex reviewed SEEN-008
+five times. Rounds one to four could not reach Postgres, declared that each time, and passed it on the
+fourth. The second reviewer, required because these tables carry billing and agent actions, ran probes and
+returned it on five findings none of those rounds had seen. The fifth Codex round built itself a disposable
+database, executed against it, and returned it again on five more. Every finding that mattered on this
+ticket was found by a reviewer that could run the schema, and none by one that could only read it.
+
+**F29 is the one that makes the difference between a defect and a false ticket.** Every tenancy guard asked
+`pg_class` for `relkind = 'r'`, which is an ordinary table and nothing else. A partitioned table answers to
+`relkind = 'p'`, is a table in `public`, and no guard listed it. Criterion 2 claims a test finds tenancy on
+100 per cent of the tables in the public schema, so the criterion was untrue while ticked, and the review
+recorded it unmet rather than as a finding to note.
+
+That limit was declared, not hidden. F19's round widened the privilege half to five relation kinds and wrote
+down that the tenancy half still stopped at `'r'`. That declaration was accepted here on the reasoning that
+the privilege half closed the exposure. It does close the exposure and it does not close the criterion, and
+the distinction is the lesson: **a limit that makes an acceptance criterion false is not a limit, it is the
+criterion being unmet.** The one relkind list is now two families with a reason each, `('p','r')` for the
+relations whose rows this database's policies govern and `('f','m','v')` for those governed another way,
+and part 6 raises on a partitioned table without tenancy rather than leaving the suite to notice.
+
+**F27 defeated a fix this ticket had already verified six ways.** Part 8 refused an insert carrying a
+tombstoned id and nothing else, so an update reached the same state: clear the six child rows a fresh tenant
+is seeded with, which otherwise refuse it with 23503 by accident rather than by design, and
+`update public.tenants set tenant_id` to an erased id is accepted. The six probes that verified F21 all
+tested insert, and not one asked what other statement reaches the same state. The rule is now the wider one:
+a tenant id is never updatable at all, whatever it would be changed to, because handing a living tenant an id
+that was never erased rewrites the tenancy of every row under twenty-eight foreign keys just the same. And
+because `seen.erased_tenants` keys on `tenant_id`, an id that came back and was erased again failed the
+erasure with 23505, turning deletion on request into an error; the tombstone write is idempotent now.
+
+**F28 is the race under the same guard, and it needed a two-session proof.** The insert guard read the
+registry with nothing serialising it against an erasure in flight: session A deletes a tenant and writes the
+tombstone uncommitted, session B inserts the same id, B's guard sees no tombstone, B blocks on the primary
+key, A commits, the key frees and the insert succeeds. Both sides now take a transaction-scoped advisory
+lock on the tenant id through one shared function. The erasure takes it before the delete rather than beside
+the tombstone write, because a lock taken after the row is marked deleted lets each session wait on the other
+and turns the race into a deadlock. Two tenants written concurrently never wait on each other, measured.
+
+**F30 is the third round in a row where the right tool was already in the file.** The privilege guards read
+`aclexplode(c.relacl)`, a relation's own access control list, which is not the question the assertions claim
+to answer: a grant to PUBLIC lands as a grantee with no role name, a column-level grant lives in
+`pg_attribute.attacl` and leaves `relacl` untouched, and role membership is invisible there. `has_table_privilege`
+was already in the same file, three guards away, for the append-only check. It is now `has_table_privilege`
+and `has_column_privilege` throughout, and a column-sourced holding reads `SELECT (buyer_name)` rather than
+`SELECT`, because the two are not the same finding.
+
+That is the pattern worth naming, because it is three findings and not one. Part 7 read `relkind in ('r','p')`
+while four guards beside it read `'r'`. `has_table_privilege` sat three guards from two that used `relacl`.
+Each guard was written to answer the question in front of it rather than the question its assertion claimed,
+and no amount of care inside one guard catches that.
+
+**F31 was a reason, not a defect, and its twin was in the next sentence.** `message_threads.external_thread_id`
+was classified not buyer PII because the identifier was "assigned by the rail". True on four marketplace
+rails; false on mail, where the root Message-ID was generated by the buyer's own mail system and carries the
+sending host and a local part the client chose. `messages.external_message_id` said the same and is worse,
+once per message rather than once per thread. Both are fixed. This is the second time a finding's twin sat in
+the next sentence, after F24 and F22, and on this ticket reading a finding's neighbours has been worth more
+than reading the finding again.
+
+The classification was kept and constrained rather than changed, and the column argues it: one column serves
+both rails, so marking it buyer PII would expire marketplace ids that hold nothing about anybody, and expiry
+is the wrong instrument anyway because this id is what makes re-ingest idempotent, so clearing it at 30 days
+turns every older thread into a new thread on the next sync. What a claim needs is to know two messages are
+one message, not which provider the buyer uses, so SEEN-062 stores a digest and never the id. The cost is
+stated where it will be read: prevention with no detection, because a digest and a raw Message-ID are both
+opaque text and nothing here can tell them apart. That obligation currently lives in a column comment and in
+`tables.ts` and in no ticket's acceptance criteria, which is a gap somebody should close before SEEN-062 is
+worked.
+
+**Where the schema ended up.** Eight forward-only trade-record migrations and a ninth file that is the
+evidence bucket and says so. 107 tests in 6 files. Twelve findings across two reviewers, every one closed,
+and each fix verified by somebody other than the agent that wrote it, which is the only reason this section
+is entitled to say so.
 
 ## Slices
 
