@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-006, SEEN-092, SEEN-094]
-status: review
+status: doing
 ---
 # SEEN-008: Create trade-record schema v1 with tenant_id and RLS on every table
 
@@ -23,7 +23,7 @@ status: review
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | review |
+| Status | doing |
 
 ## Description
 
@@ -31,11 +31,11 @@ Write the Supabase migration for trade-record schema v1 in packages/core/db: ten
 
 ## Acceptance criteria
 
-- [x] Migration applies on an empty database and pnpm db:reset re-applies it without error
-- [x] A test that lists every table in the public schema finds tenant_id and an enabled RLS policy on 100% of them
-- [x] A query with tenant A's JWT returns zero rows from tenant B's orders in an integration test
-- [x] Unique index on (tenant_id, marketplace, external_id) exists on orders, shipments, returns, settlements and settlement_lines
-- [x] marketplaces seed contains the six marketplaces with capability flags matching the routing table in architecture.md
+- [ ] Migration applies on an empty database and pnpm db:reset re-applies it without error
+- [ ] A test that lists every table in the public schema finds tenant_id and an enabled RLS policy on 100% of them
+- [ ] A query with tenant A's JWT returns zero rows from tenant B's orders in an integration test
+- [ ] Unique index on (tenant_id, marketplace, external_id) exists on orders, shipments, returns, settlements and settlement_lines
+- [ ] marketplaces seed contains the six marketplaces with capability flags matching the routing table in architecture.md
 
 ## Outcome
 
@@ -263,7 +263,18 @@ scenarios and resolutions, and then to check that the production findings extrac
 the reason is worth keeping: the fix at record 57 was written as prose, and `harness/calibration.py` reads
 `evidence.findings` on an `advance` and `findings` on a `return` and never reads prose at all. So a correction
 that reads perfectly to a person was invisible to the only reader that counts. Record 66 restates the three in
-the `findings` array, and the extractor now returns seventeen distinct findings where it read fourteen.
+the `findings` array, and the extractor reads them.
+
+That sentence used to end by saying the extractor returned seventeen distinct findings where it read fourteen,
+and the third Codex round returned the ticket on it (F18). The count was the wrong count. `finding_key` is
+`(id, claim, normalised file)`, and record 66 did not only restore the three: it also restated CODEX-04's claim,
+adding that the prose correction at record 57 does not reach the calibration reader. The two spellings are
+therefore two keys, so CODEX-04 is counted twice. Measured rather than reasoned, at record 82: through record 65
+`latest_findings` returns 14 entries across 14 ids; with record 66 it returns 18 across 17, by severity high 4,
+medium 9, low 5; and with the third round's own return at record 81 it returns 19 across 18, medium going to 10.
+Seventeen was true of the ids and false of the entries, and the entries are what the production reader counts. The duplicate is left
+standing: whether two spellings of one claim should collapse is a question about the harness's finding identity
+policy, and changing that here would widen a schema ticket into harness work.
 
 **That round changed no code, and the attempt it opened had nothing of its own to cite.** SEEN-113's content
 test exists for exactly this: a check from an earlier attempt still supports a citation when no file the slice

@@ -1,0 +1,32 @@
+{
+  "sequence": 81,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-29T05:50:49.062233+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 6,
+  "actor": "codex:reviewer",
+  "session": "a00943ab9615",
+  "head": "1252bb3e46072384de0ad1f9a7e6d659757664e9",
+  "prev_hash": "da3d14473ec629b33a8d59d11f906e3ae8959a09db41a6a410c1b6624a6092fb",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 7,
+    "reason": "Third Codex round. The round's charge is met: F9, F10 and F12 are restored in record 66 and the production extractor reads them. But the Outcome's sentence about that restoration is wrong in a way only the production reader shows. It says the extractor returns seventeen distinct findings where it read fourteen; harness.calibration.latest_findings returns eighteen entries across seventeen ids, because record 66 also changed CODEX-04's claim text and finding_key is (id, claim, normalised file), so the two versions of CODEX-04 are distinct keys and kpi.findings counts high=4, medium=9, low=5. Verified here before acting on it. All five acceptance criteria are supported, independently, including a scratch database built from the five migrations twice with all 76 tests passing against it, so this returns on evidence integrity and not on a schema defect.",
+    "findings": [
+      {
+        "id": "F18",
+        "severity": "medium",
+        "file": "docs/tickets/SEEN-008-create-trade-record-schema-v1-with-tenant-id.md:266",
+        "claim": "The Outcome reports seventeen distinct findings from the production extractor, but production deduplication and KPI accounting return eighteen entries across seventeen IDs.",
+        "failure_scenario": "Run harness.calibration.latest_findings on the validated journal through record 65: it returns 14 entries. Through record 66 or 80 it returns 18, not 17. Record 66 successfully restores F9, F10 and F12, but also changes CODEX-04's claim from record 53. finding_key is (id, claim, normalised file), so the two CODEX-04 versions are distinct keys. harness.kpi.findings consequently reports high=4, medium=9, low=5, totalling 18; the original CODEX-04 remains a separate open entry. Counting unique IDs gives 17, but that is not the production deduplication rule. As written, the reviewed Outcome would attest a count that the production reader does not produce and conceal the extra accounting entry.",
+        "status": "open",
+        "resolution": "Preserve the existing journal. Correct the Outcome to distinguish 17 unique IDs from 18 production finding keys and explicitly disclose the duplicated CODEX-04 accounting entry, with the production extractor/KPI result recorded through a harness-supported evidence record. Do not claim deduplication has been repaired merely by appending prose or another changed claim. A change to the harness's finding identity policy can remain separate work; this return requires truthful evidence, not widening SEEN-008 to implement that change."
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}

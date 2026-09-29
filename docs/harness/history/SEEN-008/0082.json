@@ -1,0 +1,16 @@
+{
+  "sequence": 82,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-29T05:51:53.915480+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 7,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "1252bb3e46072384de0ad1f9a7e6d659757664e9",
+  "prev_hash": "17a7564cd101b2771eb63c35444d4a64188204bb4918d3b3e3f110668608cf90",
+  "data": {
+    "text": "F18's resolution asks for the production findings accounting to be recorded as evidence rather\nthan asserted in prose, so here it is, produced by `harness.calibration.latest_findings` itself\nrather than by counting the journal by eye.\n\n| Journal read through | entries | distinct ids | by severity |\n|---|---|---|---|\n| record 65 | 14 | 14 | high 4, low 4, medium 6 |\n| record 66 | 18 | 17 | high 4, low 5, medium 9 |\n| record 81 | 19 | 18 | high 4, low 5, medium 10 |\n\nRecord 65 is the state the second Codex round left. Record 66 is the structured restoration of F9,\nF10 and F12 that the second round's resolution asked for. Record 81 is the third round's own return,\nwhich adds F18.\n\nThe gap between entries and distinct ids is CODEX-04, and it is not a bug in the restoration. It is\n`finding_key`, which is `(id, claim, normalised file)`. Record 66 restored the three findings and also\nrestated CODEX-04's claim, appending that the prose correction at record 57 does not reach the\ncalibration reader. Two spellings of one claim are two keys. Both entries carry id CODEX-04, so\ncounting ids gives one and counting keys gives two, and the production reader counts keys.\n\nThe Outcome said seventeen where the reader says eighteen. Seventeen was true of the ids. It is\ncorrected to say both numbers and which one the reader produces.\n\nThe duplicate is left standing on purpose. Whether two spellings of one claim should collapse to one\nfinding is a question about the harness's identity policy for findings, and answering it inside a\nschema ticket would widen SEEN-008 into harness work. What this ticket owes is a truthful count, and\nthat is what the table above is.\n"
+  }
+}
