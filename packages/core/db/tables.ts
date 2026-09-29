@@ -395,6 +395,25 @@ export const GOVERNED_PRIVILEGES = [
 ] as const;
 
 /**
+ * The governed privileges that can be held on one column rather than on the
+ * whole relation, which is the second question every privilege guard has to ask.
+ *
+ * `grant select (buyer_name) on public.shipments to anon` is filed in
+ * `pg_attribute.attacl` and leaves `pg_class.relacl` untouched, so a relation
+ * reads as holding nothing for a role while that role reads a buyer's name out of
+ * it, and a table-level answer cannot see it either. The fifth Codex review of
+ * SEEN-008 (F30) found the guards asking the relation's own list and so missing
+ * this route along with a grant to PUBLIC and a privilege held through membership
+ * of another role; `has_table_privilege` and `has_column_privilege` answer all
+ * three, because they answer what a role can do rather than what a list says.
+ *
+ * Delete and truncate are not here, and they cannot be: neither takes a column
+ * list in the grammar, and `has_column_privilege` refuses the privilege name
+ * outright, so asking either of a column would be an error rather than an answer.
+ */
+export const COLUMN_GRANTABLE_PRIVILEGES = ['INSERT', 'SELECT', 'UPDATE'] as const;
+
+/**
  * What each Data API role may do to a trade-record table, sorted as the
  * catalogue reports it.
  *

@@ -151,42 +151,75 @@ $$;
 -- And the migration checks its own outcome, because the privileges of a table
 -- come from more places than the statements above and a silent partial result
 -- here is a boundary nobody would notice was open.
+--
+-- What is asked is what each role can do, not what each relation's access control
+-- list says. Those are two questions and this asked the second until the fifth
+-- Codex review of SEEN-008 (F30), which costs three routes past it. A grant to
+-- PUBLIC is filed with no role behind the grantee, so a check matching `anon`,
+-- `authenticated` and `service_role` by name walks past the one grant that hands
+-- the privilege to all three at once. A grant on a single column is filed in
+-- `pg_attribute.attacl` and never in `pg_class.relacl`, so the relation reads as
+-- holding nothing while a caller reads a buyer's name out of it. And a privilege
+-- held through membership of another role appears in neither. `has_table_privilege`
+-- answers all three, and `has_column_privilege` is asked of every column because a
+-- table-level answer cannot see the second of them.
+--
+-- The three privileges below are the ones a column can carry: delete and truncate
+-- take no column list in the grammar and `has_column_privilege` refuses the name,
+-- so asking either of a column would be an error rather than an answer.
 do $$
 declare
   offenders text;
 begin
   select string_agg(
-           format('%s: %s holds %s', c.relname, a.grantee::regrole::text, a.privilege_type),
-           ', ' order by c.relname)
+           format('%s: %s holds %s%s', held.name, held.role, held.privilege,
+                  case when held.columns is null then ''
+                       else format(' on column %s', held.columns) end),
+           ', ' order by held.name, held.role, held.privilege)
     into offenders
-    from pg_catalog.pg_class c
-    join pg_catalog.pg_namespace n on n.oid = c.relnamespace
-    cross join lateral aclexplode(c.relacl) a
-   where n.nspname = 'public'
-     -- Every relation kind that holds rows, not the ordinary table alone. The
-     -- third Codex review of SEEN-008 (F19) found that this self-check, like every
-     -- guard in the set, read `relkind = 'r'` and so measured nothing whatever
-     -- about a view: `anon` was refused public.shipments and read both tenants'
-     -- buyer name and buyer address through a view over it, and this raised
-     -- nothing.
-     and c.relkind in ('f', 'm', 'p', 'r', 'v')
-     and a.privilege_type in ('SELECT', 'INSERT', 'UPDATE', 'DELETE', 'TRUNCATE')
-     -- The three roles a request can be bound to. The owner of the table holds
-     -- update, delete and truncate on audit_events and has to: the trigger is what
-     -- refuses those to the owner as well, and a table nobody owns is not a table.
-     and a.grantee in ('anon'::regrole, 'authenticated'::regrole, 'service_role'::regrole)
+    from (
+      select c.relname as name, c.relkind as kind, h.role as role, a.privilege as privilege,
+             has_table_privilege(h.role, c.oid, a.privilege) as on_the_relation,
+             case when has_table_privilege(h.role, c.oid, a.privilege) then null else (
+               select string_agg(att.attname, ', ' order by att.attnum)
+                 from pg_catalog.pg_attribute att
+                where att.attrelid = c.oid and att.attnum > 0 and not att.attisdropped
+                  and a.privilege in ('SELECT', 'INSERT', 'UPDATE')
+                  and has_column_privilege(h.role, c.oid, att.attnum, a.privilege)
+             ) end as columns
+        from pg_catalog.pg_class c
+        join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+        -- The three roles a request can be bound to. The owner of the table holds
+        -- update, delete and truncate on audit_events and has to: the trigger is
+        -- what refuses those to the owner as well, and a table nobody owns is not
+        -- a table.
+        cross join (values ('anon'), ('authenticated'), ('service_role')) as h(role)
+        cross join (values ('SELECT'), ('INSERT'), ('UPDATE'), ('DELETE'), ('TRUNCATE'))
+             as a(privilege)
+       where n.nspname = 'public'
+         -- Every relation kind that holds rows, not the ordinary table alone. The
+         -- third Codex review of SEEN-008 (F19) found that this self-check, like
+         -- every guard in the set, read `relkind = 'r'` and so measured nothing
+         -- whatever about a view: `anon` was refused public.shipments and read both
+         -- tenants' buyer name and buyer address through a view over it, and this
+         -- raised nothing.
+         and c.relkind in ('f', 'm', 'p', 'r', 'v')
+    ) held
+   where (held.on_the_relation or held.columns is not null)
      and (
-       a.grantee = 'anon'::regrole
+       held.role = 'anon'
        -- `authenticated` reads a table and holds nothing else anywhere. On a
        -- relation that is not a table it does not even read: a select there is a
        -- read that row-level security may never have been applied to. A
        -- partitioned table is a table for this purpose and an ordinary one is, and
        -- the two lists have to agree: the loop above grants select on both, so a
        -- check that exempted only `'r'` would raise on the grant it had just
-       -- written (F29).
-       or (a.grantee = 'authenticated'::regrole
-           and (a.privilege_type <> 'SELECT' or c.relkind not in ('p', 'r')))
-       or (c.relname = 'audit_events' and a.privilege_type in ('UPDATE', 'DELETE', 'TRUNCATE'))
+       -- written (F29). The exemption is the select on the whole table and not a
+       -- select on some of its columns, which is a grant no statement here writes.
+       or (held.role = 'authenticated'
+           and not (held.privilege = 'SELECT' and held.on_the_relation
+                    and held.kind in ('p', 'r')))
+       or (held.name = 'audit_events' and held.privilege in ('UPDATE', 'DELETE', 'TRUNCATE'))
      );
 
   if offenders is not null then

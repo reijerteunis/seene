@@ -30,7 +30,8 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import {
   APPEND_ONLY_PRIVILEGES, APPEND_ONLY_TABLES, BUYER_PII_COLUMNS, BUYER_PII_COMMENT_TERMS,
-  BUYER_PII_MARKER, CLIENT_BOUND_ROLES, CROSS_TENANT_FOREIGN_KEY_EXEMPTIONS, DATA_API_ROLES,
+  BUYER_PII_MARKER, CLIENT_BOUND_ROLES, COLUMN_GRANTABLE_PRIVILEGES,
+  CROSS_TENANT_FOREIGN_KEY_EXEMPTIONS, DATA_API_ROLES,
   ERASURE_REGISTRY_COLUMNS, ERASURE_REGISTRY_TABLE,
   FORBIDDEN_PRIVILEGE_STATEMENTS, FREE_TEXT_TYPE_NAMES, GOVERNED_PRIVILEGES,
   HASHED_REPOSITORY_DOCUMENTS, MIGRATION_SET_HEADER, MIGRATIONS_DIRECTORY,
@@ -307,11 +308,133 @@ async function tenancyGapsIn(client: Client, schema: string): Promise<string[]> 
   return gaps;
 }
 
-/** The privileges each Data API role holds on each table, from the table's own
- * access control list, which is the only place the answer is complete: a default
- * privilege granted at schema level and a grant written in a migration both land
- * here, and a blanket `grant on all tables` that undid an earlier revoke is
- * visible here and nowhere in the migration that wrote it.
+/** What the database answered a role a request can be bound to: `accepted` with
+ * the number of rows it saw, or the SQLSTATE it was refused with.
+ *
+ * Wrapped in a savepoint rather than in a transaction of its own, because a
+ * refusal aborts the transaction the probe is rolled back at the end of, and a
+ * probe with a second question to ask would then be answered 25P02 whatever the
+ * schema does. `set local role` is reverted by the rollback to the savepoint, so
+ * the next line runs as the owner again without a `reset role` of its own.
+ */
+interface Answer { answer: string; rows: number | null }
+
+async function answeredAs(client: Client, role: string, sql: string): Promise<Answer> {
+  await client.query('savepoint seen_privilege_probe');
+  try {
+    await client.query(`set local role ${role}`);
+    const result = await client.query(sql);
+    return { answer: 'accepted', rows: result.rowCount };
+  } catch (cause) {
+    return { answer: (cause as { code?: string }).code ?? 'refused with no SQLSTATE', rows: null };
+  } finally {
+    await client.query('rollback to savepoint seen_privilege_probe');
+  }
+}
+
+/** One privilege a role actually holds on one relation, with the columns it holds
+ * it on when it does not hold it on the whole relation. */
+interface Holding extends Relation { role: string; privilege: string; columns: string | null }
+
+/**
+ * What each of the given roles can actually do to each relation of the given
+ * kinds, asked of the database rather than read out of the relation's own access
+ * control list.
+ *
+ * The two guards below used to read `aclexplode(c.relacl)` and match the grantee
+ * against the role names they govern, which is a different question from the one
+ * they mean to ask and the fifth Codex review of SEEN-008 (F30) named three routes
+ * past it. A grant to PUBLIC is filed with no role behind the grantee, so a guard
+ * looking for `anon` by name walks past the grant that gave the privilege to
+ * `anon` and to every other role at once. A grant on a single column is filed in
+ * `pg_attribute.attacl` and does not appear in `pg_class.relacl` at all, so the
+ * relation reads as holding nothing while a caller reads a buyer's name out of it.
+ * And a privilege held through membership of another role is in the ACL of the
+ * relation the member never appears in either.
+ *
+ * `has_table_privilege` answers all three at once, because it answers what a role
+ * can do; it is what the append-only guard on `audit_events` has asked all along,
+ * three guards from two that did not. A table-level answer still cannot see a
+ * column grant, so every column of every relation is asked as well, for the three
+ * privileges a column can carry.
+ *
+ * What it costs is measured rather than assumed: 29 tables by 3 roles by 5
+ * privileges, with every column asked for 3 of those 5, is about 5,000 catalogue
+ * lookups and returns in 4 milliseconds on the local stack, so nothing is narrowed
+ * to keep it quick.
+ *
+ * What it still does not cover, said as carefully as what it does. It measures the
+ * privilege a role holds and not what the rows underneath it are: a policy is the
+ * other half of the boundary and the tenancy guards are what read it. It measures
+ * one schema, so a relation this trade record reaches in another is not asked. It
+ * cannot see a privilege a `security definer` function lends its caller, because
+ * that privilege belongs to the function's owner and no catalogue files it against
+ * the caller. And it is a measurement of the database as it stands, so a later
+ * migration granting on a column is caught when this runs and not when it is
+ * written; the same question is asked again by the self-check part 4 ends with, so
+ * that the migration fails as it applies.
+ */
+async function effectivePrivilegesIn(
+  client: Client,
+  schema: string,
+  relkinds: string[],
+  roles: readonly string[],
+): Promise<Holding[]> {
+  const { rows } = await client.query<Holding>(
+    `with relations as (
+       select c.oid, c.relname as name, c.relkind as kind
+         from pg_catalog.pg_class c
+         join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+        where n.nspname = $1 and c.relkind = any($2)
+     ), holders as (
+       select r.oid, r.rolname as role
+         from pg_catalog.pg_roles r
+        where r.rolname = any($3)
+     ), asked as (
+       select unnest($4::text[]) as privilege
+     )
+     select rel.name, rel.kind, h.role, a.privilege,
+            case when has_table_privilege(h.oid, rel.oid, a.privilege) then null else (
+              select string_agg(att.attname, ', ' order by att.attnum)
+                from pg_catalog.pg_attribute att
+               where att.attrelid = rel.oid and att.attnum > 0 and not att.attisdropped
+                 and a.privilege = any($5)
+                 and has_column_privilege(h.oid, rel.oid, att.attnum, a.privilege)
+            ) end as columns
+       from relations rel
+       cross join holders h
+       cross join asked a
+      where has_table_privilege(h.oid, rel.oid, a.privilege)
+         or exists (
+           select 1
+             from pg_catalog.pg_attribute att
+            where att.attrelid = rel.oid and att.attnum > 0 and not att.attisdropped
+              and a.privilege = any($5)
+              and has_column_privilege(h.oid, rel.oid, att.attnum, a.privilege)
+         )
+      order by rel.name, h.role, a.privilege`,
+    [
+      schema, relkinds, [...roles],
+      [...GOVERNED_PRIVILEGES], [...COLUMN_GRANTABLE_PRIVILEGES],
+    ],
+  );
+  return rows;
+}
+
+/** How a holding reads in a failure message: the privilege alone when the role
+ * holds it on the whole relation, and the columns named when it holds it on some
+ * of them, because "holds SELECT" and "holds SELECT on one column nobody listed"
+ * are not the same finding and a message that spelled them the same way would
+ * send the next reader to the relation's access control list, where the second is
+ * not written down. */
+function holdingLabel(holding: Holding): string {
+  return holding.columns === null
+    ? holding.privilege
+    : `${holding.privilege} (${holding.columns})`;
+}
+
+/** The privileges each Data API role actually holds on each table, keyed by table
+ * and role.
  *
  * The same two kinds as the tenancy guards, so that the two halves of the boundary
  * agree about a partitioned table: reading one through the parent is checked
@@ -324,22 +447,13 @@ async function privilegesIn(
   client: Client,
   schema: string,
 ): Promise<Map<string, string[]>> {
-  const { rows } = await client.query<{ table_name: string; role: string; privilege: string }>(
-    `select c.relname as table_name,
-            a.grantee::regrole::text as role,
-            a.privilege_type as privilege
-       from pg_catalog.pg_class c
-       join pg_catalog.pg_namespace n on n.oid = c.relnamespace
-       cross join lateral aclexplode(c.relacl) a
-      where n.nspname = $1 and c.relkind = any($2)
-        and a.grantee::regrole::text = any($3)`,
-    [schema, Object.keys(TABLE_RELKINDS), [...DATA_API_ROLES]],
+  const rows = await effectivePrivilegesIn(
+    client, schema, Object.keys(TABLE_RELKINDS), DATA_API_ROLES,
   );
   const held = new Map<string, string[]>();
   for (const row of rows) {
-    if (!(GOVERNED_PRIVILEGES as readonly string[]).includes(row.privilege)) continue;
-    const key = `${row.table_name}|${row.role}`;
-    held.set(key, [...(held.get(key) ?? []), row.privilege].sort());
+    const key = `${row.name}|${row.role}`;
+    held.set(key, [...(held.get(key) ?? []), holdingLabel(row)].sort());
   }
   return held;
 }
@@ -351,26 +465,20 @@ async function privilegesIn(
  * The privilege guard above reads the kinds a policy governs and so measures
  * nothing at all about a view. `anon` and `authenticated` should hold nothing on
  * one: a view that a later ticket deliberately publishes has to grant its own
- * select, and say so in the migration that publishes it. A partitioned table is
- * not asked this question, because it is asked the other one: it holds the select
- * `authenticated` holds on every table, and the guard above is what reads it.
+ * select, and say so in the migration that publishes it. Holding nothing is a
+ * claim about every column of the view as well as about the view, which is why the
+ * columns are asked: a grant of one column of a view over `public.shipments` lets
+ * a caller who never signed in read a buyer's name, and the view's own access
+ * control list stays empty while it does. A partitioned table is not asked this
+ * question, because it is asked the other one: it holds the select `authenticated`
+ * holds on every table, and the guard above is what reads it.
  */
 async function clientPrivilegesOnNonTablesIn(client: Client, schema: string): Promise<string[]> {
-  const { rows } = await client.query<{ name: string; kind: string; role: string; privilege: string }>(
-    `select c.relname as name, c.relkind as kind,
-            a.grantee::regrole::text as role,
-            a.privilege_type as privilege
-       from pg_catalog.pg_class c
-       join pg_catalog.pg_namespace n on n.oid = c.relnamespace
-       cross join lateral aclexplode(c.relacl) a
-      where n.nspname = $1 and c.relkind = any($2)
-        and a.grantee::regrole::text = any($3)
-      order by c.relname, role, privilege`,
-    [schema, Object.keys(NON_TABLE_RELKINDS), [...CLIENT_BOUND_ROLES]],
+  const rows = await effectivePrivilegesIn(
+    client, schema, Object.keys(NON_TABLE_RELKINDS), CLIENT_BOUND_ROLES,
   );
-  return rows
-    .filter((row) => (GOVERNED_PRIVILEGES as readonly string[]).includes(row.privilege))
-    .map((row) => `${named(row)}: ${row.role} holds ${row.privilege}`);
+  return rows.map((row) => `${named(row)}: ${row.role} holds ${row.privilege}`
+    + (row.columns === null ? '' : ` on column ${row.columns}`));
 }
 
 /**
@@ -434,20 +542,31 @@ async function materialisedViewsIn(client: Client, schema: string): Promise<stri
  * `supabase_admin` itself creates in `public`, no migration in this repository
  * creates one, and the migration role is not a member of `supabase_admin` and
  * cannot revoke it. Part 6 states that as the limit it could not close.
+ *
+ * PUBLIC is read as a grantee of its own, because it is the route past every
+ * guard that matches a grantee by name and the fifth Codex review of SEEN-008
+ * (F30) found the other two. `alter default privileges in schema public grant
+ * select on tables to public` is filed as grantee 0, which `regrole` renders as a
+ * hyphen and no role is spelled that way, and the next table created there is
+ * born readable by a caller who never signed in. `has_table_privilege` is not the
+ * answer to this one and could not be: a default privilege is a statement about
+ * relations that do not exist yet, so there is nothing to ask it about, and
+ * `pg_default_acl` is the only place the statement is written down.
  */
 async function defaultPrivilegesForClientRolesIn(
   client: Client, schema: string,
 ): Promise<string[]> {
   const { rows } = await client.query<{ grantor: string; role: string; privilege: string }>(
     `select d.defaclrole::regrole::text as grantor,
-            a.grantee::regrole::text as role,
+            case when a.grantee = 0 then 'PUBLIC'
+                 else a.grantee::regrole::text end as role,
             a.privilege_type as privilege
        from pg_catalog.pg_default_acl d
        cross join lateral aclexplode(d.defaclacl) a
       where d.defaclnamespace = (select oid from pg_catalog.pg_namespace where nspname = $1)
         and d.defaclobjtype = 'r'
         and d.defaclrole = current_user::regrole
-        and a.grantee::regrole::text = any($2)
+        and (a.grantee::regrole::text = any($2) or a.grantee = 0)
       order by role, privilege`,
     [schema, [...CLIENT_BOUND_ROLES]],
   );
@@ -913,6 +1032,13 @@ describe('the trade record schema', () => {
     // rather than on audit_events alone. A policy decides which rows a role
     // reaches; the privilege decides whether it reaches the table at all, and the
     // second question was asked of one table out of twenty-nine.
+    //
+    // What is measured is what each role can do, not what each table's access
+    // control list says, and the two are not the same question: the second misses
+    // a grant to PUBLIC, a grant on one column and a privilege held through
+    // membership of another role. So a holding here can name columns, and
+    // "SELECT (buyer_name)" is not "SELECT" and is not what any role is meant to
+    // hold on anything.
     const held = await privilegesIn(client, 'public');
     assertPopulated(present, 'the privileges every Data API role holds on every table');
     const wrong: string[] = [];
@@ -937,6 +1063,89 @@ describe('the trade record schema', () => {
       + wrong.join('; '),
     ).toEqual([]);
   });
+
+  it('would see a select granted to PUBLIC, which names no role and gives it to every one',
+    async () => {
+      // F30. `grant ... to public` lands in the relation's own access control list
+      // as a grantee with no role behind it, so a guard reading that list for
+      // `anon`, `authenticated` and `service_role` by name walks past the one grant
+      // that hands the privilege to all three at once. The question the assertion
+      // above means to ask is what a role can do, and a relation's access control
+      // list is not that question. `has_table_privilege` is, and it is what the
+      // append-only guard on `audit_events` further down this file has asked all
+      // along: it accounts for a grant to PUBLIC, for a privilege held through
+      // membership of another role, and for the owner's own rights.
+      //
+      // What a select to PUBLIC breaks here is the privilege half of the boundary
+      // and not the row half: the tenancy policy still yields `anon` no rows,
+      // because it carries no claim. That half is the whole reason `anon` holds no
+      // select on a table it could read nothing through, and the reason is written
+      // at `TABLE_PRIVILEGES`: a table that later loses its policy must not also be
+      // readable by a caller who never signed in. The probe on a view at the end of
+      // this file is where the rows themselves cross, because no policy stands
+      // behind the privilege there at all.
+      await client.query('begin');
+      try {
+        await client.query('grant select on public.shipments to public');
+        const measured = {
+          privilegesTheGuardReportsForAnon:
+            (await privilegesIn(client, 'public')).get('shipments|anon') ?? [],
+          theDatabaseAnsweredAnon: await answeredAs(
+            client, 'anon', 'select tenant_id from public.shipments',
+          ),
+        };
+        expect(
+          measured,
+          'A select on public.shipments was granted to PUBLIC, so `anon` holds it without being '
+          + 'named anywhere, and the database answered its read '
+          + `${JSON.stringify(measured.theDatabaseAnsweredAnon)} where a role holding nothing at `
+          + 'all is refused 42501. The privilege guard has to report the select, or the one grant '
+          + 'that gives a privilege to every role at once is the one grant it cannot see',
+        ).toEqual({
+          privilegesTheGuardReportsForAnon: ['SELECT'],
+          theDatabaseAnsweredAnon: { answer: 'accepted', rows: 0 },
+        });
+      } finally {
+        await client.query('rollback');
+      }
+    });
+
+  it('would see a select granted on one column, which is in no relation\'s access control list',
+    async () => {
+      // The other half of F30, and the one a relation's own access control list
+      // cannot answer even in principle: a column grant is filed in
+      // `pg_attribute.attacl` and `pg_class.relacl` is not touched by it at all. So
+      // the table reads as holding nothing for `anon` while `anon` reads a buyer's
+      // name out of it. A table-level answer does not see it either, which is why
+      // the guard has to ask `has_column_privilege` of every column of every
+      // relation as well as `has_table_privilege` of the relation.
+      await client.query('begin');
+      try {
+        await client.query('grant select (buyer_name) on public.shipments to anon');
+        const measured = {
+          privilegesTheGuardReportsForAnon:
+            (await privilegesIn(client, 'public')).get('shipments|anon') ?? [],
+          theBuyerNameColumn: await answeredAs(
+            client, 'anon', 'select buyer_name from public.shipments',
+          ),
+          everyOtherColumn: await answeredAs(client, 'anon', 'select * from public.shipments'),
+        };
+        expect(
+          measured,
+          'A select on public.shipments.buyer_name alone was granted to `anon`, and the database '
+          + `answered its read of that column ${JSON.stringify(measured.theBuyerNameColumn)} and `
+          + `its read of the rest ${JSON.stringify(measured.everyOtherColumn)}. The grant is `
+          + 'therefore real and usable and the table\'s own access control list is unchanged by '
+          + 'it, so a guard that reads that list reports a boundary that is open',
+        ).toEqual({
+          privilegesTheGuardReportsForAnon: ['SELECT (buyer_name)'],
+          theBuyerNameColumn: { answer: 'accepted', rows: 0 },
+          everyOtherColumn: { answer: '42501', rows: null },
+        });
+      } finally {
+        await client.query('rollback');
+      }
+    });
 
   it('reads the tenant from the claim the helper documents', async () => {
     // The claim name is this ticket's decision and nothing else in the repository
@@ -2716,6 +2925,107 @@ describe('the relations in the public schema that are not tables', () => {
     }
   });
 
+  it('would see a select on a view granted to PUBLIC, and the rows it lets through', async () => {
+    // F30 on the part 6 half, and this is where the rows actually cross. The
+    // assertion above says no client-bound role holds anything on a relation that
+    // is not a table, and it reads the view's own access control list to say it, so
+    // a grant to PUBLIC satisfies it while every role there is holds the select.
+    // The view is deliberately created without `security_invoker = true`, which is
+    // how a view is created unless its author knew to say otherwise, so it reads
+    // `public.tenants` with its owner's rights and the tenancy policy underneath it
+    // is not applied to the request at all: `anon` reads every tenant row there is.
+    // The invoker-rights assertion is what objects to that view, and it is a
+    // different assertion; what is measured here is that the privilege guard says
+    // nothing, and a view carrying `security_invoker = true` and this same grant
+    // would pass both while every browser-bound caller could reach it.
+    await client.query('begin');
+    try {
+      await client.query("insert into public.tenants (name) values ('Tenant behind a view')");
+      const { rows: counted } = await client.query<{ there: string }>(
+        'select count(*)::int as there from public.tenants',
+      );
+      const tenantRowsThereReally = Number(counted[0].there);
+      await client.query(
+        'create view public.seen_public_grant_view_probe as '
+        + 'select tenant_id, name from public.tenants',
+      );
+      await client.query('grant select on public.seen_public_grant_view_probe to public');
+      const reported = (await clientPrivilegesOnNonTablesIn(client, 'public'))
+        .filter((entry) => entry.startsWith('seen_public_grant_view_probe'));
+      const read = await answeredAs(
+        client, 'anon', 'select name from public.seen_public_grant_view_probe',
+      );
+      const measured = {
+        privilegesTheGuardReportsOnTheProbe: reported.length,
+        rowsAnonReadThroughIt: read.rows,
+        tenantRowsThereReally,
+      };
+      expect(
+        measured,
+        'A select on a view over public.tenants was granted to PUBLIC, and `anon` answered '
+        + `${JSON.stringify(read)}, reading ${read.rows} of the ${tenantRowsThereReally} tenant `
+        + 'rows that exist through a view that is not subject to their row-level security. The '
+        + `guard reported ${reported.join('; ') || 'nothing at all'}: it has to report the select `
+        + '`anon` and `authenticated` both hold, which is two entries, one per browser-bound role',
+      ).toEqual({
+        privilegesTheGuardReportsOnTheProbe: 2,
+        rowsAnonReadThroughIt: tenantRowsThereReally,
+        tenantRowsThereReally,
+      });
+    } finally {
+      await client.query('rollback');
+    }
+  });
+
+  it('would see a select on one column of a view, which its own access control list omits',
+    async () => {
+      // The same on the route no relation's access control list records at all. The
+      // grant names `anon` outright here, so there is no question of a grantee the
+      // guard failed to recognise: the entry is filed against the column and the
+      // view's list stays empty, and a guard reading that list reports a relation
+      // no browser-bound role can reach while `anon` reads a tenant's name out of
+      // it.
+      await client.query('begin');
+      try {
+        await client.query("insert into public.tenants (name) values ('Tenant behind a column')");
+        const { rows: counted } = await client.query<{ there: string }>(
+          'select count(*)::int as there from public.tenants',
+        );
+        const tenantRowsThereReally = Number(counted[0].there);
+        await client.query(
+          'create view public.seen_column_grant_view_probe as '
+          + 'select tenant_id, name from public.tenants',
+        );
+        await client.query('grant select (name) on public.seen_column_grant_view_probe to anon');
+        const reported = (await clientPrivilegesOnNonTablesIn(client, 'public'))
+          .filter((entry) => entry.startsWith('seen_column_grant_view_probe'));
+        const read = await answeredAs(
+          client, 'anon', 'select name from public.seen_column_grant_view_probe',
+        );
+        const measured = {
+          privilegesTheGuardReportsOnTheProbe: reported.length,
+          rowsAnonReadThroughIt: read.rows,
+          tenantRowsThereReally,
+        };
+        expect(
+          measured,
+          'A select on one column of a view over public.tenants was granted to `anon`, and it '
+          + `answered ${JSON.stringify(read)}, reading ${read.rows} of the `
+          + `${tenantRowsThereReally} tenant rows that exist. The guard reported `
+          + `${reported.join('; ') || 'nothing at all'}: a column grant is filed in `
+          + 'pg_attribute.attacl and never in pg_class.relacl, so it has to be asked for column '
+          + 'by column or it is invisible to the assertion that says a browser-bound role holds '
+          + 'nothing here',
+        ).toEqual({
+          privilegesTheGuardReportsOnTheProbe: 1,
+          rowsAnonReadThroughIt: tenantRowsThereReally,
+          tenantRowsThereReally,
+        });
+      } finally {
+        await client.query('rollback');
+      }
+    });
+
   it('would see a default privilege a later migration granted back', async () => {
     // The same question of the prevention half. `alter default privileges` is the
     // one statement that can reopen this, and the forbidden-statement scanner
@@ -2736,4 +3046,57 @@ describe('the relations in the public schema that are not tables', () => {
       await client.query('rollback');
     }
   });
+
+  it('would see a default privilege granted to PUBLIC, and the table born readable by it',
+    async () => {
+      // F30 reaches this assertion too, and this is the third inventory it does:
+      // the rule that a relation is born holding nothing for a browser-bound role
+      // is read out of `pg_default_acl` by grantee name, so `alter default
+      // privileges ... to public` satisfies it while the next table, view or
+      // materialised view is born readable by every role there is.
+      //
+      // `has_table_privilege` cannot be the answer here, because there is no
+      // relation yet to ask it about: a default privilege is a statement about
+      // objects that do not exist, and `pg_default_acl` is the only place it is
+      // written. What the guard can do is stop reading the grantee as a name, and
+      // PUBLIC is filed as grantee 0, which `regrole` renders as a hyphen and no
+      // role is spelled that way.
+      //
+      // The table is created inside the probe and carries no policy, which is how
+      // a table is created unless its migration says otherwise, so the row crosses
+      // rather than being held back by a tenancy the probe supplied for it.
+      await client.query('begin');
+      try {
+        await client.query(
+          'alter default privileges in schema public grant select on tables to public',
+        );
+        await client.query(
+          'create table public.seen_born_readable_probe (tenant_id uuid not null)',
+        );
+        await client.query(
+          'insert into public.seen_born_readable_probe (tenant_id) values (gen_random_uuid())',
+        );
+        const held = await defaultPrivilegesForClientRolesIn(client, 'public');
+        const measured = {
+          defaultPrivilegesTheGuardReports: held.length,
+          theDatabaseAnsweredAnon: await answeredAs(
+            client, 'anon', 'select tenant_id from public.seen_born_readable_probe',
+          ),
+        };
+        expect(
+          measured,
+          'A select on every table created in schema public was granted by default to PUBLIC, a '
+          + 'table was then created there, and `anon` answered '
+          + `${JSON.stringify(measured.theDatabaseAnsweredAnon)}, reading a row of a table it was `
+          + `never granted anything on. The guard reported ${held.join('; ') || 'nothing at all'}: `
+          + 'it has to report the one default privilege that stands, or the grant that reaches '
+          + 'every role at once is the one it cannot see',
+        ).toEqual({
+          defaultPrivilegesTheGuardReports: 1,
+          theDatabaseAnsweredAnon: { answer: 'accepted', rows: 1 },
+        });
+      } finally {
+        await client.query('rollback');
+      }
+    });
 });

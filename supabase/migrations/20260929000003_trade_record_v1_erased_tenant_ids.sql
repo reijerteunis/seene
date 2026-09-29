@@ -414,14 +414,41 @@ do $$
 declare
   offenders text;
 begin
-  select string_agg(format('%s holds %s', a.grantee::regrole::text, a.privilege_type),
-                    ', ' order by a.grantee::regrole::text, a.privilege_type)
+  -- Asked as part 4 asks it, and for the same reason: what a role can do is not
+  -- what the relation's own access control list says, and reading the list missed
+  -- a grant to PUBLIC, a grant on one column and a privilege held through
+  -- membership of another role (F30). A tombstone that one of these three roles
+  -- can delete or rewrite is not a tombstone.
+  --
+  -- MAINTAIN is the one privilege the list used to report that this does not:
+  -- it exists only from Postgres 17, so naming it would tie this migration to a
+  -- server version, and it vacuums and analyses a table rather than removing a row
+  -- from it.
+  select string_agg(
+           format('%s holds %s%s', held.role, held.privilege,
+                  case when held.columns is null then ''
+                       else format(' on column %s', held.columns) end),
+           ', ' order by held.role, held.privilege)
     into offenders
-    from pg_catalog.pg_class c
-    join pg_catalog.pg_namespace n on n.oid = c.relnamespace
-    cross join lateral aclexplode(c.relacl) a
-   where n.nspname = 'seen' and c.relname = 'erased_tenants'
-     and a.grantee in ('anon'::regrole, 'authenticated'::regrole, 'service_role'::regrole);
+    from (
+      select h.role as role, a.privilege as privilege,
+             has_table_privilege(h.role, 'seen.erased_tenants'::regclass, a.privilege)
+               as on_the_relation,
+             case when has_table_privilege(h.role, 'seen.erased_tenants'::regclass, a.privilege)
+                  then null else (
+               select string_agg(att.attname, ', ' order by att.attnum)
+                 from pg_catalog.pg_attribute att
+                where att.attrelid = 'seen.erased_tenants'::regclass
+                  and att.attnum > 0 and not att.attisdropped
+                  and a.privilege in ('SELECT', 'INSERT', 'UPDATE', 'REFERENCES')
+                  and has_column_privilege(h.role, 'seen.erased_tenants'::regclass,
+                                           att.attnum, a.privilege)
+             ) end as columns
+        from (values ('anon'), ('authenticated'), ('service_role')) as h(role)
+        cross join (values ('SELECT'), ('INSERT'), ('UPDATE'), ('DELETE'), ('TRUNCATE'),
+                           ('REFERENCES'), ('TRIGGER')) as a(privilege)
+    ) held
+   where held.on_the_relation or held.columns is not null;
 
   if offenders is not null then
     raise exception 'a role the application uses holds a privilege on seen.erased_tenants, so '

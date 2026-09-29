@@ -264,9 +264,10 @@ declare
   offenders text;
 begin
   select string_agg(format('%s holds %s by default from %s',
-                           a.grantee::regrole::text, a.privilege_type,
-                           d.defaclrole::regrole::text),
-                    ', ' order by a.grantee::regrole::text, a.privilege_type)
+                           case when a.grantee = 0 then 'PUBLIC'
+                                else a.grantee::regrole::text end,
+                           a.privilege_type, d.defaclrole::regrole::text),
+                    ', ' order by a.grantee, a.privilege_type)
     into offenders
     from pg_catalog.pg_default_acl d
     cross join lateral aclexplode(d.defaclacl) a
@@ -276,7 +277,14 @@ begin
      -- the limit stated above and is not asserted here, because an assertion that
      -- can never pass is not a check.
      and d.defaclrole = 'postgres'::regrole
-     and a.grantee in ('anon'::regrole, 'authenticated'::regrole);
+     -- Grantee 0 is PUBLIC, and it is asked for by number because `regrole` renders
+     -- it as a hyphen and a check matching a grantee by name walks past it. A
+     -- default privilege granted to PUBLIC reaches `anon` and `authenticated` along
+     -- with every other role, so it is the same defect as the two the fifth Codex
+     -- review of SEEN-008 (F30) found on the relation ACLs, on the one inventory
+     -- `has_table_privilege` cannot answer: there is no relation to ask it about
+     -- until the next migration creates one.
+     and a.grantee in (0, 'anon'::regrole, 'authenticated'::regrole);
 
   if offenders is not null then
     raise exception 'the default privileges on schema public still reach a browser-bound role, '
