@@ -257,6 +257,48 @@ export const BUYER_PII_COMMENT_TERMS = [
 ] as const;
 
 /**
+ * The columns classified `Not buyer PII` on a promise rather than on a fact, and
+ * the ticket each promise falls to.
+ *
+ * Almost all of the hundred and eleven are not buyer PII because of what they
+ * are: a three-letter currency code held to three characters, or a vocabulary of
+ * four statuses, cannot hold a name whoever writes it. Four are not like that.
+ * `audit_events.payload`, `claim_events.detail`,
+ * `message_threads.external_thread_id` and `messages.external_message_id` are
+ * free text a ticket nobody has written yet will fill, and each would hold a
+ * buyer's data if that ticket wrote the obvious thing: the gate copying a draft
+ * reply into the payload, the claim event copying the submitted text, and the
+ * mail rail storing the Message-ID it was handed. Their classification is a
+ * constraint on the writer, so it has to name the writer.
+ *
+ * What the assertion over this list can and cannot do. It cannot decide whether a
+ * reason is true, which is what a reviewer is for: F31 is a reason that read as
+ * true through four reviews and was false on one of the column's two rails. It
+ * can require that a classification resting on a promise says so and names the
+ * ticket that owes it, in both directions. A column listed here whose comment
+ * states no obligation has had the promise edited out from under it while the
+ * classification stayed, and a column whose comment states an obligation and is
+ * not listed here is a promise nobody is tracking.
+ */
+export const CONSTRAINED_NOT_BUYER_PII_COLUMNS: Readonly<Record<string, readonly string[]>> = {
+  'audit_events.payload': ['SEEN-032', 'SEEN-034'],
+  'claim_events.detail': ['SEEN-027'],
+  'message_threads.external_thread_id': ['SEEN-062'],
+  'messages.external_message_id': ['SEEN-062'],
+};
+
+/**
+ * How such a column says its classification is an obligation and not an
+ * observation, in the words the first two already used: "and it falls to SEEN-032
+ * and SEEN-034 to keep it so".
+ *
+ * A phrase rather than a ticket id, because an id appears in plenty of comments
+ * that promise nothing, and this has to find the columns whose non-PII status
+ * depends on somebody keeping it.
+ */
+export const CONSTRAINED_NOT_BUYER_PII_MARKER = 'to keep it so';
+
+/**
  * The foreign keys allowed to join two tenant-owned tables without carrying
  * `tenant_id` across the join. There are none, and the list is empty on purpose.
  *

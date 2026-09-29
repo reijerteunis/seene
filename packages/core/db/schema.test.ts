@@ -31,6 +31,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   APPEND_ONLY_PRIVILEGES, APPEND_ONLY_TABLES, BUYER_PII_COLUMNS, BUYER_PII_COMMENT_TERMS,
   BUYER_PII_MARKER, CLIENT_BOUND_ROLES, COLUMN_GRANTABLE_PRIVILEGES,
+  CONSTRAINED_NOT_BUYER_PII_COLUMNS, CONSTRAINED_NOT_BUYER_PII_MARKER,
   CROSS_TENANT_FOREIGN_KEY_EXEMPTIONS, DATA_API_ROLES,
   ERASURE_REGISTRY_COLUMNS, ERASURE_REGISTRY_TABLE,
   FORBIDDEN_PRIVILEGE_STATEMENTS, FREE_TEXT_TYPE_NAMES, GOVERNED_PRIVILEGES,
@@ -1305,6 +1306,75 @@ describe('the trade record schema', () => {
         silent,
         'Buyer PII columns whose comment does not state which encryption at rest the schema '
         + 'relies on today and what is still owed and by whom: ' + silent.join('; '),
+      ).toEqual([]);
+    });
+
+  it('says which ticket owes it, wherever not buyer PII is a constraint and not an observation',
+    async () => {
+      // F31: `message_threads.external_thread_id` was classified not buyer PII
+      // because "an identifier the rail assigned, not anything a buyer wrote",
+      // and on the mail rail that is false. A thread opened by a buyer is
+      // identified by the root Message-ID their own mail system generated, which
+      // carries the sending host on the right of the at sign and a local part
+      // their client chose. `messages.external_message_id` said the same thing
+      // and had it worse, because every inbound mail message carries one rather
+      // than only the thread root. The column stays not buyer PII because
+      // SEEN-062 stores a digest of the Message-ID and never the id itself, which
+      // is a constraint on a ticket nobody has written and not a fact about the
+      // schema.
+      //
+      // No test can tell a true reason from a false one, which is why F31 took
+      // five reviews to find. What this can tell is a classification that rests
+      // on somebody keeping a promise from one that rests on what the column is,
+      // and it requires the first kind to name the ticket the promise falls to.
+      // Read in both directions: a listed column whose comment states no
+      // obligation has had the promise edited away while the classification
+      // stayed, and an unlisted column that states one is a promise nobody is
+      // tracking. `audit_events.payload` and `claim_events.detail` were already
+      // written this way in part 7, so the shape is the file's own and not new
+      // machinery for two columns.
+      const columns = await freeTextColumnsIn(client, 'public');
+      const byName = new Map(columns.map((column) => [column.column, column]));
+      const owed = Object.entries(CONSTRAINED_NOT_BUYER_PII_COLUMNS);
+      assertPopulated(owed.map(([column]) => column), 'the classifications that are obligations');
+      const wrong: string[] = [];
+      for (const [column, owners] of owed) {
+        const row = byName.get(column);
+        if (row === undefined) {
+          wrong.push(`${column} is not a column of schema public that can hold a sentence`);
+          continue;
+        }
+        if (!row.comment.startsWith(NOT_BUYER_PII_MARKER)) {
+          wrong.push(`${column} is no longer classified "${NOT_BUYER_PII_MARKER}"`);
+          continue;
+        }
+        if (!row.comment.includes(CONSTRAINED_NOT_BUYER_PII_MARKER)) {
+          wrong.push(
+            `${column} does not say "${CONSTRAINED_NOT_BUYER_PII_MARKER}", so it reads as a fact `
+            + 'about the column when it is a constraint on whoever writes it',
+          );
+        }
+        const unnamed = owners.filter((owner) => !row.comment.includes(owner));
+        if (unnamed.length > 0) {
+          wrong.push(`${column} names none of ${unnamed.join(', ')} as owing the constraint`);
+        }
+      }
+      expect(
+        wrong,
+        'Columns whose non-PII classification depends on a later ticket writing them a certain '
+        + `way, and whose own comment does not say so or does not name that ticket: ${
+          wrong.join('; ')}`,
+      ).toEqual([]);
+
+      const unlisted = columns
+        .filter((column) => column.comment.startsWith(NOT_BUYER_PII_MARKER)
+          && column.comment.includes(CONSTRAINED_NOT_BUYER_PII_MARKER))
+        .map((column) => column.column)
+        .filter((column) => CONSTRAINED_NOT_BUYER_PII_COLUMNS[column] === undefined);
+      expect(
+        unlisted,
+        'Columns whose comment states an obligation on a later ticket that is tracked nowhere, so '
+        + `nothing reads the promise back when that ticket is worked: ${unlisted.join(', ')}`,
       ).toEqual([]);
     });
 });
