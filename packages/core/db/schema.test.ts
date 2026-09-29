@@ -1524,10 +1524,20 @@ describe('the exception the append-only trigger makes, asked by a request-bound 
  * and every invoice that names it. An erasure and an absence of one become the
  * same observation, which is the opposite of what an audit trail is for.
  *
- * What this block asks, in this order. The re-creation is refused. The erasure
- * itself still works and still takes the audit events with it, because deletion on
- * request is a promise this schema has to keep and a fix that broke it would be
- * worse than the defect. The tombstone the erasure leaves cannot be deleted or
+ * F27 is the same defect one statement further on. The refusal was a `before
+ * insert` trigger and nothing else, so an update reached the state an insert could
+ * not: erase a tenant, create a fresh one, clear the rows its insert seeded, and
+ * set its id to the erased one. Accepted. And because the tombstone registry is
+ * keyed by tenant_id, an id that came back and was erased again made the erasure
+ * itself fail on the primary key, so the defect did not merely undo a tombstone,
+ * it turned deletion on request into an error for that tenant.
+ *
+ * What this block asks, in this order. The re-creation is refused, and so is the
+ * update, whatever id it moves to, while the rest of the tenant row stays
+ * ordinarily updatable. The erasure itself still works and still takes the audit
+ * events with it, and works a second time on an id whose tombstone already stands,
+ * because deletion on request is a promise this schema has to keep and a fix that
+ * broke it would be worse than the defect. The tombstone the erasure leaves cannot be deleted or
  * updated away by the roles the application uses, or the whole of the fix is
  * undone by removing the tombstone first. And the tombstone says only that an id
  * is spent and when, because a registry of erasures that held a name would be a
@@ -1579,6 +1589,29 @@ describe('the tenant id an erasure has consumed', () => {
       [tenant.rows[0].tenant_id],
     );
     return tenant.rows[0].tenant_id;
+  }
+
+  /** A living tenant with the six catalogue rows its insert seeds cleared away,
+   * and how many were cleared.
+   *
+   * An update of `tenant_id` on a tenant that still has children is refused by
+   * their foreign keys with 23503, which is protection by accident: it says that
+   * the rows underneath a tenant hold it in place, not that the id itself refuses
+   * a new value. The tests below clear the children first, so the refusal they
+   * measure is the rule and not the leftovers, which is how F27 was measured. If a
+   * later migration seeds a second child table the count moves and the refusal
+   * turns back into 23503, and both are read in the failure text. */
+  async function seedWithNoChildren(name: string): Promise<{ tenant: string; cleared: number }> {
+    const { rows } = await client.query<{ tenant_id: string }>(
+      'insert into public.tenants (name) values ($1) returning tenant_id',
+      [name],
+    );
+    const tenant = rows[0].tenant_id;
+    const cleared = await client.query(
+      'delete from public.marketplaces where tenant_id = $1',
+      [tenant],
+    );
+    return { tenant, cleared: cleared.rowCount ?? 0 };
   }
 
   /** How many rows of `relation` carry this tenant id, with whatever role is set. */
@@ -1633,6 +1666,96 @@ describe('the tenant id an erasure has consumed', () => {
       ).toEqual({ recreated: '23001', tenantRowsStanding: 0, auditEventsBehindIt: 0 });
     });
 
+  it('is refused when an update hands it to a living tenant, which is the same resurrection '
+    + 'one statement further on', async () => {
+    // F27: the refusal above was a `before insert` trigger and nothing else, so
+    // the id came back through an update instead. Measured as `service_role`: erase
+    // a tenant, create a fresh one, clear the rows its insert seeded, and set the
+    // fresh tenant's id to the erased one. Accepted, and the id resolved again with
+    // no audit events behind it, which is exactly what the refusal above exists to
+    // prevent. The route matters less than the rule: what an update of this column
+    // does is decided below, and both halves of F27 are asked here.
+    const measured = await rolledBack(async () => {
+      const erased = await seedErasable('Tenant erased and updated back');
+      await client.query('delete from public.tenants where tenant_id = $1', [erased]);
+      const { tenant: living, cleared } = await seedWithNoChildren('Tenant given the erased id');
+      const handedBack = await said(() => client.query(
+        'update public.tenants set tenant_id = $1 where tenant_id = $2',
+        [erased, living],
+      ));
+      return {
+        childRowsCleared: cleared,
+        handedBack,
+        rowsCarryingTheErasedId: await rowsFor('public.tenants', erased),
+        auditEventsBehindIt: await rowsFor('public.audit_events', erased),
+        theLivingTenantStands: await rowsFor('public.tenants', living),
+      };
+    });
+    expect(
+      measured,
+      `An update setting a living tenant's id to an erased one was ${measured.handedBack}, where `
+      + 'a refusal (23001) is what keeps an erasure from being undone by an update rather than '
+      + `by an insert. It left ${measured.rowsCarryingTheErasedId} tenant rows carrying the `
+      + `erased id with ${measured.auditEventsBehindIt} audit events behind it, and the tenant `
+      + `whose id was to be overwritten stands in ${measured.theLivingTenantStands} rows. `
+      + `${measured.childRowsCleared} seeded child rows were cleared first: with any left, a `
+      + 'foreign key refuses the update with 23503 and this test passes for the wrong reason',
+    ).toEqual({
+      childRowsCleared: 6,
+      handedBack: '23001',
+      rowsCarryingTheErasedId: 0,
+      auditEventsBehindIt: 0,
+      theLivingTenantStands: 1,
+    });
+  });
+
+  it('is refused whatever the new id is, because a tenant id is an identity and not a value',
+    async () => {
+      // The narrow repair for F27 would refuse an update that lands on a tombstoned
+      // id. The rule chosen instead is that the column is never updatable at all,
+      // so this asks for a target no erasure has ever touched: twenty-eight tables
+      // carry a foreign key to public.tenants, and an update that changed a tenant
+      // id would rewrite or orphan the tenancy of every row beneath it. The rest of
+      // the row is untouched by the rule, and the rename below says so: a fix that
+      // froze the whole tenant row would break the ordinary update the schema
+      // expects, which is a worse defect than the one it closes.
+      const measured = await rolledBack(async () => {
+        const { tenant, cleared } = await seedWithNoChildren('Tenant given a brand new id');
+        const toAnIdNobodyHasUsed = await said(() => client.query(
+          'update public.tenants set tenant_id = gen_random_uuid() where tenant_id = $1',
+          [tenant],
+        ));
+        const renamed = await said(() => client.query(
+          "update public.tenants set name = 'Tenant renamed' where tenant_id = $1",
+          [tenant],
+        ));
+        const { rows } = await client.query<{ name: string }>(
+          'select name from public.tenants where tenant_id = $1',
+          [tenant],
+        );
+        return {
+          childRowsCleared: cleared,
+          toAnIdNobodyHasUsed,
+          renamed,
+          nameAfter: rows[0]?.name,
+          itKeptItsOwnId: await rowsFor('public.tenants', tenant),
+        };
+      });
+      expect(
+        measured,
+        `Changing a tenant id to one no erasure has consumed was ${measured.toAnIdNobodyHasUsed} `
+        + `and renaming the same tenant was ${measured.renamed}, leaving the name as `
+        + `${measured.nameAfter}. The id is the identity twenty-eight foreign keys hang off, so `
+        + 'it is refused every new value (23001); the rest of the row stays ordinary',
+      ).toEqual({
+        childRowsCleared: 6,
+        toAnIdNobodyHasUsed: '23001',
+        renamed: 'accepted',
+        nameAfter: 'Tenant renamed',
+        itKeptItsOwnId: 1,
+      });
+    });
+
   it('is still erasable, with its audit events going with it', async () => {
     // Deletion on request is a promise this schema has to keep: the PRD gives a
     // tenant 30 days and SEEN-083 performs it as `service_role`. A fix that made
@@ -1661,6 +1784,56 @@ describe('the tenant id an erasure has consumed', () => {
       + 'audit events before it',
     ).toEqual({
       auditEventsBefore: 1, erased: 'accepted', tenantRowsAfter: 0, auditEventsAfter: 0,
+    });
+  });
+
+  it('is still erasable when its tombstone already stands, so deletion on request cannot fail '
+    + 'on the registry', async () => {
+    // The second half of F27, and the half that turns a reversible erasure into an
+    // unkeepable promise. seen.record_tenant_erasure inserts into a registry keyed
+    // by tenant_id, so an id that is tombstoned and comes back cannot be erased a
+    // second time: the insert violates the primary key and the delete fails with
+    // 23505. Deletion on request is owed within 30 days, and a tenant it refuses
+    // for is worse off than one whose id was reusable.
+    //
+    // The route back is deliberately outside the refusals above, as a superuser or
+    // the owner turning a trigger off is: with those refusals in place no id should
+    // come back at all, and this asks what happens if one does anyway. A promise
+    // this load-bearing should not rest on another guarantee holding.
+    const measured = await rolledBack(async () => {
+      const tenant = await seedErasable('Tenant erased, resurrected, erased again');
+      const first = await said(() => client.query(
+        'delete from public.tenants where tenant_id = $1',
+        [tenant],
+      ));
+      await client.query('reset role');
+      await client.query('alter table public.tenants disable trigger refuse_erased_tenant_id');
+      await client.query(
+        'insert into public.tenants (tenant_id, name) values ($1, $2)',
+        [tenant, 'Tenant back by a route the triggers do not cover'],
+      );
+      await client.query('alter table public.tenants enable trigger refuse_erased_tenant_id');
+      await client.query('set local role service_role');
+      const second = await said(() => client.query(
+        'delete from public.tenants where tenant_id = $1',
+        [tenant],
+      ));
+      await client.query('reset role');
+      return {
+        first,
+        second,
+        tenantRowsAfter: await rowsFor('public.tenants', tenant),
+        tombstones: await rowsFor(ERASURE_REGISTRY_TABLE, tenant),
+      };
+    });
+    expect(
+      measured,
+      `Erasing a tenant answered ${measured.first}, and erasing the same id again once it had `
+      + `come back answered ${measured.second}, leaving ${measured.tenantRowsAfter} tenant rows `
+      + `and ${measured.tombstones} tombstones. A second erasure that fails (23505) is deletion `
+      + 'on request refusing for the one tenant that has already asked once',
+    ).toEqual({
+      first: 'accepted', second: 'accepted', tenantRowsAfter: 0, tombstones: 1,
     });
   });
 

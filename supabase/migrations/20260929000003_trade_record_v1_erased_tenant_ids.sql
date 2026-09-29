@@ -33,6 +33,17 @@
 -- is no escape hatch either: a flag or a setting that opened the refusal would be
 -- the whole of the hole again, reachable by the role the defect was measured with.
 --
+-- And the id does not move. F27 found the first version of this file refusing the
+-- insert and nothing else, so an update handed a living tenant the erased id and
+-- the id was back a statement later. The rule below is the wider one it asks for:
+-- public.tenants.tenant_id is never updatable at all, whatever it would be changed
+-- to, because it is the identity twenty-eight foreign keys hang off and no
+-- legitimate operation moves it. The reasoning for choosing that over the narrow
+-- repair is beside the trigger. The tombstone write is idempotent for the same
+-- defect's second half: a registry keyed by tenant_id made a second erasure of a
+-- returned id fail on the primary key, which turned a reversible erasure into an
+-- erasure that could not be performed at all.
+--
 -- The erasure itself is untouched and stays untouched. Deletion on request is a
 -- promise this schema has to keep, and a fix that made a tenant undeletable, or
 -- that held its audit events back from the cascade, would be a worse defect than
@@ -109,10 +120,20 @@ revoke all on seen.erased_tenants from anon, authenticated, service_role;
 -- equally rewrite one. So the write is the owner's and the caller only causes it.
 --
 -- After delete rather than before, so what is recorded is an erasure that
--- happened. A plain insert with no conflict clause: an id cannot be tombstoned
--- twice, because the second erasure would need a second creation and the trigger
--- below refuses that, so a duplicate here means an assumption has broken and
--- should be loud.
+-- happened.
+--
+-- The insert does nothing on conflict, and F27 is why it no longer raises. The
+-- registry is keyed by tenant_id, so a plain insert makes a second erasure of an
+-- id already tombstoned fail on the primary key, and the delete fails with it.
+-- That turns the wrong thing loud: the assumption that has broken is that the id
+-- came back, and the price of announcing it is paid by the tenant asking to be
+-- deleted, who is refused. Deletion on request is owed within 30 days, and a
+-- tenant it refuses for is worse off than one whose id was reusable.
+--
+-- With the refusals below in place no id should come back to be erased twice, so
+-- this is defence in depth rather than a case anything is expected to reach. The
+-- first tombstone is kept rather than overwritten: erased_at records when the id
+-- was spent, and it was spent the first time.
 create or replace function seen.record_tenant_erasure()
 returns trigger
 language plpgsql
@@ -120,7 +141,8 @@ security definer
 set search_path = ''
 as $$
 begin
-  insert into seen.erased_tenants (tenant_id) values (old.tenant_id);
+  insert into seen.erased_tenants (tenant_id) values (old.tenant_id)
+    on conflict (tenant_id) do nothing;
   return null;
 end;
 $$;
@@ -170,11 +192,69 @@ comment on function seen.refuse_erased_tenant_id() is
 create trigger refuse_erased_tenant_id before insert on public.tenants
   for each row execute function seen.refuse_erased_tenant_id();
 
--- Neither function is callable except through its trigger and this migration, as
+-- And a tenant id is never changed at all ---------------------------------------
+--
+-- F27: the refusal above was a `before insert` trigger and nothing else, so an
+-- update reached the state an insert could not. Measured as `service_role` in a
+-- rolled-back transaction: erase a tenant, create a fresh one, clear the six
+-- catalogue rows its insert seeds, and set the fresh tenant's id to the erased
+-- one. Accepted. The id was back with no audit events behind it, which is the
+-- whole of what the refusal above exists to prevent, reached one statement
+-- further on. The child rows matter to the measurement and not to the defect:
+-- while they stand their foreign keys refuse the update with 23503, which is
+-- protection by accident rather than by design and vanishes the moment a tenant
+-- has none.
+--
+-- The narrow repair is to fire the refusal above on update as well, so that an
+-- update landing on a tombstoned id is refused like an insert. The rule here is
+-- the stronger and simpler one: a tenant's id is its identity and is never
+-- updatable, whatever it would be changed to. Twenty-eight tables carry a foreign
+-- key to public.tenants, so an update of this column rewrites or orphans the
+-- tenant scoping of every row beneath it, and nothing legitimate does that: the
+-- schema, the migrations and the test suite update a tenant's name, status and
+-- updated_at and never its id. The narrow repair was not enough because it leaves
+-- the column writable and defends one destination: it has nothing to say about an
+-- id handed to a tenant that was never erased, which is the same rewriting of
+-- twenty-eight tables' tenancy with no tombstone involved, and it keeps the
+-- erased-id case as a special case that a later reader has to keep in mind.
+-- Under this rule the tombstone stops being a special case at all, because the
+-- column the tombstone protects cannot move.
+--
+-- The condition is the trigger's rather than the function's body, so an ordinary
+-- update of a tenant's name does not enter a function to be told it may proceed:
+-- public.tenants already carries touch_updated_at on every update, and the rest of
+-- the row stays ordinarily updatable, which is the point of naming the column here
+-- rather than freezing the row. A fix that froze the whole tenant row would break
+-- what the schema expects and would be a worse defect than the one it closes.
+create or replace function seen.refuse_tenant_id_change()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  raise exception
+    'a tenant id is not updatable: % cannot become %. It is the identity twenty-eight tables '
+    'reference, so changing it would rewrite or orphan the tenant scoping of every row beneath '
+    'it, and an id a previous erasure consumed would be back with no audit events behind it. A '
+    'new tenant gets a new uuid.', old.tenant_id, new.tenant_id
+    using errcode = 'restrict_violation';
+end;
+$$;
+
+comment on function seen.refuse_tenant_id_change() is
+  'Refuses any update of public.tenants.tenant_id, whatever the new value is, so that the id a '
+  'tenant is known by cannot move and an erased id cannot be handed back to a living tenant.';
+
+create trigger refuse_tenant_id_change before update on public.tenants
+  for each row when (new.tenant_id is distinct from old.tenant_id)
+  execute function seen.refuse_tenant_id_change();
+
+-- No function here is callable except through its trigger and this migration, as
 -- seen.seed_marketplaces is not: a security definer function reachable by name is
 -- a privilege handed to whoever can name it.
 revoke all on function seen.record_tenant_erasure() from public;
 revoke all on function seen.refuse_erased_tenant_id() from public;
+revoke all on function seen.refuse_tenant_id_change() from public;
 
 -- The registry is append-only too -----------------------------------------------
 --
@@ -240,16 +320,23 @@ begin
   if not exists (
     select 1 from pg_catalog.pg_trigger
      where tgrelid = 'public.tenants'::regclass and not tgisinternal
-       and tgname in ('record_erasure', 'refuse_erased_tenant_id')
-     group by tgrelid having count(*) = 2
+       and tgname in ('record_erasure', 'refuse_erased_tenant_id', 'refuse_tenant_id_change')
+     group by tgrelid having count(*) = 3
   ) then
-    raise exception 'public.tenants does not carry both the trigger that writes a tombstone and '
-      'the trigger that refuses a tombstoned id, so an erasure is still reversible';
+    raise exception 'public.tenants does not carry all three of the trigger that writes a '
+      'tombstone, the trigger that refuses a tombstoned id on insert and the trigger that '
+      'refuses any change of tenant_id, so an erasure is still reversible by one route or the '
+      'other';
   end if;
 
   if not has_table_privilege('service_role', 'public.tenants', 'delete') then
     raise exception 'the fix was over-broad: service_role can no longer erase a tenant, and '
       'deletion on request within 30 days is a promise this schema owes SEEN-083';
+  end if;
+
+  if not has_table_privilege('service_role', 'public.tenants', 'update') then
+    raise exception 'the fix was over-broad in the other direction: service_role can no longer '
+      'update a tenant at all, where what is refused is a change of tenant_id and not a rename';
   end if;
 end;
 $$;
