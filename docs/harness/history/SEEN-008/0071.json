@@ -1,0 +1,16 @@
+{
+  "sequence": 71,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-29T05:29:23.936934+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 6,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "c73f5cf4c30215acf2bb6c6224975e0b1164e662",
+  "prev_hash": "f722cb4f9b4de869a057f3b0f807d948260710d40d25b38f7c63d1c7bb9729af",
+  "data": {
+    "text": "The tdd gate refused a citation of checks 54, 55, 58 and 59, and it was right to,\nbut the reason is a limit of SEEN-113's content test that SEEN-113 could not have\nseen on itself. It is recorded here because SEEN-008 is the first ticket other than\nSEEN-113 to exercise that rule.\n\nThe rule tests content rather than attempt number: a check taken in an earlier attempt\nstill supports a citation when no file the slice covers has moved since it ran. To\nscope that comparison it must first find which commit on the branch carries the tree\nthe check ran against, by recomputing each commit's content fingerprint. When it finds\nno such commit it cannot tell which files moved, so it falls back to comparing the whole\ntree and refuses.\n\nA rebase destroys that anchor by construction. Replaying the branch onto a moved main\ngives every commit a new tree, so no commit's fingerprint can match one taken before\nthe rebase, whatever the slice's own files did. Here the branch was rebased onto the\nmain that carries SEEN-113 itself, and the measurement is exact: `git diff --name-only\n116c801 HEAD -- supabase/migrations packages/core/db turbo.json docs/architecture.md`\nis empty. Every file either cited slice covers is byte-identical across the rebase.\nWhat moved was 96 records of SEEN-113's own journal, its harness code, its ticket,\ngraphify-out and CLAUDE.md, and none of it is content either check was about.\n\nSo the evidence is intact in substance and unciteable in form. The refusal is still the\ncorrect behaviour: once the anchor is gone the rule cannot distinguish a slice whose files\nare identical from one whose files changed, and a rule that guessed between those would be\nworth less than one that refuses. The defect is that the anchor is a whole-tree fingerprint\nwhen the question is about a named set of files, and a rebase is an ordinary act that the\ndelivery procedure itself requires before a pull request can merge.\n\nThe checks are therefore being re-run in this attempt rather than argued into citability.\nThis is the fourth defect SEEN-112's proof run and its successors have surfaced in the\nharness rather than in the ticket under work, after the guard that stops guarding during\nrework, the guard that cannot express a directory, and the coverage command whose `--`\npnpm forwards. All four want one harness ticket.\n"
+  }
+}

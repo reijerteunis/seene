@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-006, SEEN-092, SEEN-094]
-status: doing
+status: review
 ---
 # SEEN-008: Create trade-record schema v1 with tenant_id and RLS on every table
 
@@ -23,7 +23,7 @@ status: doing
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | doing |
+| Status | review |
 
 ## Description
 
@@ -31,15 +31,15 @@ Write the Supabase migration for trade-record schema v1 in packages/core/db: ten
 
 ## Acceptance criteria
 
-- [ ] Migration applies on an empty database and pnpm db:reset re-applies it without error
-- [ ] A test that lists every table in the public schema finds tenant_id and an enabled RLS policy on 100% of them
-- [ ] A query with tenant A's JWT returns zero rows from tenant B's orders in an integration test
-- [ ] Unique index on (tenant_id, marketplace, external_id) exists on orders, shipments, returns, settlements and settlement_lines
-- [ ] marketplaces seed contains the six marketplaces with capability flags matching the routing table in architecture.md
+- [x] Migration applies on an empty database and pnpm db:reset re-applies it without error
+- [x] A test that lists every table in the public schema finds tenant_id and an enabled RLS policy on 100% of them
+- [x] A query with tenant A's JWT returns zero rows from tenant B's orders in an integration test
+- [x] Unique index on (tenant_id, marketplace, external_id) exists on orders, shipments, returns, settlements and settlement_lines
+- [x] marketplaces seed contains the six marketplaces with capability flags matching the routing table in architecture.md
 
 ## Outcome
 
-Delivered as four forward-only migrations under `supabase/migrations/`, not under `packages/core/db` as
+Delivered as five forward-only migrations under `supabase/migrations/`, not under `packages/core/db` as
 the description said: the Supabase CLI and `pnpm db:reset` read `supabase/migrations`, so a migration
 outside it never applies and criterion 1 could not have passed. The ticket's intent, that the schema
 belongs to core rather than to an app, is kept in `packages/core/db/`, which holds the table list, the
@@ -54,8 +54,11 @@ and names it in the migration's comment and as `TENANT_CLAIM` for whoever wires 
 
 What the tests prove, all five criteria evidenced rather than asserted:
 
-- `pnpm db:reset` applies all four migrations from empty, and it is the first command of the regression
-  at record 18, so a later slice breaking an earlier slice's tables cannot pass.
+- `pnpm db:reset` applies all five migrations from empty, and it is the first command of the regression,
+  at record 76 as this ticket leaves the tdd stage, so a later slice breaking an earlier slice's tables
+  cannot pass. It was four migrations until CODEX-01 was fixed; each part states the size of the set it
+  belongs to, and one of the failures of the re-run RED at record 72 is those headers counting four while
+  the directory held five.
 - `db/schema.test.ts` reads `pg_catalog` rather than a list of names, so a table added later without
   `tenant_id` or without an enabled policy fails it with nobody remembering to extend the test.
 - `db/rls.test.ts` asserts cross-tenant isolation on orders, findings and claims, and also that a read
@@ -253,6 +256,46 @@ One environment fact worth carrying, because it cost a round: **the Supabase sta
 context** while the active context is `desktop-linux`, so `supabase db reset` cannot see its own containers even
 though Postgres answers on 54322. With `DOCKER_HOST` pointed at colima's socket, `pnpm db:reset` applies all six
 migrations from empty.
+
+**The third Codex round asked for one thing and it was the harness's own record-keeping.** The second round's
+resolution was to append F9, F10 and F12 through a structured review record carrying their severities, files,
+scenarios and resolutions, and then to check that the production findings extractor sees them. It did not, and
+the reason is worth keeping: the fix at record 57 was written as prose, and `harness/calibration.py` reads
+`evidence.findings` on an `advance` and `findings` on a `return` and never reads prose at all. So a correction
+that reads perfectly to a person was invisible to the only reader that counts. Record 66 restates the three in
+the `findings` array, and the extractor now returns seventeen distinct findings where it read fourteen.
+
+**That round changed no code, and the attempt it opened had nothing of its own to cite.** SEEN-113's content
+test exists for exactly this: a check from an earlier attempt still supports a citation when no file the slice
+covers has moved since. It could not be used here, and the reason is a limit of the rule that SEEN-113 could not
+have found on itself, because SEEN-008 is the first ticket other than SEEN-113 to exercise it. To scope its
+comparison the rule must first locate the commit on the branch carrying the tree the check ran against. A rebase
+gives every commit a new tree, so the anchor is destroyed by construction, and the rule falls back to comparing
+the whole tree and refuses. This branch was rebased onto the main that carries SEEN-113 itself. The measurement
+is at record 71 and it is exact: every file either slice covers is byte-identical across the rebase, and what
+moved was 96 records of SEEN-113's own journal, its harness code, its ticket, `graphify-out` and `CLAUDE.md`.
+
+The refusal was still right, and that is the point rather than a concession: once the anchor is gone the rule
+cannot tell a slice whose files are identical from one whose files changed, and a rule that guessed between
+those would be worth less than one that refuses. So both slices were re-proved in attempt 6 rather than argued
+into citability, by reverting each slice's production decisions and leaving its tests in place. Slice 1 held the
+tenant-scoped foreign key migration aside; slice 2 put back the substring predicate and dropped
+`docs/architecture.md` from the cache inputs. Records 72 to 75 are the two pairs, and slice 2's RED reproduced
+record 58's two assertion messages word for word.
+
+**One figure in this ticket's evidence is not a measurement, and it is named rather than left to be read as
+one.** The coverage record reports 100.0 with a delta of 0.0 and neither number was taken on this attempt.
+`harness/coverage.py:19` builds `pnpm --filter @seen/core test -- --coverage.enabled --coverage.reporter=json-summary`,
+pnpm forwards the `--`, and vitest reads the two flags as positional filters rather than as options, so coverage
+is never enabled and no summary is written. The gate then reads whatever `packages/core/coverage/coverage-summary.json`
+already held, which is a file dated 27 September covering `packages/core/src/index.ts`, five lines of placeholder.
+It does not measure `packages/core/db/` at all, which is where every line this ticket wrote lives. The figure is
+true about a file the ticket did not touch and says nothing about the one it did. Recorded at record 70 and not
+fixed here, because the defect is in the harness and not in the schema.
+
+That is the fourth defect these runs have surfaced in the harness rather than in the ticket under work, after the
+guard that stops guarding during rework, the guard that cannot express a directory, and this one. All four want a
+single harness ticket, and none of them is SEEN-008's to fix.
 
 ## Slices
 

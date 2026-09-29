@@ -1,0 +1,16 @@
+{
+  "sequence": 70,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-29T05:27:59.701096+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 6,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "c73f5cf4c30215acf2bb6c6224975e0b1164e662",
+  "prev_hash": "75816b1082f4decbe61e8f4494aa0939b751a4011e2252924d0acd294a41af4a",
+  "data": {
+    "text": "The coverage record just written reports 100.0 with a delta of 0.0, and neither\nfigure was measured on this attempt. `harness/coverage.py:19` builds the command\nas `pnpm --filter @seen/core test -- --coverage.enabled --coverage.reporter=json-summary`,\nand pnpm forwards the `--` itself, so vitest runs as `vitest run -- --coverage.enabled\n--coverage.reporter=json-summary` and reads the two flags as positional filters\nrather than as options. Coverage is therefore never enabled, no summary is written,\nand the gate reads whatever `packages/core/coverage/coverage-summary.json` already\nheld. That file is dated 27 September and covers one path, `packages/core/src/index.ts`,\nfive lines of placeholder. It does not measure `packages/core/db/` at all, which is\nwhere every line SEEN-008 wrote lives.\n\nSo the figure is true about a file this ticket did not touch, and says nothing about\nthe file it did. It is recorded here rather than corrected here: the defect is in the\nharness and not in the schema, and SEEN-008 is not the ticket to fix it in. The\ndelta of 0.0 is honest only in the sense that a number compared with itself cannot move.\n\nThis is the third defect SEEN-112's proof run surfaced in the harness rather than in\nthe ticket it was proving, after the guard that stops guarding during rework and the\nguard that cannot express a directory. All three want one harness ticket.\n"
+  }
+}
