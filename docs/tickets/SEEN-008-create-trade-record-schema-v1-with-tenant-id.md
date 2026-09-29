@@ -39,7 +39,7 @@ Write the Supabase migration for trade-record schema v1 in packages/core/db: ten
 
 ## Outcome
 
-Delivered as five forward-only migrations under `supabase/migrations/`, not under `packages/core/db` as
+Delivered as eight forward-only migrations under `supabase/migrations/`, not under `packages/core/db` as
 the description said: the Supabase CLI and `pnpm db:reset` read `supabase/migrations`, so a migration
 outside it never applies and criterion 1 could not have passed. The ticket's intent, that the schema
 belongs to core rather than to an app, is kept in `packages/core/db/`, which holds the table list, the
@@ -54,11 +54,12 @@ and names it in the migration's comment and as `TENANT_CLAIM` for whoever wires 
 
 What the tests prove, all five criteria evidenced rather than asserted:
 
-- `pnpm db:reset` applies all five migrations from empty, and it is the first command of the regression,
-  at record 76 as this ticket leaves the tdd stage, so a later slice breaking an earlier slice's tables
-  cannot pass. It was four migrations until CODEX-01 was fixed; each part states the size of the set it
-  belongs to, and one of the failures of the re-run RED at record 72 is those headers counting four while
-  the directory held five.
+- `pnpm db:reset` applies all eight from empty, and it is the first command of the regression, so a later
+  slice breaking an earlier slice's tables cannot pass. The set was four until CODEX-01 was fixed and grew
+  to eight across the second review's rounds; each part states the size of the set it belongs to, and one
+  of the failures of the re-run RED at record 72 is those headers counting four while the directory held
+  five. The ninth file under `supabase/migrations/` is the evidence bucket of 24 September, which is not
+  part of the trade record set and says so.
 - `db/schema.test.ts` reads `pg_catalog` rather than a list of names, so a table added later without
   `tenant_id` or without an enabled policy fails it with nobody remembering to extend the test.
 - `db/rls.test.ts` asserts cross-tenant isolation on orders, findings and claims, and also that a read
@@ -315,6 +316,116 @@ fixed here, because the defect is in the harness and not in the schema.
 That is the fourth defect these runs have surfaced in the harness rather than in the ticket under work, after the
 guard that stops guarding during rework, the guard that cannot express a directory, and this one. All four want a
 single harness ticket, and none of them is SEEN-008's to fix.
+
+**The second review is the one that found the hole, and it found it because it could run the database.**
+Codex reviewed this ticket four times and passed it on the fourth. Its sandbox refused Postgres in every
+round, which it declared each time rather than hid, so every privilege finding it made was derived from
+reading SQL rather than executed against a schema. The tables here carry billing and agent actions, so the
+harness requires a second reviewer on top of the first, and that reviewer ran probes. It returned the
+ticket on five findings, F19 to F23, none of which four passing rounds had seen. That is the argument for
+the rule, and it is worth stating as a result rather than as a policy: a review that cannot run the thing
+it is reviewing is worth less than one that can, however careful it is.
+
+**F19, high, and the reason it was invisible.** Every tenancy, privilege and append-only guard this ticket
+wrote asks `pg_class` for `relkind = 'r'`, and `relkind = 'r'` is an ordinary table and nothing else. The
+default ACL Supabase ships on `public` grants `anon` and `authenticated` `arwdDxtm`, and in that grammar
+`on tables` is not tables: `defaclobjtype = 'r'` covers every relation a `create table`, `create view`,
+`create materialized view` or `create foreign table` produces. A view is not subject to row-level security
+unless it says `security_invoker = true`, and a materialised view never is, whatever it says. So a view
+added by a later migration was born readable by a caller who never signed in. Measured: `anon` is refused
+`public.shipments` with 42501 and reads both tenants' `buyer_name` and `buyer_address` through a three-line
+view over it, while the guard counts 29 tables and sees no view. SEEN-046 and SEEN-024 are the tickets that
+will add exactly such a view. Part 6 revokes the default privileges, strips any non-table relation of
+client-bound privileges, and raises on a view without invoker rights or on any materialised view in
+`public`; part 4's revoke loop and self-check now read all five row-bearing kinds. Verified both ways,
+because a fix that only blocks is as wrong as one that only permits: `anon` is refused the view, and a
+`security_invoker = true` view granted explicitly still returns the caller's tenant alone.
+
+**F20, and the shape this ticket keeps rediscovering.** `BUYER_PII_COLUMNS` claimed to be complete in both
+directions, and the check that enforced it queried `attname like 'buyer%'`, so the set it searched for
+unlisted columns could only contain columns already named for the buyer. The guarantee was true by
+construction. That is CODEX-02's defect again, one round later: a deny-list that has to anticipate how the
+next thing is spelled. Part 7 classifies all 120 columns that can hold a sentence, nine as buyer PII,
+including `claims.claim_text`, `messages.body` and `message_threads.subject`, and 111 with a written reason
+why a buyer's name cannot reach them. There is no third bucket, and the reason is worth keeping: the
+expectation was that most candidates would be bounded by a `check` constraint, and not one is, because part
+2 refuses value-set constraints on purpose so a value nobody anticipated lands in the record rather than
+being rejected at ingest. Proved non-vacuous by injection: a column named `recipient_postcode`, nowhere
+near `buyer%`, is caught and named.
+
+**One thing F20 raised and did not settle**, deliberately. `claims.claim_text` is kept verbatim because it
+is what a marketplace was actually told, and buyer PII expires after 30 days. Expiring the column destroys
+the record of what was submitted; keeping it breaks the rule. Both ways out are written into the column's
+own comment, so SEEN-083 reads them from the database it deletes from: redact in place and mark the row no
+longer verbatim, or never interpolate the buyer's details into the column and file them as evidence rows.
+The choice is SEEN-027's and SEEN-083's. A schema ticket quietly picking one would have buried a decision
+that belongs to them.
+
+**F21, and a guarantee that could be made to look like nothing happened.** The append-only rule on
+`audit_events` holds against every direct route, and its one exception is load-bearing: a tenant's erasure
+takes its audit events with it, because the PRD promises deletion on request within 30 days and an audit
+table nothing can delete from cannot keep that promise. What nothing prevented was putting the tenant back.
+`tenant_id` is a plain uuid primary key with a default, so it is settable on insert, and as `service_role`
+the erasure followed by an insert of the same id left the id resolving again over an empty audit trail,
+with everything else re-ingestible from the marketplace APIs. Part 8 adds `seen.erased_tenants`, a tombstone
+of `tenant_id` and `erased_at` and nothing else, so it records that an erasure happened and not who was
+erased. Verified six ways, and the first is the one that mattered: the erasure still succeeds and still
+takes its audit events with it, a fresh tenant id is still accepted, the re-creation is refused 23001,
+`service_role` cannot read the registry, and the owner can neither delete the tombstone nor re-create the
+id.
+
+**F22, F23 and F24: three claims that had never been run.** F23 was real and one word: `seen.refuse_audit_mutation`
+was invoker-rights, so its `not exists` over `public.tenants` asked whether the tenant row was **visible**
+rather than whether it **existed**, and for a role no policy covers the exception branch stood permanently
+open. Harmless only by coincidence, because the two roles holding delete on `audit_events` both bypass
+row-level security. Proved by reverting the fix inside a transaction: same role, same invisible tenant row,
+same reachable audit row, and invoker rights accept the delete while `security definer` refuses it 23001.
+
+F22 and F24 were not defects in the schema at all. Both were reasons stated as fact and never measured. The
+Outcome said a bare set-null would abort a tenant's erasure mid-statement, and part 5 said a restricting key
+would roll the whole erasure back. Neither reproduces: both refuse the ordinary parent-row delete exactly as
+claimed, and both let `delete from public.tenants` through, because the cascade removes the child before the
+set-null or the restrict can reach it. That is the order Postgres schedules two sibling cascade actions in,
+not something a reason may rest on. The code was right in both cases; only the explanation was wrong.
+
+**What those three are worth as a lesson.** F24 was found by F22's round and survived it, because F22's fix
+added an assertion that passed on its first run. F24's round encoded the claim as a test instead, watched it
+fail with `erasingTheTenant: accepted` against an expected 23503, and only then corrected the four places
+that carried it. A comment cannot be wrong in a way anything notices; an assertion can. Where a migration
+explains itself, the explanation is worth an assertion whenever it makes a claim about behaviour, and that
+is the general lesson of this ticket rather than anything about foreign keys.
+
+**F25 was a flake, and flakes deserve a mechanism rather than a green run count.** One run failed and
+seventeen consecutive runs afterwards did not, so it was recorded unexplained rather than explained away. It
+returned the first time the suite ran with coverage enabled, carrying its own diagnosis: SQLSTATE 40P01,
+`deadlock_detected`. `vitest.config.ts` set no pool option, so test files ran in parallel workers against one
+database while this package's files carry about twenty schema-mutating statements between them, and a `drop
+constraint` takes an ACCESS EXCLUSIVE lock on `public.claims` while another file seeds all 29 tables.
+Reproduced on demand in two concurrent sessions of that shape. `fileParallelism` is now false, and the tests
+within a file already ran in order, so it costs no wall clock. The fix rests on that demonstration and not on
+the 46 green runs since, because 20 consecutive runs were green before it too.
+
+F25's other half was the erasure registry growing about 13 rows a run, because tests that erased a tenant to
+tidy up could not tidy up: part 8 makes a tombstone permanent, which is the point of it. Those fixtures now
+roll back, and each asserts it left no tombstone. It is worth saying what this half was not: every tenant id
+in the suite is server-generated and never supplied, so no test could ever have collided with a tombstone and
+the growth could not have caused a failure.
+
+**F26 is open, and it corrects this ticket's own journal.** Record 70 said the coverage figure measures none
+of `packages/core/db/` and blamed the `--` that pnpm forwards in `harness/coverage.py:19`. That was
+incomplete: `coverage.include` is `['src/**/*.ts']` and `db/` is not under `src/`, so even with the `--`
+fixed the summary could never have measured `db/`. Both defects had to hold at once. Widening the include
+was measured and declined here, for two reasons: `db/**/*.ts` reports 89.69 per cent against the recorded
+baseline of 100.0, so widening puts the floor under the baseline, which is a delivery decision and the
+harness's file; and what the wider figure would measure is a constants module and a routing-table parser,
+while this ticket's work is five SQL migrations no line-coverage provider instruments. Behind both sits the
+question F26 really asks, which is what a line-coverage floor should mean for a package whose work is SQL.
+It belongs to whoever owns the harness fix.
+
+**Where the schema ended up.** Eight migrations rather than four: the original set, then tenant-scoped
+foreign keys, then relations that are not tables, then the free-text classification, then the erased-tenant
+registry. 95 tests in 6 files. Every finding of the second review is closed and each was verified by
+someone other than the agent that fixed it, which is the only reason this section can say so.
 
 ## Slices
 
