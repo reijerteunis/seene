@@ -109,19 +109,97 @@ export const TENANCY_CLAUSES = ['(tenant_id = seen.current_tenant())'] as const;
 export const APPEND_ONLY_TABLES = ['audit_events'] as const;
 
 /**
+ * The catalogue's own type names for a column that can hold a sentence, and
+ * therefore a buyer's name or address whatever the column is called.
+ *
+ * This is the search set the buyer PII inventory is read out of, and widening it
+ * to this is the whole of the fix for F20. The inventory used to be read out of
+ * the columns whose name begins with `buyer`, so the only columns it could find
+ * were the ones already named for the buyer: it answered its own premise, and the
+ * claim above `BUYER_PII_COLUMNS` that no column named for the buyer could escape
+ * it was true and worth nothing. It is CODEX-02's shape a third time, a set
+ * narrowed by how the next thing is spelled. `claims.claim_text` holds the text a
+ * marketplace was told, which for a lost parcel is the buyer's name and address;
+ * `messages.body` and `message_threads.subject` hold what a buyer typed, which is
+ * where a buyer writes their own delivery address. None of the three is spelled
+ * `buyer` and none was ever a candidate.
+ *
+ * `pg_type.typname` rather than the SQL spelling, so `character varying(64)` and
+ * `character varying` are one name. An array of any of them counts too: a list of
+ * strings holds an address as readily as one string does, which is how
+ * `connections.scopes` becomes the hundred and twentieth candidate to the hundred
+ * and nineteen the third review measured. `json` and `bpchar` are here although
+ * the schema has neither, because the set is what can hold prose and not what
+ * happens to exist today.
+ */
+export const FREE_TEXT_TYPE_NAMES = ['bpchar', 'json', 'jsonb', 'text', 'varchar'] as const;
+
+/**
+ * How a column tells the catalogue which of the two it is, as the first words of
+ * its own comment.
+ *
+ * Every candidate is classified by hand, one at a time, because nothing in the
+ * schema classifies one for us. The review that found F20 expected most of the
+ * hundred and twenty to be bounded by a `check` constraint to a fixed value set,
+ * which would have settled them without an author's opinion. Measured against the
+ * stack: not one column is. Part 2 decided that on purpose, and says so, because
+ * "a value nobody anticipated must land in the record and be reconciled, not
+ * rejected at ingest", so `status`, `mode`, `marketplace` and `direction` are
+ * unconstrained text with their vocabulary in a comment. The eighteen `currency`
+ * columns carry the only check there is and it bounds a length, not a value set.
+ * Reversing that decision to make this assertion cheaper would be paying for a
+ * test with an ingest that rejects rows, so the classification is written out
+ * instead, and each line is a reason a reviewer can disagree with.
+ *
+ * It lives in the column's own comment rather than in a second list here for two
+ * reasons. A list would be a copy of the schema maintained by hand, and the copy
+ * is what drifts; and SEEN-083 has to find this from the database it is deleting
+ * from, not from a TypeScript file it does not import. A marker phrase rather
+ * than free prose because the assertion has to tell a classification from a
+ * description: a column that merely explains itself has not been thought about
+ * for this, and the migration that adds one has to say which it is.
+ *
+ * The limit, stated rather than hidden: this governs stored columns, `relkind`
+ * `r` and `p`. A view's columns are derived from them and can rename or
+ * concatenate what they expose, which no classification here would follow; what
+ * governs a view is part 6, which makes it read its base tables as the caller.
+ */
+export const BUYER_PII_MARKER = 'Buyer PII';
+
+/** The other answer. Neither marker is a prefix of the other, so a comment
+ * begins with exactly one of them or the column is unclassified. */
+export const NOT_BUYER_PII_MARKER = 'Not buyer PII';
+
+/**
  * Every column in the trade record that holds buyer-identifying data, as
  * `table.column`.
  *
  * SEEN-083 has to expire this data after 30 days, and it should find a list
- * rather than search for one. `schema.test.ts` reads it in both directions: each
- * column here exists and says in its own comment that it is PII with a 30-day
- * expiry owed, and no other column in the public schema is named for the buyer
- * without being on this list, so a later migration that adds one without saying
- * so fails the test.
+ * rather than search for one. `schema.test.ts` reads it in both directions
+ * against what the schema declares: each column here says in its own comment that
+ * it is buyer PII with a 30-day expiry owed, and each column whose comment so
+ * declares itself is here, so a migration that marks a new one and stops there
+ * fails the test.
+ *
+ * The other direction used to be read out of the columns whose name begins with
+ * `buyer`, which could only ever find the six that were already listed. Part 7 is
+ * why the list is now nine: every column in the schema that can hold prose says
+ * which of the two it is, and three that hold a buyer's name and address by their
+ * own documented purpose had never been looked at.
+ *
+ * `claims.claim_text` carries a tension this ticket records and does not settle.
+ * It is kept verbatim because it is what a marketplace was actually told, and
+ * buyer PII expires after 30 days: expiring it destroys the record, keeping it
+ * breaks the rule. Its column comment states the two ways out, redaction in place
+ * or never interpolating the buyer's details into the column at all, and leaves
+ * the choice to SEEN-027 and SEEN-083, whose tickets it is.
  */
 export const BUYER_PII_COLUMNS = [
+  'claims.claim_text',
   'evidence.buyer_address',
   'evidence.buyer_name',
+  'message_threads.subject',
+  'messages.body',
   'returns.buyer_address',
   'returns.buyer_name',
   'shipments.buyer_address',
@@ -202,7 +280,7 @@ export const HASHED_REPOSITORY_DOCUMENTS = ['docs/architecture.md'] as const;
  * How a file under `supabase/migrations` declares itself a member of the trade
  * record v1 set, and the header line every member has to carry.
  *
- * The set is the six SEEN-008 migrations, recognised by the `trade_record_v1`
+ * The set is the seven SEEN-008 migrations, recognised by the `trade_record_v1`
  * segment of their filenames, and not every file in the directory: the evidence
  * bucket migration of 24 September creates a storage bucket for the environment,
  * takes no part in the privilege boundary the parts hand to each other, and

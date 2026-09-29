@@ -1,12 +1,12 @@
--- Trade record v1, part 4 of 6: the Data API roles read, and nothing more.
+-- Trade record v1, part 4 of 7: the Data API roles read, and nothing more.
 --
--- The set is these six files, the migrations whose names carry `trade_record_v1`,
--- and not everything in supabase/migrations: the evidence bucket migration of
--- 24 September creates a bucket for the environment and takes no part in the
--- privilege boundary these six hand to each other. Every part's first line states
--- the size of the set and schema.test.ts checks that number against the files on
--- disk, so a seventh part is added by numbering it and correcting the six in front
--- of it. The count is the route to this file: part 3 ends by saying it grants no
+-- The set is these seven files, the migrations whose names carry
+-- `trade_record_v1`, and not everything in supabase/migrations: the evidence
+-- bucket migration of 24 September creates a bucket for the environment and takes
+-- no part in the privilege boundary these seven hand to each other. Every part's
+-- first line states the size of the set and schema.test.ts checks that number
+-- against the files on disk, so an eighth part is added by numbering it and
+-- correcting the seven in front of it. The count is the route to this file: part 3 ends by saying it grants no
 -- table privilege because part 4 decides them per table and by name, and a header
 -- that stopped the set at three sent the next author away before they read that
 -- boundary or the self-check below, with Supabase's default ACL left standing on

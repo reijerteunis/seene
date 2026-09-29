@@ -1,4 +1,4 @@
--- Trade record v1, part 5 of 6: the tenant travels along every foreign key.
+-- Trade record v1, part 5 of 7: the tenant travels along every foreign key.
 -- SEEN-008, CODEX-01.
 --
 -- What parts 1 to 4 got right and what they missed. Every table carries

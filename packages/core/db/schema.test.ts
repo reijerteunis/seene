@@ -30,9 +30,10 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import {
   APPEND_ONLY_PRIVILEGES, APPEND_ONLY_TABLES, BUYER_PII_COLUMNS, BUYER_PII_COMMENT_TERMS,
-  CLIENT_BOUND_ROLES, CROSS_TENANT_FOREIGN_KEY_EXEMPTIONS, DATA_API_ROLES,
-  FORBIDDEN_PRIVILEGE_STATEMENTS, GOVERNED_PRIVILEGES, HASHED_REPOSITORY_DOCUMENTS,
-  MIGRATION_SET_HEADER, MIGRATIONS_DIRECTORY, ROW_BEARING_RELKINDS,
+  BUYER_PII_MARKER, CLIENT_BOUND_ROLES, CROSS_TENANT_FOREIGN_KEY_EXEMPTIONS, DATA_API_ROLES,
+  FORBIDDEN_PRIVILEGE_STATEMENTS, FREE_TEXT_TYPE_NAMES, GOVERNED_PRIVILEGES,
+  HASHED_REPOSITORY_DOCUMENTS, MIGRATION_SET_HEADER, MIGRATIONS_DIRECTORY,
+  NOT_BUYER_PII_MARKER, ROW_BEARING_RELKINDS,
   TABLE_PRIVILEGES, TENANCY_CLAUSES, TENANT_CLAIM,
   TRADE_RECORD_MIGRATION_MARKER, TRADE_RECORD_TABLES,
   VIEW_SECURITY_OPTION, VIEW_SECURITY_OPTION_TRUE,
@@ -407,6 +408,60 @@ async function defaultPrivilegesForClientRolesIn(
     + `creates in ${schema}`);
 }
 
+/** One column that can hold a sentence, with the classification its own comment
+ * carries, or the empty string when it carries none. */
+interface FreeTextColumn { column: string; type: string; comment: string }
+
+/**
+ * Every column in the schema that can hold a buyer's name or address, read from
+ * the catalogue by type and never by name.
+ *
+ * The inventory assertions used to ask for `attname like 'buyer%'`, which can
+ * only ever return columns already named for the buyer: the set searched for an
+ * unlisted column was the set of listed ones, so "no column named for the buyer
+ * is missing from the list" was a sentence about itself. Three columns hold a
+ * buyer's name and address by their own documented purpose and are spelled
+ * otherwise, and F20 is that none of them was ever looked at.
+ *
+ * So the question asked is the one with a finite answer, as it is for a tenancy
+ * clause: every column whose type can hold prose is a candidate, and each has to
+ * say which it is. A column nobody classified is the failure, and it names
+ * itself.
+ */
+async function freeTextColumnsIn(client: Client, schema: string): Promise<FreeTextColumn[]> {
+  const { rows } = await client.query<FreeTextColumn>(
+    `select c.relname || '.' || a.attname as column,
+            pg_catalog.format_type(a.atttypid, a.atttypmod) as type,
+            coalesce(pg_catalog.col_description(c.oid, a.attnum), '') as comment
+       from pg_catalog.pg_class c
+       join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+       join pg_catalog.pg_attribute a on a.attrelid = c.oid
+       join pg_catalog.pg_type t on t.oid = a.atttypid
+       left join pg_catalog.pg_type e on e.oid = t.typelem
+      where n.nspname = $1 and c.relkind in ('r', 'p')
+        and a.attnum > 0 and not a.attisdropped
+        and (t.typname = any($2) or (t.typcategory = 'A' and e.typname = any($2)))
+      order by 1`,
+    [schema, [...FREE_TEXT_TYPE_NAMES]],
+  );
+  return rows;
+}
+
+/** The candidates whose comment classifies them neither way, named as a failure
+ * message should name them: an unclassified column is the defect, so it carries
+ * its type with it and a reader can see what it can hold. */
+function unclassified(columns: readonly FreeTextColumn[]): string[] {
+  return columns
+    .filter((column) => !column.comment.startsWith(BUYER_PII_MARKER)
+      && !column.comment.startsWith(NOT_BUYER_PII_MARKER))
+    .map((column) => `${column.column} (${column.type})`);
+}
+
+/** The candidates the schema itself declares to hold buyer data. */
+function declaredBuyerPii(columns: readonly FreeTextColumn[]): FreeTextColumn[] {
+  return columns.filter((column) => column.comment.startsWith(BUYER_PII_MARKER));
+}
+
 /** Every migration file, as a path relative to the repository root, newest last. */
 function migrationFiles(): string[] {
   const directory = join(REPOSITORY_ROOT, MIGRATIONS_DIRECTORY);
@@ -765,41 +820,124 @@ describe('the trade record schema', () => {
     expect(rows[0].definition).toContain('request.jwt.claims');
   });
 
+  it('classifies every column that can hold a buyer, so one nobody looked at cannot pass',
+    async () => {
+      // F20: the inventory below used to be read out of `attname like 'buyer%'`,
+      // so the set it searched for an unlisted column was the set of columns
+      // already named for the buyer and the guarantee it claimed was circular.
+      // Three columns hold a buyer's name and address by their own documented
+      // purpose and are spelled otherwise: `claims.claim_text` is the text a
+      // marketplace was told, which for a lost parcel is the buyer's name and
+      // address; `messages.body` and `message_threads.subject` are where a buyer
+      // types their own delivery address.
+      //
+      // So every column that can hold prose is a candidate and each has to say
+      // which it is, the same shape as the tenancy clauses: there is no third
+      // answer for a column nobody anticipated, and an author who adds one
+      // without saying meets this rather than a silent pass.
+      const columns = await freeTextColumnsIn(client, 'public');
+      assertPopulated(
+        columns.map((column) => column.column),
+        'a classification on every column of schema public that can hold a buyer\'s name',
+      );
+      const unsaid = unclassified(columns);
+      expect(
+        unsaid,
+        `${unsaid.length} of the ${columns.length} columns in schema public that can hold a `
+        + 'sentence say neither that they hold buyer data nor why a buyer\'s name and address '
+        + 'cannot reach them, so SEEN-083 cannot know which of them it has to expire: '
+        + unsaid.join(', '),
+      ).toEqual([]);
+    });
+
+  it('cannot be answered by reading the column name, whatever the column is called', async () => {
+    // What makes the assertion above worth running. A classification read out of
+    // the column's name can only find what was already named, so it is measured
+    // against columns that hold a buyer and are spelled like nothing on any list,
+    // including one that is an array of text rather than text: the type is what
+    // decides what a column can hold, not its name and not its shape.
+    await client.query('begin');
+    try {
+      const injected = [
+        'recipient_address text',
+        'delivery_note text',
+        'sender_details jsonb',
+        'cc_addresses text[]',
+      ];
+      for (const column of injected) {
+        await client.query(`alter table public.evidence add column ${column}`);
+      }
+      const unsaid = unclassified(await freeTextColumnsIn(client, 'public'));
+      const missed = injected
+        .map((column) => `evidence.${column.split(' ')[0]}`)
+        .filter((column) => !unsaid.some((entry) => entry.startsWith(`${column} (`)));
+      expect(
+        missed,
+        `${missed.length} columns added to public.evidence that hold a buyer's name or address `
+        + 'under a name no list anticipated were not reported as unclassified, so the '
+        + `classification is answerable by the column's name after all: ${missed.join(', ')}`,
+      ).toEqual([]);
+    } finally {
+      await client.query('rollback');
+    }
+  });
+
   it('names every buyer PII column as PII with the 30-day expiry it owes', async () => {
-    // Read from the catalogue in both directions: the columns `tables.ts` lists
-    // exist and say what they are, and no column named for the buyer exists that
-    // the list does not carry. SEEN-083 has to expire this data after 30 days and
-    // should find a list, not do a search.
-    const { rows } = await client.query<{ column: string; comment: string | null }>(
-      `select c.relname || '.' || a.attname as column,
-              pg_catalog.col_description(c.oid, a.attnum) as comment
-         from pg_catalog.pg_class c
-         join pg_catalog.pg_namespace n on n.oid = c.relnamespace
-         join pg_catalog.pg_attribute a on a.attrelid = c.oid
-        where n.nspname = 'public' and c.relkind = 'r'
-          and a.attnum > 0 and not a.attisdropped and a.attname like 'buyer%'
-        order by 1`,
-    );
-    const found = rows.map((row) => row.column);
+    // Read in both directions between the list `tables.ts` carries and what the
+    // schema itself declares: every column on the list declares itself buyer PII
+    // in the catalogue, and every column that so declares itself is on the list.
+    // SEEN-083 has to expire this data after 30 days and should find a list, not
+    // do a search.
+    const columns = await freeTextColumnsIn(client, 'public');
+    const found = declaredBuyerPii(columns).map((column) => column.column);
+    assertPopulated(found, 'the buyer PII the schema declares');
     const missing = BUYER_PII_COLUMNS.filter((column) => !found.includes(column));
     const unlisted = found.filter(
       (column) => !(BUYER_PII_COLUMNS as readonly string[]).includes(column),
     );
-    expect(missing, `Buyer PII columns the schema does not have: ${missing.join(', ')}`).toEqual([]);
+    expect(
+      missing,
+      'Columns BUYER_PII_COLUMNS lists that the schema does not declare as buyer PII in their '
+      + `own comment: ${missing.join(', ')}`,
+    ).toEqual([]);
     expect(
       unlisted,
-      'Columns named for the buyer that BUYER_PII_COLUMNS does not list, so SEEN-083 would not '
-      + `expire them: ${unlisted.join(', ')}`,
+      'Columns the schema declares to hold buyer data that BUYER_PII_COLUMNS does not list, so '
+      + `SEEN-083 would not expire them: ${unlisted.join(', ')}`,
     ).toEqual([]);
 
-    const silent = rows
-      .filter((row) => !(row.comment ?? '').includes('PII') || !(row.comment ?? '').includes('30 days'))
-      .map((row) => row.column);
+    const silent = declaredBuyerPii(columns)
+      .filter((column) => !column.comment.includes('PII') || !column.comment.includes('30 days'))
+      .map((column) => column.column);
     expect(
       silent,
       'Buyer PII columns whose own comment does not say they are PII expiring after 30 days: '
       + silent.join(', '),
     ).toEqual([]);
+  });
+
+  it('reports a column that declares itself buyer PII and is on no list', async () => {
+    // The other direction of the same circularity. A migration that marks a new
+    // column as holding buyer data and stops there has told the catalogue and not
+    // the expiry job, and the column it marks need not be spelled `buyer` either.
+    await client.query('begin');
+    try {
+      await client.query('alter table public.evidence add column recipient_address text');
+      await client.query(
+        `comment on column public.evidence.recipient_address is
+           '${BUYER_PII_MARKER}. Where the parcel was sent, as the carrier recorded it.'`,
+      );
+      const found = declaredBuyerPii(await freeTextColumnsIn(client, 'public'))
+        .map((column) => column.column);
+      expect(
+        found.filter((column) => !(BUYER_PII_COLUMNS as readonly string[]).includes(column)),
+        'A new column declaring itself buyer PII in its own comment was not reported as absent '
+        + 'from BUYER_PII_COLUMNS, so the inventory reads the schema for a name rather than for '
+        + 'what a column says it holds',
+      ).toEqual(['evidence.recipient_address']);
+    } finally {
+      await client.query('rollback');
+    }
   });
 
   it('says in each buyer PII column which encryption at rest it relies on, and what is owed',
@@ -812,21 +950,11 @@ describe('the trade record schema', () => {
       // second. Nothing recorded which reading was in force, and an obligation
       // nobody has written down is one that disappears: the comment states it and
       // this test is what keeps the statement there.
-      const { rows } = await client.query<{ column: string; comment: string | null }>(
-        `select c.relname || '.' || a.attname as column,
-                pg_catalog.col_description(c.oid, a.attnum) as comment
-           from pg_catalog.pg_class c
-           join pg_catalog.pg_namespace n on n.oid = c.relnamespace
-           join pg_catalog.pg_attribute a on a.attrelid = c.oid
-          where n.nspname = 'public' and c.relkind = 'r'
-            and a.attnum > 0 and not a.attisdropped and a.attname like 'buyer%'
-          order by 1`,
-      );
+      const rows = declaredBuyerPii(await freeTextColumnsIn(client, 'public'));
       assertPopulated(rows.map((row) => row.column), 'what each buyer PII column says is owed');
       const silent: string[] = [];
       for (const row of rows) {
-        const comment = row.comment ?? '';
-        const unsaid = BUYER_PII_COMMENT_TERMS.filter((term) => !comment.includes(term));
+        const unsaid = BUYER_PII_COMMENT_TERMS.filter((term) => !row.comment.includes(term));
         if (unsaid.length > 0) {
           silent.push(`${row.column} does not say ${unsaid.map((term) => `"${term}"`).join(', ')}`);
         }
