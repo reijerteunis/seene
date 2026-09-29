@@ -202,7 +202,7 @@ export const HASHED_REPOSITORY_DOCUMENTS = ['docs/architecture.md'] as const;
  * How a file under `supabase/migrations` declares itself a member of the trade
  * record v1 set, and the header line every member has to carry.
  *
- * The set is the five SEEN-008 migrations, recognised by the `trade_record_v1`
+ * The set is the six SEEN-008 migrations, recognised by the `trade_record_v1`
  * segment of their filenames, and not every file in the directory: the evidence
  * bucket migration of 24 September creates a storage bucket for the environment,
  * takes no part in the privilege boundary the parts hand to each other, and
@@ -237,9 +237,21 @@ export const MIGRATION_SET_HEADER = /^--\s+Trade record v1, part (\d+) of (\d+)\
  * such copy hands `authenticated` insert, update and delete on `settlement_lines`,
  * `claims` and `invoices` back again, with no self-check re-running to notice.
  *
- * `alter default privileges` is the same hazard one level up: it grants on tables
- * that do not exist yet, which is how `anon` and `authenticated` held four
- * privileges on all twenty-nine tables from the moment each was created.
+ * `alter default privileges ... grant` is the same hazard one level up: it grants
+ * on relations that do not exist yet, which is how `anon` and `authenticated` held
+ * four privileges on all twenty-nine tables from the moment each was created, and
+ * it is not only tables it reaches. `defaclobjtype = 'r'` covers every relation
+ * kind a `create table`, `create view`, `create materialized view` or `create
+ * foreign table` produces, so the same default made a view born readable by a
+ * caller who never signed in, and a view is not subject to row-level security
+ * unless it says `security_invoker = true`. That is F19.
+ *
+ * Only the granting form is forbidden, and the narrowing is deliberate rather
+ * than a softening. The revoking form is the only statement in Postgres that can
+ * take a default privilege away, and part 6 is made of one: a rule that refused
+ * `alter default privileges` outright would have refused the fix for the hazard it
+ * was written about, and the way out of that is not an exception in a comment but
+ * a rule that says which direction is the hazard. A revoke can only narrow.
  *
  * Grant per table, by name, and say what each grant is for. A comment asking for
  * that was already in part 4 and was not enough; this is the failing test the next
@@ -251,8 +263,8 @@ export const FORBIDDEN_PRIVILEGE_STATEMENTS = [
     pattern: /\bgrant\b[^;]*\ball\s+tables\s+in\s+schema\b/i,
   },
   {
-    name: 'alter default privileges',
-    pattern: /\balter\s+default\s+privileges\b/i,
+    name: 'alter default privileges ... grant',
+    pattern: /\balter\s+default\s+privileges\b[^;]*\bgrant\b/i,
   },
 ] as const;
 
@@ -328,3 +340,65 @@ export const APPEND_ONLY_PRIVILEGES: Readonly<Record<string, readonly string[]>>
 export const BILLING_CRITICAL_TABLES = [
   'claims', 'headroom_entries', 'invoices', 'settlement_lines', 'statements',
 ] as const;
+
+/**
+ * The two Data API roles a browser request is bound to.
+ *
+ * `service_role` is the third, and it is deliberately not here. It bypasses
+ * row-level security by design, no request from a browser is ever bound to it,
+ * and part 4 grants it per table by name. The question these two answer is a
+ * different one: what a caller holding nothing but a session cookie, or not even
+ * that, can reach.
+ */
+export const CLIENT_BOUND_ROLES = ['anon', 'authenticated'] as const;
+
+/**
+ * The relation kinds that hold rows and are not an ordinary table, named as a
+ * failure message should name them.
+ *
+ * Every tenancy, privilege and append-only guard this ticket wrote asks
+ * `pg_class` for `relkind = 'r'`, which is an ordinary table and nothing else,
+ * and so does part 4's per-table revoke and its self-check. Four other kinds hold
+ * rows and are reachable through the Data API exactly as a table is, and the
+ * third Codex review of SEEN-008 (F19) measured what that costs on the two that
+ * matter:
+ *
+ * A **view** is not subject to the row-level security of the tables underneath it
+ * unless it is created `with (security_invoker = true)`; by default it runs with
+ * its owner's rights, and the owner of every relation in this schema is the
+ * migration role. `anon` is refused `public.shipments` with SQLSTATE 42501 and
+ * reads both tenants' `buyer_name` and `buyer_address` through a three-line view
+ * over it.
+ *
+ * A **materialised view** is never subject to row-level security at all, whatever
+ * it is created with: it is a stored copy of the rows the owner could see, so
+ * there is no request for a policy to be applied to. That is why the rule for one
+ * is not `security_invoker` but "not in the public schema".
+ *
+ * A **partitioned table** carries rows in its partitions and answers to `relkind
+ * = 'p'`, so the tenancy guard would not have seen one either. A **foreign table**
+ * is rows on another server with no policy of this database's on them.
+ *
+ * SEEN-046 and SEEN-024 are the tickets that will want exactly such a view.
+ */
+export const ROW_BEARING_RELKINDS: Readonly<Record<string, string>> = {
+  f: 'a foreign table',
+  m: 'a materialised view',
+  p: 'a partitioned table',
+  v: 'a view',
+};
+
+/**
+ * The option a view in the public schema has to carry, and the values Postgres
+ * accepts for it.
+ *
+ * `security_invoker = true` makes the view read its base tables with the rights
+ * and the claims of the caller, which is what puts the tenancy policy back in
+ * force underneath it. Postgres normalises a boolean storage parameter as it was
+ * written rather than to one spelling, so `on`, `yes` and `1` are the same option
+ * set and all four are read as set.
+ */
+export const VIEW_SECURITY_OPTION = 'security_invoker';
+
+/** The values of that option which mean it is on. */
+export const VIEW_SECURITY_OPTION_TRUE = ['1', 'on', 'true', 'yes'] as const;

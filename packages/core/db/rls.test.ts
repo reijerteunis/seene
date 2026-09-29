@@ -19,7 +19,7 @@ import { randomUUID } from 'node:crypto';
 import { Client } from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
-import { BILLING_CRITICAL_TABLES, TENANT_CLAIM } from './tables';
+import { BILLING_CRITICAL_TABLES, CLIENT_BOUND_ROLES, TENANT_CLAIM } from './tables';
 
 // The local Supabase stack's Postgres, the address `pnpm dev:up` prints when it
 // starts. Overridden by SEEN_DATABASE_URL so CI or a second stack needs no code
@@ -1126,6 +1126,77 @@ describe('tenant isolation on every table in the public schema', () => {
       + `${Object.keys(leaked).length} of the ${governed.length} tables in the public schema: `
       + Object.entries(leaked).map(([table, total]) => `${table} (${total})`).join(', '),
     ).toEqual([]);
+  });
+
+  it("shows a view over the buyer PII table none of another tenant's rows", async () => {
+    // The behavioural half of F19, written as the migration SEEN-046 or SEEN-024
+    // will want it: three columns of public.shipments, which is a table holding
+    // buyer name and buyer address, published as a view in the schema the Data API
+    // serves.
+    //
+    // Everything the twenty-nine tables are guarded by is per table and stops at
+    // `relkind = 'r'`. A view is a different relation kind, it is born holding
+    // schema public's default access control list, and it is not subject to the
+    // row-level security of the tables underneath it unless it was created `with
+    // (security_invoker = true)`: by default it runs with its owner's rights, and
+    // the owner is the migration role. Measured before this was fixed: `anon` was
+    // refused public.shipments with SQLSTATE 42501 and read both tenants' buyer
+    // name and buyer address through the view.
+    //
+    // A refusal counts as a pass here and so does an empty read, because the two
+    // are the same answer to the question asked: the privilege is one way to be
+    // unable to read another tenant's rows and the policy is the other. What keeps
+    // that from passing vacuously is the assertion above it, that the view exists
+    // and that the session that created it does read tenant B's rows through it.
+    await rolledBack(async () => {
+      await client.query(
+        'create view public.seen_buyer_book_probe as '
+        + 'select tenant_id, buyer_name, buyer_address from public.shipments',
+      );
+      const owner = await client.query<{ total: string }>(
+        'select count(*) as total from public.seen_buyer_book_probe where tenant_id = $1',
+        [b],
+      );
+      expect(
+        Number(owner.rows[0].total),
+        'The session that created the view reads none of tenant B\'s rows through it, so this '
+        + 'test would report no leak whatever the view exposed to anyone else',
+      ).toBeGreaterThan(0);
+
+      const leaked: string[] = [];
+      for (const role of CLIENT_BOUND_ROLES) {
+        await client.query('savepoint view_probe');
+        try {
+          // Tenant A's claim, reading tenant B's rows: the request a signed-in user
+          // of one brand makes against another brand's buyer data.
+          await client.query('select set_config($1, $2, true)', [
+            'request.jwt.claims',
+            JSON.stringify({ [TENANT_CLAIM]: a }),
+          ]);
+          await client.query(`set local role ${role}`);
+          const { rows } = await client.query<{ total: string }>(
+            'select count(*) as total from public.seen_buyer_book_probe where tenant_id = $1',
+            [b],
+          );
+          if (Number(rows[0].total) > 0) {
+            leaked.push(`${role} read ${rows[0].total} of tenant B's rows`);
+          }
+        } catch (cause) {
+          // Refused outright, which is the outcome this asks for. Any other error
+          // is this test failing to ask the question and has to be seen.
+          if ((cause as { code?: string }).code !== '42501') throw cause;
+        } finally {
+          await client.query('rollback to savepoint view_probe');
+        }
+      }
+      expect(
+        leaked,
+        'A view over public.shipments, which holds buyer name and buyer address, handed another '
+        + `tenant's buyer data to ${leaked.length} of the ${CLIENT_BOUND_ROLES.length} roles a `
+        + 'browser request is bound to, while the same roles are refused the table itself: '
+        + leaked.join('; '),
+      ).toEqual([]);
+    });
   });
 
   it('reports the table a clause that never compares the tenant exposes, however it is spelled',

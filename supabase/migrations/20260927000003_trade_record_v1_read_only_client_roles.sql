@@ -1,11 +1,11 @@
--- Trade record v1, part 4 of 5: the Data API roles read, and nothing more.
+-- Trade record v1, part 4 of 6: the Data API roles read, and nothing more.
 --
--- The set is these four files, the migrations whose names carry `trade_record_v1`,
+-- The set is these six files, the migrations whose names carry `trade_record_v1`,
 -- and not everything in supabase/migrations: the evidence bucket migration of
 -- 24 September creates a bucket for the environment and takes no part in the
--- privilege boundary these four hand to each other. Every part's first line states
+-- privilege boundary these six hand to each other. Every part's first line states
 -- the size of the set and schema.test.ts checks that number against the files on
--- disk, so a fifth part is added by numbering it and correcting the four in front
+-- disk, so a seventh part is added by numbering it and correcting the six in front
 -- of it. The count is the route to this file: part 3 ends by saying it grants no
 -- table privilege because part 4 decides them per table and by name, and a header
 -- that stopped the set at three sent the next author away before they read that
@@ -111,6 +111,31 @@ begin
         'grant select, insert, update, delete, truncate on public.%I to service_role', target);
     end if;
   end loop;
+
+  -- And the relations in this schema that are not ordinary tables, which the loop
+  -- above cannot reach because `relkind = 'r'` is a table and nothing else. A view
+  -- answers to `'v'`, a materialised view to `'m'`, a partitioned table to `'p'`
+  -- and a foreign table to `'f'`, all four hold rows, all four are served through
+  -- the Data API exactly as a table is, and none of them is subject to row-level
+  -- security the way the twenty-nine above are: a view only if it was created
+  -- `with (security_invoker = true)`, a materialised view never. So they are
+  -- stripped rather than granted, and a later migration that wants to publish one
+  -- writes its own grant and says why.
+  --
+  -- There is no such relation in this schema today, so this loop turns over
+  -- nothing. It is here because the self-check below asks about all five kinds,
+  -- and a check that asks more than the statements above it did would be a check
+  -- somebody has to satisfy by hand. Part 6 is what stops the next one being born
+  -- holding the default access control list in the first place.
+  for target in
+    select c.relname
+      from pg_catalog.pg_class c
+      join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+     where n.nspname = 'public' and c.relkind in ('f', 'm', 'p', 'v')
+     order by c.relname
+  loop
+    execute format('revoke all privileges on public.%I from anon, authenticated', target);
+  end loop;
 end;
 $$;
 
@@ -129,7 +154,13 @@ begin
     join pg_catalog.pg_namespace n on n.oid = c.relnamespace
     cross join lateral aclexplode(c.relacl) a
    where n.nspname = 'public'
-     and c.relkind = 'r'
+     -- Every relation kind that holds rows, not the ordinary table alone. The
+     -- third Codex review of SEEN-008 (F19) found that this self-check, like every
+     -- guard in the set, read `relkind = 'r'` and so measured nothing whatever
+     -- about a view: `anon` was refused public.shipments and read both tenants'
+     -- buyer name and buyer address through a view over it, and this raised
+     -- nothing.
+     and c.relkind in ('f', 'm', 'p', 'r', 'v')
      and a.privilege_type in ('SELECT', 'INSERT', 'UPDATE', 'DELETE', 'TRUNCATE')
      -- The three roles a request can be bound to. The owner of the table holds
      -- update, delete and truncate on audit_events and has to: the trigger is what
@@ -137,13 +168,17 @@ begin
      and a.grantee in ('anon'::regrole, 'authenticated'::regrole, 'service_role'::regrole)
      and (
        a.grantee = 'anon'::regrole
-       or (a.grantee = 'authenticated'::regrole and a.privilege_type <> 'SELECT')
+       -- `authenticated` reads a table and holds nothing else anywhere. On a
+       -- relation that is not a table it does not even read: a select there is a
+       -- read that row-level security may never have been applied to.
+       or (a.grantee = 'authenticated'::regrole
+           and (a.privilege_type <> 'SELECT' or c.relkind <> 'r'))
        or (c.relname = 'audit_events' and a.privilege_type in ('UPDATE', 'DELETE', 'TRUNCATE'))
      );
 
   if offenders is not null then
-    raise exception 'the Data API roles still hold privileges this migration meant to remove: %',
-      offenders;
+    raise exception 'the Data API roles still hold privileges this migration meant to remove, on '
+      'a table or on a relation that is not one: %', offenders;
   end if;
 
   if not has_table_privilege('service_role', 'public.audit_events', 'insert')

@@ -30,10 +30,12 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import {
   APPEND_ONLY_PRIVILEGES, APPEND_ONLY_TABLES, BUYER_PII_COLUMNS, BUYER_PII_COMMENT_TERMS,
-  CROSS_TENANT_FOREIGN_KEY_EXEMPTIONS, DATA_API_ROLES, FORBIDDEN_PRIVILEGE_STATEMENTS,
-  GOVERNED_PRIVILEGES, HASHED_REPOSITORY_DOCUMENTS, MIGRATION_SET_HEADER, MIGRATIONS_DIRECTORY,
+  CLIENT_BOUND_ROLES, CROSS_TENANT_FOREIGN_KEY_EXEMPTIONS, DATA_API_ROLES,
+  FORBIDDEN_PRIVILEGE_STATEMENTS, GOVERNED_PRIVILEGES, HASHED_REPOSITORY_DOCUMENTS,
+  MIGRATION_SET_HEADER, MIGRATIONS_DIRECTORY, ROW_BEARING_RELKINDS,
   TABLE_PRIVILEGES, TENANCY_CLAUSES, TENANT_CLAIM,
   TRADE_RECORD_MIGRATION_MARKER, TRADE_RECORD_TABLES,
+  VIEW_SECURITY_OPTION, VIEW_SECURITY_OPTION_TRUE,
 } from './tables';
 
 /** The repository root, from this file's own location: `packages/core/db`. */
@@ -77,6 +79,9 @@ async function connect(): Promise<Client> {
   return client;
 }
 
+/** A relation in a schema, with the single character `pg_class` names its kind by. */
+interface Relation { name: string; kind: string }
+
 async function tablesIn(client: Client, schema: string): Promise<string[]> {
   const { rows } = await client.query<{ name: string }>(
     `select c.relname as name
@@ -87,6 +92,37 @@ async function tablesIn(client: Client, schema: string): Promise<string[]> {
     [schema],
   );
   return rows.map((row) => row.name);
+}
+
+/**
+ * Every relation in the schema that holds rows and is not an ordinary table,
+ * with the kind `pg_class` gives it.
+ *
+ * `tablesIn` asks for `relkind = 'r'` and every guard in this suite is built on
+ * it, which is the whole of the hole the third Codex review of SEEN-008 (F19)
+ * found. A view added to `public` by a later migration answers to `'v'`, is born
+ * holding the default access control list of schema `public`, which covers views
+ * as surely as tables because `pg_default_acl` files both under
+ * `defaclobjtype = 'r'`, and is not subject to the row-level security of the
+ * tables underneath it unless it was created `with (security_invoker = true)`.
+ * So the tenancy guard does not see it, the privilege guard does not see it, and
+ * `anon` reads every tenant's rows through it.
+ */
+async function nonTableRelationsIn(client: Client, schema: string): Promise<Relation[]> {
+  const { rows } = await client.query<Relation>(
+    `select c.relname as name, c.relkind as kind
+       from pg_catalog.pg_class c
+       join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+      where n.nspname = $1 and c.relkind = any($2)
+      order by c.relname`,
+    [schema, Object.keys(ROW_BEARING_RELKINDS)],
+  );
+  return rows;
+}
+
+/** One such relation, named the way a failure message should name it. */
+function named(relation: Relation): string {
+  return `${relation.name} (${ROW_BEARING_RELKINDS[relation.kind] ?? `relkind ${relation.kind}`})`;
 }
 
 /**
@@ -260,6 +296,115 @@ async function privilegesIn(
     held.set(key, [...(held.get(key) ?? []), row.privilege].sort());
   }
   return held;
+}
+
+/**
+ * Every privilege a client-bound role holds on a relation in the schema that is
+ * not an ordinary table, named one by one.
+ *
+ * The privilege guard above reads `relkind = 'r'` and so measures nothing at all
+ * about a view. `anon` and `authenticated` should hold nothing on one: a view
+ * that a later ticket deliberately publishes has to grant its own select, and say
+ * so in the migration that publishes it.
+ */
+async function clientPrivilegesOnNonTablesIn(client: Client, schema: string): Promise<string[]> {
+  const { rows } = await client.query<{ name: string; kind: string; role: string; privilege: string }>(
+    `select c.relname as name, c.relkind as kind,
+            a.grantee::regrole::text as role,
+            a.privilege_type as privilege
+       from pg_catalog.pg_class c
+       join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+       cross join lateral aclexplode(c.relacl) a
+      where n.nspname = $1 and c.relkind = any($2)
+        and a.grantee::regrole::text = any($3)
+      order by c.relname, role, privilege`,
+    [schema, Object.keys(ROW_BEARING_RELKINDS), [...CLIENT_BOUND_ROLES]],
+  );
+  return rows
+    .filter((row) => (GOVERNED_PRIVILEGES as readonly string[]).includes(row.privilege))
+    .map((row) => `${named(row)}: ${row.role} holds ${row.privilege}`);
+}
+
+/**
+ * Every view in the schema that does not read its base tables with the caller's
+ * own rights and claims.
+ *
+ * A view without `security_invoker = true` runs as its owner, which here is the
+ * migration role, and the row-level security of the tables underneath it is not
+ * applied to the request at all. The option is read out of `reloptions` by name
+ * rather than matched as a string, because Postgres stores a boolean storage
+ * parameter as it was written and `on`, `yes` and `1` are the same setting.
+ */
+async function viewsWithoutInvokerRightsIn(client: Client, schema: string): Promise<string[]> {
+  const { rows } = await client.query<{ name: string; kind: string; setting: string | null }>(
+    `select c.relname as name, c.relkind as kind,
+            (select o.option_value
+               from pg_catalog.pg_options_to_table(c.reloptions) o
+              where o.option_name = $2) as setting
+       from pg_catalog.pg_class c
+       join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+      where n.nspname = $1 and c.relkind = 'v'
+      order by c.relname`,
+    [schema, VIEW_SECURITY_OPTION],
+  );
+  return rows
+    .filter((row) => !(VIEW_SECURITY_OPTION_TRUE as readonly string[])
+      .includes((row.setting ?? '').toLowerCase()))
+    .map((row) => `${named(row)}: ${VIEW_SECURITY_OPTION} is `
+      + `${row.setting === null ? 'not set at all' : row.setting}`);
+}
+
+/**
+ * Every materialised view in the schema.
+ *
+ * There is no `security_invoker` for one and there could not be. A materialised
+ * view is a stored copy of the rows its owner could see when it was refreshed, so
+ * a request reading it is reading rows that were selected before the request
+ * existed and there is nothing for a policy to be applied to. The rule is
+ * therefore not how to create one but where: not in a schema the Data API serves.
+ */
+async function materialisedViewsIn(client: Client, schema: string): Promise<string[]> {
+  const relations = await nonTableRelationsIn(client, schema);
+  return relations.filter((relation) => relation.kind === 'm').map(named);
+}
+
+/**
+ * Every default privilege a client-bound role holds on the relations the
+ * migration role creates in the schema, named one by one.
+ *
+ * `alter default privileges` grants on objects that do not exist yet, and
+ * `defaclobjtype = 'r'` is not "table": it is every relation kind a `create
+ * table`, `create view`, `create materialized view` or `create foreign table`
+ * produces. Supabase ships schema `public` with all of `arwdDxtm` defaulted to
+ * `anon` and `authenticated`, so a view a later migration adds is readable by a
+ * caller who never signed in before that migration's last line has run.
+ *
+ * Scoped to the role this session is connected as, which is the role the
+ * migrations run as, because a default privilege applies to the objects one role
+ * creates and says nothing about another's. The second grantor in this database
+ * is `supabase_admin`, and its entry is not asserted here: it governs relations
+ * `supabase_admin` itself creates in `public`, no migration in this repository
+ * creates one, and the migration role is not a member of `supabase_admin` and
+ * cannot revoke it. Part 6 states that as the limit it could not close.
+ */
+async function defaultPrivilegesForClientRolesIn(
+  client: Client, schema: string,
+): Promise<string[]> {
+  const { rows } = await client.query<{ grantor: string; role: string; privilege: string }>(
+    `select d.defaclrole::regrole::text as grantor,
+            a.grantee::regrole::text as role,
+            a.privilege_type as privilege
+       from pg_catalog.pg_default_acl d
+       cross join lateral aclexplode(d.defaclacl) a
+      where d.defaclnamespace = (select oid from pg_catalog.pg_namespace where nspname = $1)
+        and d.defaclobjtype = 'r'
+        and d.defaclrole = current_user::regrole
+        and a.grantee::regrole::text = any($2)
+      order by role, privilege`,
+    [schema, [...CLIENT_BOUND_ROLES]],
+  );
+  return rows.map((row) => `${row.role} holds ${row.privilege} on every relation ${row.grantor} `
+    + `creates in ${schema}`);
 }
 
 /** Every migration file, as a path relative to the repository root, newest last. */
@@ -826,6 +971,11 @@ describe('the migrations that write the schema', () => {
       'grant all on all tables in schema public to service_role',
       'grant\n  select\n  on all tables\n  in schema public\n  to anon',
       'alter default privileges in schema public grant all on tables to authenticated',
+      // The spelling that names the grantor, which is the one part 6 had to write
+      // in its revoking form and so the one a later author is most likely to copy
+      // and turn round. `on tables` in this grammar is not tables: it is every
+      // relation kind, views and materialised views among them, which is F19.
+      'alter default privileges for role postgres in schema public grant select on tables to anon',
     ];
     const missed = hazards.filter(
       (hazard) => !FORBIDDEN_PRIVILEGE_STATEMENTS.some((rule) => rule.pattern.test(hazard)),
@@ -839,6 +989,13 @@ describe('the migrations that write the schema', () => {
       "execute format('grant select on public.%I to authenticated', target)",
       'grant usage on schema seen to anon, authenticated, service_role',
       '-- no later migration may end in `grant ... on all tables in schema public`',
+      // And the revoking form, which is the only statement that takes a default
+      // privilege away and is the whole of part 6's prevention. A rule that
+      // refused `alter default privileges` in both directions would have refused
+      // the fix for the hazard it was written about.
+      'alter default privileges for role postgres in schema public '
+      + 'revoke all on tables from anon, authenticated',
+      'alter default privileges in schema public revoke select on tables from anon',
     ];
     const misread = allowed.filter((statement) => statementsOf(statement).some(
       (cleaned) => FORBIDDEN_PRIVILEGE_STATEMENTS.some((rule) => rule.pattern.test(cleaned)),
@@ -1102,5 +1259,156 @@ describe('the foreign keys between tenant-owned tables', () => {
       `${restricting.length} foreign keys refuse a delete of the parent outright, which a `
       + "tenant's erasure is: " + restricting.join('; '),
     ).toEqual([]);
+  });
+});
+
+describe('the relations in the public schema that are not tables', () => {
+  // Every guard above asks pg_catalog for `relkind = 'r'`, and so does part 4's
+  // per-table revoke and its self-check. That is an ordinary table and nothing
+  // else. Four other relation kinds hold rows, are served by the Data API exactly
+  // as a table is, and were invisible to all of it.
+  //
+  // Measured against this stack in a rolled-back transaction by the third Codex
+  // review of SEEN-008 (F19), with two tenants seeded: `anon` is refused
+  // `public.shipments` with SQLSTATE 42501, and reads both tenants' `buyer_name`
+  // and `buyer_address` through `create view public.buyer_book as select
+  // tenant_id, buyer_name, buyer_address from public.shipments`. Twenty-nine
+  // relations of kind `r` were counted and no view was seen. SEEN-046 and SEEN-024
+  // are the tickets that will add exactly such a view.
+  //
+  // Two properties, and the schema needs both. A view has to be born unreachable,
+  // which is the default privileges; and a view somebody deliberately grants has
+  // to read its base tables as the caller, which is `security_invoker`. A
+  // materialised view can do neither, so it does not belong in this schema at all.
+
+  let client: Client;
+
+  beforeAll(async () => {
+    client = await connect();
+  });
+
+  afterAll(async () => {
+    await client?.end();
+  });
+
+  it('is born unreachable: no client-bound role holds a default privilege on a new relation',
+    async () => {
+      // This is the prevention half and it is the one that closes the hole. With
+      // the default access control list of schema public standing, a view is
+      // readable by `anon` from the moment `create view` returns, and no statement
+      // in the migration that created it says so. The Outcome of the first review
+      // named this and left it open as "detection rather than prevention"; a view
+      // is what made detection impossible as well, because nothing looked at one.
+      const held = await defaultPrivilegesForClientRolesIn(client, 'public');
+      expect(
+        held,
+        `${held.length} default privileges stand on schema public, so every table, view and `
+        + 'materialised view a later migration creates there is born holding them, and a view '
+        + 'is not subject to row-level security unless it says `security_invoker = true`: '
+        + held.join('; '),
+      ).toEqual([]);
+    });
+
+  it('grants no client-bound role anything on a view or a materialised view', async () => {
+    const held = await clientPrivilegesOnNonTablesIn(client, 'public');
+    expect(
+      held,
+      `${held.length} privileges on relations that are not tables are held by a role a browser `
+      + 'request is bound to, and the privilege guard on the twenty-nine tables reads none of '
+      + 'them: ' + held.join('; '),
+    ).toEqual([]);
+  });
+
+  it('carries no view that reads its base tables with anything but the caller\'s own rights',
+    async () => {
+      const owned = await viewsWithoutInvokerRightsIn(client, 'public');
+      expect(
+        owned,
+        `${owned.length} views in the public schema run with their owner's rights, so the `
+        + 'row-level security of the tables underneath them is not applied to the request at '
+        + 'all and every tenant\'s rows are readable through them: ' + owned.join('; '),
+      ).toEqual([]);
+    });
+
+  it('carries no materialised view, because row-level security can never reach one', async () => {
+    const stored = await materialisedViewsIn(client, 'public');
+    expect(
+      stored,
+      `${stored.length} materialised views are in the public schema. A materialised view is a `
+      + 'stored copy of the rows its owner could see when it was refreshed, so no policy is '
+      + 'ever applied to a request that reads it and no option makes one apply: '
+      + stored.join('; '),
+    ).toEqual([]);
+  });
+
+  it('would see a view and a materialised view a later migration added', async () => {
+    // The three assertions above pass against a schema with no view in it, and so
+    // would a checker that measured nothing. This is what they are for, written as
+    // the migration SEEN-046 will want: a view over the table that holds buyer
+    // name and buyer address.
+    await client.query('begin');
+    try {
+      await client.query(
+        'create view public.seen_view_probe as '
+        + 'select tenant_id, buyer_name, buyer_address from public.shipments',
+      );
+      await client.query(
+        'create materialized view public.seen_matview_probe as '
+        + 'select tenant_id, buyer_name from public.shipments',
+      );
+      const relations = (await nonTableRelationsIn(client, 'public')).map((row) => row.name);
+      expect(
+        relations,
+        'The relation listing does not see a view added to the public schema, so nothing below '
+        + 'it can either',
+      ).toEqual(expect.arrayContaining(['seen_matview_probe', 'seen_view_probe']));
+
+      const owned = await viewsWithoutInvokerRightsIn(client, 'public');
+      expect(
+        owned.filter((entry) => entry.startsWith('seen_view_probe')),
+        'A view created without `security_invoker = true` was not reported, so the assertion '
+        + `passes by finding nothing: it reported ${owned.join('; ') || 'nothing at all'}`,
+      ).not.toEqual([]);
+
+      const stored = await materialisedViewsIn(client, 'public');
+      expect(
+        stored.filter((entry) => entry.startsWith('seen_matview_probe')),
+        'A materialised view in the public schema was not reported, so the assertion passes by '
+        + `finding nothing: it reported ${stored.join('; ') || 'nothing at all'}`,
+      ).not.toEqual([]);
+
+      // And a privilege granted on a view is reported, whether the default access
+      // control list put it there or a later migration wrote the grant by hand.
+      await client.query('grant select on public.seen_view_probe to authenticated');
+      const held = await clientPrivilegesOnNonTablesIn(client, 'public');
+      expect(
+        held.filter((entry) => entry.startsWith('seen_view_probe')),
+        'A select granted to `authenticated` on a view was not reported, so the privilege '
+        + `assertion on the non-table relations measures nothing: it reported ${held.join('; ') || 'nothing at all'}`,
+      ).not.toEqual([]);
+    } finally {
+      await client.query('rollback');
+    }
+  });
+
+  it('would see a default privilege a later migration granted back', async () => {
+    // The same question of the prevention half. `alter default privileges` is the
+    // one statement that can reopen this, and the forbidden-statement scanner
+    // refuses it in its granting form; this is the database answering rather than
+    // the file.
+    await client.query('begin');
+    try {
+      await client.query(
+        'alter default privileges in schema public grant select on tables to anon',
+      );
+      const held = await defaultPrivilegesForClientRolesIn(client, 'public');
+      expect(
+        held.filter((entry) => entry.startsWith('anon')),
+        'A default privilege granted back to `anon` on schema public was not reported, so the '
+        + `assertion passes by finding nothing: it reported ${held.join('; ') || 'nothing at all'}`,
+      ).not.toEqual([]);
+    } finally {
+      await client.query('rollback');
+    }
   });
 });

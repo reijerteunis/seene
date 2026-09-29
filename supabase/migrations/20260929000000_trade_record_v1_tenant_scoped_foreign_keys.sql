@@ -1,4 +1,4 @@
--- Trade record v1, part 5 of 5: the tenant travels along every foreign key.
+-- Trade record v1, part 5 of 6: the tenant travels along every foreign key.
 -- SEEN-008, CODEX-01.
 --
 -- What parts 1 to 4 got right and what they missed. Every table carries
@@ -38,7 +38,10 @@
 -- that form and the local stack is 17.
 --
 -- This migration grants nothing and revokes nothing. Part 4 decides the privileges
--- of every table per table and by name, and it is still the only place that does.
+-- of every table per table and by name, and it is still the only place that does
+-- for a table. Part 6 is the one that decides what a relation which is not a table
+-- may be born holding, because `relkind = 'r'` is where every guard in parts 1 to 5
+-- stops and a view is not one.
 --
 -- Forward only, like the four parts before it.
 
