@@ -1245,6 +1245,224 @@ describe('the append-only guarantee on audit_events', () => {
 });
 
 /**
+ * F23: the one delete the append-only guarantee permits asked whether the tenant
+ * row was visible to the caller, not whether it was there.
+ *
+ * `seen.refuse_audit_mutation()` lets a delete through when `not exists (select 1
+ * from public.tenants where tenant_id = old.tenant_id)`, which its own comment
+ * calls the erasure cascade and nothing else. The function carried the invoker's
+ * rights, so that subquery was evaluated under the caller's row-level security,
+ * and `public.tenants` carries one policy bound `to authenticated`. A caller the
+ * policy does not name reads no tenant at all, whatever claim it holds, so the
+ * branch stood open for every tenant including the caller's own.
+ *
+ * It was harmless by coincidence rather than by design. The two roles that hold
+ * delete on `public.audit_events` today, `service_role` and the owner, both
+ * bypass row-level security, so for them an absent row and an invisible one are
+ * the same answer. A later migration granting delete to a role a request is bound
+ * to would have turned the exception into permission to erase the audit trail one
+ * event at a time, and the only thing left standing would have been that the
+ * policy set on `public.audit_events` carries no delete policy.
+ *
+ * So this block writes the migration that would have done it, inside a
+ * transaction that is rolled back: the privilege, and the two policies in the one
+ * tenancy expression every other table carries. Nothing it grants is over-broad
+ * and the caller asks only for its own tenant's event, which is the point. What is
+ * asserted is the refusal, with the tenant row standing; and then the erasure,
+ * because the branch that permits it has just been rewritten and a fix that closed
+ * the hole by closing the cascade would be a worse defect than the one it closes.
+ */
+describe('the exception the append-only trigger makes, asked by a request-bound role', () => {
+  /** The role a later migration would add and grant delete to. No migration
+   * creates it: it is made and rolled back inside each test, so the privilege this
+   * block reasons about never outlives the transaction that measured it. */
+  const PROBE_ROLE = 'seen_f23_request_bound_probe';
+
+  let client: Client;
+
+  /** The SQLSTATE the database answered with, or `accepted` when it did not
+   * refuse. Behind a savepoint, because each test carries on asking questions
+   * after a refusal and a failed statement otherwise aborts the transaction. */
+  async function said(body: () => Promise<unknown>): Promise<string> {
+    await client.query('savepoint attempted');
+    try {
+      await body();
+      await client.query('release savepoint attempted');
+      return 'accepted';
+    } catch (error) {
+      await client.query('rollback to savepoint attempted');
+      return (error as { code?: string }).code ?? (error as Error).message;
+    }
+  }
+
+  /** Everything inside, rolled back. Each test starts as the owner, because the
+   * fixtures and the grants are a migration's work, and puts on the role it is
+   * asking about itself. */
+  async function rolledBack<T>(body: () => Promise<T>): Promise<T> {
+    await client.query('begin');
+    try {
+      return await body();
+    } finally {
+      await client.query('rollback');
+    }
+  }
+
+  /** How many rows of `relation` carry this tenant id, with whatever role is set. */
+  async function rowsFor(relation: string, tenant: string): Promise<number> {
+    const { rows } = await client.query<{ total: string }>(
+      `select count(*) as total from ${relation} where tenant_id = $1`,
+      [tenant],
+    );
+    return Number(rows[0].total);
+  }
+
+  /** A tenant that exists, with one audit event behind it: the pair the exception
+   * branch has to tell apart from a tenant that has been erased. */
+  async function seedWithAuditEvent(name: string): Promise<{ tenant: string; event: string }> {
+    const seeded = await client.query<{ tenant_id: string }>(
+      'insert into public.tenants (name) values ($1) returning tenant_id',
+      [name],
+    );
+    const tenant = seeded.rows[0].tenant_id;
+    const written = await client.query<{ id: string }>(
+      `insert into public.audit_events (tenant_id, event_type, actor)
+       values ($1, 'test.written_before_the_probe', 'test') returning id`,
+      [tenant],
+    );
+    return { tenant, event: written.rows[0].id };
+  }
+
+  /** The later migration, written out. A request-bound role, the delete privilege
+   * the finding supposes, and a select and a delete policy in the same tenancy
+   * expression the other twenty-nine tables carry, so the role reads and removes
+   * its own tenant's rows and nothing else.
+   *
+   * Select on `public.tenants` is granted too, and deliberately: the trigger's
+   * subquery reads that table under the invoker's rights, and a refusal for want
+   * of a privilege would prove something other than what this block is about. The
+   * role holds the privilege and still sees nothing, because the tenancy policy is
+   * bound to `authenticated` and names no other role. That gap between what is
+   * there and what is visible is the whole of the defect. */
+  async function grantTheDeleteToARequest(): Promise<void> {
+    try {
+      await client.query(`create role ${PROBE_ROLE} nologin`);
+      await client.query(`grant ${PROBE_ROLE} to current_user`);
+    } catch (cause) {
+      throw new Error(
+        'This test cannot say anything about the exception the append-only trigger makes: the '
+        + `connection may not create ${PROBE_ROLE}, so there is no role a request could be bound `
+        + 'to to ask with. Point SEEN_DATABASE_URL at a stack whose role may create roles. The '
+        + `database said: ${(cause as Error).message}`,
+        { cause },
+      );
+    }
+    await client.query(`grant usage on schema seen to ${PROBE_ROLE}`);
+    await client.query(`grant execute on function seen.current_tenant() to ${PROBE_ROLE}`);
+    await client.query(`grant select on public.tenants to ${PROBE_ROLE}`);
+    await client.query(`grant select, delete on public.audit_events to ${PROBE_ROLE}`);
+    await client.query(
+      `create policy f23_probe_select on public.audit_events for select to ${PROBE_ROLE}
+         using (tenant_id = seen.current_tenant())`,
+    );
+    await client.query(
+      `create policy f23_probe_delete on public.audit_events for delete to ${PROBE_ROLE}
+         using (tenant_id = seen.current_tenant())`,
+    );
+  }
+
+  beforeAll(async () => {
+    client = await connect();
+    const present = await tablesIn(client, 'public');
+    const missing = ['tenants', 'audit_events'].filter((table) => !present.includes(table));
+    if (missing.length > 0) {
+      throw new Error(
+        'This test cannot say anything about the one delete the append-only guarantee permits: '
+        + `${missing.join(', ')} ${missing.length === 1 ? 'does' : 'do'} not exist in the public `
+        + 'schema. Apply the trade record migrations with `pnpm db:reset`.',
+      );
+    }
+  });
+
+  afterAll(async () => {
+    await client?.end();
+  });
+
+  it('refuses the delete of an audit event whose tenant row is there', async () => {
+    const measured = await rolledBack(async () => {
+      const { tenant, event } = await seedWithAuditEvent('Tenant a request can reach');
+      await grantTheDeleteToARequest();
+      await client.query(
+        "select set_config('request.jwt.claims', json_build_object('tenant_id', $1::text)::text,"
+        + ' true)',
+        [tenant],
+      );
+      await client.query(`set local role ${PROBE_ROLE}`);
+      const seenByTheCaller = await rowsFor('public.tenants', tenant);
+      const deleted = await said(() => client.query(
+        'delete from public.audit_events where id = $1',
+        [event],
+      ));
+      await client.query('reset role');
+      return {
+        tenantRowsTheCallerCouldSee: seenByTheCaller,
+        tenantRowsThereReally: await rowsFor('public.tenants', tenant),
+        deleted,
+        auditEventsLeft: await rowsFor('public.audit_events', tenant),
+      };
+    });
+    expect(
+      measured,
+      'A role a request can be bound to asked to delete an audit event of a tenant that is '
+      + `there, carrying that tenant's own claim, and the database answered ${measured.deleted}, `
+      + `leaving ${measured.auditEventsLeft} audit events. The caller could see `
+      + `${measured.tenantRowsTheCallerCouldSee} of the ${measured.tenantRowsThereReally} tenant `
+      + 'rows that exist, so an exception branch that reads invisibility as absence hands it the '
+      + 'audit trail it is held accountable by, one event at a time. A refusal (23001) is what '
+      + 'keeps the exception the one delete it says it is',
+    ).toEqual({
+      tenantRowsTheCallerCouldSee: 0,
+      tenantRowsThereReally: 1,
+      deleted: '23001',
+      auditEventsLeft: 1,
+    });
+  });
+
+  it("still lets the erasure cascade take a tenant's audit events with it", async () => {
+    // The other half, and the reason the exception exists. Deletion on request is
+    // a promise the PRD makes and SEEN-083 performs as `service_role`, and an
+    // audit table nothing could delete from would make it impossible to keep. F21
+    // asks this of its own registry; it is asked again here because the branch
+    // that permits the cascade is the branch this finding rewrote, and a fix that
+    // closed the hole by closing the cascade would pass every other test in this
+    // file.
+    const measured = await rolledBack(async () => {
+      const { tenant } = await seedWithAuditEvent('Tenant erased on request');
+      await client.query('set local role service_role');
+      const before = await rowsFor('public.audit_events', tenant);
+      const erased = await said(() => client.query(
+        'delete from public.tenants where tenant_id = $1',
+        [tenant],
+      ));
+      const after = {
+        tenantRowsAfter: await rowsFor('public.tenants', tenant),
+        auditEventsAfter: await rowsFor('public.audit_events', tenant),
+      };
+      await client.query('reset role');
+      return { auditEventsBefore: before, erased, ...after };
+    });
+    expect(
+      measured,
+      'Erasing a tenant as service_role, which is what deletion on request is, answered '
+      + `${measured.erased} and left ${measured.tenantRowsAfter} tenant rows and `
+      + `${measured.auditEventsAfter} audit events behind, against ${measured.auditEventsBefore} `
+      + 'audit events before it',
+    ).toEqual({
+      auditEventsBefore: 1, erased: 'accepted', tenantRowsAfter: 0, auditEventsAfter: 0,
+    });
+  });
+});
+
+/**
  * F21: the append-only guarantee has one permitted delete, and nothing stopped
  * the tenant being put back after it.
  *
@@ -1611,6 +1829,124 @@ describe('the foreign keys between tenant-owned tables', () => {
       `${restricting.length} foreign keys refuse a delete of the parent outright, which a `
       + "tenant's erasure is: " + restricting.join('; '),
     ).toEqual([]);
+  });
+
+  it('nulls the reference and not the tenant when a set-null parent is deleted', async () => {
+    // Eight of the twenty-eight rewritten keys set null, and each names the column
+    // to null. What the column-list form buys, and what the bare form costs, is
+    // measured here rather than stated, because a reason is the part of a schema
+    // that rots without anybody noticing.
+    //
+    // The shipped form first: deleting the settlement line a claim was credited by
+    // nulls the reference and leaves tenant_id standing, so the claim survives its
+    // parent. Then the bare form in its place, inside the same rolled-back
+    // transaction: it nulls every column of the key, tenant_id among them, and
+    // tenant_id is not null, so the ordinary delete of the parent row is refused
+    // with 23502 and that settlement line cannot be removed or re-ingested at all
+    // while a claim points at it.
+    //
+    // A tenant's erasure is not the case that proves it, and the Outcome used to
+    // say it was. Measured with the bare form in place, `delete from public.tenants`
+    // is accepted, because the cascade removes the claim before the set-null can
+    // reach it, and which of two sibling cascade actions Postgres schedules first
+    // is not a guarantee to rest a reason on.
+    const fixture = async () => {
+      const tenant = (await client.query<{ tenant_id: string }>(
+        "insert into public.tenants (name) values ('Tenant with a credited claim') "
+        + 'returning tenant_id',
+      )).rows[0].tenant_id;
+      const connection = (await client.query<{ id: string }>(
+        "insert into public.connections (tenant_id, marketplace) values ($1, 'bol') returning id",
+        [tenant],
+      )).rows[0].id;
+      const settlement = (await client.query<{ id: string }>(
+        `insert into public.settlements (tenant_id, connection_id, marketplace, external_id)
+         values ($1, $2, 'bol', 'SETTLEMENT-SET-NULL') returning id`,
+        [tenant, connection],
+      )).rows[0].id;
+      const line = (await client.query<{ id: string }>(
+        `insert into public.settlement_lines
+           (tenant_id, settlement_id, marketplace, external_id, line_type, amount_cents)
+         values ($1, $2, 'bol', 'LINE-SET-NULL', 'compensation', 1234) returning id`,
+        [tenant, settlement],
+      )).rows[0].id;
+      const claim = (await client.query<{ id: string }>(
+        `insert into public.claims (tenant_id, marketplace, credited_by_settlement_line_id)
+         values ($1, 'bol', $2) returning id`,
+        [tenant, line],
+      )).rows[0].id;
+      return { tenant, line, claim };
+    };
+    const answered = async (body: () => Promise<unknown>): Promise<string> => {
+      await client.query('savepoint attempted');
+      try {
+        await body();
+        await client.query('release savepoint attempted');
+        return 'accepted';
+      } catch (error) {
+        await client.query('rollback to savepoint attempted');
+        return (error as { code?: string }).code ?? (error as Error).message;
+      }
+    };
+
+    await client.query('begin');
+    let measured;
+    try {
+      const seeded = await fixture();
+      await client.query('savepoint as_shipped');
+      const shippedDelete = await answered(() => client.query(
+        'delete from public.settlement_lines where id = $1', [seeded.line],
+      ));
+      const { rows } = await client.query<{
+        tenant_id: string | null; credited_by_settlement_line_id: string | null;
+      }>(
+        'select tenant_id, credited_by_settlement_line_id from public.claims where id = $1',
+        [seeded.claim],
+      );
+      await client.query('rollback to savepoint as_shipped');
+
+      // The same delete with a bare `on delete set null` in the key's place, which
+      // is the form the Outcome's sentence is about.
+      await client.query(
+        'alter table public.claims drop constraint claims_credited_by_settlement_line_id_fkey',
+      );
+      await client.query(
+        `alter table public.claims add constraint claims_credited_by_settlement_line_id_fkey
+           foreign key (tenant_id, credited_by_settlement_line_id)
+           references public.settlement_lines (tenant_id, id) on delete set null`,
+      );
+      const bareDelete = await answered(() => client.query(
+        'delete from public.settlement_lines where id = $1', [seeded.line],
+      ));
+      measured = {
+        shipped: {
+          deletingTheParentRow: shippedDelete,
+          claimsLeft: rows.length,
+          keepsItsTenant: rows[0]?.tenant_id === seeded.tenant,
+          nullsTheReference: rows[0]?.credited_by_settlement_line_id === null,
+        },
+        bare: { deletingTheParentRow: bareDelete },
+      };
+    } finally {
+      await client.query('rollback');
+    }
+    expect(
+      measured,
+      'Deleting the settlement line a claim was credited by answered '
+      + `${measured.shipped.deletingTheParentRow} with the key as it ships and `
+      + `${measured.bare.deletingTheParentRow} with a bare set-null in its place, and the claim `
+      + `${measured.shipped.keepsItsTenant ? 'kept' : 'lost'} its tenant_id. The column-list form `
+      + 'is what keeps a not-null tenant_id out of the set: without it the parent row cannot be '
+      + 'deleted at all (23502) while a child points at it',
+    ).toEqual({
+      shipped: {
+        deletingTheParentRow: 'accepted',
+        claimsLeft: 1,
+        keepsItsTenant: true,
+        nullsTheReference: true,
+      },
+      bare: { deletingTheParentRow: '23502' },
+    });
   });
 });
 

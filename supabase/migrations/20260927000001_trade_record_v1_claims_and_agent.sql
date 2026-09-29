@@ -358,6 +358,22 @@ create index audit_events_agent_action_id_idx on public.audit_events (agent_acti
 -- row is already gone, which inside Postgres is only true while the cascade from
 -- public.tenants is running.
 --
+-- Why the function runs as its owner, which is the whole of the exception's
+-- safety (SEEN-008, F23). `not exists (select ...)` under the invoker's rights is
+-- not a question about what is there: it is a question about what the caller can
+-- see, and public.tenants carries row-level security with one policy bound to
+-- `authenticated`. A caller that policy does not name reads no tenant at all,
+-- whatever claim it holds, so an invoker-rights branch would be open for every
+-- tenant including the caller's own. That was true and harmless only by
+-- coincidence, because the two roles holding delete on this table, service_role
+-- and the owner, both bypass row-level security and an absent row and an
+-- invisible one are the same answer to them; the next migration to grant delete
+-- to a role a request is bound to would have turned the exception into permission
+-- to erase the audit trail one event at a time. Security definer makes the branch
+-- mean what this comment says it means. It is the failure mode part 8 names on
+-- its own registry, and it is worth naming twice: an existence test that is really
+-- a visibility test fails open and fails silently.
+--
 -- What that exception did not cover, and what part 8 of this set does. Removing
 -- the rows is only half of an erasure: nothing here stops the tenant being created
 -- again under the same id, and an id that resolves with no audit events behind it
@@ -375,6 +391,7 @@ create index audit_events_agent_action_id_idx on public.audit_events (agent_acti
 create or replace function seen.refuse_audit_mutation()
 returns trigger
 language plpgsql
+security definer
 set search_path = ''
 as $$
 begin
@@ -382,8 +399,11 @@ begin
      and not exists (
        select 1 from public.tenants t where t.tenant_id = old.tenant_id
      ) then
-    -- The tenant is already gone, so this is the erasure cascade and not an
-    -- attempt to remove one event. Let it through.
+    -- The tenant row is gone rather than merely out of the caller's sight, so this
+    -- is the erasure cascade and not an attempt to remove one event. Let it
+    -- through. The owner's rights buy this one read and nothing else: the function
+    -- writes nothing, takes no argument, builds no statement from a value, and
+    -- names every object it touches with its schema under an empty search_path.
     return old;
   end if;
 
@@ -397,7 +417,16 @@ $$;
 
 comment on function seen.refuse_audit_mutation() is
   'Refuses every update and delete on public.audit_events except the delete that the '
-  'cascade from public.tenants performs when a tenant is erased.';
+  'cascade from public.tenants performs when a tenant is erased. Security definer, so that '
+  'the test for the tenant row asks whether it exists rather than whether the caller may '
+  'see it.';
+
+-- Not callable by name, as part 8's two security definer functions are not: a
+-- function that runs as the owner and can be reached by whoever can name it is a
+-- privilege handed out. A trigger function cannot be called directly anyway, and
+-- the privilege a trigger needs is checked when the trigger is created rather than
+-- each time it fires, so this takes nothing away from the two below.
+revoke all on function seen.refuse_audit_mutation() from public;
 
 create trigger audit_events_append_only
   before update or delete on public.audit_events

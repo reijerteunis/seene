@@ -116,8 +116,15 @@ begin
     constraint_name := key.child || '_' || key.child_column || '_fkey';
 
     -- Set null has to name the column, or the database nulls every column of the
-    -- key, tenant_id among them, and the not-null constraint turns a tenant's
-    -- erasure into an error halfway through.
+    -- key, tenant_id among them, and tenant_id is not null. What that costs is the
+    -- ordinary delete of the parent row: measured with a bare set-null in this
+    -- key's place, deleting the settlement line a claim was credited by, or the
+    -- settlement or the connection it hangs from, is refused with 23502, so a line
+    -- cannot be removed or re-ingested while a claim points at it. A tenant's own
+    -- erasure is not the case that proves it, though this comment used to say it
+    -- was: with a bare key in place the erasure is accepted, because the cascade
+    -- removes the child before the set-null can reach it, and the order two sibling
+    -- cascade actions run in is not something a reason may rest on.
     if key.on_delete = 'set null' then
       action := format('set null (%I)', key.child_column);
     else

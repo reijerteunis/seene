@@ -226,11 +226,19 @@ derived it from reading SQL it could not run: an order carrying tenant B's `tena
 `connection_id` was accepted by both keys independently, and deleting tenant A then destroyed tenant B's order
 while tenant B remained. One tenant's erasure on request could take part of another tenant's trade record with it.
 
-28 of the 57 keys now carry the tenant, `(tenant_id, child_col) references parent (tenant_id, id)`, at a cost of 16
-unique constraints Postgres will not infer. Eight keep set-null in the column-list form, because a bare set-null
-would null `tenant_id` too and the not-null constraint would abort a tenant's erasure mid-statement. The 28 keys to
-`tenants` are deliberately untouched: the column they reference is the tenant. Nothing became restrict, and a test
-refuses one.
+28 of the 57 keys now carry the tenant, `(tenant_id, child_col) references parent (tenant_id, id)`, at a cost of
+16 unique constraints Postgres will not infer. Eight keep set-null in the column-list form, because a bare
+set-null nulls every column of the key, `tenant_id` among them, and `tenant_id` is not null. What that costs is
+the ordinary delete of the parent row: measured with a bare key in place of
+`claims_credited_by_settlement_line_id_fkey`, deleting the settlement line a claim was credited by is refused with
+23502, and so is deleting the settlement or the connection that line hangs from, so a line could not be removed or
+re-ingested while a claim pointed at it. A tenant's erasure is not the case that proves it, and this sentence used
+to say that it was: with the same bare key, `delete from public.tenants` is accepted, because the cascade removes
+the claim before the set-null can reach it. That is the order Postgres scheduled two sibling cascade actions in,
+not something a reason may rest on. The shipped column-list form was right either way and opens no cross-tenant
+hole; it was the reason that was wrong, and `schema.test.ts` now measures both forms every run so the corrected
+one cannot rot. The 28 keys to `tenants` are deliberately untouched: the column they reference is the tenant.
+Nothing became restrict, and a test refuses one.
 
 **Tenant isolation is now proved behaviourally rather than textually.** The assertion had matched the substring
 `current_tenant`, so a policy reading `using (seen.current_tenant() is not null)` passed while exposing every
