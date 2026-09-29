@@ -1,6 +1,7 @@
 -- Trade record v1, part 6 of 8: nothing relation-shaped is born reachable, a view
--- has to read its base tables as the caller, and a table owes the tenancy whichever
--- of the two kinds of table it is. SEEN-008, F19 and F29.
+-- has to read its base tables as the caller, a table owes the tenancy whichever of
+-- the two kinds of table it is, and no function here answers a browser.
+-- SEEN-008, F19, F29 and F32.
 --
 -- What parts 1 to 5 secured and what they all stopped short of. Every tenancy,
 -- privilege and append-only guarantee this ticket writes is expressed over
@@ -74,6 +75,85 @@
 alter default privileges for role postgres in schema public
   revoke all on tables from anon, authenticated;
 
+-- Born uncallable, which is one object class over and not the same statement --
+--
+-- `on tables` above is `defaclobjtype = 'r'` and that is the whole of what it
+-- reaches. A function is `defaclobjtype = 'f'`, which nothing in parts 1 to 6 had
+-- touched, so the sixth review of SEEN-008 (F32) is F19's defect one class over, in
+-- the file that was written to close F19. `supabase/config.toml` names the class it
+-- serves in its own comment, "tables, views, sequences and functions", and the
+-- paragraph above answered one quarter of that sentence. A sequence is a quarter
+-- still open and is F33.
+--
+-- Measured against this stack in a rolled-back transaction with two tenants
+-- inserted, before this section existed. `pg_default_acl` for schema public, type
+-- `f`, read `{postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,
+-- service_role=X/postgres}`, so
+--
+--   create function public.probe_tenant_directory() returns setof text
+--     language sql security definer as $$ select name from public.tenants $$;
+--
+-- was born with `anon=X/postgres` in its own access control list, `anon` was
+-- refused public.tenants with SQLSTATE 42501, and `anon` read both tenants' names
+-- through it.
+--
+-- Why this is worse than the view above rather than the same. A view can be made to
+-- read its base tables as the caller and then the tenancy applies to it; a
+-- `security definer` function runs as its owner, no table in this schema carries
+-- `relforcerowsecurity`, and the owner of every one of them is the migration role,
+-- so there is no option that puts a policy back in the way of a request. And schema
+-- public is served by the Data API, so such a function is a `POST /rpc/<name>`
+-- endpoint reachable with the anon key. That is the ordinary Supabase remote
+-- procedure pattern, which is how SEEN-024's ops console and SEEN-035's approval
+-- inbox would write one without ever deciding to publish it.
+--
+-- One statement covers a function, a procedure and an aggregate alike, because all
+-- three are `f` to the privilege system and all three are exposed by PostgREST the
+-- same way; the grammar spells it `on routines` as well and means the same thing.
+-- `service_role` keeps its default here for the reason it keeps its default above.
+alter default privileges for role postgres in schema public
+  revoke all on functions from anon, authenticated;
+
+-- And the functions already in this schema, which are none of them -----------
+--
+-- A default privilege says nothing about an object that already exists, so the
+-- revoke above leaves a function parts 1 to 5 created exactly as it was. There is
+-- none: every helper this schema needs is in schema `seen`, which the Data API does
+-- not serve. The loop is written anyway, on the same principle as the one below it,
+-- because it is the statement and not the comment that stays true when these
+-- migrations are re-applied against a schema somebody has added a function to, and
+-- because "there are none" is worth confirming rather than assuming.
+--
+-- PUBLIC is in this revoke list and is not in the one below, and the difference is
+-- the whole of what makes a function unlike a relation. PostgreSQL grants EXECUTE
+-- to PUBLIC on every routine it creates, whatever any migration says, so for a
+-- function that grant is the one that actually reaches `anon` and `revoke ... from
+-- anon, authenticated` alone would leave it standing. Measured on the function
+-- above: after `revoke all on function ... from public`, which part 8 writes five
+-- times over its own helpers, the list still read `anon=X/postgres` and `anon` still
+-- read both tenants' names; only revoking from the two named roles as well refused
+-- it 42501. Neither statement is the other's shorthand and this loop writes both.
+--
+-- ROUTINE rather than FUNCTION in the grammar, because FUNCTION does not accept a
+-- procedure and a loop over the catalogue cannot know which it is holding.
+do $$
+declare
+  callable text;
+begin
+  for callable in
+    select format('public.%I(%s)', p.proname,
+                  pg_catalog.pg_get_function_identity_arguments(p.oid))
+      from pg_catalog.pg_proc p
+      join pg_catalog.pg_namespace n on n.oid = p.pronamespace
+     where n.nspname = 'public'
+     order by 1
+  loop
+    execute format('revoke all privileges on routine %s from public, anon, authenticated',
+                   callable);
+  end loop;
+end;
+$$;
+
 -- The limit this migration could not close, stated rather than left to be found.
 --
 -- There are two grantors of default privileges on schema public in a Supabase
@@ -87,11 +167,40 @@ alter default privileges for role postgres in schema public
 -- `supabase_admin`'s identical entry is still standing and this role cannot remove
 -- it: `alter default privileges for role supabase_admin ...` is refused with
 -- SQLSTATE 42501, "permission denied to change default privileges", because
--- `postgres` is not a member of `supabase_admin`. What remains open is a relation
--- created in public by `supabase_admin` itself, which nothing in this repository
--- does and which would be a platform action rather than a migration. It is named
--- here so that a later reader measuring the default access control list and
--- finding two entries knows that one of them was left deliberately.
+-- `postgres` is not a member of `supabase_admin`. That is true of the `f` entry
+-- exactly as F19's round found it of the `r` entry, and it was measured again this
+-- round rather than assumed to carry over. What remains open is an object created
+-- in public by `supabase_admin` itself, which nothing in this repository does and
+-- which would be a platform action rather than a migration. It is named here so
+-- that a later reader measuring the default access control list and finding two
+-- entries per class knows that one of them was left deliberately.
+--
+-- The second limit, and this one has no grantor behind it. `alter default
+-- privileges` can take the two named grants off the functions created next and it
+-- cannot take away the EXECUTE PostgreSQL grants to PUBLIC on every routine,
+-- because that grant is part of the default access control list a new object starts
+-- from and a `pg_default_acl` entry is merged into that default by adding to it.
+-- Measured on PostgreSQL 17.6 on this stack, with `alter default privileges for
+-- role postgres in schema public revoke all on functions from public` applied on
+-- top of the revoke above: `pg_default_acl` reads
+-- `{postgres=X/postgres,service_role=X/postgres}` and the function created next is
+-- still born `{=X/postgres,postgres=X/postgres,service_role=X/postgres}`, which
+-- `has_function_privilege('anon', ..., 'EXECUTE')` answers true.
+--
+-- So for a function, unlike a relation, the revoke above is not the whole of
+-- prevention and this file does not claim it is. What it buys is that the next
+-- function in public is not born with `anon` and `authenticated` written into its
+-- own list, so one `revoke ... from public` beside its `create function` closes it
+-- rather than half-closing it. What carries the rest is the guard in
+-- packages/core/db/schema.test.ts, which asks `has_function_privilege` of every
+-- routine in this schema for both browser-bound roles: the pull request that adds
+-- the first function to public fails the suite inside itself. The one mechanism
+-- that would make prevention complete is the event trigger the next paragraph
+-- declines, and the reason it gives holds for a relation and does not hold here,
+-- because a relation added later is unreachable until somebody grants it and a
+-- function added later is reachable at once. Reversing a decision this file records
+-- is a gate's call and not a rework round's, so it is written down as the choice it
+-- is rather than taken quietly.
 --
 -- And one step deliberately not taken. An event trigger on `ddl_command_end` would
 -- refuse a non-invoker view in public at the moment it is created, and this role
@@ -257,22 +366,28 @@ $$;
 
 -- And this migration checks its own outcome, as part 4 does -----------------
 --
--- The revoke above is one statement and a silent partial result is a boundary
--- nobody would notice was open, which is the whole shape of the defect it closes.
+-- The revokes above are two statements and a silent partial result is a boundary
+-- nobody would notice was open, which is the whole shape of the defect they close.
+-- Both classes are read, because one of them being right is how F32 sat under six
+-- reviews: this check asked for `r` and passed while `anon` held EXECUTE on every
+-- function schema public was about to gain.
 do $$
 declare
   offenders text;
 begin
-  select string_agg(format('%s holds %s by default from %s',
+  select string_agg(format('%s holds %s by default on every %s from %s',
                            case when a.grantee = 0 then 'PUBLIC'
                                 else a.grantee::regrole::text end,
-                           a.privilege_type, d.defaclrole::regrole::text),
-                    ', ' order by a.grantee, a.privilege_type)
+                           a.privilege_type,
+                           case d.defaclobjtype when 'f' then 'function'
+                                                else 'relation' end,
+                           d.defaclrole::regrole::text),
+                    ', ' order by d.defaclobjtype, a.grantee, a.privilege_type)
     into offenders
     from pg_catalog.pg_default_acl d
     cross join lateral aclexplode(d.defaclacl) a
    where d.defaclnamespace = 'public'::regnamespace
-     and d.defaclobjtype = 'r'
+     and d.defaclobjtype in ('f', 'r')
      -- The grantor this role can act for. The `supabase_admin` entry beside it is
      -- the limit stated above and is not asserted here, because an assertion that
      -- can never pass is not a check.
@@ -288,26 +403,62 @@ begin
 
   if offenders is not null then
     raise exception 'the default privileges on schema public still reach a browser-bound role, '
-      'so the next table, view or materialised view created here is born readable by it: %',
-      offenders;
+      'so the next table, view or materialised view created here is born readable by it and the '
+      'next function is born callable by it: %', offenders;
   end if;
 
-  -- And not over-broad in the other direction: the revoke must not have reached
+  -- And not over-broad in the other direction: the revokes must not have reached
   -- the role every worker and API call connects as, which would leave the whole
-  -- product unable to read its own record after the next migration.
-  if not exists (
-    select 1
-      from pg_catalog.pg_default_acl d
-      cross join lateral aclexplode(d.defaclacl) a
-     where d.defaclnamespace = 'public'::regnamespace
-       and d.defaclobjtype = 'r'
-       and d.defaclrole = 'postgres'::regrole
-       and a.grantee = 'service_role'::regrole
-       and a.privilege_type = 'SELECT'
-  ) then
-    raise exception 'the revoke was over-broad: service_role no longer holds select by default '
-      'on a relation created in schema public, and every worker and API call in this product '
-      'connects as it';
+  -- product unable to read its own record after the next migration, and unable to
+  -- call the next function this schema gains.
+  select string_agg(format('%s on every %s', missing.privilege_type, missing.class), ', ')
+    into offenders
+    from (values ('r', 'relation', 'SELECT'), ('f', 'function', 'EXECUTE'))
+           as missing(objtype, class, privilege_type)
+   where not exists (
+     select 1
+       from pg_catalog.pg_default_acl d
+       cross join lateral aclexplode(d.defaclacl) a
+      where d.defaclnamespace = 'public'::regnamespace
+        and d.defaclobjtype = missing.objtype
+        and d.defaclrole = 'postgres'::regrole
+        and a.grantee = 'service_role'::regrole
+        and a.privilege_type = missing.privilege_type
+   );
+
+  if offenders is not null then
+    raise exception 'a revoke was over-broad: service_role no longer holds % by default in '
+      'schema public, and every worker and API call in this product connects as it', offenders;
+  end if;
+
+  -- And the objects that already exist, which the revokes above say nothing about.
+  -- A function is asked what a role can do with it rather than what its own list
+  -- says, because PostgreSQL writes no role name into the list it grants PUBLIC,
+  -- and PUBLIC reaches `anon` along with everything else.
+  --
+  -- This passes over nothing today, as the view rule above does: schema public
+  -- holds no function and schema `seen` is where the helpers are. The suite in
+  -- packages/core/db/schema.test.ts is what shows it measures something, by
+  -- creating exactly the function F32 was reported on and requiring the same
+  -- question to name it.
+  select string_agg(format('%s can be executed by %s', callable.signature, callable.role),
+                    ', ' order by callable.signature, callable.role)
+    into offenders
+    from (
+      select p.oid::regprocedure::text as signature, r.rolname as role
+        from pg_catalog.pg_proc p
+        join pg_catalog.pg_namespace n on n.oid = p.pronamespace
+        cross join pg_catalog.pg_roles r
+       where n.nspname = 'public'
+         and r.rolname in ('anon', 'authenticated')
+         and has_function_privilege(r.oid, p.oid, 'EXECUTE')
+    ) as callable;
+
+  if offenders is not null then
+    raise exception 'a routine in schema public can be executed by a browser-bound role, and '
+      'schema public is served by the Data API, so it answers a POST /rpc call made with the '
+      'anon key. A security definer one runs as its owner, which no policy in this schema '
+      'governs: %', offenders;
   end if;
 end;
 $$;

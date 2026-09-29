@@ -32,11 +32,12 @@ import {
   APPEND_ONLY_PRIVILEGES, APPEND_ONLY_TABLES, BUYER_PII_COLUMNS, BUYER_PII_COMMENT_TERMS,
   BUYER_PII_MARKER, CLIENT_BOUND_ROLES, COLUMN_GRANTABLE_PRIVILEGES,
   CONSTRAINED_NOT_BUYER_PII_COLUMNS, CONSTRAINED_NOT_BUYER_PII_MARKER,
-  CROSS_TENANT_FOREIGN_KEY_EXEMPTIONS, DATA_API_ROLES,
+  CROSS_TENANT_FOREIGN_KEY_EXEMPTIONS, DATA_API_ROLES, DEFAULT_ACL_OBJECT_CLASSES,
   ERASURE_REGISTRY_COLUMNS, ERASURE_REGISTRY_TABLE,
-  FORBIDDEN_PRIVILEGE_STATEMENTS, FREE_TEXT_TYPE_NAMES, GOVERNED_PRIVILEGES,
+  FORBIDDEN_PRIVILEGE_STATEMENTS, FREE_TEXT_TYPE_NAMES, FUNCTION_PRIVILEGE,
+  GOVERNED_PRIVILEGES,
   HASHED_REPOSITORY_DOCUMENTS, MIGRATION_SET_HEADER, MIGRATIONS_DIRECTORY,
-  NON_TABLE_RELKINDS, NOT_BUYER_PII_MARKER, RELKIND_NAMES,
+  NON_TABLE_RELKINDS, NOT_BUYER_PII_MARKER, PROKIND_NAMES, RELKIND_NAMES,
   TABLE_PRIVILEGES, TABLE_RELKINDS, TENANCY_CLAUSES, TENANT_CLAIM,
   TRADE_RECORD_MIGRATION_MARKER, TRADE_RECORD_TABLES,
   VIEW_SECURITY_OPTION, VIEW_SECURITY_OPTION_TRUE,
@@ -526,8 +527,8 @@ async function materialisedViewsIn(client: Client, schema: string): Promise<stri
 }
 
 /**
- * Every default privilege a client-bound role holds on the relations the
- * migration role creates in the schema, named one by one.
+ * Every default privilege a client-bound role holds on the objects the migration
+ * role creates in the schema, named one by one.
  *
  * `alter default privileges` grants on objects that do not exist yet, and
  * `defaclobjtype = 'r'` is not "table": it is every relation kind a `create
@@ -535,6 +536,15 @@ async function materialisedViewsIn(client: Client, schema: string): Promise<stri
  * produces. Supabase ships schema `public` with all of `arwdDxtm` defaulted to
  * `anon` and `authenticated`, so a view a later migration adds is readable by a
  * caller who never signed in before that migration's last line has run.
+ *
+ * `'r'` is also not the only class `pg_default_acl` files, which is the sixth
+ * review of SEEN-008 (F32): this asked for `'r'` alone, part 6's revoke was written
+ * `on tables`, and a function is `'f'`. Supabase defaults EXECUTE on functions to
+ * `anon` and `authenticated` as well, so a `security definer` function a later
+ * migration creates in public is born callable with the anon key and runs as its
+ * owner, which no policy in this schema governs. Both classes are read here and
+ * each names itself, because a message reading "on every relation" about a function
+ * would send the next reader to the wrong grammar.
  *
  * Scoped to the role this session is connected as, which is the role the
  * migrations run as, because a default privilege applies to the objects one role
@@ -557,22 +567,108 @@ async function materialisedViewsIn(client: Client, schema: string): Promise<stri
 async function defaultPrivilegesForClientRolesIn(
   client: Client, schema: string,
 ): Promise<string[]> {
-  const { rows } = await client.query<{ grantor: string; role: string; privilege: string }>(
+  const { rows } = await client.query<{
+    grantor: string; objectClass: string; role: string; privilege: string;
+  }>(
     `select d.defaclrole::regrole::text as grantor,
+            d.defaclobjtype as "objectClass",
             case when a.grantee = 0 then 'PUBLIC'
                  else a.grantee::regrole::text end as role,
             a.privilege_type as privilege
        from pg_catalog.pg_default_acl d
        cross join lateral aclexplode(d.defaclacl) a
       where d.defaclnamespace = (select oid from pg_catalog.pg_namespace where nspname = $1)
-        and d.defaclobjtype = 'r'
+        and d.defaclobjtype = any($3)
         and d.defaclrole = current_user::regrole
         and (a.grantee::regrole::text = any($2) or a.grantee = 0)
-      order by role, privilege`,
-    [schema, [...CLIENT_BOUND_ROLES]],
+      order by "objectClass", role, privilege`,
+    [schema, [...CLIENT_BOUND_ROLES], Object.keys(DEFAULT_ACL_OBJECT_CLASSES)],
   );
-  return rows.map((row) => `${row.role} holds ${row.privilege} on every relation ${row.grantor} `
+  return rows.map((row) => `${row.role} holds ${row.privilege} on every `
+    + `${DEFAULT_ACL_OBJECT_CLASSES[row.objectClass] ?? row.objectClass} ${row.grantor} `
     + `creates in ${schema}`);
+}
+
+/**
+ * Every routine in the schema that a browser-bound role can execute, asked of the
+ * database rather than read out of the routine's own access control list.
+ *
+ * This is the question no guard in this ticket asked until the sixth review of
+ * SEEN-008 (F32), and the string `has_function_privilege` appeared nowhere in this
+ * package. What it answers is worth being exact about, because a function is not a
+ * relation with a different `relkind`: the privilege is EXECUTE and the rows it
+ * lends the caller are decided by the body and by `security definer`, so a function
+ * whose privileges look like nothing on any list can hand `anon` every tenant's
+ * rows. Measured on the local stack in a rolled-back transaction: `anon` is refused
+ * `public.tenants` with SQLSTATE 42501 and reads both tenants' names through
+ * `create function public.probe_tenant_directory() returns setof text language sql
+ * security definer as $$ select name from public.tenants $$`, which is the ordinary
+ * Supabase RPC pattern and a `POST /rpc/probe_tenant_directory` endpoint because
+ * `supabase/config.toml` serves schema public.
+ *
+ * Asked as `has_function_privilege` and not as `aclexplode(p.proacl)` for the
+ * reason F30 established on the relations: a grant to PUBLIC names no role, and
+ * PostgreSQL grants EXECUTE to PUBLIC on every function it creates whether any
+ * migration says so or not, so the list is the one place the most common route is
+ * not spelled. `proacl` is null on a routine nobody has granted or revoked
+ * anything on, and null is the state in which every role there is can execute it.
+ *
+ * All four kinds of routine are asked, because all four are one class to the
+ * privilege system and to PostgREST. What this cannot do is say what a routine
+ * does with the privilege: `security definer` is reported beside it so that a
+ * reader knows which findings bypass the tenancy rather than merely reach it, and
+ * the tenancy guards remain the ones that read the policies.
+ */
+async function executableRoutinesIn(client: Client, schema: string): Promise<string[]> {
+  const { rows } = await client.query<{
+    signature: string; kind: string; definer: boolean; role: string;
+  }>(
+    `select p.proname || '('
+              || pg_catalog.pg_get_function_identity_arguments(p.oid) || ')' as signature,
+            p.prokind as kind,
+            p.prosecdef as definer,
+            r.rolname as role
+       from pg_catalog.pg_proc p
+       join pg_catalog.pg_namespace n on n.oid = p.pronamespace
+       cross join pg_catalog.pg_roles r
+      where n.nspname = $1
+        and r.rolname = any($2)
+        and has_function_privilege(r.oid, p.oid, $3)
+      order by signature, role`,
+    [schema, [...CLIENT_BOUND_ROLES], FUNCTION_PRIVILEGE],
+  );
+  return rows.map((row) => `${schema}.${row.signature} is `
+    + `${PROKIND_NAMES[row.kind] ?? `a routine of kind ${row.kind}`}`
+    + `${row.definer ? ' running with its owner rights' : ''} that ${row.role} can execute`);
+}
+
+/** The client-bound roles named in a routine's own access control list, and
+ * whether PUBLIC is named there too.
+ *
+ * The two halves of what part 6's revoke can and cannot reach, kept apart because
+ * only one of them is a promise. `alter default privileges ... revoke all on
+ * functions from anon, authenticated` takes the two named grants off every function
+ * the migration role creates next. It cannot take PUBLIC's EXECUTE off one, because
+ * that grant is part of the default access control list a new routine starts from
+ * and a `pg_default_acl` entry is merged into that default by adding to it. So the
+ * first half is asserted as a guarantee and the second as the limit it is. */
+async function routineAccessControlList(
+  client: Client, signature: string,
+): Promise<{ clientRolesNamed: string[]; publicIsNamed: boolean }> {
+  const { rows } = await client.query<{ role: string }>(
+    `select case when a.grantee = 0 then 'PUBLIC' else a.grantee::regrole::text end as role
+       from pg_catalog.pg_proc p
+       cross join lateral aclexplode(p.proacl) a
+      where p.oid = $1::regprocedure
+      order by role`,
+    [signature],
+  );
+  const named = rows.map((row) => row.role);
+  return {
+    clientRolesNamed: named.filter((role) => (CLIENT_BOUND_ROLES as readonly string[])
+      .includes(role)),
+    publicIsNamed: named.includes('PUBLIC'),
+  };
 }
 
 /** One column that can hold a sentence, with the classification its own comment
@@ -2832,7 +2928,7 @@ describe('the relations in the public schema that are not tables', () => {
     await client?.end();
   });
 
-  it('is born unreachable: no client-bound role holds a default privilege on a new relation',
+  it('is born unreachable: no client-bound role holds a default privilege on a new object',
     async () => {
       // This is the prevention half and it is the one that closes the hole. With
       // the default access control list of schema public standing, a view is
@@ -2840,12 +2936,18 @@ describe('the relations in the public schema that are not tables', () => {
       // in the migration that created it says so. The Outcome of the first review
       // named this and left it open as "detection rather than prevention"; a view
       // is what made detection impossible as well, because nothing looked at one.
+      //
+      // Both classes `pg_default_acl` files for this schema are read, not the
+      // relations alone: F32 is that this assertion and part 6's revoke were each
+      // written about `'r'`, so the EXECUTE Supabase defaults to `anon` and
+      // `authenticated` on functions stood untouched and unseen.
       const held = await defaultPrivilegesForClientRolesIn(client, 'public');
       expect(
         held,
-        `${held.length} default privileges stand on schema public, so every table, view and `
-        + 'materialised view a later migration creates there is born holding them, and a view '
-        + 'is not subject to row-level security unless it says `security_invoker = true`: '
+        `${held.length} default privileges stand on schema public, so every table, view, `
+        + 'materialised view and function a later migration creates there is born holding them, '
+        + 'a view is not subject to row-level security unless it says `security_invoker = true`, '
+        + 'and a `security definer` function is subject to none at all: '
         + held.join('; '),
       ).toEqual([]);
     });
@@ -3169,4 +3271,281 @@ describe('the relations in the public schema that are not tables', () => {
         await client.query('rollback');
       }
     });
+});
+
+describe('the functions in the public schema', () => {
+  // One object class over from the describe above, and the same defect in the file
+  // that was written to close it. Every privilege guard in this suite, part 4's
+  // per-table revoke and part 6's `revoke all on tables` are statements about
+  // `defaclobjtype = 'r'` or `relkind`, which is a relation and nothing else. A
+  // function is neither, and `supabase/config.toml` names the class it serves in its
+  // own comment: "tables, views, sequences and functions". F19's round answered one
+  // quarter of that sentence, and the sixth review of SEEN-008 (F32) is the quarter
+  // that lets rows out.
+  //
+  // Measured against this stack in a rolled-back transaction with two tenants
+  // inserted, before this block existed. `pg_default_acl` for schema public, type
+  // `'f'`, read `{postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,
+  // service_role=X/postgres}`, so `create function public.probe_tenant_directory()
+  // returns setof text language sql security definer as $$ select name from
+  // public.tenants $$` was born `{=X/postgres,postgres=X/postgres,anon=X/postgres,
+  // authenticated=X/postgres,service_role=X/postgres}`, `anon` was refused
+  // `public.tenants` with SQLSTATE 42501, and `anon` read both tenants' names
+  // through the function. Nothing in the suite saw it: every default-privilege query
+  // filtered on `'r'` and `has_function_privilege` appeared nowhere in
+  // packages/core/db.
+  //
+  // Why a function is worse than a view rather than the same. A view can be made to
+  // read its base tables as the caller and then the tenancy applies; a `security
+  // definer` function runs as its owner, no table in this schema carries
+  // `relforcerowsecurity`, and the owner of every one of them is the migration role,
+  // so there is no option that puts a policy back in the way. And it is the ordinary
+  // Supabase pattern: a function in a served schema is a `POST /rpc/<name>`
+  // endpoint, which is how SEEN-024's ops console and SEEN-035's approval inbox
+  // would write one without ever deciding to publish it.
+
+  let client: Client;
+
+  beforeAll(async () => {
+    client = await connect();
+  });
+
+  afterAll(async () => {
+    await client?.end();
+  });
+
+  it('carries no function a browser-bound role can execute', async () => {
+    // There is no function in schema public today, which this asserts rather than
+    // assumes: the helpers this schema needs are in `seen`, where the Data API does
+    // not reach, and part 6 strips whatever it finds here so that the sentence stays
+    // true when the migrations are re-applied against a schema that has one. The
+    // probes below are what stop this passing by measuring nothing.
+    const callable = await executableRoutinesIn(client, 'public');
+    expect(
+      callable,
+      `${callable.length} routines in schema public can be executed by a role a browser request `
+      + 'is bound to. Schema public is served by the Data API, so each of them is a POST '
+      + '/rpc/<name> endpoint reachable with the anon key, and a `security definer` one runs as '
+      + 'its owner, which every policy in this schema assumes a request is never bound to: '
+      + callable.join('; '),
+    ).toEqual([]);
+  });
+
+  it('would see a security definer function a later migration added, and the rows it lends anon',
+    async () => {
+      // The access and the silence in one measurement, which is what the assertion
+      // above is worth nothing without. The function is the one the reproduction
+      // used, and the two tenants are inserted here so that the count proves rows
+      // crossed a tenant boundary and not merely that a call was accepted.
+      await client.query('begin');
+      try {
+        await client.query(
+          "insert into public.tenants (name) values ('Tenant A'), ('Tenant B')",
+        );
+        await client.query(
+          'create function public.seen_rpc_probe() returns setof text '
+          + 'language sql security definer as $$ select name from public.tenants $$',
+        );
+        const measured = {
+          routinesTheGuardReports: (await executableRoutinesIn(client, 'public'))
+            .filter((entry) => entry.includes('seen_rpc_probe')),
+          // And what every guard that existed before this round says about the same
+          // function, which is the silence half and is not an aside: a function is
+          // in neither relation inventory, so the twenty-nine-table privilege guard
+          // and the guard on the relations that are not tables both pass over it.
+          // These two stay empty after the fix as well, because the answer was never
+          // going to come from a relation: it is `has_function_privilege` above or it
+          // is nothing.
+          whatTheRelationShapedGuardsSay: {
+            amongTheRelationsThatAreNotTables: (await nonTableRelationsIn(client, 'public'))
+              .filter((relation) => relation.name === 'seen_rpc_probe').map(named),
+            reportedByThePrivilegeGuards: [
+              ...(await clientPrivilegesOnNonTablesIn(client, 'public'))
+                .filter((entry) => entry.includes('seen_rpc_probe')),
+              ...((await privilegesIn(client, 'public')).get('seen_rpc_probe|anon') ?? []),
+            ],
+          },
+          anonReadingTheTableDirectly: await answeredAs(
+            client, 'anon', 'select name from public.tenants',
+          ),
+          anonReadingThroughTheFunction: await answeredAs(
+            client, 'anon', 'select * from public.seen_rpc_probe()',
+          ),
+        };
+        expect(
+          measured,
+          'A `security definer` function over public.tenants was created in schema public, as '
+          + 'SEEN-024 and SEEN-035 will create one, and the database answered `anon` '
+          + `${JSON.stringify(measured.anonReadingTheTableDirectly)} on the table and `
+          + `${JSON.stringify(measured.anonReadingThroughTheFunction)} through the function. Two `
+          + 'tenants exist, so that is both of them. The guard has to name the function for both '
+          + 'browser-bound roles, or the tenancy this ticket writes is undone by a function '
+          + 'nothing in the suite looks at',
+        ).toEqual({
+          routinesTheGuardReports: [
+            'public.seen_rpc_probe() is a function running with its owner rights that anon can '
+            + 'execute',
+            'public.seen_rpc_probe() is a function running with its owner rights that '
+            + 'authenticated can execute',
+          ],
+          whatTheRelationShapedGuardsSay: {
+            amongTheRelationsThatAreNotTables: [],
+            reportedByThePrivilegeGuards: [],
+          },
+          anonReadingTheTableDirectly: { answer: '42501', rows: null },
+          anonReadingThroughTheFunction: { answer: 'accepted', rows: 2 },
+        });
+      } finally {
+        await client.query('rollback');
+      }
+    });
+
+  it('is not closed by revoking from public, which is the statement this repository writes',
+    async () => {
+      // The part that makes F32 high rather than medium. `revoke all on function ...
+      // from public` is what part 8 writes five times over its own helpers, and a
+      // reader takes it for the statement that makes a function uncallable. It is
+      // not: a grant to PUBLIC and a grant to `anon` are two grants, and the default
+      // access control list of schema public wrote the second one. Measured step by
+      // step here so the file cannot be read the other way again.
+      //
+      // The default privilege is granted back inside the probe, and that is the
+      // point rather than a convenience. Part 6 revoked it, so a function created
+      // here now is not born naming either role and `from public` would close it;
+      // the state this measures is the one every Supabase database ships with and
+      // the one a single `alter default privileges ... grant` restores. What has to
+      // stay true whatever the default is, is that the two statements are not each
+      // other's shorthand.
+      await client.query('begin');
+      try {
+        await client.query(
+          "insert into public.tenants (name) values ('Tenant A'), ('Tenant B')",
+        );
+        await client.query(
+          'alter default privileges in schema public '
+          + 'grant execute on functions to anon, authenticated',
+        );
+        await client.query(
+          'create function public.seen_rpc_probe() returns setof text '
+          + 'language sql security definer as $$ select name from public.tenants $$',
+        );
+        await client.query('revoke all on function public.seen_rpc_probe() from public');
+        const afterRevokingFromPublic = {
+          rolesStillNamed: (await routineAccessControlList(client, 'public.seen_rpc_probe()'))
+            .clientRolesNamed,
+          anonReadingThroughTheFunction: await answeredAs(
+            client, 'anon', 'select * from public.seen_rpc_probe()',
+          ),
+          routinesTheGuardReports: (await executableRoutinesIn(client, 'public'))
+            .filter((entry) => entry.includes('seen_rpc_probe')).length,
+        };
+        await client.query(
+          'revoke all on function public.seen_rpc_probe() from anon, authenticated',
+        );
+        const afterRevokingFromTheRoles = {
+          rolesStillNamed: (await routineAccessControlList(client, 'public.seen_rpc_probe()'))
+            .clientRolesNamed,
+          anonReadingThroughTheFunction: await answeredAs(
+            client, 'anon', 'select * from public.seen_rpc_probe()',
+          ),
+          routinesTheGuardReports: (await executableRoutinesIn(client, 'public'))
+            .filter((entry) => entry.includes('seen_rpc_probe')).length,
+        };
+        expect(
+          { afterRevokingFromPublic, afterRevokingFromTheRoles },
+          'A `security definer` function over public.tenants was stripped with `revoke all on '
+          + 'function ... from public`, the statement this repository already writes, and the '
+          + `database answered \`anon\` ${JSON.stringify(afterRevokingFromPublic.anonReadingThroughTheFunction)} `
+          + 'afterwards. Revoking from the two named roles as well is what refuses it 42501. The '
+          + 'guard has to report the function in the first state and not in the second, or it '
+          + 'agrees with the reading of `from public` that leaves both tenants readable',
+        ).toEqual({
+          afterRevokingFromPublic: {
+            rolesStillNamed: ['anon', 'authenticated'],
+            anonReadingThroughTheFunction: { answer: 'accepted', rows: 2 },
+            routinesTheGuardReports: 2,
+          },
+          afterRevokingFromTheRoles: {
+            rolesStillNamed: [],
+            anonReadingThroughTheFunction: { answer: '42501', rows: null },
+            routinesTheGuardReports: 0,
+          },
+        });
+      } finally {
+        await client.query('rollback');
+      }
+    });
+
+  it('is born with neither browser-bound role in its own access control list, and with PUBLIC '
+    + 'in it, which no default privilege can change', async () => {
+    // The prevention half of F32 and its limit, in the one measurement that can
+    // hold both. Part 6 revokes the default privileges on functions from `anon` and
+    // `authenticated`, so a function created next is not born naming them; that is
+    // a guarantee and it is asserted.
+    //
+    // PostgreSQL's own default access control list for a routine grants EXECUTE to
+    // PUBLIC, and `alter default privileges` cannot take that away: a
+    // `pg_default_acl` entry is merged into the built-in default by adding to it.
+    // Measured on PostgreSQL 17.6 on this stack, with `alter default privileges for
+    // role postgres in schema public revoke all on functions from public` applied on
+    // top of part 6's revoke, `pg_default_acl` read
+    // `{postgres=X/postgres,service_role=X/postgres}` and the next function created
+    // there was still born `{=X/postgres,postgres=X/postgres,service_role=X/postgres}`.
+    // So prevention reaches the two named grants and stops there, which is the
+    // reason the guard above asks what a role can do rather than what a list says
+    // and the reason the suite is the boundary for a function rather than the
+    // migration: the pull request that adds the first function to schema public
+    // fails here, in it.
+    await client.query('begin');
+    try {
+      await client.query(
+        'create function public.seen_born_callable_probe() returns int '
+        + 'language sql as $$ select 1 $$',
+      );
+      const measured = {
+        ...await routineAccessControlList(client, 'public.seen_born_callable_probe()'),
+        whatTheDatabaseSaysAnonCanDo: (await client.query<{ allowed: boolean }>(
+          'select has_function_privilege($1, $2::regprocedure, $3) as allowed',
+          ['anon', 'public.seen_born_callable_probe()', FUNCTION_PRIVILEGE],
+        )).rows[0].allowed,
+      };
+      expect(
+        measured,
+        'A function was created in schema public and its own access control list reads '
+        + `${JSON.stringify(measured)}. Neither browser-bound role may be named in it, which is `
+        + 'what part 6\'s `revoke all on functions from anon, authenticated` buys. PUBLIC is '
+        + 'named in it and cannot be taken out by any default privilege, which is why this is '
+        + 'asserted as true rather than hoped away, and why the assertion that no function in '
+        + 'this schema is executable by a browser-bound role is the boundary that has to hold',
+      ).toEqual({
+        clientRolesNamed: [],
+        publicIsNamed: true,
+        whatTheDatabaseSaysAnonCanDo: true,
+      });
+    } finally {
+      await client.query('rollback');
+    }
+  });
+
+  it('would see a default privilege on functions a later migration granted back', async () => {
+    // The prevention half asked of the database rather than of part 6's file. The
+    // forbidden-statement scanner refuses `alter default privileges ... grant` in
+    // any spelling, and this is the other end of it: the class the scanner would
+    // have let through unnoticed for six rounds is the one asserted here.
+    await client.query('begin');
+    try {
+      await client.query(
+        'alter default privileges in schema public grant execute on functions to anon',
+      );
+      const held = await defaultPrivilegesForClientRolesIn(client, 'public');
+      expect(
+        held.filter((entry) => entry.includes('function')),
+        'A default EXECUTE granted back to `anon` on every function created in schema public was '
+        + 'not reported, so the prevention assertion covers the relations alone and the next '
+        + `function is born callable with the anon key: it reported ${held.join('; ') || 'nothing at all'}`,
+      ).not.toEqual([]);
+    } finally {
+      await client.query('rollback');
+    }
+  });
 });

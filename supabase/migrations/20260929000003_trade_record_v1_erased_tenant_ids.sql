@@ -361,6 +361,20 @@ create trigger refuse_tenant_id_change before update on public.tenants
 -- No function here is callable except through its trigger and this migration, as
 -- seen.seed_marketplaces is not: a security definer function reachable by name is
 -- a privilege handed to whoever can name it.
+--
+-- Why `from public` is the whole of the revoke here, and would not be one line from
+-- here in schema public. Measured this round against this stack: schema `seen`
+-- carries no `pg_default_acl` entry at all, so a function created here is born with
+-- the single grant PostgreSQL writes itself, EXECUTE to PUBLIC, and taking that
+-- away leaves `{postgres=X/postgres}` and refuses `anon` with SQLSTATE 42501.
+-- Schema public is not like that: its default access control list names `anon` and
+-- `authenticated` on functions as well as on relations, so these five statements
+-- written there would leave both roles holding EXECUTE, with the access control
+-- list still reading `anon=X/postgres` and `anon` reading every tenant's rows
+-- through a security definer body. That is the sixth review of SEEN-008 (F32), and
+-- part 6 is where the default is taken away. So the sentence above is about the
+-- functions this file creates in `seen` and is not the rule for writing one in a
+-- schema the Data API serves.
 revoke all on function seen.lock_tenant_id(uuid) from public;
 revoke all on function seen.lock_tenant_id_for_erasure() from public;
 revoke all on function seen.record_tenant_erasure() from public;

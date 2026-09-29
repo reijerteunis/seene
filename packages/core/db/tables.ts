@@ -392,6 +392,13 @@ export const MIGRATION_SET_HEADER = /^--\s+Trade record v1, part (\d+) of (\d+)\
  * caller who never signed in, and a view is not subject to row-level security
  * unless it says `security_invoker = true`. That is F19.
  *
+ * And `on tables` is only one of the classes it can be written about. The same
+ * statement spelled `on functions` grants EXECUTE on a function that does not exist
+ * yet, which in a schema the Data API serves is an RPC endpoint reachable with the
+ * anon key before the migration that creates the function has been read by anybody.
+ * That is F32, and the pattern above catches it already because it matches the
+ * statement rather than the object class.
+ *
  * Only the granting form is forbidden, and the narrowing is deliberate rather
  * than a softening. The revoking form is the only statement in Postgres that can
  * take a default privilege away, and part 6 is made of one: a rule that refused
@@ -595,6 +602,63 @@ export const NON_TABLE_RELKINDS: Readonly<Record<string, string>> = {
 export const RELKIND_NAMES: Readonly<Record<string, string>> = {
   ...TABLE_RELKINDS,
   ...NON_TABLE_RELKINDS,
+};
+
+/**
+ * The classes of object `pg_default_acl` files a default privilege under, and the
+ * word a failure message should call each of them by.
+ *
+ * `defaclobjtype` is not the same alphabet as `relkind` and the overlap is a trap:
+ * `'f'` here is a function and `'f'` in `relkind` is a foreign table. The two
+ * classes below are the ones schema public serves to the Data API and that this
+ * ticket's own migrations create, and they are asked for together because a
+ * guarantee written over one of them is a guarantee about a quarter of what
+ * `supabase/config.toml` exposes: its own comment names the auto-exposed set as
+ * "tables, views, sequences and functions".
+ *
+ * `'r'` covers every relation kind a `create table`, `create view`, `create
+ * materialized view` or `create foreign table` produces, which is why part 6's one
+ * `on tables` statement closed the whole of F19's class. `'f'` covers a function, a
+ * procedure and an aggregate alike, so `on functions` is one statement for all
+ * three; the grammar spells it `on functions` and `on routines` means the same
+ * thing.
+ *
+ * `'S'`, a sequence, is deliberately not here and is not closed: the sixth review
+ * of SEEN-008 left it open as F33, and adding it is adding a key to this record and
+ * a revoke beside the one in part 6 rather than a second mechanism.
+ */
+export const DEFAULT_ACL_OBJECT_CLASSES: Readonly<Record<string, string>> = {
+  f: 'function',
+  r: 'relation',
+};
+
+/**
+ * The only privilege a function can carry, named rather than spelled inline.
+ *
+ * `has_function_privilege` accepts EXECUTE and nothing else, because EXECUTE is the
+ * whole of what a function grants: there is no column half to this question as
+ * there is for a relation, and no read and write to tell apart. What a function
+ * lends the caller who holds it is decided by the function's own body and by
+ * whether it is `security definer`, not by the privilege.
+ */
+export const FUNCTION_PRIVILEGE = 'EXECUTE';
+
+/**
+ * What `pg_proc.prokind` calls the four kinds of routine, for a message that has to
+ * say which one it found.
+ *
+ * All four are one class to the privilege system and to `alter default privileges`,
+ * and all four are exposed by PostgREST as `POST /rpc/<name>` when they are in a
+ * schema the Data API serves. They are told apart here only so that a failure names
+ * what it found: an aggregate reachable by `anon` and a `security definer` function
+ * reachable by `anon` are not the same finding to read about, and a reader sent to
+ * the wrong grammar cannot revoke it.
+ */
+export const PROKIND_NAMES: Readonly<Record<string, string>> = {
+  a: 'an aggregate',
+  f: 'a function',
+  p: 'a procedure',
+  w: 'a window function',
 };
 
 /**
