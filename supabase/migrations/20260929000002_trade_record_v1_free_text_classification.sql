@@ -1,4 +1,4 @@
--- Trade record v1, part 7 of 7: every column that can hold a sentence says
+-- Trade record v1, part 7 of 8: every column that can hold a sentence says
 -- whether a buyer is in it. SEEN-008, F20.
 --
 -- What parts 1 to 3 wrote and what the test over them could not see. Six columns

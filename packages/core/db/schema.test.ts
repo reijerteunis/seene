@@ -31,6 +31,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   APPEND_ONLY_PRIVILEGES, APPEND_ONLY_TABLES, BUYER_PII_COLUMNS, BUYER_PII_COMMENT_TERMS,
   BUYER_PII_MARKER, CLIENT_BOUND_ROLES, CROSS_TENANT_FOREIGN_KEY_EXEMPTIONS, DATA_API_ROLES,
+  ERASURE_REGISTRY_COLUMNS, ERASURE_REGISTRY_TABLE,
   FORBIDDEN_PRIVILEGE_STATEMENTS, FREE_TEXT_TYPE_NAMES, GOVERNED_PRIVILEGES,
   HASHED_REPOSITORY_DOCUMENTS, MIGRATION_SET_HEADER, MIGRATIONS_DIRECTORY,
   NOT_BUYER_PII_MARKER, ROW_BEARING_RELKINDS,
@@ -1241,6 +1242,229 @@ describe('the append-only guarantee on audit_events', () => {
     expect(rows, "the erased tenant's audit events survived the erasure").toEqual([]);
     tenant = undefined;
   });
+});
+
+/**
+ * F21: the append-only guarantee has one permitted delete, and nothing stopped
+ * the tenant being put back after it.
+ *
+ * `public.tenants.tenant_id` is a plain uuid primary key with a default, so it is
+ * settable on insert. Measured against this stack as `service_role`, which is the
+ * role the API and the workers write as, before the registry below existed:
+ * delete the tenant, insert a tenant carrying the same id, and the id resolves
+ * again with no audit events behind it. Everything else the cascade removed is
+ * re-ingestible, because orders, settlements and returns are read back from the
+ * marketplace APIs by design, so the audit trail is the only thing permanently
+ * lost while the id still resolves in every token, every Stripe customer mapping
+ * and every invoice that names it. An erasure and an absence of one become the
+ * same observation, which is the opposite of what an audit trail is for.
+ *
+ * What this block asks, in this order. The re-creation is refused. The erasure
+ * itself still works and still takes the audit events with it, because deletion on
+ * request is a promise this schema has to keep and a fix that broke it would be
+ * worse than the defect. The tombstone the erasure leaves cannot be deleted or
+ * updated away by the roles the application uses, or the whole of the fix is
+ * undone by removing the tombstone first. And the tombstone says only that an id
+ * is spent and when, because a registry of erasures that held a name would be a
+ * retained record of the customer the erasure was performed for.
+ *
+ * Every test is written as `service_role` inside a transaction that is rolled
+ * back: the erasures are real deletes, and the tombstone they leave is permanent
+ * by construction.
+ */
+describe('the tenant id an erasure has consumed', () => {
+  let client: Client;
+
+  /** The SQLSTATE the database answered with, or `accepted` when it did not
+   * refuse. Behind a savepoint, because each test carries on asking questions
+   * after a refusal and a failed statement otherwise aborts the transaction. */
+  async function said(body: () => Promise<unknown>): Promise<string> {
+    await client.query('savepoint attempted');
+    try {
+      await body();
+      await client.query('release savepoint attempted');
+      return 'accepted';
+    } catch (error) {
+      await client.query('rollback to savepoint attempted');
+      return (error as { code?: string }).code ?? (error as Error).message;
+    }
+  }
+
+  /** Everything inside, as `service_role` and rolled back. */
+  async function rolledBack<T>(body: () => Promise<T>): Promise<T> {
+    await client.query('begin');
+    try {
+      await client.query('set local role service_role');
+      return await body();
+    } finally {
+      await client.query('rollback');
+    }
+  }
+
+  /** One tenant with one audit event behind it, which is the pair an erasure has
+   * to remove together and the pair a re-creation would separate. */
+  async function seedErasable(name: string): Promise<string> {
+    const tenant = await client.query<{ tenant_id: string }>(
+      'insert into public.tenants (name) values ($1) returning tenant_id',
+      [name],
+    );
+    await client.query(
+      `insert into public.audit_events (tenant_id, event_type, actor)
+       values ($1, 'test.written_before_erasure', 'test')`,
+      [tenant.rows[0].tenant_id],
+    );
+    return tenant.rows[0].tenant_id;
+  }
+
+  /** How many rows of `relation` carry this tenant id, with whatever role is set. */
+  async function rowsFor(relation: string, tenant: string): Promise<number> {
+    const { rows } = await client.query<{ total: string }>(
+      `select count(*) as total from ${relation} where tenant_id = $1`,
+      [tenant],
+    );
+    return Number(rows[0].total);
+  }
+
+  beforeAll(async () => {
+    client = await connect();
+    const present = await tablesIn(client, 'public');
+    const missing = ['tenants', 'audit_events'].filter((table) => !present.includes(table));
+    if (missing.length > 0) {
+      throw new Error(
+        'This test cannot say anything about what an erasure consumes: '
+        + `${missing.join(', ')} ${missing.length === 1 ? 'does' : 'do'} not exist in the public `
+        + 'schema. Apply the trade record migrations with `pnpm db:reset`.',
+      );
+    }
+  });
+
+  afterAll(async () => {
+    await client?.end();
+  });
+
+  it('is refused when it is created again, so an erasure can be told from no erasure',
+    async () => {
+      const measured = await rolledBack(async () => {
+        const tenant = await seedErasable('Tenant erased and put back');
+        await client.query('delete from public.tenants where tenant_id = $1', [tenant]);
+        const recreated = await said(() => client.query(
+          "insert into public.tenants (tenant_id, name) values ($1, 'Tenant put back')",
+          [tenant],
+        ));
+        return {
+          recreated,
+          tenantRowsStanding: await rowsFor('public.tenants', tenant),
+          auditEventsBehindIt: await rowsFor('public.audit_events', tenant),
+        };
+      });
+      expect(
+        measured,
+        `An erased tenant id was ${measured.recreated === 'accepted'
+          ? `inserted again, leaving ${measured.tenantRowsStanding} tenant row standing with `
+            + `${measured.auditEventsBehindIt} audit events behind it, so the erasure of that `
+            + 'tenant is indistinguishable from no erasure having happened'
+          : `refused with SQLSTATE ${measured.recreated}`}, where a refusal (23001) is what `
+        + 'keeps the id spent and the erasure legible',
+      ).toEqual({ recreated: '23001', tenantRowsStanding: 0, auditEventsBehindIt: 0 });
+    });
+
+  it('is still erasable, with its audit events going with it', async () => {
+    // Deletion on request is a promise this schema has to keep: the PRD gives a
+    // tenant 30 days and SEEN-083 performs it as `service_role`. A fix that made
+    // the erasure refuse, or that left the audit events standing after it, would
+    // be a worse defect than the one it closes, so this is asked every run rather
+    // than once when the registry was written.
+    const measured = await rolledBack(async () => {
+      const tenant = await seedErasable('Tenant erased on request');
+      const before = await rowsFor('public.audit_events', tenant);
+      const erased = await said(() => client.query(
+        'delete from public.tenants where tenant_id = $1',
+        [tenant],
+      ));
+      return {
+        auditEventsBefore: before,
+        erased,
+        tenantRowsAfter: await rowsFor('public.tenants', tenant),
+        auditEventsAfter: await rowsFor('public.audit_events', tenant),
+      };
+    });
+    expect(
+      measured,
+      'Erasing a tenant as service_role, which is what deletion on request is, answered '
+      + `${measured.erased} and left ${measured.tenantRowsAfter} tenant rows and `
+      + `${measured.auditEventsAfter} audit events behind, against ${measured.auditEventsBefore} `
+      + 'audit events before it',
+    ).toEqual({
+      auditEventsBefore: 1, erased: 'accepted', tenantRowsAfter: 0, auditEventsAfter: 0,
+    });
+  });
+
+  it('leaves a tombstone the application cannot delete, update or read', async () => {
+    // Without this the fix is defeated in one statement: delete the tombstone,
+    // then insert the tenant again. So the registry is append-only the way
+    // audit_events is, and by the same three layers. The roles the application
+    // uses hold no privilege on it at all, which is why their refusal is 42501 and
+    // not the trigger's; the owner reaches the table and is refused by the trigger,
+    // which is 23001. The read is asked for as well: a registry of which brands
+    // have left is not something a request should be able to enumerate.
+    const measured = await rolledBack(async () => {
+      const tenant = await seedErasable('Tenant tombstoned');
+      await client.query('delete from public.tenants where tenant_id = $1', [tenant]);
+      const asServiceRole = {
+        deleted: await said(() => client.query(
+          `delete from ${ERASURE_REGISTRY_TABLE} where tenant_id = $1`, [tenant],
+        )),
+        updated: await said(() => client.query(
+          `update ${ERASURE_REGISTRY_TABLE} set erased_at = now() where tenant_id = $1`, [tenant],
+        )),
+        read: await said(() => client.query(
+          `select tenant_id from ${ERASURE_REGISTRY_TABLE} where tenant_id = $1`, [tenant],
+        )),
+      };
+      await client.query('reset role');
+      const asOwner = {
+        tombstones: await rowsFor(ERASURE_REGISTRY_TABLE, tenant),
+        deleted: await said(() => client.query(
+          `delete from ${ERASURE_REGISTRY_TABLE} where tenant_id = $1`, [tenant],
+        )),
+        updated: await said(() => client.query(
+          `update ${ERASURE_REGISTRY_TABLE} set erased_at = now() where tenant_id = $1`, [tenant],
+        )),
+      };
+      return { asServiceRole, asOwner };
+    });
+    expect(
+      measured,
+      `What ${ERASURE_REGISTRY_TABLE} answered, as service_role and then as the role that owns `
+      + `it: ${JSON.stringify(measured)}. A tombstone a role can remove is a tenant id that can `
+      + 'be used again a statement later',
+    ).toEqual({
+      asServiceRole: { deleted: '42501', updated: '42501', read: '42501' },
+      asOwner: { tombstones: 1, deleted: '23001', updated: '23001' },
+    });
+  });
+
+  it('is all the tombstone says, so the registry is not a record of erased customers',
+    async () => {
+      // The registry exists to make an id unusable, and an id is all it may hold.
+      // A name, a user or an address kept here would survive the erasure that was
+      // asked for, which is the thing the tenant deleted its account to prevent,
+      // and part 7's classification does not reach schema seen to catch it.
+      const { rows } = await client.query<{ column: string }>(
+        `select a.attname as column
+           from pg_catalog.pg_attribute a
+          where a.attrelid = to_regclass($1) and a.attnum > 0 and not a.attisdropped
+          order by a.attname`,
+        [ERASURE_REGISTRY_TABLE],
+      );
+      const held = rows.map((row) => row.column);
+      assertPopulated(held, `the columns of ${ERASURE_REGISTRY_TABLE}`);
+      expect(
+        held,
+        `${ERASURE_REGISTRY_TABLE} holds ${held.join(', ')}, where a tombstone may say only that `
+        + 'an id is spent and when it was spent',
+      ).toEqual([...ERASURE_REGISTRY_COLUMNS]);
+    });
 });
 
 /**

@@ -1,4 +1,4 @@
--- Trade record v1, part 2 of 7: findings, claims, evidence, correspondence and
+-- Trade record v1, part 2 of 8: findings, claims, evidence, correspondence and
 -- the agent's own record. SEEN-008.
 --
 -- Part 1 created the tenancy, the policy helper seen.current_tenant() and the
@@ -357,6 +357,13 @@ create index audit_events_agent_action_id_idx on public.audit_events (agent_acti
 -- impossible to keep. The trigger allows a delete exactly when the owning tenant
 -- row is already gone, which inside Postgres is only true while the cascade from
 -- public.tenants is running.
+--
+-- What that exception did not cover, and what part 8 of this set does. Removing
+-- the rows is only half of an erasure: nothing here stops the tenant being created
+-- again under the same id, and an id that resolves with no audit events behind it
+-- makes an erasure and an absence of one the same observation. Part 8 records the
+-- id an erasure consumed and refuses it on every later insert, so this branch stays
+-- the one delete it says it is.
 --
 -- What the guarantee is not. A superuser can disable the trigger, set
 -- session_replication_role to replica, drop the table or alter it, and none of

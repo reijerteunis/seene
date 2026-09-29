@@ -1,4 +1,4 @@
--- Trade record v1, part 6 of 7: nothing relation-shaped is born reachable, and a
+-- Trade record v1, part 6 of 8: nothing relation-shaped is born reachable, and a
 -- view has to read its base tables as the caller. SEEN-008, F19.
 --
 -- What parts 1 to 5 secured and what they all stopped short of. Every tenancy,

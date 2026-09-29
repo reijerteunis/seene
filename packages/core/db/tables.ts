@@ -109,6 +109,32 @@ export const TENANCY_CLAUSES = ['(tenant_id = seen.current_tenant())'] as const;
 export const APPEND_ONLY_TABLES = ['audit_events'] as const;
 
 /**
+ * The registry of tenant ids an erasure has consumed, and the two columns it is
+ * allowed to hold.
+ *
+ * F21: the one delete the append-only guarantee permits is the cascade from
+ * `public.tenants`, and nothing stopped the tenant being put back afterwards.
+ * `tenant_id` is a plain uuid primary key with a default, so it is settable on
+ * insert, and a tenant re-created under its old id resolves in every token and
+ * every invoice that names it with no audit events behind it. An erasure and an
+ * absence of one become the same observation.
+ *
+ * The registry is in `seen` rather than `public` for the same reason
+ * `seen.marketplace_catalogue` is: only `public` is exposed through the Data API,
+ * and a list of erasures belongs to no tenant and must not be readable by one.
+ *
+ * The columns are the whole of what a tombstone may say. An erased tenant's name,
+ * its users and its buyers are what the erasure was for, so the registry records
+ * that an id is spent and when, and nothing that would make it a retained record
+ * of an erased customer. `schema.test.ts` reads the two lists against the
+ * catalogue so a later migration cannot widen it quietly.
+ */
+export const ERASURE_REGISTRY_TABLE = 'seen.erased_tenants' as const;
+
+/** @see ERASURE_REGISTRY_TABLE */
+export const ERASURE_REGISTRY_COLUMNS = ['erased_at', 'tenant_id'] as const;
+
+/**
  * The catalogue's own type names for a column that can hold a sentence, and
  * therefore a buyer's name or address whatever the column is called.
  *
