@@ -1,0 +1,59 @@
+{
+  "sequence": 66,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-29T04:56:03.560295+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 5,
+  "actor": "codex:reviewer",
+  "session": "a00943ab9615",
+  "head": "118ed8798f26fa8050610ee267818170d2ba69ac",
+  "prev_hash": "98146d8d7f0e9a3d9d8bea1823f3b6207ee46dcd64b368f965a0e09c9994785b",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 6,
+    "reason": "The second Codex review, with the database reachable this time, closed CODEX-01 to CODEX-03 by execution and returns the ticket solely on CODEX-04. It reproduced the old foreign-key behaviour by restoring the original key in a rolled-back transaction and confirmed the current schema refuses the same insert with 23503; counted 57 keys, 28 composite and 28 to tenants with all eight set-null keys naming only the child column and none using restrict; and erased a tenant across populated rows in all 29 tables with the other tenant's counts unchanged. On CODEX-02 it found a third leaking expression neither session had thought of, a coalesce comparison against a tautology or-ed with an inequality, which exposed one tenant's evidence to another and which both halves now catch, and it broke the non-vacuity guard by removing a fixture to confirm it fails. It measured the privilege set independently at last, the thing its first round could not reach: authenticated deleting a tenant, inserting a credited claim and rewriting an invoice all fail with 42501, and direct audit mutations fail 42501 as service_role and 23001 as postgres through the triggers. CODEX-04 survives because the prose correction at record 57 does not reach the reader it was written for: the production extractor returns nothing for records 32 and 57, so the three findings remain invisible to the calibration window. They are restored in this record's findings array, which is where the extractor reads them. Its account limitation stands and it restated it: the route's opus rule is unmet, which is a limit of the review rather than a defect in the work.",
+    "findings": [
+      {
+        "id": "CODEX-04",
+        "severity": "medium",
+        "file": "docs/harness/history/SEEN-008/0032.json",
+        "claim": "The second return declares no_findings true and carries an empty findings array although its reason explicitly identifies three unresolved findings requiring rework, and the prose correction at record 57 does not restore them to the calibration reader.",
+        "failure_scenario": "Record 57 accurately restates F9, F10 and F12, but only inside data.text. Executing harness.calibration._review_findings on records 32 and 57 returns an empty list for both, because the extractor reads a return's findings array and an advance's evidence findings and never prose. latest_findings over all 65 records returns 14 findings and none of F9, F10 or F12, and record 32 still counts as declared_empty. So the correction did not do the thing the finding was about, which is that the window SEEN-109 is built on cannot see three findings that were raised, acted on and closed.",
+        "status": "resolved",
+        "resolution": "The three are restored in this record's own findings array, which is where the extractor reads them: _review_findings takes a return out of review by its findings, exactly as it takes a passing advance by its evidence. Record 32 is preserved untouched, as the journal is append-only and as Codex asked. Verified by running the production extractor rather than by assertion: latest_findings over the journal now returns F9, F10 and F12 with their severities, files, scenarios and resolutions."
+      },
+      {
+        "id": "F9",
+        "severity": "medium",
+        "file": "packages/core/package.json:18",
+        "claim": "Widening the package's test script to the whole suite put the only database-dependent tests in the repository inside a turbo task whose cache key contained no migration file, so turbo run test could report a pass for them without executing them.",
+        "failure_scenario": "The dry run reported eleven inputs, all inside packages/core, and a cache hit on the same hash the recorded regression executed. So a later ticket adding a migration that creates a table with no tenant_id, and touching nothing in packages/core, gets cache hit, replaying logs and the old count, and the tenancy, privilege and append-only guards never run against the new schema. CI escaped it only because it caches the pnpm store and not .turbo.",
+        "status": "resolved",
+        "resolution": "Closed at records 35 and 37 by adding the migrations to the test task's inputs through $TURBO_ROOT$, with the new assertion measuring the resolved input list from turbo's own dry run rather than reading the configuration, so a glob turbo silently ignored would fail rather than read as a fix. Verified by execution in the third Claude review: the input resolves, an added and an edited migration each change the hash, and the guard fails loudly when turbo is absent, when it errors and when the input is removed. Restored to this record because record 32 declared it away."
+      },
+      {
+        "id": "F10",
+        "severity": "low",
+        "file": "supabase/migrations/20260927000002_trade_record_v1_commerce_and_marketplaces_seed.sql:449",
+        "claim": "Three of the four migrations still ended with the blanket grant on all tables in schema public that the fourth forbids, and those tails are the template the next migration author copies.",
+        "failure_scenario": "The author of the next migration copies part 3's tail. authenticated regains insert, update and delete on all 29 tables, the billable-event finding reopens, and part 4's self-check does not re-run to notice.",
+        "status": "resolved",
+        "resolution": "Closed at records 35 and 37 by removing all six statements rather than forbidding them in prose, with a scanner over every file under supabase/migrations and a second test proving it catches four spellings including a line-broken grant and an alter default privileges, while not flagging a per-table grant, a schema grant or part 4's own quotation. The third Claude review verified the end state was byte-for-byte the measured baseline. Restored to this record because record 32 declared it away."
+      },
+      {
+        "id": "F12",
+        "severity": "medium",
+        "file": "supabase/migrations/20260927000000_trade_record_v1_tenancy_and_orders.sql:235",
+        "claim": "Buyer PII is held in plain text columns and nothing recorded which reading of the ground rule's encrypted at rest the schema relies on, so the expiry half had an owner in SEEN-083 and the encryption half had none.",
+        "failure_scenario": "SEEN-082 takes the first restore-drill dump, or a support query runs as service_role, and every tenant's buyer names and addresses come out as typed, against a ground rule the schema was believed to satisfy.",
+        "status": "resolved",
+        "resolution": "Closed at records 35 and 37 by stating the reading in each of the six column comments, storage layer only, the value cleartext, and column-level encryption owed and unowned before SEEN-082 takes its first dump, made assertable through an exported list rather than left as prose. The third Claude review verified the statement was accurate rather than overclaiming, and the second Codex review confirmed the obligation is documented. Restored to this record because record 32 declared it away."
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}
