@@ -31,11 +31,16 @@
 -- public.tenants already carry the tenant, because the column they reference is
 -- tenant_id itself. The key from connections to marketplaces was already written
 -- as (tenant_id, marketplace) in part 3. And nothing here becomes `on delete
--- restrict`: a restrict refuses the parent's delete outright, the cascade from an
--- erased tenant reaches these children, and the whole erasure would roll back
--- mid-statement. The eight keys that set null keep doing so, naming the column to
--- null so that tenant_id, which is not null, is not one of them; Postgres 15 added
--- that form and the local stack is 17.
+-- restrict`: a restrict refuses the parent's delete outright, so a settlement line
+-- or a connection could not be removed or re-ingested while anything pointed at it,
+-- which ingest does on every correction a marketplace sends. That cost is measured
+-- in schema.test.ts as 23503 on one key. A tenant's erasure is not what it costs,
+-- and this sentence used to say it was: with a restricting key standing, `delete
+-- from public.tenants` is accepted, because the cascade reaches the child before
+-- the restrict does, and which of two sibling cascade actions Postgres schedules
+-- first is not a guarantee. The eight keys that set null keep doing so, naming the
+-- column to null so that tenant_id, which is not null, is not one of them; Postgres
+-- 15 added that form and the local stack is 17.
 --
 -- This migration grants nothing and revokes nothing. Part 4 decides the privileges
 -- of every table per table and by name, and it is still the only place that does

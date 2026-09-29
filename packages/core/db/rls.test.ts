@@ -716,11 +716,16 @@ describe('a parent row belonging to another tenant', () => {
   it('still erases a tenant completely, through every key the fix touches', async () => {
     // The other side of the same constraint. Deletion on request is a promise of
     // the PRD and SEEN-083 has to keep it, so the cascade must still empty the
-    // trade record: a composite key with `on delete restrict` would refuse the
-    // delete mid-statement, and one whose `set null` reached tenant_id would fail
-    // the not-null constraint on the way through. Each table here is on the far
-    // side of a key of one of those shapes, including audit_events, whose
-    // append-only trigger permits exactly this one delete.
+    // trade record through the keys part 5 rewrote. Each table here is on the far
+    // side of one of them, including audit_events, whose append-only trigger
+    // permits exactly this one delete.
+    //
+    // Which shapes those keys may take is decided in schema.test.ts and on a cost
+    // this erasure does not see: a restricting key, and a set-null one that reached
+    // tenant_id, each make the ordinary delete of a parent row impossible while a
+    // child stands. Neither of them stops the erasure measured here, because the
+    // cascade from tenants reaches the child first, and the order Postgres schedules
+    // two sibling cascade actions in is not a thing to rest a reason on.
     const left = await rolledBack(async () => {
       const a = await seed('Tenant erased whole', 'bol');
       const product = await client.query<{ id: string }>(

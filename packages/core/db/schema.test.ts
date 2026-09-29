@@ -1767,6 +1767,54 @@ describe('the foreign keys between tenant-owned tables', () => {
     await client?.end();
   });
 
+  /** One tenant, and a claim credited by a settlement line, which is the far end of
+   * `claims_credited_by_settlement_line_id_fkey`. Two tests below drop that one key
+   * and put a different delete rule in its place, so both start from the same rows
+   * and the only difference between what they measure is the rule. Rolled back by
+   * the caller's transaction; nothing here is left behind. */
+  async function creditedClaim(): Promise<{ tenant: string; line: string; claim: string }> {
+    const tenant = (await client.query<{ tenant_id: string }>(
+      "insert into public.tenants (name) values ('Tenant with a credited claim') "
+      + 'returning tenant_id',
+    )).rows[0].tenant_id;
+    const connection = (await client.query<{ id: string }>(
+      "insert into public.connections (tenant_id, marketplace) values ($1, 'bol') returning id",
+      [tenant],
+    )).rows[0].id;
+    const settlement = (await client.query<{ id: string }>(
+      `insert into public.settlements (tenant_id, connection_id, marketplace, external_id)
+       values ($1, $2, 'bol', 'SETTLEMENT-CREDITED-CLAIM') returning id`,
+      [tenant, connection],
+    )).rows[0].id;
+    const line = (await client.query<{ id: string }>(
+      `insert into public.settlement_lines
+         (tenant_id, settlement_id, marketplace, external_id, line_type, amount_cents)
+       values ($1, $2, 'bol', 'LINE-CREDITED-CLAIM', 'compensation', 1234) returning id`,
+      [tenant, settlement],
+    )).rows[0].id;
+    const claim = (await client.query<{ id: string }>(
+      `insert into public.claims (tenant_id, marketplace, credited_by_settlement_line_id)
+       values ($1, 'bol', $2) returning id`,
+      [tenant, line],
+    )).rows[0].id;
+    return { tenant, line, claim };
+  }
+
+  /** What the database answered a statement with: `accepted`, or the SQLSTATE it was
+   * refused with. The savepoint is what lets a refusal be measured and the enclosing
+   * transaction carry on to the next measurement rather than end aborted. */
+  async function answered(body: () => Promise<unknown>): Promise<string> {
+    await client.query('savepoint attempted');
+    try {
+      await body();
+      await client.query('release savepoint attempted');
+      return 'accepted';
+    } catch (error) {
+      await client.query('rollback to savepoint attempted');
+      return (error as { code?: string }).code ?? (error as Error).message;
+    }
+  }
+
   it('carries tenant_id across every key that joins one tenant-owned table to another',
     async () => {
       const total = await foreignKeyCount('public');
@@ -1807,12 +1855,14 @@ describe('the foreign keys between tenant-owned tables', () => {
     }
   });
 
-  it('blocks no erasure, because a tenant must still be deletable on request', async () => {
+  it('holds no key that refuses the delete of the row it points at', async () => {
     // A composite key is the fix, and `on delete restrict` is the way to write one
-    // that makes deletion on request impossible: the cascade from public.tenants
-    // reaches the child, the restrict refuses it mid-statement, and the whole
-    // erasure rolls back. The PRD promises deletion within 30 days and SEEN-083
-    // has to perform it, so no key between tenant-owned tables may restrict.
+    // that makes a parent row undeletable: the child refuses the parent's delete
+    // outright, so a settlement line or a connection could not be removed or
+    // re-ingested while anything pointed at it, which ingest does on every
+    // correction a marketplace sends. So no key between tenant-owned tables may
+    // restrict. The test below measures that cost on one key rather than leaving
+    // the reason to be believed.
     const { rows } = await client.query<{ name: string; child: string; definition: string }>(
       `select con.conname as name,
               src.relname as child,
@@ -1826,10 +1876,61 @@ describe('the foreign keys between tenant-owned tables', () => {
     const restricting = rows.map((row) => `${row.child}.${row.name}: ${row.definition}`);
     expect(
       restricting,
-      `${restricting.length} foreign keys refuse a delete of the parent outright, which a `
-      + "tenant's erasure is: " + restricting.join('; '),
+      `${restricting.length} foreign keys refuse a delete of the parent outright, so the row `
+      + 'each points at cannot be removed or re-ingested while it stands: '
+      + restricting.join('; '),
     ).toEqual([]);
   });
+
+  it('costs the ordinary delete of a parent row, which is the reason no key restricts',
+    async () => {
+      // What a restricting key would cost, measured rather than stated, on the same
+      // one key as the set-null measurement below, so the only difference between the
+      // two is the rule put in its place. Deleting the settlement line a claim was
+      // credited by is refused with 23503, and that is the whole of the reason: a
+      // settlement line could not be removed or re-ingested while a claim pointed at
+      // it, which ingest does on every correction the marketplace sends.
+      //
+      // A tenant's erasure is not the case that proves it, and the comment above this
+      // test used to say it was. With the restricting key in place, `delete from
+      // public.tenants` is accepted: the cascade removes the claim before the restrict
+      // can be reached. That is the order Postgres schedules two sibling cascade
+      // actions in, exactly as with the bare set-null below, and it is not a guarantee
+      // to rest a reason on either way. The exclusion of restrict stands on the
+      // ordinary parent-row delete, which reproduces every time.
+      await client.query('begin');
+      let measured;
+      try {
+        const seeded = await creditedClaim();
+        await client.query(
+          'alter table public.claims drop constraint claims_credited_by_settlement_line_id_fkey',
+        );
+        await client.query(
+          `alter table public.claims add constraint claims_credited_by_settlement_line_id_fkey
+             foreign key (tenant_id, credited_by_settlement_line_id)
+             references public.settlement_lines (tenant_id, id) on delete restrict`,
+        );
+        measured = {
+          deletingTheParentRow: await answered(() => client.query(
+            'delete from public.settlement_lines where id = $1', [seeded.line],
+          )),
+          erasingTheTenant: await answered(() => client.query(
+            'delete from public.tenants where tenant_id = $1', [seeded.tenant],
+          )),
+        };
+      } finally {
+        await client.query('rollback');
+      }
+      expect(
+        measured,
+        'With `on delete restrict` in place of the key a claim is credited by, deleting the '
+        + `settlement line answered ${measured.deletingTheParentRow} and erasing the tenant `
+        + `answered ${measured.erasingTheTenant}. A restricting key is excluded because it makes `
+        + "the parent row undeletable while a child points at it, not because it blocks a "
+        + "tenant's erasure: the cascade reaches the child first, which is scheduling and not a "
+        + 'guarantee',
+      ).toEqual({ deletingTheParentRow: '23503', erasingTheTenant: 'accepted' });
+    });
 
   it('nulls the reference and not the tenant when a set-null parent is deleted', async () => {
     // Eight of the twenty-eight rewritten keys set null, and each names the column
@@ -1850,49 +1951,10 @@ describe('the foreign keys between tenant-owned tables', () => {
     // is accepted, because the cascade removes the claim before the set-null can
     // reach it, and which of two sibling cascade actions Postgres schedules first
     // is not a guarantee to rest a reason on.
-    const fixture = async () => {
-      const tenant = (await client.query<{ tenant_id: string }>(
-        "insert into public.tenants (name) values ('Tenant with a credited claim') "
-        + 'returning tenant_id',
-      )).rows[0].tenant_id;
-      const connection = (await client.query<{ id: string }>(
-        "insert into public.connections (tenant_id, marketplace) values ($1, 'bol') returning id",
-        [tenant],
-      )).rows[0].id;
-      const settlement = (await client.query<{ id: string }>(
-        `insert into public.settlements (tenant_id, connection_id, marketplace, external_id)
-         values ($1, $2, 'bol', 'SETTLEMENT-SET-NULL') returning id`,
-        [tenant, connection],
-      )).rows[0].id;
-      const line = (await client.query<{ id: string }>(
-        `insert into public.settlement_lines
-           (tenant_id, settlement_id, marketplace, external_id, line_type, amount_cents)
-         values ($1, $2, 'bol', 'LINE-SET-NULL', 'compensation', 1234) returning id`,
-        [tenant, settlement],
-      )).rows[0].id;
-      const claim = (await client.query<{ id: string }>(
-        `insert into public.claims (tenant_id, marketplace, credited_by_settlement_line_id)
-         values ($1, 'bol', $2) returning id`,
-        [tenant, line],
-      )).rows[0].id;
-      return { tenant, line, claim };
-    };
-    const answered = async (body: () => Promise<unknown>): Promise<string> => {
-      await client.query('savepoint attempted');
-      try {
-        await body();
-        await client.query('release savepoint attempted');
-        return 'accepted';
-      } catch (error) {
-        await client.query('rollback to savepoint attempted');
-        return (error as { code?: string }).code ?? (error as Error).message;
-      }
-    };
-
     await client.query('begin');
     let measured;
     try {
-      const seeded = await fixture();
+      const seeded = await creditedClaim();
       await client.query('savepoint as_shipped');
       const shippedDelete = await answered(() => client.query(
         'delete from public.settlement_lines where id = $1', [seeded.line],
