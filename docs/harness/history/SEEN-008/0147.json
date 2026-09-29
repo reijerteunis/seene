@@ -1,0 +1,73 @@
+{
+  "sequence": 147,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-29T22:22:54.493180+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 9,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "f9bfba6a57ac5611f71eabb375d16bdf5b644a19",
+  "prev_hash": "96d8a403a63996a62051c7ef71c768af70586ef7d62e790157977727da8f2047",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": null,
+          "behaviour": "F27: a tenant id is never updatable, whatever it would be changed to, and the tombstone write is idempotent. The narrow repair of firing the existing guard on update too would have left the column writable and defended one destination only.",
+          "failure_reason": "`pnpm --filter @seen/core test` exited 1: AssertionError: An update setting a living tenant's id to an erased one was accepted, where a refusal (23001) is what keeps an erasure from being undone by an update rather than by an insert. It left 1 tenant rows carrying the erased id with 0 audit events beh | AssertionError: Changing a tenant id to one no erasure has consumed was accepted and renaming the same tenant was accepted, leaving the name as undefined. The id is the identity twenty-eight foreign keys hang off, so it is refused every new value (23001); the ",
+          "red": 126,
+          "green": 127
+        },
+        {
+          "position": null,
+          "behaviour": "F28: an erasure and an insert of the same tenant id cannot interleave. Both sides take a transaction-scoped advisory lock on the id through one shared function, the erasure taking it before the delete so the two cannot wait on each other.",
+          "failure_reason": "`pnpm --filter @seen/core test` exited 1: AssertionError: The second session's insert of an id the first session was erasing was accepted, leaving 1 tenant rows carrying that id and 1 tombstones for it. The interleaving was forced rather than hoped for: Postgres reported the second session waiting on ",
+          "red": 128,
+          "green": 129
+        },
+        {
+          "position": null,
+          "behaviour": "F29: a partitioned table is a table, so the tenancy, tenant_id, RLS, table-listing and per-table privilege guards ask for relkind in ('p','r'), and part 6 raises on one without tenancy. This is what criterion 2 was claiming and not measuring.",
+          "failure_reason": "`pnpm --filter @seen/core test` exited 1: AssertionError: A partitioned table carrying neither tenant_id nor row-level security was added to the public schema with one partition under it, and the guards named {\"listed\":[\"seen_partition_probe\"],\"withoutTenantId\":[\"seen_partition_probe\"],\"withoutRowLeve | AssertionError: A partitioned table carrying the tenancy policy and the select `authenticated` holds on every other table was added to the public schema, and the guards answered {\"amongTheRelationsThatAreNotTables\":[\"seen_governed_partition_probe (a partitione",
+          "red": 131,
+          "green": 132
+        },
+        {
+          "position": null,
+          "behaviour": "F30: the privilege guards ask what a role can actually do, through has_table_privilege and has_column_privilege, rather than reading a relation's own access control list, so a grant to PUBLIC, a column-level grant and role membership are all covered.",
+          "failure_reason": "`pnpm --filter @seen/core test` exited 1: AssertionError: A select on public.shipments was granted to PUBLIC, so `anon` holds it without being named anywhere, and the database answered its read {\"answer\":\"accepted\",\"rows\":0} where a role holding nothing at all is refused 42501. The privilege guard has | AssertionError: A select on public.shipments.buyer_name alone was granted to `anon`, and the database answered its read of that column {\"answer\":\"accepted\",\"rows\":0} and its read of the rest {\"answer\":\"42501\",\"rows\":null}. The grant is therefore real and usabl",
+          "red": 135,
+          "green": 136
+        },
+        {
+          "position": null,
+          "behaviour": "F30 continued: a default privilege granted to PUBLIC leaves a later table born readable, which the same guard now reports.",
+          "failure_reason": "`pnpm --filter @seen/core test` exited 1: AssertionError: A select on every table created in schema public was granted by default to PUBLIC, a table was then created there, and `anon` answered {\"answer\":\"accepted\",\"rows\":1}, reading a row of a table it was never granted anything on. The guard reported",
+          "red": 137,
+          "green": 138
+        },
+        {
+          "position": null,
+          "behaviour": "F31: the classification of the two Message-ID columns stops claiming the rail assigned the identifier, which is true on four marketplace rails and false on mail, and states the obligation on SEEN-062 to store a digest, with the four constrained classifications now required to name their owner.",
+          "failure_reason": "`pnpm --filter @seen/core test` exited 1: AssertionError: Columns whose non-PII classification depends on a later ticket writing them a certain way, and whose own comment does not say so or does not name that ticket: message_threads.external_thread_id does not say \"to keep it so\", so it reads as a fac",
+          "red": 140,
+          "green": 141
+        }
+      ],
+      "regression": 144,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "a00943ab9615",
+      "output_tokens": 1732387,
+      "tool_calls": 916,
+      "unavailable": null
+    }
+  }
+}
