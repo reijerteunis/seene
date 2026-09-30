@@ -1,0 +1,59 @@
+{
+  "sequence": 208,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-30T12:38:17.263106+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 11,
+  "actor": "claude:reviewer",
+  "session": "a00943ab9615",
+  "head": "f66fad1088855f1fc0b5beb0a1d313eb396e3f5f",
+  "prev_hash": "0ac093e113723a1d1db5c011b4dd3d4220af9046926c376572c28f8271f11ed9",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 12,
+    "reason": "Second review, round three, run as a pre-check because the seventh Codex round died on its usage limit twice without a verdict and its quota is the binding constraint on this ticket. Advisory for the gate, which requires a reviewer from the assistant that did not write the work, and recorded as a return because the findings are real. No criterion unmet and no behavioural defect: all four repairs hold, verified on two connections each. F42's refusal is 23001 at read committed, repeatable read and serializable; its sentinel does not swallow a planted 23514; and the serializable conflict between concurrent tenant creations is the marketplaces seed trigger and predates this change. F39's global revoke costs nothing unlooked-for in seen, in Supabase's schemas or on re-apply. F41 leaves nothing else expiring. What it found is the class Codex has returned on twice, a statement the file's own behaviour contradicts. F43: the premise F39 withdrew still stands in part 8's self-check and its raise and in two shipped failure messages, 130 lines below the correction in the same file, and a helper created in seen is now born {postgres=X/postgres} which makes the sentence false of the database the file produces. F44: the same generalisation is made by name about types, and is measurably false there too, since a global revoke of usage on types does reach them; the reason T carries no revoke has changed from impossible to unnecessary and nothing says so. F45 is verified here before recording and is the sharpest: F40's import guard matches only the node:-prefixed specifiers and only .ts sources, so import from 'fs', from 'child_process' and require('fs') all walk past the mechanism built to close the unhashed-authority class, which would be its fourth instance. F46: the unique-index self-check F42 rests on admits a partial unique index, which satisfies its letter and breaks deletion on request with 42P10.",
+    "findings": [
+      {
+        "id": "F43",
+        "severity": "medium",
+        "file": "supabase/migrations/20260929000003_trade_record_v1_erased_tenant_ids.sql:654",
+        "claim": "The conclusion F39 withdrew is still asserted in part 8's self-check and in the exception it raises, contradicting the correction written 130 lines above it in the same file.",
+        "failure_scenario": "Part 8 line 654 reads 'There is no default privilege that prevents it and none that could', and the raise at line 686 tells its reader that a routine in `seen` 'is callable by name until its own migration revokes it from public'. Both are the F32 rounds' generalisation that F39 demonstrated is false, and the same file at lines 521 to 535 now says the opposite: part 6's global revoke 'is filed against no schema, so it reaches this one, and it is why a seventh helper added here after part 6 runs is born `{postgres=X/postgres}` rather than callable by everybody'. Measured against the live stack in a rolled-back transaction: `create function seen.probe_helper() returns int language sql as $$ select 1 $$` is born proacl `{postgres=X/postgres}` with has_function_privilege false for anon, authenticated and service_role alike, so the sentence at 654 is false of the database the file itself produces. The same withdrawn premise stands in two failure messages a reader meets before they meet the correction: packages/core/db/schema.test.ts:4762, 'a routine is born with PostgreSQL's own EXECUTE to PUBLIC and stays callable until its own migration revokes it, which no default privilege can do for it', and schema.test.ts:4843, 'A function is still born callable by PUBLIC with no default privilege involved anywhere, and no statement of this kind can reach that'. The concrete cost: the author of SEEN-014 or SEEN-021 adding a helper to `seen` reads part 8's self-check, takes prevention to be impossible, and writes the detection-only shape the file tells them is the only one available, which is exactly the reasoning chain F39 was raised to end. F39's own return text asked for the conclusion to be withdrawn from the migration, and it was withdrawn from part 6 and from the Outcome and not from here.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F44",
+        "severity": "medium",
+        "file": "packages/core/db/tables.ts:776",
+        "claim": "The generalisation F39 overturned is still made, by name, about the one object class F39 did not touch, and it is measurably false there too.",
+        "failure_scenario": "tables.ts:776 says of `defaclobjtype = 'T'` that `anon` holds USAGE on every type 'through the grant PostgreSQL makes to PUBLIC on a type it creates, which no default privilege can reach, exactly as for a function'. The same sentence is in part 6 at lines 601 to 607 and in schema.test.ts at 4614 and, as the failure message of a shipped assertion, at 4642 ('through PostgreSQL's grant to PUBLIC, which no default privilege can take away'). The clause 'exactly as for a function' is the premise F39 disproved, and it is false of types for the identical reason. Measured on this stack in a rolled-back transaction: a domain created before the statement gives has_type_privilege('anon', ..., 'USAGE') true; after `alter default privileges for role postgres revoke usage on types from public`, with no `in schema` clause, the next domain is born typacl `{postgres=U/postgres}` and has_type_privilege('anon', ...) is false. So a default privilege does reach it. The consequence is not a leak, because the harmlessness argument beside the claim is separately asserted at schema.test.ts:4603 and holds; the consequence is that this ticket's recurring defect, the sentence that generalises one measurement past the statement it was made about, is left standing in three files one round after a reviewer returned the ticket for it, in the wording that names the class it was wrong about. The reason 'T' carries no revoke has changed from impossible to unnecessary and nothing says so.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F45",
+        "severity": "medium",
+        "file": "packages/core/db/repository.ts:203",
+        "claim": "The guard that makes repository.ts the only reader in the package matches only the `node:`-prefixed specifiers and only `.ts` sources, so the fourth instance of the unhashed-authority defect arrives past it in silence.",
+        "failure_scenario": "readingImportsOf builds its pattern from READING_MODULES, which is `node:child_process`, `node:fs` and `node:fs/promises` (repository.ts:57), and matches `(?:from|import|require)\\s*\\(?\\s*['\"]node:fs['\"]`. A bare specifier is not matched: evaluated directly, the three patterns all answer false against `import { readFileSync } from 'fs';`, `import { execFileSync } from 'child_process';` and `require('fs')`, and Node resolves the bare builtin identically. The repository's eslint.config.mjs is js.configs.recommended plus typescript-eslint recommended and carries no rule requiring the `node:` prefix, so nothing else stops it either. So: a later author adds packages/core/db/whatever.test.ts, writes `import { readFileSync } from 'fs'`, reads a new authority such as docs/prd/prd.md or supabase/seed.sql, and authorities.test.ts's third assertion reports zero offenders while turbo hashes nothing of what was read; the next cached green is replayed over an edited version of that authority. That is CODEX-03, F34 and F40 a fourth time, with the mechanism built to close the class reporting nothing, and both turbo.json:72 and repository.ts:22 state the closure as a rule ('no other module may import node:fs or node:child_process', 'asserts that no other module in this package imports anything that can open a file at all'). The second route is the same hole by extension: packageSources() collects only entries ending `.ts` (repository.ts:190), while vitest's default include matches `*.test.mts`, `*.test.cts` and `*.test.js`, so a test file with any of those extensions is never scanned and never asked what it imports.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F46",
+        "severity": "low",
+        "file": "supabase/migrations/20260929000003_trade_record_v1_erased_tenant_ids.sql:616",
+        "claim": "The self-check that the F42 refusal now rests on admits a unique index that does not give the property it is asked for, and cannot see the later migration its comment is addressed to.",
+        "failure_scenario": "The check asks pg_index for indisunique, indislive, indnkeyatts = 1 and indkey[0] = tenant_id, and asks neither indpred nor indisvalid; its comment invites a later migration to 're-shape the key' as long as it does not drop the uniqueness. Measured on this stack in a rolled-back transaction: after `alter table seen.erased_tenants drop constraint erased_tenants_pkey` and `create unique index probe_partial on seen.erased_tenants (tenant_id) where erased_at > '2099-01-01'`, the check's own query still returns a row, so the migration would pass, while the erasure path breaks at once: `delete from public.tenants where tenant_id = ...` is refused 42P10, 'there is no unique or exclusion constraint matching the ON CONFLICT specification', raised from seen.record_tenant_erasure(). A partial unique index satisfies the letter of the check, gives the refusal nothing to conflict with for any row outside its predicate, and takes deletion on request with it. Separately, the check runs once when part 8 applies, which on a re-apply is before any later migration runs, so it can never see the reshaping its comment is written for; what would catch that is the behavioural assertion at schema.test.ts:2584, and the comment does not say so.",
+        "status": "open",
+        "resolution": ""
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}
