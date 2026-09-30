@@ -18,15 +18,14 @@
  * first two slices left out deliberately because a key before a seed would make
  * ingest depend on seeding order.
  */
-import { readFileSync } from 'node:fs';
-
 import { Client } from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import {
   MARKETPLACE_COLUMNS, MARKETPLACE_IDS, MarketplaceId, parseRoutingTable,
 } from './marketplaces';
-import { ERASURE_REGISTRY_TABLE, TENANT_CLAIM } from './tables';
+import { readRepositoryFile } from './repository';
+import { ARCHITECTURE_DOCUMENT, ERASURE_REGISTRY_TABLE, TENANT_CLAIM } from './tables';
 
 // The local Supabase stack's Postgres, the address `pnpm dev:up` prints when it
 // starts. Overridden by SEEN_DATABASE_URL so CI or a second stack needs no code
@@ -35,11 +34,10 @@ import { ERASURE_REGISTRY_TABLE, TENANT_CLAIM } from './tables';
 const LOCAL_DEFAULT = 'postgresql://postgres:postgres@127.0.0.1:54322/postgres';
 const DATABASE_URL = process.env.SEEN_DATABASE_URL ?? LOCAL_DEFAULT;
 
-/** The document the routing table is the authority in, read from disk per run. */
-const ARCHITECTURE = new URL('../../../docs/architecture.md', import.meta.url);
-
-/** The matrix as the document states it today: six marketplaces, nine capabilities. */
-const ROUTING = parseRoutingTable(readFileSync(ARCHITECTURE, 'utf8'));
+/** The matrix as the document states it today: six marketplaces, nine capabilities.
+ * Read through the reader, which refuses a document the test task does not hash, so
+ * that an edit to the routing table cannot be replayed from the cache. */
+const ROUTING = parseRoutingTable(readRepositoryFile(ARCHITECTURE_DOCUMENT));
 
 /** Host, port and database only: a connection string carries a password, and a
  * test's own failure text is read again in a journal record and in a CI log. */
@@ -169,7 +167,7 @@ describe('the static marketplaces catalogue', () => {
     // changed in a copy of the document held in memory, and the parse of it must
     // disagree with what the database holds.
     const edited = parseRoutingTable(
-      readFileSync(ARCHITECTURE, 'utf8').replace(
+      readRepositoryFile(ARCHITECTURE_DOCUMENT).replace(
         '| API (Orders, Reports) |', '| assisted (a case by hand) |',
       ),
     );

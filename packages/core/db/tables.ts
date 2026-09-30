@@ -382,6 +382,10 @@ export const CROSS_TENANT_FOREIGN_KEY_EXEMPTIONS: readonly string[] = [];
 /** Where the migrations live, relative to the repository root. */
 export const MIGRATIONS_DIRECTORY = 'supabase/migrations';
 
+/** The document the marketplace routing table is the authority in, relative to the
+ * repository root. */
+export const ARCHITECTURE_DOCUMENT = 'docs/architecture.md';
+
 /**
  * The documents outside this package that its tests read as an authority, so the
  * turbo cache has to hash them, relative to the repository root.
@@ -401,8 +405,16 @@ export const MIGRATIONS_DIRECTORY = 'supabase/migrations';
  * title and this list would then be stale rather than wrong when one is retitled.
  * `schema.test.ts` resolves them from the ticket id and asks the same question of
  * turbo about each, so both sets are checked by one assertion.
+ *
+ * This list is no longer where the rule lives, and a later author should not have
+ * to find it. The Data API configuration became an authority in the same way and
+ * was not hashed either (F40), which is the third time the class arrived, so
+ * `repository.ts` is now the only module here that can open a file and it refuses
+ * a path the test task does not hash before it reads it. What remains true of this
+ * list is that it asks the question up front rather than at the moment of a read,
+ * which is worth keeping for the document every run depends on.
  */
-export const HASHED_REPOSITORY_DOCUMENTS = ['docs/architecture.md'] as const;
+export const HASHED_REPOSITORY_DOCUMENTS = [ARCHITECTURE_DOCUMENT] as const;
 
 /** Where the ticket files live, relative to the repository root. */
 export const TICKETS_DIRECTORY = 'docs/tickets';

@@ -20,14 +20,13 @@
  * permissive policy, which is the only way to show that the assertion sees a
  * policy set and not the existence of one policy.
  */
-import { execFileSync } from 'node:child_process';
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-
 import { Client } from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
+import {
+  listRepositoryDirectory, packageSources, readRepositoryFile, repositoryPathExists,
+  REPOSITORY_ROOT, testTaskInputs,
+} from './repository';
 import {
   APPEND_ONLY_PRIVILEGES, APPEND_ONLY_TABLES, BUYER_PII_COLUMNS, BUYER_PII_COMMENT_TERMS,
   BUYER_PII_MARKER, CLIENT_BOUND_ROLES, COLUMN_GRANTABLE_PRIVILEGES,
@@ -46,9 +45,6 @@ import {
   TRADE_RECORD_MIGRATION_MARKER, TRADE_RECORD_TABLES,
   VIEW_SECURITY_OPTION, VIEW_SECURITY_OPTION_TRUE,
 } from './tables';
-
-/** The repository root, from this file's own location: `packages/core/db`. */
-const REPOSITORY_ROOT = fileURLToPath(new URL('../../..', import.meta.url));
 
 // The local Supabase stack's Postgres, the address `pnpm dev:up` prints when it
 // starts. Overridden by SEEN_DATABASE_URL so CI or a second stack needs no code
@@ -852,15 +848,14 @@ function declaredBuyerPii(columns: readonly FreeTextColumn[]): FreeTextColumn[] 
 
 /** Every migration file, as a path relative to the repository root, newest last. */
 function migrationFiles(): string[] {
-  const directory = join(REPOSITORY_ROOT, MIGRATIONS_DIRECTORY);
-  if (!existsSync(directory)) {
+  if (!repositoryPathExists(MIGRATIONS_DIRECTORY)) {
     throw new Error(
       `There is no ${MIGRATIONS_DIRECTORY} directory under ${REPOSITORY_ROOT}, so a test that `
       + 'reads the migrations proves nothing. This test resolves the repository root from its own '
       + 'location and that assumption has broken.',
     );
   }
-  const files = readdirSync(directory).filter((name) => name.endsWith('.sql')).sort();
+  const files = listRepositoryDirectory(MIGRATIONS_DIRECTORY).filter((name) => name.endsWith('.sql'));
   if (files.length === 0) {
     throw new Error(
       `There are no .sql files in ${MIGRATIONS_DIRECTORY}, so a test that reads the migrations `
@@ -915,7 +910,7 @@ function migrationNamed(marker: string): string {
  * which found nothing fails the test that needed the blocks instead of passing it.
  */
 function checkedBlocksOf(file: string): string[] {
-  const sql = readFileSync(join(REPOSITORY_ROOT, file), 'utf8');
+  const sql = readRepositoryFile(file);
   return sql.match(/^do \$\$$[\s\S]*?^\$\$;$/gm) ?? [];
 }
 
@@ -1004,7 +999,7 @@ function tradeRecordSetHeaders(): SetMember[] {
   }
   return members.map((file) => ({
     file,
-    firstLine: readFileSync(join(REPOSITORY_ROOT, file), 'utf8').split('\n')[0] ?? '',
+    firstLine: readRepositoryFile(file).split('\n')[0] ?? '',
   }));
 }
 
@@ -1114,16 +1109,11 @@ function setSizesStatedInComments(sources: readonly ScannedSource[]): StatedSetS
 
 /** The sources whose comments describe the set: this package's own and the set's. */
 function sourcesThatDocumentTheSet(): ScannedSource[] {
-  const directory = fileURLToPath(new URL('.', import.meta.url));
-  const relative = directory.slice(REPOSITORY_ROOT.length).replace(/\\/g, '/').replace(/\/$/, '');
-  const own = readdirSync(directory)
-    .filter((name) => name.endsWith('.ts'))
-    .sort()
-    .map((name) => `${relative}/${name}`);
+  const own = packageSources().filter((file) => file.endsWith('.ts'));
   const members = migrationFiles().filter((file) => file.includes(TRADE_RECORD_MIGRATION_MARKER));
   return [...own, ...members].map((file) => ({
     file,
-    contents: readFileSync(join(REPOSITORY_ROOT, file), 'utf8'),
+    contents: readRepositoryFile(file),
   }));
 }
 
@@ -1131,7 +1121,7 @@ function sourcesThatDocumentTheSet(): ScannedSource[] {
 function blanketPrivilegeStatements(): string[] {
   const found: string[] = [];
   for (const file of migrationFiles()) {
-    const statements = statementsOf(readFileSync(join(REPOSITORY_ROOT, file), 'utf8'));
+    const statements = statementsOf(readRepositoryFile(file));
     for (const statement of statements) {
       for (const forbidden of FORBIDDEN_PRIVILEGE_STATEMENTS) {
         if (forbidden.pattern.test(statement)) {
@@ -1156,16 +1146,14 @@ function blanketPrivilegeStatements(): string[] {
  * there.
  */
 function ticketFile(ticket: string): string {
-  const directory = join(REPOSITORY_ROOT, TICKETS_DIRECTORY);
-  if (!existsSync(directory)) {
+  if (!repositoryPathExists(TICKETS_DIRECTORY)) {
     throw new Error(
       `There is no ${TICKETS_DIRECTORY} directory under ${REPOSITORY_ROOT}, so a test that reads `
       + 'a ticket as an authority proves nothing.',
     );
   }
-  const matches = readdirSync(directory)
-    .filter((name) => name.startsWith(`${ticket}-`) && name.endsWith('.md'))
-    .sort();
+  const matches = listRepositoryDirectory(TICKETS_DIRECTORY)
+    .filter((name) => name.startsWith(`${ticket}-`) && name.endsWith('.md'));
   if (matches.length !== 1) {
     throw new Error(
       `${matches.length} files in ${TICKETS_DIRECTORY} are named for ${ticket}, and this test `
@@ -1186,7 +1174,7 @@ function ticketFile(ticket: string): string {
  * ticket with no criteria section is thrown for the same reason a missing file is.
  */
 function acceptanceCriteriaOf(file: string): string[] {
-  const lines = readFileSync(join(REPOSITORY_ROOT, file), 'utf8').split('\n');
+  const lines = readRepositoryFile(file).split('\n');
   const heading = lines.findIndex((line) => /^##\s+Acceptance criteria\s*$/i.test(line));
   if (heading === -1) {
     throw new Error(
@@ -1233,51 +1221,6 @@ function constrainedTicketFiles(): string[] {
     Object.values(CONSTRAINED_NOT_BUYER_PII_COLUMNS).flatMap((entry) => entry.tickets),
   );
   return [...tickets].sort().map(ticketFile);
-}
-
-/**
- * The files turbo hashes to decide whether `@seen/core#test` may be replayed from
- * the cache, measured from turbo itself rather than read out of `turbo.json`.
- *
- * `--dry=json` computes the hash and its input list without running the task, so
- * this is the same question the cache asks, asked from inside the suite the cache
- * would be replaying. Reading the configuration instead would assert what somebody
- * wrote, not what turbo resolved: a root-relative glob that turbo silently ignored
- * would read as a fix and hash nothing.
- */
-function testTaskInputs(): string[] {
-  const turbo = join(REPOSITORY_ROOT, 'node_modules', '.bin', 'turbo');
-  if (!existsSync(turbo)) {
-    throw new Error(
-      `No turbo binary at ${turbo}, so this test cannot measure what the test task hashes and `
-      + 'proves nothing about the cache. Install the workspace with `pnpm install`.',
-    );
-  }
-  let output: string;
-  try {
-    output = execFileSync(
-      turbo,
-      ['run', 'test', '--filter=@seen/core', '--dry=json'],
-      { cwd: REPOSITORY_ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 },
-    );
-  } catch (cause) {
-    throw new Error(
-      'turbo could not report what the test task hashes, so this test proves nothing about the '
-      + `cache. turbo said: ${(cause as Error).message}`,
-      { cause },
-    );
-  }
-  const plan = JSON.parse(output.slice(output.indexOf('{'))) as {
-    tasks?: { taskId?: string; inputs?: Record<string, string> }[];
-  };
-  const task = (plan.tasks ?? []).find((entry) => entry.taskId === '@seen/core#test');
-  if (!task) {
-    throw new Error(
-      'turbo reported no @seen/core#test task at all, so this test proves nothing about the '
-      + `cache. It reported: ${(plan.tasks ?? []).map((entry) => entry.taskId).join(', ')}`,
-    );
-  }
-  return Object.keys(task.inputs ?? {});
 }
 
 /** Refuses the erasure registry holding a tombstone for any tenant this file
@@ -4597,7 +4540,7 @@ describe('schema seen, which the Data API does not serve', () => {
     // erasure registry becomes a table endpoint, every helper here becomes a
     // `POST /rpc/<name>`, and the allow-list below stops being an acceptable rule
     // without anything else in the suite noticing.
-    const configured = readFileSync(join(REPOSITORY_ROOT, DATA_API_CONFIG), 'utf8');
+    const configured = readRepositoryFile(DATA_API_CONFIG);
     const match = DATA_API_SCHEMAS_SETTING.exec(configured);
     expect(match, `${DATA_API_CONFIG} has no \`schemas = [...]\` line, so what the Data API `
       + 'serves cannot be read from the file this repository configures it with').not.toBeNull();

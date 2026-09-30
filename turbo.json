@@ -54,9 +54,29 @@
       // cache replaying a pass over a ticket the suite never read. By id and not
       // by whole name, because the rest of a ticket's filename is a slug of its
       // title and a retitle would otherwise silently hash nothing.
+      //
+      // The Supabase configuration is here for the same reason, one round later
+      // again, and it is the last entry that should ever be added by hand. `seen`
+      // being absent from its `schemas` line is why the erasure registry is not a
+      // table endpoint, why part 6 can send a materialised view and a foreign table
+      // to a schema outside public, and why the routines of `seen` owe an
+      // allow-list where the routines of public owe an emptiness. The guard that
+      // reads it was written with none of that hashed, so an edit confined to that
+      // line left the inputs untouched and the guard was replayed rather than run.
+      // Measured by the sixth Codex review before this line was written: 27 inputs,
+      // every migration and every other authority among them, and no configuration.
+      //
+      // What changed with it is that this list is no longer where the rule lives.
+      // packages/core/db/repository.ts is the only module in @seen/core that can
+      // open a file, it asks turbo through `--dry=json` what this task hashes and
+      // refuses to read a path that is not in the answer, and authorities.test.ts
+      // asserts that no other module there imports anything that can read one. An
+      // author who reads something new is refused at the read and sent here, rather
+      // than being relied on to remember that this list exists.
       "inputs": [
         "$TURBO_DEFAULT$",
         "$TURBO_ROOT$/supabase/migrations/**",
+        "$TURBO_ROOT$/supabase/config.toml",
         "$TURBO_ROOT$/docs/architecture.md",
         "$TURBO_ROOT$/docs/tickets/SEEN-027-*.md",
         "$TURBO_ROOT$/docs/tickets/SEEN-032-*.md",
