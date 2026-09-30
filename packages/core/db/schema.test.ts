@@ -33,7 +33,7 @@ import {
   CONSTRAINED_NOT_BUYER_PII_COLUMNS, CONSTRAINED_NOT_BUYER_PII_MARKER,
   CROSS_TENANT_FOREIGN_KEY_EXEMPTIONS, DATA_API_CONFIG, DATA_API_ROLES, DATA_API_SCHEMAS,
   DATA_API_SCHEMAS_SETTING, DEFAULT_ACL_OBJECT_CLASSES,
-  ERASURE_REGISTRY_COLUMNS, ERASURE_REGISTRY_TABLE,
+  ERASURE_REGISTRY_COLUMNS, ERASURE_REGISTRY_MIGRATION_MARKER, ERASURE_REGISTRY_TABLE,
   FORBIDDEN_PRIVILEGE_STATEMENTS, FREE_TEXT_TYPE_NAMES, FUNCTION_PRIVILEGE,
   GOVERNED_PRIVILEGES,
   HASHED_REPOSITORY_DOCUMENTS, HELPER_SCHEMA, HELPER_SCHEMA_CALLABLE_ROUTINES,
@@ -2926,6 +2926,209 @@ describe('the tenant id an erasure has consumed', () => {
         + 'an id is spent and when it was spent',
       ).toEqual([...ERASURE_REGISTRY_COLUMNS]);
     });
+});
+
+/**
+ * F46: the uniqueness both halves of part 8 rest on is a property of two
+ * statements, and the self-check that file ends with asked `pg_index` to describe
+ * an index instead.
+ *
+ * The erasure writes its tombstone with `on conflict (tenant_id) do nothing` and
+ * the refusal asks whether an id is spent by inserting that tombstone and taking
+ * the insert back. So what the first needs is an index that `on conflict
+ * (tenant_id)` can infer as an arbiter, and what the second needs is a duplicate
+ * that raises there and then. The check asked for a row that is unique, live, over
+ * one key column and over `tenant_id`, which describes the index the primary key
+ * happens to provide rather than either of those two needs.
+ *
+ * Two shapes fit that description and break both statements, and both are planted
+ * below. A partial unique index is an arbiter only for a statement carrying its
+ * predicate, so the erasure is refused 42P10 and the refusal's probe insert
+ * conflicts with nothing and reports every spent id as free. A primary key
+ * declared `deferrable initially deferred` is refused as an arbiter outright
+ * (55000) and raises nothing at the refusal's insert either, because the conflict
+ * it would raise is held back until commit. Measured against this stack, part 8's
+ * check passed both.
+ *
+ * What is run here is the file's own `do` block and not a restatement of it, as
+ * part 6's rules are run: a rule written twice is two rules. The control is the
+ * first test, which replays the same block against the schema the set left alone;
+ * without it a block the extractor mangled would raise for its own reasons and the
+ * two tests below would pass having shown nothing.
+ *
+ * An invalid index is the third shape of the same defect and is not planted here.
+ * `indisvalid` is settable only by writing `pg_index`, which this stack refuses
+ * `postgres` with 42501, and the other route to one, an interrupted `create index
+ * concurrently`, cannot run inside a transaction and would leave a broken index
+ * standing on the registry of whatever database the suite is pointed at. Little is
+ * lost by its absence, because what is asked below is that the two statements work:
+ * a planner will not take an invalid index as an arbiter either, which is the same
+ * 42P10 the partial index is measured giving.
+ *
+ * Each shape is planted inside a transaction that is rolled back, so the registry's
+ * key is back whatever the assertions say.
+ */
+describe('the uniqueness part 8 asks its registry for', () => {
+  let client: Client;
+
+  beforeAll(async () => {
+    client = await connect();
+  });
+
+  afterAll(async () => {
+    await client?.end();
+  });
+
+  /** The SQLSTATE the database answered a statement with, or `accepted` when it
+   * did not refuse. Behind a savepoint, because the measurement carries on asking
+   * after a refusal and a failed statement otherwise aborts the transaction. */
+  async function answered(sql: string, params: unknown[] = []): Promise<string> {
+    await client.query('savepoint seen_key_probe');
+    try {
+      await client.query(sql, params);
+      await client.query('release savepoint seen_key_probe');
+      return 'accepted';
+    } catch (cause) {
+      await client.query('rollback to savepoint seen_key_probe');
+      return (cause as { code?: string }).code ?? 'refused with no SQLSTATE';
+    }
+  }
+
+  /**
+   * Whatever provides the registry's uniqueness today, dropped, so that what this
+   * test plants is the only thing left to arbitrate.
+   *
+   * Found in the catalogue rather than named, because the primary key is what
+   * provides it today and part 8 deliberately asks for the property and not the
+   * constraint's name. A constraint is dropped as a constraint and a bare index as
+   * an index. Finding none is thrown rather than reported: planting a partial index
+   * beside a total one would measure the total one and pass.
+   */
+  async function dropTheUniqueness(): Promise<void> {
+    const { rows } = await client.query<{ name: string; by_constraint: boolean }>(
+      `select coalesce(co.conname, c.relname) as name, co.conname is not null as by_constraint
+         from pg_catalog.pg_index i
+         join pg_catalog.pg_class c on c.oid = i.indexrelid
+         left join pg_catalog.pg_constraint co on co.conindid = i.indexrelid
+        where i.indrelid = to_regclass($1) and i.indisunique and i.indislive`,
+      [ERASURE_REGISTRY_TABLE],
+    );
+    if (rows.length === 0) {
+      throw new Error(
+        `${ERASURE_REGISTRY_TABLE} carries no unique index at all before this test plants one, `
+        + 'so what it plants would not be replacing anything and the measurement below would say '
+        + 'nothing about a registry keyed the way part 8 leaves it.',
+      );
+    }
+    for (const row of rows) {
+      await client.query(row.by_constraint
+        ? `alter table ${ERASURE_REGISTRY_TABLE} drop constraint ${row.name}`
+        : `drop index ${HELPER_SCHEMA}.${row.name}`);
+    }
+  }
+
+  /**
+   * What part 8's own checks say once the registry's uniqueness has been replaced
+   * by `plant`, and what the erasure and the refusal do under it.
+   *
+   * The tombstone the refusal is measured against is inserted directly, because the
+   * statement that would ordinarily leave one is the erasure, and the erasure is
+   * the other half of what is being measured.
+   */
+  async function withTheUniquenessReplacedBy(plant: string): Promise<{
+    partEightRaised: string | null; theErasure: string; theRefusal: string;
+  }> {
+    await client.query('begin');
+    try {
+      await dropTheUniqueness();
+      await client.query(plant);
+      const partEightRaised = await replayedAgainstTheSchema(
+        client, migrationNamed(ERASURE_REGISTRY_MIGRATION_MARKER),
+      );
+      const { rows } = await client.query<{ tenant_id: string }>(
+        "insert into public.tenants (name) values ('Tenant erased under a replaced key') "
+        + 'returning tenant_id',
+      );
+      const theErasure = await answered(
+        'delete from public.tenants where tenant_id = $1', [rows[0].tenant_id],
+      );
+      const spent = (await client.query<{ id: string }>('select gen_random_uuid() as id')).rows[0].id;
+      await client.query(
+        `insert into ${ERASURE_REGISTRY_TABLE} (tenant_id) values ($1)`, [spent],
+      );
+      const theRefusal = await answered(
+        "insert into public.tenants (tenant_id, name) values ($1, 'Tenant put back')", [spent],
+      );
+      return { partEightRaised, theErasure, theRefusal };
+    } finally {
+      await client.query('rollback');
+    }
+  }
+
+  it('is stated as a check that passes when it is replayed against this schema', async () => {
+    await client.query('begin');
+    try {
+      const raised = await replayedAgainstTheSchema(
+        client, migrationNamed(ERASURE_REGISTRY_MIGRATION_MARKER),
+      );
+      expect(
+        raised,
+        'Part 8 replayed against the schema its own migration set left behind raised: '
+        + `${raised}. Either the schema has drifted out of something that file claims, or its `
+        + 'block is being read out of the file wrongly, and until this passes the two tests '
+        + 'below prove nothing about a re-keyed registry',
+      ).toBeNull();
+    } finally {
+      await client.query('rollback');
+    }
+  });
+
+  it('is not what a partial unique index over tenant_id gives it, whatever pg_index says',
+    async () => {
+      const measured = await withTheUniquenessReplacedBy(
+        `create unique index seen_partial_key_probe on ${ERASURE_REGISTRY_TABLE} (tenant_id) `
+        + "where erased_at > '2099-01-01'",
+      );
+      expect(
+        measured,
+        'With the registry keyed by a partial unique index over tenant_id, the database answered '
+        + `${JSON.stringify(measured)}. A partial index arbitrates only a statement carrying its `
+        + 'predicate, so the tombstone write in seen.record_tenant_erasure() finds no arbiter and '
+        + 'deletion on request is refused 42P10, and the insert seen.refuse_erased_tenant_id() '
+        + 'asks with finds nothing to conflict with, so a tombstoned id is created again with '
+        + 'nothing raising. Part 8 has to refuse this shape as it applies, and it passed it',
+      ).toEqual({
+        partEightRaised: expect.stringContaining('arbiter'),
+        theErasure: '42P10',
+        theRefusal: 'accepted',
+      });
+    });
+
+  it('is not what a deferrable primary key gives it either, which is the attribute after the one '
+    + 'a catalogue query would have been closed on', async () => {
+    // The shape that says why the check is a statement now rather than a longer
+    // list of columns. Closing the query on `indpred` would have caught the
+    // partial index above and not this: a deferrable primary key is unique, live,
+    // over one key column and over tenant_id, it carries no predicate, and it is
+    // valid. `indimmediate` is the column that would have caught it, and the
+    // column after that is the one nobody enumerated.
+    const measured = await withTheUniquenessReplacedBy(
+      `alter table ${ERASURE_REGISTRY_TABLE} add constraint erased_tenants_deferred_probe `
+      + 'primary key (tenant_id) deferrable initially deferred',
+    );
+    expect(
+      measured,
+      'With the registry keyed by a deferrable primary key over tenant_id, the database answered '
+      + `${JSON.stringify(measured)}. Postgres refuses a deferrable constraint as an arbiter `
+      + '(55000), so deletion on request is refused, and it holds the conflict back until commit, '
+      + 'so the insert the refusal asks with raises nothing and a tombstoned id is created again. '
+      + 'Part 8 has to refuse this shape as it applies, and it passed it',
+    ).toEqual({
+      partEightRaised: expect.stringContaining('arbiter'),
+      theErasure: '55000',
+      theRefusal: 'accepted',
+    });
+  });
 });
 
 /**

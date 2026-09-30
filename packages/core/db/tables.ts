@@ -135,6 +135,20 @@ export const ERASURE_REGISTRY_TABLE = 'seen.erased_tenants' as const;
 export const ERASURE_REGISTRY_COLUMNS = ['erased_at', 'tenant_id'] as const;
 
 /**
+ * The name fragment that finds part 8, the member of the set that makes an erased
+ * tenant id unusable.
+ *
+ * A fragment rather than the whole name, for the reason
+ * `RELATION_RULE_MIGRATION_MARKER` records: the timestamp in front of it is the
+ * CLI's. The suite executes that file's own `do` block against a registry it has
+ * re-keyed, rather than restating what the block asks in TypeScript beside it,
+ * because the check and the test would then be two rules and this ticket has
+ * produced a finding for nearly every place a statement and a sentence about it
+ * drifted apart.
+ */
+export const ERASURE_REGISTRY_MIGRATION_MARKER = 'erased_tenant_ids';
+
+/**
  * The catalogue's own type names for a column that can hold a sentence, and
  * therefore a buyer's name or address whatever the column is called.
  *

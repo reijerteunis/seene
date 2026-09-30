@@ -549,6 +549,14 @@ revoke all on function seen.refuse_tenant_id_change() from public;
 do $$
 declare
   offenders text;
+  -- The tombstone the uniqueness check below writes and takes back, and what the
+  -- three statements it runs answered. An id generated here rather than a literal,
+  -- so that a re-apply of this file cannot meet its own probe standing in the
+  -- registry from the last one.
+  probe uuid := pg_catalog.gen_random_uuid();
+  arbitrated integer;
+  unarbitrated text;
+  duplicated boolean;
 begin
   -- Asked as part 4 asks it, and for the same reason: what a role can do is not
   -- what the relation's own access control list says, and reading the list missed
@@ -605,26 +613,83 @@ begin
       'sessions';
   end if;
 
-  -- The index the refusal now rests on, asked of the catalogue because losing it
-  -- fails open and fails quietly. The refusal asks whether an id is spent by
-  -- inserting the tombstone and taking the insert back: with a unique index over
-  -- tenant_id that insert conflicts, and without one it succeeds every time, is
-  -- rolled back every time, and every erased id becomes creatable again with
-  -- nothing raising anywhere. The primary key is what provides it today; what is
-  -- asked for is the property and not the constraint's name, so a later migration
-  -- may re-shape the key and may not drop the uniqueness.
-  if not exists (
-    select 1
-      from pg_catalog.pg_index i
-     where i.indrelid = 'seen.erased_tenants'::regclass
-       and i.indisunique and i.indislive and i.indnkeyatts = 1
-       and i.indkey[0] = (select a.attnum from pg_catalog.pg_attribute a
-                           where a.attrelid = 'seen.erased_tenants'::regclass
-                             and a.attname = 'tenant_id')
-  ) then
-    raise exception 'seen.erased_tenants carries no unique index over tenant_id alone, so the '
-      'insert that refuses a spent id has nothing to conflict with, every erased id is '
-      'creatable again, and nothing raises to say so';
+  -- The uniqueness both halves of this file rest on, asked by running the two
+  -- statements that need it rather than by describing the index that provides
+  -- them. The erasure writes its tombstone with `on conflict (tenant_id) do
+  -- nothing`, so what it needs is an index that clause can infer as an arbiter.
+  -- The refusal asks whether an id is spent by inserting that tombstone and taking
+  -- the insert back, so what it needs is a duplicate that raises there and then.
+  -- Losing the first makes deletion on request fail outright; losing the second
+  -- fails open and fails quietly, with every erased id creatable again and nothing
+  -- raising anywhere.
+  --
+  -- This was a query over pg_index for indisunique, indislive, indnkeyatts and the
+  -- column indkey[0] names, and F46 is what a description misses. Measured on this
+  -- stack with the primary key dropped and `create unique index ... (tenant_id)
+  -- where erased_at > '2099-01-01'` put in its place: the query still returned its
+  -- row, so this file applied, while the erasure was refused 42P10 out of
+  -- seen.record_tenant_erasure(), because a partial index arbitrates only a
+  -- statement that carries its predicate, and an insert carrying a tombstoned id
+  -- was accepted, because the refusal's probe conflicted with nothing. A primary
+  -- key declared `deferrable initially deferred` passed the same query and broke
+  -- the same two statements, with 55000 and with silence. indpred, indisvalid and
+  -- indimmediate would each close one of those three, and the attribute after them
+  -- is the one nobody enumerated. Running the statement needs none of them and has
+  -- a finite answer, which is F42's move one level up: that round replaced a read
+  -- with a write for the same reason, because the database enforcing beats the
+  -- catalogue describing.
+  --
+  -- The probe is an id generated here, inserted into the registry and taken back by
+  -- a raise this block catches, which is how the refusal undoes its own probe and
+  -- is the one way a PL/pgSQL block can roll back part of its own body. What the
+  -- registry holds when this file finishes is what it held before the block ran.
+  --
+  -- What this cannot see. It runs once, as this file applies, and that is before
+  -- every migration written after it, so a later migration that re-shapes the key
+  -- is outside this check by construction, whatever it does. Re-shaping it is
+  -- allowed: what is asked for is the property and not the constraint's name, and
+  -- the primary key is only what provides it today. What watches the shape
+  -- afterwards is the block named 'the uniqueness part 8 asks its registry for' in
+  -- packages/core/db/schema.test.ts, which runs against the database the whole set
+  -- left behind, re-keys the registry to each of the two shapes above and replays
+  -- this check over them, beside the block named 'the tenant id an erasure has
+  -- consumed', which asks every run for the erasure, the refusal and the race
+  -- rather than for an index.
+  begin
+    insert into seen.erased_tenants (tenant_id) values (probe);
+    begin
+      insert into seen.erased_tenants (tenant_id) values (probe)
+        on conflict (tenant_id) do nothing;
+      get diagnostics arbitrated = row_count;
+    exception
+      when others then
+        unarbitrated := format('%s (SQLSTATE %s)', sqlerrm, sqlstate);
+    end;
+    begin
+      insert into seen.erased_tenants (tenant_id) values (probe);
+      duplicated := true;
+    exception
+      when unique_violation then
+        duplicated := false;
+    end;
+    raise exception 'the probe tombstone is taken back' using errcode = 'SEEN1';
+  exception
+    when sqlstate 'SEEN1' then
+      null;
+  end;
+
+  if unarbitrated is not null or arbitrated is distinct from 0 then
+    raise exception 'seen.erased_tenants has no unique index that on conflict (tenant_id) can '
+      'take as an arbiter, so the tombstone write in seen.record_tenant_erasure() fails and '
+      'deletion on request fails with it: %',
+      coalesce(unarbitrated, format('a second insert of the same tenant id added %s row rather '
+                                    'than conflicting', arbitrated));
+  end if;
+
+  if duplicated then
+    raise exception 'a second insert of the same tenant id into seen.erased_tenants was '
+      'accepted, so the insert seen.refuse_erased_tenant_id() asks with has nothing to conflict '
+      'with, every erased id is creatable again, and nothing raises to say so';
   end if;
 
   if not has_table_privilege('service_role', 'public.tenants', 'delete') then
