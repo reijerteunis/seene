@@ -29,9 +29,12 @@ status: todo
 
 Implement packages/agent: a tool-calling loop per task with Claude and the fixed tools read_finding, read_evidence, draft_claim, submit_claim (mode aware), add_evidence, request_approval and escalate, each declaring action type, reversibility and a euro impact estimator, plus prompts per claim rule and an agent_runs row per run with model, tokens, cost and duration. Every tool call is an agent_actions row and passes through the policy gate before any side effect.
 
+What the runtime may write into an event is settled by SEEN-008. The trade record schema classifies `audit_events.payload` as not buyer PII on the condition that this ticket and SEEN-032 keep it so: the payload records what was decided and the identifiers it was decided about, never the buyer's own words. `draft_claim` is where this bites, because the obvious event for it carries the draft; the draft belongs in `messages.body` and the submitted text in `claims.claim_text`, where SEEN-083's 30-day expiry job can reach them, and neither can be expired once it sits in an append-only table. The reason is in that column's comment in `supabase/migrations/20260929000002_trade_record_v1_free_text_classification.sql`, SEEN-008's second review recorded the promise living nowhere this ticket's author would read it as F34, and `packages/core/db/schema.test.ts` goes red if the criterion below leaves this ticket.
+
 ## Acceptance criteria
 
 - [ ] A run on a finding produces a draft claim and a request_approval action in under 60 seconds
+- [ ] Every tool writes its audit_events payload as the decision and the identifiers it was decided about and never the buyer's own words, so no draft reply or claim text reaches the payload
 - [ ] Each of the seven tools has a declared action type, reversibility flag and euro impact estimator with unit tests
 - [ ] agent_runs records model, input and output tokens, cost in EUR and duration for every run
 - [ ] A tool call that throws is recorded as an agent_actions row with outcome error and the run escalates

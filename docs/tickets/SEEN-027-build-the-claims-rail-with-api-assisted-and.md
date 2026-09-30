@@ -29,10 +29,13 @@ status: todo
 
 Implement the claims rail in packages/core/claims and apps/worker: the claims and claim_events tables in use, one ClaimRail interface with mode api (agent submits through the connector), assisted (agent prepares a case pack, a human confirms in one click, then tracking) and track (outcome watched in settlements and mail), plus the evidence table and store in Supabase Storage with sha256 on write. Mode is chosen from the capability matrix per marketplace so adding a marketplace is a matrix row, not a new flow.
 
+What a claim event may hold is settled by SEEN-008. The trade record schema classifies `claim_events.detail` as not buyer PII on the condition that this ticket keeps the buyer's own words out of it: the event says what happened to the claim and when, by reference, and the submitted text stays in `claims.claim_text`, where SEEN-083's 30-day expiry job looks for it. A copy in the event log is a second one nobody expires. The reason is in that column's comment in `supabase/migrations/20260929000002_trade_record_v1_free_text_classification.sql`, SEEN-008's second review recorded the promise living nowhere this ticket's author would read it as F34, and `packages/core/db/schema.test.ts` goes red if the criterion below leaves this ticket.
+
 ## Acceptance criteria
 
 - [ ] ClaimRail resolves mode api for eBay and assisted for Bol and Amazon from the capability matrix
 - [ ] Every state change on a claim writes a claim_events row with actor, from status and to status
+- [ ] The detail of a claim_events row records what happened by reference and never a copy of the buyer's words, with the submitted text left in claims.claim_text alone
 - [ ] Evidence upload stores the object, records sha256 and source, and rejects a second upload with a different hash for the same path
 - [ ] A finding moves to claimed when its claim is submitted and back to open if submission fails
 

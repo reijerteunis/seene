@@ -39,7 +39,7 @@ import {
   HASHED_REPOSITORY_DOCUMENTS, MIGRATION_SET_HEADER, MIGRATIONS_DIRECTORY,
   NON_TABLE_RELKINDS, NOT_BUYER_PII_MARKER, PROKIND_NAMES, RELKIND_NAMES,
   SEQUENCE_PRIVILEGES, SEQUENCE_RELKIND,
-  TABLE_PRIVILEGES, TABLE_RELKINDS, TENANCY_CLAUSES, TENANT_CLAIM,
+  TABLE_PRIVILEGES, TABLE_RELKINDS, TENANCY_CLAUSES, TENANT_CLAIM, TICKETS_DIRECTORY,
   TRADE_RECORD_MIGRATION_MARKER, TRADE_RECORD_TABLES,
   VIEW_SECURITY_OPTION, VIEW_SECURITY_OPTION_TRUE,
 } from './tables';
@@ -883,6 +883,98 @@ function blanketPrivilegeStatements(): string[] {
 }
 
 /**
+ * The file of one ticket, as a path relative to the repository root, found by its
+ * id and not by its whole name.
+ *
+ * The rest of a ticket's filename is a slug of its title, and CLAUDE.md lets the
+ * generator behind the council artefact rewrite a ticket that is still
+ * `status: todo`, which every ticket read here is. A file that cannot be found is
+ * thrown rather than reported as an obligation nobody kept: it means the id in
+ * `tables.ts` is wrong, and saying "SEEN-062 does not carry its obligation" when
+ * no SEEN-062 can be found would send the next reader to edit a file that is not
+ * there.
+ */
+function ticketFile(ticket: string): string {
+  const directory = join(REPOSITORY_ROOT, TICKETS_DIRECTORY);
+  if (!existsSync(directory)) {
+    throw new Error(
+      `There is no ${TICKETS_DIRECTORY} directory under ${REPOSITORY_ROOT}, so a test that reads `
+      + 'a ticket as an authority proves nothing.',
+    );
+  }
+  const matches = readdirSync(directory)
+    .filter((name) => name.startsWith(`${ticket}-`) && name.endsWith('.md'))
+    .sort();
+  if (matches.length !== 1) {
+    throw new Error(
+      `${matches.length} files in ${TICKETS_DIRECTORY} are named for ${ticket}, and this test `
+      + `needs exactly one to read: ${matches.join(', ') || 'none'}. Either the id in `
+      + 'CONSTRAINED_NOT_BUYER_PII_COLUMNS names no ticket, or a ticket has been duplicated.',
+    );
+  }
+  return `${TICKETS_DIRECTORY}/${matches[0]}`;
+}
+
+/**
+ * The acceptance criteria of a ticket file, one string per checkbox, with the box
+ * and its tick dropped.
+ *
+ * The criteria and not the whole file, because the criteria are the definition of
+ * done: CLAUDE.md says so, and an obligation written anywhere else in a ticket is
+ * a sentence its author may read, where a criterion is one they have to tick. A
+ * ticket with no criteria section is thrown for the same reason a missing file is.
+ */
+function acceptanceCriteriaOf(file: string): string[] {
+  const lines = readFileSync(join(REPOSITORY_ROOT, file), 'utf8').split('\n');
+  const heading = lines.findIndex((line) => /^##\s+Acceptance criteria\s*$/i.test(line));
+  if (heading === -1) {
+    throw new Error(
+      `${file} has no "## Acceptance criteria" heading, so this test cannot read its definition `
+      + 'of done and proves nothing about what its author is held to.',
+    );
+  }
+  const criteria: string[] = [];
+  for (const line of lines.slice(heading + 1)) {
+    if (line.startsWith('## ')) break;
+    const item = /^\s*-\s*\[[ xX]\]\s*(.+?)\s*$/.exec(line);
+    if (item !== null) criteria.push(item[1] as string);
+  }
+  if (criteria.length === 0) {
+    throw new Error(
+      `${file} states no acceptance criteria under its own heading, so this test proves nothing `
+      + 'about what its author is held to.',
+    );
+  }
+  return criteria;
+}
+
+/**
+ * Whether one criterion carries every term of an obligation.
+ *
+ * Whole words, so that `detail` is not found inside `detailed` and `digest` is not
+ * found inside a hyphenated neighbour, and case-insensitively, so that writing
+ * `message-id` rather than `Message-ID` is a spelling and not a failure. The terms
+ * are required together in one criterion rather than anywhere in the ticket, which
+ * is what keeps them about a single sentence: SEEN-062 already speaks of hashing
+ * an attachment, and a criterion about that plus a criterion mentioning a buyer is
+ * not the obligation.
+ */
+function carriesEveryTerm(criterion: string, terms: readonly string[]): boolean {
+  return terms.every((term) => {
+    const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return new RegExp(`(^|[^\\w-])${escaped}([^\\w-]|$)`, 'i').test(criterion);
+  });
+}
+
+/** The ticket files the obligation guard reads as an authority, deduplicated. */
+function constrainedTicketFiles(): string[] {
+  const tickets = new Set(
+    Object.values(CONSTRAINED_NOT_BUYER_PII_COLUMNS).flatMap((entry) => entry.tickets),
+  );
+  return [...tickets].sort().map(ticketFile);
+}
+
+/**
  * The files turbo hashes to decide whether `@seen/core#test` may be replayed from
  * the cache, measured from turbo itself rather than read out of `turbo.json`.
  *
@@ -1476,7 +1568,8 @@ describe('the trade record schema', () => {
       // machinery for two columns.
       const columns = await freeTextColumnsIn(client, 'public');
       const byName = new Map(columns.map((column) => [column.column, column]));
-      const owed = Object.entries(CONSTRAINED_NOT_BUYER_PII_COLUMNS);
+      const owed = Object.entries(CONSTRAINED_NOT_BUYER_PII_COLUMNS)
+        .map(([column, entry]) => [column, entry.tickets] as const);
       assertPopulated(owed.map(([column]) => column), 'the classifications that are obligations');
       const wrong: string[] = [];
       for (const [column, owners] of owed) {
@@ -1518,6 +1611,52 @@ describe('the trade record schema', () => {
         + `nothing reads the promise back when that ticket is worked: ${unlisted.join(', ')}`,
       ).toEqual([]);
     });
+
+  it('is carried by the criteria of the ticket that owes it, and not by the comment alone', () => {
+    // F34. The assertion above requires the comment to name the ticket and
+    // requires the ticket to be told nothing, and a promise the promiser never
+    // hears is not one. All four of these classifications were made in a migration
+    // no ticket links to, and none of SEEN-027, SEEN-032, SEEN-034 or SEEN-062
+    // carried a word of its obligation in its acceptance criteria, which CLAUDE.md
+    // makes the definition of done a ticket is worked against. SEEN-062's author
+    // would then write the obvious thing, store the Message-ID the Postmark
+    // payload hands them, and that value would sit in cleartext for ever with
+    // SEEN-083's expiry passing it by, because SEEN-083 reads the classification
+    // and the classification says not buyer PII. CLAUDE.md's buyer PII rule broken
+    // by construction, with this schema's approval.
+    //
+    // Amending the tickets is the fix; this is what stops it coming back. All four
+    // are `status: todo`, and CLAUDE.md has the plan generator rewriting a ticket
+    // at that status, so an amendment can be regenerated away with nobody
+    // noticing. If it is, this goes red and names the column that fell with it.
+    // The tickets are hashed into the test task below for the same reason the
+    // architecture document is: otherwise the cache replays a pass over a ticket
+    // the suite never read.
+    const owed = Object.entries(CONSTRAINED_NOT_BUYER_PII_COLUMNS);
+    assertPopulated(owed.map(([column]) => column), 'the classifications that are obligations');
+    const offenders: string[] = [];
+    for (const [column, entry] of owed) {
+      assertPopulated([...entry.terms], `the terms ${column}'s obligation is recognised by`);
+      for (const ticket of entry.tickets) {
+        const file = ticketFile(ticket);
+        const criteria = acceptanceCriteriaOf(file);
+        if (criteria.some((criterion) => carriesEveryTerm(criterion, entry.terms))) continue;
+        offenders.push(
+          `${column} is classified "${NOT_BUYER_PII_MARKER}" only for as long as ${ticket} `
+          + `writes it a certain way, and none of the ${criteria.length} acceptance criteria of `
+          + `${file} says ${entry.terms.map((term) => `"${term}"`).join(' and ')}. What that `
+          + `ticket owes: ${entry.obligation}. Put it in the criteria rather than here, because `
+          + 'the criteria are what its author is held to, and see the column\'s own comment in '
+          + 'the migration that classifies it for why. SEEN-008 recorded this as F34.',
+        );
+      }
+    }
+    expect(
+      offenders,
+      'Classifications that rest on a ticket keeping a promise the ticket has never been told '
+      + `about: ${offenders.join(' ')}`,
+    ).toEqual([]);
+  });
 });
 
 describe('the migrations that write the schema', () => {
@@ -1560,9 +1699,18 @@ describe('the migrations that write the schema', () => {
       // changes when the document does, so turbo replays the recorded pass and the
       // comparison never runs. Measured by the second Codex review: sixteen inputs,
       // every migration among them and no document at all.
+      //
+      // The ticket files of the constrained not-buyer-PII columns joined this list
+      // when F34 made them an authority too: the suite now reads SEEN-062's
+      // acceptance criteria to decide whether the promise its column comment rests
+      // on is carried anywhere its author will see it. Regenerating that criterion
+      // away changes nothing under packages/core, so without this the cache would
+      // report the guard as passed over a ticket that no longer carries it, which
+      // is the precise failure the guard exists to make loud.
       const inputs = testTaskInputs();
       expect(inputs.length, 'turbo reported no inputs at all for @seen/core#test').toBeGreaterThan(0);
-      const unhashed = HASHED_REPOSITORY_DOCUMENTS.filter(
+      const documents = [...HASHED_REPOSITORY_DOCUMENTS, ...constrainedTicketFiles()];
+      const unhashed = documents.filter(
         (document) => !inputs.some((input) => input.replace(/\\/g, '/').endsWith(document)),
       );
       expect(

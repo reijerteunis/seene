@@ -43,10 +43,25 @@
       // line was written: seventeen inputs, every migration among them and no
       // document; measured after, `cache miss, executing` on that one edited cell
       // and the comparison failing as it should.
+      //
+      // The four ticket files are here for the same reason, one round later again.
+      // Four columns are classified `Not buyer PII` only for as long as a later
+      // ticket writes them a certain way, and the schema test now reads those
+      // tickets' acceptance criteria to check that each carries its obligation
+      // where its author will read it. Every one of them is still `status: todo`,
+      // and the plan generator rewrites a ticket at that status, so the criterion
+      // can be regenerated away with nothing under packages/core changing and the
+      // cache replaying a pass over a ticket the suite never read. By id and not
+      // by whole name, because the rest of a ticket's filename is a slug of its
+      // title and a retitle would otherwise silently hash nothing.
       "inputs": [
         "$TURBO_DEFAULT$",
         "$TURBO_ROOT$/supabase/migrations/**",
-        "$TURBO_ROOT$/docs/architecture.md"
+        "$TURBO_ROOT$/docs/architecture.md",
+        "$TURBO_ROOT$/docs/tickets/SEEN-027-*.md",
+        "$TURBO_ROOT$/docs/tickets/SEEN-032-*.md",
+        "$TURBO_ROOT$/docs/tickets/SEEN-034-*.md",
+        "$TURBO_ROOT$/docs/tickets/SEEN-062-*.md"
       ]
     },
     "lint": {
