@@ -595,16 +595,25 @@ $$;
 -- `T`, a type or a domain, is in the list and has no revoke beside it, which is
 -- deliberate and is stated rather than left for a seventh round to find. Measured:
 -- `pg_default_acl` holds no `T` row for this schema from either grantor, so there
--- is nothing to revoke, and `alter default privileges ... revoke all on types`
--- records no row when it is run. `anon` does hold USAGE on every type here through
--- the grant PostgreSQL makes to PUBLIC on a type it creates, which no default
--- privilege can reach, exactly as for a function - and that one is harmless,
--- because USAGE on a type is not a route to a row: it permits naming the type in a
--- cast, a column or a declaration, no type in this schema holds data, the composite
--- types here are the row types of the tables, and reading a table's rows goes
--- through the table privilege part 4 governs. `config.toml` names four classes and
--- not five for the same reason. So what `T` is asked for below is only that no
--- later migration files a default privilege on one.
+-- is no filed grant to subtract, and `alter default privileges ... revoke all on
+-- types` records no row when it is run. `anon` does hold USAGE on every type here
+-- through the grant PostgreSQL makes to PUBLIC on a type it creates, and that grant
+-- is within reach: the form with no `in schema` clause, which the revokes above use
+-- on routines, reaches a type as well, and a domain, an enum and a composite
+-- created after `alter default privileges for role postgres revoke usage on types
+-- from public` are born `{postgres=U/postgres}` with `anon` refused, in `public`
+-- and in `seen` alike. The statement is absent here because it is unnecessary and
+-- not because it would fail to arrive, which is the ninth review's F44.
+--
+-- Unnecessary twice over. USAGE on a type is not a route to a row: it permits
+-- naming the type in a cast, a column or a declaration, no type in this schema
+-- holds data, the composite types here are the row types of the tables, and reading
+-- a table's rows goes through the table privilege part 4 governs; `config.toml`
+-- names four classes and not five for the same reason. And the statement would
+-- change nothing that is here, because a table's row type is born with a null
+-- `typacl` and USAGE for PUBLIC whether it has run or not, and a row type or the
+-- array type beside it is every type these schemas hold. So what `T` is asked for
+-- below is only that no later migration files a default privilege on one.
 do $$
 declare
   offenders text;

@@ -1148,14 +1148,14 @@ function proseOf(contents: string): string {
  *
  * Read over a sliding window of lines rather than off the phrase's first few words,
  * because a sentence that wraps begins on one line and ends on another and because
- * the first few words of one withdrawn claim are the first few words of prose that
- * is not withdrawn at all: `which no default privilege` opens the sentence about a
- * type as well as the one about a routine, and a report that named the line of the
- * first is a round of rework sent to the wrong file. The window is one line wider
- * than the phrase has fragments, so a sentence broken at a different point than
- * the one this list records is still found, and a window is reported only where the
- * phrase does not also fit inside the window starting below it, which is what makes
- * one sentence one line and not a line for every window that covers it.
+ * the first few words of one withdrawn claim are the first few words of another:
+ * `which no default privilege` opens three of them, one about a routine and two
+ * about a type, and a report keyed on that much would send a round of rework to the
+ * wrong sentence in the wrong file. The window is one line wider than the phrase has
+ * fragments, so a sentence broken at a different point than the one this list
+ * records is still found, and a window is reported only where the phrase does not
+ * also fit inside the window starting below it, which is what makes one sentence one
+ * line and not a line for every window that covers it.
  */
 function linesWhere(contents: string, phrase: string, span: number): number[] {
   const lines = contents.split('\n');
@@ -1174,12 +1174,21 @@ function linesWhere(contents: string, phrase: string, span: number): number[] {
  * Pure over the sources it is handed, so the test below can show it prose the
  * repository does not contain and prove the scanner sees something rather than
  * passing because it looks at nothing.
+ *
+ * Narrowed to one object class where the caller is the measurement for that class,
+ * so the assertion that shows a type is reachable reports the sentences denying it
+ * and not a routine's. Called with no class it reports every one, which is what the
+ * routine's own measurement does, so a class that gains a row here and no
+ * measurement of its own is still guarded by somebody.
  */
-function withdrawnClaimsStillStanding(sources: readonly ScannedSource[]): string[] {
+function withdrawnClaimsStillStanding(
+  sources: readonly ScannedSource[], objectClass?: string,
+): string[] {
   const standing: string[] = [];
   for (const source of sources) {
     const prose = proseOf(source.contents);
     for (const claim of WITHDRAWN_BIRTH_CLAIMS) {
+      if (objectClass !== undefined && claim.objectClass !== objectClass) continue;
       const phrase = claim.spelling.join(' ');
       if (!prose.includes(phrase)) continue;
       const where = linesWhere(source.contents, phrase, claim.spelling.length + 1);
@@ -4673,8 +4682,8 @@ describe('the sequences in the public schema', () => {
     }
   });
 
-  it('holds no default privilege on a type either, which is the one class with nothing to '
-    + 'revoke', async () => {
+  it('holds no default privilege on a type either, which is the one class this set leaves '
+    + 'reachable on purpose', async () => {
     // The fifth letter `defaclobjtype` has, asked because four rounds of this ticket
     // each found the quarter the round before had not looked at, and an unmentioned
     // class is how every one of them got here.
@@ -4683,25 +4692,43 @@ describe('the sequences in the public schema', () => {
     // public from either grantor, so part 6 writes no revoke for one, and `alter
     // default privileges ... revoke all on types` records nothing when it is run
     // because a revoke of a grant nobody made writes nothing down. `anon` does hold
-    // USAGE on every type here through the grant PostgreSQL makes to PUBLIC, which
-    // no default privilege can reach, exactly as for a function.
+    // USAGE on every type here through the grant PostgreSQL makes to PUBLIC on a
+    // type it creates, and the second half of this probe is what F44 corrected: that
+    // grant is within reach. The form with no `in schema` clause, the one F39
+    // established on a routine, reaches a type as well, so a domain born after it in
+    // `public` and one born after it in `seen` both arrive `{postgres=U/postgres}`
+    // with `anon` refused. The reason `'T'` carries no revoke is that one is
+    // unnecessary, not that one would fail to arrive, and the measurement is taken
+    // here rather than asserted in prose because a sentence carried forward without
+    // being run is this ticket's own recurring defect.
     //
-    // That is harmless, and the reason is asserted rather than left in a comment
-    // where the next round would have to take it on trust: USAGE on a type is not a
-    // route to a row. The probe creates a domain, shows `anon` holding USAGE on it,
+    // Unnecessary twice over, and both halves are measured. USAGE on a type is not a
+    // route to a row: the probe creates a domain, shows `anon` holding USAGE on it,
     // and shows that the table whose row type `anon` also holds USAGE on is still
     // refused 42501, which is the whole of the distinction. PostgREST serves no type
     // as an endpoint, which is why `config.toml` names four classes and not five.
+    // And the statement would reach nothing that is here: a table created after it
+    // is born with a null `typacl` and USAGE for PUBLIC all the same, and a row type
+    // or the array type beside it is every type these two schemas hold.
+    //
+    // Every statement here is rolled back, the global revoke included, so the stack
+    // this runs against is left as it was found.
     await client.query('begin');
     try {
       await client.query("insert into public.tenants (name) values ('Tenant A')");
       await client.query("create domain public.seen_domain_probe as text check (value <> '')");
       const held = await defaultPrivilegesForClientRolesIn(client, 'public');
-      const measured = {
+      const bornWith = async (type: string): Promise<{ acl: string | null; anon: boolean }> => (
+        await client.query<{ acl: string | null; anon: boolean }>(
+          `select t.typacl::text as acl,
+                  has_type_privilege('anon', t.oid, 'USAGE') as anon
+             from pg_catalog.pg_type t
+            where t.oid = $1::regtype`,
+          [type],
+        )).rows[0];
+      const before = {
         defaultPrivilegesOnTypesTheGuardReports: held.filter((entry) => entry.includes('type')),
-        anonHoldsUsageOnTheDomain: (await client.query<{ allowed: boolean }>(
-          "select has_type_privilege('anon', 'public.seen_domain_probe', 'USAGE') as allowed",
-        )).rows[0].allowed,
+        anonHoldsUsageOnTheDomain: (await bornWith('public.seen_domain_probe')).anon,
         anonHoldsUsageOnTheRowTypeOfATable: (await client.query<{ allowed: boolean }>(
           "select has_type_privilege('anon', 'public.tenants', 'USAGE') as allowed",
         )).rows[0].allowed,
@@ -4709,21 +4736,46 @@ describe('the sequences in the public schema', () => {
           client, 'anon', 'select name from public.tenants',
         ),
       };
+      await client.query(
+        'alter default privileges for role postgres revoke usage on types from public',
+      );
+      await client.query('create domain public.seen_domain_probe_after as text');
+      await client.query('create domain seen.seen_domain_probe_after as text');
+      await client.query('create table public.seen_row_type_probe (id bigint)');
+      const measured = {
+        ...before,
+        aDomainBornAfterAStatementFiledAgainstNoSchema:
+          await bornWith('public.seen_domain_probe_after'),
+        aDomainBornAfterItInSeen: await bornWith('seen.seen_domain_probe_after'),
+        aTableRowTypeBornAfterIt: await bornWith('public.seen_row_type_probe'),
+        withdrawnClaimsAboutATypeStillStanding:
+          withdrawnClaimsStillStanding(sourcesThatDocumentTheSet(), 'type'),
+      };
       expect(
         measured,
         'A domain was created in schema public and `anon` holds USAGE on it, and on the row type '
-        + 'of every table here, through PostgreSQL\'s grant to PUBLIC, which no default privilege '
-        + 'can take away. That is not a route to a row and this is where that is shown rather '
-        + 'than asserted in prose: the database answered `anon` '
+        + 'of every table here, through PostgreSQL\'s grant to PUBLIC. A statement filed against '
+        + 'no schema does take that away from the next domain, in `public` and in `seen` alike, '
+        + 'and does not take it from a table\'s row type, so this set leaves the grant standing '
+        + 'because it is harmless and not because it could not be reached. Harmless is shown here '
+        + 'rather than asserted in prose: the database answered `anon` '
         + `${JSON.stringify(measured.anonReadingTheTableWhoseRowTypeItHolds)} on the table whose `
         + 'row type it holds USAGE on, because reading rows goes through the table privilege part '
         + '4 governs. What is guarded here is that no migration files a default privilege on a '
-        + `type: the guard reported ${measured.defaultPrivilegesOnTypesTheGuardReports.join('; ') || 'nothing at all'}`,
+        + `type: the guard reported ${measured.defaultPrivilegesOnTypesTheGuardReports.join('; ') || 'nothing at all'}`
+        + '. And no file that documents this set may go on saying a type is out of reach: '
+        + `${measured.withdrawnClaimsAboutATypeStillStanding.join('; ') || 'none does'}`,
       ).toEqual({
         defaultPrivilegesOnTypesTheGuardReports: [],
         anonHoldsUsageOnTheDomain: true,
         anonHoldsUsageOnTheRowTypeOfATable: true,
         anonReadingTheTableWhoseRowTypeItHolds: { answer: '42501', rows: null },
+        aDomainBornAfterAStatementFiledAgainstNoSchema: {
+          acl: '{postgres=U/postgres}', anon: false,
+        },
+        aDomainBornAfterItInSeen: { acl: '{postgres=U/postgres}', anon: false },
+        aTableRowTypeBornAfterIt: { acl: null, anon: true },
+        withdrawnClaimsAboutATypeStillStanding: [],
       });
     } finally {
       await client.query('rollback');
@@ -5022,9 +5074,10 @@ describe('schema seen, which the Data API does not serve', () => {
           + 'anybody but its owner, because that is what part 6 and part 8 tell a later author '
           + 'this schema does for them, and an access control list of its own has to exist at '
           + 'all, because a null one is the state in which every role can execute. And no file '
-          + 'that documents this set may go on denying it: five rounds of this ticket wrote that '
-          + 'denial down, F39 withdrew it, and F43 found four places it had been left. What is '
-          + `still standing: ${stillStanding.join('; ') || 'nothing'}`,
+          + 'that documents this set may go on denying it, of a routine or of any other class '
+          + 'the denial was carried to: five rounds of this ticket wrote it down, F39 withdrew '
+          + 'it, F43 found four places it had been left and F44 four more where it had been '
+          + `said of a type. What is still standing: ${stillStanding.join('; ') || 'nothing'}`,
         ).toEqual({
           bornWith: {
             accessControlListIsNull: false,

@@ -767,20 +767,30 @@ export const RELKIND_NAMES: Readonly<Record<string, string>> = {
  * schema subtracts that, which is the seventh review of SEEN-008 (F39) and part 6's
  * global statement. `SEQUENCE_PRIVILEGES` records the measurement for `'S'`.
  *
- * `'T'` is a type or a domain, and it is here for detection alone, because there is
- * nothing to revoke. Measured on this stack: `pg_default_acl` holds no `'T'` row at
- * all for schema public, from either grantor, and `alter default privileges ...
- * revoke all on types from anon, authenticated` records no row when it is run,
+ * `'T'` is a type or a domain, and it is here for detection alone, because this set
+ * writes no revoke for one. Measured on this stack: `pg_default_acl` holds no `'T'`
+ * row at all for schema public, from either grantor, and `alter default privileges
+ * ... revoke all on types from anon, authenticated` records no row when it is run,
  * because a revoke of a grant nobody made writes nothing down. `anon` does hold
  * USAGE on every type in this schema, through the grant PostgreSQL makes to PUBLIC
- * on a type it creates, which no default privilege can reach, exactly as for a
- * function. That one is harmless, and the reason is stated rather than assumed
- * because "nobody thought about it" is how the other quarters got here: USAGE on a
- * type is not a route to a row. It permits naming the type in a cast, a column or a
+ * on a type it creates, and that grant is reachable. The form with no `in schema`
+ * clause, which F39 established on a routine, reaches a type as well: a domain, an
+ * enum and a composite created after `alter default privileges for role postgres
+ * revoke usage on types from public` are born `{postgres=U/postgres}` with `anon`
+ * refused, in `public` and in `seen` alike. So the statement is absent because it
+ * is unnecessary and not because it would fail to arrive, which is the ninth
+ * review's F44 and the difference between a decision and a limit.
+ *
+ * Unnecessary twice over, and the reason is stated rather than assumed because
+ * "nobody thought about it" is how the other quarters got here. USAGE on a type is
+ * not a route to a row: it permits naming the type in a cast, a column or a
  * declaration; no type in this schema holds data; the composite types here are the
  * row types of the twenty-nine tables, and reading a table's rows goes through the
  * table's own privilege, which part 4 governs; and PostgREST serves no type as an
- * endpoint, which is why `config.toml` names four classes and not five. What is
+ * endpoint, which is why `config.toml` names four classes and not five. And the
+ * statement would change nothing that is here: measured, a table's row type is born
+ * with a null `typacl` and USAGE for PUBLIC whether it has run or not, and a row
+ * type or the array type beside it is every type these two schemas hold. What is
  * asserted about `'T'`, then, is only that no later migration grants one.
  */
 export const DEFAULT_ACL_OBJECT_CLASSES: Readonly<Record<string, string>> = {
@@ -804,9 +814,9 @@ export interface WithdrawnBirthClaim {
  * The claims about an object's birth this set has made and withdrawn, as the
  * fragments they were written in.
  *
- * One claim so far. Five rounds of this ticket recorded that PostgreSQL's built-in
- * EXECUTE to PUBLIC on a new routine is beyond every default privilege, so a
- * routine was callable until its own migration revoked it, prevention was
+ * One claim, in two classes. Five rounds of this ticket recorded that PostgreSQL's
+ * built-in EXECUTE to PUBLIC on a new routine is beyond every default privilege, so
+ * a routine was callable until its own migration revoked it, prevention was
  * unavailable and detection was the whole of the defence. The seventh review (F39)
  * showed that this is a property of `alter default privileges ... in schema public`
  * and not of PostgreSQL: the built-in grant is filed against no schema, and the
@@ -815,6 +825,13 @@ export interface WithdrawnBirthClaim {
  * Outcome and left four other sentences standing for a round, each of which went on
  * telling the author of a later migration that detection was the only shape
  * available to them, which is the ninth review's F43.
+ *
+ * The last two rows are the same claim about a type, which the ninth review's F44
+ * found a round later, made by name and with the clause "exactly as for a function"
+ * carrying it across. It is false there for the same reason and it was measured the
+ * same way, and what changes when it goes is the reason `'T'` carries no revoke:
+ * the statement is not written here because it is unnecessary, and not because it
+ * would fail to arrive.
  *
  * Held as data rather than as a sentence inside the guard so that the next class
  * this happens to is a row here rather than an argument about whether it is the
@@ -864,6 +881,23 @@ export const WITHDRAWN_BIRTH_CLAIMS: readonly WithdrawnBirthClaim[] = [
     spelling: ['each function\'s own revoke', 'is what closes it'],
     instead: 'part 6 closes a routine created after it, and each function\'s own revoke closes '
       + 'one created before it',
+  },
+  {
+    objectClass: 'type',
+    spelling: ['which no default privilege', 'can reach, exactly as for a function'],
+    instead: 'a statement filed against no schema reaches a type as it reaches a routine: after '
+      + '`alter default privileges for role postgres revoke usage on types from public`, the '
+      + 'next domain, enum and composite are born `{postgres=U/postgres}` with `anon` refused, '
+      + 'in `public` and in `seen` alike. This set writes no such statement because it is '
+      + 'unnecessary, not because it would miss',
+  },
+  {
+    objectClass: 'type',
+    spelling: ['which no default privilege', 'can take away'],
+    instead: 'the form with no `in schema` clause takes it away from every type created after '
+      + 'it runs, which is what makes the absence of that statement here a decision and not a '
+      + 'limit. What it does not reach is a table\'s row type, which is born holding USAGE for '
+      + 'PUBLIC whether the statement has run or not, and which is every type this schema has',
   },
 ];
 
