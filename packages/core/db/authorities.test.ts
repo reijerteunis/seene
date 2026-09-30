@@ -29,8 +29,8 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  packageSources, readingImportsOf, readRepositoryFile, READER_MODULE, repositoryPathExists,
-  testTaskInputs,
+  INERT_EXTENSIONS, packageFiles, packageSources, readingImportsOf, readRepositoryFile,
+  READER_MODULE, repositoryPathExists, SOURCE_EXTENSIONS, testTaskInputs,
 } from './repository';
 import { DATA_API_CONFIG, HASHED_REPOSITORY_DOCUMENTS } from './tables';
 
@@ -97,7 +97,7 @@ describe('the authorities this package reads and the cache key it runs under', (
       .filter((source) => source !== READER_MODULE)
       .map((source) => ({
         source,
-        imported: readingImportsOf(readRepositoryFile(source)),
+        imported: readingImportsOf(readRepositoryFile(source), source),
       }))
       .filter((entry) => entry.imported.length > 0)
       .map((entry) => `${entry.source} imports ${entry.imported.join(' and ')}`);
@@ -106,6 +106,116 @@ describe('the authorities this package reads and the cache key it runs under', (
       'These sources can open a file or start a process without going through the reader at '
       + `${READER_MODULE}, so an authority read through one of them is hashed only if its author `
       + `remembered to say so in turbo.json: ${offenders.join('; ')}`,
+    ).toEqual([]);
+  });
+});
+
+/** The synthetic package a source is judged as a member of, so that a relative
+ * specifier in one of the cases below resolves the way it would on disk. */
+const SYNTHETIC_SOURCE = 'packages/core/db/synthetic.ts';
+
+/** A source that reads a file, one row per grammar and spelling a person could
+ * write it with, and beside each the specifier the guard has to name. Node treats
+ * `fs` and `node:fs` as the same module, and `require`, `import` and `import()`
+ * as three ways of asking for it, so a guard that names one and not the others
+ * reports nothing about a module that is reading the repository. */
+const READING_SOURCES: [source: string, reported: string][] = [
+  ["import { readFileSync } from 'node:fs';", 'node:fs'],
+  ["import { readFileSync } from 'fs';", 'fs'],
+  ["import { execFileSync } from 'child_process';", 'child_process'],
+  ["import { execFileSync } from 'node:child_process';", 'node:child_process'],
+  ["const { readFileSync } = require('fs');", 'fs'],
+  ["const { readFile } = await import('node:fs/promises');", 'node:fs/promises'],
+  ["const { readFile } = await import('fs/promises');", 'fs/promises'],
+  ["import { createRequire } from 'module';", 'module'],
+  ["export { readFileSync } from 'fs';", 'fs'],
+  ["import 'fs';", 'fs'],
+  ["import { helper } from '../../../scripts/helper';", '../../../scripts/helper'],
+];
+
+/** Sources that read nothing, so that the guard is not passing by objecting to
+ * everything. Every one of these is imported by this package today. */
+const SETTLED_SOURCES = [
+  "import { describe, expect, it } from 'vitest';",
+  "import { defineConfig } from 'vitest/config';",
+  "import { Client } from 'pg';",
+  "import { randomUUID } from 'node:crypto';",
+  "import { TRADE_RECORD_TABLES } from './tables';",
+  "import { config } from '../vitest.config';",
+];
+
+describe('the spelling a reading import is written with', () => {
+  it('names the module a source reads through, however the import is written', () => {
+    // F45. The guard matched the three `node:`-prefixed specifiers as text, so
+    // `import { readFileSync } from 'fs'` was invisible to it and so was every
+    // `require` and `import()` of the same module. A module that reads an
+    // authority that way is refused by nothing and hashed by nothing, which is
+    // the fourth arrival of the class F40 was built to close.
+    const missed = READING_SOURCES
+      .filter(([source, reported]) => !readingImportsOf(source, SYNTHETIC_SOURCE).includes(reported))
+      .map(([source]) => source);
+    expect(
+      missed,
+      'These sources reach the filesystem and the guard does not name what they reach it '
+      + `through, so a module written this way reads an authority nothing hashes: ${missed.join(' | ')}`,
+    ).toEqual([]);
+  });
+
+  it('names nothing in a source that imports only what this package already imports', () => {
+    const objected = SETTLED_SOURCES
+      .map((source) => [source, readingImportsOf(source, SYNTHETIC_SOURCE)] as const)
+      .filter(([, reported]) => reported.length > 0)
+      .map(([source, reported]) => `${source} -> ${reported.join(', ')}`);
+    expect(
+      objected,
+      'The guard objects to imports this package makes in every test file, so it would fail '
+      + `whatever anybody wrote and says nothing about reading: ${objected.join(' | ')}`,
+    ).toEqual([]);
+  });
+});
+
+describe('the files that scan reaches', () => {
+  it('classifies every file of this package as one that runs code or one that cannot', () => {
+    // F45's second half. The walk collected the entries ending `.ts` and passed
+    // over everything else without saying so, and vitest's default include runs
+    // `.test.mts`, `.test.cts` and `.test.js` as readily as `.test.ts`. So a test
+    // file at one of those extensions ran, imported what it liked, read an
+    // authority and was never among the sources the guard above asks. Measured
+    // before this was written: such a file reading docs/prd/prd.md left the guard
+    // reporting nothing. An extension neither list has an answer for now fails
+    // here rather than being dropped, which is the same inversion: the file
+    // nobody anticipated stops the suite instead of escaping it.
+    const files = packageFiles();
+    expect(
+      files.unclassified,
+      'These files are neither a source this guard scans nor inert, so nobody has said whether '
+      + `they can read an authority: ${files.unclassified.join(', ')}. Add the extension to `
+      + `SOURCE_EXTENSIONS if the runtime can load it, or to INERT_EXTENSIONS with a reason.`,
+    ).toEqual([]);
+    expect(
+      files.sources.length,
+      'The walk found no sources at all, so the guard above scans nothing and passes for that '
+      + 'reason rather than because this package reads through one reader.',
+    ).toBeGreaterThan(0);
+  });
+
+  it('covers every extension vitest runs a test file at', () => {
+    // vitest's default include is `**/*.{test,spec}.?(c|m)[jt]s?(x)`, so these are
+    // the extensions a test can arrive at without anybody configuring anything.
+    // Held as a list rather than as a sentence, so that a file at one of them
+    // cannot be run by the suite and skipped by the suite's own guard.
+    const runnable = ['.ts', '.tsx', '.mts', '.cts', '.js', '.jsx', '.mjs', '.cjs'];
+    const missed = runnable.filter((extension) => !SOURCE_EXTENSIONS.includes(extension));
+    expect(
+      missed,
+      `vitest runs a test file at ${missed.join(', ')} and this guard does not collect it, so a `
+      + 'test written at that extension is never asked what it imports.',
+    ).toEqual([]);
+    const both = SOURCE_EXTENSIONS.filter((extension) => INERT_EXTENSIONS.includes(extension));
+    expect(
+      both,
+      `${both.join(', ')} is listed as both able to run code and inert, so which of the two the `
+      + 'walk does with it depends on the order of two lists.',
     ).toEqual([]);
   });
 });

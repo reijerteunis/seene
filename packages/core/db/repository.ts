@@ -23,11 +23,39 @@
  * package imports anything that can open a file at all. An authority added later
  * is hashed or it is unreadable, and neither of those is a green suite over a
  * document nobody read. What it cannot see is stated at each function.
+ *
+ * F45 is the fourth arrival of the same class, and it arrived past that second
+ * half rather than around the first. The half was a pattern over source text
+ * naming three `node:`-prefixed specifiers, over the files whose names end `.ts`.
+ * `import { readFileSync } from 'fs'` is the same module by the same resolver and
+ * was invisible to it, so were `require` and `import()`, and a test file named
+ * `.test.mts` runs under vitest and was never collected to be asked. Measured
+ * before this was written: a module reading `docs/prd/prd.md` through either hole
+ * left the guard reporting nothing, while the same pattern reported this suite's
+ * own test file as an offender for quoting `'node:fs'` inside a string.
+ *
+ * Both halves of that are properties of asking a pattern. So the question is put
+ * to the TypeScript compiler's own pre-processor, which answers with the
+ * specifiers a module actually imports by any grammar, and the answer is judged
+ * against an allow-list of what this package may import rather than a list of
+ * what it may not. A deny-list has to anticipate how the next thing is spelled,
+ * which is the shape this ticket has now produced findings about four times
+ * (CODEX-02's clause search, F20's `attname like 'buyer%'`, F30's `relacl`, and
+ * this); an allow-list has a finite answer and refuses the specifier nobody
+ * thought of. What survives either instrument is stated at `readingImportsOf`.
  */
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
-import { join, relative } from 'node:path';
+import { extname, join, posix, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
+
+// The compiler this repository already builds with, resolved from the workspace
+// root the way `vitest` and `tsc` are: both are root devDependencies that every
+// package here uses without declaring them, and adding one to this package's
+// manifest without a matching lockfile entry is what `--frozen-lockfile` refuses
+// in CI. Only `preProcessFile` is used, which is a scan of source text and opens
+// nothing; the file reading in this module is still the four functions below.
+import ts from 'typescript';
 
 /** The repository root, from this module's own location: `packages/core/db`. */
 export const REPOSITORY_ROOT = fileURLToPath(new URL('../../..', import.meta.url));
@@ -45,16 +73,57 @@ export const PACKAGE_DIRECTORY = relative(
 export const READER_MODULE = `${PACKAGE_DIRECTORY}/db/repository.ts`;
 
 /**
- * The modules that can open a file or start a process, by the specifier an import
- * of one is written with.
+ * Everything a module of this package may import without the guard objecting,
+ * beside the reason each one cannot put a repository file in front of a test.
  *
- * The list is short because the standard library's reading surface is: anything
- * else in this package can hold a path and can do nothing with it. `node:https`
- * and the like are absent on purpose. A test that fetched an authority over the
- * network would be reading something the repository does not hold, which is a
- * different objection and not this one.
+ * An allow-list, and that is the whole point of it. The three specifiers this
+ * used to forbid were `node:child_process`, `node:fs` and `node:fs/promises`,
+ * which left `fs`, `child_process`, `fs/promises`, `module` and every other
+ * spelling of the same reach permitted by omission. Naming what is permitted
+ * inverts that: a specifier nobody anticipated is reported until somebody adds it
+ * here with a reason, and the reason is the work rather than the entry.
+ *
+ * A relative specifier is not listed and does not need to be, as long as it stays
+ * inside this package: the module it names is collected by `packageSources` and
+ * asked the same question, so the allow-list holds transitively. One that leaves
+ * the package is reported, because nothing then asks the module at the other end.
  */
-export const READING_MODULES = ['node:child_process', 'node:fs', 'node:fs/promises'];
+export const IMPORTS_THAT_CANNOT_READ: Record<string, string> = {
+  // The runner. It hands a test `describe`, `expect` and `it` and no way to open
+  // a path; the files it reads are the test files themselves, which is this
+  // task's own doing and is hashed as the package's own contents.
+  vitest: 'the test runner, which hands a test no way to open a path',
+  'vitest/config': 'the runner\'s configuration type, read by vitest.config.ts',
+  // The Postgres client. It reaches a socket rather than the working tree, so a
+  // fact it brings back is a fact about the database, which is what every guard
+  // here is comparing against an authority in the first place.
+  pg: 'the Postgres client, which reaches a socket and not the working tree',
+  // Identifiers for the two-tenant probes. It computes and does not open.
+  'node:crypto': 'uuid generation, which opens nothing',
+};
+
+/**
+ * The extensions this package's own modules are written with, which is every
+ * extension the runtime can load through an import specifier.
+ *
+ * Wider than the `.ts` this used to collect, and wider than what the package
+ * holds today, on purpose. vitest's default include matches `.test.mts`,
+ * `.test.cts` and `.test.js` as readily as `.test.ts`, so a file at any of them
+ * runs, imports what it likes and was never collected to be asked about it.
+ */
+export const SOURCE_EXTENSIONS = ['.cjs', '.cts', '.js', '.jsx', '.mjs', '.mts', '.ts', '.tsx'];
+
+/**
+ * The extensions that carry no code, so that a file at one of them is skipped
+ * knowingly rather than by not matching anything.
+ *
+ * A file at neither list is reported by `packageFiles` as unclassified rather
+ * than quietly dropped, which is the same inversion as the allow-list above: the
+ * extension nobody anticipated stops the suite and is classified by a person.
+ */
+export const INERT_EXTENSIONS = [
+  '.css', '.json', '.md', '.snap', '.sql', '.svg', '.toml', '.txt', '.yaml', '.yml',
+];
 
 /** The answer turbo gave this process, kept so that a suite reading many
  * migrations asks once. It is a measurement of files on disk and the files do not
@@ -172,35 +241,92 @@ export function listRepositoryDirectory(path: string): string[] {
 }
 
 /**
- * Every TypeScript source of this package, relative to the repository root.
+ * Every file of this package, split into the ones that can run code, the ones
+ * that cannot, and the ones neither list has an answer for.
  *
  * Read from disk rather than from the cache key, because the question this answers
  * is what exists: a source that turbo somehow did not hash is exactly what a
  * caller scanning this package would want to be told about, and reading the cache
- * key would hide it. Installed packages and coverage output are not this package's
- * sources and are skipped by name.
+ * key would hide it. Installed packages, coverage output and turbo's own logs are
+ * not this package's sources and are skipped by name.
+ *
+ * The third bucket is what F45 cost. A walk that collects the extensions it knows
+ * and says nothing about the rest reports a complete answer to a caller who asked
+ * about every module in the package, and the file it silently passed over was a
+ * `.test.mts` that vitest was running all along. A name this cannot classify is
+ * therefore returned rather than dropped, and `authorities.test.ts` fails on it.
+ * A name with no extension at all is inert: Node will not load one through an
+ * import specifier, whatever it holds.
  */
-export function packageSources(): string[] {
-  const skipped = new Set(['coverage', 'dist', 'node_modules']);
-  const found: string[] = [];
+export function packageFiles(): { sources: string[]; inert: string[]; unclassified: string[] } {
+  const skipped = new Set(['.turbo', 'coverage', 'dist', 'node_modules']);
+  const sources: string[] = [];
+  const inert: string[] = [];
+  const unclassified: string[] = [];
   const walk = (directory: string): void => {
     for (const entry of readdirSync(join(REPOSITORY_ROOT, directory), { withFileTypes: true })) {
+      const path = `${directory}/${entry.name}`;
       if (entry.isDirectory()) {
-        if (!skipped.has(entry.name)) walk(`${directory}/${entry.name}`);
-      } else if (entry.name.endsWith('.ts')) {
-        found.push(`${directory}/${entry.name}`);
+        if (!skipped.has(entry.name)) walk(path);
+      } else if (SOURCE_EXTENSIONS.includes(extname(entry.name))) {
+        sources.push(path);
+      } else if (extname(entry.name) === '' || INERT_EXTENSIONS.includes(extname(entry.name))) {
+        inert.push(path);
+      } else {
+        unclassified.push(path);
       }
     }
   };
   walk(PACKAGE_DIRECTORY);
-  return found.sort();
+  return {
+    sources: sources.sort(),
+    inert: inert.sort(),
+    unclassified: unclassified.sort(),
+  };
 }
 
-/** The reading modules a source imports, by whichever grammar it imports them
- * with. Composed from the specifiers rather than spelled as one expression, so
- * that the module asking the question is the one module allowed to answer yes. */
-export function readingImportsOf(contents: string): string[] {
-  return READING_MODULES.filter((specifier) => new RegExp(
-    String.raw`(?:from|import|require)\s*\(?\s*['"]${specifier.replace('/', '\\/')}['"]`,
-  ).test(contents));
+/** Every source of this package that can run code, relative to the repository
+ * root. The other two buckets are `packageFiles`'s and are asserted there. */
+export function packageSources(): string[] {
+  return packageFiles().sources;
+}
+
+/**
+ * Everything a source imports that this package cannot vouch for as unable to
+ * open a file, named as the source spells it.
+ *
+ * The specifiers come from the TypeScript compiler's own pre-processor rather
+ * than from a pattern, so `import`, `export ... from`, a bare `import 'x'`,
+ * `require('x')` and `import('x')` are one question with one answer, and a
+ * specifier quoted inside a string or a comment is not an import. The regular
+ * expression this replaces could do neither: measured before it was replaced, it
+ * missed `fs`, `child_process`, `fs/promises`, `module`, every `require` of them
+ * and every `import()` of them, and it reported `authorities.test.ts` as an
+ * offender for holding the text `'node:fs'` in a test case.
+ *
+ * The answer is then judged against `IMPORTS_THAT_CANNOT_READ`, plus relative
+ * specifiers that stay inside this package, which are collected and asked the
+ * same question themselves.
+ *
+ * What survives this, and would survive a lint rule equally, because both read
+ * the specifier a module was written with: `import()` or `require()` of a
+ * computed specifier, since there is no literal to report; `createRequire`
+ * reached other than by importing `node:module`, such as through
+ * `process.getBuiltinModule`; and anything assembled and run through `eval` or
+ * `new Function`. None of those is shut here, and none of them is how somebody
+ * reads an authority by accident, which is the case this guard is for. A read
+ * from another package's tests is out of reach for the separate reason that it
+ * runs under its own task and its own cache key.
+ */
+export function readingImportsOf(contents: string, source: string): string[] {
+  const imported = ts.preProcessFile(contents, true, true).importedFiles
+    .map((reference) => reference.fileName);
+  const insidePackage = (specifier: string): boolean => posix
+    .join(posix.dirname(source), specifier)
+    .startsWith(`${PACKAGE_DIRECTORY}/`);
+  return [...new Set(imported)]
+    .filter((specifier) => (specifier.startsWith('.')
+      ? !insidePackage(specifier)
+      : !(specifier in IMPORTS_THAT_CANNOT_READ)))
+    .sort();
 }
