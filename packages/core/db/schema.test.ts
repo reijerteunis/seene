@@ -25,6 +25,7 @@ import { randomUUID } from 'node:crypto';
 import { Client } from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
+import { CAPABILITY_MODES, parseCapabilityCell } from './marketplaces';
 import {
   listRepositoryDirectory, PACKAGE_DIRECTORY, packageSources, readRepositoryFile,
   repositoryPathExists, REPOSITORY_ROOT, SOURCE_EXTENSIONS, testTaskInputs,
@@ -37,14 +38,19 @@ import {
   CROSS_TENANT_FOREIGN_KEY_EXEMPTIONS, DATA_API_CONFIG, DATA_API_ROLES, DATA_API_SCHEMAS,
   DATA_API_SCHEMAS_SETTING, DEFAULT_ACL_OBJECT_CLASSES,
   ERASURE_REGISTRY_COLUMNS, ERASURE_REGISTRY_MIGRATION_MARKER, ERASURE_REGISTRY_TABLE,
+  EVIDENCE_BUCKET,
   FORBIDDEN_PRIVILEGE_STATEMENTS, FREE_TEXT_TYPE_NAMES, FUNCTION_PRIVILEGE,
   GOVERNED_PRIVILEGES,
   HASHED_REPOSITORY_DOCUMENTS, HELPER_SCHEMA, HELPER_SCHEMA_CALLABLE_ROUTINES,
+  INVOICE_JSON_COLUMNS,
   MIGRATION_SET_HEADER, MIGRATIONS_DIRECTORY,
-  NON_TABLE_RELKINDS, NOT_BUYER_PII_MARKER, PROKIND_NAMES,
+  NON_TABLE_RELKINDS, NOT_BUYER_PII_MARKER,
+  PENDING_OBJECT_ERASURES_TABLE, PROKIND_NAMES,
   RELATION_RULE_MIGRATION_MARKER, RELKIND_NAMES,
+  SCHEMA_OBLIGATION_MARKER, SCHEMA_OBLIGATIONS,
   SEQUENCE_PRIVILEGES, SEQUENCE_RELKIND,
-  TABLE_PRIVILEGES, TABLE_RELKINDS, TENANCY_CLAUSES, TENANT_CLAIM, TICKETS_DIRECTORY,
+  TABLE_PRIVILEGES, TABLE_RELKINDS, TENANCY_CLAUSES, TENANT_CLAIM,
+  TENANT_PREFIXED_PATH_COLUMNS, TICKETS_DIRECTORY,
   TRADE_RECORD_MIGRATION_MARKER, TRADE_RECORD_TABLES,
   VIEW_SECURITY_OPTION, VIEW_SECURITY_OPTION_TRUE, WITHDRAWN_BIRTH_CLAIMS,
 } from './tables';
@@ -5733,6 +5739,419 @@ describe('schema seen, which the Data API does not serve', () => {
 });
 
 /**
+ * Part 10: the evidence an erasure could not reach, the path a row could name
+ * that was not its own, the last hop of the billable chain, and the one seeded
+ * capability that says the opposite of what the routing table says.
+ *
+ * Four findings of the schema audit at record 262, and the first two of them are
+ * one defect read twice. `public.evidence.storage_path` was free text with no
+ * relation to `public.evidence.tenant_id`, so a row inside tenant A's row-level
+ * security boundary could address tenant B's stored document (F64); and because
+ * nothing in the database said which stored object belonged to which tenant
+ * except that column, a deletion on request deleted the only mapping there was
+ * and left the bytes in the bucket with nothing able to say whose they were
+ * (F63). Constraining the path to its own tenant's prefix closes the first and is
+ * what makes the second closable at all, because it is what lets an erasure find
+ * a tenant's objects without the rows it is about to delete.
+ *
+ * What the assertions here are careful about, because it is the difference
+ * between the two findings: a database cannot delete bytes. `storage.objects` is
+ * a row about an object, and removing the row orphans the file rather than
+ * deleting it, so the whole of what this schema can carry is a worklist that
+ * outlives the cascade. Emptying it is SEEN-083's, which owns deletion on
+ * request, and the obligation is asserted against that ticket's own acceptance
+ * criteria rather than against a comment nobody has to read.
+ */
+describe('the evidence an erasure has to reach, and the path a row may name', () => {
+  let client: Client;
+
+  beforeAll(async () => {
+    client = await connect();
+    const present = await tablesIn(client, 'public');
+    assertPopulated(present, 'the tables an evidence row and an invoice belong to');
+  });
+
+  afterAll(async () => {
+    await client?.end();
+  });
+
+  /** What the database answered a statement with: `accepted`, or the SQLSTATE it
+   * refused it with. A savepoint, so a refusal can be measured and the enclosing
+   * transaction carry on rather than end aborted. */
+  async function answered(body: () => Promise<unknown>): Promise<string> {
+    await client.query('savepoint attempted');
+    try {
+      await body();
+      await client.query('release savepoint attempted');
+      return 'accepted';
+    } catch (error) {
+      await client.query('rollback to savepoint attempted');
+      return (error as { code?: string }).code ?? (error as Error).message;
+    }
+  }
+
+  /** Two tenants and a claim belonging to the first, which is the shape F64 was
+   * measured in: a row inside tenant A's boundary, addressing tenant B's object.
+   * Rolled back by the caller's transaction; nothing here is left behind. */
+  async function twoTenants(): Promise<{ a: string; b: string; claim: string }> {
+    const a = (await client.query<{ tenant_id: string }>(
+      "insert into public.tenants (name) values ('Tenant A storage path') returning tenant_id",
+    )).rows[0].tenant_id;
+    const b = (await client.query<{ tenant_id: string }>(
+      "insert into public.tenants (name) values ('Tenant B storage path') returning tenant_id",
+    )).rows[0].tenant_id;
+    const claim = (await client.query<{ id: string }>(
+      "insert into public.claims (tenant_id, marketplace) values ($1, 'bol') returning id", [a],
+    )).rows[0].id;
+    return { a, b, claim };
+  }
+
+  it('refuses an evidence row that addresses another tenant\'s stored document', async () => {
+    // F64's own reproduction, and its contrast. The insert that crossed the
+    // boundary through `claim_id` was already refused with 23503 by part 5's
+    // tenant-scoped key; the one that crossed it through the path was accepted,
+    // and the row was then returned to an authenticated tenant A session for the
+    // application to resolve into a signed URL over tenant B's buyer invoice.
+    // Both are measured here, so a pass cannot come from the schema refusing
+    // every evidence row.
+    await client.query('begin');
+    try {
+      const { a, b, claim } = await twoTenants();
+      const measured = {
+        acrossTheBoundary: await answered(() => client.query(
+          'insert into public.evidence (tenant_id, claim_id, storage_path) values ($1, $2, $3)',
+          [a, claim, `${b}/claims/secret/buyer-invoice.pdf`],
+        )),
+        underItsOwnPrefix: await answered(() => client.query(
+          'insert into public.evidence (tenant_id, claim_id, storage_path) values ($1, $2, $3)',
+          [a, claim, `${a}/claims/${claim}/carrier-proof.pdf`],
+        )),
+      };
+      expect(
+        measured,
+        'An evidence row inside one tenant\'s row-level security boundary can address a stored '
+        + 'object under another tenant\'s prefix. The policy protects the row and not the thing '
+        + `the row names: ${JSON.stringify(measured)}`,
+      ).toEqual({ acrossTheBoundary: '23514', underItsOwnPrefix: 'accepted' });
+    } finally {
+      await client.query('rollback');
+    }
+  });
+
+  it('refuses the same crossing on every column that addresses a stored object', async () => {
+    // `statements.storage_path` is the same column in a different table: a
+    // rendered document, addressed by free text, inside a tenancy boundary that
+    // stops at the pointer. The audit named only the evidence one, and a fix that
+    // closed the measured half would leave the convention it rests on untrue
+    // everywhere else, which is also what the worklist below sweeps by.
+    await client.query('begin');
+    try {
+      const { a, b } = await twoTenants();
+      const measured = {
+        acrossTheBoundary: await answered(() => client.query(
+          `insert into public.statements (tenant_id, period_start, period_end, storage_path)
+           values ($1, '2026-09-01', '2026-09-30', $2)`,
+          [a, `${b}/statements/2026-09.pdf`],
+        )),
+        underItsOwnPrefix: await answered(() => client.query(
+          `insert into public.statements (tenant_id, period_start, period_end, storage_path)
+           values ($1, '2026-08-01', '2026-08-31', $2)`,
+          [a, `${a}/statements/2026-08.pdf`],
+        )),
+        withNoPathAtAll: await answered(() => client.query(
+          `insert into public.statements (tenant_id, period_start, period_end)
+           values ($1, '2026-07-01', '2026-07-31')`,
+          [a],
+        )),
+      };
+      expect(
+        measured,
+        'A statement addresses a stored document by free text as well, and the constraint has to '
+        + 'reach it without refusing the period that was reported and not rendered: '
+        + JSON.stringify(measured),
+      ).toEqual({
+        acrossTheBoundary: '23514', underItsOwnPrefix: 'accepted', withNoPathAtAll: 'accepted',
+      });
+    } finally {
+      await client.query('rollback');
+    }
+  });
+
+  it('constrains every column this schema says addresses a stored object', async () => {
+    // Read from the catalogue rather than from the two behaviours above, so a
+    // third such column added by a later migration is asked the same question
+    // without anyone remembering to write a third test. The list is the claim
+    // about which columns those are; the catalogue answers whether each carries a
+    // check that names both itself and `tenant_id`.
+    assertPopulated([...TENANT_PREFIXED_PATH_COLUMNS], 'the columns addressing a stored object');
+    const { rows } = await client.query<{ column: string; definition: string }>(
+      `select c.relname || '.' || a.attname as column, pg_get_constraintdef(con.oid) as definition
+         from pg_catalog.pg_constraint con
+         join pg_catalog.pg_class c on c.oid = con.conrelid
+         join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+         join pg_catalog.pg_attribute a
+           on a.attrelid = c.oid and a.attnum = any(con.conkey) and a.attname <> 'tenant_id'
+        where n.nspname = 'public' and con.contype = 'c'
+          and exists (select 1 from pg_catalog.pg_attribute t
+                       where t.attrelid = c.oid and t.attnum = any(con.conkey)
+                         and t.attname = 'tenant_id')`,
+    );
+    const constrained = new Set(rows.map((row) => row.column));
+    const unconstrained = TENANT_PREFIXED_PATH_COLUMNS.filter((column) => !constrained.has(column));
+    expect(
+      unconstrained,
+      `${unconstrained.length} of the columns that address a stored object carry no check tying `
+      + 'the path to the row\'s own tenant_id, so the row can name an object of a tenant it does '
+      + `not belong to: ${unconstrained.join(', ')}`,
+    ).toEqual([]);
+  });
+
+  it('records the stored objects of an erased tenant, so the bytes can still be reached',
+    async () => {
+      // F63's own measurement, taken again. Before: evidence rows and objects
+      // both present. After `delete from public.tenants`: the evidence rows are
+      // gone with the cascade, the objects are still in the bucket, and before
+      // this migration nothing in the database associated them with the erased
+      // tenant any more. The worklist is what the erasure leaves in their place.
+      //
+      // The whole of it is in a transaction that is rolled back, because part 8
+      // makes a committed erasure's tombstone permanent on purpose and a test may
+      // not leave one behind.
+      await client.query('begin');
+      try {
+        const tenant = (await client.query<{ tenant_id: string }>(
+          "insert into public.tenants (name) values ('Tenant erased with objects') "
+          + 'returning tenant_id',
+        )).rows[0].tenant_id;
+        const claim = (await client.query<{ id: string }>(
+          "insert into public.claims (tenant_id, marketplace) values ($1, 'bol') returning id",
+          [tenant],
+        )).rows[0].id;
+        const paths = [
+          `${tenant}/claims/${claim}/carrier-proof.pdf`,
+          `${tenant}/claims/${claim}/buyer-invoice.pdf`,
+        ];
+        for (const path of paths) {
+          await client.query(
+            'insert into storage.objects (bucket_id, name) values ($1, $2)',
+            [EVIDENCE_BUCKET, path],
+          );
+          await client.query(
+            'insert into public.evidence (tenant_id, claim_id, storage_path) values ($1, $2, $3)',
+            [tenant, claim, path],
+          );
+        }
+        await client.query('delete from public.tenants where tenant_id = $1', [tenant]);
+
+        const evidenceRows = Number((await client.query<{ total: string }>(
+          'select count(*) as total from public.evidence where tenant_id = $1', [tenant],
+        )).rows[0].total);
+        const objectsLeft = (await client.query<{ name: string }>(
+          'select name from storage.objects where bucket_id = $1 and name like $2 order by name',
+          [EVIDENCE_BUCKET, `${tenant}/%`],
+        )).rows.map((row) => row.name);
+        const worklist = (await client.query<{ object_name: string; bucket_id: string }>(
+          `select bucket_id, object_name from ${PENDING_OBJECT_ERASURES_TABLE}
+            where tenant_id = $1 order by object_name`, [tenant],
+        )).rows;
+
+        expect(
+          { evidenceRows, objectsLeft, worklist },
+          'A deletion on request removed the rows that said which stored objects belonged to the '
+          + 'erased tenant and left the objects themselves in the bucket. The PRD promises '
+          + 'deletion within 30 days and SEEN-083 has to carry it out, and after this statement '
+          + `it has nothing left to join on: ${JSON.stringify({ evidenceRows, objectsLeft })}`,
+        ).toEqual({
+          evidenceRows: 0,
+          objectsLeft: [...paths].sort(),
+          worklist: [...paths].sort()
+            .map((name) => ({ bucket_id: EVIDENCE_BUCKET, object_name: name })),
+        });
+      } finally {
+        await client.query('rollback');
+      }
+    });
+
+  it('offers no untyped column an invoice can carry a recovery share in', async () => {
+    // F66. The chain is built carefully up to the second-last link: a settlement
+    // line is ingested, and `claims.credited_by_settlement_line_id` is a real
+    // tenant-scoped key to it. Then it stopped, at a jsonb array defaulting to
+    // `[]` with no key, no check and no counterpart on the claim, into which EUR
+    // 124,000 of recovery share was measured going against one claim still at
+    // status `draft` and one claim id present in no table at all.
+    //
+    // Asked as the whole set of json columns rather than as the absence of one
+    // name, because a test that passes by not finding `recovery_share_lines`
+    // passes just as well over `recovery_lines`.
+    const { rows } = await client.query<{ column: string }>(
+      `select a.attname as column
+         from pg_catalog.pg_attribute a
+         join pg_catalog.pg_class c on c.oid = a.attrelid
+         join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+        where n.nspname = 'public' and c.relname = 'invoices'
+          and a.attnum > 0 and not a.attisdropped
+          and format_type(a.atttypid, a.atttypmod) in ('json', 'jsonb')
+        order by a.attname`,
+    );
+    const found = rows.map((row) => row.column);
+    expect(
+      found,
+      'public.invoices carries a json column the recovery share can be billed in, with nothing '
+      + 'tying the amount to a claim that exists, belongs to this tenant, or was credited by an '
+      + 'ingested settlement line. CLAUDE.md: a credit is billable only as an ingested settlement '
+      + `line linked to a claim, and never created directly. It carries: ${found.join(', ')}`,
+    ).toEqual([...INVOICE_JSON_COLUMNS]);
+  });
+
+  it('states each obligation on the relation it is about, and names the ticket it falls to',
+    async () => {
+      // The same two-sided reading as the buyer-PII classifications: a relation
+      // whose meaning depends on a later ticket has to say so in its own comment
+      // and name that ticket, so the promise is legible where the relation is,
+      // and the assertion below then checks the ticket was told.
+      assertPopulated(
+        SCHEMA_OBLIGATIONS.map((entry) => entry.relation), 'the obligations this schema states',
+      );
+      const wrong: string[] = [];
+      for (const entry of SCHEMA_OBLIGATIONS) {
+        const { rows } = await client.query<{ comment: string | null }>(
+          'select obj_description($1::regclass, \'pg_class\') as comment', [entry.relation],
+        );
+        const comment = rows[0]?.comment ?? '';
+        if (comment === '') {
+          wrong.push(`${entry.relation} carries no comment at all`);
+          continue;
+        }
+        if (!comment.includes(SCHEMA_OBLIGATION_MARKER)) {
+          wrong.push(
+            `${entry.relation} does not say "${SCHEMA_OBLIGATION_MARKER}", so it reads as a `
+            + 'description of the relation when it is a constraint on whoever works the ticket '
+            + 'below',
+          );
+        }
+        const unnamed = entry.tickets.filter((ticket) => !comment.includes(ticket));
+        if (unnamed.length > 0) {
+          wrong.push(`${entry.relation} names none of ${unnamed.join(', ')} as owing it`);
+        }
+      }
+      expect(
+        wrong,
+        `${wrong.length} relations whose meaning depends on a later ticket do not say so where a `
+        + `reader of the relation would meet it: ${wrong.join('; ')}`,
+      ).toEqual([]);
+    });
+
+  it('is carried by the criteria of the ticket that owes it, and not by the comment alone', () => {
+    // F34's rule, applied to a relation rather than to a column. A promise the
+    // promiser never hears is not one, and CLAUDE.md makes the acceptance
+    // criteria the definition of done a ticket is worked against. Both tickets
+    // are `status: todo` and the plan generator rewrites a ticket at that status,
+    // so an amendment can be regenerated away with nobody noticing; this is what
+    // goes red when it is. Their files are hashed into the test task in
+    // turbo.json for the same reason the four of F34 are, and `readRepositoryFile`
+    // refuses to open one that is not.
+    const offenders: string[] = [];
+    for (const entry of SCHEMA_OBLIGATIONS) {
+      assertPopulated([...entry.terms], `the terms ${entry.relation}'s obligation is recognised by`);
+      for (const ticket of entry.tickets) {
+        const file = ticketFile(ticket);
+        const criteria = acceptanceCriteriaOf(file);
+        if (criteria.some((criterion) => carriesEveryTerm(criterion, entry.terms))) continue;
+        offenders.push(
+          `${entry.relation} means what it means only for as long as ${ticket} does its part, `
+          + `and none of the ${criteria.length} acceptance criteria of ${file} says `
+          + `${entry.terms.map((term) => `"${term}"`).join(' and ')}. What that ticket owes: `
+          + `${entry.obligation}. Put it in the criteria rather than in a comment, because the `
+          + 'criteria are what its author is held to. SEEN-008 recorded this as F63 and F66.',
+        );
+      }
+    }
+    expect(
+      offenders,
+      'Relations whose meaning rests on a ticket keeping a promise the ticket has never been told '
+      + `about: ${offenders.join(' ')}`,
+    ).toEqual([]);
+  });
+
+  it('routes Bol correspondence as the routing table routes it, and not as out of scope',
+    async () => {
+      // F58. The seeded cell read `{"mode": "none", "detail": "by API (assisted
+      // via inbox)"}`, and the detail is the tell: the parser's longest-prefix
+      // rule took `none` off the front of `none by API (assisted via inbox)` and
+      // kept the second half of a negation as though it were a detail. The
+      // document's own consequence sentence says Bol is the only marketplace with
+      // no messaging API, so its correspondence runs through the tenant's
+      // forwarded mailbox; the PRD ships it as Serve at FR-28 and FR-29; SEEN-062
+      // and SEEN-063 build it in Sprint 5. It is not out of scope, which is what
+      // the legend defines `none` to mean and what `marketplaces.ts` repeats.
+      //
+      // The document is right and the seed is wrong, so the seed is what moves.
+      // The repository's own cell-by-cell comparison cannot see this, because it
+      // parses the document with the parser that produced the seed and both sides
+      // share the reading.
+      const catalogue = (await client.query<{ mode: string }>(
+        "select capabilities->'buyer_messages'->>'mode' as mode from seen.marketplace_catalogue "
+        + "where marketplace = 'bol'",
+      )).rows[0]?.mode;
+      let tenants: string | undefined;
+      await client.query('begin');
+      try {
+        const tenant = (await client.query<{ tenant_id: string }>(
+          "insert into public.tenants (name) values ('Tenant reading Bol capabilities') "
+          + 'returning tenant_id',
+        )).rows[0].tenant_id;
+        tenants = (await client.query<{ mode: string }>(
+          "select capabilities->'buyer_messages'->>'mode' as mode from public.marketplaces "
+          + "where tenant_id = $1 and marketplace = 'bol'", [tenant],
+        )).rows[0]?.mode;
+      } finally {
+        await client.query('rollback');
+      }
+      expect(
+        { catalogue, tenants },
+        'Bol correspondence is seeded as a capability that is out of scope for the MVP, where '
+        + 'the routing table routes it as assisted through the forwarded inbox. A module reading '
+        + 'the mode is told the opposite of what the architecture says, and the claims and Serve '
+        + `rails route on that value: ${JSON.stringify({ catalogue, tenants })}`,
+      ).toEqual({ catalogue: 'assisted', tenants: 'assisted' });
+    });
+
+  it('refuses a routing cell whose mode runs into another mode rather than guessing it', () => {
+    // The general shape behind F58, so the next cell written this way fails
+    // rather than seeding a value that says the opposite of the sentence. A cell
+    // whose text after the mode prefix continues into another mode is a cell the
+    // prefix rule cannot read: `none by API (assisted via inbox)` is `none by
+    // API` and not `none` with a detail, and no rule derives which of the two
+    // modes in it is the answer. The parser already raises at a cell that begins
+    // with no mode at all and already has a map for the cells no rule reaches;
+    // this is the same refusal for a cell that begins with two.
+    const measured = {
+      runsOn: (() => {
+        try {
+          return JSON.stringify(parseCapabilityCell('none by API (something else)'));
+        } catch {
+          return 'refused';
+        }
+      })(),
+      ordinary: JSON.stringify(parseCapabilityCell('API (Orders, Reports)')),
+      exempted: JSON.stringify(parseCapabilityCell('none by API (assisted via inbox)')),
+    };
+    expect(
+      measured,
+      'A routing cell carrying two of the modes '
+      + `(${CAPABILITY_MODES.join(', ')}) is read as the first of them with the rest kept as a `
+      + 'detail, so the catalogue stores a mode the cell does not state. It has to be refused, '
+      + 'unless the cell is one the parser names by hand, and an ordinary cell has to go on '
+      + `being read: ${JSON.stringify(measured)}`,
+    ).toEqual({
+      runsOn: 'refused',
+      ordinary: JSON.stringify({ mode: 'api', detail: 'Orders, Reports' }),
+      exempted: JSON.stringify({ mode: 'assisted', detail: 'none by API (assisted via inbox)' }),
+    });
+  });
+});
+
+/**
  * F51: what this file leaves behind in the erasure registry, read after it has
  * left it.
  *
@@ -5782,5 +6201,543 @@ describe('the erasure registry this file ran against', () => {
       + 'this database has erased a real tenant and the races should have refused to run in it. '
       + 'Take a local stack back with `pnpm db:reset`',
     ).toEqual([]);
+  });
+});
+
+/**
+ * The identifiers this schema defines itself, held to what their own comments say
+ * they are. F55, F56, F57, F59, F60, F61, F62 and F65 of the schema audit at
+ * record 262, which are one defect seen from eight sides: an identifier that is
+ * not constrained to be what its own comment says it is.
+ *
+ * Seven columns named `marketplace` carry the identical comment, "One of the six
+ * identifiers the marketplaces catalogue defines". One of them enforced it.
+ * `order_lines` is the one externally sourced table with no unique key on the id
+ * the marketplace gave its rows, so re-reading one order duplicates every line and
+ * the upsert SEEN-014 is specified to write cannot be expressed at all. And a row
+ * with two parents that have to agree was free to disagree with both: a return
+ * whose line belongs to another order, a settlement line matched to an order line
+ * on another marketplace.
+ *
+ * Each test below is the audit's own reproduction. The measurement it records is
+ * quoted in the failure message, so a later reader meets what was accepted rather
+ * than a restatement of what should not be. Every probe writes inside a
+ * transaction that is rolled back, so the block leaves the database as it found
+ * it, and every write is made as the owner, which is the role the workers' own
+ * `service_role` is held to the same keys as.
+ */
+describe('a marketplace identifier, and the line id a marketplace gave a row', () => {
+  let client: Client;
+
+  /** One marketplace's whole rail under one tenant: the connection, an order with
+   * one line, and a settlement. Enough for a row with two parents to be asked to
+   * disagree with one of them. */
+  interface Rail {
+    connection: string;
+    order: string;
+    orderLine: string;
+    settlement: string;
+  }
+
+  /** The SQLSTATE the database answered with, or `accepted` when it did not refuse.
+   * Behind a savepoint, so a refusal can be measured and the transaction carry on
+   * to the next measurement rather than end aborted. */
+  async function said(body: () => Promise<unknown>): Promise<string> {
+    await client.query('savepoint identifier_probe');
+    try {
+      await body();
+      await client.query('release savepoint identifier_probe');
+      return 'accepted';
+    } catch (error) {
+      await client.query('rollback to savepoint identifier_probe');
+      return (error as { code?: string }).code ?? (error as Error).message;
+    }
+  }
+
+  /** Everything inside, rolled back. */
+  async function rolledBack<T>(body: () => Promise<T>): Promise<T> {
+    await client.query('begin');
+    try {
+      return await body();
+    } finally {
+      await client.query('rollback');
+    }
+  }
+
+  /** How many rows of `table` satisfy this predicate, as a number rather than the
+   * string `count(*)` answers with. */
+  async function countOf(table: string, where: string, values: unknown[]): Promise<number> {
+    const { rows } = await client.query<{ total: string }>(
+      `select count(*) as total from public.${table} where ${where}`, values,
+    );
+    return Number(rows[0].total);
+  }
+
+  /** A tenant, whose catalogue the trigger on `public.tenants` has already seeded
+   * with the six marketplaces. */
+  async function tenantNamed(name: string): Promise<string> {
+    const { rows } = await client.query<{ tenant_id: string }>(
+      'insert into public.tenants (name) values ($1) returning tenant_id', [name],
+    );
+    return rows[0].tenant_id;
+  }
+
+  /** One marketplace's rail for this tenant, every row of it agreeing with the one
+   * above it, which is the state every probe below departs from in one place. */
+  async function rail(tenant: string, marketplace: string, slug: string): Promise<Rail> {
+    const connection = (await client.query<{ id: string }>(
+      `insert into public.connections (tenant_id, marketplace, country, status)
+       values ($1, $2, 'NL', 'active') returning id`,
+      [tenant, marketplace],
+    )).rows[0].id;
+    const order = (await client.query<{ id: string }>(
+      `insert into public.orders (tenant_id, connection_id, marketplace, external_id)
+       values ($1, $2, $3, $4) returning id`,
+      [tenant, connection, marketplace, `${slug}-ORDER`],
+    )).rows[0].id;
+    const orderLine = (await client.query<{ id: string }>(
+      `insert into public.order_lines (tenant_id, order_id, external_line_id, quantity,
+                                       unit_price_cents)
+       values ($1, $2, $3, 1, 1999) returning id`,
+      [tenant, order, `${slug}-LINE`],
+    )).rows[0].id;
+    const settlement = (await client.query<{ id: string }>(
+      `insert into public.settlements (tenant_id, connection_id, marketplace, external_id)
+       values ($1, $2, $3, $4) returning id`,
+      [tenant, connection, marketplace, `${slug}-SETTLEMENT`],
+    )).rows[0].id;
+    return { connection, order, orderLine, settlement };
+  }
+
+  beforeAll(async () => {
+    client = await connect();
+    assertPopulated(
+      await tablesIn(client, 'public'),
+      'the marketplace a row names and the line id a marketplace gave it',
+    );
+  });
+
+  afterAll(async () => {
+    await client?.end();
+  });
+
+  it('refuses an order spelling its marketplace a way the catalogue does not', async () => {
+    // F55(a), F57 and F62, as the audit wrote them: the same external order id
+    // under `bol`, `BOL` and `not-a-marketplace`, on one Bol connection. All three
+    // were accepted, so the unique index criterion 4 names is an idempotency key
+    // only while a connector spells the marketplace the same way twice, and a
+    // connector that changes its spelling silently doubles the trade record.
+    const measured = await rolledBack(async () => {
+      const tenant = await tenantNamed('Tenant spelling');
+      const bol = await rail(tenant, 'bol', 'SPELL');
+      const write = (marketplace: string) => said(() => client.query(
+        `insert into public.orders (tenant_id, connection_id, marketplace, external_id)
+         values ($1, $2, $3, 'ORD-1')`,
+        [tenant, bol.connection, marketplace],
+      ));
+      return {
+        asTheCatalogueSpellsIt: await write('bol'),
+        inCapitals: await write('BOL'),
+        invented: await write('not-a-marketplace'),
+        rowsForOneExternalId: await countOf(
+          'orders', 'tenant_id = $1 and external_id = $2', [tenant, 'ORD-1'],
+        ),
+      };
+    });
+    expect(
+      measured,
+      'Three orders carrying one external id and three spellings of one marketplace answered '
+      + `${measured.asTheCatalogueSpellsIt}, ${measured.inCapitals} and ${measured.invented}, and `
+      + `${measured.rowsForOneExternalId} rows stand for that id. The column comment says the `
+      + 'value is one of the six identifiers the catalogue defines, so a spelling the catalogue '
+      + 'does not hold must be refused (23503) rather than become a second copy of an order past '
+      + 'the key that exists to stop exactly that',
+    ).toEqual({
+      asTheCatalogueSpellsIt: 'accepted',
+      inCapitals: '23503',
+      invented: '23503',
+      rowsForOneExternalId: 1,
+    });
+  });
+
+  it('refuses an order naming a marketplace its own connection does not', async () => {
+    // F55(b), F60 and F62. `marketplace` is denormalised beside `connection_id` and
+    // nothing tied the two together, so an order was recorded against a Bol
+    // connection while claiming to be an Amazon order, with the fee expectations,
+    // the detectors and the claims rail all routed by that column.
+    const measured = await rolledBack(async () => {
+      const tenant = await tenantNamed('Tenant disagreeing order');
+      const bol = await rail(tenant, 'bol', 'DISAGREE');
+      return said(() => client.query(
+        `insert into public.orders (tenant_id, connection_id, marketplace, external_id)
+         values ($1, $2, 'amazon', 'ORD-AMAZON-ON-BOL')`,
+        [tenant, bol.connection],
+      ));
+    });
+    expect(
+      measured,
+      `An order carrying marketplace='amazon' on a bol connection was `
+      + `${measured === 'accepted' ? 'accepted' : `refused with SQLSTATE ${measured}`}, where a `
+      + 'foreign key violation (23503) is what keeps the column every fee expectation and every '
+      + 'claim is routed by from contradicting the account the order was read from',
+    ).toBe('23503');
+  });
+
+  it('refuses a shipment naming a marketplace its own order does not', async () => {
+    // F55(c). Two shipments carrying one external id and two marketplace values hung
+    // off one Bol order, which is the same external id stored twice past the unique
+    // index on (tenant_id, marketplace, external_id).
+    const measured = await rolledBack(async () => {
+      const tenant = await tenantNamed('Tenant disagreeing shipment');
+      const bol = await rail(tenant, 'bol', 'SHIP');
+      const write = (marketplace: string) => said(() => client.query(
+        `insert into public.shipments (tenant_id, order_id, marketplace, external_id)
+         values ($1, $2, $3, 'SHIP-1')`,
+        [tenant, bol.order, marketplace],
+      ));
+      return {
+        agreeingWithItsOrder: await write('bol'),
+        disagreeingWithIt: await write('amazon'),
+        shipmentsForOneBolOrder: await countOf('shipments', 'order_id = $1', [bol.order]),
+      };
+    });
+    expect(
+      measured,
+      'Two shipments carrying one external id and two marketplaces hung off one bol order '
+      + `answered ${measured.agreeingWithItsOrder} and ${measured.disagreeingWithIt}, leaving `
+      + `${measured.shipmentsForOneBolOrder} shipments on that order. A child whose parent `
+      + 'already names a marketplace may not disagree with it (23503), or the criterion-4 index '
+      + 'is bypassed by varying the spelling alone',
+    ).toEqual({
+      agreeingWithItsOrder: 'accepted',
+      disagreeingWithIt: '23503',
+      shipmentsForOneBolOrder: 1,
+    });
+  });
+
+  it('refuses a return whose order line belongs to another order', async () => {
+    // F56. `returns` carries both order_id and order_line_id and nothing required
+    // the line to be a line of that order, so a return of ORD-1 whose line belongs
+    // to ORD-2 was accepted. SEEN-020 detects return shortfalls from that join.
+    const measured = await rolledBack(async () => {
+      const tenant = await tenantNamed('Tenant crossed return');
+      const bol = await rail(tenant, 'bol', 'RET');
+      const other = (await client.query<{ id: string }>(
+        `insert into public.orders (tenant_id, connection_id, marketplace, external_id)
+         values ($1, $2, 'bol', 'ORD-2') returning id`,
+        [tenant, bol.connection],
+      )).rows[0].id;
+      const otherLine = (await client.query<{ id: string }>(
+        `insert into public.order_lines (tenant_id, order_id, external_line_id, quantity)
+         values ($1, $2, 'ORD-2-LINE', 1) returning id`,
+        [tenant, other],
+      )).rows[0].id;
+      return {
+        aLineOfAnotherOrder: await said(() => client.query(
+          `insert into public.returns (tenant_id, order_id, order_line_id, marketplace,
+                                       external_id)
+           values ($1, $2, $3, 'bol', 'RET-1')`,
+          [tenant, bol.order, otherLine],
+        )),
+        aLineOfItsOwnOrder: await said(() => client.query(
+          `insert into public.returns (tenant_id, order_id, order_line_id, marketplace,
+                                       external_id)
+           values ($1, $2, $3, 'bol', 'RET-2')`,
+          [tenant, bol.order, bol.orderLine],
+        )),
+      };
+    });
+    expect(
+      measured,
+      'A return of one order whose order_line_id belongs to another order answered '
+      + `${measured.aLineOfAnotherOrder}, and a return of its own order's line answered `
+      + `${measured.aLineOfItsOwnOrder}. The tenant travels along every key and the order does `
+      + 'not, so the database stored a match SEEN-020 reads as truth',
+    ).toEqual({ aLineOfAnotherOrder: '23503', aLineOfItsOwnOrder: 'accepted' });
+  });
+
+  it('refuses a settlement line naming a marketplace its own settlement does not', async () => {
+    // F56, the third measurement: a line with marketplace='amazon' under a
+    // settlement with marketplace='bol' was accepted and read back as exactly that.
+    const measured = await rolledBack(async () => {
+      const tenant = await tenantNamed('Tenant disagreeing settlement line');
+      const bol = await rail(tenant, 'bol', 'SETLINE');
+      return said(() => client.query(
+        `insert into public.settlement_lines
+           (tenant_id, settlement_id, marketplace, external_id, line_type, amount_cents)
+         values ($1, $2, 'amazon', 'LINE-1', 'commission', -1250)`,
+        [tenant, bol.settlement],
+      ));
+    });
+    expect(
+      measured,
+      `A settlement line carrying marketplace='amazon' under a bol settlement was `
+      + `${measured === 'accepted' ? 'accepted' : `refused with SQLSTATE ${measured}`}, where a `
+      + 'foreign key violation (23503) is what keeps a line from contradicting the settlement it '
+      + 'hangs under',
+    ).toBe('23503');
+  });
+
+  it('refuses a settlement line matched to an order line on another marketplace', async () => {
+    // F56, the measurement SEEN-018 is blocked by: a bol settlement line matched to
+    // an amazon order line was accepted, and SEEN-019 and SEEN-020 detect shortfalls
+    // from that join.
+    const measured = await rolledBack(async () => {
+      const tenant = await tenantNamed('Tenant crossed match');
+      const bol = await rail(tenant, 'bol', 'MATCH-BOL');
+      const amazon = await rail(tenant, 'amazon', 'MATCH-AMZ');
+      const match = (settlement: string, orderLine: string, externalId: string) => said(
+        () => client.query(
+          `insert into public.settlement_lines
+             (tenant_id, settlement_id, order_line_id, marketplace, external_id, line_type,
+              amount_cents)
+           values ($1, $2, $3, 'bol', $4, 'commission', -1250)`,
+          [tenant, settlement, orderLine, externalId],
+        ),
+      );
+      return {
+        toAnAmazonLine: await match(bol.settlement, amazon.orderLine, 'LINE-CROSSED'),
+        toItsOwnMarketplacesLine: await match(bol.settlement, bol.orderLine, 'LINE-STRAIGHT'),
+      };
+    });
+    expect(
+      measured,
+      `A bol settlement line matched to an amazon order line answered `
+      + `${measured.toAnAmazonLine}, and one matched to a bol order line answered `
+      + `${measured.toItsOwnMarketplacesLine}. SEEN-018 matches settlement lines to order lines `
+      + 'deterministically; a match the database accepts across two marketplaces is one the '
+      + 'detectors read as truth',
+    ).toEqual({ toAnAmazonLine: '23503', toItsOwnMarketplacesLine: 'accepted' });
+  });
+
+  it('refuses a claim spelling its marketplace a way the catalogue does not', async () => {
+    // F60's second measurement. A claim hangs from no connection, so the catalogue
+    // is the only parent that can say what its marketplace is, and the claims rail
+    // routes on the column: an identifier nothing defines routes nowhere.
+    const measured = await rolledBack(async () => {
+      const tenant = await tenantNamed('Tenant claim identifier');
+      return {
+        invented: await said(() => client.query(
+          `insert into public.claims (tenant_id, marketplace) values ($1, 'not-a-marketplace')`,
+          [tenant],
+        )),
+        asTheCatalogueSpellsIt: await said(() => client.query(
+          `insert into public.claims (tenant_id, marketplace) values ($1, 'kaufland')`,
+          [tenant],
+        )),
+      };
+    });
+    expect(
+      measured,
+      `A claim carrying marketplace='not-a-marketplace' answered ${measured.invented} and one `
+      + `carrying 'kaufland' answered ${measured.asTheCatalogueSpellsIt}. The column comment says `
+      + 'the value is one of the six identifiers the catalogue defines and the claims rail routes '
+      + 'on it, so a value the catalogue does not hold must be refused (23503)',
+    ).toEqual({ invented: '23503', asTheCatalogueSpellsIt: 'accepted' });
+  });
+
+  it('refuses a second order line carrying the line id the marketplace already gave', async () => {
+    // F61, high. order_lines was the one externally sourced table with no unique key
+    // of any kind on its external identifier, so re-ingesting one order wrote its
+    // lines again: the audit measured count=3, qty=3 and cents=3000 for a line worth
+    // 1000 cents. fee_expectations is one to one with an order line, unit_price_cents
+    // is what margin and headroom are summed from, and settlement_lines.order_line_id
+    // resolves to whichever duplicate the matcher happened to see.
+    const measured = await rolledBack(async () => {
+      const tenant = await tenantNamed('Tenant duplicate line');
+      const bol = await rail(tenant, 'bol', 'DUP');
+      const write = () => said(() => client.query(
+        `insert into public.order_lines (tenant_id, order_id, external_line_id, quantity,
+                                         unit_price_cents)
+         values ($1, $2, 'LINE-1', 1, 1000)`,
+        [tenant, bol.order],
+      ));
+      const first = await write();
+      const second = await write();
+      const { rows } = await client.query<{ total: string; cents: string | null }>(
+        `select count(*) as total, sum(unit_price_cents) as cents from public.order_lines
+          where tenant_id = $1 and order_id = $2 and external_line_id = 'LINE-1'`,
+        [tenant, bol.order],
+      );
+      return {
+        firstRead: first,
+        secondRead: second,
+        linesForOneLineId: Number(rows[0].total),
+        centsForOneLineId: Number(rows[0].cents ?? 0),
+      };
+    });
+    expect(
+      measured,
+      'Reading the same order line twice answered '
+      + `${measured.firstRead} and ${measured.secondRead}, leaving `
+      + `${measured.linesForOneLineId} rows worth ${measured.centsForOneLineId} cents for a line `
+      + 'worth 1000. Every number downstream hangs off this row: a second copy forks the fee '
+      + 'expectation, doubles the margin and gives the matcher two lines to choose between',
+    ).toEqual({
+      firstRead: 'accepted',
+      secondRead: '23505',
+      linesForOneLineId: 1,
+      centsForOneLineId: 1000,
+    });
+  });
+
+  it('arbitrates the order line upsert SEEN-014 is specified to write', async () => {
+    // F61's second half. `on conflict` needs a unique index to arbitrate, and the
+    // audit measured the refusal in the runner's words: "there is no unique or
+    // exclusion constraint matching the ON CONFLICT specification (SQLSTATE 42P10)".
+    // SEEN-014 is specified as idempotent upserts and is blocked by this ticket.
+    const measured = await rolledBack(async () => {
+      const tenant = await tenantNamed('Tenant upserted line');
+      const bol = await rail(tenant, 'bol', 'UPSERT');
+      const upsert = (quantity: number) => said(() => client.query(
+        `insert into public.order_lines (tenant_id, order_id, external_line_id, quantity,
+                                         unit_price_cents)
+         values ($1, $2, 'LINE-1', $3, 1000)
+         on conflict (tenant_id, order_id, external_line_id)
+           do update set quantity = excluded.quantity`,
+        [tenant, bol.order, quantity],
+      ));
+      const first = await upsert(1);
+      const second = await upsert(4);
+      const { rows } = await client.query<{ total: string; quantity: number | null }>(
+        `select count(*) as total, max(quantity) as quantity from public.order_lines
+          where tenant_id = $1 and order_id = $2 and external_line_id = 'LINE-1'`,
+        [tenant, bol.order],
+      );
+      return {
+        firstWrite: first,
+        secondWrite: second,
+        linesForOneLineId: Number(rows[0].total),
+        quantityAfterTheSecondRead: rows[0].quantity,
+      };
+    });
+    expect(
+      measured,
+      'The upsert SEEN-014 is specified to write answered '
+      + `${measured.firstWrite} and ${measured.secondWrite}, leaving `
+      + `${measured.linesForOneLineId} rows at quantity ${measured.quantityAfterTheSecondRead}. `
+      + 'Without a unique index to arbitrate, the statement cannot be written at all (42P10) and '
+      + 'ingest has no idempotent way to correct a line',
+    ).toEqual({
+      firstWrite: 'accepted',
+      secondWrite: 'accepted',
+      linesForOneLineId: 1,
+      quantityAfterTheSecondRead: 4,
+    });
+  });
+
+  it('accepts the line id one marketplace gave two of a tenant\'s orders', async () => {
+    // The other side of the key, so it is not wider than the thing it guards. A line
+    // id is the marketplace's own and is unique within the order it was read from;
+    // two orders of one tenant may carry the same one, exactly as two tenants may
+    // carry the same order id.
+    const measured = await rolledBack(async () => {
+      const tenant = await tenantNamed('Tenant shared line id');
+      const bol = await rail(tenant, 'bol', 'SHARED');
+      const other = (await client.query<{ id: string }>(
+        `insert into public.orders (tenant_id, connection_id, marketplace, external_id)
+         values ($1, $2, 'bol', 'ORD-OTHER') returning id`,
+        [tenant, bol.connection],
+      )).rows[0].id;
+      await client.query(
+        `insert into public.order_lines (tenant_id, order_id, external_line_id, quantity)
+         values ($1, $2, 'LINE-1', 1)`,
+        [tenant, bol.order],
+      );
+      return said(() => client.query(
+        `insert into public.order_lines (tenant_id, order_id, external_line_id, quantity)
+         values ($1, $2, 'LINE-1', 1)`,
+        [tenant, other],
+      ));
+    });
+    expect(
+      measured,
+      'The line id one marketplace gave two different orders of one tenant was refused with '
+      + `SQLSTATE ${measured}, so the key is scoped wider than the order a line was read from `
+      + 'and an ordinary second order cannot be ingested',
+    ).toBe('accepted');
+  });
+
+  it('refuses a second message thread carrying the same external thread id', async () => {
+    // F59. message_threads carried a deliberately non-unique index on
+    // (tenant_id, external_thread_id) and messages had no index on
+    // external_message_id at all, so a redelivery wrote the thread and the message
+    // again. SEEN-061 ingests threads from four marketplaces and SEEN-062 parses the
+    // forwarded mailbox, where redelivery of the same message is ordinary.
+    //
+    // Both rails are asked, because the mail rail is the one the null hides: a
+    // thread that arrived through the forwarded mailbox has no connection_id, and a
+    // key that treats two nulls as different values guards every thread but those.
+    const measured = await rolledBack(async () => {
+      const tenant = await tenantNamed('Tenant repeated thread');
+      const bol = await rail(tenant, 'bol', 'THREAD');
+      const write = (connection: string | null, externalId: string) => said(
+        () => client.query(
+          `insert into public.message_threads (tenant_id, connection_id, channel,
+                                               external_thread_id)
+           values ($1, $2, $3, $4)`,
+          [tenant, connection, connection === null ? 'mail' : 'marketplace', externalId],
+        ),
+      );
+      return {
+        firstFromTheMarketplace: await write(bol.connection, 'THREAD-1'),
+        secondFromTheMarketplace: await write(bol.connection, 'THREAD-1'),
+        firstFromTheMailbox: await write(null, 'THREAD-2'),
+        secondFromTheMailbox: await write(null, 'THREAD-2'),
+        threadsForTwoIds: await countOf(
+          'message_threads', 'tenant_id = $1 and external_thread_id = any($2)',
+          [tenant, ['THREAD-1', 'THREAD-2']],
+        ),
+      };
+    });
+    expect(
+      measured,
+      'Reading one marketplace thread twice answered '
+      + `${measured.firstFromTheMarketplace} and ${measured.secondFromTheMarketplace}, and one `
+      + `forwarded mail thread twice answered ${measured.firstFromTheMailbox} and `
+      + `${measured.secondFromTheMailbox}, leaving ${measured.threadsForTwoIds} threads for two `
+      + 'ids. A page read twice must write the thread once on both rails, and the mail rail is '
+      + 'the one where a redelivery is ordinary rather than exceptional',
+    ).toEqual({
+      firstFromTheMarketplace: 'accepted',
+      secondFromTheMarketplace: '23505',
+      firstFromTheMailbox: 'accepted',
+      secondFromTheMailbox: '23505',
+      threadsForTwoIds: 2,
+    });
+  });
+
+  it('refuses a second message carrying the same external message id in one thread', async () => {
+    // F59, the third table: `messages` had no index on external_message_id at all,
+    // and the audit measured two rows for MSG-1.
+    const measured = await rolledBack(async () => {
+      const tenant = await tenantNamed('Tenant repeated message');
+      const bol = await rail(tenant, 'bol', 'MSG');
+      const thread = (await client.query<{ id: string }>(
+        `insert into public.message_threads (tenant_id, connection_id, channel,
+                                             external_thread_id)
+         values ($1, $2, 'marketplace', 'MSG-THREAD') returning id`,
+        [tenant, bol.connection],
+      )).rows[0].id;
+      const write = () => said(() => client.query(
+        `insert into public.messages (tenant_id, thread_id, external_message_id, direction)
+         values ($1, $2, 'MSG-1', 'inbound')`,
+        [tenant, thread],
+      ));
+      return {
+        firstDelivery: await write(),
+        redelivery: await write(),
+        messagesForOneId: await countOf(
+          'messages', 'thread_id = $1 and external_message_id = $2', [thread, 'MSG-1'],
+        ),
+      };
+    });
+    expect(
+      measured,
+      `Delivering one message twice answered ${measured.firstDelivery} and `
+      + `${measured.redelivery}, leaving ${measured.messagesForOneId} rows for one message id. `
+      + 'SEEN-062 parses a forwarded mailbox, where the same message arrives again as a matter of '
+      + 'course',
+    ).toEqual({ firstDelivery: 'accepted', redelivery: '23505', messagesForOneId: 1 });
   });
 });

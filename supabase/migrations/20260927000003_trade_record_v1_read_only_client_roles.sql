@@ -1,6 +1,6 @@
--- Trade record v1, part 4 of 8: the Data API roles read, and nothing more.
+-- Trade record v1, part 4 of 10: the Data API roles read, and nothing more.
 --
--- The set is these eight files, the migrations whose names carry
+-- The set is these ten files, the migrations whose names carry
 -- `trade_record_v1`, and not everything in supabase/migrations: the evidence
 -- bucket migration of 24 September creates a bucket for the environment and takes
 -- no part in the privilege boundary these eight hand to each other. Every part's

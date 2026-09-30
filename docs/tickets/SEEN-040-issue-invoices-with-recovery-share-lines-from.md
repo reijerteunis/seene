@@ -31,7 +31,7 @@ Implement monthly invoicing in apps/worker: for each tenant the invoices row is 
 
 ## Acceptance criteria
 
-- [ ] Invoice for a test period contains only claims with status credited and credited_settlement_line_id set
+- [ ] Invoice for a test period contains only claims with status credited and credited_by_settlement_line_id set, and every recovery share line is a row of invoice_claims rather than json on the invoice
 - [ ] A claim appears on at most one invoice, enforced by a unique constraint on invoice_claims.claim_id
 - [ ] Recovery-share line amounts equal share percentage times credited amount per marketplace to the cent
 - [ ] Stripe invoice created in test mode with line metadata listing the claim ids

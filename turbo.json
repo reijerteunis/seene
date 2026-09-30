@@ -44,11 +44,14 @@
       // document; measured after, `cache miss, executing` on that one edited cell
       // and the comparison failing as it should.
       //
-      // The four ticket files are here for the same reason, one round later again.
-      // Four columns are classified `Not buyer PII` only for as long as a later
-      // ticket writes them a certain way, and the schema test now reads those
-      // tickets' acceptance criteria to check that each carries its obligation
-      // where its author will read it. Every one of them is still `status: todo`,
+      // The ticket files are here for the same reason, one round later again.
+      // Four columns are classified `Not buyer PII`, and two relations mean what
+      // they mean, only for as long as a later ticket writes them a certain way,
+      // and the schema test reads those tickets' acceptance criteria to check that
+      // each carries its obligation where its author will read it. SEEN-040 and
+      // SEEN-083 joined the list with part 10, which drops the untyped billing
+      // column and records what an erasure leaves in a bucket. Every one of them
+      // is still `status: todo`,
       // and the plan generator rewrites a ticket at that status, so the criterion
       // can be regenerated away with nothing under packages/core changing and the
       // cache replaying a pass over a ticket the suite never read. By id and not
@@ -81,7 +84,9 @@
         "$TURBO_ROOT$/docs/tickets/SEEN-027-*.md",
         "$TURBO_ROOT$/docs/tickets/SEEN-032-*.md",
         "$TURBO_ROOT$/docs/tickets/SEEN-034-*.md",
-        "$TURBO_ROOT$/docs/tickets/SEEN-062-*.md"
+        "$TURBO_ROOT$/docs/tickets/SEEN-040-*.md",
+        "$TURBO_ROOT$/docs/tickets/SEEN-062-*.md",
+        "$TURBO_ROOT$/docs/tickets/SEEN-083-*.md"
       ]
     },
     "lint": {

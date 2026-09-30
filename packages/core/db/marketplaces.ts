@@ -95,13 +95,49 @@ const MODE_PREFIXES: readonly CapabilityMode[] = [
 ];
 
 /**
- * The cells that do not begin with one of the modes, mapped by hand because there
- * is no rule to derive them from. Shopify's own price is not a competing offer, so
- * the capability is absent and the cell's words are kept as the detail. Anything
- * else unrecognised raises rather than being guessed at, which is what makes a new
- * kind of cell in the document a failure somebody has to answer.
+ * The cells no prefix rule can read, mapped by hand because there is no rule to
+ * derive them from, keyed on the whole cell lowercased. The cell's own words are
+ * kept as the detail in both, so the map decides the mode and invents nothing.
+ *
+ * Shopify's own price is not a competing offer, so the capability is absent and
+ * the cell begins with no mode at all.
+ *
+ * Bol's correspondence cell is the second kind and is F58. `none by API (assisted
+ * via inbox)` carries two of the modes, and the prefix rule read the first of
+ * them and kept `by API (assisted via inbox)` as a detail, so the catalogue
+ * stored `none`, which the legend defines as out of scope for the MVP. It is not:
+ * the architecture's own consequence sentence says Bol is the only marketplace
+ * with no messaging API, so its correspondence runs through the tenant's
+ * forwarded mailbox, the PRD ships it as Serve at FR-28 and FR-29, and SEEN-062
+ * and SEEN-063 build it in Sprint 5. The cell says `assisted` in English, and
+ * because the claims and Serve rails route on the difference between `assisted`
+ * and `none`, a cell like this has to be answered here rather than guessed at.
+ *
+ * Anything else unrecognised raises rather than being guessed at, which is what
+ * makes a new kind of cell in the document a failure somebody has to answer.
  */
-const EXCEPTIONS: Record<string, CapabilityMode> = { 'own price only': 'none' };
+const EXCEPTIONS: Record<string, CapabilityMode> = {
+  'own price only': 'none',
+  'none by api (assisted via inbox)': 'assisted',
+};
+
+/**
+ * A cell whose text after the mode continues into another mode, which is the
+ * shape no prefix rule can read and the shape F58 arrived in.
+ *
+ * The connectives are there because the second mode is what the first one is
+ * being said about: `none by API` is one statement and not `none` with a detail
+ * of `by API`. A cell that simply mentions a mode later on is not this and is not
+ * matched, which is why the pattern is anchored: `assisted (partner platform
+ * form; no API)` and `assisted (Seller Central case; no API, confirmed by
+ * Amazon)` both name a mode inside a bracket that is plainly a detail, and both
+ * go on being read.
+ */
+const RUNS_INTO_ANOTHER_MODE = new RegExp(
+  String.raw`^(?:(?:by|via|through|as)\s+)?(?:${
+    CAPABILITY_MODES.map((mode) => mode.replace('/', '\\/')).join('|')})\b`,
+  'i',
+);
 
 /**
  * One cell of the routing table as the catalogue stores it.
@@ -121,6 +157,8 @@ export function parseCapabilityCell(cell: string): Capability {
 
   const exception = EXCEPTIONS[lower];
   if (exception !== undefined) return { mode: exception, detail: text };
+  // Before the prefix rule is applied and not after it, so that the map above is
+  // the only place a cell carrying two modes is ever answered.
 
   const mode = MODE_PREFIXES.find(
     (candidate) => lower === candidate
@@ -137,6 +175,17 @@ export function parseCapabilityCell(cell: string): Capability {
   }
 
   const rest = text.slice(mode.length).trim();
+  if (RUNS_INTO_ANOTHER_MODE.test(rest)) {
+    throw new Error(
+      `The routing table cell "${text}" reads as "${mode}" followed by another of the capability `
+      + `modes (${CAPABILITY_MODES.join(', ')}), and no rule says which of the two the `
+      + 'catalogue should store. Whoever wrote it has to answer it by hand in '
+      + 'packages/core/db/marketplaces.ts, because the claims rail routes on the difference '
+      + 'between assisted and none and cannot route on a sentence. SEEN-008 recorded this as '
+      + 'F58, where `none by API (assisted via inbox)` was stored as `none`, which the table\'s '
+      + 'own legend defines as out of scope for the MVP.',
+    );
+  }
   const bracketed = /^\((.*)\)$/.exec(rest);
   return { mode, detail: rest === '' ? null : (bracketed ? bracketed[1] : rest) };
 }

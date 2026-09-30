@@ -67,11 +67,26 @@ async function connect(): Promise<Client> {
   return client;
 }
 
-interface Fixture {
-  tenant: string;
+/** The parent rows one marketplace's externally sourced rows hang from. */
+interface Rail {
   connection: string;
   order: string;
   settlement: string;
+}
+
+/**
+ * One tenant and a rail per marketplace it sells on.
+ *
+ * A rail per marketplace rather than one set of parents, because part 9 keys a
+ * child's `marketplace` to the parent it hangs from: an order is a row of the
+ * connection it was read through, and a shipment is a row of its order, so the
+ * eBay probe below needs eBay parents rather than the same Bol ones under another
+ * name. The assertion the probe makes is unchanged, and it is the same assertion:
+ * one tenant's id on Bol says nothing about the same id on eBay.
+ */
+interface Fixture {
+  tenant: string;
+  rails: Record<string, Rail>;
 }
 
 /** Refuses the erasure registry holding a tombstone for any tenant this file
@@ -105,34 +120,41 @@ describe('the upsert key on every externally sourced table', () => {
   let a: Fixture;
   let b: Fixture;
 
-  /** One tenant with the parent rows the five tables hang from, as the owner role. */
+  /** The marketplaces this file writes rows for, each with parents of its own. */
+  const RAILS = ['bol', 'ebay'] as const;
+
+  /** One tenant with the parent rows the five tables hang from, on each marketplace
+   * it sells through, as the owner role. */
   async function seed(name: string, slug: string): Promise<Fixture> {
     const tenant = await client.query<{ tenant_id: string }>(
       'insert into public.tenants (name) values ($1) returning tenant_id',
       [name],
     );
     const tenantId = tenant.rows[0].tenant_id;
-    const connection = await client.query<{ id: string }>(
-      `insert into public.connections (tenant_id, marketplace, country, status)
-       values ($1, 'bol', 'NL', 'active') returning id`,
-      [tenantId],
-    );
-    const order = await client.query<{ id: string }>(
-      `insert into public.orders (tenant_id, connection_id, marketplace, external_id)
-       values ($1, $2, 'bol', $3) returning id`,
-      [tenantId, connection.rows[0].id, `${slug}-order`],
-    );
-    const settlement = await client.query<{ id: string }>(
-      `insert into public.settlements (tenant_id, connection_id, marketplace, external_id)
-       values ($1, $2, 'bol', $3) returning id`,
-      [tenantId, connection.rows[0].id, `${slug}-settlement`],
-    );
-    return {
-      tenant: tenantId,
-      connection: connection.rows[0].id,
-      order: order.rows[0].id,
-      settlement: settlement.rows[0].id,
-    };
+    const rails: Record<string, Rail> = {};
+    for (const marketplace of RAILS) {
+      const connection = await client.query<{ id: string }>(
+        `insert into public.connections (tenant_id, marketplace, country, status)
+         values ($1, $2, 'NL', 'active') returning id`,
+        [tenantId, marketplace],
+      );
+      const order = await client.query<{ id: string }>(
+        `insert into public.orders (tenant_id, connection_id, marketplace, external_id)
+         values ($1, $2, $3, $4) returning id`,
+        [tenantId, connection.rows[0].id, marketplace, `${slug}-${marketplace}-order`],
+      );
+      const settlement = await client.query<{ id: string }>(
+        `insert into public.settlements (tenant_id, connection_id, marketplace, external_id)
+         values ($1, $2, $3, $4) returning id`,
+        [tenantId, connection.rows[0].id, marketplace, `${slug}-${marketplace}-settlement`],
+      );
+      rails[marketplace] = {
+        connection: connection.rows[0].id,
+        order: order.rows[0].id,
+        settlement: settlement.rows[0].id,
+      };
+    }
+    return { tenant: tenantId, rails };
   }
 
   /** One row of `table` keyed to this tenant, marketplace and external id, with
@@ -144,33 +166,41 @@ describe('the upsert key on every externally sourced table', () => {
     externalId: string,
   ): Promise<void> {
     const keyed = [fixture.tenant, marketplace, externalId];
+    const rail = fixture.rails[marketplace];
+    if (rail === undefined) {
+      throw new Error(
+        `This fixture has no ${marketplace} parents for a row of ${table} to hang from, so the `
+        + 'probe would measure a missing connection rather than the upsert key. Add the '
+        + 'marketplace to RAILS.',
+      );
+    }
     switch (table) {
       case 'orders':
         await client.query(
           `insert into public.orders (tenant_id, marketplace, external_id, connection_id)
            values ($1, $2, $3, $4)`,
-          [...keyed, fixture.connection],
+          [...keyed, rail.connection],
         );
         return;
       case 'shipments':
         await client.query(
           `insert into public.shipments (tenant_id, marketplace, external_id, order_id)
            values ($1, $2, $3, $4)`,
-          [...keyed, fixture.order],
+          [...keyed, rail.order],
         );
         return;
       case 'returns':
         await client.query(
           `insert into public.returns (tenant_id, marketplace, external_id, order_id)
            values ($1, $2, $3, $4)`,
-          [...keyed, fixture.order],
+          [...keyed, rail.order],
         );
         return;
       case 'settlements':
         await client.query(
           `insert into public.settlements (tenant_id, marketplace, external_id, connection_id)
            values ($1, $2, $3, $4)`,
-          [...keyed, fixture.connection],
+          [...keyed, rail.connection],
         );
         return;
       case 'settlement_lines':
@@ -178,7 +208,7 @@ describe('the upsert key on every externally sourced table', () => {
           `insert into public.settlement_lines
              (tenant_id, marketplace, external_id, settlement_id, line_type, amount_cents)
            values ($1, $2, $3, $4, 'commission', -1250)`,
-          [...keyed, fixture.settlement],
+          [...keyed, rail.settlement],
         );
         return;
       default:

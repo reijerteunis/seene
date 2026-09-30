@@ -34,6 +34,7 @@ Add a nightly job in apps/worker that nulls buyer name and address fields on Ama
 - [ ] Amazon buyer PII older than 30 days is nulled nightly except where an open claim references the order
 - [ ] PII columns are encrypted at rest and readable only through the API
 - [ ] Deletion job removes all rows and storage objects for a test tenant and the report lists counts per table
+- [ ] Every row of seen.pending_object_erasures is swept: the storage object it names is deleted from its bucket through the storage provider and the row is then removed, so an erased tenant's bytes do not outlive the rows that named them
 - [ ] Tenant deletion completes within 30 days of the request and is logged in audit_events
 
 ## Depends on

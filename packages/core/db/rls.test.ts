@@ -1051,10 +1051,21 @@ describe('tenant isolation on every table in the public schema', () => {
    * unique index never refuses the second tenant's row. A type nobody has written
    * a case for refuses loudly: a silent skip would write no row and leave the
    * table empty, which is how the probe below would pass by finding nothing.
+   *
+   * Every text value begins with the owning tenant's id and a slash, which is part
+   * 10's rule for a column that addresses a stored object: `evidence.storage_path`
+   * and `statements.storage_path` are constrained to name an object under their own
+   * row's prefix, so a fixture writing an arbitrary string into one is refused with
+   * 23514 and seeds no row at all. Applied to every text column rather than to the
+   * two the constraint is on, because a fixture that knew which columns those were
+   * would be a second copy of the rule and would go stale the first time a later
+   * migration adds a third. The prefix is inert everywhere else: no other check in
+   * this schema reads a text column, and the value is still unique per tenant and
+   * column, which is the only property the seeding relies on.
    */
-  function valueFor(type: string, label: string): string | number | boolean {
+  function valueFor(type: string, label: string, tenant: string): string | number | boolean {
     if (type === 'uuid') return randomUUID();
-    if (type === 'text' || type.startsWith('character')) return label;
+    if (type === 'text' || type.startsWith('character')) return `${tenant}/${label}`;
     if (type === 'bigint' || type === 'integer' || type === 'smallint') return 1;
     if (type.startsWith('numeric')) return 1;
     // Both from SEEDED_INSTANT, and neither from the clock: a date-bounded
@@ -1108,6 +1119,7 @@ describe('tenant isolation on every table in the public schema', () => {
       row[column.column] = valueFor(
         column.type,
         `${label} ${table}.${column.column} ${randomUUID().slice(0, 8)}`,
+        tenant,
       );
     }
     const names = Object.keys(row);
@@ -1739,5 +1751,106 @@ describe('tenant isolation on every table in the public schema', () => {
       + 'reading of the clock and the range that covers it today is a range that will stop '
       + `covering it: ${stored.join(', ')}`,
     ).toHaveLength(1);
+  });
+});
+
+/**
+ * F65: one `UPDATE` of `public.marketplaces.tenant_id` moved another tenant's
+ * connection, and its credential reference, into a tenant that never asked for it.
+ *
+ * `connections_marketplace_fkey` is written `(tenant_id, marketplace) references
+ * public.marketplaces (tenant_id, marketplace) on update cascade`, and part 3
+ * states the intent beside it: "renaming an identifier in the catalogue carries the
+ * connections with it rather than orphaning them". That reasoning covers one column
+ * of the key. The cascade fires on a change to either, so a change to
+ * `marketplaces.tenant_id` rewrites `connections.tenant_id`, and what moves is not
+ * an ordinary row: `connections` carries `credential_ref`, the Secret Manager
+ * pointer for that seller account, plus its scopes and its external seller id.
+ *
+ * A referential action passes through no policy and fires no trigger of its own, so
+ * nothing in the four layers this schema puts around a tenant boundary was in the
+ * way. It is reachable only by a role that can write `public.marketplaces`, which
+ * is `service_role` and not `authenticated`, so this is defence in depth rather
+ * than a client-reachable hole; `service_role` is what `apps/api` and `apps/worker`
+ * run as, and a single wrong statement in a catalogue-maintenance path hands one
+ * tenant another tenant's marketplace credentials with no audit event and no error.
+ */
+describe('a tenant id moved by an update of the catalogue it is not the identity of', () => {
+  let client: Client;
+
+  /** The SQLSTATE the database answered with, or `accepted` when it did not refuse. */
+  async function said(body: () => Promise<unknown>): Promise<string> {
+    await client.query('savepoint catalogue_probe');
+    try {
+      await body();
+      await client.query('release savepoint catalogue_probe');
+      return 'accepted';
+    } catch (error) {
+      await client.query('rollback to savepoint catalogue_probe');
+      return (error as { code?: string }).code ?? (error as Error).message;
+    }
+  }
+
+  /** Everything inside, rolled back, written as `service_role`, which is the role
+   * the API and the workers reach a catalogue-maintenance path as. */
+  async function rolledBack<T>(body: () => Promise<T>): Promise<T> {
+    await client.query('begin');
+    try {
+      await client.query('set local role service_role');
+      return await body();
+    } finally {
+      await client.query('rollback');
+    }
+  }
+
+  beforeAll(async () => {
+    client = await connect();
+    const missing = await absent(client, ['tenants', 'marketplaces', 'connections']);
+    if (missing.length > 0) {
+      throw new Error(
+        'This test cannot say anything about whose rows an update of the catalogue moves: '
+        + `${missing.join(', ')} ${missing.length === 1 ? 'does' : 'do'} not exist in the public `
+        + 'schema. Apply the migrations with `pnpm db:reset`.',
+      );
+    }
+  });
+
+  afterAll(async () => {
+    await client?.end();
+  });
+
+  it("does not move another tenant's connection and its credential reference", async () => {
+    const measured = await rolledBack(async () => {
+      const a = (await client.query<{ tenant_id: string }>(
+        "insert into public.tenants (name) values ('Tenant catalogue A') returning tenant_id",
+      )).rows[0].tenant_id;
+      const b = (await client.query<{ tenant_id: string }>(
+        "insert into public.tenants (name) values ('Tenant catalogue B') returning tenant_id",
+      )).rows[0].tenant_id;
+      await client.query(
+        `insert into public.connections (tenant_id, marketplace, country, status, credential_ref)
+         values ($1, 'bol', 'NL', 'active', 'a-secret-name-this-test-never-resolves')`,
+        [a],
+      );
+      const answer = await said(() => client.query(
+        'update public.marketplaces set tenant_id = $1 where tenant_id = $2 and marketplace = $3',
+        [b, a, 'bol'],
+      ));
+      const { rows } = await client.query<{ tenant_id: string }>(
+        'select tenant_id from public.connections where credential_ref = $1',
+        ['a-secret-name-this-test-never-resolves'],
+      );
+      return { answer, connectionBelongsToTheTenantThatMadeIt: rows[0]?.tenant_id === a };
+    });
+    expect(
+      measured,
+      `Moving a catalogue row from one tenant to another answered ${measured.answer}, and the `
+      + `connection that holds the credential reference ${measured.connectionBelongsToTheTenantThatMadeIt ? 'stayed with' : 'left'} `
+      + 'the tenant that made it. A tenant id is an identity and not a value, which part 8 '
+      + 'settled for public.tenants; the catalogue is the one other place an update of a '
+      + "tenant_id rewrites another table's rows, and it does so through a referential action "
+      + 'that passes no policy and fires no trigger. A refusal (23001) is what keeps the '
+      + 'credential pointer of one seller account inside the tenant that owns it',
+    ).toEqual({ answer: '23001', connectionBelongsToTheTenantThatMadeIt: true });
   });
 });

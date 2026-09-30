@@ -1,4 +1,4 @@
--- Trade record v1, part 8 of 8: a tenant id an erasure has consumed is never
+-- Trade record v1, part 8 of 10: a tenant id an erasure has consumed is never
 -- usable again. SEEN-008, F21.
 --
 -- What part 2 guaranteed, and the one thing it said nothing about.

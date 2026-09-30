@@ -1,4 +1,4 @@
--- Trade record v1, part 1 of 8: tenancy, the policy helper, and the order and
+-- Trade record v1, part 1 of 10: tenancy, the policy helper, and the order and
 -- settlement tables. SEEN-008.
 --
 -- Everything is an event on the trade record: orders, shipments, returns and

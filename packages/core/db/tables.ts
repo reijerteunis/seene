@@ -184,9 +184,20 @@ export const FREE_TEXT_TYPE_NAMES = ['bpchar', 'json', 'jsonb', 'text', 'varchar
  * which would have settled them without an author's opinion. Measured against the
  * stack: not one column is. Part 2 decided that on purpose, and says so, because
  * "a value nobody anticipated must land in the record and be reconciled, not
- * rejected at ingest", so `status`, `mode`, `marketplace` and `direction` are
- * unconstrained text with their vocabulary in a comment. The `currency` columns
- * carry the only check there is and it bounds a length, not a value set.
+ * rejected at ingest", so `status`, `mode` and `direction` are unconstrained text
+ * with their vocabulary in a comment. The `currency` columns carry the only check
+ * there is and it bounds a length, not a value set.
+ *
+ * `marketplace` was in that list and is no longer, which is a distinction worth
+ * keeping rather than a correction. Part 2's principle governs a value a
+ * marketplace supplies, where the vocabulary is somebody else's and the honest
+ * answer to an unanticipated one is to store it. A marketplace identifier is not
+ * supplied by anybody: this schema invents it, part 3 seeds the six from the
+ * routing table, and part 9 keys every column holding one to the catalogue, by the
+ * parent the row already hangs from wherever there is one. So a marketplace column
+ * is now bounded, and it is bounded by a key to a table of rows rather than by a
+ * check constraint, which is what keeps adding a marketplace a row rather than a
+ * migration over six tables.
  * Reversing that decision to make this assertion cheaper would be paying for a
  * test with an ingest that rejects rows, so the classification is written out
  * instead, and each line is a reason a reviewer can disagree with.
@@ -437,7 +448,7 @@ export const TICKETS_DIRECTORY = 'docs/tickets';
  * How a file under `supabase/migrations` declares itself a member of the trade
  * record v1 set, and the header line every member has to carry.
  *
- * The set is the SEEN-008 migrations, recognised by the `trade_record_v1` segment
+ * The set is this ticket's own migrations, recognised by the `trade_record_v1` segment
  * of their filenames, and not every file in the directory: the evidence bucket
  * migration of 24 September creates a storage bucket for the environment, takes no
  * part in the privilege boundary the parts hand to each other, and numbering it in
@@ -1089,3 +1100,118 @@ export const VIEW_SECURITY_OPTION = 'security_invoker';
 
 /** The values of that option which mean it is on. */
 export const VIEW_SECURITY_OPTION_TRUE = ['1', 'on', 'true', 'yes'] as const;
+
+/**
+ * The bucket the storage provider holds evidence and rendered documents in, as
+ * `supabase/migrations/20260924000000_evidence_bucket.sql` names it.
+ *
+ * Named here because part 10 makes the bucket part of the schema's argument
+ * rather than part of its environment: an erasure that cannot reach a bucket is
+ * an erasure that does not happen, so the suite has to be able to put an object
+ * in one and ask what a deletion on request did about it.
+ */
+export const EVIDENCE_BUCKET = 'evidence';
+
+/**
+ * The columns that address a stored object, and which may therefore only ever
+ * name an object of their own row's tenant.
+ *
+ * F64 measured the first of these accepting
+ * `<tenant B>/claims/secret/buyer-invoice.pdf` on a row whose `tenant_id` was
+ * tenant A, while the tenant-scoped foreign key beside it refused the same
+ * crossing through `claim_id` with 23503. Part 5 carried the tenant along every
+ * key precisely so that a row cannot reach another tenant's row; the column that
+ * addresses the buyer's document was free text and reached anyway, because
+ * `storage.objects` carries no tenant of its own and no policy to compensate.
+ *
+ * So the prefix is a fact of the schema rather than a convention of whoever
+ * writes the row: every such column is constrained to begin with its own row's
+ * `tenant_id` and a slash. That is also what makes the erasure worklist below
+ * able to find a tenant's objects at all, so the two findings have one fix.
+ */
+export const TENANT_PREFIXED_PATH_COLUMNS = [
+  'evidence.storage_path',
+  'statements.storage_path',
+] as const;
+
+/** The worklist an erasure leaves behind, so the bytes outlive nothing. */
+export const PENDING_OBJECT_ERASURES_TABLE = 'seen.pending_object_erasures';
+
+/**
+ * The json-typed columns `public.invoices` is allowed to carry.
+ *
+ * `recovery_share_lines` is not among them, and its absence is the point. F66
+ * measured EUR 124,000 of recovery share accepted into that column against a
+ * claim still at status `draft` with no credit link, and a second line citing a
+ * claim id present in no table at all. CLAUDE.md's rule is that a credit is
+ * billable only as an ingested settlement line linked to a claim and that neither
+ * a person nor the agent may create a billable event directly, and a jsonb array
+ * defaulting to `[]` is exactly a place where one can.
+ *
+ * The typed relation that replaces it is SEEN-040's, by that ticket's own text:
+ * its description names an `invoice_claims` link table and its second acceptance
+ * criterion already requires a unique constraint on `invoice_claims.claim_id`. So
+ * this schema does not invent that table one sprint early and guess its shape; it
+ * stops offering the shape that cannot carry the rule, and the obligation below is
+ * what tells SEEN-040 that the free-text path is gone rather than optional.
+ *
+ * `module_lines` stays. A module subscription is a price for a period, no rule in
+ * CLAUDE.md or the architecture makes it a metered event, and SEEN-045 owns it.
+ */
+export const INVOICE_JSON_COLUMNS = ['module_lines'] as const;
+
+/**
+ * An obligation this schema states on a relation of its own and a later ticket
+ * has to keep, and the terms one acceptance criterion of that ticket has to
+ * carry.
+ *
+ * The same shape and the same reasoning as `CONSTRAINED_NOT_BUYER_PII_COLUMNS`
+ * one level up: that one is about a column's classification, this one is about
+ * what a table means. F34 established the rule both are read by, which is that a
+ * promise written only in a comment is a promise its promiser never hears, and
+ * that the criteria are what a ticket's author is held to.
+ */
+export interface SchemaObligation {
+  /** The relation whose own comment states it, schema-qualified. */
+  readonly relation: string;
+  /** The tickets whose code has to keep it true. */
+  readonly tickets: readonly string[];
+  /** Every term one acceptance criterion of each of those tickets has to carry. */
+  readonly terms: readonly string[];
+  /** The obligation itself, for whoever the assertion fails in front of. */
+  readonly obligation: string;
+}
+
+export const SCHEMA_OBLIGATIONS: readonly SchemaObligation[] = [
+  {
+    relation: PENDING_OBJECT_ERASURES_TABLE,
+    tickets: ['SEEN-083'],
+    terms: ['seen.pending_object_erasures', 'storage object', 'bucket'],
+    obligation: 'an erasure can record which stored objects a deleted tenant left behind, and '
+      + 'nothing in a database can delete the bytes: only the storage provider can. So the '
+      + 'worklist is the whole of what this schema can carry, and it is worth nothing until '
+      + 'SEEN-083, which owns deletion on request, empties it by deleting each object from its '
+      + 'bucket and removing the row',
+  },
+  {
+    relation: 'public.invoices',
+    tickets: ['SEEN-040'],
+    terms: ['credited_by_settlement_line_id', 'recovery share', 'invoice_claims'],
+    obligation: 'the recovery share lines are rows of the link table SEEN-040 builds, each '
+      + 'naming a claim whose credited_by_settlement_line_id is set, and no column of '
+      + 'public.invoices holds them as json any more: the untyped one was dropped rather than '
+      + 'left beside the typed relation, because two representations of one relation means the '
+      + 'unenforced one is the one somebody writes',
+  },
+];
+
+/**
+ * How a relation says its meaning depends on somebody keeping it, in the words
+ * the buyer-PII classifications already use.
+ *
+ * One phrase, so that a reader who has met it on a column meets the same phrase on
+ * a table and does not have to learn a second convention. The guard that reads it
+ * on columns asks only about columns of schema `public` whose comment opens with
+ * the non-PII classification, so the two never report each other.
+ */
+export const SCHEMA_OBLIGATION_MARKER = 'to keep it so';

@@ -1,4 +1,4 @@
--- Trade record v1, part 6 of 8: nothing relation-shaped is born reachable, a view
+-- Trade record v1, part 6 of 10: nothing relation-shaped is born reachable, a view
 -- has to read its base tables as the caller, neither a materialised view nor a
 -- foreign table belongs here at all, a table owes the tenancy whichever of the two
 -- kinds of table it is, and neither a function nor a sequence here answers a
