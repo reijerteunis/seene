@@ -919,10 +919,10 @@ interface SetMember { file: string; firstLine: string }
  * migration order.
  *
  * Pure over the members it is handed, so that the test below can show it a set of
- * five, which the four files on disk cannot demonstrate: the size it compares
- * against is the number of members it was given and never a literal, so a fifth
- * migration is added by numbering it and correcting the four in front of it, not by
- * editing this test.
+ * a size the directory does not have, which is the only way to prove that nothing
+ * here is a literal: the size it compares against is the number of members it was
+ * given, so a part is added by numbering it and correcting the totals in front of
+ * it, not by editing this test.
  */
 function misnumberedSetHeaders(members: readonly SetMember[]): string[] {
   const size = members.length;
@@ -967,6 +967,125 @@ function tradeRecordSetHeaders(): SetMember[] {
   return members.map((file) => ({
     file,
     firstLine: readFileSync(join(REPOSITORY_ROOT, file), 'utf8').split('\n')[0] ?? '',
+  }));
+}
+
+/** A size a comment gives the set, and the comment that gives it. */
+interface StatedSetSize { file: string; line: number; phrase: string; size: number }
+
+/** One source the scanner is asked to read, as its path and its text. */
+interface ScannedSource { file: string; contents: string }
+
+/**
+ * The spelled cardinals a comment about the set is read for.
+ *
+ * `one` is not among them. It is the English article far more often than it is a
+ * count, so reading it would report `a later migration` and every sentence like
+ * it, and a set with a single part in it is not one anybody numbers.
+ */
+const SPELLED_CARDINALS: Readonly<Record<string, number>> = {
+  two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9,
+  ten: 10, eleven: 11, twelve: 12,
+};
+
+/** A count of the set's members: a number, at most one word, then what is counted. */
+const COUNTED_MEMBERS = new RegExp(
+  String.raw`\b(\d{1,3}|${Object.keys(SPELLED_CARDINALS).join('|')})\s+`
+  + String.raw`(?:[A-Za-z0-9'’-]+\s+)?(files?|migrations?)\b`,
+  'gi',
+);
+
+/** How a comment line opens, in either language, so that the prose can be read. */
+const COMMENT_OPENERS = /^(?:--+|\/\/+|\/\*+|\*+\/?|\*+)\s?/;
+
+/**
+ * Every run of consecutive comment lines in a source, as one paragraph of prose
+ * with the openers stripped, keyed by the line the run starts on.
+ *
+ * Joined rather than read line by line because prose wraps: a count written at the
+ * end of a line and the noun it counts at the start of the next is the same
+ * sentence to a reader, and a scanner that read one line at a time would miss it
+ * and be a scanner narrowed by where the last author happened to break the line.
+ */
+function commentParagraphs(contents: string): { line: number; prose: string }[] {
+  const paragraphs: { line: number; prose: string }[] = [];
+  let start = 0;
+  let lines: string[] = [];
+  const close = (): void => {
+    if (lines.length > 0) {
+      paragraphs.push({ line: start, prose: lines.join(' ').replace(/\s+/g, ' ').trim() });
+      lines = [];
+    }
+  };
+  contents.split('\n').forEach((raw, index) => {
+    const trimmed = raw.trim();
+    if (!COMMENT_OPENERS.test(trimmed)) {
+      close();
+      return;
+    }
+    if (lines.length === 0) start = index + 1;
+    lines.push(trimmed.replace(COMMENT_OPENERS, ''));
+  });
+  close();
+  return paragraphs;
+}
+
+/** How a sentence says it is about this set rather than about migrations at large. */
+const NAMES_THE_SET = /trade[ _]record[ _]v1|\bsets?\b/i;
+
+/**
+ * Every size the sources state for the trade record v1 set in a comment.
+ *
+ * Pure over the sources it is handed, so the test below can show it prose the
+ * repository does not contain. A count is read only where the sentence carrying it
+ * says it is about this set, which is why part 7 can say that a comment restated
+ * in a pair of migrations is a pair of comments that drift apart and be left
+ * alone: a paragraph is too coarse a unit, because a migration's whole preamble is
+ * one run of comment lines headed by the name of the set.
+ *
+ * What it can and cannot do, stated rather than implied. It reads a count written
+ * as a numeral or spelled out and standing in front of what it counts, which is
+ * how every such sentence in these files is written; prose that says `all nine of
+ * them` states the same fact and is not read. So it is a guard and not a proof,
+ * and the fix it guards is that the size is not written in prose at all: the
+ * headers carry it, `misnumberedSetHeaders` reads them against the directory, and
+ * a sentence that restates the number is a second authority nothing checks. That
+ * is F37, where this file and `tables.ts` went on giving the set a size smaller
+ * than the directory held while every header on disk counted it correctly.
+ */
+function setSizesStatedInComments(sources: readonly ScannedSource[]): StatedSetSize[] {
+  const stated: StatedSetSize[] = [];
+  for (const source of sources) {
+    for (const paragraph of commentParagraphs(source.contents)) {
+      for (const sentence of paragraph.prose.split(/(?<=\.)\s+/)) {
+        if (!NAMES_THE_SET.test(sentence)) continue;
+        for (const match of sentence.matchAll(COUNTED_MEMBERS)) {
+          const spelled = SPELLED_CARDINALS[match[1].toLowerCase()];
+          stated.push({
+            file: source.file,
+            line: paragraph.line,
+            phrase: match[0],
+            size: spelled ?? Number(match[1]),
+          });
+        }
+      }
+    }
+  }
+  return stated;
+}
+
+/** The sources whose comments describe the set: this package's own and the set's. */
+function sourcesThatDocumentTheSet(): ScannedSource[] {
+  const directory = fileURLToPath(new URL('.', import.meta.url));
+  const relative = directory.slice(REPOSITORY_ROOT.length).replace(/\\/g, '/').replace(/\/$/, '');
+  const own = readdirSync(directory)
+    .filter((name) => name.endsWith('.ts'))
+    .sort()
+    .map((name) => `${relative}/${name}`);
+  const members = migrationFiles().filter((file) => file.includes(TRADE_RECORD_MIGRATION_MARKER));
+  return [...own, ...members].map((file) => ({
+    file,
+    contents: readFileSync(join(REPOSITORY_ROOT, file), 'utf8'),
   }));
 }
 
@@ -1764,8 +1883,9 @@ describe('the trade record schema', () => {
 });
 
 describe('the migrations that write the schema', () => {
-  // Three properties of the migrations as files rather than of the database they
-  // produce, because each is about what the next migration will do. The end state
+  // Properties of the migrations as files rather than of the database they
+  // produce, because each is about what the next migration will do. Counting them
+  // here would be one more number in a comment that the file beneath it decides. The end state
   // after `pnpm db:reset` is correct in each case; what is wrong is what an author
   // reading these files, or a cache reading their hash, would conclude.
 
@@ -1844,13 +1964,14 @@ describe('the migrations that write the schema', () => {
     ).toEqual([]);
   });
 
-  it('would number a fifth migration without this test being rewritten', () => {
-    // The obvious assertion hard-codes four and fails the moment a fifth part is
-    // added, which punishes the next author for doing the right thing. The size is
-    // the number of members found on disk, so the checker is shown a set of five to
-    // prove that: five headers that count five pass, and the same five still reading
-    // `of 4` are all named. A file in the directory that is not of this set, the
-    // evidence bucket today, is not counted and needs no header.
+  it('would number a new migration into the set without this test being rewritten', () => {
+    // The obvious assertion hard-codes the size the directory happens to have and
+    // fails the moment a part is added, which punishes the next author for doing the
+    // right thing. The size is the number of members found on disk, so the checker
+    // is shown a fabricated set of five to prove it: five headers that count five
+    // pass, and the same five still reading `of 4` are all named. A file in the
+    // directory that is not of this set, the evidence bucket today, is not counted
+    // and needs no header.
     const five = (total: number): SetMember[] => [1, 2, 3, 4, 5].map((part) => ({
       file: `${MIGRATIONS_DIRECTORY}/2027_${TRADE_RECORD_MIGRATION_MARKER}_part${part}.sql`,
       firstLine: `-- Trade record v1, part ${part} of ${total}: a table this ticket does not have.`,
@@ -1874,6 +1995,67 @@ describe('the migrations that write the schema', () => {
       misnumberedSetHeaders(duplicated).length,
       'A header copied from the part before it, numbering the set 1, 3, 3, 4, 5, is not reported',
     ).toBe(1);
+  });
+
+  it('gives its size in the headers and in no comment that could contradict them', () => {
+    // F37. `tables.ts` told an author what the set was and gave a size the
+    // directory had grown past, while every header on disk counted correctly. The
+    // assertion above reads the headers, so it passed, and the prose beside it did
+    // not have to be right about anything. That is the same route the counting was
+    // made a test for: a reader who believes the smaller number stops before the
+    // last part and never reads what it decides. A number written in prose and also
+    // computable from disk drifts from it, which this one has done in this package
+    // and in the ticket's own Outcome, corrected round after round. So the size
+    // belongs in the headers, which are read against the directory, and a comment
+    // that gives the set a different one is reported here.
+    const size = tradeRecordSetHeaders().length;
+    const contradicted = setSizesStatedInComments(sourcesThatDocumentTheSet())
+      .filter((stated) => stated.size !== size);
+    const named = contradicted.map(
+      (stated) => `${stated.file}, comment at line ${stated.line}: "${stated.phrase}"`,
+    );
+    expect(
+      named,
+      `The directory holds ${size} members of the set and every header counts them, and these `
+      + 'comments hand a reader a different number, which is how the last part of the set goes '
+      + `unread: ${named.join('; ')}`,
+    ).toEqual([]);
+  });
+
+  it('would see a size a comment gave the set, wrapped across lines or not', () => {
+    // The assertion above passes over prose nobody has written yet, so the scanner
+    // is shown prose this repository does not contain. A count of the members is
+    // read whether it is spelled or a numeral and whether or not the line breaks
+    // between it and what it counts, and a paragraph counting something other than
+    // the set is left alone: part 7 says a comment restated in a pair of migrations
+    // is a pair of comments that drift, and that is not a claim about this set.
+    const scanned = (prose: string) => [{ file: 'supabase/migrations/2027_x.sql', contents: prose }];
+    expect(
+      setSizesStatedInComments(scanned(
+        '-- Trade record v1, part 9 of 9: a part this ticket does not have.\n'
+        + '-- The set is these nine files, and the evidence bucket is not one of them.',
+      )).map((stated) => stated.size),
+      'A comment naming the set and counting its members is not read, so the assertion above '
+      + 'passes by finding nothing rather than by reading the prose',
+    ).toEqual([9]);
+    expect(
+      setSizesStatedInComments(scanned(
+        '-- The trade record v1 set is the migrations whose names carry the marker, of\n'
+        + '-- which there are 12 files today.',
+      )).map((stated) => stated.size),
+      'A count written as a numeral, or broken from what it counts by the end of a line, is '
+      + 'missed, so the scanner is narrowed by how the last author happened to write it',
+    ).toEqual([12]);
+    expect(
+      setSizesStatedInComments(scanned(
+        '-- Trade record v1, part 9 of 9: a part this ticket does not have.\n'
+        + '--\n'
+        + '-- A comment restated in two migrations is two comments that drift apart.',
+      )),
+      'A sentence counting something other than the members is read as a size of the set '
+      + 'because the preamble it sits in is headed by the name of the set, so the whole of a '
+      + 'migration\'s opening comment is answered with numbers that have nothing to do with it',
+    ).toEqual([]);
   });
 
   it('contains no blanket grant, so the next migration has no such tail to copy', () => {

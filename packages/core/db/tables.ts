@@ -171,8 +171,8 @@ export const FREE_TEXT_TYPE_NAMES = ['bpchar', 'json', 'jsonb', 'text', 'varchar
  * stack: not one column is. Part 2 decided that on purpose, and says so, because
  * "a value nobody anticipated must land in the record and be reconciled, not
  * rejected at ingest", so `status`, `mode`, `marketplace` and `direction` are
- * unconstrained text with their vocabulary in a comment. The eighteen `currency`
- * columns carry the only check there is and it bounds a length, not a value set.
+ * unconstrained text with their vocabulary in a comment. The `currency` columns
+ * carry the only check there is and it bounds a length, not a value set.
  * Reversing that decision to make this assertion cheaper would be paying for a
  * test with an ingest that rejects rows, so the classification is written out
  * instead, and each line is a reason a reviewer can disagree with.
@@ -411,21 +411,31 @@ export const TICKETS_DIRECTORY = 'docs/tickets';
  * How a file under `supabase/migrations` declares itself a member of the trade
  * record v1 set, and the header line every member has to carry.
  *
- * The set is the seven SEEN-008 migrations, recognised by the `trade_record_v1`
- * segment of their filenames, and not every file in the directory: the evidence
- * bucket migration of 24 September creates a storage bucket for the environment,
- * takes no part in the privilege boundary the parts hand to each other, and
- * numbering it in would make every later ticket's migration renumber these
- * headers. So the header reads `Trade record v1, part N of M`, counting the set it
- * names, and `schema.test.ts` compares M with the number of members on disk rather
- * than with the number four: a fifth part is added by writing `part 5 of 5` and
- * correcting the four in front of it, and a migration belonging to another ticket
- * changes nothing here.
+ * The set is the SEEN-008 migrations, recognised by the `trade_record_v1` segment
+ * of their filenames, and not every file in the directory: the evidence bucket
+ * migration of 24 September creates a storage bucket for the environment, takes no
+ * part in the privilege boundary the parts hand to each other, and numbering it in
+ * would make every later ticket's migration renumber these headers. So the header
+ * reads `Trade record v1, part N of M`, counting the set it names, and
+ * `schema.test.ts` compares M with the number of members on disk rather than with
+ * a literal: a part is added by numbering it and correcting the totals in front of
+ * it, and a migration belonging to another ticket changes nothing here.
+ *
+ * How large the set is, this comment does not say, and that is the second thing it
+ * is for. The size is on disk, every member's header states it and the assertion
+ * reads the two against each other, so a copy of the number here is a second
+ * authority nothing checks: the sentence above once gave the set a smaller size
+ * than the directory held, through a round in which every header on disk was
+ * right, which is F37. `schema.test.ts` now reports a comment about this set that
+ * counts its members to a number the directory contradicts, in this file and in
+ * the members themselves. Part 4's preamble is the one place that still counts
+ * them, and the assertion reads that count against the directory too, because it
+ * is what explains the set to an author writing SQL and reading no TypeScript.
  *
  * Why the count is asserted and not just written. Part 3 ends by saying it grants
  * no table privilege because part 4 decides the privileges of every table per
- * table and by name. An author told by line 1 that the set is three files stops at
- * part 3, never reads part 4's boundary or its self-check, writes their table with
+ * table and by name. An author told by line 1 that the set ends at part 3 stops
+ * there, never reads part 4's boundary or its self-check, writes their table with
  * Supabase's default ACL standing, and it is born writable by `anon` and
  * `authenticated`. The headers are the route to part 4, so they have to count.
  */

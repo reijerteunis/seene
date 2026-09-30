@@ -32,8 +32,8 @@
 -- Part 2 decided that deliberately and says so, because "a value nobody
 -- anticipated must land in the record and be reconciled, not rejected at ingest",
 -- so status, mode, marketplace and direction are unconstrained text with their
--- vocabulary in a comment. The eighteen currency columns carry the only check in
--- the schema and it bounds a length rather than a value set. Constraining the
+-- vocabulary in a comment. The currency columns carry the only check in the
+-- schema and it bounds a length rather than a value set. Constraining the
 -- vocabularies to make this file shorter would be paying for a test with an
 -- ingest that rejects rows, so the reasons are written out instead and each is
 -- one a reviewer can disagree with on the merits.
