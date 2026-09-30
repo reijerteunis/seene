@@ -613,6 +613,70 @@ where the class is four wide, and `public` where there are two schemas. The fix 
 not the wider filter but the constant with a reason beside each member, because a list nobody can explain is
 the one that goes stale.
 
+**The sixth Codex review is the first to finish since the fourth, and it returned four more.** The fifth
+returned on F27 to F31; the sixth died on a usage limit without a verdict, so the second reviewer ran and
+returned on F32 to F38; this one is the verdict the gate requires, because only the other assistant can give
+it. It found all five acceptance criteria met, criterion 2 among them, and agreed that refusing a foreign
+table is the satisfiable boundary rather than demanding impossible row-level security, so it did not carry
+forward its own earlier unmet verdict.
+
+**F39 overturned what this ticket had concluded, and the conclusion was mine to have doubted.** The F32
+round found that a per-schema `alter default privileges ... revoke execute on functions from public` leaves
+the next function born callable by `anon`, and generalised that to prevention being impossible, an event
+trigger being the only complete answer, and detection with a bound being all there was. That went into part
+6, into a journal note and into this Outcome. The measurement was right and the generalisation was wrong:
+PostgreSQL's built-in grant is filed against no schema, so only an entry filed the same way subtracts it. The
+global form, with no `in schema` clause, gives `pg_default_acl` a row at `defaclnamespace = 0` and the next
+function is born with no PUBLIC entry at all. Measured after the fix: `anon` is refused 42501 where it read
+both tenants' names before, and the thirty policies still evaluate.
+
+The worse half of F39 was this suite. Three fixtures required a new function to be callable by `anon` in
+order to demonstrate the hazard they were about, so a later author installing real prevention would have
+been told by our own tests that they had broken something. Each now grants its own hazard explicitly, and
+the one that asserted PUBLIC is present "which no default privilege can change" was retaken rather than
+patched. It is the RED. `defaultPrivilegesForClientRolesIn` was also blind to `defaclnamespace = 0`, which
+is the scope the prevention lives in, and that is F30's defect one scope out rather than one grantee out.
+
+**F40 was the third time a file was read as an authority and not hashed**, after CODEX-03's
+`docs/architecture.md` and F34's four ticket files, so the fix is the class rather than the instance. The
+list is gone and the read is the check: `packages/core/db/repository.ts` is the only module in the package
+that may open a file or start a process, it asks turbo what the test task hashes and refuses a path that is
+not in the answer before opening it, and no other module may import `node:fs` or `node:child_process`, which
+is what makes the first half a rule rather than a convention. Verified: the resolved inputs went from 27 to
+29, and editing the exposed-schema line moves the task hash, so a cached pass can no longer be replayed over
+the guard that reads it.
+
+**F41 was a test that expired on 1 January 2027.** The partitioned probes seeded `recorded_at` from the wall
+clock into a partition bounded to 2026. The repair derives the partition's bounds and the seeded value from
+one instant, so the partition holds the row because it was built around it, and the deciding evidence for
+choosing that over a literal was already in the file: the neighbouring `date` case was a literal, which is
+the pattern F41 is about, copied once already. The year boundary is verified at both exact edges rather than
+assumed, because a repair that moved the literal to 2027 would pass a far-future check and fail the edges.
+
+**F42 defeated F28's advisory lock, and the fix is the mechanism F28 had rejected without its table.** An
+advisory lock serialises access and cannot refresh a fixed snapshot. A session at repeatable read whose
+snapshot was pinned before the id existed at all reads a snapshot older than the tombstone, and the insert
+was accepted: the id ends live and tombstoned at once with no audit history. Serialisable accepted the same
+ordering, so it was never a hole a stricter caller escaped.
+
+The guard now stops reading and starts writing. It inserts the tombstone it was asking after into the
+registry's own primary key inside a sub-block and takes the insert back by raising a sentinel the block
+catches, so a conflict is the refusal. Unique index enforcement is not snapshot-based, which is the property
+the read lacked. F28's rejection of the constraint direction was retaken and split: its reasons were about
+the **table** that candidate needed, a registry of every id ever issued and a row marked erased rather than
+tombstoned, and both still hold, so no such table is built and F21's framing survives. What was worth taking
+was the mechanism, and the registry as it already stands supplies it.
+
+**What twelve reviews and thirty-one findings have taught this ticket.** The recurring defect was never a
+wrong value; it was a guard answering the question in front of it while its comment claimed a wider one.
+`relkind = 'r'` twice, `relacl` where the question was effective privilege, `on tables` where the exposed
+class is four wide, `public` where there are two schemas, a per-schema revoke where the grant is filed
+against none, and a snapshot read where the question is what has committed. Each fix that lasted replaced a
+filter with a constant carrying a reason beside each member, or replaced a read with something the database
+enforces. And three findings, F22, F24 and F39, were claims nobody had run, which is why this ticket ends
+with more of its prose asserted than it began with: a scanner over its own counts, a guard over the ticket
+promises its classifications rest on, and a reader that refuses a file turbo does not hash.
+
 ## Slices
 
 The starting slice plan, one session each; the solution stage adopts or amends it (SEEN-104). A slice is at most 2 points and a ticket has at most four.
