@@ -667,7 +667,7 @@ the **table** that candidate needed, a registry of every id ever issued and a ro
 tombstoned, and both still hold, so no such table is built and F21's framing survives. What was worth taking
 was the mechanism, and the registry as it already stands supplies it.
 
-**What twelve reviews and thirty-one findings have taught this ticket.** The recurring defect was never a
+**What the reviews have taught this ticket.** The recurring defect was never a
 wrong value; it was a guard answering the question in front of it while its comment claimed a wider one.
 `relkind = 'r'` twice, `relacl` where the question was effective privilege, `on tables` where the exposed
 class is four wide, `public` where there are two schemas, a per-schema revoke where the grant is filed
@@ -676,6 +676,11 @@ filter with a constant carrying a reason beside each member, or replaced a read 
 enforces. And three findings, F22, F24 and F39, were claims nobody had run, which is why this ticket ends
 with more of its prose asserted than it began with: a scanner over its own counts, a guard over the ticket
 promises its classifications rest on, and a reader that refuses a file turbo does not hash.
+
+The habit is harder to shed than the defects. This paragraph opened, in its first draft, by counting the
+reviews and the findings, and both numbers were wrong: written from memory one paragraph after stating the
+lesson that a count in prose drifts from the thing it counts. The journal holds them and can be asked. They
+are not written here.
 
 ## Slices
 
