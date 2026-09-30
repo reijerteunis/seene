@@ -759,6 +759,67 @@ The other two are supported by the work: part 8 runs the statements its guarante
 the database rather than the catalogue, and F47 is what it looks like when a member of an enumeration carries a
 reason that is not true.
 
+**The fourth pre-check found four more, and none was a defect in the schema.** The seventh Codex round died on
+its usage limit twice, so the second reviewer ran again in its place, told to be narrow and adversarial and to
+find what would make a Codex round return the ticket before that round was spent. It returned on F47 to F50: a
+stated impossibility that was false, a stated transitivity that was false, a narrowing that undid the round
+before it, and a summary stronger than its mechanism. Every one is a sentence about a guard rather than a
+defect in the tables, which is what this ticket had become by then.
+
+It also attacked rather than read, which is worth recording as the thing that made these rounds worth their
+cost. F46's probe was tried on re-apply, under concurrency, on take-back failure and against five alternative
+key shapes, and survived all of them. F42's refusal was re-measured at three isolation levels on two
+connections each, its sentinel was handed a planted 23514 to see whether it would swallow a real error, and the
+serialisable conflict between two concurrent tenant creations was traced to the marketplaces seed trigger and
+shown to predate this ticket entirely.
+
+**F47 is F44's shape one round after F44.** `repository.ts` admitted `vitest` to the list of imports that
+cannot read, on the stated ground that the runner hands a test no way to open a path. `vi.importActual` takes a
+literal specifier and returns the real module, and the pre-processor does not report it, so a module of this
+package obtained `node:fs` and read an unhashed document while the guard said the package was clean. The fix
+walks the syntax tree for loader calls and judges what it finds with the same allow-list, so a loaded specifier
+is treated exactly as an imported one and the mechanism stays one rather than two that can drift. The entry now
+says it is admitted because every test file imports it and removing it is not available, which is true, rather
+than that it cannot reach a file, which was not.
+
+**And the paragraph listing what gets past the guard no longer claims to be complete**, which is the part of
+F47 that mattered most. It had been written as three items with "none of those is shut here", and this was a
+fourth with a literal specifier. It now names four known survivals and says plainly that this is what is known
+to survive rather than all that does, and offers the shape of the blind spot instead of a membership list: the
+instrument reads the specifier a module was written with, in the two places a module is written to name one, so
+anything handing back a module without a specifier written where it looks is unseen until somebody measures it.
+
+**F48 is the same defect in the next sentence of the same paragraph.** The allow-list claimed a transitivity,
+that a relative specifier is safe because the module it names is collected and asked the same question. That
+was false for the four directories the walk skips, and `packages/core/node_modules` exists. The fix is the one
+this ticket kept arriving at: the claim became the implementation. A relative specifier is admitted only when
+it resolves to a member of what the walk actually returned, so editing the skip list moves the scan and the
+allow-list together and a specifier that cannot be resolved is reported rather than admitted. Two findings
+converged on one fix here, for the first time on this ticket rather than one fix producing the next finding.
+
+**F49 was a narrowing that undid the round before it**, `.ts` filtered back out of a collection widened one
+round earlier precisely because vitest runs four other extensions. Its second half was the question of what the
+scanner does not read, and the answer for the ticket's own Outcome is a decision rather than an omission:
+reading it would make the ticket file an authority turbo must hash, so the file whose every edit invalidates the
+recorded pass would be the file that records it, and a document whose job is to say what was withdrawn cannot
+do that without quoting the withdrawal it would then be reported for. `docs/architecture.md` is read, because
+that reach was free.
+
+**F50 is this Outcome, and it was right.** The closing paragraph claimed that holding a withdrawn claim as data
+means it cannot quietly come back, where the mechanism holds the words each sentence was written in, in a
+subset of the files, and not in this document. That paragraph now says what the third answer buys and where it
+stops. The round has no RED and the journal says why rather than manufacturing one, because the scanner cannot
+fail on a file it deliberately does not read and a test asserting a phrase is absent would go red on demand
+while measuring nothing.
+
+**What the last four rounds settle about the ticket as a whole.** Every finding since the schema itself was
+finished has been about the distance between what a guard does and what its comment says it does, and the
+answers that held were the ones that removed the distance rather than correcting the sentence: the claim
+becoming the implementation at F48, the loaded specifier judged by the same list as an imported one at F47, the
+statements run rather than the catalogue read at F46. Where the distance could not be removed, what worked was
+saying so exactly, which is why three paragraphs in this schema now state what they cannot see. A guard that
+knows its own blind spot is worth more than one that does not have one, because the second kind does not exist.
+
 ## Slices
 
 The starting slice plan, one session each; the solution stage adopts or amends it (SEEN-104). A slice is at most 2 points and a ticket has at most four.
