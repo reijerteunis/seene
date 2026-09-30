@@ -445,12 +445,30 @@ export interface MutableIdentifier {
  * one has to be noticed by a person, and it is the gap this file writes down rather
  * than papers over.
  *
- * An exemption costs whoever wants one an entry here with the operation that needs
- * it. An empty list is the claim that nothing in this schema changes one of these
- * after the row is written: a tenant id never moves, because a new tenant gets a new
- * uuid and the rows of the old one are not carried over; and a marketplace
- * identifier never changes, because an account at another marketplace is another
- * connection and a claim filed on one rail is not the claim on another.
+ * An empty list is the claim that nothing in this schema changes one of these after
+ * the row is written: a tenant id never moves, because a new tenant gets a new uuid
+ * and the rows of the old one are not carried over; and a marketplace identifier
+ * never changes, because an account at another marketplace is another connection and
+ * a claim filed on one rail is not the claim on another.
+ *
+ * Where the list lives, and what an entry here is and is not. F85: this constant was
+ * read by `rls.test.ts` and by nothing in the schema. The loop in part 9 that creates
+ * a trigger for every member of the derived set read no exception list and there is
+ * no route by which a TypeScript constant could reach a `DO` block, so an entry here
+ * stopped the suite probing that member while the trigger went on refusing the
+ * update in production: the one documented way to argue with the derived set silenced
+ * the measurement without changing the schema. So the list the schema honours is
+ * `seen.mutable_identifiers()`, written in the migration beside the loop that reads
+ * it, and this constant is its mirror rather than its source. `rls.test.ts` reads
+ * both and refuses to differ from what the database returns, so neither can be
+ * changed alone.
+ *
+ * What an exemption costs, said in full because it is the thing a later author
+ * weighs. Three edits in one migration: the member and its reason added to
+ * `seen.mutable_identifiers()`, a `drop trigger` for the trigger the loop has
+ * already created on the existing database, since the loop only declines to create
+ * one and never removes one, and this constant brought level with it. The reason is
+ * the third column and not a comment, because it is what a reviewer argues with.
  */
 export const IMMUTABLE_IDENTIFIER_EXCEPTIONS: readonly MutableIdentifier[] = [];
 
@@ -1012,6 +1030,50 @@ export interface WithdrawnShapeClaim {
  * withdrew from part 3, left standing in `rls.test.ts` as a present-tense quotation
  * of a file that now says the opposite (F76).
  *
+ * The three after those are the fourth review's, and all three are a sentence that
+ * outlived what it described rather than a sentence that was wrong when it was
+ * written. One is part 9's declaration that a childless row's `tenant_id` can still
+ * be moved and that the question is wider than F65 and unsettled, standing 200 lines
+ * above the section of the same file that settles it over every table in `public`
+ * (F81): record 292 quoted that sentence as the place the gap was declared, so it
+ * had already cost one round of rework by being read as current. One is the head of
+ * part 9 counting the triggers that refuse a catalogue rename, in the paragraph that
+ * has just said it writes no count because a count in a comment is wrong at the next
+ * migration, where the last section of the same file installs a third (F82); that
+ * sentence was repaired one round earlier for the same reason and made wrong again by
+ * the section that repaired it. One is part 5 naming 23502 for a refusal the
+ * delivered schema answers 23001, corrected in the assertion that measures it and
+ * not in the comment that argues for it (F83).
+ *
+ * The SQLSTATE class, measured rather than declared unreachable. The fourth review
+ * offered the widening in a shape with a fact behind it, unlike the bare cardinal and
+ * the English noun phrase this file refuses below: the corpus is small and countable,
+ * and a scanner could read a five-character code out of a migration comment and
+ * measure it against what the database answers. Counted: 28 comment lines in the ten
+ * migrations of this set carry a SQLSTATE token, 29 occurrences across 9 distinct
+ * codes, one line carrying `42809` twice. What the count does not support is the
+ * scanner. Nine of the 29 state a code the database no longer answers for the
+ * statement their sentence names, and eight of the nine are true of what they
+ * describe. Measured on the delivered stack as `service_role` in a rolled-back
+ * transaction: `update public.marketplaces set marketplace` answers 23001 and
+ * `update public.tenants set tenant_id` answers 23001, where part 9's head says the
+ * rename the cascade was for is refused 23503 by the keys and part 8 says the
+ * tenant's foreign keys refuse the move with 23503. Both sentences are about a
+ * layer, both were measured before the trigger that now fires first existed, and
+ * both are the argument for putting that trigger there: five of the eight are the
+ * before-and-after measurement a section writes to justify itself, and three are
+ * present-tense statements of what a key buys in the absence of the trigger above
+ * it. A scanner measuring each code against what the database answers now would
+ * report all nine and be right about one, a precision of one in nine on the only
+ * class it exists for, and telling the eight from the one means deciding whether a
+ * sentence is about the delivered statement or about the layer underneath it, which
+ * is a tense and a subject read out of English. That is the guess this file declines
+ * two paragraphs below for the noun phrase, and it is declined here for the same
+ * reason: a guard whose report cannot be trusted is worse than none, because it is
+ * read as coverage. So the SQLSTATE is held as the sentence, exactly as the denial
+ * of an index is, and the half that can be believed is the assertion in the suite
+ * that runs the statement and prints the code the database gave it.
+ *
  * Why this is held as the sentence and not caught by a scanner, which is a decision
  * and not an omission. `migrationColumnReferences` can be believed because it
  * compares a name against `pg_attribute`: the reference is a name, and a name is
@@ -1113,6 +1175,60 @@ export const WITHDRAWN_SHAPE_CLAIMS: readonly WithdrawnShapeClaim[] = [
       + "SEEN-066's deadline watch and SEEN-031's credit match all read. Part 9 counts nothing "
       + 'here now: the last section of it derives from the catalogue every column holding an '
       + 'identifier the schema authors, and refuses an update of each',
+  },
+  {
+    relation: 'public.tenants',
+    spelling: [
+      'and a childless row\'s tenant_id can still be moved by a role that can write it.',
+      'That is a wider question than F65 and it is not settled here',
+    ],
+    instead: 'no tenant_id in schema `public` can be moved by any role at all, childless or not. '
+      + 'The sentence is in the section that takes the catalogue\'s own tenant_id, 200 lines above '
+      + 'the section that derives every column holding an identifier this schema authors and '
+      + 'refuses an update of each, and it was written before the second one existed. Measured on '
+      + 'the delivered database by part 9\'s own two rules: every member of the derived set carries '
+      + 'a trigger refusing the update, the ones the sections above write by hand and the rest '
+      + 'created by the loop at the foot of the file, with nothing left over. Two costs, and '
+      + 'neither is theoretical: a later author who needs the onboarding repair path this file '
+      + 'names service_role for twice reads the sentence as permission, writes the UPDATE and is '
+      + 'refused 23001 at runtime; and the next reviewer reads it as the declaration of an open '
+      + 'gap and reports F78 again, which is what record 292 quoted it as',
+  },
+  {
+    relation: 'public.marketplaces',
+    spelling: [
+      'so a trigger on each of the two columns refuses it outright, with a message',
+      'saying what a real rename would be: a migration that says so, drops the trigger',
+      'and moves the rows itself. Both columns',
+    ],
+    instead: 'the file installs a third such trigger, on `public.claims.marketplace`, and '
+      + '`claims_marketplace_fkey` cascades on update, so the rename reaches it. Following the '
+      + 'runbook this paragraph gives - drop the two triggers it names, move the rows - and '
+      + 'measured in a rolled-back transaction, `update public.marketplaces set marketplace` is '
+      + 'accepted for a tenant with no claim and refused 23001 for a tenant with one, by '
+      + '`immutable_marketplace` on `public.claims` through the cascade. That is exactly the '
+      + 'two-answer shape the section exists to remove, reintroduced in the instructions for the '
+      + 'one operation it calls a migration. The count is the defect and not the sentence: the '
+      + 'same paragraph says two lines earlier that it writes no count because a count in a '
+      + 'comment is wrong at the next migration, and this is the second round that sentence has '
+      + 'been repaired for counting. What a rename drops is what the last section derives, which '
+      + 'is why the paragraph now names none of them',
+  },
+  {
+    relation: 'public.claims',
+    spelling: [
+      'settlement or the connection it hangs from, is refused with 23502, so a line',
+      'cannot be removed or re-ingested while a claim points at it',
+    ],
+    instead: 'the delivered schema answers 23001. The not-null constraint on tenant_id was the '
+      + 'only thing in the way of a referential action that blanked one when part 5 was written; '
+      + 'part 9\'s last section puts a before-update trigger on every tenant_id in `public`, and a '
+      + 'before-update trigger runs ahead of the not-null check, so what refuses the bare '
+      + 'set-null is the trigger. What the column-list form buys is unchanged, because both '
+      + 'refusals fall on the same delete; what is no longer true is the reason, and a reader '
+      + 'weighing whether the column list is still worth naming, or adding a ninth set-null key, '
+      + 'is sent to a layer that has been superseded. The twin of this sentence in '
+      + '`schema.test.ts` was corrected in the same commit that made this one false',
   },
   {
     relation: 'public.claims',

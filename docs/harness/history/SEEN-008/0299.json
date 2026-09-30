@@ -1,0 +1,68 @@
+{
+  "sequence": 299,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-30T23:04:12.426522+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 18,
+  "actor": "claude:reviewer",
+  "session": "a00943ab9615",
+  "head": "c9ad2139c4eff8d4e542913416f4617ac69548fb",
+  "prev_hash": "0a57f1c0b42a95c369b91a18b67147f355b7e2f7cdbfe2f2158b23e491e36fba",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 19,
+    "reason": "The fourth Claude Code review returned the ticket on five, none of them high and none of them behavioural, and what it could not break is the substance of the round.\n\nThe class fix held under attack. The reviewer derived the set from the live database with part 9's own two rules and got the 32 members the Outcome claims, 29 tenant_id and three marketplace, with every member guarded and nothing left over: 28 from the DO block plus four bespoke. It measured rule 2's coverage rather than reading it, nine marketplace columns in public of which three are keyed straight at the catalogue and six are pinned by a key whose columns are all not null. It accounted for every member's green one at a time and found none passing for a fixture artefact: an unseeded tenancy member makes the update match nothing, which the probe reports as accepted and the assertion then fails on, so an unseeded table is red and never green. It confirmed the two derivations are the same query predicate for predicate. All five acceptance criteria hold by execution on its own run of the suite, and no criterion is unmet.\n\nWhat it returned on is the class the Outcome says this ticket has produced seven times, one round on, in the file this round rewrote. F81 is that part 9 still declares the F78 gap that the same file's last section closes 200 lines below, which is the sentence record 292 quoted as the declaration, so left standing it invites the next reviewer to re-report F78 and tells a later author a repair path is permitted that is refused 23001 at runtime. F82 is the head counting two rename triggers where the file installs three, measured by following the paragraph's own runbook: drop the two it names and the rename is accepted on a tenant with no claim and refused 23001 on one with a claim, which is the two-answer shape the section exists to remove, reintroduced in the instructions. The previous round repaired that same sentence for that same reason and this round made it wrong again. F83 is part 5 saying 23502 where the database now answers 23001, corrected in the test by the same commit and not in the migration.\n\nF84 is the one that is not prose: the F79 repair is the only reader of the two public.claims withdrawn claims and has no vacuity guard of its own, so narrowing it back re-opens F79 with the suite green, where every other scanner here is shown prose the repository does not contain. It also observes correctly that the tdd record at 297 cites record 293 as the red for F79 where 293's only failure is the identifier probe and the test carrying that call did not exist at the red. That is an inaccuracy in evidence I wrote and it is recorded as such rather than argued with.\n\nF85 is low and is that IMMUTABLE_IDENTIFIER_EXCEPTIONS is honoured by the test and by nothing in the schema, so the one documented way to argue with the derived set silences the measurement without changing the database.\n\nThe reviewer also offers the one widening it can state precisely enough to be measured, against a corpus small enough to check: 28 five-digit SQLSTATE tokens across eight codes in the migration comments, of which exactly one is currently false.\n\nReturned to tdd.",
+    "findings": [
+      {
+        "id": "F81",
+        "severity": "medium",
+        "file": "supabase/migrations/20260930000000_trade_record_v1_referential_integrity.sql:464",
+        "claim": "Part 9 still tells its reader that a childless row's tenant_id can be moved by a role that can write it and that this is a wider question than F65 which the file does not settle, where the last section of that same file settles it on all 29 tables and no tenant_id in public can be moved at all.",
+        "failure_scenario": "The paragraph is the one a reader consults to learn what holds a tenant_id in place, and both of its closing statements are false of the delivered schema. Measured against the live database: 32 members of the derived set, and every one carries a trigger refusing an update, 28 of them created by the DO block 200 lines below this sentence and four by the bespoke guards. The test the same commit adds reports moved as empty, so the file's own suite contradicts the file. Two concrete costs. A later author who needs a support path that moves a childless row between tenants, which is the onboarding repair path this file names service_role for twice, reads line 464 as permission, writes it, and is refused 23001 at runtime. And the next reviewer reads the same sentence as the declaration of an open gap and re-reports F78: that is not hypothetical, because record 292 quotes this exact sentence as the place the gap was declared, and the sentence has outlived the gap.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F82",
+        "severity": "medium",
+        "file": "supabase/migrations/20260930000000_trade_record_v1_referential_integrity.sql:125",
+        "claim": "The head of part 9 says a trigger on each of the two columns refuses a catalogue rename and then says Both columns, in the same paragraph that has just said it writes no count because a count in a comment is wrong at the next migration, where the file's own last section installs a third such trigger on claims.marketplace and claims_marketplace_fkey cascades on update so the rename reaches it.",
+        "failure_scenario": "Measured against the live database in a rolled-back transaction, following the runbook this paragraph gives an author who wants a rename, which is to drop the trigger and move the rows. With refuse_marketplace_rename and refuse_connection_marketplace_change dropped, the two the paragraph names, updating public.marketplaces set marketplace = 'bol2' is accepted for a tenant with no claim and refused 23001 for a tenant with one claim, by immutable_marketplace on public.claims through the ON UPDATE CASCADE. So the instructions for the one operation this section says is a migration produce exactly the shape the section exists to remove: it works on an account that has filed nothing and fails on one that has. The previous round repaired this same sentence, at commit f219593, for this same reason, and this round made it wrong again by adding the third trigger.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F83",
+        "severity": "medium",
+        "file": "supabase/migrations/20260929000000_trade_record_v1_tenant_scoped_foreign_keys.sql:127",
+        "claim": "Part 5 says that with a bare set-null in place of the column-list form, deleting the settlement line a claim was credited by is refused with 23502, and the delivered schema answers 23001, which the same commit corrected in the test and not in the migration.",
+        "failure_scenario": "schema.test.ts:4391 now expects bare deletingTheParentRow to be 23001 and its message says in so many words that the refusal is the trigger part 9 puts on every tenant_id rather than the column being not null, and that what is no longer true is that the not-null constraint is the only thing standing between a referential action and a tenant id. The migration comment beside the statement it justifies still says 23502. A later author adding a ninth set-null key, or weighing whether the column list is still worth naming, reads part 5 and concludes the not-null constraint is what protects tenant_id there; it is not, and part 9's trigger is, so the argument for the shipped form now rests on a layer that has been superseded. This is the class the Outcome records as produced seven times, and this instance was created by this round while its twin was corrected in the same commit.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F84",
+        "severity": "medium",
+        "file": "packages/core/db/schema.test.ts:7472",
+        "claim": "The F79 repair, the one call to withdrawnShapeClaimsStillStanding that passes no relation, is the only reader of the two public.claims entries in WITHDRAWN_SHAPE_CLAIMS and has no guard of its own, so narrowing it back to a relation re-opens F79 with the suite green, and the tdd record cites record 293 as the red for F79 where that red does not cover it.",
+        "failure_scenario": "WITHDRAWN_SHAPE_CLAIMS holds seven entries; the relation-scoped callers name message_threads, marketplaces, connections and invoices, and the two entries whose relation is public.claims are read by the no-relation call at line 7472 and by nothing else. Add the relation argument back, which is the exact defect F79 was returned for, and both sentences become unread while 192 tests pass: nothing in the suite asks that the catch-all call exists, where every other scanner here is shown prose the repository does not contain in order to prove it is not vacuous. The red the record cites for F79 is record 293, whose only failure is the identifier probe and whose 123 schema tests all passed; the 124th test, the one carrying this call, did not exist at the red and was green on its first run, so the slice's evidence names a red that proves nothing about this third of it.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F85",
+        "severity": "low",
+        "file": "packages/core/db/tables.ts:455",
+        "claim": "IMMUTABLE_IDENTIFIER_EXCEPTIONS is honoured by rls.test.ts and by nothing in the schema, so its doc comment's statement that an exemption costs whoever wants one an entry here understates the cost by a migration.",
+        "failure_scenario": "The DO block in part 9 creates a trigger for every member of the derived set and reads no exception list, and there is no route by which a TypeScript constant could reach it. A later author who needs one of the 32 members to become mutable adds the entry with its reason, rls.test.ts stops probing that member, the suite goes green, and the UPDATE is still refused 23001 in production, because the trigger part 9 created is still there and nothing drops it. The list is empty today so nothing is wrong behaviourally; what is wrong is that the one documented way to argue with the derived set silences the measurement without changing the schema, and the only place a reader would see the difference is the list itself.",
+        "status": "open",
+        "resolution": ""
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}

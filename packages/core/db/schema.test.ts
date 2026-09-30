@@ -7489,6 +7489,84 @@ describe('a marketplace identifier, and the line id a marketplace gave a row', (
       stillStanding: [],
     });
   });
+
+  it('reads every withdrawn shape claim through some caller, and reads the unnarrowed one', () => {
+    // F84. The call above is the only reader of the entries whose relation no caller
+    // narrows to, and it had no guard of its own: narrowing it back to a relation,
+    // which is the exact defect F79 was returned for, leaves those entries held in a
+    // list nothing reads while every assertion in this file passes. Every other
+    // scanner here is shown prose the repository does not contain in order to prove
+    // it is not vacuous, and this is that for the catch-all.
+    //
+    // Which relations the narrowed callers name is read out of this module rather
+    // than written down, so a caller added later moves the probe instead of
+    // stranding it, and the argument list of each call is read rather than the
+    // relations of the list, so a call that stops passing one is seen.
+    // Held as a value and called through it, so that the two probes below are not
+    // themselves found by the scan that counts the callers.
+    const scan = withdrawnShapeClaimsStillStanding;
+    const scanner = withdrawnShapeClaimsStillStanding.name;
+    const own = readRepositoryFile(`${PACKAGE_DIRECTORY}/db/schema.test.ts`);
+    const narrowed: string[] = [];
+    let unnarrowed = 0;
+    for (let at = own.indexOf(`${scanner}(`); at >= 0; at = own.indexOf(`${scanner}(`, at + 1)) {
+      if (own.slice(0, at).endsWith('function ')) continue;
+      let depth = 0;
+      let end = at + scanner.length;
+      do {
+        if (own[end] === '(') depth += 1;
+        if (own[end] === ')') depth -= 1;
+        end += 1;
+      } while (depth > 0 && end < own.length);
+      const argument = own.slice(at + scanner.length + 1, end - 1);
+      const relation = /'([^']+)'/.exec(argument);
+      if (relation === null) unnarrowed += 1;
+      else narrowed.push(relation[1]);
+    }
+
+    // The entries only the unnarrowed call can reach, and prose carrying the first of
+    // them that this repository does not hold. The fabricated source is a migration
+    // name no directory holds, so the scan is over text and nothing on disk.
+    const onlyTheCatchAllReads = WITHDRAWN_SHAPE_CLAIMS
+      .filter((claim) => !narrowed.includes(claim.relation));
+    const probe = onlyTheCatchAllReads[0];
+    const fabricated = probe === undefined ? [] : [{
+      file: `${MIGRATIONS_DIRECTORY}/20270101000000_${TRADE_RECORD_MIGRATION_MARKER}_probe.sql`,
+      contents: probe.spelling.map((fragment) => `-- ${fragment}`).join('\n'),
+    }];
+    const measured = {
+      callsThatNarrowToNoRelation: unnarrowed,
+      readByTheUnnarrowedCall: scan(fabricated).length,
+      readByAnyNarrowedCall: narrowed.reduce(
+        (found, relation) => found + scan(fabricated, relation).length, 0,
+      ),
+    };
+    expect(
+      measured,
+      `${WITHDRAWN_SHAPE_CLAIMS.length} sentences are held in WITHDRAWN_SHAPE_CLAIMS and the `
+      + `callers in this file narrow to ${narrowed.join(', ') || 'no relation at all'}, so the `
+      + `entries about ${onlyTheCatchAllReads.map((claim) => claim.relation).join(', ') || 'nothing'} are read by `
+      + `the ${measured.callsThatNarrowToNoRelation} call that narrows to none and by nothing `
+      + 'else. A withdrawn claim about a relation nobody has written a measurement for is exactly '
+      + 'the one that survives, gets copied or comes back, which is why withdrawnShapeClaimsStillStanding '
+      + 'reports every claim when it is called with no relation. This is that call being shown a '
+      + `sentence the repository does not contain: the unnarrowed call reported `
+      + `${measured.readByTheUnnarrowedCall} of them and the narrowed calls reported `
+      + `${measured.readByAnyNarrowedCall}, so if the unnarrowed one is ever given a relation `
+      + 'these entries become unread and this line is what says so',
+    ).toEqual({
+      callsThatNarrowToNoRelation: 1,
+      readByTheUnnarrowedCall: 1,
+      readByAnyNarrowedCall: 0,
+    });
+    expect(
+      onlyTheCatchAllReads.length,
+      'No entry in WITHDRAWN_SHAPE_CLAIMS is outside the relations the narrowed callers name, so '
+      + 'the probe above measured the unnarrowed call against nothing and would pass with that '
+      + 'call deleted. Either a caller was added for every relation in the list, in which case '
+      + 'the unnarrowed call is what catches the next one, or the list lost its entries',
+    ).toBeGreaterThan(0);
+  });
 });
 
 describe('what a migration says about a column, and what the schema has', () => {

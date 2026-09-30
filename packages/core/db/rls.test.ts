@@ -2249,4 +2249,163 @@ describe('every identifier this schema authors, and whether an update can move o
       moved: [], answeringTwoWays: [], unprobed: [], tablesWithNoTenancyMember: [],
     });
   });
+
+  it('holds one exemption list, which the schema and this file cannot carry differently', async () => {
+    // F85. `IMMUTABLE_IDENTIFIER_EXCEPTIONS` was read by the block above and by
+    // nothing in the schema: the loop in part 9 that creates a trigger for every
+    // member of the derived set read no exception list, and there is no route by
+    // which a TypeScript constant could reach a `DO` block. So an entry there stopped
+    // this file probing that member, the suite went green, and the trigger went on
+    // refusing the update in production, which made the one documented way to argue
+    // with the derived set a way to silence its measurement. Part 9 now carries the
+    // list as `seen.mutable_identifiers()`, the loop reads it, and the two are held
+    // equal here so that neither can be changed alone.
+    const { rows: honoured } = await client.query<{ column: string; reason: string }>(
+      `select (m.relation || '.' || m.column_name) as column, m.reason
+         from seen.mutable_identifiers() m order by 1`,
+    );
+    expect(
+      honoured.map((row) => ({ column: row.column, reason: row.reason })),
+      'The list the schema honours is seen.mutable_identifiers(), read by the loop that creates '
+      + 'the triggers, and IMMUTABLE_IDENTIFIER_EXCEPTIONS is its mirror. A member exempted in '
+      + 'one and not the other is either a column this file stops probing while the trigger still '
+      + 'refuses the update, which is F85, or a column the schema lets move with nothing here '
+      + 'saying so',
+    ).toEqual(IMMUTABLE_IDENTIFIER_EXCEPTIONS.map(
+      (entry) => ({ column: entry.column, reason: entry.reason }),
+    ));
+
+    // Both lists are empty, so the equality above holds over a schema that honours
+    // nothing at all. What an entry buys is measured instead, which is the whole of
+    // what F85 was about: the claim an entry makes is that the column becomes mutable
+    // in production, not that it leaves this file's measurement. So one member is
+    // exempted in a rolled-back transaction, the trigger the loop gave it is dropped,
+    // the loop is run again, and the column is probed. And then the same drop with the
+    // list empty again, because a loop that had stopped creating triggers altogether
+    // would pass the first half of that and nothing else here would notice.
+    const { rows: loopMade } = await client.query<{
+      relation: string; column: string; trigger: string;
+    }>(
+      `select c.relname::text as relation,
+              pg_catalog.substr(t.tgname, 11) as column, t.tgname as trigger
+         from pg_catalog.pg_trigger t
+         join pg_catalog.pg_class c on c.oid = t.tgrelid
+         join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+        where not t.tgisinternal and n.nspname = 'public'
+          and t.tgname like 'immutable\\_%'
+          and pg_catalog.pg_get_triggerdef(t.oid) like '%seen.refuse_identifier_change(%'
+        order by 1, 2`,
+    );
+    const chosen = loopMade.find((row) => members.some(
+      (member) => member.relation === row.relation && member.column === row.column
+        && member.basis === 'authored identifier',
+    )) ?? loopMade[0];
+    if (chosen === undefined) {
+      throw new Error(
+        'No trigger in schema public was created by the loop in part 9, so exempting a member '
+        + 'from it would prove nothing about what an entry in seen.mutable_identifiers() buys. '
+        + 'Either the loop created none, which the migration raises on, or its naming changed.',
+      );
+    }
+    const member = members.find(
+      (entry) => entry.relation === chosen.relation && entry.column === chosen.column,
+    );
+    if (member === undefined) {
+      throw new Error(
+        `The loop guards public.${chosen.relation}.${chosen.column} and the set derived here does `
+        + 'not hold it, so the two rules are not the same two rules and this probe would measure '
+        + 'a column the loop and this file disagree about.',
+      );
+    }
+
+    /** The trigger the loop put on the chosen column, or nothing. */
+    const guardStanding = async (): Promise<boolean> => {
+      const { rowCount } = await client.query(
+        `select 1 from pg_catalog.pg_trigger t
+          where t.tgrelid = pg_catalog.format('public.%I', $1::text)::regclass
+            and not t.tgisinternal and t.tgname = $2`,
+        [chosen.relation, chosen.trigger],
+      );
+      return (rowCount ?? 0) > 0;
+    };
+
+    /** `seen.mutable_identifiers()` replaced by a list, inside the open transaction,
+     * so the migration's own definition comes back on the rollback. */
+    const exempting = async (entries: readonly string[]): Promise<void> => {
+      const values = entries.length === 0
+        ? "(null::text, null::text, null::text)"
+        : entries.map((entry) => `('${entry.split('.')[0]}', '${entry.split('.')[1]}', `
+          + "'a probe in rls.test.ts, rolled back')").join(', ');
+      await client.query(
+        `create or replace function seen.mutable_identifiers()
+           returns table (relation text, column_name text, reason text)
+           language sql stable set search_path = '' as $fn$
+             select v.relation, v.column_name, v.reason
+               from (values ${values}) as v(relation, column_name, reason)
+              where v.relation is not null;
+           $fn$`,
+      );
+    };
+
+    await client.query('begin');
+    let entryBuys;
+    try {
+      await client.query('set local role service_role');
+      const tenant = await tenantSeeded(
+        `Tenant whose ${chosen.relation} an exemption would let move`, chainTo(chosen.relation),
+      );
+      const asShipped = await probe(member, tenant);
+
+      await client.query('reset role');
+      await exempting([`${chosen.relation}.${chosen.column}`]);
+      await client.query(
+        `drop trigger ${chosen.trigger} on public.${chosen.relation}`,
+      );
+      const { rows: walked } = await client.query<{ members: string[] }>(
+        'select seen.guard_authored_identifiers() as members',
+      );
+      const putBackDespiteTheEntry = await guardStanding();
+
+      await client.query('set local role service_role');
+      const withTheEntry = await probe(member, tenant);
+
+      // And the other direction, so that a loop creating nothing cannot pass: the
+      // list empty again, the trigger dropped again, and the loop run again.
+      await client.query('reset role');
+      await exempting([]);
+      if (await guardStanding()) {
+        await client.query(`drop trigger ${chosen.trigger} on public.${chosen.relation}`);
+      }
+      await client.query('select seen.guard_authored_identifiers()');
+      entryBuys = {
+        theColumnProbed: `${chosen.relation}.${chosen.column}`,
+        refusedAsShipped: asShipped !== 'accepted',
+        theLoopStillWalkedIt: walked[0].members.includes(`${chosen.relation}.${chosen.column}`),
+        putBackDespiteTheEntry,
+        acceptedWithTheEntry: withTheEntry === 'accepted',
+        putBackWithTheEntryGone: await guardStanding(),
+      };
+    } finally {
+      await client.query('rollback');
+    }
+    expect(
+      entryBuys,
+      `Measured on public.${chosen.relation}.${chosen.column}, which the loop guards with `
+      + `${chosen.trigger}: the update answered ${entryBuys.refusedAsShipped ? 'a refusal' : 'accepted'} `
+      + 'as the schema ships, and with the column named in seen.mutable_identifiers() and the '
+      + `trigger dropped it answered ${entryBuys.acceptedWithTheEntry ? 'accepted' : 'a refusal'}. `
+      + 'An entry in that list has to take the refusal off in production and not merely take the '
+      + 'column out of this file\'s measurement, which is F85; the loop still has to walk the '
+      + 'column, so that it is reported rather than invisible; and with the list empty again the '
+      + 'loop has to put the trigger back, because otherwise a loop that created nothing at all '
+      + 'would satisfy every line above',
+    ).toEqual({
+      theColumnProbed: `${chosen.relation}.${chosen.column}`,
+      refusedAsShipped: true,
+      theLoopStillWalkedIt: true,
+      putBackDespiteTheEntry: false,
+      acceptedWithTheEntry: true,
+      putBackWithTheEntryGone: true,
+    });
+  });
 });

@@ -122,13 +122,26 @@
 -- cascade was for is refused with 23503 the moment a connection has one order or
 -- one settlement, and succeeds only while the account has no data at all. An
 -- operation that works on an empty database and fails on a full one is the worst of
--- the two answers, so a trigger on each of the two columns refuses it outright, with
--- a message saying what a real rename would be: a migration that says so, drops the
--- trigger and moves the rows itself. Both columns, because one of them was left where the
--- keys had it for a round (F72): the identifier on the connection answered
--- `accepted` on an account that had not traded and 23503 on one that had, which is
--- the shape this section exists to remove, on the column that routes the connector
--- and sits beside the credential reference for that seller account. It says
+-- the two answers, so every column this schema authors a marketplace identifier on
+-- refuses the change outright, with a message saying what a real rename would be: a
+-- migration that says so, drops what refuses it, moves the catalogue and every column
+-- keyed to it in one transaction, and puts the refusals back. Which columns those are,
+-- and what refuses each, is derived by the last section of this file and is not listed
+-- here, because a list here is the count this paragraph has just refused to write and
+-- three rounds have now paid for one: an earlier head of this file named the places
+-- the schema writes an identifier and left out `public.claims.marketplace` (F80); the
+-- section that took the identifier off the connection said it had taken one of the two
+-- columns holding the value where nine hold it (F72); and the round that repaired this
+-- sentence to name two triggers made it wrong again by installing a third, on
+-- `public.claims`, which `claims_marketplace_fkey` carries a rename into (F82). The
+-- runbook is the same whatever the number is, and the last section reports every member
+-- of the set together with the guard standing on it, which is what a rename drops.
+--
+-- The column on the connection is the one that was left where the keys had it for a
+-- round (F72): the identifier there answered `accepted` on an account that had not
+-- traded and 23503 on one that had, which is the shape this section exists to remove,
+-- on the column that routes the connector and sits beside the credential reference for
+-- that seller account. It says
 -- nothing about whether the right order line was matched, only that the one
 -- that was matched is on the same marketplace: deterministic matching is SEEN-018's
 -- and this removes a class of match it would otherwise have to defend against. And
@@ -458,11 +471,19 @@ create unique index messages_tenant_id_thread_id_external_message_id_key
 --
 -- What this is not. It is not client-reachable and was not before: no role a
 -- browser is bound to may write public.marketplaces at all, so this closes a
--- defence-in-depth gap rather than an open door. And it is one table's tenant_id
--- and not every table's: elsewhere in this schema a tenant_id is held in place by
--- part 5's keys, which name no update action and so refuse the move while a child
--- stands, and a childless row's tenant_id can still be moved by a role that can
--- write it. That is a wider question than F65 and it is not settled here.
+-- defence-in-depth gap rather than an open door. And it is one table's tenant_id and
+-- not every table's, which is a division of labour inside this file rather than a gap
+-- in it: this section takes the catalogue's own, because the cascade made it another
+-- table's problem and because the message a person meets here has to say that a
+-- credential reference is what would move; the last section of this file takes every
+-- tenant_id in public, by deriving the set from the catalogue instead of naming the
+-- tables. So no tenant_id in this schema can be moved by any role, with a child under
+-- the row or without, and no repair path moves one: an onboarding or a support
+-- operation that needs a row in another tenant writes a new row, and an operation that
+-- genuinely needs the value itself to travel is a migration that drops the guard the
+-- last section reports, moves what hangs off the value in one transaction and puts it
+-- back. F65 is where the question was raised, and the foot of this file is where it is
+-- answered, over every table in public that carries the column.
 create or replace function seen.refuse_marketplace_tenant_change()
 returns trigger
 language plpgsql
@@ -727,12 +748,69 @@ comment on function seen.refuse_identifier_change() is
 
 revoke all on function seen.refuse_identifier_change() from public;
 
-do $$
+-- The one way to argue with the derived set, and what an entry costs ---------------
+--
+-- F85. `IMMUTABLE_IDENTIFIER_EXCEPTIONS` in packages/core/db/tables.ts was written as
+-- the place a later author names a member of this set that may legitimately change,
+-- and the loop below read no such list. There is no route by which a TypeScript
+-- constant could reach a `DO` block, so an entry there stopped the suite probing that
+-- member while the trigger went on refusing the update in production: the one
+-- documented way to argue with the derived set silenced the measurement and changed
+-- nothing about the schema. So the list the schema honours is this function, written
+-- beside the loop that reads it, and the suite reads it back out of the database and
+-- holds its own copy equal to it, so that neither can be changed alone.
+--
+-- Empty, and the emptiness is the claim rather than a placeholder: a tenant id never
+-- moves, because a new tenant gets a new uuid and none of the old one's rows, and a
+-- marketplace identifier never changes, because an account at another marketplace is
+-- another connection and a claim filed on one rail is not the claim on another. The
+-- reason is a column and not a comment beside the entry, because it is the thing a
+-- reviewer argues with. An entry costs its author a `drop trigger` in the same
+-- migration as well: the loop below declines to create a trigger it is told to skip
+-- and never removes one that is already standing.
+create or replace function seen.mutable_identifiers()
+returns table (relation text, column_name text, reason text)
+language sql
+stable
+set search_path = ''
+as $$
+  select v.relation, v.column_name, v.reason
+    from (values (null::text, null::text, null::text)) as v(relation, column_name, reason)
+   where v.relation is not null;
+$$;
+
+comment on function seen.mutable_identifiers() is
+  'The members of the derived immutable set that may nonetheless be changed by an update, one row '
+  'per column with the operation that needs it. Empty. Read by the loop that creates the triggers, '
+  'and mirrored by IMMUTABLE_IDENTIFIER_EXCEPTIONS in packages/core/db/tables.ts, which the suite '
+  'holds equal to this so that neither can be changed alone.';
+
+revoke all on function seen.mutable_identifiers() from public;
+
+-- And the loop is a function rather than an anonymous block, for one reason: an
+-- anonymous block cannot be run a second time, and what has to be shown about the
+-- list above is that an entry in it changes the schema and not only the measurement.
+-- Exempt a member, drop the trigger the loop gave it, call this: the trigger stays off
+-- and the update it refused is accepted. That is the whole of what F85 was, and as a
+-- `DO` block it was unmeasurable. It returns the set it derived so that a caller sees
+-- what it walked rather than inferring it from the triggers that came out.
+create or replace function seen.guard_authored_identifiers()
+returns text[]
+language plpgsql
+set search_path = ''
+as $$
 declare
   member record;
   everyone text[] := '{}';
+  exempt text[] := '{}';
   offenders text[];
 begin
+  select pg_catalog.array_agg(pg_catalog.format('%s.%s', m.relation, m.column_name))
+    into exempt from seen.mutable_identifiers() m;
+  if exempt is null then
+    exempt := '{}';
+  end if;
+
   for member in
     with catalogue as (
       select con.conindid as key_index, con.conrelid as relid,
@@ -776,10 +854,13 @@ begin
      order by 1, 2
   loop
     everyone := everyone || pg_catalog.format('%s.%s', member.relation, member.column_name);
-    -- Left alone where an update of this column already raises: the three triggers
-    -- above say what a general message cannot, and two triggers refusing one
-    -- statement would hand a person whichever message sorted first.
-    if not exists (
+    -- Left alone where an update of this column already raises: the sections above
+    -- say what a general message cannot, and two triggers refusing one statement
+    -- would hand a person whichever message sorted first. Left alone too where
+    -- seen.mutable_identifiers() names it, which is the one way to argue with the
+    -- set and the only thing here that is a list somebody wrote.
+    if not pg_catalog.format('%s.%s', member.relation, member.column_name) = any(exempt)
+      and not exists (
       select 1
         from pg_catalog.pg_trigger t
        where t.tgrelid = member.relid and not t.tgisinternal
@@ -804,7 +885,8 @@ begin
 
   select pg_catalog.array_agg(entry) into offenders
     from pg_catalog.unnest(everyone) as entry
-   where not exists (
+   where not entry = any(exempt)
+     and not exists (
      select 1
        from pg_catalog.pg_trigger t
       where t.tgrelid = pg_catalog.format(
@@ -820,6 +902,24 @@ begin
       'moves into another tenant, or onto another marketplace, by one statement that passes no '
       'policy and writes no audit event', pg_catalog.array_to_string(offenders, ', ');
   end if;
+
+  return everyone;
+end;
+$$;
+
+comment on function seen.guard_authored_identifiers() is
+  'Derives every column in schema public holding an identifier this schema authors, by the two '
+  'rules argued for above, creates the trigger refusing an update of each where nothing already '
+  'refuses one and seen.mutable_identifiers() does not exempt it, and raises if the set came back '
+  'empty or if any member of it is left with nothing in the way. Returns the set. Run by this '
+  'migration and by the suite, which calls it again to show that an exemption takes the trigger '
+  'off rather than only taking the column out of the measurement.';
+
+revoke all on function seen.guard_authored_identifiers() from public;
+
+do $$
+begin
+  perform seen.guard_authored_identifiers();
 end;
 $$;
 

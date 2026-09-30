@@ -124,12 +124,25 @@ begin
     -- key, tenant_id among them, and tenant_id is not null. What that costs is the
     -- ordinary delete of the parent row: measured with a bare set-null in this
     -- key's place, deleting the settlement line a claim was credited by, or the
-    -- settlement or the connection it hangs from, is refused with 23502, so a line
-    -- cannot be removed or re-ingested while a claim points at it. A tenant's own
-    -- erasure is not the case that proves it, though this comment used to say it
-    -- was: with a bare key in place the erasure is accepted, because the cascade
-    -- removes the child before the set-null can reach it, and the order two sibling
-    -- cascade actions run in is not something a reason may rest on.
+    -- settlement or the connection it hangs from, is refused with 23001, so a line
+    -- cannot be removed or re-ingested at all while a claim points at it.
+    --
+    -- Which layer refuses it, and why the code here changed. This comment said 23502
+    -- for six rounds, the not-null constraint on tenant_id, and that was the whole of
+    -- what stood between a referential action and a blanked tenant id when part 5 was
+    -- written. Part 9's last section puts a before-update trigger on every tenant_id
+    -- in public, and a before-update trigger runs ahead of the not-null check, so the
+    -- trigger is what refuses the bare set-null now and the not-null constraint is no
+    -- longer the only thing in the way. What the column list buys is unchanged, because
+    -- both refusals fall on the same delete; what changed is the reason, and a later
+    -- author adding a ninth set-null key, or weighing whether naming the column is
+    -- still worth it, reads the reason. The assertion that measures this is in
+    -- packages/core/db/schema.test.ts and prints the code the database gave it.
+    --
+    -- A tenant's own erasure is not the case that proves it, though this comment used
+    -- to say it was: with a bare key in place the erasure is accepted, because the
+    -- cascade removes the child before the set-null can reach it, and the order two
+    -- sibling cascade actions run in is not something a reason may rest on.
     if key.on_delete = 'set null' then
       action := format('set null (%I)', key.child_column);
     else
