@@ -879,6 +879,78 @@ that machinery gave the next review a new surface to find something on. That is 
 it is not wasted work, but it is a loop with no natural end, and the reason this Outcome can say the ticket is
 done is that a reviewer was finally asked to separate the two and answered plainly.
 
+**Then an audit of the schema alone found twelve things, two of them high, and the reason it found them is the
+reason this ticket ran to fourteen attempts.** Three Codex rounds had died on a usage limit, so rather than
+retry the same review a fifth time the question was changed: 135 agents across eight attack dimensions, told
+that the guards, the scanners, the turbo cache and the wording of comments were out of scope and to return
+empty if that was all they could find. Every finding went to three independent refuters with distinct lenses,
+each told to run the reproduction and to default to refuted when uncertain, and a completeness critic then
+asked what the eight had not looked at. 42 findings were attacked, 8 survived, and the critic found 4 more.
+
+Five review rounds had found nothing of this kind because every one of them was attacking the guards. That is
+worth stating plainly in a delivery record: the ticket spent its last five rounds hardening the machinery that
+checks the schema while the schema itself carried two high defects, and the thing that surfaced them was
+changing what the reviewer was pointed at rather than how carefully it looked.
+
+**The first high is that the identifiers this schema invents were not constrained to be what their own comments
+said they were.** `marketplace` was bare `text not null` on the five tables criterion 4 names, with no key, no
+check and no domain, while the column comment said it is one of the six the catalogue defines. Measured:
+`'bol'`, `'BOL'` and `'not-a-marketplace'` all accepted under one external id, so the criterion-4 unique index
+was an idempotency key only while the speller stayed consistent and a connector changing its spelling would
+have doubled the trade record silently. The same column need not agree with the parent it hung from, so an
+order carrying `amazon` sat on a Bol connection and two shipments with one external id hung off one order.
+
+It is now a foreign key chain through the parent each row already hangs from, with `claims` keyed directly
+because it hangs from nothing else that names a marketplace. That is deliberately stronger than six direct
+keys, which would have made every value a real identifier and still left every row free to disagree with its
+parent, which was half of what the audit measured. Part 2's refusal of value-set constraints does not govern
+here and part 9 argues why rather than assuming: that refusal is about a marketplace-supplied vocabulary, where
+a value nobody anticipated must land in the record rather than be rejected, and `marketplace` is not supplied
+by a marketplace at all. This schema invents it, part 1 creates it, part 3 seeds the six from the routing
+table, and Bol cannot send a seventh.
+
+**The second high is that `order_lines` carried no uniqueness on the line id a marketplace gave it**, so
+re-ingesting one order duplicated every line and no upsert was possible. SEEN-014 is specified as idempotent
+upserts; this made that impossible to write. With it, `order_id` now travels in the keys the way part 5 paid to
+carry `tenant_id`, which closes the case the audit found beside it: a return whose line belonged to another
+order, and a settlement line matched to an order line on another marketplace, both of which SEEN-018 would have
+stored and SEEN-019 and SEEN-020 would then have read as truth.
+
+**The critic's high is a privacy promise the schema could not keep and did not say so.** Erasing a tenant
+destroyed the only mapping saying which stored objects were its own while the bytes stayed in the bucket. The
+fix refuses to overreach, and the reasoning is the good part: a database cannot delete bytes, so a trigger that
+tidied up storage would orphan files while reading, from inside the schema, like a fix. What this ticket owes
+is the mapping surviving the cascade, so `seen.pending_object_erasures` is written from `storage.objects` by
+prefix as the tenant is erased, owner-only and reachable by no Data API role, and emptying it is now one of
+SEEN-083's acceptance criteria. It reads the bucket rather than the evidence rows deliberately: an upload whose
+row was never written is bytes with no row at all, and that is the case an erasure must not walk past. The
+prefix is what makes any of it findable, so `storage_path` is now checked against its own `tenant_id`, widened
+to `statements.storage_path`, because a convention a sweep rests on has to hold of every column that addresses
+an object.
+
+**And the seed disagreed with the routing table.** The document was right, established before either was
+touched: the routing table's own consequence sentence says Bol is the only marketplace with no messaging API so
+its correspondence runs through the forwarded mailbox, the PRD ships it at FR-28 and FR-29, and SEEN-062 and
+SEEN-063 build it. The cell reads `none by API (assisted via inbox)` and the parser took `none` off the front
+of a negation. The parser now refuses a cell whose text after the mode runs into another mode, rather than
+reading the first and keeping the rest, which is the same shape as every deny-list this ticket has replaced.
+
+**What the audit ruled out is worth as much as what it found**, because it is the first time anything measured
+these rather than asserting them: no view, materialised view, foreign or partitioned table in `public`; every
+`seen` function with an empty `search_path` and only `current_tenant` reachable; every temporal column
+`timestamptz` and every cents column `bigint`; `external_id` not null on all five tables of criterion 4; no
+partial or expression unique index anywhere; no `NOT VALID` and no `DEFERRABLE` constraint; all eight set-null
+keys in the column-list form so no cascade can fail on a not-null violation; `anon` holding no privilege on any
+table; and criterion 3 failing closed on both a missing claim and a malformed one.
+
+**Two mistakes of the running of it, recorded because the receipt should carry them.** The two repair batches
+were given separate files but they shared one local Postgres and one working tree, so one batch's `db:reset`
+landed inside the other's test run and produced a polluted RED and a green that exited non-zero; record 267 is
+the honest green, taken once both were in the tree. And the reconciliation of the set totals from eight parts
+to ten, which had been reserved, was done by the second batch because the gate refuses a green that exited
+non-zero and two assertions were failing on it. Totals only, no part renumbered, and said plainly rather than
+folded in.
+
 ## Slices
 
 The starting slice plan, one session each; the solution stage adopts or amends it (SEEN-104). A slice is at most 2 points and a ticket has at most four.
