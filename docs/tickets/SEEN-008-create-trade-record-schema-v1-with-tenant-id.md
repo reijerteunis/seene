@@ -602,8 +602,12 @@ reaches it by any path.
 
 **F37 and F38 are both the class this ticket keeps producing: a statement the file's own behaviour
 contradicts.** F37 was a count of seven where the directory holds eight, and it was removed rather than
-corrected, because that number had already gone stale five times here. A scanner now reads every comment in
-the package and in the set's members and fails when a count differs from disk. Hunting its twins found one
+corrected, because that number had already gone stale five times here. A scanner now reads the comments in the package
+and in the set's members and fails when a count it can recognise differs from disk, which is a count
+standing in front of a member noun and, since F75, an indefinite ordinal in front of one. It deliberately
+does not read a bare cardinal, and F75 is what made the difference matter: this sentence claimed the whole
+of it and stood two files away from two bare counters the scanner cannot see, in the one document the scan
+does not reach. Hunting its twins found one
 that was simply wrong: eighteen currency columns where there are sixteen. F38 was part 8 claiming no function
 it creates is callable except through its trigger, while omitting the one function it creates after that
 block. The block moved to the end of the file, because a list of everything a file creates cannot sit anywhere
@@ -1022,6 +1026,53 @@ criteria while the journal stood at review. Notes 207 and 261 are the first two.
 holds to is the one the reviewer read out of the earlier commits: the regression, the advance out of tdd, and
 then the `## Outcome`, the status and the ticks in one commit before the triage, so the fingerprint the review
 attests covers a ticket file that already says what it delivered.
+
+**A third round returned it on six more, and this time the round itself was the finding.** Every acceptance
+criterion was verified by execution against the live database rather than read out of the journal, and all five
+held. Every update route to a parent disagreement was probed and each is refused 23503. No partial, expression,
+deferrable or invalid unique index remains anywhere in `public` or `seen`, so F69's class is closed and not only
+its instance. The seed is an upsert, so part 10's re-seed cannot cascade a tenant's connections away. Nothing
+the review could reach opened a cross-tenant, privilege, billing or erasure hole. Then five of its six findings
+were one class, and it was the class this ticket had already produced twelve times.
+
+**F72 was the one with behaviour, and it is the two-answer shape again.** The immutability trigger F68 added
+covered `public.marketplaces` and not `public.connections.marketplace`, which carries the same identifier and
+sits beside `credential_ref`, the pointer to that seller account's credentials. A service_role repoint answered
+`accepted` on a connection with nothing under it and `23503` on one carrying an order, which is the answer part
+9's own comment said it had removed: a rule that depends on whether an account has traded is not a rule. Both
+columns that hold an identifier now refuse a change with 23001, and the test is an `UPDATE`, because the review
+observed that every marketplace-disagreement test in that block was an `INSERT`, which is F27's own lesson
+about six probes that all tested one verb.
+
+**F73 put a false count in the sentence a person reads at the moment they are refused.** Part 9 said none of
+the nine keys carrying `marketplace` names an update action and had itself created one that does, 140 lines
+earlier. The repair is not a corrected number: the `raise` message now carries no count at all and says what
+the refusal means and what a rename is instead, with the reason written beside the function. A number in a
+`raise` is a claim that rots where nobody is looking, and this one had been falsified by its own file.
+
+**The other four were sentences that outlived what they described, and the useful work was not the four edits.**
+The F68 repair had rewritten the withdrawn rename claim in two of the three places it lived; the F70 repair had
+removed two of the three places the dropped column was argued for; part 4 miscounted the set as eight in the
+paragraph whose subject is that every part states the set's size and a test checks it; part 8 called itself the
+last migration two parts before the end. Three of those survived a guard that existed and could not see them,
+so each gap was closed rather than each sentence merely corrected: four entries in `WITHDRAWN_SHAPE_CLAIMS`,
+an indefinite ordinal added to the set-size scanner, and `lastMemberClaimedInComments` comparing a claim of
+lastness against the directory. A fifth copy of the rename claim turned up in part 9's own probe while the work
+was open, which is the point: the class is found in a new place every round because it is repaired one sentence
+at a time.
+
+**Two widenings were refused, and the measurements are the reason they are worth recording.** A guard for the
+bare substantive cardinal, which would have caught part 4's other two counters, matches fourteen sentences in
+the three authorities, of which two are the instances and six of the rest count something that is not a file at
+all: `these six find nothing`, `the two against each other`, `all four are read`. Which cardinal refers to a
+migration is anaphora, and no fact on disk decides it; filtering to counts the directory contradicts does not
+help, because six things that are not files differ from ten as surely as a stale count does. So part 4 states no
+number instead. And a guard for F74's sentence would have to turn an English noun phrase into an identifier and
+ask `pg_attribute`, where a phrase that maps to no column is indistinguishable from a phrase that was never a
+column name, so every sentence in every table comment becomes a candidate. Both refusals are written where the
+list is. The standard this ticket settled on is that a guard reporting a number nobody can trust is worse than a
+gap somebody has written down, and it now has three such gaps written down rather than three guards that would
+have to be believed.
 
 ## Slices
 
