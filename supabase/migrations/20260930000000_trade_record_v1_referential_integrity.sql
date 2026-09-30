@@ -112,8 +112,10 @@
 -- constrain status, mode, line_type, direction, channel or any other vocabulary a
 -- marketplace supplies: part 2's principle governs all of those and is untouched.
 -- What it does do, having built the chain, is make a marketplace identifier
--- immutable in both places this schema writes one, the catalogue row and the
--- connection keyed to it, and say so. Part 3 chose `on update cascade` on the
+-- immutable wherever this schema authors one rather than deriving it from a parent,
+-- and the last section of this file derives those places from the catalogue instead
+-- of counting them here: a count in a comment is wrong at the next migration, and
+-- two rounds of this file wrote one that already was. Part 3 chose `on update cascade` on the
 -- connections key so that renaming an identifier in the catalogue would carry the
 -- connections with it; the keys below reference `connections (tenant_id, id,
 -- marketplace)` and name no update action, which is NO ACTION, so the rename that
@@ -568,8 +570,9 @@ revoke all on function seen.refuse_marketplace_rename() from public;
 -- Nor where the same identifier is written on the connection ---------------------
 --
 -- F72. The trigger above takes the catalogue row, and the paragraphs around it said
--- the file makes a marketplace identifier immutable. It made one of the two columns
--- that hold one immutable. public.connections.marketplace carries the same value,
+-- the file makes a marketplace identifier immutable, where it had taken the
+-- catalogue row alone and no column that holds the value it defines.
+-- public.connections.marketplace carries the same value,
 -- and it is the one the rest of the system reads: the connector, the capability
 -- matrix and the claims rail all route on it, and it sits beside credential_ref, the
 -- pointer to the secret for that seller account.
@@ -622,6 +625,203 @@ create trigger refuse_connection_marketplace_change before update on public.conn
   execute function seen.refuse_connection_marketplace_change();
 
 revoke all on function seen.refuse_connection_marketplace_change() from public;
+
+-- Nor anywhere else this schema authors an identifier ---------------------------
+--
+-- F78 and F80, which are one defect met twice more. F78: one `update
+-- public.connections set tenant_id = <another tenant>` carried a seller account's
+-- credential reference, its scopes and its status into a tenant that never asked
+-- for them. Measured as service_role in a rolled-back transaction: the statement
+-- was accepted, that tenant's own signed-in user read the row back under its own
+-- claim, the owning tenant read nothing, no audit event was written by either
+-- party and nothing raised. The identical statement on a connection carrying one
+-- order was refused 23503 by orders_connection_id_fkey. That is the two-answer
+-- shape the sections above exist to remove, on the credential move
+-- refuse_marketplace_tenant_change was written to prevent by the cascade route,
+-- reached by the direct one instead. F80: public.claims.marketplace is keyed
+-- straight at the catalogue, so all six identifiers are valid new values, and one
+-- update repointed a submitted claim onto a rail it was not filed on while its
+-- external case id and its claim text stayed as filed.
+--
+-- What is different about this section, and why it is the last of them. Every
+-- finding from F55 onwards has been a column that should not change with nothing
+-- stopping it, found one at a time, and every repair counted the columns it
+-- happened to be looking at. The head of this file counted the places a marketplace
+-- identifier is written and named two, where claims is a third. The section above
+-- counted the columns that hold one and named two, where nine columns hold the
+-- value and three of them are authored rather than derived from a parent. A count
+-- written by hand is wrong at the next migration, so this section writes none: the
+-- set comes from the catalogue, by two rules a reader can argue with.
+--
+-- The first rule. tenant_id on every table of public that carries one, which is
+-- part 8's settlement that a tenant id is an identity and not a value, applied
+-- where part 8 did not: part 8 took public.tenants, and the section above took
+-- public.marketplaces because the cascade made it another table's problem. Every
+-- other one was left to part 5's keys, and the measurement says what those keys
+-- buy. Where a row hangs from a parent by a mandatory key the tenant travels
+-- along, the move is refused 23503 whether or not anything hangs below, because
+-- the key to the parent breaks first. Where a row hangs from nothing but
+-- public.tenants, or from a parent by a nullable key, the move is simply accepted:
+-- measured on this stack before this section existed, agent_runs, approvals,
+-- claims, connections, findings, invoices, message_threads, policies, products,
+-- statements and users all moved a row into another tenant by one statement, four
+-- of them answering 23503 once the row had something under it and the rest
+-- answering accepted either way.
+--
+-- The second rule. Every column holding an identifier this schema authors rather
+-- than derives from a parent. A catalogue key is a unique key of exactly
+-- (tenant_id, X) whose X this schema does not mint per row, so no default, no
+-- identity and nothing generated, and which some foreign key points at;
+-- public.marketplaces (tenant_id, marketplace) is one, public.products (tenant_id,
+-- sku) is not because nothing points at it, and every (tenant_id, id) is not
+-- because id carries gen_random_uuid(). A column holds that identifier when a
+-- foreign key of its own points at exactly that key, since a foreign key names one
+-- unique key of its parent and nothing else is then choosing the value:
+-- connections.marketplace and claims.marketplace are both of those and both are
+-- free to become any of the six. A column keyed to a parent row instead, as
+-- orders.marketplace is to connections (tenant_id, id, marketplace), takes its
+-- value from a parent that was chosen first and is held in place by that parent's
+-- own entry in this set, which is the chain this file already argues for.
+--
+-- What the rules cannot see, said plainly rather than left to be discovered: an
+-- identifier this schema authors that no key points at, a value with no catalogue
+-- behind it at all. There is none today. A reader who adds one adds it to the set
+-- by adding the catalogue, or it is invisible here, and that is the gap this
+-- section writes down rather than papering over with a sentence that would read as
+-- coverage.
+--
+-- One function and one trigger per member, rather than a message per column. The
+-- sections above keep their own triggers and their own messages, because each says
+-- something a general message cannot: that the cascade carries a credential
+-- reference, that a rename is a migration, that an account at another marketplace
+-- is another connection. The loop below leaves any column a trigger already
+-- refuses an update of alone, and takes the rest.
+create or replace function seen.refuse_identifier_change()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+declare
+  identifier text := tg_argv[0];
+begin
+  raise exception
+    'an identifier this schema authors is not changed by an update: %.% cannot become %. It is '
+    'either a tenant id, which is an identity and not a value and which every policy, every key '
+    'and every audit event in this schema routes by, or a value this schema invented and keyed a '
+    'catalogue to, which routes the connector, the credentials beside it and the rail a claim was '
+    'filed on. Neither is carried from one row to another by a statement: a new tenant gets a new '
+    'id and none of the old one''s rows, and an account or a claim on another marketplace is '
+    'another row with its own credentials and its own history. Changing one is a migration that '
+    'drops this trigger, moves what hangs off the value in one transaction and puts it back.',
+    tg_table_name, identifier, pg_catalog.to_jsonb(new) ->> identifier
+    using errcode = 'restrict_violation',
+          detail = pg_catalog.format(
+            'the row carries %L', pg_catalog.to_jsonb(old) ->> identifier);
+end;
+$$;
+
+comment on function seen.refuse_identifier_change() is
+  'Refuses any update that changes the column named in its trigger argument, so that an '
+  'identifier this schema authors is immutable wherever the catalogue says the schema authors '
+  'one, rather than wherever somebody remembered to write a trigger.';
+
+revoke all on function seen.refuse_identifier_change() from public;
+
+do $$
+declare
+  member record;
+  everyone text[] := '{}';
+  offenders text[];
+begin
+  for member in
+    with catalogue as (
+      select con.conindid as key_index, con.conrelid as relid,
+             a.attnum as attnum, a.attname::text as column_name
+        from pg_catalog.pg_constraint con
+        join pg_catalog.pg_attribute a
+          on a.attrelid = con.conrelid and a.attnum = any(con.conkey) and not a.attisdropped
+       where con.contype in ('p', 'u')
+         and con.connamespace = 'public'::regnamespace
+         and cardinality(con.conkey) = 2
+         and a.attname <> 'tenant_id'
+         and not a.atthasdef and a.attidentity = '' and a.attgenerated = ''
+         and exists (select 1 from pg_catalog.pg_attribute t
+                      where t.attrelid = con.conrelid and t.attname = 'tenant_id'
+                        and t.attnum = any(con.conkey) and not t.attisdropped)
+         and exists (select 1 from pg_catalog.pg_constraint f
+                      where f.contype = 'f' and f.conindid = con.conindid)
+    ),
+    holders as (
+      select f.conrelid as relid, child.attname::text as column_name
+        from pg_catalog.pg_constraint f
+        join catalogue k on k.key_index = f.conindid
+        cross join lateral unnest(f.conkey, f.confkey) as pair(child_att, parent_att)
+        join pg_catalog.pg_attribute child
+          on child.attrelid = f.conrelid and child.attnum = pair.child_att
+       where f.contype = 'f' and pair.parent_att = k.attnum
+    )
+    select c.relname::text as relation, m.column_name, m.relid
+      from (select relid, column_name from catalogue
+            union all
+            select relid, column_name from holders) m
+      join pg_catalog.pg_class c on c.oid = m.relid
+    union all
+    select c.relname::text, 'tenant_id', c.oid
+      from pg_catalog.pg_class c
+      join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+      join pg_catalog.pg_attribute a
+        on a.attrelid = c.oid and a.attname = 'tenant_id'
+       and a.attnum > 0 and not a.attisdropped
+     where n.nspname = 'public' and c.relkind in ('r', 'p')
+     order by 1, 2
+  loop
+    everyone := everyone || pg_catalog.format('%s.%s', member.relation, member.column_name);
+    -- Left alone where an update of this column already raises: the three triggers
+    -- above say what a general message cannot, and two triggers refusing one
+    -- statement would hand a person whichever message sorted first.
+    if not exists (
+      select 1
+        from pg_catalog.pg_trigger t
+       where t.tgrelid = member.relid and not t.tgisinternal
+         and pg_catalog.pg_get_triggerdef(t.oid) like
+             '%BEFORE UPDATE%new.' || member.column_name
+             || ' IS DISTINCT FROM old.' || member.column_name || '%'
+    ) then
+      execute pg_catalog.format(
+        'create trigger %I before update on public.%I for each row '
+        'when (new.%I is distinct from old.%I) '
+        'execute function seen.refuse_identifier_change(%L)',
+        'immutable_' || member.column_name, member.relation,
+        member.column_name, member.column_name, member.column_name);
+    end if;
+  end loop;
+
+  if pg_catalog.array_length(everyone, 1) is null then
+    raise exception 'the rules above found no column at all in this schema, so the loop guarded '
+      'nothing and every statement below would pass by measuring an empty set. Either the '
+      'migrations before this one did not apply, or a rule was narrowed until it selects nothing';
+  end if;
+
+  select pg_catalog.array_agg(entry) into offenders
+    from pg_catalog.unnest(everyone) as entry
+   where not exists (
+     select 1
+       from pg_catalog.pg_trigger t
+      where t.tgrelid = pg_catalog.format(
+              'public.%I', pg_catalog.split_part(entry, '.', 1))::regclass
+        and not t.tgisinternal
+        and pg_catalog.pg_get_triggerdef(t.oid) like
+            '%BEFORE UPDATE%new.' || pg_catalog.split_part(entry, '.', 2)
+            || ' IS DISTINCT FROM old.' || pg_catalog.split_part(entry, '.', 2) || '%');
+
+  if offenders is not null then
+    raise exception 'these columns hold an identifier this schema authors and no trigger refuses '
+      'an update that changes one: %. A column in that set with nothing in the way is a row that '
+      'moves into another tenant, or onto another marketplace, by one statement that passes no '
+      'policy and writes no audit event', pg_catalog.array_to_string(offenders, ', ');
+  end if;
+end;
+$$;
 
 -- What this migration claims, measured rather than asserted ---------------------
 --

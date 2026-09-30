@@ -404,6 +404,56 @@ export const CONSTRAINED_NOT_BUYER_PII_MARKER = 'to keep it so';
  */
 export const CROSS_TENANT_FOREIGN_KEY_EXEMPTIONS: readonly string[] = [];
 
+/** One column the schema may change after it has been written, and why. */
+export interface MutableIdentifier {
+  /** The column, written `table.column` and unqualified by schema, because the set
+   * is derived over `public` and nothing else. */
+  readonly column: string;
+  /** The operation that legitimately changes it, which is what a reviewer argues
+   * with. */
+  readonly reason: string;
+}
+
+/**
+ * The columns the derived immutable set holds that may nonetheless be changed by an
+ * `UPDATE`. There are none, and the list is empty on purpose.
+ *
+ * What the set is, and why it is derived rather than written here. Every finding
+ * from F55 onwards was one column that should not change with nothing stopping it,
+ * found one at a time, and each repair enumerated the columns it happened to be
+ * looking at: part 9 said it made the identifier immutable "in both places this
+ * schema writes one" when `public.claims.marketplace` is a third, and the F72
+ * section said it had taken "one of the two columns that hold one" when nine columns
+ * hold the identifier and three of them are authored. A count written by hand is
+ * wrong one migration later, so `rls.test.ts` asks `pg_catalog` for the set instead,
+ * by two rules:
+ *
+ *   - `tenant_id` on every table of `public` that carries one, because part 8
+ *     settled that a tenant id is an identity and not a value.
+ *   - every column holding an identifier this schema authors rather than derives
+ *     from a parent: the key column of a catalogue, meaning a unique key of exactly
+ *     `(tenant_id, X)` whose `X` the schema does not mint per row and which a
+ *     foreign key points at, plus every column keyed straight to that pair. A
+ *     column keyed to a parent row instead, as `public.orders.marketplace` is to
+ *     `connections (tenant_id, id, marketplace)`, derives its value from the parent
+ *     and is held in place by the parent's own entry in this set.
+ *
+ * So a table a later migration adds is in the set the moment it carries `tenant_id`,
+ * and a second catalogue is in it the moment a key points at one, without anybody
+ * remembering to extend a list. What the rules cannot see is an authored identifier
+ * that no key points at, which is a value with no catalogue behind it at all: that
+ * one has to be noticed by a person, and it is the gap this file writes down rather
+ * than papers over.
+ *
+ * An exemption costs whoever wants one an entry here with the operation that needs
+ * it. An empty list is the claim that nothing in this schema changes one of these
+ * after the row is written: a tenant id never moves, because a new tenant gets a new
+ * uuid and the rows of the old one are not carried over; and a marketplace
+ * identifier never changes, because an account at another marketplace is another
+ * connection and a claim filed on one rail is not the claim on another.
+ */
+export const IMMUTABLE_IDENTIFIER_EXCEPTIONS: readonly MutableIdentifier[] = [];
+
 /** Where the migrations live, relative to the repository root. */
 export const MIGRATIONS_DIRECTORY = 'supabase/migrations';
 
@@ -1047,6 +1097,32 @@ export const WITHDRAWN_SHAPE_CLAIMS: readonly WithdrawnShapeClaim[] = [
       + 'part 9 are, and why they are deliberately outside these words: both are written in the '
       + 'past tense about a choice that was made and a sentence that was withdrawn, and a '
       + 'withdrawal cannot be recorded by a set forbidden to quote it',
+  },
+  {
+    relation: 'public.claims',
+    spelling: [
+      'make a marketplace identifier immutable in both places this',
+      'schema writes one, the catalogue row and the connection keyed to it',
+    ],
+    instead: 'there are three places this schema writes one, and `public.claims.marketplace` is '
+      + 'the third: it is keyed straight at the catalogue, because a claim hangs from nothing '
+      + 'else that names a marketplace, so every one of the six is a valid new value and nothing '
+      + 'held the one it was filed on in place. Measured as `service_role`, one update repointed a '
+      + 'submitted claim onto a rail it was never filed on while its external case id and its '
+      + 'claim text stayed as filed, which is what the claims rail, the capability matrix, '
+      + "SEEN-066's deadline watch and SEEN-031's credit match all read. Part 9 counts nothing "
+      + 'here now: the last section of it derives from the catalogue every column holding an '
+      + 'identifier the schema authors, and refuses an update of each',
+  },
+  {
+    relation: 'public.claims',
+    spelling: ['It made one of the two columns that', 'hold one immutable'],
+    instead: 'nine columns hold the marketplace identifier and three of them are authored rather '
+      + 'than derived from a parent, so the section that wrote this had taken the catalogue row '
+      + 'and one of the two columns keyed straight at it. The number is the defect and not the '
+      + 'sentence: F55 onwards is one column at a time, each repair counting the columns it '
+      + 'happened to be looking at, so part 9 ends by deriving the set from the catalogue and '
+      + 'guarding every member, and a column that enters the set later fails the suite on arrival',
   },
 ];
 

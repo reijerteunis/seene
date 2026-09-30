@@ -4313,10 +4313,18 @@ describe('the foreign keys between tenant-owned tables', () => {
     // The shipped form first: deleting the settlement line a claim was credited by
     // nulls the reference and leaves tenant_id standing, so the claim survives its
     // parent. Then the bare form in its place, inside the same rolled-back
-    // transaction: it nulls every column of the key, tenant_id among them, and
-    // tenant_id is not null, so the ordinary delete of the parent row is refused
-    // with 23502 and that settlement line cannot be removed or re-ingested at all
-    // while a claim points at it.
+    // transaction: it nulls every column of the key, tenant_id among them, so the
+    // ordinary delete of the parent row is refused and that settlement line cannot
+    // be removed or re-ingested at all while a claim points at it.
+    //
+    // Which layer refuses it, and why the number here changed once. It used to be
+    // 23502, the not-null constraint on tenant_id, because nothing else was in the
+    // way of a referential action that blanked one. Part 9's last section puts a
+    // trigger on every tenant_id in this schema, so the set-null is now refused
+    // 23001 before the not-null check is reached, and the two are the same refusal
+    // to the settlement line: what the column-list form buys is unchanged, and what
+    // is no longer true is that the only thing standing between a referential action
+    // and a tenant id is that the column happens to be not null.
     //
     // A tenant's erasure is not the case that proves it, and the Outcome used to
     // say it was. Measured with the bare form in place, `delete from public.tenants`
@@ -4371,7 +4379,8 @@ describe('the foreign keys between tenant-owned tables', () => {
       + `${measured.bare.deletingTheParentRow} with a bare set-null in its place, and the claim `
       + `${measured.shipped.keepsItsTenant ? 'kept' : 'lost'} its tenant_id. The column-list form `
       + 'is what keeps a not-null tenant_id out of the set: without it the parent row cannot be '
-      + 'deleted at all (23502) while a child points at it',
+      + 'deleted at all while a child points at it, refused 23001 by the trigger part 9 puts on '
+      + 'every tenant_id rather than 23502 by the column being not null',
     ).toEqual({
       shipped: {
         deletingTheParentRow: 'accepted',
@@ -4379,7 +4388,7 @@ describe('the foreign keys between tenant-owned tables', () => {
         keepsItsTenant: true,
         nullsTheReference: true,
       },
-      bare: { deletingTheParentRow: '23502' },
+      bare: { deletingTheParentRow: '23001' },
     });
   });
 });
@@ -7400,6 +7409,85 @@ describe('a marketplace identifier, and the line id a marketplace gave a row', (
       + 'later ticket to write the rename this schema refuses. What is still standing: '
       + `${measured.stillStanding.join('; ') || 'nothing'}`,
     ).toEqual({ theClauseOnTheConnectionsKey: ['c'], stillStanding: [] });
+  });
+
+  it('refuses an update of every column keyed straight at the catalogue, and reports every withdrawn sentence', async () => {
+    // F80, and F79 with it. The two are one test because the second is what makes
+    // the first's record readable by anybody.
+    //
+    // F80: `public.claims.marketplace` is the third column this schema authors a
+    // marketplace identifier in and the second keyed straight at the catalogue,
+    // which is what makes all six valid new values: a claim hangs from nothing else
+    // that names a marketplace, so no parent holds the value it was filed on in
+    // place. Measured as `service_role`, one update repointed a submitted claim onto
+    // a rail it was never filed on while its external case id and its claim text
+    // stayed as filed. Every column keyed the same way is asked here, so the fourth
+    // fails this on arrival rather than at a review; the behaviour of the refusal,
+    // on an idle row and a trading one, is measured over the whole derived set in
+    // `rls.test.ts`, and what this asks is the narrower catalogue question of whether
+    // each of them has something in the way at all.
+    //
+    // F79: `withdrawnShapeClaimsStillStanding` says in its own comment that a claim
+    // gaining a row with no measurement of its own is still read by somebody, because
+    // called with no relation it reports every one. No caller passed no relation: all
+    // four named one, so the two sentences this round withdraws, both about
+    // `public.claims`, would have been held in a list nothing read. The birth-claim
+    // twin does have that call, which is what made the asymmetry invisible to a
+    // reader who checked one of the two. This is the call, and it is preferred over
+    // correcting the sentence for the reason the sentence was written: a withdrawn
+    // claim about a relation nobody has written a measurement for is exactly the one
+    // that survives, gets copied, or comes back.
+    const { rows } = await client.query<{ column: string; guarded: boolean }>(
+      `with holding as (
+         select f.conrelid as relid
+           from pg_catalog.pg_constraint f
+           join pg_catalog.pg_attribute a
+             on a.attrelid = f.conrelid and a.attname = 'marketplace'
+            and a.attnum = any(f.conkey) and a.attnum > 0 and not a.attisdropped
+          where f.contype = 'f' and f.confrelid = 'public.marketplaces'::regclass
+         union
+         select 'public.marketplaces'::regclass
+       )
+       select (c.relname || '.marketplace') as column,
+              exists (
+                select 1
+                  from pg_catalog.pg_trigger t
+                 where t.tgrelid = h.relid and not t.tgisinternal
+                   and pg_catalog.pg_get_triggerdef(t.oid) like
+                       '%BEFORE UPDATE%new.marketplace IS DISTINCT FROM old.marketplace%'
+              ) as guarded
+         from holding h
+         join pg_catalog.pg_class c on c.oid = h.relid
+        order by 1`,
+    );
+    //
+    // The expectation names no column and counts none, which is the whole point of
+    // the round: what it asks is that nothing in the set is unguarded and that the
+    // set is not empty, so a fourth column keyed the same way is held to the same
+    // rule without this file being edited, and a query narrowed until it selects
+    // nothing fails instead of passing.
+    const measured = {
+      withNothingRefusingAnUpdate: rows.filter((row) => !row.guarded).map((row) => row.column),
+      foundNoColumnAtAll: rows.length === 0,
+      stillStanding: withdrawnShapeClaimsStillStanding(sourcesThatDocumentTheSet()),
+    };
+    expect(
+      measured,
+      'The columns keyed straight at the catalogue are '
+      + `${rows.map((row) => row.column).join(', ') || 'none at all, so this query proves nothing'}`
+      + ', and a value keyed straight at the catalogue may become any of the six, because the key '
+      + 'says only that the value exists and no parent row says which one it is. So each of them '
+      + 'needs something refusing an update that changes it, and what has nothing is: '
+      + `${measured.withNothingRefusingAnUpdate.join(', ') || 'nothing'}. And no file that `
+      + 'documents this set may go on counting the places it writes an identifier: this is the '
+      + 'one scan over every withdrawn sentence about the shape of a relation, whatever relation '
+      + 'it was written about, which is what the two this round withdrew about public.claims are '
+      + `read by. What is still standing: ${measured.stillStanding.join('; ') || 'nothing'}`,
+    ).toEqual({
+      withNothingRefusingAnUpdate: [],
+      foundNoColumnAtAll: false,
+      stillStanding: [],
+    });
   });
 });
 

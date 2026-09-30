@@ -20,8 +20,8 @@ import { Client } from 'pg';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import {
-  BILLING_CRITICAL_TABLES, CLIENT_BOUND_ROLES, ERASURE_REGISTRY_TABLE, TABLE_RELKINDS,
-  TENANCY_CLAUSES, TENANT_CLAIM,
+  BILLING_CRITICAL_TABLES, CLIENT_BOUND_ROLES, ERASURE_REGISTRY_TABLE,
+  IMMUTABLE_IDENTIFIER_EXCEPTIONS, TABLE_RELKINDS, TENANCY_CLAUSES, TENANT_CLAIM,
 } from './tables';
 
 // The local Supabase stack's Postgres, the address `pnpm dev:up` prints when it
@@ -895,6 +895,200 @@ describe('a parent row belonging to another tenant', () => {
   });
 });
 
+/** A column a row cannot be written without: not null, no default, not generated. */
+interface Required { table: string; column: string; type: string }
+
+/** A foreign key whose child columns are all required, so a parent must exist first. */
+interface Mandatory { table: string; columns: string[]; parent: string; parentColumns: string[] }
+
+/**
+ * A relation of the public schema whose rows this database's policies govern:
+ * its name, the parent it is a partition of, and whether it is a partitioned
+ * table with nothing under it for a row to be routed into.
+ */
+interface Governed { name: string; partitionOf: string | null; partitionless: boolean }
+
+/** Every such relation, read from the catalogue on each call rather than once,
+ * because the probes below create one and then ask what this block would have
+ * done with it. */
+async function governedRelations(client: Client): Promise<Governed[]> {
+  const { rows } = await client.query<Governed>(
+    `select c.relname as name,
+            case when c.relispartition then p.relname end as "partitionOf",
+            (c.relkind = 'p' and not exists (
+               select 1 from pg_catalog.pg_inherits child where child.inhparent = c.oid
+             )) as partitionless
+       from pg_catalog.pg_class c
+       join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+       left join pg_catalog.pg_inherits i on i.inhrelid = c.oid
+       left join pg_catalog.pg_class p on p.oid = i.inhparent
+      where n.nspname = 'public' and c.relkind = any($1)
+      order by c.relname`,
+    [Object.keys(TABLE_RELKINDS)],
+  );
+  return rows;
+}
+
+async function requiredColumns(client: Client): Promise<Required[]> {
+  const { rows } = await client.query<Required>(
+    `select c.relname as table, a.attname as column,
+            format_type(a.atttypid, a.atttypmod) as type
+       from pg_catalog.pg_attribute a
+       join pg_catalog.pg_class c on c.oid = a.attrelid
+       join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+       left join pg_catalog.pg_attrdef d on d.adrelid = c.oid and d.adnum = a.attnum
+      where n.nspname = 'public' and c.relkind = any($1)
+        and a.attnum > 0 and not a.attisdropped and a.attnotnull
+        and d.adbin is null and a.attidentity = '' and a.attgenerated = ''
+      order by c.relname, a.attnum`,
+    [Object.keys(TABLE_RELKINDS)],
+  );
+  return rows;
+}
+
+/**
+ * The foreign keys every one of whose child columns is required, which are the
+ * only ones a seeded row has to satisfy. Reading all of them instead would make
+ * the seeding order cyclic over keys that are nullable and need no parent at all.
+ */
+async function mandatoryKeys(client: Client, columns: readonly Required[]): Promise<Mandatory[]> {
+  const { rows } = await client.query<Mandatory>(
+    `select c.relname as table, p.relname as parent,
+            (select array_agg(att.attname order by k.ord)
+               from unnest(con.conkey) with ordinality k(attnum, ord)
+               join pg_catalog.pg_attribute att
+                 on att.attrelid = con.conrelid and att.attnum = k.attnum)::text[] as columns,
+            (select array_agg(att.attname order by k.ord)
+               from unnest(con.confkey) with ordinality k(attnum, ord)
+               join pg_catalog.pg_attribute att
+                 on att.attrelid = con.confrelid and att.attnum = k.attnum)::text[]
+              as "parentColumns"
+       from pg_catalog.pg_constraint con
+       join pg_catalog.pg_class c on c.oid = con.conrelid
+       join pg_catalog.pg_class p on p.oid = con.confrelid
+       join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+      where n.nspname = 'public' and con.contype = 'f'`,
+  );
+  const isRequired = (table: string, column: string): boolean =>
+    columns.some((entry) => entry.table === table && entry.column === column);
+  return rows.filter((key) => key.columns.every((column) => isRequired(key.table, column)));
+}
+
+/** The tables in an order that puts every mandatory parent before its child. */
+function seedOrder(tables: readonly string[], mandatory: readonly Mandatory[]): string[] {
+  const ordered: string[] = [];
+  const placed = new Set<string>();
+  const visit = (table: string, chain: string[]): void => {
+    if (placed.has(table)) return;
+    if (chain.includes(table)) {
+      throw new Error(
+        'The mandatory foreign keys of the public schema form a cycle, so no order seeds them '
+        + `all: ${chain.concat(table).join(' -> ')}. A key in that cycle has to become `
+        + 'nullable before a row can be written at all.',
+      );
+    }
+    for (const key of mandatory) {
+      if (key.table === table && key.parent !== table) visit(key.parent, chain.concat(table));
+    }
+    placed.add(table);
+    ordered.push(table);
+  };
+  for (const table of tables) visit(table, []);
+  return ordered;
+}
+
+/**
+ * A value of this type, unique to this tenant and column so that a tenant-scoped
+ * unique index never refuses the second tenant's row. A type nobody has written
+ * a case for refuses loudly: a silent skip would write no row and leave the
+ * table empty, which is how the probe below would pass by finding nothing.
+ *
+ * Every text value begins with the owning tenant's id and a slash, which is part
+ * 10's rule for a column that addresses a stored object: `evidence.storage_path`
+ * and `statements.storage_path` are constrained to name an object under their own
+ * row's prefix, so a fixture writing an arbitrary string into one is refused with
+ * 23514 and seeds no row at all. Applied to every text column rather than to the
+ * two the constraint is on, because a fixture that knew which columns those were
+ * would be a second copy of the rule and would go stale the first time a later
+ * migration adds a third. The prefix is inert everywhere else: no other check in
+ * this schema reads a text column, and the value is still unique per tenant and
+ * column, which is the only property the seeding relies on.
+ */
+function valueFor(type: string, label: string, tenant: string): string | number | boolean {
+  if (type === 'uuid') return randomUUID();
+  if (type === 'text' || type.startsWith('character')) return `${tenant}/${label}`;
+  if (type === 'bigint' || type === 'integer' || type === 'smallint') return 1;
+  if (type.startsWith('numeric')) return 1;
+  // Both from SEEDED_INSTANT, and neither from the clock: a date-bounded
+  // constraint anywhere in this schema, of which a range partition is the one
+  // this file already meets, decides whether a row is accepted from this value.
+  if (type === 'date') return SEEDED_INSTANT.toISOString().slice(0, 10);
+  if (type.startsWith('timestamp')) return SEEDED_INSTANT.toISOString();
+  if (type === 'boolean') return false;
+  if (type === 'jsonb' || type === 'json') return '{}';
+  throw new Error(
+    `This fixture has no value for a column of type ${type}, so it cannot seed a row and the `
+    + 'cross-tenant read below would pass against an empty table. Add the type to valueFor.',
+  );
+}
+
+/**
+ * One row of `table` belonging to this tenant, built from the catalogue: every
+ * required column takes a value of its own type and every mandatory foreign key
+ * takes a parent row the tenant already holds.
+ *
+ * It is a function of its own rather than the body of the loop below because the
+ * partitioned-table probes seed a relation they have just created, and a probe
+ * that wrote its row some other way would say nothing about how this fixture
+ * writes one.
+ */
+async function seedRow(
+  client: Client, table: string, tenant: string, label: string,
+  columns: readonly Required[], keys: readonly Mandatory[],
+): Promise<void> {
+  const row: Record<string, unknown> = { tenant_id: tenant };
+  for (const key of keys.filter((entry) => entry.table === table)) {
+    if (key.parent === 'tenants') continue;
+    const parent = await client.query<Record<string, unknown>>(
+      `select ${key.parentColumns.join(', ')} from public.${key.parent}
+        where tenant_id = $1 limit 1`,
+      [tenant],
+    );
+    if (parent.rowCount === 0) {
+      throw new Error(
+        `No row in public.${key.parent} for ${label} to hang a row of public.${table} from, `
+        + 'so this fixture cannot seed the table and the cross-tenant read below would pass '
+        + 'against an empty table.',
+      );
+    }
+    key.columns.forEach((column, index) => {
+      row[column] = parent.rows[0][key.parentColumns[index]];
+    });
+  }
+  for (const column of columns.filter((entry) => entry.table === table)) {
+    if (row[column.column] !== undefined) continue;
+    row[column.column] = valueFor(
+      column.type,
+      `${label} ${table}.${column.column} ${randomUUID().slice(0, 8)}`,
+      tenant,
+    );
+  }
+  const names = Object.keys(row);
+  try {
+    await client.query(
+      `insert into public.${table} (${names.join(', ')})
+       values (${names.map((_, index) => `$${index + 1}`).join(', ')})`,
+      names.map((name) => row[name]),
+    );
+  } catch (cause) {
+    throw new Error(
+      `This fixture could not seed public.${table} for ${label}, so the cross-tenant read `
+      + `below would pass against an empty table. Postgres said: ${(cause as Error).message}`,
+      { cause },
+    );
+  }
+}
+
 /**
  * Criterion 3 against every table in the public schema, rather than against the
  * three the blocks above seed by hand.
@@ -941,202 +1135,8 @@ describe('tenant isolation on every table in the public schema', () => {
   let a: string;
   let b: string;
 
-  /** A column a row cannot be written without: not null, no default, not generated. */
-  interface Required { table: string; column: string; type: string }
-
-  /** A foreign key whose child columns are all required, so a parent must exist first. */
-  interface Mandatory { table: string; columns: string[]; parent: string; parentColumns: string[] }
-
   let required: Required[];
   let mandatory: Mandatory[];
-
-  /**
-   * A relation of the public schema whose rows this database's policies govern:
-   * its name, the parent it is a partition of, and whether it is a partitioned
-   * table with nothing under it for a row to be routed into.
-   */
-  interface Governed { name: string; partitionOf: string | null; partitionless: boolean }
-
-  /** Every such relation, read from the catalogue on each call rather than once,
-   * because the probes below create one and then ask what this block would have
-   * done with it. */
-  async function governedRelations(): Promise<Governed[]> {
-    const { rows } = await client.query<Governed>(
-      `select c.relname as name,
-              case when c.relispartition then p.relname end as "partitionOf",
-              (c.relkind = 'p' and not exists (
-                 select 1 from pg_catalog.pg_inherits child where child.inhparent = c.oid
-               )) as partitionless
-         from pg_catalog.pg_class c
-         join pg_catalog.pg_namespace n on n.oid = c.relnamespace
-         left join pg_catalog.pg_inherits i on i.inhrelid = c.oid
-         left join pg_catalog.pg_class p on p.oid = i.inhparent
-        where n.nspname = 'public' and c.relkind = any($1)
-        order by c.relname`,
-      [Object.keys(TABLE_RELKINDS)],
-    );
-    return rows;
-  }
-
-  async function requiredColumns(): Promise<Required[]> {
-    const { rows } = await client.query<Required>(
-      `select c.relname as table, a.attname as column,
-              format_type(a.atttypid, a.atttypmod) as type
-         from pg_catalog.pg_attribute a
-         join pg_catalog.pg_class c on c.oid = a.attrelid
-         join pg_catalog.pg_namespace n on n.oid = c.relnamespace
-         left join pg_catalog.pg_attrdef d on d.adrelid = c.oid and d.adnum = a.attnum
-        where n.nspname = 'public' and c.relkind = any($1)
-          and a.attnum > 0 and not a.attisdropped and a.attnotnull
-          and d.adbin is null and a.attidentity = '' and a.attgenerated = ''
-        order by c.relname, a.attnum`,
-      [Object.keys(TABLE_RELKINDS)],
-    );
-    return rows;
-  }
-
-  /**
-   * The foreign keys every one of whose child columns is required, which are the
-   * only ones a seeded row has to satisfy. Reading all of them instead would make
-   * the seeding order cyclic over keys that are nullable and need no parent at all.
-   */
-  async function mandatoryKeys(columns: readonly Required[]): Promise<Mandatory[]> {
-    const { rows } = await client.query<Mandatory>(
-      `select c.relname as table, p.relname as parent,
-              (select array_agg(att.attname order by k.ord)
-                 from unnest(con.conkey) with ordinality k(attnum, ord)
-                 join pg_catalog.pg_attribute att
-                   on att.attrelid = con.conrelid and att.attnum = k.attnum)::text[] as columns,
-              (select array_agg(att.attname order by k.ord)
-                 from unnest(con.confkey) with ordinality k(attnum, ord)
-                 join pg_catalog.pg_attribute att
-                   on att.attrelid = con.confrelid and att.attnum = k.attnum)::text[]
-                as "parentColumns"
-         from pg_catalog.pg_constraint con
-         join pg_catalog.pg_class c on c.oid = con.conrelid
-         join pg_catalog.pg_class p on p.oid = con.confrelid
-         join pg_catalog.pg_namespace n on n.oid = c.relnamespace
-        where n.nspname = 'public' and con.contype = 'f'`,
-    );
-    const isRequired = (table: string, column: string): boolean =>
-      columns.some((entry) => entry.table === table && entry.column === column);
-    return rows.filter((key) => key.columns.every((column) => isRequired(key.table, column)));
-  }
-
-  /** The tables in an order that puts every mandatory parent before its child. */
-  function seedOrder(tables: readonly string[]): string[] {
-    const ordered: string[] = [];
-    const placed = new Set<string>();
-    const visit = (table: string, chain: string[]): void => {
-      if (placed.has(table)) return;
-      if (chain.includes(table)) {
-        throw new Error(
-          'The mandatory foreign keys of the public schema form a cycle, so no order seeds them '
-          + `all: ${chain.concat(table).join(' -> ')}. A key in that cycle has to become `
-          + 'nullable before a row can be written at all.',
-        );
-      }
-      for (const key of mandatory) {
-        if (key.table === table && key.parent !== table) visit(key.parent, chain.concat(table));
-      }
-      placed.add(table);
-      ordered.push(table);
-    };
-    for (const table of tables) visit(table, []);
-    return ordered;
-  }
-
-  /**
-   * A value of this type, unique to this tenant and column so that a tenant-scoped
-   * unique index never refuses the second tenant's row. A type nobody has written
-   * a case for refuses loudly: a silent skip would write no row and leave the
-   * table empty, which is how the probe below would pass by finding nothing.
-   *
-   * Every text value begins with the owning tenant's id and a slash, which is part
-   * 10's rule for a column that addresses a stored object: `evidence.storage_path`
-   * and `statements.storage_path` are constrained to name an object under their own
-   * row's prefix, so a fixture writing an arbitrary string into one is refused with
-   * 23514 and seeds no row at all. Applied to every text column rather than to the
-   * two the constraint is on, because a fixture that knew which columns those were
-   * would be a second copy of the rule and would go stale the first time a later
-   * migration adds a third. The prefix is inert everywhere else: no other check in
-   * this schema reads a text column, and the value is still unique per tenant and
-   * column, which is the only property the seeding relies on.
-   */
-  function valueFor(type: string, label: string, tenant: string): string | number | boolean {
-    if (type === 'uuid') return randomUUID();
-    if (type === 'text' || type.startsWith('character')) return `${tenant}/${label}`;
-    if (type === 'bigint' || type === 'integer' || type === 'smallint') return 1;
-    if (type.startsWith('numeric')) return 1;
-    // Both from SEEDED_INSTANT, and neither from the clock: a date-bounded
-    // constraint anywhere in this schema, of which a range partition is the one
-    // this file already meets, decides whether a row is accepted from this value.
-    if (type === 'date') return SEEDED_INSTANT.toISOString().slice(0, 10);
-    if (type.startsWith('timestamp')) return SEEDED_INSTANT.toISOString();
-    if (type === 'boolean') return false;
-    if (type === 'jsonb' || type === 'json') return '{}';
-    throw new Error(
-      `This fixture has no value for a column of type ${type}, so it cannot seed a row and the `
-      + 'cross-tenant read below would pass against an empty table. Add the type to valueFor.',
-    );
-  }
-
-  /**
-   * One row of `table` belonging to this tenant, built from the catalogue: every
-   * required column takes a value of its own type and every mandatory foreign key
-   * takes a parent row the tenant already holds.
-   *
-   * It is a function of its own rather than the body of the loop below because the
-   * partitioned-table probes seed a relation they have just created, and a probe
-   * that wrote its row some other way would say nothing about how this fixture
-   * writes one.
-   */
-  async function seedRow(
-    table: string, tenant: string, label: string,
-    columns: readonly Required[], keys: readonly Mandatory[],
-  ): Promise<void> {
-    const row: Record<string, unknown> = { tenant_id: tenant };
-    for (const key of keys.filter((entry) => entry.table === table)) {
-      if (key.parent === 'tenants') continue;
-      const parent = await client.query<Record<string, unknown>>(
-        `select ${key.parentColumns.join(', ')} from public.${key.parent}
-          where tenant_id = $1 limit 1`,
-        [tenant],
-      );
-      if (parent.rowCount === 0) {
-        throw new Error(
-          `No row in public.${key.parent} for ${label} to hang a row of public.${table} from, `
-          + 'so this fixture cannot seed the table and the cross-tenant read below would pass '
-          + 'against an empty table.',
-        );
-      }
-      key.columns.forEach((column, index) => {
-        row[column] = parent.rows[0][key.parentColumns[index]];
-      });
-    }
-    for (const column of columns.filter((entry) => entry.table === table)) {
-      if (row[column.column] !== undefined) continue;
-      row[column.column] = valueFor(
-        column.type,
-        `${label} ${table}.${column.column} ${randomUUID().slice(0, 8)}`,
-        tenant,
-      );
-    }
-    const names = Object.keys(row);
-    try {
-      await client.query(
-        `insert into public.${table} (${names.join(', ')})
-         values (${names.map((_, index) => `$${index + 1}`).join(', ')})`,
-        names.map((name) => row[name]),
-      );
-    } catch (cause) {
-      throw new Error(
-        `This fixture could not seed public.${table} for ${label}, so the cross-tenant read `
-        + `below would pass against an empty table. Postgres said: ${(cause as Error).message}`,
-        { cause },
-      );
-    }
-  }
 
   /** One tenant with a row in every table of the public schema, as the owner role. */
   async function seedTenant(label: string): Promise<string> {
@@ -1154,7 +1154,7 @@ describe('tenant isolation on every table in the public schema', () => {
         [tenant],
       );
       if ((already.rowCount ?? 0) > 0) continue;
-      await seedRow(table, tenant, label, required, mandatory);
+      await seedRow(client, table, tenant, label, required, mandatory);
     }
     return tenant;
   }
@@ -1259,7 +1259,7 @@ describe('tenant isolation on every table in the public schema', () => {
 
   beforeAll(async () => {
     client = await connect();
-    const relations = await governedRelations();
+    const relations = await governedRelations(client);
     if (relations.length === 0) {
       throw new Error(
         'There is not one table in the public schema, so a cross-tenant read proves nothing '
@@ -1267,9 +1267,9 @@ describe('tenant isolation on every table in the public schema', () => {
         + '`pnpm db:reset`.',
       );
     }
-    required = await requiredColumns();
-    mandatory = await mandatoryKeys(required);
-    governed = seedOrder(relations.map((relation) => relation.name));
+    required = await requiredColumns(client);
+    mandatory = await mandatoryKeys(client, required);
+    governed = seedOrder(relations.map((relation) => relation.name), mandatory);
     partitionOf = new Map(
       relations
         .filter((relation) => relation.partitionOf !== null)
@@ -1525,7 +1525,7 @@ describe('tenant isolation on every table in the public schema', () => {
           [PARTITIONED_PROBE, true, true, true],
         ]);
 
-        const named = (await governedRelations()).map((relation) => relation.name);
+        const named = (await governedRelations(client)).map((relation) => relation.name);
         expect(
           [PARTITIONED_PROBE, PARTITION_PROBE].filter((name) => !named.includes(name)),
           `The ${named.length} relations this block seeds and reads through leave out a `
@@ -1533,10 +1533,10 @@ describe('tenant isolation on every table in the public schema', () => {
           + 'exercised by a read and nothing here would notice if it exposed every tenant',
         ).toEqual([]);
 
-        const columns = await requiredColumns();
-        const keys = await mandatoryKeys(columns);
-        await seedRow(PARTITIONED_PROBE, a, 'partitioned probe A', columns, keys);
-        await seedRow(PARTITIONED_PROBE, b, 'partitioned probe B', columns, keys);
+        const columns = await requiredColumns(client);
+        const keys = await mandatoryKeys(client, columns);
+        await seedRow(client, PARTITIONED_PROBE, a, 'partitioned probe A', columns, keys);
+        await seedRow(client, PARTITIONED_PROBE, b, 'partitioned probe B', columns, keys);
 
         // Written through the parent, which is the path a policy on the parent
         // governs and the path an application takes, and routed by Postgres into
@@ -1578,10 +1578,10 @@ describe('tenant isolation on every table in the public schema', () => {
     // have to report it, because a read through either is a read a request makes.
     const leaked = await rolledBack(async () => {
       await createPartitionedProbe('seen.current_tenant() is not null', { withPartition: true });
-      const columns = await requiredColumns();
-      const keys = await mandatoryKeys(columns);
-      await seedRow(PARTITIONED_PROBE, a, 'leaking partitioned probe A', columns, keys);
-      await seedRow(PARTITIONED_PROBE, b, 'leaking partitioned probe B', columns, keys);
+      const columns = await requiredColumns(client);
+      const keys = await mandatoryKeys(client, columns);
+      await seedRow(client, PARTITIONED_PROBE, a, 'leaking partitioned probe A', columns, keys);
+      await seedRow(client, PARTITIONED_PROBE, b, 'leaking partitioned probe B', columns, keys);
       return visibleTo({ [TENANT_CLAIM]: a }, b, [PARTITIONED_PROBE, PARTITION_PROBE]);
     });
     expect(
@@ -1607,13 +1607,13 @@ describe('tenant isolation on every table in the public schema', () => {
     // emptiness guard can name it instead of passing over it.
     const { classification, refusal } = await rolledBack(async () => {
       await createPartitionedProbe(TENANCY_CLAUSES[0], { withPartition: false });
-      const parent = (await governedRelations())
+      const parent = (await governedRelations(client))
         .find((relation) => relation.name === PARTITIONED_PROBE);
-      const columns = await requiredColumns();
-      const keys = await mandatoryKeys(columns);
+      const columns = await requiredColumns(client);
+      const keys = await mandatoryKeys(client, columns);
       let said = 'accepted';
       try {
-        await seedRow(PARTITIONED_PROBE, a, 'partitionless probe', columns, keys);
+        await seedRow(client, PARTITIONED_PROBE, a, 'partitionless probe', columns, keys);
       } catch (error) {
         said = (error as Error).message;
       }
@@ -1701,12 +1701,12 @@ describe('tenant isolation on every table in the public schema', () => {
         vi.setSystemTime(new Date(clock));
         measured[clock] = await rolledBack(async () => {
           await createPartitionedProbe(TENANCY_CLAUSES[0], { withPartition: true });
-          const columns = await requiredColumns();
-          const keys = await mandatoryKeys(columns);
+          const columns = await requiredColumns(client);
+          const keys = await mandatoryKeys(client, columns);
           let said = 'accepted';
           await client.query('savepoint seeding');
           try {
-            await seedRow(PARTITIONED_PROBE, b, 'clock-independence probe', columns, keys);
+            await seedRow(client, PARTITIONED_PROBE, b, 'clock-independence probe', columns, keys);
             await client.query('release savepoint seeding');
           } catch (error) {
             said = (error as Error).message;
@@ -1861,5 +1861,392 @@ describe('a tenant id moved by an update of the catalogue it is not the identity
       + 'that passes no policy and fires no trigger. A refusal (23001) is what keeps the '
       + 'credential pointer of one seller account inside the tenant that owns it',
     ).toEqual({ answer: '23001', connectionBelongsToTheTenantThatMadeIt: true });
+  });
+});
+
+/** One column of the public schema that this schema authors the value of, and which
+ * nothing should therefore be able to change once a row carries it. */
+interface AuthoredIdentifier {
+  /** The table it is on. */
+  readonly relation: string;
+  /** The column. */
+  readonly column: string;
+  /** Which of the two rules put it in the set, which decides what a probe would
+   * change it to. */
+  readonly basis: 'tenancy' | 'authored identifier';
+  /** The catalogue the value is drawn from, and the column of it that holds the
+   * identifier, or null for a tenant id, whose catalogue is `public.tenants`
+   * itself and whose replacement is any uuid at all. */
+  readonly catalogue: string | null;
+  readonly catalogueColumn: string | null;
+}
+
+/**
+ * Every column of the public schema whose value this schema authors, read from
+ * `pg_catalog` rather than listed.
+ *
+ * The two rules, and what each is for. `tenant_id` on every table that carries one,
+ * because part 8 settled that a tenant id is an identity and not a value and the
+ * whole of row-level security routes on it. And every column holding an identifier
+ * this schema invents: the key column of a catalogue, plus every column keyed
+ * straight at that pair.
+ *
+ * What makes a unique key a catalogue key, stated so the next reader can argue with
+ * it rather than guess. It is `(tenant_id, X)` and nothing wider, the schema does
+ * not mint `X` per row, so no default, no identity and nothing generated, and some
+ * foreign key points at it. `public.marketplaces (tenant_id, marketplace)` is one.
+ * `public.products (tenant_id, sku)` is not, because nothing points at it, and
+ * every `(tenant_id, id)` is not, because `id` carries `gen_random_uuid()`.
+ *
+ * And what makes a column hold the identifier rather than derive it. A foreign key
+ * names exactly one unique key of its parent, so a key whose `conindid` is the
+ * catalogue's says the value is chosen from the catalogue and nothing else is
+ * choosing it: `public.connections.marketplace` and `public.claims.marketplace` are
+ * both of those, and both are free to become any of the six. A key pointing at
+ * `connections (tenant_id, id, marketplace)` instead pins the value to one parent
+ * row that was chosen first, which is `public.orders.marketplace` and the five
+ * below it, and those are held in place by `connections.marketplace` being in this
+ * set rather than by a rule of their own.
+ *
+ * The one thing this cannot see: an identifier this schema authors that no key
+ * points at, which is a value with no catalogue behind it. There is none today, and
+ * the gap is written down in `IMMUTABLE_IDENTIFIER_EXCEPTIONS` rather than papered
+ * over with prose that would read as coverage.
+ */
+async function authoredIdentifiers(client: Client): Promise<AuthoredIdentifier[]> {
+  const { rows } = await client.query<AuthoredIdentifier>(
+    `with catalogue as (
+       select con.conindid as key_index, con.conrelid as relid,
+              a.attnum as attnum, a.attname::text as column_name
+         from pg_catalog.pg_constraint con
+         join pg_catalog.pg_attribute a
+           on a.attrelid = con.conrelid and a.attnum = any(con.conkey) and not a.attisdropped
+        where con.contype in ('p', 'u')
+          and con.connamespace = 'public'::regnamespace
+          and cardinality(con.conkey) = 2
+          and a.attname <> 'tenant_id'
+          and not a.atthasdef and a.attidentity = '' and a.attgenerated = ''
+          and exists (select 1 from pg_catalog.pg_attribute t
+                       where t.attrelid = con.conrelid and t.attname = 'tenant_id'
+                         and t.attnum = any(con.conkey) and not t.attisdropped)
+          and exists (select 1 from pg_catalog.pg_constraint f
+                       where f.contype = 'f' and f.conindid = con.conindid)
+     ),
+     holders as (
+       select f.conrelid as relid, child.attname::text as column_name,
+              k.relid as catalogue_relid, k.column_name as catalogue_column
+         from pg_catalog.pg_constraint f
+         join catalogue k on k.key_index = f.conindid
+         cross join lateral unnest(f.conkey, f.confkey) as pair(child_att, parent_att)
+         join pg_catalog.pg_attribute child
+           on child.attrelid = f.conrelid and child.attnum = pair.child_att
+        where f.contype = 'f' and pair.parent_att = k.attnum
+     ),
+     authored as (
+       select relid, column_name, relid as catalogue_relid, column_name as catalogue_column
+         from catalogue
+       union all
+       select relid, column_name, catalogue_relid, catalogue_column from holders
+     )
+     select c.relname::text as relation, m.column_name as column,
+            'authored identifier'::text as basis,
+            cc.relname::text as catalogue, m.catalogue_column as "catalogueColumn"
+       from authored m
+       join pg_catalog.pg_class c on c.oid = m.relid
+       join pg_catalog.pg_class cc on cc.oid = m.catalogue_relid
+     union all
+     select c.relname::text, 'tenant_id', 'tenancy', null, null
+       from pg_catalog.pg_class c
+       join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+       join pg_catalog.pg_attribute a
+         on a.attrelid = c.oid and a.attname = 'tenant_id'
+        and a.attnum > 0 and not a.attisdropped
+      where n.nspname = 'public' and c.relkind = any($1)
+      order by 1, 2`,
+    [Object.keys(TABLE_RELKINDS)],
+  );
+  return rows;
+}
+
+/**
+ * F78 and F80, which are one defect on two columns, so what is repaired is the
+ * class and what is measured is every member of it.
+ *
+ * F78: one `update public.connections set tenant_id = <another tenant>` carried a
+ * seller account's `credential_ref`, its scopes and its status into a tenant that
+ * never asked for them. That tenant's own signed-in user then read the row under
+ * its own claim; the owning tenant read nothing; no audit event was written by
+ * either party and nothing raised. It was accepted while the connection was idle
+ * and refused 23503 once it had traded, which is the two-answer shape part 9 writes
+ * `refuse_marketplace_tenant_change` twenty lines away to prevent by the cascade
+ * route, arrived at again by the direct one.
+ *
+ * F80: the same defect one column over. `public.claims.marketplace` is keyed
+ * straight to the catalogue, so all six identifiers are valid new values, and one
+ * update repointed a submitted claim onto a rail it was not filed on while its
+ * `external_case_id` and its `claim_text` stayed as filed.
+ *
+ * Why this block is over a derived set and not over those two columns. Every
+ * finding from F55 onwards has been a column that should not change with nothing
+ * stopping it, found one at a time, and every repair counted the columns it was
+ * looking at: part 9 said "both places this schema writes one" where there are
+ * three, and F72's section said "one of the two columns that hold one" where nine
+ * hold the identifier and three of them are authored. The fourth would be found the
+ * same way. So the set comes from `pg_catalog` by the rules `authoredIdentifiers`
+ * states, a column that enters it later and has nothing guarding it makes this red
+ * on arrival, and a column that may legitimately change is an entry in
+ * `IMMUTABLE_IDENTIFIER_EXCEPTIONS` with its reason, which is the thing a reviewer
+ * argues with instead of a sentence counting to two.
+ *
+ * Asked with an `UPDATE` on an idle row and on a trading one, which is F27's lesson
+ * and the second time the review has had to write it: an insert says nothing about
+ * a column that is only wrong once it has been written correctly, and a schema that
+ * accepts a statement on an account which has not traded and refuses it on one that
+ * has is the worst of the two answers.
+ */
+describe('every identifier this schema authors, and whether an update can move one', () => {
+  let client: Client;
+  let required: Required[];
+  let mandatory: Mandatory[];
+  /** Every table a row can be written into directly, in the order they can be
+   * written in. */
+  let writable: string[];
+  let members: AuthoredIdentifier[];
+
+  /** The SQLSTATE the database answered with, or `accepted` when it did not refuse.
+   * Behind a savepoint, so a refusal can be measured and the transaction carry on to
+   * the next one rather than end aborted. */
+  async function said(body: () => Promise<unknown>): Promise<string> {
+    await client.query('savepoint identifier_probe');
+    try {
+      await body();
+      await client.query('release savepoint identifier_probe');
+      return 'accepted';
+    } catch (error) {
+      await client.query('rollback to savepoint identifier_probe');
+      return (error as { code?: string }).code ?? (error as Error).message;
+    }
+  }
+
+  /** Everything inside, rolled back, as `service_role`: the role `apps/api` and
+   * `apps/worker` reach an onboarding, a repair or a catalogue-maintenance path as,
+   * and the role F78 and F80 were both measured under. */
+  async function rolledBack<T>(body: () => Promise<T>): Promise<T> {
+    await client.query('begin');
+    try {
+      await client.query('set local role service_role');
+      return await body();
+    } finally {
+      await client.query('rollback');
+    }
+  }
+
+  /** The tables a row of `table` cannot exist without, `table` last: its mandatory
+   * parents, transitively, in an order that writes each before its child. */
+  function chainTo(table: string): string[] {
+    const needed = new Set<string>();
+    const visit = (step: string): void => {
+      if (needed.has(step)) return;
+      needed.add(step);
+      for (const key of mandatory) if (key.table === step && key.parent !== step) visit(key.parent);
+    };
+    visit(table);
+    return seedOrder([...needed], mandatory).filter((step) => needed.has(step));
+  }
+
+  /**
+   * A tenant holding one row in each of these tables and in no others.
+   *
+   * Handed `chainTo(table)` it is the idle state: the row exists and nothing hangs
+   * below it, because a table that would hang below it is not in the chain. Handed
+   * every writable table it is the trading state, because the seeding writes each
+   * child from the parent above it.
+   *
+   * The catalogue is the exception a fresh tenant always carries: a trigger on
+   * `public.tenants` seeds the six marketplaces for every new tenant, so no tenant
+   * is ever idle with respect to `public.tenants.tenant_id`. That is a fact of the
+   * schema rather than a hole in the fixture, and it is said here rather than
+   * discovered by the next reader of the two equal answers that column gives.
+   */
+  async function tenantSeeded(label: string, tables: readonly string[]): Promise<string> {
+    const created = await client.query<{ tenant_id: string }>(
+      'insert into public.tenants (name) values ($1) returning tenant_id', [label],
+    );
+    const tenant = created.rows[0].tenant_id;
+    for (const table of tables) {
+      if (table === 'tenants') continue;
+      const already = await client.query(
+        `select 1 from public.${table} where tenant_id = $1 limit 1`, [tenant],
+      );
+      if ((already.rowCount ?? 0) > 0) continue;
+      await seedRow(client, table, tenant, label, required, mandatory);
+    }
+    return tenant;
+  }
+
+  /**
+   * The value this tenant's row carries now, which is what the probe changes away
+   * from and what it narrows the statement to.
+   *
+   * For a catalogue's own key column the value is read off one of the columns that
+   * hold it rather than off the catalogue, so that the row probed is one something
+   * is keyed to. `limit 1` with an order is the arbitrary part and it is arbitrary
+   * on purpose: which of the six is renamed says nothing, and an ordering makes the
+   * measurement the same on two runs.
+   */
+  async function currentValueOf(
+    member: AuthoredIdentifier, tenant: string,
+  ): Promise<string | undefined> {
+    if (member.basis === 'tenancy') return tenant;
+    const holders = member.relation === member.catalogue
+      ? members.filter((other) => other.catalogue === member.catalogue
+        && other.relation !== member.catalogue)
+      : [member];
+    for (const holder of holders.concat(member)) {
+      const { rows } = await client.query<{ value: string }>(
+        `select ${holder.column} as value from public.${holder.relation}
+          where tenant_id = $1 and ${holder.column} is not null order by 1 limit 1`,
+        [tenant],
+      );
+      if (rows.length > 0) return rows[0].value;
+    }
+    return undefined;
+  }
+
+  /**
+   * What the probe changes the value to: a value the rest of the schema would
+   * accept, so that only a guard on the column itself can refuse the statement.
+   *
+   * A tenant id becomes another tenant's, which is F78's move and the only one
+   * worth measuring: a uuid nothing holds is refused by the key to `public.tenants`
+   * whatever else is true, and would pass this block for a reason that has nothing
+   * to do with the column. The target tenant is fresh and is cleared of its own
+   * rows in the table being probed, because a tenant that already holds one is a
+   * unique-key collision rather than an answer about the identifier. It is never
+   * cleared of `public.tenants`: deleting a tenant leaves a tombstone in the
+   * erasure registry that a rollback does not remove.
+   *
+   * `public.tenants.tenant_id` is the one column with no other tenant to move into,
+   * since the target would be the row being changed, so it takes a uuid nothing
+   * holds.
+   *
+   * An identifier keyed to a catalogue becomes another value the same tenant's
+   * catalogue holds, so the key is satisfied and the six are interchangeable as far
+   * as the schema is concerned, which is F80. A catalogue's own key column becomes
+   * a spelling the catalogue does not hold, which is the rename part 9 refuses.
+   */
+  async function nextValueFor(
+    member: AuthoredIdentifier, tenant: string, current: string,
+  ): Promise<string> {
+    if (member.basis === 'tenancy') {
+      if (member.relation === 'tenants') return randomUUID();
+      const target = await tenantSeeded(`Tenant an update of ${member.relation} would move a row into`, []);
+      const held = await client.query(
+        `select 1 from public.${member.relation} where tenant_id = $1 limit 1`, [target],
+      );
+      if ((held.rowCount ?? 0) > 0) {
+        await client.query(`delete from public.${member.relation} where tenant_id = $1`, [target]);
+      }
+      return target;
+    }
+    if (member.relation === member.catalogue) return `${current}-renamed`;
+    const { rows } = await client.query<{ value: string }>(
+      `select ${member.catalogueColumn} as value from public.${member.catalogue}
+        where tenant_id = $1 and ${member.catalogueColumn} <> $2 order by 1 limit 1`,
+      [tenant, current],
+    );
+    if (rows.length === 0) {
+      throw new Error(
+        `The catalogue public.${member.catalogue} holds one value for this tenant, so there is `
+        + `nothing for public.${member.relation}.${member.column} to be changed to and the probe `
+        + 'would measure the catalogue rather than the column.',
+      );
+    }
+    return rows[0].value;
+  }
+
+  /** One `UPDATE` that changes this column of this tenant's row, and what the
+   * database answered. `no row to probe` when the fixture wrote none, which fails
+   * the assertion rather than passing quietly against an empty table. */
+  async function probe(member: AuthoredIdentifier, tenant: string): Promise<string> {
+    const current = await currentValueOf(member, tenant);
+    if (current === undefined) return 'no row to probe';
+    const next = await nextValueFor(member, tenant, current);
+    return said(() => client.query(
+      `update public.${member.relation} set ${member.column} = $1
+        where tenant_id = $2 and ${member.column} is not distinct from $3`,
+      [next, tenant, current],
+    ));
+  }
+
+  beforeAll(async () => {
+    client = await connect();
+    const relations = await governedRelations(client);
+    if (relations.length === 0) {
+      throw new Error(
+        'There is not one table in the public schema, so nothing here says anything about which '
+        + 'identifiers an update can move. Apply the migrations with `pnpm db:reset`.',
+      );
+    }
+    required = await requiredColumns(client);
+    mandatory = await mandatoryKeys(client, required);
+    writable = seedOrder(relations.map((relation) => relation.name), mandatory)
+      .filter((table) => {
+        const relation = relations.find((entry) => entry.name === table);
+        return relation !== undefined && relation.partitionOf === null && !relation.partitionless;
+      });
+    members = (await authoredIdentifiers(client)).filter((member) => !IMMUTABLE_IDENTIFIER_EXCEPTIONS
+      .some((exception) => exception.column === `${member.relation}.${member.column}`));
+  });
+
+  afterAll(async () => {
+    await client?.end();
+  });
+
+  it('refuses an update of one, on an idle row and on a trading one alike', async () => {
+    const answers = await rolledBack(async () => {
+      const trading = await tenantSeeded('Tenant that has traded on every rail', writable);
+      const measured: Record<string, { idle: string; trading: string }> = {};
+      for (const member of members) {
+        const idle = await tenantSeeded(
+          `Tenant with nothing under its ${member.relation}`, chainTo(member.relation),
+        );
+        measured[`${member.relation}.${member.column}`] = {
+          idle: await probe(member, idle),
+          trading: await probe(member, trading),
+        };
+      }
+      return measured;
+    });
+    const named = (pick: (answer: { idle: string; trading: string }) => boolean): string[] =>
+      Object.entries(answers).filter(([, answer]) => pick(answer))
+        .map(([column, answer]) => `${column} (idle ${answer.idle}, trading ${answer.trading})`);
+    const measured = {
+      moved: named((answer) => answer.idle === 'accepted' || answer.trading === 'accepted'),
+      answeringTwoWays: named((answer) => answer.idle !== answer.trading),
+      unprobed: named((answer) => answer.idle === 'no row to probe'
+        || answer.trading === 'no row to probe'),
+      tablesWithNoTenancyMember: writable.filter(
+        (table) => !members.some(
+          (member) => member.relation === table && member.basis === 'tenancy',
+        ),
+      ),
+    };
+    expect(
+      measured,
+      'Every column this schema authors the value of has to refuse an update that changes it, '
+      + 'and has to refuse it the same way whether or not a row hangs below: a tenant id is an '
+      + 'identity and not a value, and a marketplace identifier routes the connector, the '
+      + 'credentials beside it and the rail a claim was filed on. What one update moved: '
+      + `${measured.moved.join('; ') || 'nothing'}. What answered one way on an idle row and `
+      + `another on a trading one: ${measured.answeringTwoWays.join('; ') || 'nothing'}. What no `
+      + `row was written for, so nothing was measured: ${measured.unprobed.join('; ') || 'nothing'}. `
+      + 'Tables carrying a tenant_id the derived set did not reach: '
+      + `${measured.tablesWithNoTenancyMember.join(', ') || 'none'}. The set is derived from `
+      + 'pg_catalog and the exceptions are named in IMMUTABLE_IDENTIFIER_EXCEPTIONS, which holds '
+      + `${IMMUTABLE_IDENTIFIER_EXCEPTIONS.length === 0 ? 'nothing' : IMMUTABLE_IDENTIFIER_EXCEPTIONS.map((entry) => `${entry.column}, because ${entry.reason}`).join('; ')}`,
+    ).toEqual({
+      moved: [], answeringTwoWays: [], unprobed: [], tablesWithNoTenancyMember: [],
+    });
   });
 });
