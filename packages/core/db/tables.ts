@@ -941,13 +941,26 @@ export interface WithdrawnShapeClaim {
  * and withdrawn, in the same shape and for the same reason as
  * `WITHDRAWN_BIRTH_CLAIMS` above.
  *
- * One claim. Part 2 created `public.message_threads` and wrote above the column
- * that the upsert key for message ingest belonged to SEEN-061 and that there was
- * therefore no unique index on it here. Part 9 added one, because SEEN-061 and
+ * The first claim. Part 2 created `public.message_threads` and wrote above the
+ * column that the upsert key for message ingest belonged to SEEN-061 and that there
+ * was therefore no unique index on it here. Part 9 added one, because SEEN-061 and
  * SEEN-062 cannot write their upsert without it, so the sentence is false of the
  * delivered schema and it is in the file a person opens to find out what the table
  * is. That is F70's class one step over: F70 is a comment describing a column that
  * is not there, this is a comment describing the absence of an index that is.
+ *
+ * The four after it are one round's worth of the same class, and each of them is in
+ * a shape a scanner cannot reach. Two are part 9's claim that all nine keys carrying
+ * `marketplace` are NO ACTION, written once as a comment and once inside the
+ * `raise` a person meets when the rename is refused, where the catalogue answers
+ * that `connections_marketplace_fkey` and `claims_marketplace_fkey` both name `on
+ * update cascade` and part 9 wrote the second of them itself (F73). One is part 3's
+ * comment on `public.invoices` asserting the contract of `recovery_share_lines`,
+ * which part 10 drops: F70's guard removed the sentence above the column and could
+ * not see this one, because it is prose inside a `comment on table` statement and
+ * names no `table.column` pair anywhere (F74). One is the rename sentence F68
+ * withdrew from part 3, left standing in `rls.test.ts` as a present-tense quotation
+ * of a file that now says the opposite (F76).
  *
  * Why this is held as the sentence and not caught by a scanner, which is a decision
  * and not an omission. `migrationColumnReferences` can be believed because it
@@ -962,6 +975,17 @@ export interface WithdrawnShapeClaim {
  * `pg_index` inverts the error rather than removing it: a comment that correctly
  * says a column is part of the upsert key would be reported, and this set has
  * fourteen of those.
+ *
+ * The same decision, taken again for F74 and measured rather than assumed.
+ * `migrationColumnReferences` reads three shapes, and the shape it cannot read is a
+ * sentence inside `comment on table` that describes a column without naming it: "a
+ * recovery share line exists only for a claim credited by an ingested settlement
+ * line" is about `recovery_share_lines`, and to see that a guard would have to turn
+ * an English noun phrase into an identifier and ask `pg_attribute` for it. There is
+ * no fact to compare against on the way: a phrase that maps to no column is
+ * indistinguishable from a phrase that was never a column name, so every sentence in
+ * every table comment would be a candidate. The reachable half is the one already
+ * built, a reference that names the pair, and the rest is held here as the sentence.
  *
  * So what is held here is the sentence, in the fragments it was written in, which
  * catches it surviving, being copied or coming back, exactly as the birth claims
@@ -978,6 +1002,51 @@ export const WITHDRAWN_SHAPE_CLAIMS: readonly WithdrawnShapeClaim[] = [
       + 'predicate, because the upsert SEEN-061 and SEEN-062 have to write needs a unique index '
       + 'to arbitrate and cannot infer a partial one. The key is not SEEN-061\'s to add: what is '
       + 'SEEN-061\'s is the statement that uses it',
+  },
+  {
+    relation: 'public.marketplaces',
+    spelling: ['and none of them names an update action,', 'so all nine are NO ACTION'],
+    instead: 'seven of the nine are NO ACTION and two name `on update cascade`: part 3\'s '
+      + '`connections_marketplace_fkey`, and `claims_marketplace_fkey`, which part 9 writes 140 '
+      + 'lines above the sentence and argues for in the paragraph beside it. Both are kept in '
+      + 'that shape and both are inert, because the pair they point at cannot be updated at all; '
+      + 'what refuses a rename is the seven that carry the value from a child to its parent',
+  },
+  {
+    relation: 'public.marketplaces',
+    spelling: ['back to this row and none of them', 'cascades on update'],
+    instead: 'two of them do, and a reader who meets this sentence at the moment the trigger '
+      + 'refuses them is told the repair is to add `on update cascade` to the connections key so '
+      + 'the rename can propagate, where the clause has been there since part 3. So the message '
+      + 'states what the refusal means and counts nothing: a number in a `raise` is a claim that '
+      + 'rots where nobody reads it until it is quoted back at them',
+  },
+  {
+    relation: 'public.invoices',
+    spelling: [
+      'A recovery share line exists only for a', 'claim credited by an ingested settlement line',
+    ],
+    instead: 'part 10 drops `recovery_share_lines`, for F66\'s reason: the column carried no key, '
+      + 'no check and no counterpart on the claim, and accepted a recovery share against a claim '
+      + 'that was never credited and against a claim id present in no table. The rule the '
+      + 'sentence states is CLAUDE.md\'s and stands; what does not stand is this table holding '
+      + 'the lines it is stated of, and the obligation is in the comment part 10 writes in its '
+      + 'place, which supersedes this one in the catalogue',
+  },
+  {
+    relation: 'public.connections',
+    spelling: [
+      'renaming an identifier in the catalogue carries the',
+      'connections with it rather than orphaning them',
+    ],
+    instead: 'part 3 says the opposite: the cascade is there so the key can never be the thing '
+      + 'that orphans a connection, and not as an invitation to rename an identifier, which the '
+      + 'value is to be treated as immutable against once a connection exists. F68 withdrew the '
+      + 'claim from part 3 and from the head of part 9, and part 9 now refuses the rename by '
+      + 'trigger on the catalogue and on the connection alike. What the two remaining mentions in '
+      + 'part 9 are, and why they are deliberately outside these words: both are written in the '
+      + 'past tense about a choice that was made and a sentence that was withdrawn, and a '
+      + 'withdrawal cannot be recorded by a set forbidden to quote it',
   },
 ];
 

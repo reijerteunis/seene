@@ -112,15 +112,21 @@
 -- constrain status, mode, line_type, direction, channel or any other vocabulary a
 -- marketplace supplies: part 2's principle governs all of those and is untouched.
 -- What it does do, having built the chain, is make a marketplace identifier
--- immutable and say so. Part 3 chose `on update cascade` on the connections key so
--- that renaming an identifier in the catalogue would carry the connections with it;
--- the keys below reference `connections (tenant_id, id, marketplace)` and name no
--- update action, which is NO ACTION, so the rename that cascade was for is refused
--- with 23503 the moment a connection has one order or one settlement, and succeeds
--- only while the account has no data at all. An operation that works on an empty
--- database and fails on a full one is the worst of the two answers, so the trigger
--- below refuses it outright, with a message saying what a real rename would be: a
--- migration that says so, drops this trigger and moves the rows itself. It says
+-- immutable in both places this schema writes one, the catalogue row and the
+-- connection keyed to it, and say so. Part 3 chose `on update cascade` on the
+-- connections key so that renaming an identifier in the catalogue would carry the
+-- connections with it; the keys below reference `connections (tenant_id, id,
+-- marketplace)` and name no update action, which is NO ACTION, so the rename that
+-- cascade was for is refused with 23503 the moment a connection has one order or
+-- one settlement, and succeeds only while the account has no data at all. An
+-- operation that works on an empty database and fails on a full one is the worst of
+-- the two answers, so the two triggers below refuse it outright, with a message
+-- saying what a real rename would be: a migration that says so, drops the trigger
+-- and moves the rows itself. Both columns, because one of them was left where the
+-- keys had it for a round (F72): the identifier on the connection answered
+-- `accepted` on an account that had not traded and 23503 on one that had, which is
+-- the shape this section exists to remove, on the column that routes the connector
+-- and sits beside the credential reference for that seller account. It says
 -- nothing about whether the right order line was matched, only that the one
 -- that was matched is on the same marketplace: deterministic matching is SEEN-018's
 -- and this removes a class of match it would otherwise have to defend against. And
@@ -415,10 +421,11 @@ create unique index messages_tenant_id_thread_id_external_message_id_key
 -- The catalogue's tenant id does not move --------------------------------------
 --
 -- connections_marketplace_fkey is `(tenant_id, marketplace) references
--- public.marketplaces (tenant_id, marketplace) on update cascade`, and part 3
--- states the intent beside it: renaming an identifier in the catalogue should carry
--- the connections with it rather than orphan them. That reasoning covers one column
--- of the key. Postgres has no per-column referential action, so the cascade fires
+-- public.marketplaces (tenant_id, marketplace) on update cascade`, and part 3 chose
+-- that clause so the key could never be the thing that orphans a connection, saying
+-- beside it that the value is to be treated as immutable once a connection exists.
+-- That reasoning covers one column of the key. Postgres has no per-column
+-- referential action, so the cascade fires
 -- on a change to either, and a change to marketplaces.tenant_id rewrites
 -- connections.tenant_id.
 --
@@ -482,9 +489,16 @@ revoke all on function seen.refuse_marketplace_tenant_change() from public;
 
 -- And the identifier beside it does not move either -----------------------------
 --
--- F68. The chain this file builds is nine keys that carry `marketplace` from a
--- child to its parent, and none of them names an update action, so all nine are NO
--- ACTION. Measured on this stack: a tenant with a Bol connection carrying one order
+-- F68. Nine foreign keys in this schema carry `marketplace`. The seven this file
+-- builds from a child to its parent name no update action, which is NO ACTION, and
+-- the two that point straight at the catalogue name `on update cascade`: part 3's
+-- connections key, and the claims key above, which is written that way for part 3's
+-- reason and argued for beside it. That the two cascade and the seven do not is the
+-- whole of why the rename had two answers, and F73 is what saying otherwise cost:
+-- this paragraph and the message below both said no key carrying the value cascades
+-- on update, so the repair they suggest to a later author is to add the clause the
+-- connections key has carried since part 3. Measured on this stack: a tenant with a
+-- Bol connection carrying one order
 -- and one claim, `update public.marketplaces set marketplace = 'bol2'`, refused
 -- with 23503, `update or delete on table connections violates foreign key
 -- constraint orders_connection_id_fkey on table orders`. The same statement on a
@@ -493,7 +507,7 @@ revoke all on function seen.refuse_marketplace_tenant_change() from public;
 --
 -- Two answers to one statement, decided by whether the account has traded, is the
 -- shape of a promise that holds in development and breaks in production, and part 3
--- and this file each said in prose that the rename carries the connections with it.
+-- and this file each said in prose that the rename carried the connections with it.
 -- So one of the two is made true. Cascading the update down the chain was rejected:
 -- `on update cascade` has no per-column form, so putting it on `orders (tenant_id,
 -- connection_id, marketplace) references connections (tenant_id, id, marketplace)`
@@ -513,8 +527,15 @@ revoke all on function seen.refuse_marketplace_tenant_change() from public;
 --
 -- Why not `set constraints ... deferred` and a cascade after all: the keys would
 -- have to be declared deferrable, which takes the check off the statement and puts
--- it at commit for every writer of every one of the nine, for the sake of an
--- operation that has happened zero times.
+-- it at commit for every writer of every one of them, for the sake of an operation
+-- that has happened zero times.
+--
+-- What the message says, and what it deliberately does not. It says what the
+-- refusal means and what a rename is instead, and it counts nothing: F73 was a
+-- number in this `raise` that had been false since the claims key 140 lines above
+-- was written, and a count in a message is a claim nobody rereads until it is quoted
+-- back at them by the person it misled. What is true of the keys is asked of the
+-- catalogue by the suite, which is where a number belongs.
 create or replace function seen.refuse_marketplace_rename()
 returns trigger
 language plpgsql
@@ -522,12 +543,13 @@ set search_path = ''
 as $$
 begin
   raise exception
-    'a marketplace identifier is not renamable by an update: % cannot become %. Nine foreign '
-    'keys carry this value from a connection, an order, a settlement and every row under them '
-    'back to this row and none of them cascades on update, so the statement is refused as soon '
-    'as the account has traded and accepted while it has not, which is the same schema answering '
-    'two ways. A rename is a migration: drop this trigger, move the catalogue and every column '
-    'keyed to it in one transaction, and put it back.', old.marketplace, new.marketplace
+    'a marketplace identifier is not renamable by an update: % cannot become %. Every connection '
+    'of this tenant, every order and settlement under one and every row under those is keyed to '
+    'this value, and the refusal does not depend on whether any of them exists yet: a statement '
+    'the schema accepts on an account that has not traded and refuses on one that has is the same '
+    'schema answering two ways. A rename is a migration: drop this trigger, move the catalogue '
+    'and every column keyed to it in one transaction, and put it back.',
+    old.marketplace, new.marketplace
     using errcode = 'restrict_violation';
 end;
 $$;
@@ -542,6 +564,64 @@ create trigger refuse_marketplace_rename before update on public.marketplaces
   execute function seen.refuse_marketplace_rename();
 
 revoke all on function seen.refuse_marketplace_rename() from public;
+
+-- Nor where the same identifier is written on the connection ---------------------
+--
+-- F72. The trigger above takes the catalogue row, and the paragraphs around it said
+-- the file makes a marketplace identifier immutable. It made one of the two columns
+-- that hold one immutable. public.connections.marketplace carries the same value,
+-- and it is the one the rest of the system reads: the connector, the capability
+-- matrix and the claims rail all route on it, and it sits beside credential_ref, the
+-- pointer to the secret for that seller account.
+--
+-- Measured as service_role, the role apps/api and apps/worker reach an onboarding or
+-- a repair path as, before this trigger existed: `update public.connections set
+-- marketplace = 'amazon'` on a connection with nothing under it was accepted and the
+-- row read back as amazon, and the identical statement on a connection carrying one
+-- order was refused 23503 by orders_connection_id_fkey. That is the two-answer shape
+-- this whole section was written to remove, arrived at a second time on the column
+-- next to the credentials: a Bol account, its scopes and its Bol secret, pointed at
+-- the Amazon connector by one statement, for as long as the account has not traded,
+-- which is exactly when an onboarding path runs.
+--
+-- Refused by a trigger and not by dropping the column from the keys: the keys are
+-- what makes an order agree with its connection, and the disagreement they refuse is
+-- the one an INSERT makes. An UPDATE of the parent is the shape they answer two ways
+-- about, and a trigger is the only thing that answers it once. The same SQLSTATE as
+-- the rename above, because to a reader it is the same refusal: an identifier this
+-- schema invented is not moved by a statement.
+--
+-- What a real move is, for the reader this refuses. A seller account at another
+-- marketplace is another connection, with its own credential reference and its own
+-- rows; there is nothing to carry over, because the orders under this one were read
+-- from the marketplace it names.
+create or replace function seen.refuse_connection_marketplace_change()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  raise exception
+    'a connection is a seller account at one marketplace and its marketplace is not changeable '
+    'by an update: % cannot become %. The value routes the connector that reads this account, the '
+    'credential reference beside it and every order, settlement and thread already read under it, '
+    'and the refusal does not depend on whether any of those exists yet. An account at another '
+    'marketplace is another connection, with its own credentials and its own rows.',
+    old.marketplace, new.marketplace
+    using errcode = 'restrict_violation';
+end;
+$$;
+
+comment on function seen.refuse_connection_marketplace_change() is
+  'Refuses any update of public.connections.marketplace, so the identifier that routes the '
+  'connector and the credentials of a seller account is immutable wherever this schema writes it, '
+  'and not only in the catalogue row the connection is keyed to.';
+
+create trigger refuse_connection_marketplace_change before update on public.connections
+  for each row when (new.marketplace is distinct from old.marketplace)
+  execute function seen.refuse_connection_marketplace_change();
+
+revoke all on function seen.refuse_connection_marketplace_change() from public;
 
 -- What this migration claims, measured rather than asserted ---------------------
 --
@@ -718,9 +798,12 @@ declare
   linked uuid;
   ordered uuid;
   threaded uuid;
+  idle uuid;
   refused text;
   renamed_idle text;
   renamed_trading text;
+  repointed_idle text;
+  repointed_trading text;
   lines_written integer;
   threads_written integer;
   messages_written integer;
@@ -753,6 +836,28 @@ begin
     exception
       when others then
         renamed_trading := sqlstate;
+    end;
+
+    -- The same statement on the other column that holds the identifier, which is
+    -- F72: an idle connection and a trading one, because the keys answered those two
+    -- differently and a trigger has to answer them the same way.
+    insert into public.connections (tenant_id, marketplace, country, status)
+      values (probe, 'ebay', 'NL', 'active') returning id into idle;
+
+    begin
+      update public.connections set marketplace = 'amazon' where id = idle;
+      repointed_idle := 'accepted';
+    exception
+      when others then
+        repointed_idle := sqlstate;
+    end;
+
+    begin
+      update public.connections set marketplace = 'amazon' where id = linked;
+      repointed_trading := 'accepted';
+    exception
+      when others then
+        repointed_trading := sqlstate;
     end;
 
     -- The order line upsert SEEN-014 is specified to write.
@@ -854,9 +959,19 @@ begin
     raise exception 'renaming a marketplace identifier answered % on an account that has not '
       'traded and % on one that has, where both must be refused by the trigger: a rename that '
       'succeeds while a connection is childless and is refused by a foreign key the moment it '
-      'has an order is one answer in development and another in production, and part 3 and the '
-      'head of this file both tell a later ticket the rename carries its connections with it',
+      'has an order is one answer in development and another in production, and two rounds of '
+      'this file read part 3''s cascade as the offer of a rename',
       coalesce(renamed_idle, 'nothing at all'), coalesce(renamed_trading, 'nothing at all');
+  end if;
+
+  if repointed_idle is distinct from '23001' or repointed_trading is distinct from '23001' then
+    raise exception 'pointing a connection at another marketplace answered % on an account that '
+      'has not traded and % on one that has, where both must be refused: the identifier on the '
+      'connection is the one the connector, the capability matrix and the claims rail route on, '
+      'and it sits beside the credential reference for that seller account, so a statement '
+      'accepted here points one marketplace''s credentials at another marketplace''s API for as '
+      'long as the account has no rows, which is exactly when onboarding runs (F72)',
+      coalesce(repointed_idle, 'nothing at all'), coalesce(repointed_trading, 'nothing at all');
   end if;
 end;
 $$;

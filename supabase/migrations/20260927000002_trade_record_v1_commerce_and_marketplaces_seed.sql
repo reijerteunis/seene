@@ -131,9 +131,10 @@ create table public.invoices (
 );
 
 comment on table public.invoices is
-  'What the tenant was charged, mirrored from Stripe. A recovery share line exists only for a '
-  'claim credited by an ingested settlement line: a credit is billable through that link and '
-  'nothing here or in the console may write a billable event directly.';
+  'What the tenant was charged, mirrored from Stripe: the invoice is created there and this row '
+  'is the mirror, so nothing here charges anybody and no row here is an authority on what was '
+  'billed. What makes a credit billable is a rule about claims and settlement lines and is '
+  'stated where that link is kept.';
 
 create table public.statements (
   id uuid primary key default gen_random_uuid(),

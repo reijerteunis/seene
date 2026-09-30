@@ -1031,10 +1031,46 @@ const SPELLED_CARDINALS: Readonly<Record<string, number>> = {
   ten: 10, eleven: 11, twelve: 12,
 };
 
+/** What a sentence calls a member of this set, so that a count of them is told from
+ * the counts of keys, roles, rows and checks the same preamble is full of. */
+const MEMBER_NOUNS = 'files?|migrations?|parts?';
+
 /** A count of the set's members: a number, at most one word, then what is counted. */
 const COUNTED_MEMBERS = new RegExp(
   String.raw`\b(\d{1,3}|${Object.keys(SPELLED_CARDINALS).join('|')})\s+`
-  + String.raw`(?:[A-Za-z0-9'’-]+\s+)?(files?|migrations?)\b`,
+  + String.raw`(?:[A-Za-z0-9'’-]+\s+)?(${MEMBER_NOUNS})\b`,
+  'gi',
+);
+
+/**
+ * The ordinals the member that does not exist yet is numbered with.
+ *
+ * `first` is not among them, because a set nobody has started has no header to
+ * correct and no size to state; the arithmetic below would read it as zero members.
+ */
+const SPELLED_ORDINALS: Readonly<Record<string, number>> = {
+  second: 2, third: 3, fourth: 4, fifth: 5, sixth: 6, seventh: 7, eighth: 8, ninth: 9,
+  tenth: 10, eleventh: 11, twelfth: 12, thirteenth: 13,
+};
+
+/**
+ * The number the next member would be given: an indefinite ordinal in front of a
+ * member noun, which states the size of the set as one less than itself.
+ *
+ * The article is the whole of what makes this readable, and it is not a convenience.
+ * An indefinite ordinal is about the member that does not exist, so the set is one
+ * short of it; a definite one is about a member that does, so the set is at least
+ * that long, and reading the two the same way would report a true sentence as a
+ * stale count. So only `a` and `an` are taken, which is how the instruction to the
+ * author of the next part is written in every place this set gives one.
+ *
+ * Written without an example, which is the price of a textual guard: a doc comment
+ * quoting the shape it reads is prose in a source this scan is over, and this one
+ * reported itself in the round it was added in.
+ */
+const NEXT_MEMBER = new RegExp(
+  String.raw`\ban?\s+(\d{1,3}(?:st|nd|rd|th)|${Object.keys(SPELLED_ORDINALS).join('|')})\s+`
+  + String.raw`(?:[A-Za-z0-9'’-]+\s+)?(${MEMBER_NOUNS})\b`,
   'gi',
 );
 
@@ -1087,14 +1123,34 @@ const NAMES_THE_SET = /trade[ _]record[ _]v1|\bsets?\b/i;
  * one run of comment lines headed by the name of the set.
  *
  * What it can and cannot do, stated rather than implied. It reads a count written
- * as a numeral or spelled out and standing in front of what it counts, which is
- * how every such sentence in these files is written; prose that says `all nine of
- * them` states the same fact and is not read. So it is a guard and not a proof,
- * and the fix it guards is that the size is not written in prose at all: the
- * headers carry it, `misnumberedSetHeaders` reads them against the directory, and
- * a sentence that restates the number is a second authority nothing checks. That
- * is F37, where this file and `tables.ts` went on giving the set a size smaller
- * than the directory held while every header on disk counted it correctly.
+ * as a numeral or spelled out and standing in front of what it counts, and the
+ * number the next member would be given, which states the size as one less than
+ * itself. So it is a guard and not a proof, and the fix it guards is that the size
+ * is not written in prose at all: the headers carry it, `misnumberedSetHeaders`
+ * reads them against the directory, and a sentence that restates the number is a
+ * second authority nothing checks. That is F37, where this file and `tables.ts`
+ * went on giving the set a size smaller than the directory held while every header
+ * on disk counted it correctly.
+ *
+ * What it does not read, refused with the measurement rather than left as a gap.
+ * A cardinal used as a noun with its member noun elided, which is F75: part 4 said
+ * `the privilege boundary these eight hand to each other` and `correcting the eight
+ * in front of it` where the directory held ten, and neither is read here. The
+ * widening that would read them is a determiner and a bare cardinal, and it was
+ * measured over this package, the set and the architecture document before it was
+ * declined: fourteen sentences match, two of them are those two, and of the twelve
+ * others six are the same substantive shape counting something else, `these six find
+ * nothing`, `the two against each other`, `the three this set`, `all four are read`,
+ * `the two is the`, `the two were not`. Which of the fourteen is about a migration
+ * and which about a check, a shape or a role is anaphora, and no fact on disk
+ * decides it: the filter that saves this scanner elsewhere, reporting only a number
+ * the directory contradicts, does not help either, because a count of six things
+ * that are not files differs from ten as surely as a stale count does. A guard whose
+ * report is twelve parts noise is read as coverage and waved through, so what closes
+ * F75 is that part 4 states no count in prose at all, and what is widened is the
+ * shape whose measurement came back clean: an indefinite ordinal in front of a
+ * member noun matches once in the three authorities, and it matched the instruction
+ * F75 was found in.
  */
 function setSizesStatedInComments(sources: readonly ScannedSource[]): StatedSetSize[] {
   const stated: StatedSetSize[] = [];
@@ -1111,10 +1167,68 @@ function setSizesStatedInComments(sources: readonly ScannedSource[]): StatedSetS
             size: spelled ?? Number(match[1]),
           });
         }
+        for (const match of sentence.matchAll(NEXT_MEMBER)) {
+          const spelled = SPELLED_ORDINALS[match[1].toLowerCase()];
+          stated.push({
+            file: source.file,
+            line: paragraph.line,
+            phrase: match[0],
+            size: (spelled ?? Number(match[1].replace(/\D+$/, ''))) - 1,
+          });
+        }
       }
     }
   }
   return stated;
+}
+
+/** One sentence a member of the set writes about which member comes last. */
+interface StatedSetOrder { file: string; line: number; phrase: string }
+
+/** How a member says a part of the set is the last one. */
+const LAST_MEMBER = new RegExp(
+  String.raw`\bthe last\s+(?:[A-Za-z0-9'’-]+\s+)?(?:${MEMBER_NOUNS})\b`,
+  'gi',
+);
+
+/**
+ * Every sentence in these sources that says which member of the set comes last.
+ *
+ * The same instrument as the size above and for the same defect one dimension over.
+ * Part 8 read "this is the last migration of the set, so it is the only place a
+ * claim about the whole of schema `seen` can be made", and parts 9 and 10 were added
+ * after it, each creating routines its schema-wide self-check ran before. Nothing
+ * leaked, because part 6's default privilege and each file's own revoke close the
+ * exposure; what rotted is the instruction, and a later author who reads that
+ * sentence is told a backstop covers a file that had not been written when it ran.
+ * The set's order is on disk, in the same directory listing the headers are counted
+ * against, so a claim about which member is last is decidable exactly as a count is.
+ *
+ * Pure over what it is handed, and handed the members alone by the one caller. The
+ * narrowing is load bearing rather than tidy: this file and `tables.ts` write about
+ * the last part of the set constantly, as `a reader who believes the smaller number
+ * stops before the last part`, and a sentence about the set's order in a test is not
+ * a sentence a later author mistakes for a rule about their own file.
+ *
+ * What it reads is the position and not the polarity, which is the same limit the
+ * size scanner has: a member writing that some other part is not the last would be
+ * reported, and the report would still be right about what to do, because which
+ * member is last belongs in the headers and nowhere else in prose. No member writes
+ * one today, in either direction, which is the state this keeps.
+ */
+function lastMemberClaimedInComments(sources: readonly ScannedSource[]): StatedSetOrder[] {
+  const claimed: StatedSetOrder[] = [];
+  for (const source of sources) {
+    for (const paragraph of commentParagraphs(source.contents)) {
+      for (const sentence of paragraph.prose.split(/(?<=\.)\s+/)) {
+        if (!NAMES_THE_SET.test(sentence)) continue;
+        for (const match of sentence.matchAll(LAST_MEMBER)) {
+          claimed.push({ file: source.file, line: paragraph.line, phrase: match[0] });
+        }
+      }
+    }
+  }
+  return claimed;
 }
 
 /**
@@ -1271,11 +1385,22 @@ function withdrawnClaimsStillStanding(
  * because a name is in `pg_attribute` or it is not; a comment denying an index is
  * a negation in English, and `WITHDRAWN_SHAPE_CLAIMS` says why nothing here tries
  * to recognise one.
+ *
+ * Narrowed to one relation where the caller is the measurement for that relation,
+ * exactly as the birth claims are narrowed to one object class: the assertion that
+ * measures what the keys carrying `marketplace` do on update reports the sentences
+ * about them and not the one about an invoice. Called with no relation it reports
+ * every claim in the list, so one that gains a row here and no measurement of its
+ * own is still guarded by somebody.
  */
-function withdrawnShapeClaimsStillStanding(sources: readonly ScannedSource[]): string[] {
-  return claimsStillStanding(sources, WITHDRAWN_SHAPE_CLAIMS.map((claim) => ({
-    about: claim.relation, spelling: claim.spelling, instead: claim.instead,
-  })));
+function withdrawnShapeClaimsStillStanding(
+  sources: readonly ScannedSource[], relation?: string,
+): string[] {
+  return claimsStillStanding(sources, WITHDRAWN_SHAPE_CLAIMS
+    .filter((claim) => relation === undefined || claim.relation === relation)
+    .map((claim) => ({
+      about: claim.relation, spelling: claim.spelling, instead: claim.instead,
+    })));
 }
 
 /** One withdrawn sentence as the scan reads it: the words, what they were written
@@ -2193,7 +2318,8 @@ describe('the migrations that write the schema', () => {
     const contradicted = setSizesStatedInComments(sourcesThatDocumentTheSet())
       .filter((stated) => stated.size !== size);
     const named = contradicted.map(
-      (stated) => `${stated.file}, comment at line ${stated.line}: "${stated.phrase}"`,
+      (stated) => `${stated.file}, comment at line ${stated.line}: "${stated.phrase}", which `
+        + `gives the set ${stated.size}`,
     );
     expect(
       named,
@@ -2237,6 +2363,72 @@ describe('the migrations that write the schema', () => {
       + 'because the preamble it sits in is headed by the name of the set, so the whole of a '
       + 'migration\'s opening comment is answered with numbers that have nothing to do with it',
     ).toEqual([]);
+    // F75. The instruction to the author of the next part states the size without
+    // counting anything: part 4 said `a ninth part is added by numbering it and
+    // correcting the eight in front of it` where the directory held ten, so the
+    // number the next member would be given is read as one less than itself. The
+    // article decides it, which is why both are shown: the part that does not exist
+    // yet sizes the set, and the part that does says only that it is there.
+    expect(
+      setSizesStatedInComments(scanned(
+        '-- The set is the migrations whose names carry the marker, so a ninth part is\n'
+        + '-- added by numbering it and correcting the headers in front of it.',
+      )).map((stated) => stated.size),
+      'The instruction a part gives the author of the next one states the set\'s size as the '
+      + 'number it tells them to write minus one, and is not read, so the one sentence in this '
+      + 'set whose whole subject is keeping the count right is the sentence the count can rot in',
+    ).toEqual([8]);
+    expect(
+      setSizesStatedInComments(scanned(
+        '-- Trade record v1: the tenth part of the set drops a column part 3 created.',
+      )),
+      'A part that exists is read as a count of the set one short of its own number, so a true '
+      + 'sentence about the last member is reported as a stale count and the guard\'s report '
+      + 'stops being worth reading',
+    ).toEqual([]);
+  });
+
+  it('says which member of the set is last in the headers and in no member\'s prose', () => {
+    // F77. Part 8 said it was the last migration of the set, and therefore the only
+    // place a claim about the whole of schema `seen` could be made, in the paragraph
+    // that justifies a self-check walking every routine there. Parts 9 and 10 were
+    // written after it and create four more, so the check runs before they exist on
+    // every `db:reset`. The exposure is closed twice over, by part 6's default
+    // privilege and by each file's own revoke beside the statement that creates the
+    // routine, and the standing guard is the block in this file that asks the
+    // delivered database. What rotted is the instruction: a later author adding a
+    // helper to `seen` is told a backstop covers them, and for the three cases part
+    // 8 itself names as outside part 6's reach it covers only the parts up to its
+    // own.
+    //
+    // Which member is last is a fact about the directory, exactly as the size is, so
+    // it is asked the same way rather than left to a reader to notice.
+    const members = tradeRecordSetHeaders().map((member) => member.file);
+    const last = members[members.length - 1];
+    const claimed = lastMemberClaimedInComments(
+      sourcesThatDocumentTheSet().filter((source) => members.includes(source.file)),
+    );
+    const named = claimed
+      .filter((claim) => claim.file !== last)
+      .map((claim) => `${claim.file}, comment at line ${claim.line}: "${claim.phrase}"`);
+    expect(
+      named,
+      `The set is applied in the order of the directory and ${last} is the member that comes `
+      + 'last, and these members say in prose that a different one does. A part that believes it '
+      + 'is last writes a claim about the whole of the schema and runs before the parts that add '
+      + `to it: ${named.join('; ')}`,
+    ).toEqual([]);
+    // And the scanner is shown prose this repository does not contain, so the
+    // assertion above cannot pass by reading nothing.
+    expect(
+      lastMemberClaimedInComments([{
+        file: 'supabase/migrations/2027_x.sql',
+        contents: '-- This is the last migration of the set, so it is the only place a claim\n'
+          + '-- about the whole of a schema can be made.',
+      }]).map((claim) => claim.phrase),
+      'A member calling itself the last part of the set is not read at all, so the assertion '
+      + 'above passes by finding nothing rather than by reading the prose',
+    ).toEqual(['the last migration']);
   });
 
   it('shows both guards a module at every extension this package can run', () => {
@@ -6997,7 +7189,9 @@ describe('a marketplace identifier, and the line id a marketplace gave a row', (
       uniqueIndexesOnTheThreadId: rows.map(
         (row) => `${row.index}${row.partial ? ' (partial)' : ''}`,
       ),
-      stillStanding: withdrawnShapeClaimsStillStanding(sourcesThatDocumentTheSet()),
+      stillStanding: withdrawnShapeClaimsStillStanding(
+        sourcesThatDocumentTheSet(), 'public.message_threads',
+      ),
     };
     expect(
       measured,
@@ -7065,6 +7259,148 @@ describe('a marketplace identifier, and the line id a marketplace gave a row', (
       renamedRows: 0,
     });
   });
+
+  it('refuses a change of the identifier on the connection it routes, by update', async () => {
+    // F72. The trigger above covers `public.marketplaces` and the section that adds
+    // it says the file makes a marketplace identifier immutable.
+    // `public.connections.marketplace` carries the same identifier and was left
+    // where the keys had it: measured as `service_role`, the role apps/api and
+    // apps/worker reach a repair or an onboarding path as, one UPDATE on a
+    // connection with no rows under it was accepted and read back as amazon, and the
+    // identical statement on a connection carrying one order was refused 23503. That
+    // is the two-answer shape this whole section exists to remove, on the column
+    // every connector, the capability matrix and the claims rail route on, sitting
+    // beside `credential_ref`, the Secret Manager pointer for that seller account:
+    // an accepted one points a Bol account's credentials at the Amazon connector.
+    //
+    // Asked with an UPDATE, which is F27's lesson: every marketplace-disagreement
+    // probe in this block is an INSERT, and an insert says nothing about a column
+    // that is only wrong once it has been written correctly.
+    const measured = await rolledBack(async () => {
+      await client.query('set local role service_role');
+      const idle = await tenantNamed('Tenant repointing an idle connection');
+      const trading = await tenantNamed('Tenant repointing a trading connection');
+      const untraded = (await client.query<{ id: string }>(
+        `insert into public.connections (tenant_id, marketplace, country, status)
+         values ($1, 'bol', 'NL', 'active') returning id`,
+        [idle],
+      )).rows[0].id;
+      const traded = await rail(trading, 'bol', 'REPOINT');
+      const repoint = (tenant: string, connection: string) => said(() => client.query(
+        `update public.connections set marketplace = 'amazon'
+          where tenant_id = $1 and id = $2`,
+        [tenant, connection],
+      ));
+      return {
+        withNothingUnderIt: await repoint(idle, untraded),
+        withAnOrderUnderIt: await repoint(trading, traded.connection),
+        stillOnBol: await countOf(
+          'connections', "tenant_id = any($1) and marketplace = 'bol'", [[idle, trading]],
+        ),
+        pointedAtAmazon: await countOf(
+          'connections', "tenant_id = any($1) and marketplace = 'amazon'", [[idle, trading]],
+        ),
+      };
+    });
+    expect(
+      measured,
+      'Repointing a connection with nothing under it answered '
+      + `${measured.withNothingUnderIt} and one carrying an order answered `
+      + `${measured.withAnOrderUnderIt}, leaving ${measured.stillOnBol} connections on bol and `
+      + `${measured.pointedAtAmazon} pointed at amazon. A connection is a seller account at one `
+      + 'marketplace and its marketplace is what routes the connector that reads it and the '
+      + 'credentials it is read with, so it is not changeable by an update any more than the '
+      + 'catalogue row above it is, and an operation the keys accept while the account is idle '
+      + 'and refuse once it has traded is the worst of the two answers (23001)',
+    ).toEqual({
+      withNothingUnderIt: '23001',
+      withAnOrderUnderIt: '23001',
+      stillOnBol: 2,
+      pointedAtAmazon: 0,
+    });
+  });
+
+  it('says what the keys carrying the identifier do on update, or says no number', async () => {
+    // F73, which is F43's class in the newest commit: a false explanation in the
+    // text a person reads at the moment a check refuses them. Part 9's F68 section
+    // says the chain is nine keys carrying `marketplace` and that none of them names
+    // an update action, so all nine are NO ACTION, and the `raise` the trigger hands
+    // a person repeats it. The catalogue answers that two of them cascade on update,
+    // and part 9 wrote the second of the two itself, 140 lines above the sentence,
+    // with the clause argued for in the paragraph beside it.
+    //
+    // What the reader does with a false premise is the finding. Told that no key
+    // carrying this value cascades on update, the repair the message suggests is to
+    // add `on update cascade` to the connections key so the rename can propagate;
+    // the clause has been there since part 3, and the rename is refused by the seven
+    // keys that do not cascade. So the catalogue is asked what the keys do, and the
+    // sentences that answered for it are looked for wherever a person meets them.
+    const { rows } = await client.query<{ key: string; action: string }>(
+      `select con.conname as key, con.confupdtype as action
+         from pg_catalog.pg_constraint con
+         join pg_catalog.pg_attribute a
+           on a.attrelid = con.conrelid and a.attname = 'marketplace'
+          and a.attnum > 0 and not a.attisdropped
+        where con.contype = 'f' and con.connamespace = 'public'::regnamespace
+          and a.attnum = any(con.conkey)
+        order by 1`,
+    );
+    const measured = {
+      cascadingOnUpdate: rows.filter((row) => row.action === 'c').map((row) => row.key),
+      stillStanding: withdrawnShapeClaimsStillStanding(
+        sourcesThatDocumentTheSet(), 'public.marketplaces',
+      ),
+    };
+    expect(
+      measured,
+      `${rows.length} foreign keys in this schema carry the marketplace column and `
+      + `${measured.cascadingOnUpdate.length} of them name on update cascade, so a sentence `
+      + 'saying that none of them does is false of the schema it is written in, and a person '
+      + 'meets it at the moment the trigger refuses their statement. A count in a raise message '
+      + 'is a claim that rots where nobody rereads it: what the message owes its reader is what '
+      + `the refusal means. What is still standing: ${measured.stillStanding.join('; ') || 'nothing'}`,
+    ).toEqual({
+      cascadingOnUpdate: ['claims_marketplace_fkey', 'connections_marketplace_fkey'],
+      stillStanding: [],
+    });
+  });
+
+  it('is quoted on the cascade as the part that wrote it now writes it', async () => {
+    // F76. F68 rewrote the withdrawn rename sentence in part 3 and in the head of
+    // part 9 and left it standing in `rls.test.ts`, in the present tense and inside
+    // quotation marks as a direct quotation of part 3, which now says the opposite:
+    // the cascade is there so the key can never be the thing that orphans a
+    // connection, and not as an invitation to rename an identifier. A reader of the
+    // block about `connections_marketplace_fkey` is sent to part 3 for the rest of
+    // that reasoning and finds its negation, and the sentence quoted is the exact
+    // premise F68 returned the ticket for. The words were not held in
+    // `WITHDRAWN_SHAPE_CLAIMS`, so the scan whose whole purpose is catching a
+    // withdrawn claim surviving in a third place could not see them.
+    //
+    // The clause itself is unchanged and is asked about here, because the sentence
+    // was withdrawn and the key was not: part 3's `on update cascade` is kept in the
+    // shape part 3 wrote it, and what makes it carry nothing is that the pair it
+    // points at cannot be updated at all.
+    const { rows } = await client.query<{ action: string }>(
+      `select con.confupdtype as action
+         from pg_catalog.pg_constraint con
+        where con.contype = 'f' and con.connamespace = 'public'::regnamespace
+          and con.conname = 'connections_marketplace_fkey'`,
+    );
+    const measured = {
+      theClauseOnTheConnectionsKey: rows.map((row) => row.action),
+      stillStanding: withdrawnShapeClaimsStillStanding(
+        sourcesThatDocumentTheSet(), 'public.connections',
+      ),
+    };
+    expect(
+      measured,
+      'The cascade on the connections key is unchanged, and the sentence that said what it was '
+      + 'for is not: part 3 withdrew it, and a quotation of part 3 that still carries it sends a '
+      + 'later ticket to write the rename this schema refuses. What is still standing: '
+      + `${measured.stillStanding.join('; ') || 'nothing'}`,
+    ).toEqual({ theClauseOnTheConnectionsKey: ['c'], stillStanding: [] });
+  });
 });
 
 describe('what a migration says about a column, and what the schema has', () => {
@@ -7130,6 +7466,41 @@ describe('what a migration says about a column, and what the schema has', () => 
       + `${offenders.join('; ')}. Either keep the column or take the sentence out, because the `
       + 'set is forward only and a part may not point at the part that dropped it',
     ).toEqual([]);
+  });
+
+  it('asserts the contract of no column it dropped, in the table comment either', () => {
+    // F74, which is F70 in the one shape the guard above cannot read. The repair
+    // took the comment off `recovery_share_lines` and part 7's classification with
+    // it, and left part 3's `comment on table public.invoices` saying that a
+    // recovery share line exists only for a claim credited by an ingested settlement
+    // line, that a credit is billable through that link, and that nothing here may
+    // write a billable event directly. That is the contract F66 measured the
+    // database not enforcing, stated of a column part 10 removed for that reason, in
+    // the file F70 itself establishes is where a person looks for the shape of a
+    // table. The guard passes over it because the sentence is prose inside a
+    // statement and names no `table.column` pair anywhere, and
+    // `WITHDRAWN_SHAPE_CLAIMS` says why nothing here tries to read the phrase as an
+    // identifier.
+    //
+    // Two halves, as the other withdrawn claims have. The catalogue is asked whether
+    // the column is really gone, which is what makes the sentence false rather than
+    // merely unenforced, and the words are looked for wherever a person meets them.
+    const measured = {
+      columnsOfInvoicesNamedForTheShare: [...columns.get('invoices') ?? []]
+        .filter((column) => column.includes('recovery')),
+      stillStanding: withdrawnShapeClaimsStillStanding(
+        sourcesThatDocumentTheSet(), 'public.invoices',
+      ),
+    };
+    expect(
+      measured,
+      'The part that creates public.invoices states the contract of a column the delivered '
+      + `schema does not have, where the catalogue holds ${JSON.stringify(measured.columnsOfInvoicesNamedForTheShare)}. `
+      + 'SEEN-040 opens that file to find the shape of the table, writes the recovery share into '
+      + 'the column the sentence is about and gets 42703, or believes this table carries and '
+      + 'enforces the share lines, which is the misreading F70 was returned for. What is still '
+      + `standing: ${measured.stillStanding.join('; ') || 'nothing'}`,
+    ).toEqual({ columnsOfInvoicesNamedForTheShare: [], stillStanding: [] });
   });
 
   it('reads the three shapes a comment describes a column in, and no file path', () => {

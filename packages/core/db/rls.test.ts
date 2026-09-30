@@ -1759,13 +1759,22 @@ describe('tenant isolation on every table in the public schema', () => {
  * connection, and its credential reference, into a tenant that never asked for it.
  *
  * `connections_marketplace_fkey` is written `(tenant_id, marketplace) references
- * public.marketplaces (tenant_id, marketplace) on update cascade`, and part 3
- * states the intent beside it: "renaming an identifier in the catalogue carries the
- * connections with it rather than orphaning them". That reasoning covers one column
- * of the key. The cascade fires on a change to either, so a change to
- * `marketplaces.tenant_id` rewrites `connections.tenant_id`, and what moves is not
- * an ordinary row: `connections` carries `credential_ref`, the Secret Manager
- * pointer for that seller account, plus its scopes and its external seller id.
+ * public.marketplaces (tenant_id, marketplace) on update cascade`, and part 3 chose
+ * that clause so the key could never be the thing that orphans a connection, saying
+ * beside it that the value is to be treated as immutable once a connection exists.
+ * That reasoning covers one column of the key. The cascade fires on a change to
+ * either, so a change to `marketplaces.tenant_id` rewrites `connections.tenant_id`,
+ * and what moves is not an ordinary row: `connections` carries `credential_ref`, the
+ * Secret Manager pointer for that seller account, plus its scopes and its external
+ * seller id.
+ *
+ * What this block used to say part 3 said, which is F76: that renaming an identifier
+ * in the catalogue carried the connections with it rather than orphaning them, quoted
+ * in the present tense from a file F68 had already corrected. Grepping the set for
+ * those words returns nothing in any migration, and part 3 now says the opposite of
+ * the half that mattered. The sentence is held in `WITHDRAWN_SHAPE_CLAIMS` so that a
+ * fourth copy of it fails the suite rather than a review, and part 9 refuses the
+ * rename by trigger on the catalogue row and on the connection alike.
  *
  * A referential action passes through no policy and fires no trigger of its own, so
  * nothing in the four layers this schema puts around a tenant boundary was in the

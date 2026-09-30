@@ -1,0 +1,45 @@
+{
+  "sequence": 282,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-30T21:07:28.185627+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 16,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "f0bff442d53622de62939ca2e2dead11219e8bb8",
+  "prev_hash": "8c09ec85fb916a88786a61e041d20f59cebe3fbcd21a678c796470f5158767a2",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": null,
+          "behaviour": "The four code findings the Claude Code review returned at record 275. Part 10 stops claiming its storage_path check binds an upload when it binds a string, and the withdrawal is held as data: SCHEMA_OBLIGATIONS makes the suite red unless public.evidence and public.statements name the tickets that owe the prefix, and unless SEEN-022, SEEN-027 and SEEN-041 each carry the criterion. Part 9's marketplace identifier is made immutable by a trigger rather than by a key that answers accepted on an idle account and 23503 on a trading one. Its message_threads index is made non-partial so the upsert SEEN-061 and SEEN-062 must write can name it, external_thread_id is made not null, and its self-check runs the statements instead of describing the index. A scanner refuses any migration sentence describing a column the delivered schema does not hold.",
+          "failure_reason": "Renaming a catalogue identifier with nothing under it answered accepted and one with an order under it answered 23503, leaving 1 rows spelled bol and 1 renamed.",
+          "red": 276,
+          "green": 277
+        },
+        {
+          "position": null,
+          "behaviour": "The two the first pair declared and left open. Part 2's sentence that message_threads carries no unique index on the thread id, which part 9 made false, is corrected backwards only and held as data in WITHDRAWN_SHAPE_CLAIMS so it cannot survive, be copied or come back, with the pg_index half catching the claim becoming true again. The reach of part 10's path check is pinned as behaviour beside the obligation rows: a row may name a path no object stands at, an object under the prefix with no row is still swept, and an object outside the prefix is walked past, all three of which stay true once the obligation tickets close the third in the uploading code.",
+          "failure_reason": "The part that creates public.message_threads tells a reader it carries no unique index on the thread id, and the catalogue answers [\"message_threads_tenant_id_connection_id_external_thread_id_key\"].",
+          "red": 278,
+          "green": 279
+        }
+      ],
+      "regression": 280,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "a00943ab9615",
+      "output_tokens": 2431059,
+      "tool_calls": 1132,
+      "unavailable": null
+    }
+  }
+}

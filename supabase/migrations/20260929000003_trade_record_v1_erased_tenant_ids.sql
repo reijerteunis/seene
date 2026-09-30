@@ -704,12 +704,22 @@ begin
 
   -- The revoke block above, asked of the database instead of read off the file.
   --
-  -- This is the last migration of the set, so it is the only place a claim about
-  -- the whole of schema `seen` can be made, and the claim the block above makes is
-  -- exactly the kind this ticket has learned not to leave unasserted: a statement
-  -- in a file about the file's own behaviour. F38 is what an unasserted one cost,
-  -- and it was not found by anybody reading the revoke list, because a list is read
-  -- for what it holds and not for what it omits.
+  -- The claim the block above makes is exactly the kind this ticket has learned not
+  -- to leave unasserted: a statement in a file about the file's own behaviour. F38 is
+  -- what an unasserted one cost, and it was not found by anybody reading the revoke
+  -- list, because a list is read for what it holds and not for what it omits.
+  --
+  -- What the check below covers, said exactly, because it used to say it was the last
+  -- of the set and therefore the only place a claim about the whole of schema `seen`
+  -- could be made (F77). It is the whole of the schema as this file leaves it, which
+  -- is the strongest claim a part of a forward-only set can make about a schema it
+  -- shares: a later part may create a routine here, and this will have run before
+  -- that routine existed. So a helper added to `seen` after this file carries its own
+  -- `revoke all on function ... from public` beside the statement that creates it, as
+  -- parts 1, 2 and 3 each do for theirs, and the standing guard over the schema the
+  -- whole set leaves behind is packages/core/db/schema.test.ts, which asks the
+  -- delivered database rather than any one file's own moment. What this block is the
+  -- backstop for is the three cases below, for the parts up to this one.
   --
   -- Asked of every routine in the schema and not of the six named above, which is
   -- the difference between fixing F38 and closing the way it arrived. `anon` holds
