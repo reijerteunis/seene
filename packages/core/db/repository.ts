@@ -54,6 +54,18 @@
  * well, and the specifier they name is judged by the same allow-list. What is
  * known to survive both instruments, and why that is not offered as the whole of
  * it, is stated at `readingImportsOf`.
+ *
+ * F48 is the sixth, and it is F47's defect in F47's paragraph: a stated property
+ * of the guard that was not true of the guard. A relative specifier was admitted
+ * without being listed, on the ground that the module it names is collected by
+ * `packageSources` and asked the same question, and that held everywhere except
+ * the four directories the walk skips. `node_modules` is one of them and is on
+ * disk, so `../node_modules/anything` was admitted as inside the package and
+ * asked nothing. The repair is not a fifth name in a list but the predicate
+ * itself: a relative specifier is resolved against the files the walk returns, so
+ * the transitivity is what the code does rather than what a sentence beside it
+ * says, and it survives somebody editing the skip list without ever hearing of
+ * this finding.
  */
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
@@ -95,10 +107,20 @@ export const READER_MODULE = `${PACKAGE_DIRECTORY}/db/repository.ts`;
  * inverts that: a specifier nobody anticipated is reported until somebody adds it
  * here with a reason, and the reason is the work rather than the entry.
  *
- * A relative specifier is not listed and does not need to be, as long as it stays
- * inside this package: the module it names is collected by `packageSources` and
- * asked the same question, so the allow-list holds transitively. One that leaves
- * the package is reported, because nothing then asks the module at the other end.
+ * A relative specifier is not listed and does not need to be, as long as it
+ * resolves to a file `packageFiles` collects: a source there is asked this same
+ * question, and an inert file there carries no code to ask about, so the
+ * allow-list holds transitively for exactly the specifiers `resolvedInPackage`
+ * admits. Anything else is reported, whether it leaves the package, lands in a
+ * directory the walk skips, or resolves to nothing at all.
+ *
+ * That last clause is F48. The rule used to be that the joined path starts with
+ * this package's directory, with the transitivity given as the reason, and the
+ * two were not the same set: the walk skips `.turbo`, `coverage`, `dist` and
+ * `node_modules`, `packages/core/node_modules` holds pg and two more links today,
+ * and a module writing `../node_modules/anything` was filtered out as inside the
+ * package and never collected to be asked what it imports. The reason is now the
+ * rule rather than a claim about it.
  */
 export const IMPORTS_THAT_CANNOT_READ: Record<string, string> = {
   // The runner, admitted because every test file here imports it and removing it
@@ -276,6 +298,14 @@ export function listRepositoryDirectory(path: string): string[] {
  * key would hide it. Installed packages, coverage output and turbo's own logs are
  * not this package's sources and are skipped by name.
  *
+ * What that skip list costs is paid at `resolvedInPackage`, which is F48. A
+ * relative specifier used to be admitted for starting with this package's
+ * directory, so `../node_modules/anything` was trusted as though it had been
+ * collected here and asked what it imports, when the walk had passed over it. The
+ * relative rule now resolves against what this returns, so adding a name here
+ * closes a route at the same time as it stops a scan, and nobody has to remember
+ * that the two are connected.
+ *
  * The third bucket is what F45 cost. A walk that collects the extensions it knows
  * and says nothing about the rest reports a complete answer to a caller who asked
  * about every module in the package, and the file it silently passed over was a
@@ -369,6 +399,72 @@ function loadedSpecifiers(contents: string, source: string): string[] {
 }
 
 /**
+ * The extension a specifier is written with, beside the extensions the file it
+ * names may actually be written with.
+ *
+ * A specifier ending `.js` is how TypeScript's own ESM output names a sibling
+ * that is a `.ts` on disk, and nothing in this repository stops an author
+ * spelling an import that way. Resolution that did not know it would report a
+ * specifier the runtime resolves happily, which is a guard refusing what it
+ * should admit, and a guard that cries at ordinary code is a guard somebody
+ * loosens. The other direction is not here: a `.ts` specifier never names a
+ * `.js` file.
+ */
+const COMPILED_TO_SOURCE_EXTENSIONS: Record<string, string[]> = {
+  '.js': ['.ts', '.tsx'],
+  '.jsx': ['.tsx'],
+  '.mjs': ['.mts'],
+  '.cjs': ['.cts'],
+};
+
+/**
+ * Every path a relative specifier could mean, in the order a resolver would try
+ * them: the path as written, the path with each extension this package's modules
+ * are written with, the source a compiled extension was emitted from, and the
+ * index file of a directory of that name.
+ *
+ * Deliberately generous about what a specifier may mean and not at all generous
+ * about what that buys, because `resolvedInPackage` only admits a candidate that
+ * is a file the walk collected. A candidate that resolves to nothing is the case
+ * this exists for: `import.meta.resolve` and the TypeScript resolver are both
+ * available and both would answer for a specifier into a skipped directory, and
+ * an answer is not what is wanted here. The question is whether the module at the
+ * other end is one this package's own guard has already asked.
+ */
+function candidatePaths(target: string): string[] {
+  const extension = posix.extname(target);
+  const stem = extension === '' ? target : target.slice(0, -extension.length);
+  return [
+    target,
+    ...SOURCE_EXTENSIONS.map((suffix) => `${target}${suffix}`),
+    ...(COMPILED_TO_SOURCE_EXTENSIONS[extension] ?? []).map((suffix) => `${stem}${suffix}`),
+    ...SOURCE_EXTENSIONS.map((suffix) => `${target}/index${suffix}`),
+  ];
+}
+
+/**
+ * Whether a relative specifier written in `source` names a file this package's
+ * own walk collected.
+ *
+ * This is the whole of F48's repair. What was asked before was whether the joined
+ * path starts with this package's directory, which is the claim the doc comment
+ * on `IMPORTS_THAT_CANNOT_READ` made, rather than the thing the claim was resting
+ * on. The thing it rests on is that `packageFiles` collected the module at the
+ * other end, so that `readingImportsOf` is asked about it too, and the two
+ * differed by the four directory names the walk skips.
+ *
+ * A specifier this cannot place is reported rather than admitted, which is the
+ * inversion every guard in this module has ended up at: admitting what could not
+ * be accounted for is the shape of all six findings. The cost is a false positive
+ * on a spelling no resolver here has been taught, and the price of that is a line
+ * in `candidatePaths` with the measurement that says why.
+ */
+function resolvedInPackage(specifier: string, source: string, collected: Set<string>): boolean {
+  const target = posix.join(posix.dirname(source), specifier);
+  return candidatePaths(target).some((candidate) => collected.has(candidate));
+}
+
+/**
  * Everything a source imports that this package cannot vouch for as unable to
  * open a file, named as the source spells it.
  *
@@ -386,9 +482,10 @@ function loadedSpecifiers(contents: string, source: string): string[] {
  * by that definition while returning the module all the same. So the calls at
  * `MODULE_LOADING_CALLS` are read from the syntax tree as well, and both answers
  * go to one judgement: `IMPORTS_THAT_CANNOT_READ`, plus relative specifiers that
- * stay inside this package, which are collected and asked the same question
- * themselves. A loader handed `./tables` is as allowed as an import of it, and a
- * loader handed `node:fs` is as reported, because there is one list and not two.
+ * `resolvedInPackage` places on a file the walk collected, which is a file asked
+ * this same question. A loader handed `./tables` is as allowed as an import of
+ * it, and a loader handed `node:fs` or `../node_modules/pg` is as reported,
+ * because there is one list and one resolver and not two of either.
  *
  * What is known to survive both, and would survive a lint rule equally, because
  * all three read the specifier a module was written with: `import()`, `require()`
@@ -417,12 +514,14 @@ export function readingImportsOf(contents: string, source: string): string[] {
   const imported = ts.preProcessFile(contents, true, true).importedFiles
     .map((reference) => reference.fileName)
     .concat(loadedSpecifiers(contents, source));
-  const insidePackage = (specifier: string): boolean => posix
-    .join(posix.dirname(source), specifier)
-    .startsWith(`${PACKAGE_DIRECTORY}/`);
+  // Measured once per call rather than once per specifier, and from disk rather
+  // than from a cache, for the reason `packageFiles` gives: what is being asked
+  // is what exists, and what exists does not change while the suite runs.
+  const files = packageFiles();
+  const collected = new Set([...files.sources, ...files.inert]);
   return [...new Set(imported)]
     .filter((specifier) => (specifier.startsWith('.')
-      ? !insidePackage(specifier)
+      ? !resolvedInPackage(specifier, source, collected)
       : !(specifier in IMPORTS_THAT_CANNOT_READ)))
     .sort();
 }

@@ -29,8 +29,8 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  INERT_EXTENSIONS, packageFiles, packageSources, readingImportsOf, readRepositoryFile,
-  READER_MODULE, repositoryPathExists, SOURCE_EXTENSIONS, testTaskInputs,
+  INERT_EXTENSIONS, PACKAGE_DIRECTORY, packageFiles, packageSources, readingImportsOf,
+  readRepositoryFile, READER_MODULE, repositoryPathExists, SOURCE_EXTENSIONS, testTaskInputs,
 } from './repository';
 import { DATA_API_CONFIG, HASHED_REPOSITORY_DOCUMENTS } from './tables';
 
@@ -177,8 +177,8 @@ describe('the spelling a reading import is written with', () => {
     // pre-processor, and what the tree says is put to the same allow-list, so
     // there is one rule about what this package may reach and not two. The three
     // cases below are the three answers that rule has: a specifier nothing
-    // vouches for is named, a relative specifier inside this package is not,
-    // because the module it names is collected and asked the same question, and a
+    // vouches for is named, a relative specifier that resolves to a file this
+    // scan collects is not, because that file is asked the same question, and a
     // computed specifier is not, because there is nothing written to report. The
     // last of those is a survival and is asserted here so that the paragraph at
     // `readingImportsOf` claiming it is a paragraph something checks.
@@ -204,6 +204,64 @@ describe('the spelling a reading import is written with', () => {
       readingImportsOf(computed, SYNTHETIC_SOURCE),
       'A computed specifier is named by something, so the guard is reporting a name it did not '
       + 'read and the paragraph that gives this as a survival is describing something else.',
+    ).toEqual([]);
+  });
+
+  it('admits a relative specifier only when it resolves to a file this scan collects', () => {
+    // F48. The rule for a relative specifier was that its joined path starts
+    // with this package's directory, and the reason given for it was a
+    // transitivity: the module named is collected by `packageSources` and asked
+    // the same question. That was false for the four directory names the walk
+    // skips, and one of them is on disk. So a module here could write
+    // `../node_modules/anything`, be filtered out as inside the package, and
+    // never be asked what the module at the other end imports, because the walk
+    // passed over the directory it lives in. The predicate is now the mechanism
+    // rather than a restatement of it: what is admitted is what the walk returns,
+    // so the sentence holds by construction and goes on holding if somebody
+    // edits the skip list without ever hearing of this finding.
+    const skipped = `${PACKAGE_DIRECTORY}/node_modules`;
+    expect(
+      repositoryPathExists(skipped),
+      `${skipped} is not on disk, so a specifier into it would prove nothing about a directory `
+      + 'the walk skips. Name one of the four that is there.',
+    ).toBe(true);
+    expect(
+      packageSources().filter((source) => source.startsWith(`${skipped}/`)),
+      `The walk collects files under ${skipped} after all, so a specifier into it is asked the `
+      + 'same question and this case says nothing.',
+    ).toEqual([]);
+    const reported: [source: string, why: string][] = [
+      ["import { readFileSync } from '../node_modules/pg';",
+        'a relative specifier into a directory the walk skips is admitted, and nothing asks the '
+        + 'module at the other end what it imports'],
+      ["import { vi } from 'vitest';\nconst pg: any = await vi.importActual('../node_modules/pg');",
+        'the loader route into the same directory is open, so the two instruments disagree about '
+        + 'one specifier'],
+      ["import { helper } from './nowhere';",
+        'a specifier that resolves to nothing is admitted, which is how this hole was shaped: the '
+        + 'unresolvable is the case a guard has to report rather than trust'],
+    ];
+    const admitted = reported
+      .filter(([source]) => readingImportsOf(source, SYNTHETIC_SOURCE).length === 0)
+      .map(([source, why]) => `${source.replace('\n', ' ')} -> ${why}`);
+    expect(
+      admitted,
+      `These sources are admitted by the relative rule and should not be: ${admitted.join(' | ')}`,
+    ).toEqual([]);
+    const settled = [
+      "import { TRADE_RECORD_TABLES } from './tables';",
+      "import { TRADE_RECORD_TABLES } from './tables.js';",
+      "import { config } from '../vitest.config';",
+      "import { vi } from 'vitest';\nconst tables: any = await vi.importActual('./tables');",
+    ];
+    const objected = settled
+      .map((source) => [source, readingImportsOf(source, SYNTHETIC_SOURCE)] as const)
+      .filter(([, named]) => named.length > 0)
+      .map(([source, named]) => `${source.replace('\n', ' ')} -> ${named.join(', ')}`);
+    expect(
+      objected,
+      'These specifiers name a file this scan collects, spelled as TypeScript allows them to be '
+      + `spelled, and the guard reports them, so resolution is stricter than the runtime: ${objected.join(' | ')}`,
     ).toEqual([]);
   });
 
