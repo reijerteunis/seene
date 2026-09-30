@@ -1,0 +1,38 @@
+{
+  "sequence": 290,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-30T21:57:28.974384+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 17,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "f219593b4714d576bef63b6a7cc70a89c1a79615",
+  "prev_hash": "3bfc3da865c4509f6b6a7c106cb7874bab97b90d46b3937876e07880e8f575e8",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": null,
+          "behaviour": "The six the second Claude Code review returned at record 284, and the three guard gaps that let three of them survive. The marketplace identifier is now immutable in both columns that hold one: a trigger on public.connections refuses a repoint with 23001 whether or not anything trades under it, where the keys alone answered accepted on an idle connection and 23503 on a trading one. Part 9's raise message carries no count at all, because a number in a raise is a claim that rots and one of its own keys already falsified it. Part 4 states no size for the set, part 8 no longer calls itself its last member, and part 3's invoices comment no longer asserts the contract of the column part 10 drops. Four withdrawn sentences are held in WITHDRAWN_SHAPE_CLAIMS, the set-size scanner reads an indefinite ordinal as well as a cardinal, and lastMemberClaimedInComments compares a claim of lastness against the directory.",
+          "failure_reason": "Repointing a connection with nothing under it answered accepted and one carrying an order answered 23503, where 23001 is what makes the identifier immutable rather than merely defended by its children.",
+          "red": 285,
+          "green": 287
+        }
+      ],
+      "regression": 288,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "a00943ab9615",
+      "output_tokens": 2464666,
+      "tool_calls": 1140,
+      "unavailable": null
+    }
+  }
+}
