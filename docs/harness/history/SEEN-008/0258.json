@@ -1,0 +1,45 @@
+{
+  "sequence": 258,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-30T17:44:46.895112+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 14,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "c564d836559a42646f142fdf9c8f4a6ffd288029",
+  "prev_hash": "5d1974a78d0b28db647d2fec9365c5d1a6c8b547bfa62fa2a311840b95ca63dc",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": null,
+          "behaviour": "F52: any string literal at any call, under any name, that resolves to a repository file the walk did not collect is reported, so import.meta.glob and the next spelling after it are closed without adding a name to a list. Measured before deciding: an unrestricted inverse gave eight false reports, all directories, and requiring a file removes all eight.",
+          "failure_reason": "`pnpm --filter @seen/core test` exited 1: AssertionError: These sources reach the filesystem and the guard does not name what they reach it through, so a module written this way reads an authority nothing hashes: const prd: any = import.meta. | AssertionError: These sources obtain a repository file and the guard names nothing: const prd: any = import.meta.glob('../../../docs/prd/prd.md', { query: '?raw', eager: true }); -> the glob grammar r",
+          "red": 252,
+          "green": 253
+        },
+        {
+          "position": null,
+          "behaviour": "F51 and F53: the committed race fixtures take ids from a reserved namespace and refuse to run beside a tombstone or tenant outside it, so a run's three permanent rows say what they are and the suite will not write them into a database holding real trade records; and the scan selection is a pure function over the names it is handed, so it fails when the narrowing F49 removed is restored, which the on-disk assertion could not.",
+          "failure_reason": "`pnpm --filter @seen/core test` exited 1: AssertionError: Modules at these extensions run under vitest and are read by a person, and the scan that feeds the withdrawn-claim guard and the size guard would drop them, so both guards report nothi | AssertionError: seen.erased_tenants holds 3 tombstones outside the fixture namespace 5ee00008-0000-4000-8000-: d35e247f-42df-4e6f-b01c-85bb2a46d769, 416698d0-d4ee-47c9-b2d8-054f8187ddd0, 70219796-b205",
+          "red": 254,
+          "green": 255
+        }
+      ],
+      "regression": 256,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "a00943ab9615",
+      "output_tokens": 2261694,
+      "tool_calls": 1075,
+      "unavailable": null
+    }
+  }
+}
