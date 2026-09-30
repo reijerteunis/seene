@@ -647,13 +647,28 @@ begin
   -- for what it holds and not for what it omits.
   --
   -- Asked of every routine in the schema and not of the six named above, which is
-  -- the difference between fixing F38 and closing the way it arrived. A function
-  -- added here by part 1, by part 3 or by a later ticket's migration is born with
-  -- PostgreSQL's EXECUTE to PUBLIC, `anon` holds USAGE on this schema, and so it is
-  -- callable by name by a caller who never signed in until its own migration says
-  -- otherwise. There is no default privilege that prevents it and none that could,
-  -- so this raises instead: the migration set fails as it applies rather than
-  -- leaving a sentence that reads true.
+  -- the difference between fixing F38 and closing the way it arrived. `anon` holds
+  -- USAGE on this schema, so a routine here that carries EXECUTE to PUBLIC is
+  -- callable by name by a caller who never signed in, whatever it returns and
+  -- whoever wrote it.
+  --
+  -- What stops one carrying it is part 6, whose `alter default privileges for role
+  -- postgres revoke execute on functions from public` is filed against no schema
+  -- and so reaches this one: a helper created here after part 6 runs is born
+  -- `{postgres=X/postgres}` and no role a request is bound to can call it. This
+  -- check is the second line and not the first, and it is kept because three things
+  -- are outside what that statement reaches. A routine parts 1 to 5 created before
+  -- it ran, which is why parts 1, 2 and 3 each revoke their own helpers and why the
+  -- six revokes above are kept for a re-apply against a database that has lost the
+  -- global entry rather than deleted as redundant. A routine
+  -- created under a grantor this role cannot file a default privilege for, which is
+  -- how Supabase installs an extension and is the limit part 6 states for itself. A
+  -- grant somebody writes back by hand. Each of those ends here, with the migration
+  -- set failing as it applies rather than leaving a sentence that reads true. The
+  -- prevention itself is measured in packages/core/db/schema.test.ts, so the
+  -- paragraph above is not taken on trust either: five rounds of this ticket said
+  -- prevention was unavailable, the seventh review (F39) showed it was not, and the
+  -- ninth (F43) found this sentence still saying so.
   --
   -- seen.current_tenant() is the one exception and has to be, because it is
   -- evaluated as the caller inside all thirty policies and a request that could not
@@ -682,9 +697,13 @@ begin
 
   if offenders is not null then
     raise exception 'a routine in schema seen is callable by a role the application binds a '
-      'request to, where seen.current_tenant() is the only one that may be. A routine here is '
-      'born with EXECUTE to PUBLIC and anon holds usage on the schema, so it is callable by name '
-      'until its own migration revokes it from public: %', offenders;
+      'request to, where seen.current_tenant() is the only one that may be. anon holds usage on '
+      'this schema, so a routine that carries EXECUTE to PUBLIC is callable by name by a caller '
+      'who never signed in. Part 6 takes that grant away from every routine this role creates '
+      'after it, so one reported here was created before part 6 ran, was created under another '
+      'owner, or has been granted back: revoke it from public beside the statement that creates '
+      'it, or, if a request has to call it, grant it by name and say here why it is safe: '
+      '%', offenders;
   end if;
 
   if not has_function_privilege('authenticated', 'seen.current_tenant()', 'EXECUTE') then

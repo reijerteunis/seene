@@ -790,6 +790,83 @@ export const DEFAULT_ACL_OBJECT_CLASSES: Readonly<Record<string, string>> = {
   r: 'relation',
 };
 
+/** One sentence this set wrote about how an object is born, and withdrew. */
+export interface WithdrawnBirthClaim {
+  /** The class it was written about, in the words `DEFAULT_ACL_OBJECT_CLASSES` uses. */
+  objectClass: string;
+  /** How it was spelled, in fragments, joined by a space before it is looked for. */
+  spelling: readonly string[];
+  /** What is true instead, for the reader who has just been sent here by a guard. */
+  instead: string;
+}
+
+/**
+ * The claims about an object's birth this set has made and withdrawn, as the
+ * fragments they were written in.
+ *
+ * One claim so far. Five rounds of this ticket recorded that PostgreSQL's built-in
+ * EXECUTE to PUBLIC on a new routine is beyond every default privilege, so a
+ * routine was callable until its own migration revoked it, prevention was
+ * unavailable and detection was the whole of the defence. The seventh review (F39)
+ * showed that this is a property of `alter default privileges ... in schema public`
+ * and not of PostgreSQL: the built-in grant is filed against no schema, and the
+ * form with no `in schema` clause is filed the same way and does subtract it. Part
+ * 6 writes that form. The withdrawal reached part 6, the journal and the ticket's
+ * Outcome and left four other sentences standing for a round, each of which went on
+ * telling the author of a later migration that detection was the only shape
+ * available to them, which is the ninth review's F43.
+ *
+ * Held as data rather than as a sentence inside the guard so that the next class
+ * this happens to is a row here rather than an argument about whether it is the
+ * same defect: `objectClass` says which measurement decides a row, and a class with
+ * no row here is one nothing has been withdrawn about yet.
+ *
+ * Each spelling is kept in fragments and joined before it is looked for, because
+ * every file the guard scans includes the file this list is written in: a phrase
+ * written here whole would be found here whole, and a guard that reports itself
+ * reports nothing.
+ *
+ * What this is and is not. It catches a withdrawn sentence surviving, being copied
+ * or coming back, because it holds the words it was written in rather than a
+ * paraphrase of them; it does not catch a new sentence making the same mistake in
+ * new words, and nothing textual could. What catches the claim becoming true again,
+ * because somebody dropped the statement that makes it false, is the measurement
+ * beside the guard in `schema.test.ts`, and that is the half that does not depend
+ * on how anybody writes.
+ */
+export const WITHDRAWN_BIRTH_CLAIMS: readonly WithdrawnBirthClaim[] = [
+  {
+    objectClass: 'function',
+    spelling: ['no default privilege that prevents it', 'and none that could'],
+    instead: 'part 6 files one that does, against no schema, so a routine created in `seen` '
+      + 'after it runs is born out of reach of every role a request is bound to',
+  },
+  {
+    objectClass: 'function',
+    spelling: ['until its own migration', 'revokes it'],
+    instead: 'a routine created after part 6 runs carries no grant to PUBLIC to be revoked, and '
+      + 'the revokes beside each function close a routine created before part 6 ran',
+  },
+  {
+    objectClass: 'function',
+    spelling: ['which no default privilege', 'can do for it'],
+    instead: 'the default privilege part 6 files with no `in schema` clause does exactly that',
+  },
+  {
+    objectClass: 'function',
+    spelling: ['no statement of this kind', 'can reach that'],
+    instead: 'a statement filed against no schema reaches it, which is what part 6 writes; what '
+      + 'an assertion about this schema\'s own `pg_default_acl` cannot see is that statement, '
+      + 'because it is filed against namespace 0',
+  },
+  {
+    objectClass: 'function',
+    spelling: ['each function\'s own revoke', 'is what closes it'],
+    instead: 'part 6 closes a routine created after it, and each function\'s own revoke closes '
+      + 'one created before it',
+  },
+];
+
 /**
  * The relation kind a sequence answers to, in `pg_class` and in `pg_default_acl`
  * alike.

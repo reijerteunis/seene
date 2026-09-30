@@ -43,7 +43,7 @@ import {
   SEQUENCE_PRIVILEGES, SEQUENCE_RELKIND,
   TABLE_PRIVILEGES, TABLE_RELKINDS, TENANCY_CLAUSES, TENANT_CLAIM, TICKETS_DIRECTORY,
   TRADE_RECORD_MIGRATION_MARKER, TRADE_RECORD_TABLES,
-  VIEW_SECURITY_OPTION, VIEW_SECURITY_OPTION_TRUE,
+  VIEW_SECURITY_OPTION, VIEW_SECURITY_OPTION_TRUE, WITHDRAWN_BIRTH_CLAIMS,
 } from './tables';
 
 // The local Supabase stack's Postgres, the address `pnpm dev:up` prints when it
@@ -1115,6 +1115,79 @@ function sourcesThatDocumentTheSet(): ScannedSource[] {
     file,
     contents: readRepositoryFile(file),
   }));
+}
+
+/**
+ * A source as prose: comment openers gone, a string broken across lines joined
+ * back into the sentence it is, whitespace flat.
+ *
+ * Written because the four sentences F43 found were in four shapes at once. Two
+ * were SQL comments, one was the message a `raise exception` hands a person, and
+ * one was the message an assertion prints when it fails, and a scanner that read
+ * comments alone would have found half of a defect whose whole point is that the
+ * reader is told the wrong thing wherever they meet it. So the prose of a file
+ * here is everything written in it for a person to read, however it is quoted.
+ *
+ * Joining is the part worth stating. A sentence that wraps is two string literals
+ * with `+` between them in TypeScript and two adjacent literals in PL/pgSQL, and
+ * both are joined with a space, which is where the author's own trailing space
+ * already is. What that cannot do is put back together a literal broken inside a
+ * word, which nothing in these files does and which would read as two words here.
+ */
+function proseOf(contents: string): string {
+  return contents
+    .replace(/\\'/g, '\'')
+    .replace(/^\s*(?:--+|\/\/+|\/\*+|\*+\/?|\*+)\s?/gm, ' ')
+    .replace(/'\s*\+?\s*\n\s*\+?\s*'/g, ' ')
+    .replace(/\s+/g, ' ');
+}
+
+/**
+ * Every line a phrase starts on in a source, so that a report sends its reader to
+ * the sentence rather than to the file.
+ *
+ * Read over a sliding window of lines rather than off the phrase's first few words,
+ * because a sentence that wraps begins on one line and ends on another and because
+ * the first few words of one withdrawn claim are the first few words of prose that
+ * is not withdrawn at all: `which no default privilege` opens the sentence about a
+ * type as well as the one about a routine, and a report that named the line of the
+ * first is a round of rework sent to the wrong file. The window is one line wider
+ * than the phrase has fragments, so a sentence broken at a different point than
+ * the one this list records is still found, and a window is reported only where the
+ * phrase does not also fit inside the window starting below it, which is what makes
+ * one sentence one line and not a line for every window that covers it.
+ */
+function linesWhere(contents: string, phrase: string, span: number): number[] {
+  const lines = contents.split('\n');
+  const window = (index: number): string => proseOf(lines.slice(index, index + span).join('\n'));
+  const found: number[] = [];
+  for (let index = 0; index < lines.length; index += 1) {
+    if (window(index).includes(phrase) && !window(index + 1).includes(phrase)) found.push(index + 1);
+  }
+  return found;
+}
+
+/**
+ * Every withdrawn claim about how an object is born that is still written down,
+ * named with the file and the line it is written on.
+ *
+ * Pure over the sources it is handed, so the test below can show it prose the
+ * repository does not contain and prove the scanner sees something rather than
+ * passing because it looks at nothing.
+ */
+function withdrawnClaimsStillStanding(sources: readonly ScannedSource[]): string[] {
+  const standing: string[] = [];
+  for (const source of sources) {
+    const prose = proseOf(source.contents);
+    for (const claim of WITHDRAWN_BIRTH_CLAIMS) {
+      const phrase = claim.spelling.join(' ');
+      if (!prose.includes(phrase)) continue;
+      const where = linesWhere(source.contents, phrase, claim.spelling.length + 1);
+      standing.push(`${source.file}:${where.join(', ') || 'somewhere'} still says "${phrase}" of `
+        + `a ${claim.objectClass}, and ${claim.instead}`);
+    }
+  }
+  return standing;
 }
 
 /** Every forbidden privilege statement in the migrations, named with its file. */
@@ -4758,8 +4831,9 @@ describe('schema seen, which the Data API does not serve', () => {
       `${callable.length} routines in schema ${HELPER_SCHEMA} can be executed by a role a browser `
       + `request is bound to, where ${allowed.length} may be. This schema is not served by the `
       + 'Data API, so none of them is an endpoint, but `anon` holds USAGE here and can name and '
-      + 'call any of them: a routine is born with PostgreSQL\'s own EXECUTE to PUBLIC and stays '
-      + 'callable until its own migration revokes it, which no default privilege can do for it. '
+      + 'call any of them that carries EXECUTE to PUBLIC. Part 6 takes that grant away from every '
+      + 'routine the migration role creates after it, so one reported here was created before '
+      + 'part 6 ran, was created under another owner, or has been granted back. '
       + `The guard reported: ${callable.join('; ')}`,
     ).toEqual(allowed);
   });
@@ -4839,10 +4913,15 @@ describe('schema seen, which the Data API does not serve', () => {
     // what this ticket has learned to put an assertion beside.
     //
     // What this pair does not cover is said as carefully as what it does, because
-    // reading it as the whole of the prevention is how F38 happened. A function is
-    // still born callable by PUBLIC with no default privilege involved anywhere, and
-    // no statement of this kind can reach that; the allow-list above is what sees it
-    // and each function's own revoke is what closes it.
+    // reading it as the whole of the prevention is how F38 happened. It is an
+    // assertion about what is filed against this schema, and the statement that
+    // keeps a routine here out of reach is filed against no schema at all: part 6's
+    // revoke of EXECUTE to PUBLIC writes a `pg_default_acl` row whose
+    // `defaclnamespace` is 0, which this pair reads as nothing and would go on
+    // passing over if somebody dropped it. The test below is what measures that one,
+    // the allow-list above is what sees a routine carrying the grant anyway, and the
+    // revokes each migration writes beside its own functions are what close a
+    // routine created before part 6 ran.
     const measured = {
       defaultPrivilegesFiledHere: await defaultPrivilegesForClientRolesIn(client, HELPER_SCHEMA),
       rolesThatCanCreateHere: (await client.query<{ role: string }>(
@@ -4876,6 +4955,126 @@ describe('schema seen, which the Data API does not serve', () => {
       rolesThatCanCreateHere: [],
       rolesThatCanEnterHere: [...CLIENT_BOUND_ROLES, 'service_role'].sort(),
     });
+  });
+
+  it('is where a helper created now is born out of reach, and nothing here says it cannot be',
+    async () => {
+      // The claim part 6 and part 8 both make about this schema, measured, and the
+      // four sentences that went on denying it, read.
+      //
+      // Both halves are one test because either alone is the defect. The
+      // measurement alone is what the ninth review (F43) had to make by hand before
+      // it could see the contradiction, and it would go on passing beside prose
+      // telling the author of SEEN-014 or SEEN-021 that a helper they add here is
+      // callable by `anon` until they revoke it, which is the reasoning F39 was
+      // raised to end. The reading alone would hold this set to a sentence and not
+      // to a database, and would pass unchanged on a stack where somebody had
+      // dropped part 6's statement and made the withdrawn claim true again.
+      //
+      // The probe returns `int` and is not `security definer`, which is the whole
+      // difference between this and the test below it: that one asks what a routine
+      // carrying EXECUTE to PUBLIC can hand back, and this one asks whether a
+      // routine is born carrying it at all. Nothing is granted on it and nothing is
+      // revoked from it, because what is measured is the state it arrives in.
+      // Measured on PostgreSQL 17.6 on this stack: `{postgres=X/postgres}`, with
+      // `has_function_privilege` false for `anon`, `authenticated` and
+      // `service_role` alike, which is schema `seen` carrying no `pg_default_acl`
+      // entry of its own and so leaving part 6's global entry as the whole of what
+      // applies. The access control list is asked for as well as the three roles,
+      // because a null one is the state in which every role there is can execute
+      // and would answer this question the wrong way round.
+      //
+      // The owner is read from the catalogue rather than named, so that a stack
+      // reached through SEEN_DATABASE_URL under another role is held to the property
+      // and not to the word `postgres`.
+      await client.query('begin');
+      try {
+        const probe = `${HELPER_SCHEMA}.seen_born_out_of_reach_probe()`;
+        await client.query(
+          `create function ${probe} returns int language sql as $$ select 1 $$`,
+        );
+        const granted = (await client.query<{ grantee: string; owner: string }>(
+          `select case when a.grantee = 0 then 'PUBLIC' else a.grantee::regrole::text end
+                    as grantee,
+                  p.proowner::regrole::text as owner
+             from pg_catalog.pg_proc p
+             cross join lateral aclexplode(p.proacl) a
+            where p.oid = $1::regprocedure
+            order by grantee`,
+          [probe],
+        )).rows;
+        const rolesThatCanExecuteIt: string[] = [];
+        for (const role of DATA_API_ROLES) {
+          if (await canExecute(client, role, probe)) rolesThatCanExecuteIt.push(role);
+        }
+        const bornWith = {
+          accessControlListIsNull: granted.length === 0,
+          grantedToAnybodyButItsOwner: granted
+            .filter((row) => row.grantee !== row.owner)
+            .map((row) => row.grantee),
+          rolesThatCanExecuteIt,
+        };
+        const stillStanding = withdrawnClaimsStillStanding(sourcesThatDocumentTheSet());
+        expect(
+          { bornWith, stillStanding },
+          'A function was created in schema seen, granted nothing and revoked nothing, and the '
+          + `database answered ${JSON.stringify(bornWith)}. It has to arrive holding nothing for `
+          + 'anybody but its owner, because that is what part 6 and part 8 tell a later author '
+          + 'this schema does for them, and an access control list of its own has to exist at '
+          + 'all, because a null one is the state in which every role can execute. And no file '
+          + 'that documents this set may go on denying it: five rounds of this ticket wrote that '
+          + 'denial down, F39 withdrew it, and F43 found four places it had been left. What is '
+          + `still standing: ${stillStanding.join('; ') || 'nothing'}`,
+        ).toEqual({
+          bornWith: {
+            accessControlListIsNull: false,
+            grantedToAnybodyButItsOwner: [],
+            rolesThatCanExecuteIt: [],
+          },
+          stillStanding: [],
+        });
+      } finally {
+        await client.query('rollback');
+      }
+    });
+
+  it('reads a withdrawn claim wherever a person would meet one, quoted or commented', () => {
+    // The scanner shown prose the repository does not hold, because a guard that
+    // passes by finding nothing is the shape every silent boundary in this ticket
+    // had. Three sources, one per way the four sentences of F43 were written: a SQL
+    // comment, the message a `raise exception` hands a person, and the message an
+    // assertion prints when it fails. The second and third are the ones a scanner
+    // over comments alone would walk past, and the third is written wrapped, so it
+    // also shows that a sentence broken across two string literals is read as the
+    // sentence it is and not as two halves of one.
+    const [inAComment, inARaise, wrapped] = WITHDRAWN_BIRTH_CLAIMS;
+    const reported = withdrawnClaimsStillStanding([
+      {
+        file: 'a.sql',
+        contents: '-- A function added here is callable by name, and there is\n'
+          + `-- ${inAComment.spelling.join(' ')}, so this raises instead.\n`,
+      },
+      {
+        file: 'b.sql',
+        contents: '  raise exception \'a routine here is callable by name \'\n'
+          + `    '${inARaise.spelling.join(' ')} from public: %', offenders;\n`,
+      },
+      {
+        file: 'c.ts',
+        contents: `      + 'call any of them: a routine stays callable, ${wrapped.spelling[0]} '\n`
+          + `      + '${wrapped.spelling.slice(1).join(' ')}. '\n`,
+      },
+    ]);
+    const where = reported.map((entry) => entry.slice(0, entry.indexOf(' still says ')));
+    expect(
+      where,
+      'The scanner was shown one withdrawn claim in each of the three shapes F43 found one in, '
+      + 'and has to report all three at the line the sentence starts on. A scanner over comments '
+      + 'alone walks past a raise message and an assertion message, which are the two places a '
+      + 'person is told something the database contradicts; a scanner that did not join a '
+      + 'wrapped string walks past the third, which is how all four of them are written. It '
+      + `reported: ${reported.join('; ') || 'nothing'}`,
+    ).toEqual(['a.sql:2', 'b.sql:2', 'c.ts:1']);
   });
 
   it('would see a helper a later migration added here, born callable by anon', async () => {
