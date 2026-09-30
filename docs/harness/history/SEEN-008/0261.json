@@ -1,0 +1,16 @@
+{
+  "sequence": 261,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-30T17:45:14.152328+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "review",
+  "attempt": 14,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "18a35877239a48d7323b7768971e713a39abb3fb",
+  "prev_hash": "90a42b1bb29a5e3704e64eef3b6f0c97ad5b47e0f50cc1bbfcdb8b8e423f0310",
+  "data": {
+    "text": "The same procedural drift note 207 records, a second time, and recorded before a reviewer\nfinds it rather than after.\n\nThe return at record 251 sent the ticket back to tdd. I did not reset the frontmatter, so\nfrom 251 until the advance at 258 the ticket file said `status: review` with all five\ncriteria ticked while the journal said tdd, across the round that fixed F51 to F54. The\nstate is correct as this note is written: 258 advanced to review, the file says review and\nthe five boxes are ticked, which is the order the receipt requires.\n\nNote 207 recorded the first occurrence and named the cause as Codex having written its own\nreturn, so there was no moment at which I was already editing the file. That was true then\nand it is not the cause here: I wrote this return myself and simply did not reset it,\nbecause the next instruction was to fix four findings and I went to them.\n\nWhat would prevent a third occurrence is making the reset part of recording a return rather\nthan a thing to remember afterwards. `harness return` knows the ticket is leaving review and\nknows which file carries the status; nothing else in the procedure needs a person to hold\ntwo facts at once. That is a harness change and not this ticket's, and it belongs with the\nfour already recorded against the harness in this journal.\n\nNothing about the reviewed-tree fingerprint is affected, because it is taken at the review\ngate and covers the tree from there.\n"
+  }
+}
