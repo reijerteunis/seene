@@ -1,0 +1,16 @@
+{
+  "sequence": 242,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-30T14:47:43.351256+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 13,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "0ebbe96ef88f69a361fe0165c68678b3867301db",
+  "prev_hash": "f87b8790954fed91ab195fa853a798f5f94638b0e309f4530e32a0625bc1db1d",
+  "data": {
+    "text": "F50 is fixed in the Outcome's closing paragraph, and this note records why the round has no\nRED and no GREEN.\n\nThe finding is that the Outcome claimed holding a withdrawn claim as data means it \"cannot\nquietly come back\", where the mechanism holds only the words each sentence was written in,\nin a subset of the files. That is a claim in prose about the strength of a guard, and it is\nin the one document the guard deliberately does not read.\n\nNo honest RED was available, and inventing one would have been the defect the finding is\nabout. The scanner cannot fail on the Outcome, because F49 decided on the record that\nreading the ticket file would make it an authority turbo must hash, so the file whose every\nedit invalidates the recorded pass would be the file that records it, and because a document\nwhose job is to describe a withdrawal cannot do that without quoting the sentence it would\nthen be reported for. A test asserting that a particular phrase is absent from the Outcome\nwould go red on demand and would measure nothing about whether the claim is true; this ticket\nrefused that shape at F24 and took it at F37 only because F37's claim was about text in files\nthe scanner already read.\n\nSo this round is a correction with the measurement already in the journal: what the mechanism\ncovers is stated at `tables.ts`, the coverage of the scan is stated at\n`sourcesThatDocumentTheSet`, and both were widened by F49 one round earlier. The Outcome now\nsays what the third answer buys and where it stops, and names the review as what reads the\nOutcome.\n\nWorth keeping beside it: F50 also found that the other two durable answers are supported by\nthe work rather than asserted, which is the half of that paragraph that survived. A reviewer\nthat returns a ticket for one sentence of a summary and confirms the rest is doing the thing\nthis ticket has needed most, and it is the fourth time the second reviewer has read a claim\nharder than the work behind it.\n\nThis is the last of F47 to F50. The four were: a stated impossibility that was false, a stated\ntransitivity that was false, a narrowing that undid the round before it, and a summary\nstronger than its mechanism. None was a defect in the schema.\n"
+  }
+}

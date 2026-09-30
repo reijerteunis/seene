@@ -743,7 +743,21 @@ it while its comment claimed a wider one, and twice more the fix was to stop des
 ask the compiler rather than a pattern, run the statement rather than read the catalogue. Set beside F19's
 `relkind`, F30's `relacl` and F39's per-schema revoke, the ticket's whole history is one shape. The durable
 answers were three: enumerate and require a reason for each member, ask the database to enforce what a comment
-claims, and hold a withdrawn claim as data so it cannot quietly come back.
+claims, and hold a withdrawn claim as data.
+
+The third of those is the weakest and this sentence first overstated it, which F50 returned the ticket for. The
+mechanism holds the words each sentence was written in, so it catches that sentence surviving, being copied or
+coming back, and not the same mistake made in new words; `tables.ts` says so at the constant. It reads this
+package's sources, the migrations of the set and `docs/architecture.md`, and it does not read this Outcome, by a
+decision recorded at the scanner rather than by omission: reading the ticket file would make it an authority
+that turbo must hash, so the file whose every edit invalidates the recorded pass would be the file that records
+it, and a document whose job is to say what was withdrawn cannot do that without quoting the withdrawal it
+would then be reported for. What reads the Outcome is the review, which is where F39 and F50 were both found.
+
+So what the third answer buys is narrower than the sentence originally claimed, and it is still worth having.
+The other two are supported by the work: part 8 runs the statements its guarantee rests on, the schema tests ask
+the database rather than the catalogue, and F47 is what it looks like when a member of an enumeration carries a
+reason that is not true.
 
 ## Slices
 
