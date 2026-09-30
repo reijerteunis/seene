@@ -831,6 +831,54 @@ statements run rather than the catalogue read at F46. Where the distance could n
 saying so exactly, which is why three paragraphs in this schema now state what they cannot see. A guard that
 knows its own blind spot is worth more than one that does not have one, because the second kind does not exist.
 
+**The fifth pre-check passed the ticket and found four things anyway, and the split it was asked for is the
+answer to why this took thirteen attempts.** Three Codex rounds had died on a usage limit without a verdict, so
+the second reviewer ran in its place with two jobs: find what would make the next Codex round return, and
+report it split into what is wrong with the schema and what is wrong with the machinery this ticket grew around
+itself. Its verdict was pass, with all five criteria re-verified against the live database rather than against
+the journal, and **essentially nothing of the schema kind**. The tables, tenancy, privileges, foreign keys,
+erasure guarantees and seeds held against everything it attacked them with.
+
+**F51 is the one that touched a real table, and it is fixture hygiene rather than a defect in the migrations.**
+Two describes must commit, because a race between two sessions has no single-transaction form, so every run
+wrote three rows into `seen.erased_tenants` that nothing can take back: delete, update and truncate there are
+all refused by the registry's own trigger, which is F21's guarantee working as intended. Harmless against a
+stack that can be reset, and not harmless the moment the suite is pointed at a database holding real trade
+records, where a registry meaning "these ids were erased on a person's request" would fill with ids that were
+never customers. Both halves are closed: the fixtures take ids from a reserved namespace so a row says what it
+is, and a refusal counts tombstones and tenants outside that namespace before either block writes. The refusal
+was measured by planting a real erasure by hand, and both blocks refused.
+
+**F52 is the fifth arrival of one class, and the first fix that gets ahead of it.** `import.meta.glob` names a
+literal specifier and returns a repository file, and neither instrument looked at a glob call. Rather than add
+a fifth name to a list, the round took the inverse and measured before deciding: an unrestricted version
+produced eight false reports, every one a directory, and requiring the candidate to be a file removes all
+eight. So a string literal at any call, under any name, resolving to a repository file the walk did not
+collect, is now reported. CODEX-03, F34, F40, F45 and F47 each closed one spelling after a reviewer found it;
+this one closes the next spelling before anybody writes it.
+
+**F53 is the sharpest, because it is about the round before it.** F49's fix was real and the test meant to hold
+it was a tautology: it compared `packageSources()` against a set built from `packageSources()`, so both
+assertions were empty by construction, and restoring the exact narrowing it guards left it green, because every
+collected source on this tree ends in `.ts`. The selection is now a pure function over the names it is handed
+and is asked about one name per extension, so it fails when the narrowing comes back. The old assertion is kept
+with a paragraph saying what it had been measuring and why that was nothing.
+
+**F54 is this document, for the fourth time.** The Outcome said `pg_default_acl` still grants write to `anon`
+and `authenticated` on tables that do not exist yet, and that narrowing it with `alter default privileges` was
+declined. Both are false of the tree this delivers: part 6 revokes them and F39 established the global form
+reaches what the per-schema form cannot, and a table created now is born with `postgres` and `service_role`
+alone. F43, F44, F50 and F54 are all the same class in prose rather than in code, and all four were in a
+document, three of them in this one. That is the cost of the decision at F49 not to scan the ticket file, taken
+for reasons that still hold: the file whose every edit invalidates the recorded pass cannot be the file that
+records it. What reads this document is the review, and the review is what found all four.
+
+**What the thirteen attempts were actually spent on.** The schema was finished and confirmed by Codex's sixth
+round. Everything after it was the machinery this ticket grew to keep its own claims honest, and each round of
+that machinery gave the next review a new surface to find something on. That is not a defect in the reviews and
+it is not wasted work, but it is a loop with no natural end, and the reason this Outcome can say the ticket is
+done is that a reviewer was finally asked to separate the two and answered plainly.
+
 ## Slices
 
 The starting slice plan, one session each; the solution stage adopts or amends it (SEEN-104). A slice is at most 2 points and a ticket has at most four.
