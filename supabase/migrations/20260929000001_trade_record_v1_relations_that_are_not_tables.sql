@@ -1,8 +1,9 @@
 -- Trade record v1, part 6 of 8: nothing relation-shaped is born reachable, a view
--- has to read its base tables as the caller, a table owes the tenancy whichever of
--- the two kinds of table it is, and neither a function nor a sequence here answers
--- a browser.
--- SEEN-008, F19, F29, F32 and F33.
+-- has to read its base tables as the caller, neither a materialised view nor a
+-- foreign table belongs here at all, a table owes the tenancy whichever of the two
+-- kinds of table it is, and neither a function nor a sequence here answers a
+-- browser.
+-- SEEN-008, F19, F29, F32, F33 and F35.
 --
 -- What parts 1 to 5 secured and what they all stopped short of. Every tenancy,
 -- privilege and append-only guarantee this ticket writes is expressed over
@@ -306,15 +307,55 @@ begin
 end;
 $$;
 
--- The rule for a view, and for a materialised view -------------------------
+-- The rule for a view, a materialised view and a foreign table --------------
 --
 -- Stated as a check that runs rather than as a paragraph, on the same principle as
 -- part 4's self-check: a rule the database asserts is a rule, and a rule in a
--- comment is a hope. There is no view in the public schema today, so this passes
--- over nothing at the moment it is written, and that is exactly what
--- packages/core/db/schema.test.ts is for: it makes the same three assertions and
--- shows itself a view and a materialised view in a rolled-back transaction, so a
--- checker that measured nothing could not pass.
+-- comment is a hope. There is none of the three in the public schema today, so
+-- this passes over nothing at the moment it is written, and that is exactly what
+-- packages/core/db/schema.test.ts is for: it makes the same assertions and shows
+-- itself each of the three kinds in a rolled-back transaction, so a checker that
+-- measured nothing could not pass.
+--
+-- The third kind is the seventh review of SEEN-008 (F35), and what it found was an
+-- asymmetry rather than a route out. The privilege strip below covers a foreign
+-- table, because `defaclobjtype = 'r'` and `relkind in ('f', 'm', 'v')` both do, so
+-- one created here is born holding nothing for `anon` or `authenticated` and the
+-- suite catches a `grant select` a later migration writes by hand. What no
+-- statement in this set did was forbid the relation, while packages/core/db/
+-- tables.ts told the next reader that its rule was the materialised view's. So the
+-- exposure was closed and the rule was not, and this file said one thing where it
+-- did another.
+--
+-- It is closed by refusing the kind rather than by writing the weaker rule down,
+-- because every reason a materialised view does not belong here holds for a foreign
+-- table and one more does. Measured on this stack in a rolled-back transaction, on
+-- a foreign table over a `postgres_fdw` server: `enable row level security` is
+-- refused 42809 and `create policy` is refused 42809, "is not a table", so this
+-- schema's tenancy cannot be written on one at all - which is also what makes
+-- excluding the kind from the tenancy checks sound rather than convenient; part 5's
+-- reference to `public.tenants` is refused 0A000, "foreign key constraints are not
+-- supported on foreign tables", so an erased tenant's rows in one are outside part
+-- 8's cascade altogether; and `information_schema.tables` reports it in this schema
+-- regardless, as FOREIGN beside the twenty-nine BASE TABLEs, which is the sentence
+-- criterion 2 of this ticket is written in. A materialised view is at least a copy
+-- of rows this database produced and could be made to be refreshed; a foreign
+-- table's rows were never here, and no statement of this database decides which of
+-- them a caller sees. `service_role`, the role every worker and API call in this
+-- product connects as, would read it unfiltered with nothing narrowing what it
+-- sees.
+--
+-- What that costs, and the way out, because a rule nobody can satisfy is deleted by
+-- whoever hits it first. A later ticket that wants to read a reporting warehouse, a
+-- second Postgres or one of the Supabase wrappers through this database creates the
+-- foreign table in a schema the Data API does not serve: `supabase/config.toml`
+-- exposes `public` and `graphql_public` and nothing else, and `seen` is already
+-- such a schema. That is the same answer this file gives a materialised view, and
+-- it costs one qualified name. If those rows have to reach the trade record itself,
+-- the answer this architecture already gives is the one every connector takes: they
+-- are ingested into a table in `public` that carries `tenant_id`, a policy and a
+-- reference to `public.tenants`, so they are governed here rather than read from
+-- somewhere this database can promise nothing about.
 do $$
 declare
   offenders text;
@@ -370,6 +411,24 @@ begin
     raise exception 'a materialised view is in schema public, and row-level security can never '
       'apply to one: it is a stored copy of the rows its owner could see. Put it in a schema the '
       'Data API does not serve, or make it a view with security_invoker: %', offenders;
+  end if;
+
+  -- And a foreign table, which is the same rule and not a weaker one. The two
+  -- statements this schema's tenancy is made of are both refused on one, and so is
+  -- the reference to public.tenants that part 5 requires and part 8 erases through.
+  select string_agg(format('%s is a foreign table', c.relname), ', ' order by c.relname)
+    into offenders
+    from pg_catalog.pg_class c
+    join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+   where n.nspname = 'public' and c.relkind = 'f';
+
+  if offenders is not null then
+    raise exception 'a foreign table is in schema public, and its rows are on another server '
+      'that no statement of this database governs: row-level security cannot be enabled on one, '
+      'no policy can be created on one, and it cannot reference public.tenants, so it carries '
+      'neither this schema''s tenancy nor the erasure that follows from it while '
+      'information_schema reports it here as a table. Put it in a schema the Data API does not '
+      'serve, or ingest its rows into a table of this schema that carries tenant_id: %', offenders;
   end if;
 end;
 $$;

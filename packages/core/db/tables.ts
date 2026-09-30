@@ -435,6 +435,21 @@ export const TRADE_RECORD_MIGRATION_MARKER = 'trade_record_v1';
 export const MIGRATION_SET_HEADER = /^--\s+Trade record v1, part (\d+) of (\d+)\b/;
 
 /**
+ * The name fragment that finds part 6, the member of the set that carries the
+ * rules for the relation kinds no policy of this database governs.
+ *
+ * A fragment of the name rather than the whole of it, because the timestamp in
+ * front of it is the CLI's and a part renamed or re-timestamped should move the
+ * test that replays it rather than break it. The suite executes that file's own
+ * `do` blocks against a schema it has planted a probe in, instead of restating the
+ * rule in TypeScript beside it: a rule written twice is two rules, and this ticket
+ * has produced a finding for all but one of the places a comment and a statement
+ * drifted apart. What a later migration is actually held to is the text on disk,
+ * so the text on disk is what the suite runs.
+ */
+export const RELATION_RULE_MIGRATION_MARKER = 'relations_that_are_not_tables';
+
+/**
  * The privilege statements no migration may contain, and why each is a trap.
  *
  * `grant ... on all tables in schema public` reaches every table in the schema,
@@ -647,8 +662,24 @@ export const TABLE_RELKINDS: Readonly<Record<string, string>> = {
  * not what decides which of them a caller sees. It is in this list and not in
  * `TABLE_RELKINDS` for that reason and not because it is harmless: asking one for
  * a `tenant_id` column and an enabled policy would be asking for a guarantee this
- * database cannot keep, so the rule for one is the same as for a materialised
- * view, that a browser-bound role holds nothing on it.
+ * database cannot keep. Measured on this stack, `enable row level security` and
+ * `create policy` are each refused 42809 on one, which is what makes that
+ * exclusion sound rather than convenient.
+ *
+ * The rule for one is the materialised view's, and the seventh review of SEEN-008
+ * (F35) is that this comment said so while part 6 refused only the materialised
+ * view. It refuses both now, so the sentence is true rather than trimmed to fit:
+ * every reason a materialised view does not belong in a schema the Data API serves
+ * holds for a foreign table, and one more does. A materialised view is a copy of
+ * rows this database produced; a foreign table's rows were never here, it cannot
+ * reference `public.tenants` at all, refused 0A000, so part 8's cascade from an
+ * erased tenant does not reach one, and `information_schema.tables` reports it in
+ * this schema regardless, as FOREIGN beside the twenty-nine BASE TABLEs.
+ *
+ * What the refusal costs a later ticket is one qualified name: a foreign table over
+ * a reporting warehouse, a second Postgres or a Supabase wrapper goes in a schema
+ * the Data API does not serve, which `seen` already is, and rows that have to reach
+ * the trade record are ingested into a table of it as every connector's are.
  *
  * SEEN-046 and SEEN-024 are the tickets that will want exactly such a view.
  */

@@ -37,7 +37,8 @@ import {
   FORBIDDEN_PRIVILEGE_STATEMENTS, FREE_TEXT_TYPE_NAMES, FUNCTION_PRIVILEGE,
   GOVERNED_PRIVILEGES,
   HASHED_REPOSITORY_DOCUMENTS, MIGRATION_SET_HEADER, MIGRATIONS_DIRECTORY,
-  NON_TABLE_RELKINDS, NOT_BUYER_PII_MARKER, PROKIND_NAMES, RELKIND_NAMES,
+  NON_TABLE_RELKINDS, NOT_BUYER_PII_MARKER, PROKIND_NAMES,
+  RELATION_RULE_MIGRATION_MARKER, RELKIND_NAMES,
   SEQUENCE_PRIVILEGES, SEQUENCE_RELKIND,
   TABLE_PRIVILEGES, TABLE_RELKINDS, TENANCY_CLAUSES, TENANT_CLAIM, TICKETS_DIRECTORY,
   TRADE_RECORD_MIGRATION_MARKER, TRADE_RECORD_TABLES,
@@ -335,6 +336,28 @@ async function answeredAs(client: Client, role: string, sql: string): Promise<An
   }
 }
 
+/**
+ * What the database answered the owner when it was asked to run a statement:
+ * `accepted`, or the SQLSTATE it was refused with.
+ *
+ * `answeredAs` asks what a role a request can be bound to may read; this asks what
+ * the schema itself may be made to hold, which is a different question and is the
+ * one a rule about a relation kind rests on. Savepoint-wrapped for the same reason:
+ * a refusal aborts the transaction, and a probe measuring three refusals in a row
+ * would be answered 25P02 for the second and third whatever the database does.
+ */
+async function refusedWith(client: Client, sql: string): Promise<string> {
+  await client.query('savepoint seen_statement_probe');
+  try {
+    await client.query(sql);
+    await client.query('release savepoint seen_statement_probe');
+    return 'accepted';
+  } catch (cause) {
+    await client.query('rollback to savepoint seen_statement_probe');
+    return (cause as { code?: string }).code ?? 'refused with no SQLSTATE';
+  }
+}
+
 /** One privilege a role actually holds on one relation, with the columns it holds
  * it on when it does not hold it on the whole relation. */
 interface Holding extends Relation { role: string; privilege: string; columns: string | null }
@@ -525,6 +548,25 @@ async function viewsWithoutInvokerRightsIn(client: Client, schema: string): Prom
 async function materialisedViewsIn(client: Client, schema: string): Promise<string[]> {
   const relations = await nonTableRelationsIn(client, schema);
   return relations.filter((relation) => relation.kind === 'm').map(named);
+}
+
+/**
+ * Every foreign table in the schema.
+ *
+ * The same shape as the checker above it and, since the seventh review of SEEN-008
+ * (F35), the same rule: a foreign table does not belong in a schema the Data API
+ * serves. There is no `security_invoker` for one and no policy either. `create
+ * policy` on one is refused 42809, "is not a table", and `enable row level
+ * security` is refused 42809 as well, which is what makes criterion 2's exclusion
+ * of the kind sound rather than convenient; and its rows are on another server, so
+ * a tenant_id column on one would be a claim this database has no way to check and
+ * part 5's reference to `public.tenants` cannot be written on it at all, refused
+ * 0A000. `information_schema.tables` reports one as a table of the public schema
+ * all the same.
+ */
+async function foreignTablesIn(client: Client, schema: string): Promise<string[]> {
+  const relations = await nonTableRelationsIn(client, schema);
+  return relations.filter((relation) => relation.kind === 'f').map(named);
 }
 
 /**
@@ -804,6 +846,68 @@ function statementsOf(sql: string): string[] {
     .replace(/\/\*[\s\S]*?\*\//g, ' ')
     .replace(/--[^\n]*/g, ' ');
   return withoutComments.split(';').map((statement) => statement.trim()).filter(Boolean);
+}
+
+/** The one migration whose filename carries the given fragment, as a path relative
+ * to the repository root. Thrown rather than reported when there is not exactly
+ * one, because a replay of "no file" passes by running nothing. */
+function migrationNamed(marker: string): string {
+  const matches = migrationFiles().filter((file) => file.includes(marker));
+  if (matches.length !== 1) {
+    throw new Error(
+      `${matches.length} migrations in ${MIGRATIONS_DIRECTORY} carry \`${marker}\` in their `
+      + `names, and a test that replays that migration needs exactly one: ${matches.join(', ') || 'none'}`,
+    );
+  }
+  return matches[0] as string;
+}
+
+/**
+ * The `do` blocks of a migration, in the order the file writes them.
+ *
+ * The checks a migration makes about the schema it leaves behind are all written
+ * this way, because a check that raises is a check and a check in a comment is a
+ * hope. They are read out whole rather than through `statementsOf`, which splits
+ * on the semicolon and would cut a block into pieces that are not statements.
+ *
+ * The delimiter is matched on its own line, which is how every block in this set is
+ * written; a `$$` inside a comment, as part 6 has when it quotes the function body
+ * F32 was reported on, is on a line with other text and so cannot be mistaken for
+ * one. The count is asserted by the caller rather than here, so that an extractor
+ * which found nothing fails the test that needed the blocks instead of passing it.
+ */
+function checkedBlocksOf(file: string): string[] {
+  const sql = readFileSync(join(REPOSITORY_ROOT, file), 'utf8');
+  return sql.match(/^do \$\$$[\s\S]*?^\$\$;$/gm) ?? [];
+}
+
+/**
+ * What a migration's own checks say about the schema as the caller has left it:
+ * the exception the first of them raises, or null when every one of them passes.
+ *
+ * Each block runs inside a savepoint, so a raise leaves the transaction the caller
+ * rolls back at the end usable rather than aborted, and the answer is the
+ * database's own words rather than a restatement of them.
+ */
+async function replayedAgainstTheSchema(client: Client, file: string): Promise<string | null> {
+  const blocks = checkedBlocksOf(file);
+  if (blocks.length === 0) {
+    throw new Error(
+      `${file} contains no \`do\` block, so replaying it asserts nothing. Either the file no `
+      + 'longer states its rules as checks that run, or the extractor no longer finds them.',
+    );
+  }
+  for (const block of blocks) {
+    await client.query('savepoint seen_replay_probe');
+    try {
+      await client.query(block);
+      await client.query('release savepoint seen_replay_probe');
+    } catch (cause) {
+      await client.query('rollback to savepoint seen_replay_probe');
+      return (cause as Error).message;
+    }
+  }
+  return null;
 }
 
 /** One member of the trade record v1 migration set: its path and its first line. */
@@ -3180,6 +3284,17 @@ describe('the relations in the public schema that are not tables', () => {
     ).toEqual([]);
   });
 
+  it('carries no foreign table, for the reason it carries no materialised view', async () => {
+    const federated = await foreignTablesIn(client, 'public');
+    expect(
+      federated,
+      `${federated.length} foreign tables are in the public schema. A foreign table's rows are `
+      + 'on another server, so no policy of this database governs which of them a caller sees, '
+      + 'no tenant_id column on one is a claim this database can check, and part 5\'s reference '
+      + 'to public.tenants cannot be written on one at all: ' + federated.join('; '),
+    ).toEqual([]);
+  });
+
   it('counts a partitioned table as a table, and not as a relation that is not one', async () => {
     // The other half of F29, and the reason the fix is not `('r', 'p')` pasted into
     // every filter in the suite. The guards read this schema as two families. One
@@ -3288,6 +3403,123 @@ describe('the relations in the public schema that are not tables', () => {
         'A select granted to `authenticated` on a view was not reported, so the privilege '
         + `assertion on the non-table relations measures nothing: it reported ${held.join('; ') || 'nothing at all'}`,
       ).not.toEqual([]);
+    } finally {
+      await client.query('rollback');
+    }
+  });
+
+  it('states its rules as checks that pass when they are replayed against this schema',
+    async () => {
+      // The mechanism the test below rests on, asserted on its own so that the two
+      // failures read differently. Part 6 states each of its rules as a `do` block
+      // that raises, and the suite runs those blocks rather than restating them,
+      // so a block the extractor mangles or a rule this schema has drifted out of
+      // would otherwise be reported as "a foreign table was accepted" when it was
+      // nothing of the kind.
+      await client.query('begin');
+      try {
+        const raised = await replayedAgainstTheSchema(
+          client, migrationNamed(RELATION_RULE_MIGRATION_MARKER),
+        );
+        expect(
+          raised,
+          'Part 6 replayed against the schema its own migration set left behind raised: '
+          + `${raised}. Either the schema has drifted out of a rule this file states, or the `
+          + 'blocks are being read out of the file wrongly, and until this passes the test '
+          + 'below proves nothing about a foreign table',
+        ).toBeNull();
+      } finally {
+        await client.query('rollback');
+      }
+    });
+
+  it('refuses a foreign table in public, as it refuses a materialised view', async () => {
+    // The seventh review of SEEN-008 (F35). The finding is about a rule and not
+    // about a route out: the privilege half was measured closed, because
+    // `defaclobjtype = 'r'` covers a foreign table as surely as a view, so one
+    // created here is born holding nothing for either browser-bound role, and the
+    // guard above catches a `grant select` a later migration writes by hand. What
+    // was open is that no statement anywhere forbade the relation itself, while
+    // `tables.ts` told the next reader that its rule was the materialised view's,
+    // which is that it does not belong in a schema the Data API serves.
+    //
+    // The three refusals measured below are why that is the only honest rule rather
+    // than the strict one. A foreign table cannot carry this schema's tenancy at
+    // all, which is also what makes criterion 2's exclusion of the kind sound
+    // rather than convenient; it cannot carry part 5's reference to
+    // `public.tenants`, so an erased tenant's rows in one are outside part 8's
+    // cascade altogether; and `information_schema.tables` reports it in the public
+    // schema regardless, as FOREIGN beside the twenty-nine BASE TABLEs, where
+    // `service_role`, the role every worker and API call in this product connects
+    // as, reads it unfiltered and no policy narrows what it sees.
+    //
+    // Planted through `postgres_fdw` over a server that is named and never
+    // connected to, because `create foreign table` contacts nothing: the relation
+    // exists in this catalogue the moment the statement returns, which is the whole
+    // of what the rule is about. The extension, the server and the relation are all
+    // created inside the transaction and go with its rollback.
+    //
+    // The extension goes in `extensions` and not in `public`, and that is a
+    // measurement rather than tidiness. `create extension postgres_fdw` with no
+    // schema clause puts its five routines in `public`, owned by `supabase_admin`
+    // and carrying `anon=X/supabase_admin`, and part 6 raises on them - so a probe
+    // that put it there would be reporting F32's rule working rather than anything
+    // about a foreign table. Worth knowing on its own account, because `revoke` by
+    // this role answers "no privileges could be revoked" as a warning and not an
+    // error there; that is the `supabase_admin` grantor limit part 6 states, and an
+    // ordinary `create extension` is a route to it. It is not this finding.
+    await client.query('begin');
+    try {
+      await client.query('create extension if not exists postgres_fdw with schema extensions');
+      await client.query(
+        'create server seen_warehouse_probe foreign data wrapper postgres_fdw '
+        + "options (host 'localhost', port '5432', dbname 'postgres')",
+      );
+      await client.query(
+        'create foreign table public.seen_foreign_table_probe ('
+        + 'tenant_id uuid not null, total_cents bigint not null) '
+        + "server seen_warehouse_probe options (schema_name 'reporting', table_name 'orders')",
+      );
+      const { rows } = await client.query<{ table_type: string }>(
+        'select table_type from information_schema.tables '
+        + 'where table_schema = $1 and table_name = $2',
+        ['public', 'seen_foreign_table_probe'],
+      );
+      const measured = {
+        informationSchemaCallsIt: rows[0]?.table_type ?? 'nothing at all',
+        enableRowLevelSecurity: await refusedWith(
+          client, 'alter table public.seen_foreign_table_probe enable row level security',
+        ),
+        createPolicy: await refusedWith(
+          client, 'create policy tenant_isolation on public.seen_foreign_table_probe '
+          + 'for all to authenticated using (tenant_id = seen.current_tenant())',
+        ),
+        referenceToTenants: await refusedWith(
+          client, 'alter table public.seen_foreign_table_probe add constraint tenant_fk '
+          + 'foreign key (tenant_id) references public.tenants (id) on delete cascade',
+        ),
+        theGuardReports: await foreignTablesIn(client, 'public'),
+        partSixRaised: await replayedAgainstTheSchema(
+          client, migrationNamed(RELATION_RULE_MIGRATION_MARKER),
+        ),
+      };
+      expect(
+        measured,
+        'A foreign table was created in the public schema and the database answered '
+        + `${JSON.stringify(measured)}. It cannot be enabled for row-level security, no policy `
+        + 'can be created on it, and it cannot reference public.tenants, so not one of the three '
+        + 'guarantees this schema makes about a relation in public can be made about it, and '
+        + 'information_schema still reports it there as a table. Part 6 refuses a materialised '
+        + 'view for the weaker half of that reason and has to refuse this kind by name too, in '
+        + 'the words a later author will read when their migration fails',
+      ).toEqual({
+        informationSchemaCallsIt: 'FOREIGN',
+        enableRowLevelSecurity: '42809',
+        createPolicy: '42809',
+        referenceToTenants: '0A000',
+        theGuardReports: ['seen_foreign_table_probe (a foreign table)'],
+        partSixRaised: expect.stringContaining('seen_foreign_table_probe'),
+      });
     } finally {
       await client.query('rollback');
     }
