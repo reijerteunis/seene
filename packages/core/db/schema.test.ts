@@ -38,6 +38,7 @@ import {
   GOVERNED_PRIVILEGES,
   HASHED_REPOSITORY_DOCUMENTS, MIGRATION_SET_HEADER, MIGRATIONS_DIRECTORY,
   NON_TABLE_RELKINDS, NOT_BUYER_PII_MARKER, PROKIND_NAMES, RELKIND_NAMES,
+  SEQUENCE_PRIVILEGES, SEQUENCE_RELKIND,
   TABLE_PRIVILEGES, TABLE_RELKINDS, TENANCY_CLAUSES, TENANT_CLAIM,
   TRADE_RECORD_MIGRATION_MARKER, TRADE_RECORD_TABLES,
   VIEW_SECURITY_OPTION, VIEW_SECURITY_OPTION_TRUE,
@@ -669,6 +670,50 @@ async function routineAccessControlList(
       .includes(role)),
     publicIsNamed: named.includes('PUBLIC'),
   };
+}
+
+/**
+ * Every sequence in the schema a browser-bound role can reach, and what reaching it
+ * lends them, asked of the database rather than read out of the sequence's own
+ * access control list.
+ *
+ * The third inventory this suite keeps, and the one nothing in this package had:
+ * `relkind = 'S'` appeared in no guard and neither did `has_sequence_privilege`,
+ * which is the sixth review of SEEN-008 (F33). A sequence is in neither relation
+ * family and it is not a routine, so the twenty-nine-table privilege guard, the
+ * guard on the relations that are not tables and the routine guard all pass over
+ * one in silence; there is no filter to widen, because there was no question.
+ *
+ * What it can hand over is not a row and is worse than nothing for being neither.
+ * Measured on this stack in a rolled-back transaction with the default privileges
+ * standing: `anon` called `nextval` on a sequence in public and was accepted, read
+ * `last_value`, which is a count of rows aggregated over every tenant and so is a
+ * fact about tenants the caller can name none of, and called `setval(seq, 1)`,
+ * which was accepted and makes the next ingest insert collide on the primary key
+ * until the sequence catches up, tenant-wide, from a caller who never signed in.
+ * Row-level security is not a defence against any of the three, because a sequence
+ * holds no row for a policy to be applied to.
+ *
+ * Asked as `has_sequence_privilege` and not as `aclexplode(c.relacl)`, for the
+ * reason F30 established on the relations: a grant to PUBLIC names no role, a
+ * privilege held through membership of another role is in no list, and `relacl` is
+ * null on a sequence nobody has granted or revoked anything on.
+ */
+async function sequencesReachableIn(client: Client, schema: string): Promise<string[]> {
+  const { rows } = await client.query<{ name: string; role: string; privilege: string }>(
+    `select c.relname as name, r.rolname as role, p.privilege as privilege
+       from pg_catalog.pg_class c
+       join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+       cross join pg_catalog.pg_roles r
+       cross join unnest($3::text[]) as p(privilege)
+      where n.nspname = $1 and c.relkind = $4
+        and r.rolname = any($2)
+        and has_sequence_privilege(r.oid, c.oid, p.privilege)
+      order by name, role, privilege`,
+    [schema, [...CLIENT_BOUND_ROLES], Object.keys(SEQUENCE_PRIVILEGES), SEQUENCE_RELKIND],
+  );
+  return rows.map((row) => `${schema}.${row.name} lets ${row.role} `
+    + `${SEQUENCE_PRIVILEGES[row.privilege] ?? row.privilege.toLowerCase()}`);
 }
 
 /** One column that can hold a sentence, with the classification its own comment
@@ -2937,17 +2982,20 @@ describe('the relations in the public schema that are not tables', () => {
       // named this and left it open as "detection rather than prevention"; a view
       // is what made detection impossible as well, because nothing looked at one.
       //
-      // Both classes `pg_default_acl` files for this schema are read, not the
+      // Every class `pg_default_acl` files for this schema is read, not the
       // relations alone: F32 is that this assertion and part 6's revoke were each
       // written about `'r'`, so the EXECUTE Supabase defaults to `anon` and
-      // `authenticated` on functions stood untouched and unseen.
+      // `authenticated` on functions stood untouched and unseen, and F33 is the
+      // same sentence again for `'S'`, where Supabase defaults SELECT, UPDATE and
+      // USAGE to both roles on every sequence the next migration creates.
       const held = await defaultPrivilegesForClientRolesIn(client, 'public');
       expect(
         held,
         `${held.length} default privileges stand on schema public, so every table, view, `
-        + 'materialised view and function a later migration creates there is born holding them, '
-        + 'a view is not subject to row-level security unless it says `security_invoker = true`, '
-        + 'and a `security definer` function is subject to none at all: '
+        + 'materialised view, sequence and function a later migration creates there is born '
+        + 'holding them, a view is not subject to row-level security unless it says '
+        + '`security_invoker = true`, a sequence holds no row for a policy to be applied to at '
+        + 'all, and a `security definer` function is subject to none of them either: '
         + held.join('; '),
       ).toEqual([]);
     });
@@ -3544,6 +3592,313 @@ describe('the functions in the public schema', () => {
         + 'not reported, so the prevention assertion covers the relations alone and the next '
         + `function is born callable with the anon key: it reported ${held.join('; ') || 'nothing at all'}`,
       ).not.toEqual([]);
+    } finally {
+      await client.query('rollback');
+    }
+  });
+});
+
+describe('the sequences in the public schema', () => {
+  // The last quarter of one sentence, and the fourth round to find it. Every guard
+  // this ticket wrote asked the catalogue for a relation kind or for a routine:
+  // `'r'` until F19, the four relation kinds until F29, `'r'` and `'f'` on the
+  // privilege records until F32. `supabase/config.toml` names the class it serves in
+  // its own comment, "tables, views, sequences and functions", and a sequence is the
+  // quarter left. `relkind = 'S'` appeared in no guard in this package and
+  // `has_sequence_privilege` appeared nowhere in it either, so there was no filter
+  // to widen: there was no question.
+  //
+  // Measured against this stack in a rolled-back transaction by the sixth review of
+  // SEEN-008 (F33). `pg_default_acl` for schema public, type `'S'`, read
+  // `{postgres=rwU/postgres,anon=rwU/postgres,authenticated=rwU/postgres,
+  // service_role=rwU/postgres}` from both grantors, so a sequence was born holding
+  // all three privileges for both browser-bound roles, and `anon` called `nextval`
+  // (accepted), read `last_value` and got a count of rows aggregated over every
+  // tenant, and called `setval(seq, 1)` (accepted).
+  //
+  // Why a sequence is its own kind of exposure rather than a relation with a
+  // different letter. It holds no row, so row-level security is not a defence that
+  // happens to be missing here: there is nothing for a policy to be applied to, and
+  // the tenancy this ticket writes has no expression over one. What it holds instead
+  // is a number computed from every tenant's rows at once, which is a fact about
+  // tenants the caller can name none of; and the write half is not a read at all but
+  // a denial of service on the next ingest, which collides on the primary key until
+  // the sequence catches up.
+  //
+  // And no migration here creates one, which is not the safeguard it reads as: a
+  // `bigserial` or a `bigint generated by default as identity` column creates
+  // `public.<table>_<column>_seq` without the word sequence appearing in the
+  // migration, which is how SEEN-014's ingest or SEEN-021's findings would add one
+  // without deciding to.
+
+  let client: Client;
+
+  beforeAll(async () => {
+    client = await connect();
+  });
+
+  afterAll(async () => {
+    await client?.end();
+  });
+
+  it('carries no sequence a browser-bound role can reach', async () => {
+    // There is no sequence in schema public today, which this asserts rather than
+    // assumes: every key in this schema is a uuid with a default, so nothing has
+    // needed one yet. Part 6 strips whatever it finds, on the same principle as the
+    // loops beside it, so the sentence stays true when these migrations are
+    // re-applied against a schema somebody has added one to. The probes below are
+    // what stop this passing by measuring nothing.
+    const reachable = await sequencesReachableIn(client, 'public');
+    expect(
+      reachable,
+      `${reachable.length} sequences in schema public can be reached by a role a browser request `
+      + 'is bound to. A sequence holds no row, so no policy of this database is ever applied to '
+      + 'one, and what it holds instead is a number derived from every tenant\'s rows: '
+      + reachable.join('; '),
+    ).toEqual([]);
+  });
+
+  it('is born out of reach, and here the revoke is the whole of prevention rather than a bound '
+    + 'on it', async () => {
+    // The access and the silence in one measurement, and the one assertion in this
+    // block that the revoke in part 6 has to be there for. A sequence is created as
+    // a later ticket's migration would create one, and the database is asked the
+    // three things `anon` was able to do before the fix, beside what every guard
+    // that existed before this round says about the same object.
+    //
+    // The contrast with F32 is the reason this assertion can be written at all and
+    // is what a later reader most needs from this block. For a function, `alter
+    // default privileges ... revoke` cannot finish the job: PostgreSQL grants
+    // EXECUTE to PUBLIC on every routine as a baseline and a `pg_default_acl` entry
+    // is merged into that baseline by adding to it, so a function in public is still
+    // born callable by `anon` after the revoke and what part 6 closed there was
+    // detection with a bound. PostgreSQL grants a new sequence nothing to PUBLIC, so
+    // there is no baseline underneath for the revoke to fail to reach, and this
+    // assertion is a prevention rather than a bound. Measured on PostgreSQL 17.6 on
+    // this stack: after the revoke the sequence is born
+    // `{postgres=rwU/postgres,service_role=rwU/postgres}` with no PUBLIC entry at
+    // all, and all three calls are refused.
+    //
+    // The identity column is created beside the sequence because it is the route a
+    // later ticket actually takes: it names no sequence and creates one.
+    await client.query('begin');
+    try {
+      await client.query('create sequence public.seen_sequence_probe');
+      await client.query(
+        'create table public.seen_identity_probe ('
+        + 'id bigint generated by default as identity primary key, tenant_id uuid not null)',
+      );
+      const measured = {
+        sequencesTheGuardReports: await sequencesReachableIn(client, 'public'),
+        // The silence half, and it is not an aside: a sequence is in neither
+        // relation inventory, so these two stay empty after the fix as well. The
+        // answer was never going to come from a relation-shaped question.
+        whatTheRelationShapedGuardsSay: {
+          amongTheRelationsThatAreNotTables: (await nonTableRelationsIn(client, 'public'))
+            .filter((relation) => relation.name.startsWith('seen_sequence_probe')).map(named),
+          reportedByThePrivilegeGuards: [
+            ...(await clientPrivilegesOnNonTablesIn(client, 'public'))
+              .filter((entry) => entry.includes('seen_sequence_probe')),
+            ...((await privilegesIn(client, 'public')).get('seen_sequence_probe|anon') ?? []),
+          ],
+        },
+        anonCallingNextval: await answeredAs(
+          client, 'anon', "select nextval('public.seen_sequence_probe')",
+        ),
+        anonReadingLastValue: await answeredAs(
+          client, 'anon', 'select last_value from public.seen_sequence_probe',
+        ),
+        anonCallingSetval: await answeredAs(
+          client, 'anon', "select setval('public.seen_sequence_probe', 1)",
+        ),
+        anonCallingNextvalOnTheIdentitySequence: await answeredAs(
+          client, 'anon', "select nextval('public.seen_identity_probe_id_seq')",
+        ),
+      };
+      expect(
+        measured,
+        'A sequence and an identity column were created in schema public, as SEEN-014\'s ingest '
+        + 'and SEEN-021\'s findings will create one, and the database answered `anon` '
+        + `${JSON.stringify(measured.anonCallingNextval)} to nextval, `
+        + `${JSON.stringify(measured.anonReadingLastValue)} to last_value, which is a count of `
+        + 'rows across every tenant, and '
+        + `${JSON.stringify(measured.anonCallingSetval)} to setval, which collides the next `
+        + 'ingest insert on the primary key until the sequence catches up. All three have to be '
+        + 'refused 42501, because unlike a function a sequence has no built-in grant to PUBLIC '
+        + 'underneath the default privilege and the revoke in part 6 is therefore the whole of '
+        + 'prevention here. The relation-shaped guards report '
+        + `${JSON.stringify(measured.whatTheRelationShapedGuardsSay)}, which is the silence: a `
+        + 'sequence is in neither relation inventory and no widening of them would ever see one',
+      ).toEqual({
+        sequencesTheGuardReports: [],
+        whatTheRelationShapedGuardsSay: {
+          amongTheRelationsThatAreNotTables: [],
+          reportedByThePrivilegeGuards: [],
+        },
+        anonCallingNextval: { answer: '42501', rows: null },
+        anonReadingLastValue: { answer: '42501', rows: null },
+        anonCallingSetval: { answer: '42501', rows: null },
+        anonCallingNextvalOnTheIdentitySequence: { answer: '42501', rows: null },
+      });
+    } finally {
+      await client.query('rollback');
+    }
+  });
+
+  it('would see a sequence a browser-bound role can reach, and the tenant-wide number it lends '
+    + 'anon', async () => {
+    // What the assertion above is worth nothing without, and it keeps measuring
+    // something after the fix because it restores the state every Supabase database
+    // ships with before it creates the sequence. Two rows are inserted through the
+    // owner so that the number `anon` reads is a fact about both tenants and not
+    // merely a number.
+    //
+    // The value is read three times on purpose, and the third reading is the finding
+    // rather than a check of the first two. `nextval` and `setval` are outside
+    // transaction control: they are not rolled back, so `anon` setting the sequence
+    // back to 1 inside a probe that ends in `rollback to savepoint` leaves it at 1
+    // afterwards. That is the shape of the damage stated exactly: a read of another
+    // tenant's row count that no policy governs, and a write whose effect no
+    // rollback undoes, from a caller who never signed in.
+    await client.query('begin');
+    try {
+      await client.query(
+        'alter default privileges in schema public '
+        + 'grant all on sequences to anon, authenticated',
+      );
+      await client.query(
+        'create table public.seen_identity_probe ('
+        + 'id bigint generated by default as identity primary key, tenant_id uuid not null)',
+      );
+      await client.query(
+        'insert into public.seen_identity_probe (tenant_id) '
+        + 'values (gen_random_uuid()), (gen_random_uuid())',
+      );
+      const lastValue = async (): Promise<string> => (await client.query<{ last: string }>(
+        'select last_value::text as last from public.seen_identity_probe_id_seq',
+      )).rows[0].last;
+      const measured = {
+        sequencesTheGuardReports: (await sequencesReachableIn(client, 'public'))
+          .filter((entry) => entry.includes('seen_identity_probe_id_seq')),
+        rowsAcrossBothTenants: await lastValue(),
+        anonReadingLastValue: await answeredAs(
+          client, 'anon', 'select last_value from public.seen_identity_probe_id_seq',
+        ),
+        anonCallingSetval: await answeredAs(
+          client, 'anon', "select setval('public.seen_identity_probe_id_seq', 1)",
+        ),
+        valueAnonLeftBehindAfterItsStatementWasRolledBack: await lastValue(),
+      };
+      expect(
+        measured,
+        'A `bigint generated by default as identity` column was added in schema public with the '
+        + 'default privileges standing, which is the state a later ticket\'s migration writes '
+        + 'without naming a sequence at all, and `anon` answered '
+        + `${JSON.stringify(measured.anonReadingLastValue)} reading its last value and `
+        + `${JSON.stringify(measured.anonCallingSetval)} setting it. The sequence stood at `
+        + `${measured.rowsAcrossBothTenants} for two tenants' rows and stands at `
+        + `${measured.valueAnonLeftBehindAfterItsStatementWasRolledBack} after anon's statement `
+        + 'was rolled back, because setval is outside transaction control. The guard has to name '
+        + 'the sequence for both browser-bound roles and all three privileges, or the one object '
+        + 'class this suite never asked about is undetectable again',
+      ).toEqual({
+        sequencesTheGuardReports: [
+          'public.seen_identity_probe_id_seq lets anon read its last value, which is a count of '
+          + 'rows across every tenant',
+          'public.seen_identity_probe_id_seq lets anon set it with setval, which collides the '
+          + 'next insert on the primary key',
+          'public.seen_identity_probe_id_seq lets anon advance it with nextval',
+          'public.seen_identity_probe_id_seq lets authenticated read its last value, which is a '
+          + 'count of rows across every tenant',
+          'public.seen_identity_probe_id_seq lets authenticated set it with setval, which '
+          + 'collides the next insert on the primary key',
+          'public.seen_identity_probe_id_seq lets authenticated advance it with nextval',
+        ],
+        rowsAcrossBothTenants: '2',
+        anonReadingLastValue: { answer: 'accepted', rows: 1 },
+        anonCallingSetval: { answer: 'accepted', rows: 1 },
+        valueAnonLeftBehindAfterItsStatementWasRolledBack: '1',
+      });
+    } finally {
+      await client.query('rollback');
+    }
+  });
+
+  it('would see a default privilege on sequences a later migration granted back', async () => {
+    // The prevention half asked of the database rather than of part 6's file, as the
+    // relations and the functions are asked. The forbidden-statement scanner refuses
+    // `alter default privileges ... grant` in any spelling; this is the other end of
+    // it, on the class that went unnoticed for six rounds.
+    await client.query('begin');
+    try {
+      await client.query(
+        'alter default privileges in schema public grant usage on sequences to anon',
+      );
+      const held = await defaultPrivilegesForClientRolesIn(client, 'public');
+      expect(
+        held.filter((entry) => entry.includes('sequence')),
+        'A default USAGE granted back to `anon` on every sequence created in schema public was '
+        + 'not reported, so the prevention assertion covers the relations and the functions '
+        + 'alone and the next identity column is born advanceable with the anon key: it '
+        + `reported ${held.join('; ') || 'nothing at all'}`,
+      ).not.toEqual([]);
+    } finally {
+      await client.query('rollback');
+    }
+  });
+
+  it('holds no default privilege on a type either, which is the one class with nothing to '
+    + 'revoke', async () => {
+    // The fifth letter `defaclobjtype` has, asked because four rounds of this ticket
+    // each found the quarter the round before had not looked at, and an unmentioned
+    // class is how every one of them got here.
+    //
+    // Measured on this stack: there is no `'T'` row in `pg_default_acl` for schema
+    // public from either grantor, so part 6 writes no revoke for one, and `alter
+    // default privileges ... revoke all on types` records nothing when it is run
+    // because a revoke of a grant nobody made writes nothing down. `anon` does hold
+    // USAGE on every type here through the grant PostgreSQL makes to PUBLIC, which
+    // no default privilege can reach, exactly as for a function.
+    //
+    // That is harmless, and the reason is asserted rather than left in a comment
+    // where the next round would have to take it on trust: USAGE on a type is not a
+    // route to a row. The probe creates a domain, shows `anon` holding USAGE on it,
+    // and shows that the table whose row type `anon` also holds USAGE on is still
+    // refused 42501, which is the whole of the distinction. PostgREST serves no type
+    // as an endpoint, which is why `config.toml` names four classes and not five.
+    await client.query('begin');
+    try {
+      await client.query("insert into public.tenants (name) values ('Tenant A')");
+      await client.query("create domain public.seen_domain_probe as text check (value <> '')");
+      const held = await defaultPrivilegesForClientRolesIn(client, 'public');
+      const measured = {
+        defaultPrivilegesOnTypesTheGuardReports: held.filter((entry) => entry.includes('type')),
+        anonHoldsUsageOnTheDomain: (await client.query<{ allowed: boolean }>(
+          "select has_type_privilege('anon', 'public.seen_domain_probe', 'USAGE') as allowed",
+        )).rows[0].allowed,
+        anonHoldsUsageOnTheRowTypeOfATable: (await client.query<{ allowed: boolean }>(
+          "select has_type_privilege('anon', 'public.tenants', 'USAGE') as allowed",
+        )).rows[0].allowed,
+        anonReadingTheTableWhoseRowTypeItHolds: await answeredAs(
+          client, 'anon', 'select name from public.tenants',
+        ),
+      };
+      expect(
+        measured,
+        'A domain was created in schema public and `anon` holds USAGE on it, and on the row type '
+        + 'of every table here, through PostgreSQL\'s grant to PUBLIC, which no default privilege '
+        + 'can take away. That is not a route to a row and this is where that is shown rather '
+        + 'than asserted in prose: the database answered `anon` '
+        + `${JSON.stringify(measured.anonReadingTheTableWhoseRowTypeItHolds)} on the table whose `
+        + 'row type it holds USAGE on, because reading rows goes through the table privilege part '
+        + '4 governs. What is guarded here is that no migration files a default privilege on a '
+        + `type: the guard reported ${measured.defaultPrivilegesOnTypesTheGuardReports.join('; ') || 'nothing at all'}`,
+      ).toEqual({
+        defaultPrivilegesOnTypesTheGuardReports: [],
+        anonHoldsUsageOnTheDomain: true,
+        anonHoldsUsageOnTheRowTypeOfATable: true,
+        anonReadingTheTableWhoseRowTypeItHolds: { answer: '42501', rows: null },
+      });
     } finally {
       await client.query('rollback');
     }
