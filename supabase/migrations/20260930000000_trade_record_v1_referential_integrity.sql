@@ -1,6 +1,6 @@
 -- Trade record v1, part 9 of 10: an identifier is constrained to be what its own
 -- comment says it is, and a row with two parents cannot disagree with either.
--- SEEN-008, F55, F56, F57, F59, F60, F61, F62 and F65.
+-- SEEN-008, F55, F56, F57, F59, F60, F61, F62, F65, F68 and F69.
 --
 -- What parts 1 to 8 got right and what they left as prose. Every table carries
 -- tenant_id, every table has a policy, the tenant travels along every key, no
@@ -111,9 +111,17 @@
 -- What this migration does not do, said as plainly as what it does. It does not
 -- constrain status, mode, line_type, direction, channel or any other vocabulary a
 -- marketplace supplies: part 2's principle governs all of those and is untouched.
--- It does not make a marketplace identifier immutable; renaming one in the
--- catalogue still carries the connections with it, which is what part 3 wanted. It
--- says nothing about whether the right order line was matched, only that the one
+-- What it does do, having built the chain, is make a marketplace identifier
+-- immutable and say so. Part 3 chose `on update cascade` on the connections key so
+-- that renaming an identifier in the catalogue would carry the connections with it;
+-- the keys below reference `connections (tenant_id, id, marketplace)` and name no
+-- update action, which is NO ACTION, so the rename that cascade was for is refused
+-- with 23503 the moment a connection has one order or one settlement, and succeeds
+-- only while the account has no data at all. An operation that works on an empty
+-- database and fails on a full one is the worst of the two answers, so the trigger
+-- below refuses it outright, with a message saying what a real rename would be: a
+-- migration that says so, drops this trigger and moves the rows itself. It says
+-- nothing about whether the right order line was matched, only that the one
 -- that was matched is on the same marketplace: deterministic matching is SEEN-018's
 -- and this removes a class of match it would otherwise have to defend against. And
 -- the unique keys below make a second read of one page write one row; they do not
@@ -333,8 +341,12 @@ alter table public.settlement_lines
 -- tenant's catalogue row; no `on delete` clause, so the check falls at the end of
 -- the statement and the cascade from tenants can remove a tenant's catalogue and
 -- its claims in one statement without the two racing, where RESTRICT would refuse
--- mid-statement and make erasure on request impossible; `on update cascade` so a
--- rename in the catalogue carries the claims with it rather than orphaning them.
+-- mid-statement and make erasure on request impossible; and `on update cascade` in
+-- the shape part 3 wrote it, so that this key can never be the thing that orphans a
+-- claim. What that clause is not is a rename facility: the pair it points at cannot
+-- be updated at all once the trigger at the foot of this file is in place, so it
+-- can carry nothing, and it is written this way because a key of this shape written
+-- two ways in one schema is a question a reader has to answer.
 alter table public.claims
   add constraint claims_marketplace_fkey
   foreign key (tenant_id, marketplace)
@@ -372,12 +384,30 @@ create unique index order_lines_tenant_id_order_id_external_line_id_key
 -- key on (tenant_id, connection_id, external_thread_id) would guard every thread
 -- but the mail ones, which are precisely the ones where the same message arriving
 -- again is ordinary. `nulls not distinct` makes the two mail threads collide as a
--- reader expects. The partial predicate is what keeps that from folding every
--- thread with no external id into one row.
+-- reader expects.
+--
+-- And no predicate on it, which is the difference between a unique index and one an
+-- upsert can use. Written `where external_thread_id is not null`, to keep `nulls
+-- not distinct` from folding every thread with no identifier into one row, it was a
+-- partial index, and a partial index arbitrates only a statement that carries its
+-- predicate: `on conflict (tenant_id, connection_id, external_thread_id) do
+-- update`, which is the statement SEEN-061 and SEEN-062 have to write and the whole
+-- reason this index exists, was refused with 42P10, the SQLSTATE quoted at the foot
+-- of this file as the failure these three indexes prevent.
+--
+-- So the identifier is required instead, which is the honest reading of the case
+-- the predicate was protecting. A thread the rail gave no id cannot be found again
+-- by that id, so ingest writes it once per read, which is the duplication being
+-- keyed against rather than an exception to it; and every rail has an identifier to
+-- give, the marketplace's own thread id or the Message-ID root on mail, which is
+-- what part 2's own comment says the column holds. The null that stays is
+-- connection_id, which is a real absence rather than a missing fact, and it is the
+-- one `nulls not distinct` was written for.
+alter table public.message_threads alter column external_thread_id set not null;
+
 create unique index message_threads_tenant_id_connection_id_external_thread_id_key
   on public.message_threads (tenant_id, connection_id, external_thread_id)
-  nulls not distinct
-  where external_thread_id is not null;
+  nulls not distinct;
 
 create unique index messages_tenant_id_thread_id_external_message_id_key
   on public.messages (tenant_id, thread_id, external_message_id);
@@ -405,12 +435,14 @@ create unique index messages_tenant_id_thread_id_external_message_id_key
 -- in this schema where an update of a tenant_id rewrites another table's rows, and
 -- it was the place with nothing in the way.
 --
--- What was chosen, and what was chosen over it. The cascade is kept, because the
--- reason part 3 gave for it is still true of the column it was written about, and
--- dropping it would make a rename refuse itself while connections stand rather than
--- carry them. What is taken away is the column it was never meant to reach: this
--- tenant_id is not updatable at all, whatever it would be changed to, so the only
--- change the cascade can now carry is the rename it was written for. A narrower
+-- What was chosen, and what was chosen over it. The cascade is kept in the shape
+-- part 3 wrote it, because a key that cascades on update can never be the thing
+-- that orphans a connection, and dropping it would trade one silent outcome for
+-- another. What is taken away is the pair it points at: this tenant_id is not
+-- updatable at all, whatever it would be changed to, and the section below takes
+-- the identifier beside it for F68's reason, so the cascade now carries nothing
+-- because nothing above it can move. That is stated rather than implied, since two
+-- rounds of this file read the clause as the offer of a rename. A narrower
 -- rule that refused only a move to a different tenant was rejected for part 8's
 -- reason: there is no legitimate operation that moves one, a new tenant gets a new
 -- uuid, and a rule with a permitted case in it is a rule with a way through it.
@@ -447,6 +479,69 @@ create trigger refuse_marketplace_tenant_change before update on public.marketpl
   execute function seen.refuse_marketplace_tenant_change();
 
 revoke all on function seen.refuse_marketplace_tenant_change() from public;
+
+-- And the identifier beside it does not move either -----------------------------
+--
+-- F68. The chain this file builds is nine keys that carry `marketplace` from a
+-- child to its parent, and none of them names an update action, so all nine are NO
+-- ACTION. Measured on this stack: a tenant with a Bol connection carrying one order
+-- and one claim, `update public.marketplaces set marketplace = 'bol2'`, refused
+-- with 23503, `update or delete on table connections violates foreign key
+-- constraint orders_connection_id_fkey on table orders`. The same statement on a
+-- tenant whose connection has no rows under it was accepted and cascaded exactly as
+-- part 3 intended.
+--
+-- Two answers to one statement, decided by whether the account has traded, is the
+-- shape of a promise that holds in development and breaks in production, and part 3
+-- and this file each said in prose that the rename carries the connections with it.
+-- So one of the two is made true. Cascading the update down the chain was rejected:
+-- `on update cascade` has no per-column form, so putting it on `orders (tenant_id,
+-- connection_id, marketplace) references connections (tenant_id, id, marketplace)`
+-- would also make an update of connections.tenant_id rewrite the orders beneath it,
+-- which is precisely the hole the section above closes on the one table that had
+-- it, and part 5's keys hold every other tenant_id in place by naming no update
+-- action. Buying a rename nobody has asked for with four new ways to move a tenant
+-- id is not a trade this schema makes.
+--
+-- So the identifier is immutable, and by a trigger rather than by a sentence: the
+-- rename is refused whether or not a row hangs below it, with one SQLSTATE and a
+-- message that says what a real rename is. It is not that the value can never
+-- change. It is that changing it is a migration, which drops this trigger, moves
+-- the catalogue and every column keyed to it in one transaction and puts the
+-- trigger back, and is reviewed as the schema change it is. An UPDATE that
+-- half-succeeds depending on whether the tenant has sold anything is not that.
+--
+-- Why not `set constraints ... deferred` and a cascade after all: the keys would
+-- have to be declared deferrable, which takes the check off the statement and puts
+-- it at commit for every writer of every one of the nine, for the sake of an
+-- operation that has happened zero times.
+create or replace function seen.refuse_marketplace_rename()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  raise exception
+    'a marketplace identifier is not renamable by an update: % cannot become %. Nine foreign '
+    'keys carry this value from a connection, an order, a settlement and every row under them '
+    'back to this row and none of them cascades on update, so the statement is refused as soon '
+    'as the account has traded and accepted while it has not, which is the same schema answering '
+    'two ways. A rename is a migration: drop this trigger, move the catalogue and every column '
+    'keyed to it in one transaction, and put it back.', old.marketplace, new.marketplace
+    using errcode = 'restrict_violation';
+end;
+$$;
+
+comment on function seen.refuse_marketplace_rename() is
+  'Refuses any update of public.marketplaces.marketplace, so the identifier the whole trade '
+  'record is routed by is immutable in the database rather than in a comment, and does not accept '
+  'a rename on an idle account that it refuses on a trading one.';
+
+create trigger refuse_marketplace_rename before update on public.marketplaces
+  for each row when (new.marketplace is distinct from old.marketplace)
+  execute function seen.refuse_marketplace_rename();
+
+revoke all on function seen.refuse_marketplace_rename() from public;
 
 -- What this migration claims, measured rather than asserted ---------------------
 --
@@ -564,32 +659,14 @@ begin
   end if;
 
   -- One row per page read, on the three externally sourced tables part 1 left
-  -- without a key. Asked as "a unique index whose columns include this one",
-  -- because the shape differs per table and what each buys is the same thing: a
-  -- second read of one page cannot write a second row.
-  select string_agg(format('%s.%s', named.child, named.identifier), ', ' order by named.child)
-    into offenders
-    from (values
-      ('message_threads', 'external_thread_id'),
-      ('messages',        'external_message_id'),
-      ('order_lines',     'external_line_id')
-    ) as named(child, identifier)
-   where not exists (
-     select 1
-       from pg_catalog.pg_index i
-       join pg_catalog.pg_attribute a
-         on a.attrelid = i.indrelid and a.attname = named.identifier
-        and a.attnum > 0 and not a.attisdropped
-      where i.indrelid = format('public.%I', named.child)::regclass
-        and i.indisunique
-        and a.attnum = any(i.indkey::smallint[]));
-
-  if offenders is not null then
-    raise exception 'an externally sourced table carries a marketplace''s own identifier with no '
-      'unique index on it, so a second read of the same page writes the row again and no upsert '
-      'can be written at all, because `on conflict` needs a unique index to arbitrate: %',
-      offenders;
-  end if;
+  -- without a key, is not asked here, and the way it was asked is why. It read
+  -- pg_index for "a unique index whose columns include this one", which is a
+  -- description of an index and not the property wanted: the index it approved on
+  -- message_threads was partial, a partial index arbitrates only a statement that
+  -- carries its predicate, and the upsert the key exists for was refused 42P10
+  -- while this block passed. That is F46 in the file written one part after part 8
+  -- replaced the same reading with the statement itself, and it is F69. The three
+  -- upserts are run in the block below instead.
 
   -- And the one tenant_id in this schema that a referential action could move.
   if not exists (
@@ -610,6 +687,176 @@ begin
   if not exists (select 1 from seen.marketplace_catalogue) then
     raise exception 'the catalogue this file keys six columns to is empty, so every key added '
       'here refuses every row and criterion 5 has nothing to compare against the routing table';
+  end if;
+end;
+$$;
+
+-- And the four statements this file exists to make possible, run rather than
+-- described ---------------------------------------------------------------------
+--
+-- Part 8's move, one file later, for F46's reason and F69's: a query over pg_index
+-- answers about an index, and what this file owes is that three upserts can be
+-- written and that a rename cannot. A partial index, an expression index and a
+-- deferrable unique constraint each pass a reasonable description and break the
+-- statement, and the attribute that catches the next one is the one nobody
+-- enumerated. Running the statement needs none of them and has a finite answer.
+--
+-- The probe is a tenant created here and taken back by a raise this block catches,
+-- which is the one way a PL/pgSQL block can roll back part of its own body. What
+-- the database holds when this file finishes is what it held before the block ran:
+-- no tenant, no tombstone in seen.erased_tenants, because nothing is deleted, and
+-- no rows under either. The variables survive the rollback, which is what makes the
+-- answers readable afterwards.
+--
+-- What this cannot see: it runs once, as this file applies. What watches the same
+-- four statements afterwards, against the database the whole set leaves behind, is
+-- the block named 'a marketplace identifier, and the line id a marketplace gave a
+-- row' in packages/core/db/schema.test.ts.
+do $$
+declare
+  probe uuid;
+  linked uuid;
+  ordered uuid;
+  threaded uuid;
+  refused text;
+  renamed_idle text;
+  renamed_trading text;
+  lines_written integer;
+  threads_written integer;
+  messages_written integer;
+begin
+  begin
+    insert into public.tenants (name) values ('SEEN-008 part 9 probe')
+      returning tenant_id into probe;
+
+    -- A rename before the account has traded, which is the case the keys below
+    -- accepted and the whole reason the trigger refuses rather than the keys.
+    begin
+      update public.marketplaces set marketplace = 'bol-renamed'
+       where tenant_id = probe and marketplace = 'bol';
+      renamed_idle := 'accepted';
+    exception
+      when others then
+        renamed_idle := sqlstate;
+    end;
+
+    insert into public.connections (tenant_id, marketplace, country, status)
+      values (probe, 'bol', 'NL', 'active') returning id into linked;
+    insert into public.orders (tenant_id, connection_id, marketplace, external_id)
+      values (probe, linked, 'bol', 'PROBE-ORDER') returning id into ordered;
+
+    -- And after it has, which is the case they refused.
+    begin
+      update public.marketplaces set marketplace = 'bol-renamed'
+       where tenant_id = probe and marketplace = 'bol';
+      renamed_trading := 'accepted';
+    exception
+      when others then
+        renamed_trading := sqlstate;
+    end;
+
+    -- The order line upsert SEEN-014 is specified to write.
+    begin
+      insert into public.order_lines (tenant_id, order_id, external_line_id, quantity,
+                                      unit_price_cents)
+           values (probe, ordered, 'PROBE-LINE', 1, 1000)
+      on conflict (tenant_id, order_id, external_line_id)
+        do update set quantity = excluded.quantity;
+      insert into public.order_lines (tenant_id, order_id, external_line_id, quantity,
+                                      unit_price_cents)
+           values (probe, ordered, 'PROBE-LINE', 4, 1000)
+      on conflict (tenant_id, order_id, external_line_id)
+        do update set quantity = excluded.quantity;
+    exception
+      when others then
+        refused := format('order_lines: %s (SQLSTATE %s)', sqlerrm, sqlstate);
+    end;
+
+    -- The thread upsert SEEN-061 and SEEN-062 have to write, on both rails: a
+    -- thread read from a marketplace hangs from a connection and a thread from the
+    -- forwarded mailbox has no connection_id, which is the null the key reads as a
+    -- value rather than as a difference.
+    begin
+      insert into public.message_threads (tenant_id, connection_id, channel,
+                                          external_thread_id, subject)
+           values (probe, linked, 'marketplace', 'PROBE-THREAD', 'as first read')
+      on conflict (tenant_id, connection_id, external_thread_id)
+        do update set subject = excluded.subject;
+      insert into public.message_threads (tenant_id, connection_id, channel,
+                                          external_thread_id, subject)
+           values (probe, linked, 'marketplace', 'PROBE-THREAD', 'as corrected')
+      on conflict (tenant_id, connection_id, external_thread_id)
+        do update set subject = excluded.subject;
+      insert into public.message_threads (tenant_id, connection_id, channel,
+                                          external_thread_id, subject)
+           values (probe, null, 'mail', 'PROBE-THREAD', 'mail as first read')
+      on conflict (tenant_id, connection_id, external_thread_id)
+        do update set subject = excluded.subject;
+      insert into public.message_threads (tenant_id, connection_id, channel,
+                                          external_thread_id, subject)
+           values (probe, null, 'mail', 'PROBE-THREAD', 'mail as corrected')
+      on conflict (tenant_id, connection_id, external_thread_id)
+        do update set subject = excluded.subject;
+    exception
+      when others then
+        refused := concat_ws(', ', refused,
+                             format('message_threads: %s (SQLSTATE %s)', sqlerrm, sqlstate));
+    end;
+
+    select id into threaded from public.message_threads
+     where tenant_id = probe and channel = 'marketplace';
+
+    -- And the message upsert under it, where a redelivery of one page is ordinary.
+    if threaded is not null then
+      begin
+        insert into public.messages (tenant_id, thread_id, external_message_id, direction, body)
+             values (probe, threaded, 'PROBE-MESSAGE', 'inbound', 'as first read')
+        on conflict (tenant_id, thread_id, external_message_id)
+          do update set body = excluded.body;
+        insert into public.messages (tenant_id, thread_id, external_message_id, direction, body)
+             values (probe, threaded, 'PROBE-MESSAGE', 'inbound', 'as corrected')
+        on conflict (tenant_id, thread_id, external_message_id)
+          do update set body = excluded.body;
+      exception
+        when others then
+          refused := concat_ws(', ', refused,
+                               format('messages: %s (SQLSTATE %s)', sqlerrm, sqlstate));
+      end;
+    end if;
+
+    select count(*) into lines_written from public.order_lines where tenant_id = probe;
+    select count(*) into threads_written from public.message_threads where tenant_id = probe;
+    select count(*) into messages_written from public.messages where tenant_id = probe;
+
+    raise exception 'the probe tenant is taken back' using errcode = 'SEEN1';
+  exception
+    when sqlstate 'SEEN1' then
+      null;
+  end;
+
+  if refused is not null then
+    raise exception 'an externally sourced table carries a marketplace''s own identifier with no '
+      'unique index `on conflict` can take as an arbiter, so a second read of the same page '
+      'writes the row again and the upsert SEEN-014, SEEN-061 and SEEN-062 are specified to '
+      'write cannot be expressed at all: %', refused;
+  end if;
+
+  if lines_written is distinct from 1 or threads_written is distinct from 2
+     or messages_written is distinct from 1 then
+    raise exception 'the upserts were accepted and wrote the wrong number of rows: % order '
+      'lines for one line id, % threads for one thread id on two rails, % messages for one '
+      'message id. An index that arbitrates a statement and does not fold the second write into '
+      'the first is an index that does not key what it says it keys',
+      lines_written, threads_written, messages_written;
+  end if;
+
+  if renamed_idle is distinct from '23001' or renamed_trading is distinct from '23001' then
+    raise exception 'renaming a marketplace identifier answered % on an account that has not '
+      'traded and % on one that has, where both must be refused by the trigger: a rename that '
+      'succeeds while a connection is childless and is refused by a foreign key the moment it '
+      'has an order is one answer in development and another in production, and part 3 and the '
+      'head of this file both tell a later ticket the rename carries its connections with it',
+      coalesce(renamed_idle, 'nothing at all'), coalesce(renamed_trading, 'nothing at all');
   end if;
 end;
 $$;

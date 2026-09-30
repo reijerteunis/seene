@@ -1,0 +1,38 @@
+{
+  "sequence": 273,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-30T20:19:25.007625+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 15,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "86fba8c97af0b1799159a5589f2823f2f2a64b2b",
+  "prev_hash": "6a84927b1fa4d0a27f4b5b2015f96f39b11c2ccc4ed1b3eaf8d85ca6909563fb",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": null,
+          "behaviour": "The twelve the adversarial schema audit found at record 262, repaired as two new migration parts. Part 9 makes the marketplace identifier a real identifier: a foreign key chain through the parent each row already hangs from, order_lines keyed on the line id its marketplace gave it, and a trigger refusing a tenant or marketplace change under a key. Part 10 makes a tenant's stored objects outlive the cascade that erases the tenant, checks every storage_path against its own tenant_id, and drops the invoices column that let a person write a billable line by hand.",
+          "failure_reason": "An evidence row inside one tenant's row-level security boundary can address a stored object under another tenant's prefix. The policy protects the row and not the bytes it points at, so a path is a claim nothing checks.",
+          "red": 265,
+          "green": 267
+        }
+      ],
+      "regression": 269,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "a00943ab9615",
+      "output_tokens": 2387476,
+      "tool_calls": 1117,
+      "unavailable": null
+    }
+  }
+}

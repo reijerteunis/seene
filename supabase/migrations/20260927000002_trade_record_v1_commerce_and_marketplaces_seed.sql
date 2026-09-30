@@ -116,15 +116,6 @@ create table public.invoices (
   stripe_customer_id text,
   period_start date,
   period_end date,
-  -- The recovery share lines: one entry per credited claim, each carrying the
-  -- claim id, the credited amount and the share charged on it.
-  --
-  -- The ER diagram draws INVOICE }o--o{ CLAIM, a many-to-many, which would be a
-  -- junction table. There is none, because the ticket's 29 tables do not name one
-  -- and inventing a table nobody depends on yet is a guess at SEEN-040's shape;
-  -- the lines carry the claim ids, so the relation is readable either way and
-  -- SEEN-040 may normalise it when it knows what it needs. Recorded here so the
-  -- divergence from the diagram is a decision and not an oversight.
   recovery_share_lines jsonb not null default '[]'::jsonb,
   -- The module subscription lines: which module, for which period, at what price.
   module_lines jsonb not null default '[]'::jsonb,
@@ -397,8 +388,12 @@ $$;
 -- check is performed at the end of the statement rather than at the row, so the
 -- cascade from tenants deletes a tenant's marketplaces and its connections in one
 -- statement without the two racing; RESTRICT would refuse mid-statement and make
--- erasure on request impossible. `on update cascade` so renaming an identifier in
--- the catalogue carries the connections with it rather than orphaning them.
+-- erasure on request impossible. `on update cascade` so that this key can never be
+-- the thing that orphans a connection, and not as an invitation to rename an
+-- identifier: the value is invented by this schema and seeded from the routing
+-- table above, no marketplace can send us a seventh spelling of it, and every row
+-- that hangs below a connection is keyed on it. Treat it as immutable once a
+-- connection exists; a cascade is not a rename facility offered to anybody.
 alter table public.connections
   add constraint connections_marketplace_fkey
   foreign key (tenant_id, marketplace)

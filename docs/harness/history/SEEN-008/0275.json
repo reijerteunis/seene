@@ -1,0 +1,68 @@
+{
+  "sequence": 275,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-30T20:33:49.311278+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 15,
+  "actor": "claude:reviewer",
+  "session": "a00943ab9615",
+  "head": "86fba8c97af0b1799159a5589f2823f2f2a64b2b",
+  "prev_hash": "89642a3ade66731f4da428c6748c1050d86bca84be8f3813df1cdf9f70b23024",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 16,
+    "reason": "The Claude Code review at full depth returned the ticket on five findings, two high, both reproduced against the live database in a rolled-back transaction.\n\nF67 and F68 are the same shape as every finding since the schema was finished: the distance between what a guard does and what its own comment says it does. F67 is that part 10's storage_path check constrains the string an evidence row stores and never the object the bytes went to, so an upload to a path outside the tenant prefix is still invisible to an erasure, which is the outcome F63 measured, in the file written to close F63; and the migration uses the constraint to decline SEEN-022 a criterion it therefore still owes. F68 is that the keys part 9 adds reference connections on three columns with no on-update action, so they default to NO ACTION and block part 3's on-update cascade the moment a connection has any child, while two paragraphs of part 9 say renaming a marketplace identifier still carries its connections with it.\n\nF69 is a partial unique index on message_threads, which makes the ON CONFLICT upsert SEEN-061 and SEEN-062 must write fail with 42P10, approved by a self-check that asks pg_index for a description rather than running the statement. That is F46's defect, reproduced in a file written two rounds after F46 was fixed, and it also makes the Outcome's own measured list untrue of the tree being delivered.\n\nF70 is that parts 3 and 7 still create, argue for and classify invoices.recovery_share_lines, which part 10 drops.\n\nF71 is the status drift, for the third time on this ticket: the file at HEAD says doing with five unticked criteria while the journal is at review.\n\nReturned to tdd. The review is recorded as a claude subagent and cannot pass this ticket's gate whatever it found, because full_depth_rules carries billing and the review gate requires a reviewer the implementing tool did not provide; that is a separate matter from these five, which are real and are the reason this round exists.",
+    "findings": [
+      {
+        "id": "F67",
+        "severity": "high",
+        "file": "supabase/migrations/20260930000001_trade_record_v1_evidence_and_billing.sql:49-56",
+        "claim": "The storage-path check binds the text an evidence row stores and not the object the bytes were written to, so F63's guarantee still fails for an upload outside the tenant prefix, and the migration declines SEEN-022 a criterion on the ground that the constraint makes one unnecessary.",
+        "failure_scenario": "Reproduced against the live database in a rolled-back transaction. Upload a buyer invoice to storage.objects as 'shared/uploads/buyer-invoice.pdf' and insert an evidence row for tenant T with storage_path '<T>/claims/<claim>/buyer-invoice.pdf'. The check passes, because it only asks that the stored string begins with the row's own tenant_id and never that an object of that name exists. Delete the tenant: seen.pending_object_erasures is empty for T and 'shared/uploads/buyer-invoice.pdf' is still in the bucket with nothing in the database associating it with the erased tenant. That is exactly F63's measured outcome, in the file written to close F63. The migration's sentence at lines 49 to 56 concludes that SEEN-022 is not owed a criterion because a path it cannot store is not a promise it has to remember to keep. The row can store a path it did not upload to, so the conclusion does not follow, and neither SEEN-022 nor SEEN-027 carries a criterion requiring the object to be written under the prefix. SEEN-083's new criterion sweeps the worklist, and the worklist is empty.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F68",
+        "severity": "high",
+        "file": "supabase/migrations/20260930000000_trade_record_v1_referential_integrity.sql:114",
+        "claim": "Part 9 states that renaming a marketplace identifier in the catalogue still carries the connections with it, and the keys it adds make that rename impossible as soon as a connection has any order or settlement.",
+        "failure_scenario": "Reproduced against the live database in a rolled-back transaction. Create a tenant, a Bol connection, one order on it and one claim, then update public.marketplaces set marketplace = 'bol2' for that tenant. Postgres refuses with 23503: update or delete on table connections violates foreign key constraint orders_connection_id_fkey on table orders, Key (tenant_id, id, marketplace)=(..., bol) is still referenced from table orders. The rename succeeds only while the connection has no children at all. The new orders_connection_id_fkey and settlements_connection_id_fkey reference connections (tenant_id, id, marketplace) with no on-update action, so they default to NO ACTION and block the cascade part 3 chose. Part 9 says at line 114 that it does not make a marketplace identifier immutable and that renaming one in the catalogue still carries the connections with it, which is what part 3 wanted, and at lines 408 to 413 that the cascade is kept because the reason part 3 gave for it is still true of the column it was written about. Both are false of the delivered schema: part 3's on-update cascade is now inoperative in every case that has data, the self-check at lines 457 to 615 never exercises a rename, and a later ticket that needs to rename an identifier will be told by two migrations that the schema supports it and refused at runtime.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F69",
+        "severity": "medium",
+        "file": "supabase/migrations/20260930000000_trade_record_v1_referential_integrity.sql:377-380",
+        "claim": "The new unique index on message_threads is partial, so the upsert the migration exists to enable is refused, and the self-check that approves it asks pg_index for a description rather than running the statement, which is F46's own defect in the file written two rounds after F46.",
+        "failure_scenario": "Reproduced against the live database. message_threads_tenant_id_connection_id_external_thread_id_key has indpred not null. An insert into public.message_threads with on conflict (tenant_id, connection_id, external_thread_id) do update is refused with 42P10, there is no unique or exclusion constraint matching the ON CONFLICT specification, which is the SQLSTATE and the wording part 9 quotes at lines 586 to 591 as the failure the three new indexes exist to prevent; the same statement with where external_thread_id is not null added is accepted. SEEN-061 and SEEN-062 are the tickets that write that upsert and neither is told. Part 9's check at lines 577 to 585 asks only i.indisunique and column membership, which is precisely the pg_index description F46 showed a partial unique index passes while breaking the guarantee, and part 8 was rewritten at that finding to run the statement instead. There is no test for the message_threads upsert, where order_lines has one at schema.test.ts:6584. The Outcome also carries the audit's measured list at lines 938 to 944, including no partial or expression unique index anywhere, which part 9 made untrue of the tree being delivered.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F70",
+        "severity": "medium",
+        "file": "supabase/migrations/20260927000002_trade_record_v1_commerce_and_marketplaces_seed.sql:119-128",
+        "claim": "Parts 3 and 7 create, argue for and classify invoices.recovery_share_lines, which part 10 drops, so the delivered set tells SEEN-040's author that carrying the recovery share as json and declining the junction table was a deliberate decision.",
+        "failure_scenario": "SEEN-040's author opens the migration that creates public.invoices, which is where a person looks for the shape of the table, and reads the paragraph at lines 119 to 127 arguing that the junction table the ER diagram draws is declined because the lines carry the claim ids and SEEN-040 may normalise it when it knows what it needs, recorded so the divergence from the diagram is a decision and not an oversight. Part 7 line 258 then classifies the column as not buyer PII as though it exists. Part 10 line 248 drops it. The author writes the recovery share into invoices.recovery_share_lines and gets 42703 at the first insert. The set's convention is that every part points backwards and none points forwards, which is harmless for parts 5 and 9 because a rewritten key still exists, and is not harmless here because the object is gone and the paragraph argues for the design part 10 reverses. The compensating guards, part 10's table comment, INVOICE_JSON_COLUMNS and SEEN-040's amended criterion, are all outside the file a reader of the schema meets first. This is the class the ticket returned on at F43, F44, F50 and F54.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F71",
+        "severity": "medium",
+        "file": "docs/tickets/SEEN-008-create-trade-record-schema-v1-with-tenant-id.md:14",
+        "claim": "The ticket file at HEAD says status doing with all five acceptance criteria unticked while the journal is at the review stage, and this attempt carries no commit writing them, where every earlier attempt on this ticket wrote them before the triage.",
+        "failure_scenario": "The file reads status: doing at line 14, a status row of doing at line 26 and an unticked box on all five criteria at lines 34 to 38, while record 273 advanced to review and record 274 is the review triage. Two outcomes follow and both are bad. If the session runs harness advance out of review as the tree stands, the review records tree as the fingerprint over a ticket file asserting that nothing was done, and the receipt attests a delivery record whose own frontmatter contradicts it. If the session writes the status and the ticks after that advance, delivery verify compares the reviewed tree against the current fingerprint and refuses with The project changed after review, which is what harness/tests/test_calibration.py pins. The window between the triage and the advance is legal, because the diff-has-not-moved check excludes the procedure paths, so this is recoverable; it is recorded because notes 207 and 261 record the same drift twice already and this is the third occurrence.",
+        "status": "open",
+        "resolution": ""
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}

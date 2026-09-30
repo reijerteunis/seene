@@ -1,7 +1,7 @@
 -- Trade record v1, part 10 of 10: the bytes an erasure could not reach, the path
 -- a row could name that was not its own, the last hop of the billable chain, and
 -- one seeded capability that said the opposite of the routing table. SEEN-008,
--- F63, F64, F66 and F58.
+-- F63, F64, F66, F58 and F67.
 --
 -- What the parts before this one settled, and the place all of it stopped.
 -- Every table in public carries tenant_id, row-level security and one policy
@@ -46,14 +46,26 @@
 -- accident. starts_with() would say the same thing and would tie the constraint
 -- to a Postgres version this repository has no reason to require.
 --
--- What it does not claim. It binds what a row may name, not where the storage
--- provider was told to put the bytes. Those are the same thing in practice
--- because the row is how anything in this system addresses an object, and the
--- erasure below sweeps by the same prefix, so an object written outside its
--- tenant's prefix is one no row may point at and no erasure will find. That is
--- SEEN-022's to respect when it assembles the audit PDF and the evidence store,
--- and it is not owed a criterion, because a path it cannot store is not a promise
--- it has to remember to keep.
+-- What it does not claim, and the conclusion not to draw from it. It binds the
+-- text a row may hold. It cannot ask the storage provider anything: a check
+-- constraint sees the row it is written on, and storage.objects is not reachable
+-- from one at any price. So bytes uploaded as `shared/uploads/buyer-invoice.pdf`
+-- with a row naming `<tenant>/claims/<claim>/buyer-invoice.pdf` satisfy it, the
+-- erasure below sweeps the bucket by the prefix and does not find them, and after
+-- the deletion the object stands in the bucket with no row anywhere able to say
+-- whose it was. That is F63's measured outcome, reachable in the file written to
+-- close F63, and the reason is that the row and the object agree only when
+-- whoever uploaded wrote the bytes to the path it then stored. That is a property
+-- of the uploading code and of nothing in this schema.
+--
+-- So the obligation goes where it can be kept, exactly as F63's does one section
+-- below: onto the tickets that perform the upload, as an acceptance criterion each
+-- of their authors is held to, and as a row of SCHEMA_OBLIGATIONS in
+-- packages/core/db/tables.ts, which is a test reading data rather than a reader
+-- finding a sentence. SEEN-022 writes the audit PDF into the evidence bucket,
+-- SEEN-027 uploads the claim evidence and SEEN-041 stores the rendered statement.
+-- Each uploads under `<tenant_id>/` and nowhere else, and the table comments below
+-- state it where a reader of the table meets it.
 
 alter table public.evidence
   add constraint evidence_storage_path_is_its_own_tenants
@@ -79,6 +91,29 @@ comment on constraint statements_storage_path_is_its_own_tenants on public.state
   'A statement may only address a rendered document under its own tenant''s prefix, and a period '
   'that was reported and not rendered carries no path at all. F64, widened from the evidence '
   'column the finding measured to every column that addresses a stored object.';
+
+-- And the half neither constraint can reach, on the two tables themselves, so a
+-- reader meets it where the table is rather than where the bytes are. The wording
+-- is the one the classifications use for a promise somebody else keeps, which is
+-- what `SCHEMA_OBLIGATIONS` and `schema.test.ts` read these two comments for.
+comment on table public.evidence is
+  'The documents behind a claim, by reference: the bytes are in the storage bucket and never in '
+  'this database. The check on storage_path binds the path this row may name and cannot bind the '
+  'object an upload actually wrote, because a check constraint can read no table but its own. So '
+  'an object uploaded outside its tenant''s prefix is accepted here as long as the row names a '
+  'compliant path, and it survives that tenant''s erasure unfound, because the worklist below '
+  'sweeps the bucket by the same prefix. It falls to SEEN-022, which stores the audit PDF in the '
+  'evidence bucket, and to SEEN-027, which uploads the claim evidence, to keep it so by writing '
+  'every object under `<tenant_id>/` and nowhere else. F63, F64 and F67.';
+
+comment on table public.statements is
+  'The monthly statement as sent: the period, the document and the figures it states. The ER '
+  'diagram has no statement entity; the prose at the foot of the trade record does, beside '
+  'invoices, and this is that table. storage_path carries the same half-guarantee as the '
+  'evidence one: the check binds what this row may name and not where the bytes were written, so '
+  'a statement rendered outside its tenant''s prefix outlives the tenant''s erasure with nothing '
+  'able to say whose it was. It falls to SEEN-041, which renders and stores the statement, to '
+  'keep it so by uploading under `<tenant_id>/` and nowhere else. F64 and F67.';
 
 -- F63: what an erasure leaves for the bytes --------------------------------------
 --

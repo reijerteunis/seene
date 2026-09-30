@@ -29,12 +29,14 @@ status: todo
 
 Build the statement in apps/api: per tenant and month, a PDF with euros identified, filed, credited and refused per marketplace, hours removed (claims filed times a per-rule handling time constant the tenant can see), the actions log from audit_events and the invoice reference, stored with sha256 on the statements table and sent by Postmark with a sign-off link that records who accepted it. Design decision: the statement is rendered from the same views the invoice uses, so the two documents can never disagree.
 
+Where the document may be uploaded is settled by SEEN-008. `statements.storage_path` is constrained to begin with the row's own `tenant_id`, and that check binds the text the row holds and not the object the upload wrote, because a check constraint cannot read `storage.objects`. A deletion on request finds a tenant's objects by sweeping the bucket for that prefix, so a statement rendered outside it outlives the erasure with nothing able to say whose it was (SEEN-008, F63 and F67). The reason is on the comment of `public.statements`, and `packages/core/db/schema.test.ts` goes red if the criterion below leaves this ticket.
+
 ## Acceptance criteria
 
 - [ ] Statement totals equal the findings and claims views for the period to the cent
 - [ ] Hours removed uses the per-rule constants table and prints the constants in a footnote
 - [ ] Statement emailed by Postmark and the sign-off link writes accepted_by and accepted_at
-- [ ] Statement PDF stored with sha256 and downloadable from the customer inbox
+- [ ] Statement PDF stored under the tenant's own prefix, so the object name begins with the tenant_id and a slash and equals the storage_path recorded on the row, with sha256 and downloadable from the customer inbox
 
 ## Depends on
 

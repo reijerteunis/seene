@@ -43,7 +43,7 @@ import {
   GOVERNED_PRIVILEGES,
   HASHED_REPOSITORY_DOCUMENTS, HELPER_SCHEMA, HELPER_SCHEMA_CALLABLE_ROUTINES,
   INVOICE_JSON_COLUMNS,
-  MIGRATION_SET_HEADER, MIGRATIONS_DIRECTORY,
+  migrationColumnReferences, MIGRATION_SET_HEADER, MIGRATIONS_DIRECTORY,
   NON_TABLE_RELKINDS, NOT_BUYER_PII_MARKER,
   PENDING_OBJECT_ERASURES_TABLE, PROKIND_NAMES,
   RELATION_RULE_MIGRATION_MARKER, RELKIND_NAMES,
@@ -1365,11 +1365,19 @@ function carriesEveryTerm(criterion: string, terms: readonly string[]): boolean 
   });
 }
 
-/** The ticket files the obligation guard reads as an authority, deduplicated. */
+/** The ticket files the obligation guard reads as an authority, deduplicated.
+ *
+ * Both obligation guards, because both read a ticket's acceptance criteria and
+ * both are replayed from the turbo cache when nothing under this package changed:
+ * the columns classified `Not buyer PII` on a condition, and the relations whose
+ * meaning rests on a later ticket. The second set was hashed by hand in
+ * `turbo.json` and was in no assertion, so a ticket added to `SCHEMA_OBLIGATIONS`
+ * and forgotten in `turbo.json` failed at the read rather than here. */
 function constrainedTicketFiles(): string[] {
-  const tickets = new Set(
-    Object.values(CONSTRAINED_NOT_BUYER_PII_COLUMNS).flatMap((entry) => entry.tickets),
-  );
+  const tickets = new Set([
+    ...Object.values(CONSTRAINED_NOT_BUYER_PII_COLUMNS).flatMap((entry) => entry.tickets),
+    ...SCHEMA_OBLIGATIONS.flatMap((entry) => entry.tickets),
+  ]);
   return [...tickets].sort().map(ticketFile);
 }
 
@@ -6739,5 +6747,247 @@ describe('a marketplace identifier, and the line id a marketplace gave a row', (
       + 'SEEN-062 parses a forwarded mailbox, where the same message arrives again as a matter of '
       + 'course',
     ).toEqual({ firstDelivery: 'accepted', redelivery: '23505', messagesForOneId: 1 });
+  });
+
+  it('arbitrates the message thread upsert SEEN-061 and SEEN-062 have to write', async () => {
+    // F69. The index the three keys above were added with was partial, `where
+    // external_thread_id is not null`, and a partial index arbitrates only a
+    // statement that carries its predicate: `on conflict (tenant_id,
+    // connection_id, external_thread_id) do update` was refused with 42P10, the
+    // exact SQLSTATE and wording part 9 quotes as the failure the indexes exist to
+    // prevent. SEEN-061 ingests threads from four marketplaces and SEEN-062 parses
+    // the forwarded mailbox, and both write this statement.
+    //
+    // Both rails, because the mail rail is the one with a null in the key: a
+    // thread that arrived through the mailbox has no connection_id, and the index
+    // is `nulls not distinct` so that two of them collide as a reader expects.
+    // An upsert that cannot infer the index on that rail is the rail where a
+    // redelivery is ordinary rather than exceptional.
+    const measured = await rolledBack(async () => {
+      const tenant = await tenantNamed('Tenant upserted thread');
+      const bol = await rail(tenant, 'bol', 'UPSERTTHREAD');
+      const upsert = (connection: string | null, subject: string) => said(() => client.query(
+        `insert into public.message_threads (tenant_id, connection_id, channel,
+                                             external_thread_id, subject)
+         values ($1, $2, $3, 'THREAD-1', $4)
+         on conflict (tenant_id, connection_id, external_thread_id)
+           do update set subject = excluded.subject`,
+        [tenant, connection, connection === null ? 'mail' : 'marketplace', subject],
+      ));
+      const firstFromTheMarketplace = await upsert(bol.connection, 'As first read');
+      const secondFromTheMarketplace = await upsert(bol.connection, 'As corrected');
+      const firstFromTheMailbox = await upsert(null, 'Mail as first read');
+      const secondFromTheMailbox = await upsert(null, 'Mail as corrected');
+      const { rows } = await client.query<{ subject: string; channel: string }>(
+        `select channel, subject from public.message_threads
+          where tenant_id = $1 and external_thread_id = 'THREAD-1' order by channel`,
+        [tenant],
+      );
+      return {
+        firstFromTheMarketplace,
+        secondFromTheMarketplace,
+        firstFromTheMailbox,
+        secondFromTheMailbox,
+        threadsLeft: rows.map((row) => `${row.channel}: ${row.subject}`),
+      };
+    });
+    expect(
+      measured,
+      'The upsert SEEN-061 and SEEN-062 are specified to write answered '
+      + `${measured.firstFromTheMarketplace} and ${measured.secondFromTheMarketplace} on the `
+      + `marketplace rail and ${measured.firstFromTheMailbox} and `
+      + `${measured.secondFromTheMailbox} on the mail rail, leaving `
+      + `${measured.threadsLeft.join('; ')}. A partial unique index arbitrates only a statement `
+      + 'that carries its predicate, so the upsert cannot be written at all (42P10) and a '
+      + 'redelivered thread has no idempotent way to be corrected',
+    ).toEqual({
+      firstFromTheMarketplace: 'accepted',
+      secondFromTheMarketplace: 'accepted',
+      firstFromTheMailbox: 'accepted',
+      secondFromTheMailbox: 'accepted',
+      threadsLeft: ['mail: Mail as corrected', 'marketplace: As corrected'],
+    });
+  });
+
+  it('refuses a message thread carrying no external thread id at all', async () => {
+    // F69's other half, and the price of making the index reachable. The partial
+    // predicate was there to keep every thread with no identifier from folding into
+    // one row under `nulls not distinct`. The identifier is required instead, which
+    // is what the upsert can name: a thread with no id cannot be found again by
+    // ingest, so it is re-created on every read, which is the duplication the index
+    // exists to stop. Every rail has one to give: the marketplace's own thread id,
+    // or the Message-ID root on mail, which is what part 2's own comment says the
+    // column holds.
+    const measured = await rolledBack(async () => {
+      const tenant = await tenantNamed('Tenant anonymous thread');
+      const bol = await rail(tenant, 'bol', 'NOTHREADID');
+      return {
+        withNoIdentifier: await said(() => client.query(
+          `insert into public.message_threads (tenant_id, connection_id, channel)
+           values ($1, $2, 'marketplace')`,
+          [tenant, bol.connection],
+        )),
+        withTheOneTheRailGaveIt: await said(() => client.query(
+          `insert into public.message_threads (tenant_id, connection_id, channel,
+                                               external_thread_id)
+           values ($1, $2, 'marketplace', 'THREAD-NAMED')`,
+          [tenant, bol.connection],
+        )),
+      };
+    });
+    expect(
+      measured,
+      `A thread written with no external_thread_id answered ${measured.withNoIdentifier} and one `
+      + `carrying the id its rail gave it answered ${measured.withTheOneTheRailGaveIt}. A thread `
+      + 'with no identifier cannot be found again, so ingest writes it once per read, and the '
+      + 'upsert key is what refuses it (23502)',
+    ).toEqual({ withNoIdentifier: '23502', withTheOneTheRailGaveIt: 'accepted' });
+  });
+
+  it('refuses a rename of a catalogue identifier, with rows under it and without', async () => {
+    // F68. Part 3 chose `on update cascade` on the connections key so that renaming
+    // an identifier in the catalogue would carry the connections with it, and part
+    // 9 then keyed orders and settlements to `connections (tenant_id, id,
+    // marketplace)` with no update action, which is NO ACTION: the rename is
+    // refused with 23503 the moment a connection has any child, and succeeds while
+    // it has none. A schema that supports an operation on an empty database and
+    // refuses it on a full one is one a later ticket is told twice it can use.
+    //
+    // So the identifier is immutable, and the database says so rather than the
+    // prose. Both cases are measured, because the defect was that they answered
+    // differently: a rename is now refused by the same trigger whether or not a
+    // row hangs below it, and the catalogue is unchanged after both.
+    const measured = await rolledBack(async () => {
+      const idle = await tenantNamed('Tenant renaming an idle catalogue');
+      const trading = await tenantNamed('Tenant renaming a catalogue with orders');
+      await rail(trading, 'bol', 'RENAME');
+      const rename = (tenant: string) => said(() => client.query(
+        `update public.marketplaces set marketplace = 'bol-renamed'
+          where tenant_id = $1 and marketplace = 'bol'`,
+        [tenant],
+      ));
+      return {
+        withNothingUnderIt: await rename(idle),
+        withAnOrderUnderIt: await rename(trading),
+        stillSpelledBol: await countOf(
+          'marketplaces', "tenant_id = any($1) and marketplace = 'bol'", [[idle, trading]],
+        ),
+        renamedRows: await countOf(
+          'marketplaces', "tenant_id = any($1) and marketplace = 'bol-renamed'", [[idle, trading]],
+        ),
+      };
+    });
+    expect(
+      measured,
+      `Renaming a catalogue identifier with nothing under it answered `
+      + `${measured.withNothingUnderIt} and one with an order under it answered `
+      + `${measured.withAnOrderUnderIt}, leaving ${measured.stillSpelledBol} rows spelled bol and `
+      + `${measured.renamedRows} renamed. The identifier is invented by this schema, seeded from `
+      + 'the routing table and keyed to by every row below a connection, so it is not renamable '
+      + 'by an update at all, and a rename that works only while the account has no data is the '
+      + 'worst of the two answers (23001)',
+    ).toEqual({
+      withNothingUnderIt: '23001',
+      withAnOrderUnderIt: '23001',
+      stillSpelledBol: 2,
+      renamedRows: 0,
+    });
+  });
+});
+
+describe('what a migration says about a column, and what the schema has', () => {
+  // F70. The set is forward only, so the paragraph that argued for a column stays
+  // in the part that created it after a later part drops the column, and the
+  // convention that a part points backwards and never forwards means part 3 may
+  // not say that part 10 reversed it. Measured: part 3 creates
+  // `invoices.recovery_share_lines` and argues above it that the junction table the
+  // ER diagram draws is declined; part 7 classifies it; part 10 drops it. SEEN-040's
+  // author opens the migration that creates `public.invoices`, which is where a
+  // person looks for the shape of a table, and is told a reversed decision is a
+  // deliberate one, then gets 42703 at the first insert.
+  let client: Client;
+  let columns: Map<string, Set<string>>;
+
+  beforeAll(async () => {
+    client = await connect();
+    const { rows } = await client.query<{ relation: string; column: string }>(
+      `select c.relname as relation, a.attname as column
+         from pg_catalog.pg_attribute a
+         join pg_catalog.pg_class c on c.oid = a.attrelid
+         join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+        where n.nspname in ('public', 'seen')
+          and c.relkind in ('r', 'p', 'v', 'm', 'f')
+          and a.attnum > 0 and not a.attisdropped`,
+    );
+    columns = new Map();
+    for (const row of rows) {
+      const held = columns.get(row.relation) ?? new Set<string>();
+      held.add(row.column);
+      columns.set(row.relation, held);
+    }
+    assertPopulated([...columns.keys()], 'the relations the migrations left behind');
+  });
+
+  afterAll(async () => {
+    await client?.end();
+  });
+
+  it('describes no column the delivered schema does not have', () => {
+    // The comparison is with the catalogue and not with another comment, which is
+    // what makes this a guard rather than a second sentence to keep true. A
+    // relation the database does not have at all is not reported: `storage.objects`
+    // and `pg_catalog.pg_attribute` are written about all over this set and belong
+    // to nobody here.
+    const offenders: string[] = [];
+    for (const file of migrationFiles()) {
+      for (const reference of migrationColumnReferences(file, readRepositoryFile(file))) {
+        const held = columns.get(reference.relation);
+        if (held === undefined || held.has(reference.column)) continue;
+        offenders.push(
+          `${reference.relationFile}:${reference.line} describes `
+          + `${reference.relation}.${reference.column}, which the delivered schema does not `
+          + `have: "${reference.quoted.slice(0, 140)}"`,
+        );
+      }
+    }
+    expect(
+      offenders,
+      `${offenders.length} sentences in the migrations describe a column the database this set `
+      + 'leaves behind does not hold, and a reader meets the sentence where the table is created '
+      + 'rather than where it was reversed: '
+      + `${offenders.join('; ')}. Either keep the column or take the sentence out, because the `
+      + 'set is forward only and a part may not point at the part that dropped it',
+    ).toEqual([]);
+  });
+
+  it('reads the three shapes a comment describes a column in, and no file path', () => {
+    // Pure, over a fixture, so the reader of a failure above knows what was
+    // searched for. Three shapes, because the words that mislead take three forms:
+    // a stored comment, a `--` block above a column in a `create table`, which is
+    // the shape that names the column nowhere, and a `table.column` pair in a
+    // sentence. A path is not a reference, and neither is a statement quoted inside
+    // a comment.
+    const fixture = [
+      '-- Part 0: a fixture. See packages/core/db/marketplaces.ts and docs/architecture.md.',
+      '',
+      'create table public.invoices (',
+      '  id uuid primary key default gen_random_uuid(),',
+      '  -- The recovery share lines: one entry per credited claim.',
+      '  recovery_share_lines jsonb not null default \'[]\'::jsonb,',
+      '  unique (tenant_id, stripe_invoice_id)',
+      ');',
+      '',
+      '-- claims.claim_text is the text a marketplace was told.',
+      'comment on column public.invoices.module_lines is',
+      '  \'Not buyer PII. Which module, for which period.\';',
+    ].join('\n');
+    expect(
+      migrationColumnReferences('fixture.sql', fixture)
+        .map((reference) => `${reference.relation}.${reference.column}@${reference.line}`)
+        .sort(),
+      'The scanner reads a comment above a column definition, a `table.column` pair in a '
+      + 'sentence and a stored column comment, and reads neither a path nor a statement quoted '
+      + 'inside a comment',
+    ).toEqual(['claims.claim_text@10', 'invoices.module_lines@11', 'invoices.recovery_share_lines@5']);
   });
 });

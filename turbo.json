@@ -58,6 +58,16 @@
       // by whole name, because the rest of a ticket's filename is a slug of its
       // title and a retitle would otherwise silently hash nothing.
       //
+      // SEEN-022, SEEN-027 and SEEN-041 joined them with F67, which is the
+      // obligation the schema states about a promise it cannot keep at all: the
+      // check on a storage path binds the text a row holds and not the object an
+      // upload wrote, so only the code that uploads can close it, and what tells
+      // those three authors is a criterion in their own files. This list is no
+      // longer extended by hand alone either: the assertion that reads it now
+      // covers every ticket named in `SCHEMA_OBLIGATIONS` as well as every one
+      // named in `CONSTRAINED_NOT_BUYER_PII_COLUMNS`, so a ticket added there and
+      // forgotten here fails the suite rather than failing at the read.
+      //
       // The Supabase configuration is here for the same reason, one round later
       // again, and it is the last entry that should ever be added by hand. `seen`
       // being absent from its `schemas` line is why the erasure registry is not a
@@ -81,10 +91,12 @@
         "$TURBO_ROOT$/supabase/migrations/**",
         "$TURBO_ROOT$/supabase/config.toml",
         "$TURBO_ROOT$/docs/architecture.md",
+        "$TURBO_ROOT$/docs/tickets/SEEN-022-*.md",
         "$TURBO_ROOT$/docs/tickets/SEEN-027-*.md",
         "$TURBO_ROOT$/docs/tickets/SEEN-032-*.md",
         "$TURBO_ROOT$/docs/tickets/SEEN-034-*.md",
         "$TURBO_ROOT$/docs/tickets/SEEN-040-*.md",
+        "$TURBO_ROOT$/docs/tickets/SEEN-041-*.md",
         "$TURBO_ROOT$/docs/tickets/SEEN-062-*.md",
         "$TURBO_ROOT$/docs/tickets/SEEN-083-*.md"
       ]

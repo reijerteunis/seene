@@ -255,9 +255,6 @@ comment on column public.invoices.currency is
   'constraint, which is shorter than any name or any address.';
 comment on column public.invoices.module_lines is
   'Not buyer PII. Which module, for which period, at what price in integer cents.';
-comment on column public.invoices.recovery_share_lines is
-  'Not buyer PII. One entry per credited claim: the claim id, the credited amount and the '
-  'share charged on it. Ids and integer cents, never the text of the claim.';
 comment on column public.invoices.status is
   'Not buyer PII. Stripe''s own vocabulary, mirrored from the webhook: draft, open, paid, void '
   'or uncollectible.';

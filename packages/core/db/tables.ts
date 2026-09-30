@@ -1203,6 +1203,28 @@ export const SCHEMA_OBLIGATIONS: readonly SchemaObligation[] = [
       + 'left beside the typed relation, because two representations of one relation means the '
       + 'unenforced one is the one somebody writes',
   },
+  {
+    relation: 'public.evidence',
+    tickets: ['SEEN-022', 'SEEN-027'],
+    terms: ['evidence bucket', 'tenant_id', 'prefix'],
+    obligation: 'the check on storage_path binds the text a row may hold and cannot ask the '
+      + 'storage provider anything, so an object uploaded to a name outside its tenant\'s prefix '
+      + 'is accepted by the database as long as the row names a compliant path, and the erasure '
+      + 'worklist, which sweeps storage.objects by that same prefix, never sees it. Measured as '
+      + 'F63: the bytes stand in the bucket after the tenant is erased with nothing in any table '
+      + 'able to say whose they were. Only the code that performs the upload can close it, so '
+      + 'SEEN-022 and SEEN-027 upload under `<tenant_id>/` and nowhere else',
+  },
+  {
+    relation: 'public.statements',
+    tickets: ['SEEN-041'],
+    terms: ['storage_path', 'tenant_id', 'prefix'],
+    obligation: 'the same half-guarantee as on public.evidence, on the column that addresses a '
+      + 'rendered statement: the check constrains what the row may name and not where the bytes '
+      + 'were written, and a statement PDF uploaded outside its tenant\'s prefix survives that '
+      + 'tenant\'s erasure unfound. SEEN-041 renders and stores the statement, so the upload it '
+      + 'writes is the only place the object\'s own name is decided',
+  },
 ];
 
 /**
@@ -1215,3 +1237,131 @@ export const SCHEMA_OBLIGATIONS: readonly SchemaObligation[] = [
  * the non-PII classification, so the two never report each other.
  */
 export const SCHEMA_OBLIGATION_MARKER = 'to keep it so';
+
+/** One column a migration's own words describe, and where they describe it. */
+export interface MigrationColumnReference {
+  /** The migration the words are in, as the caller named it. */
+  readonly relationFile: string;
+  /** The line they start on, counting from 1, so a failure can be opened. */
+  readonly line: number;
+  /** The table they are about, unqualified, as the schema names it. */
+  readonly relation: string;
+  /** The column they describe. */
+  readonly column: string;
+  /** The words themselves, so the failure quotes the sentence and not a position. */
+  readonly quoted: string;
+}
+
+/**
+ * Every column a migration's comments describe, so a comment describing a column
+ * the delivered schema does not have can be refused rather than read as current.
+ *
+ * Why this exists. The set is forward only: a part is added, never rewritten, so
+ * the paragraph that argued for a column stays in the file that created it after a
+ * later part drops the column. `public.invoices.recovery_share_lines` is the
+ * measured case (F70). Part 3 creates it and argues, in the comment above the
+ * column, that the junction table the ER diagram draws is declined because the
+ * lines carry the claim ids and SEEN-040 may normalise it later; part 7 classifies
+ * it as not buyer PII; part 10 drops it. SEEN-040's author opens the migration that
+ * creates `public.invoices`, which is where a person looks for the shape of a
+ * table, and is told that a reversed decision is a deliberate one. The convention
+ * that every part points backwards and none points forwards is what makes this
+ * unfixable in prose: part 3 may not mention part 10.
+ *
+ * So the guard is the fix, and what it compares against is the catalogue rather
+ * than another comment. `schema.test.ts` asks the delivered database for the
+ * columns of every table and refuses any reference here that names one it does not
+ * hold. A sentence about a dropped column then fails the suite in the file it is
+ * written in, with the line to open, and the only ways through are to delete the
+ * sentence or to keep the column.
+ *
+ * Three shapes of reference, because the words that mislead a reader take three
+ * forms in this set:
+ *
+ *   - a `comment on column <table>.<column> is` statement, which is prose the
+ *     database itself stores and which survives in the migration text after the
+ *     column it names has been dropped;
+ *   - a `--` block directly above a column in a `create table`, which is the shape
+ *     of the case above and the one no `table.column` scanner would see, because
+ *     the comment names the column nowhere: the column definition under it does;
+ *   - a `--` line anywhere that names a `table.column` pair outright.
+ *
+ * What it is not. It reads the comments and not the statements, so a migration may
+ * still create a column a later part drops; what it refuses is describing one. A
+ * path like `packages/core/db/marketplaces.ts` is not a reference, and is excluded
+ * by the character in front of it rather than by a list of file extensions. A
+ * relation this database does not have is not reported at all, which is the caller's
+ * decision and not this function's: `pg_catalog.pg_attribute` and `storage.objects`
+ * are written about all over this set and belong to nobody here.
+ */
+export function migrationColumnReferences(
+  file: string, sql: string,
+): MigrationColumnReference[] {
+  const lines = sql.split('\n');
+  const found: MigrationColumnReference[] = [];
+  const add = (line: number, relation: string, column: string, quoted: string): void => {
+    found.push({ relationFile: file, line, relation, column, quoted: quoted.trim() });
+  };
+
+  // A `table.column` or `schema.table.column` pair in a sentence. The character in
+  // front of it decides whether it is a reference or part of a path or of a longer
+  // dotted name, and a name followed by `(` is a call rather than a column.
+  const pair = /(?<![\w./-])(?:(?:public|seen|storage)\.)?([a-z_][a-z0-9_]*)\.([a-z_][a-z0-9_]*)(?![\w.(])/g;
+
+  let table: string | null = null;
+  let comment: { line: number; text: string[] } | null = null;
+
+  lines.forEach((raw, index) => {
+    const line = index + 1;
+    const opening = /^create table (?:(?:public|seen)\.)?([a-z_][a-z0-9_]*)\s*\(/.exec(raw.trim());
+    if (opening !== null) {
+      table = opening[1] as string;
+      comment = null;
+      return;
+    }
+    const commented = /^\s*--\s?(.*)$/.exec(raw);
+    if (commented !== null) {
+      const text = commented[1] as string;
+      for (const match of text.matchAll(pair)) {
+        add(line, match[1] as string, match[2] as string, text);
+      }
+      if (table !== null) {
+        comment = comment === null
+          ? { line, text: [text] }
+          : { line: comment.line, text: [...comment.text, text] };
+      }
+      return;
+    }
+    if (table !== null) {
+      if (/^\s*\);/.test(raw)) {
+        table = null;
+        comment = null;
+        return;
+      }
+      const column = /^\s{2}([a-z_][a-z0-9_]*)\s+[a-z]/.exec(raw);
+      const keyword = /^\s{2}(unique|primary|foreign|constraint|check|exclude)\b/i.test(raw);
+      if (column !== null && !keyword && comment !== null) {
+        add(comment.line, table, column[1] as string, comment.text.join(' '));
+      }
+      comment = null;
+      return;
+    }
+    comment = null;
+  });
+
+  // The comments the database stores, which outlive the column they are about in
+  // the migration text even though the database drops them with it.
+  //
+  // Read with every comment blanked to spaces of its own length, so a statement
+  // quoted inside a comment is not mistaken for one and the offsets, and so the
+  // line numbers, are the file's own. Parts 4 and 6 both quote statements they are
+  // undoing, which is why `statementsOf` in the suite does the same thing.
+  const withoutComments = sql.replace(/--[^\n]*/g, (quotation) => ' '.repeat(quotation.length));
+  const stated = /comment\s+on\s+column\s+(?:(?:public|seen)\.)?([a-z_][a-z0-9_]*)\.([a-z_][a-z0-9_]*)\s+is/gi;
+  for (const match of withoutComments.matchAll(stated)) {
+    const line = sql.slice(0, match.index ?? 0).split('\n').length;
+    add(line, match[1] as string, match[2] as string, match[0]);
+  }
+
+  return found;
+}
