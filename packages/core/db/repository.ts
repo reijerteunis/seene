@@ -42,7 +42,18 @@
  * which is the shape this ticket has now produced findings about four times
  * (CODEX-02's clause search, F20's `attname like 'buyer%'`, F30's `relacl`, and
  * this); an allow-list has a finite answer and refuses the specifier nobody
- * thought of. What survives either instrument is stated at `readingImportsOf`.
+ * thought of.
+ *
+ * F47 is the fifth arrival, and it came through the allow-list rather than past
+ * it. `vitest` was admitted on the ground that the runner hands a test no way to
+ * open a path, which is false: `vi.importActual` takes a literal specifier and
+ * hands back the real module, and the pre-processor does not report it, so a
+ * module of this package read an unhashed authority with the guard silent. An
+ * entry's reason is load-bearing, and one that is false is a hole the shape of
+ * whatever it admits. So the loaders are read from the compiler's syntax tree as
+ * well, and the specifier they name is judged by the same allow-list. What is
+ * known to survive both instruments, and why that is not offered as the whole of
+ * it, is stated at `readingImportsOf`.
  */
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
@@ -53,8 +64,9 @@ import { fileURLToPath } from 'node:url';
 // root the way `vitest` and `tsc` are: both are root devDependencies that every
 // package here uses without declaring them, and adding one to this package's
 // manifest without a matching lockfile entry is what `--frozen-lockfile` refuses
-// in CI. Only `preProcessFile` is used, which is a scan of source text and opens
-// nothing; the file reading in this module is still the four functions below.
+// in CI. `preProcessFile` and `createSourceFile` are used, and both are handed
+// source text somebody else has already read and open nothing themselves; the
+// file reading in this module is still the four functions below.
 import ts from 'typescript';
 
 /** The repository root, from this module's own location: `packages/core/db`. */
@@ -89,15 +101,29 @@ export const READER_MODULE = `${PACKAGE_DIRECTORY}/db/repository.ts`;
  * the package is reported, because nothing then asks the module at the other end.
  */
 export const IMPORTS_THAT_CANNOT_READ: Record<string, string> = {
-  // The runner. It hands a test `describe`, `expect` and `it` and no way to open
-  // a path; the files it reads are the test files themselves, which is this
-  // task's own doing and is hashed as the package's own contents.
-  vitest: 'the test runner, which hands a test no way to open a path',
+  // The runner, admitted because every test file here imports it and removing it
+  // is not available, not because it cannot reach a file. It can: `vi` hands out
+  // `importActual` and `importMock`, which take a literal specifier and return the
+  // real module, and F47 measured one of them handing `node:fs` to a module of
+  // this package that then read `docs/prd/prd.md`. What the entry costs is
+  // therefore paid at `readingImportsOf`, which finds those calls in the syntax
+  // tree and judges the specifier they name by this same list. What that does not
+  // cover is the loader reached under another name, and anything else the runner
+  // may hand out that this list has not been taught to look for.
+  vitest: 'the test runner, imported by every test file here, whose module loaders are named '
+    + 'at readingImportsOf rather than admitted by this entry',
   'vitest/config': 'the runner\'s configuration type, read by vitest.config.ts',
-  // The Postgres client. It reaches a socket rather than the working tree, so a
-  // fact it brings back is a fact about the database, which is what every guard
-  // here is comparing against an authority in the first place.
-  pg: 'the Postgres client, which reaches a socket and not the working tree',
+  // The Postgres client. It reaches a socket rather than the working tree for
+  // everything a test here asks of it, so a fact it brings back is a fact about
+  // the database, which is what every guard here is comparing against an
+  // authority in the first place. Not that it opens nothing at all: it depends on
+  // `pgpass`, which reads `$PGPASSFILE` or `~/.pgpass` when a connection is made
+  // without a password. That is a file of the machine and not of this repository,
+  // so it is no route to an authority, and the entry says what it means rather
+  // than claiming the stronger thing.
+  pg: 'the Postgres client, which reaches a socket for everything asked of it here; the '
+    + 'password file its own dependency can open is a file of the machine, not of this '
+    + 'repository',
   // Identifiers for the two-tenant probes. It computes and does not open.
   'node:crypto': 'uuid generation, which opens nothing',
 };
@@ -292,6 +318,57 @@ export function packageSources(): string[] {
 }
 
 /**
+ * The calls that hand a module back from a literal specifier without importing
+ * it, matched by the name they are called under.
+ *
+ * These are the runner's, and they are what F47 cost. `vi.importActual('node:fs')`
+ * is an import in everything but grammar: a specifier written in the source, the
+ * real module returned, and `ts.preProcessFile` reporting nothing, because no
+ * import syntax is there for it to report. So the specifier is taken from the
+ * syntax tree instead and put to `IMPORTS_THAT_CANNOT_READ` exactly as an
+ * imported one is.
+ *
+ * Matched by the name at the call and not by what it was reached through, so
+ * `vi.importActual`, `vitest.importActual` and a destructured `importActual` are
+ * one case, and an alias bound to another name is not seen. A deny-list of names
+ * has the weakness every deny-list here has had, and it is used anyway because
+ * the alternative is reporting every string literal in the file, which is the
+ * false positive the pattern this replaced was withdrawn for.
+ */
+export const MODULE_LOADING_CALLS = ['importActual', 'importMock'];
+
+/** The specifiers a source hands to one of those calls, in the order they appear.
+ * The parse is of text already in hand and opens nothing; a file that does not
+ * parse yields the calls the parser did recover, which is more than none. */
+function loadedSpecifiers(contents: string, source: string): string[] {
+  const jsx = ['.jsx', '.tsx'].includes(extname(source));
+  const parsed = ts.createSourceFile(
+    `specifiers${jsx ? '.tsx' : '.ts'}`,
+    contents,
+    ts.ScriptTarget.Latest,
+    false,
+    jsx ? ts.ScriptKind.TSX : ts.ScriptKind.TS,
+  );
+  const found: string[] = [];
+  const visit = (node: ts.Node): void => {
+    if (ts.isCallExpression(node)) {
+      const { expression } = node;
+      let called: string | undefined;
+      if (ts.isPropertyAccessExpression(expression)) called = expression.name.text;
+      else if (ts.isIdentifier(expression)) called = expression.text;
+      const [first] = node.arguments;
+      if (called !== undefined && MODULE_LOADING_CALLS.includes(called)
+        && first !== undefined && ts.isStringLiteralLike(first)) {
+        found.push(first.text);
+      }
+    }
+    ts.forEachChild(node, visit);
+  };
+  ts.forEachChild(parsed, visit);
+  return found;
+}
+
+/**
  * Everything a source imports that this package cannot vouch for as unable to
  * open a file, named as the source spells it.
  *
@@ -304,23 +381,42 @@ export function packageSources(): string[] {
  * and every `import()` of them, and it reported `authorities.test.ts` as an
  * offender for holding the text `'node:fs'` in a test case.
  *
- * The answer is then judged against `IMPORTS_THAT_CANNOT_READ`, plus relative
- * specifiers that stay inside this package, which are collected and asked the
- * same question themselves.
+ * The pre-processor is not the whole question, which is F47. It answers with the
+ * specifiers a module imports, and `vi.importActual('node:fs')` imports nothing
+ * by that definition while returning the module all the same. So the calls at
+ * `MODULE_LOADING_CALLS` are read from the syntax tree as well, and both answers
+ * go to one judgement: `IMPORTS_THAT_CANNOT_READ`, plus relative specifiers that
+ * stay inside this package, which are collected and asked the same question
+ * themselves. A loader handed `./tables` is as allowed as an import of it, and a
+ * loader handed `node:fs` is as reported, because there is one list and not two.
  *
- * What survives this, and would survive a lint rule equally, because both read
- * the specifier a module was written with: `import()` or `require()` of a
- * computed specifier, since there is no literal to report; `createRequire`
- * reached other than by importing `node:module`, such as through
- * `process.getBuiltinModule`; and anything assembled and run through `eval` or
- * `new Function`. None of those is shut here, and none of them is how somebody
- * reads an authority by accident, which is the case this guard is for. A read
- * from another package's tests is out of reach for the separate reason that it
- * runs under its own task and its own cache key.
+ * What is known to survive both, and would survive a lint rule equally, because
+ * all three read the specifier a module was written with: `import()`, `require()`
+ * or a loader call given a computed specifier, since there is no literal to
+ * report; a loader reached under a name this does not match, such as a local
+ * binding of `vi.importActual`; `createRequire` reached other than by importing
+ * `node:module`, such as through `process.getBuiltinModule`; and anything
+ * assembled and run through `eval` or `new Function`. None of those is shut here.
+ *
+ * That is what is known to survive and not a statement of all that does. It was
+ * written as the whole list once, three items and the sentence that none of them
+ * is shut here, and the fourth was `vi.importActual`: a literal specifier, in the
+ * module this allow-list admitted on the ground that it could not reach a file,
+ * found one round after a finding about a stated impossibility that was false.
+ * What can honestly be said is the shape of the blind spot rather than its
+ * membership. This reads the specifier a module was written with, in the two
+ * places a module is written to name one, so anything that hands back a module
+ * without a specifier written where this looks is unseen until somebody measures
+ * it and adds it above. None of that is how an authority gets read by accident,
+ * which is the case this guard is for; deliberate evasion is not what an
+ * allow-list over one package's own sources can settle. A read from another
+ * package's tests is out of reach for the separate reason that it runs under its
+ * own task and its own cache key.
  */
 export function readingImportsOf(contents: string, source: string): string[] {
   const imported = ts.preProcessFile(contents, true, true).importedFiles
-    .map((reference) => reference.fileName);
+    .map((reference) => reference.fileName)
+    .concat(loadedSpecifiers(contents, source));
   const insidePackage = (specifier: string): boolean => posix
     .join(posix.dirname(source), specifier)
     .startsWith(`${PACKAGE_DIRECTORY}/`);

@@ -118,7 +118,16 @@ const SYNTHETIC_SOURCE = 'packages/core/db/synthetic.ts';
  * write it with, and beside each the specifier the guard has to name. Node treats
  * `fs` and `node:fs` as the same module, and `require`, `import` and `import()`
  * as three ways of asking for it, so a guard that names one and not the others
- * reports nothing about a module that is reading the repository. */
+ * reports nothing about a module that is reading the repository.
+ *
+ * The runner's own loaders are two more ways of asking, and F47 is what it cost to
+ * leave them out: `vi.importActual` and `vi.importMock` take a literal specifier
+ * and hand back the module, `vitest` is allow-listed because every test file here
+ * imports it, and a module written this way read `docs/prd/prd.md` with the guard
+ * reporting nothing. Written with no type annotation, which is how an author
+ * avoiding the guard writes it and is the only form that proves anything: with
+ * `typeof import('node:fs')` in a type position the pre-processor reports the
+ * specifier from the type and the loader is never the reason. */
 const READING_SOURCES: [source: string, reported: string][] = [
   ["import { readFileSync } from 'node:fs';", 'node:fs'],
   ["import { readFileSync } from 'fs';", 'fs'],
@@ -131,6 +140,8 @@ const READING_SOURCES: [source: string, reported: string][] = [
   ["export { readFileSync } from 'fs';", 'fs'],
   ["import 'fs';", 'fs'],
   ["import { helper } from '../../../scripts/helper';", '../../../scripts/helper'],
+  ["import { vi } from 'vitest';\nconst fs: any = await vi.importActual('node:fs');", 'node:fs'],
+  ["import { vi } from 'vitest';\nconst cp: any = await vi.importMock('child_process');", 'child_process'],
 ];
 
 /** Sources that read nothing, so that the guard is not passing by objecting to
@@ -158,6 +169,41 @@ describe('the spelling a reading import is written with', () => {
       missed,
       'These sources reach the filesystem and the guard does not name what they reach it '
       + `through, so a module written this way reads an authority nothing hashes: ${missed.join(' | ')}`,
+    ).toEqual([]);
+  });
+
+  it('judges a specifier the runner is handed by the list that judges an import', () => {
+    // F47. The loader calls are read from the syntax tree rather than from the
+    // pre-processor, and what the tree says is put to the same allow-list, so
+    // there is one rule about what this package may reach and not two. The three
+    // cases below are the three answers that rule has: a specifier nothing
+    // vouches for is named, a relative specifier inside this package is not,
+    // because the module it names is collected and asked the same question, and a
+    // computed specifier is not, because there is nothing written to report. The
+    // last of those is a survival and is asserted here so that the paragraph at
+    // `readingImportsOf` claiming it is a paragraph something checks.
+    const typed = "import { vi } from 'vitest';\n"
+      + "const fs = await vi.importActual<typeof import('node:fs')>('node:fs');";
+    expect(
+      readingImportsOf(typed, SYNTHETIC_SOURCE),
+      'A loader call with the module named in a type position as well as in the argument is '
+      + 'reported by the pre-processor alone, so this form proves nothing about the loader and '
+      + 'has to hold whichever instrument answers.',
+    ).toContain('node:fs');
+    const insidePackage = "import { vi } from 'vitest';\n"
+      + "const tables: any = await vi.importActual('./tables');";
+    expect(
+      readingImportsOf(insidePackage, SYNTHETIC_SOURCE),
+      'A loader handed a relative specifier inside this package is judged more harshly than an '
+      + 'import written with the same specifier, so the guard has two rules and a test that '
+      + 'mocks a sibling module is an offender.',
+    ).toEqual([]);
+    const computed = "import { vi } from 'vitest';\n"
+      + 'const fs: any = await vi.importActual(specifier);';
+    expect(
+      readingImportsOf(computed, SYNTHETIC_SOURCE),
+      'A computed specifier is named by something, so the guard is reporting a name it did not '
+      + 'read and the paragraph that gives this as a survival is describing something else.',
     ).toEqual([]);
   });
 
