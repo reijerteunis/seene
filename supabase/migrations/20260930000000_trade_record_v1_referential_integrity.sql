@@ -120,9 +120,9 @@
 -- cascade was for is refused with 23503 the moment a connection has one order or
 -- one settlement, and succeeds only while the account has no data at all. An
 -- operation that works on an empty database and fails on a full one is the worst of
--- the two answers, so the two triggers below refuse it outright, with a message
--- saying what a real rename would be: a migration that says so, drops the trigger
--- and moves the rows itself. Both columns, because one of them was left where the
+-- the two answers, so a trigger on each of the two columns refuses it outright, with
+-- a message saying what a real rename would be: a migration that says so, drops the
+-- trigger and moves the rows itself. Both columns, because one of them was left where the
 -- keys had it for a round (F72): the identifier on the connection answered
 -- `accepted` on an account that had not traded and 23503 on one that had, which is
 -- the shape this section exists to remove, on the column that routes the connector
