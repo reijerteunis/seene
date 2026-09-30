@@ -28,7 +28,8 @@ import {
   REPOSITORY_ROOT, testTaskInputs,
 } from './repository';
 import {
-  APPEND_ONLY_PRIVILEGES, APPEND_ONLY_TABLES, BUYER_PII_COLUMNS, BUYER_PII_COMMENT_TERMS,
+  APPEND_ONLY_PRIVILEGES, APPEND_ONLY_TABLES, ARCHITECTURE_DOCUMENT,
+  BUYER_PII_COLUMNS, BUYER_PII_COMMENT_TERMS,
   BUYER_PII_MARKER, CLIENT_BOUND_ROLES, COLUMN_GRANTABLE_PRIVILEGES,
   CONSTRAINED_NOT_BUYER_PII_COLUMNS, CONSTRAINED_NOT_BUYER_PII_MARKER,
   CROSS_TENANT_FOREIGN_KEY_EXEMPTIONS, DATA_API_CONFIG, DATA_API_ROLES, DATA_API_SCHEMAS,
@@ -1107,11 +1108,47 @@ function setSizesStatedInComments(sources: readonly ScannedSource[]): StatedSetS
   return stated;
 }
 
-/** The sources whose comments describe the set: this package's own and the set's. */
+/**
+ * The sources a reader meets a sentence about this set in: every module of this
+ * package, the set's own migrations, and the architecture document.
+ *
+ * Every module, and not the ones whose names end `.ts`, which is F49. This handed
+ * the guards `packageSources()` narrowed that way, in the same change in which F45
+ * widened the walk behind it to the eight extensions the runtime loads, and widened
+ * it because a `.test.mts` had been running under vitest all along and was never
+ * collected. `'x.mts'.endsWith('.ts')` is false, so the narrowing put that
+ * extension and six others back outside both guards. Neither guard asks anything
+ * about how a file is loaded: they ask what a person is told, and a module at
+ * `db/helpers.mts` is read by a person exactly as a `.ts` one is.
+ *
+ * The architecture document is here because the reach costs nothing. It is already
+ * an authority of this suite, `marketplaces.test.ts` reads its routing table, and
+ * turbo already hashes it, so adding it to a scan adds no cache key and no edit to
+ * anybody's day. It holds no line either guard reads today, which is the point of
+ * putting it in before it does: it is the other file in this repository where a
+ * rule about this schema gets written down, and a guard that stops at the package
+ * boundary is one a reader walks around by writing the sentence one directory away.
+ *
+ * What this does not read, said here rather than left for the next reader to
+ * assume it is covered: the ticket's own `## Outcome`, which is where F39's
+ * withdrawal had to reach as well and where a withdrawn claim coming back is
+ * unseen. Two reasons, neither of them that it does not matter. Reading it would
+ * make the ticket file an authority, which by the rule at `readRepositoryFile`
+ * means turbo has to hash it, and the Outcome is written after the suite is green
+ * and rewritten at every review round: the file whose every edit invalidates the
+ * recorded pass would be the file that records it. And both guards here are
+ * textual, while the Outcome is the one document whose job is to describe what was
+ * withdrawn, which cannot be done without quoting it. `WITHDRAWN_BIRTH_CLAIMS`
+ * keeps its spellings in fragments so that the file holding the list does not
+ * report itself; an Outcome saying what it withdrew would be reported, and the
+ * ways out of that are an Outcome forbidden to quote its own withdrawal or a guard
+ * people learn to wave through. What reads the Outcome instead is the review,
+ * which is where F39 and F50 were both found.
+ */
 function sourcesThatDocumentTheSet(): ScannedSource[] {
-  const own = packageSources().filter((file) => file.endsWith('.ts'));
+  const own = packageSources();
   const members = migrationFiles().filter((file) => file.includes(TRADE_RECORD_MIGRATION_MARKER));
-  return [...own, ...members].map((file) => ({
+  return [...own, ...members, ARCHITECTURE_DOCUMENT].map((file) => ({
     file,
     contents: readRepositoryFile(file),
   }));
@@ -2119,6 +2156,50 @@ describe('the migrations that write the schema', () => {
       + 'because the preamble it sits in is headed by the name of the set, so the whole of a '
       + 'migration\'s opening comment is answered with numbers that have nothing to do with it',
     ).toEqual([]);
+  });
+
+  it('shows both guards every module this package can run, whatever it is named', () => {
+    // F49. The scanner handed the guards `packageSources()` narrowed to the names
+    // ending `.ts`, in the same change in which F45 widened that walk to the eight
+    // extensions the runtime loads, and widened it because a `.test.mts` had been
+    // running under vitest all along and was never collected to be asked anything.
+    // `'x.mts'.endsWith('.ts')` is false, so that narrowing put the extension the
+    // widening was written for, and six more, straight back outside the reach of
+    // the two guards beside it: the withdrawn-claim guard of F43 and F44, and the
+    // size guard above.
+    //
+    // Measured with such a module in the package before this was written. A
+    // `withdrawn-claim-probe.test.mts` holding one withdrawn sentence and a size
+    // the directory does not have ran as a test file of this suite, and both
+    // guards passed: the assertion above reported no comment contradicting the
+    // headers and the one in schema seen reported nothing still standing, while
+    // the prose a person opening the package meets said a routine here is beyond
+    // every default privilege and gave the set a size the directory has grown
+    // past.
+    //
+    // So the assertion is that nothing this package can run is outside the scan,
+    // and the report says what the guards make of what was left out, because a
+    // file named here is worth reading only beside the sentence in it that nobody
+    // was going to be told about.
+    const scanned = new Set(sourcesThatDocumentTheSet().map((source) => source.file));
+    const unscanned = packageSources()
+      .filter((file) => !scanned.has(file))
+      .map((file) => ({ file, contents: readRepositoryFile(file) }));
+    const size = tradeRecordSetHeaders().length;
+    const unseen = [
+      ...withdrawnClaimsStillStanding(unscanned),
+      ...setSizesStatedInComments(unscanned)
+        .filter((stated) => stated.size !== size)
+        .map((stated) => `${stated.file}:${stated.line} gives the set ${stated.size} members, `
+          + `and the directory holds ${size}`),
+    ];
+    expect(
+      { unscanned: unscanned.map((source) => source.file), unseen },
+      'These modules of this package run under vitest and are read by a person, and the scan '
+      + 'that feeds the withdrawn-claim guard and the size guard passed over them, so both '
+      + 'guards report nothing about whatever they say. What the guards do say when they are '
+      + `shown them: ${unseen.join('; ') || 'nothing, this time'}`,
+    ).toEqual({ unscanned: [], unseen: [] });
   });
 
   it('contains no blanket grant, so the next migration has no such tail to copy', () => {
