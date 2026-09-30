@@ -1129,6 +1129,65 @@ filled by a trigger and is immutable only for as long as `orders.marketplace` is
 update of a parent reference directly. Widening to that would need its own decision, so it is written down
 rather than guessed at.
 
+**The fifth review broke nothing and that is the result.** It derived the immutable set from the live database
+with part 9's own two rules and got the same 32 members with every one guarded and nothing left over. It
+measured rule 2's coverage rather than reading it. It accounted for every member's green one at a time and found
+none passing for a fixture artefact, because an unseeded tenancy member makes the update match nothing, which the
+probe reports as accepted and the assertion then fails on, so an unseeded table is red and never green. It
+confirmed the two derivations are the same query predicate for predicate, and it verified all five acceptance
+criteria by execution on its own run of the suite. Its findings were three sentences that had outlived what they
+described, one guard with no proof of its own, and one list the schema did not honour.
+
+**Two of the three sentences had been made false by the previous round's own repair**, which is the argument for
+the answer taken here: part 9's head no longer counts rename triggers at all, and it names the three rounds a
+count in that paragraph has now cost. F81's sentence is worse than stale, because record 292 quoted it as the
+place the F78 gap was declared, and the foot of the same file closes that gap 200 lines below: left standing it
+invites the next reviewer to re-report F78 and tells a later author a repair path is permitted which is refused
+23001 at runtime.
+
+**F85 turned an exemption list that only the suite honoured into one the schema does.** The list is now
+`seen.mutable_identifiers()`, and the anonymous `DO` block became `seen.guard_authored_identifiers()` precisely so
+that it can read the list and so the suite can call it twice, which is what makes the claim measurable at all: an
+entry is no longer a way to silence the measurement while the trigger goes on refusing the update in production.
+The test does not settle for two empty lists matching, which would hold over a schema honouring nothing. It
+exempts a member, drops its trigger, calls the guard, and measures that the trigger stays off and the update is
+accepted, then empties the list and watches the guard put the trigger back.
+
+**The SQLSTATE scanner was measured and refused, and the measurement is the useful part.** The corpus is 29
+comment lines carrying 30 occurrences of 10 distinct codes, counted rather than taken: the review's figure of 28
+reproduces as lines rather than occurrences, and its count of eight codes excludes `0A000` because that is not
+five digits. Nine of the 29 state a code the database no longer answers for the statement their sentence names,
+and **eight of those nine are true of what they describe**: five are the before-and-after measurement a section
+writes to justify itself, and three state what a key buys where a later trigger now fires first. Exactly one is
+wrong, and it is F83. So a scanner would report nine and be right about one, and telling the eight from the one is
+a tense and a subject read out of English, which is the guess this ticket already declined twice. It is the third
+widening refused on measurement rather than on taste, and the standard is unchanged: a guard reporting a number
+nobody can trust is worse than a gap written down.
+
+**The paragraph recording that measurement went stale inside the commit that wrote it**, because repairing F83
+moved the corpus from 28 lines to 29. It now counts nothing and the numbers live in record 303. That is the class
+this whole round is about, caught on itself at the last possible moment, and it is the clearest statement of why
+the answers that hold here remove the count rather than correct it.
+
+**What the round did not close, declared rather than guessed at.** Two further sentences state 23503 in the
+present tense for statements the schema now answers 23001 for; both are true of the layer they describe and both
+are the argument for the trigger that supersedes them, so rewriting eight sentences to be tense-explicit was
+judged worse than leaving two declared, given that two of this round's five findings were sentences the previous
+round's rewriting created. `seen.mutable_identifiers()` and `seen.guard_authored_identifiers()` are created after
+part 8's schema-wide self-check has run, so only the standing guard in the suite covers them; it passes, and both
+carry an empty `search_path` and their own revoke. And the equality between the constant and the database list
+compares every field the type has today, so a third field added later would go unchecked.
+
+**An inaccuracy in this ticket's own evidence, found by the review and recorded at note 300 rather than argued
+with.** The tdd record at 297 cites record 293 as the red for three findings, and 293's only failure is the
+identifier probe: the test carrying F79's repair did not exist when 293 ran and was green on its first run. The
+gate cannot catch that, because it orders sequence numbers and reads exit codes and cannot ask whether a red's
+failures cover the behaviours a slice claims; that is exactly the remainder the triage hands the reviewer, and
+this is that check earning its place. It is the second time in two rounds, the first being the F67 boundary test,
+whose implementer said plainly that its half had gone green on its first run while the record did not. Record 297
+stands unedited, because a journal that can be corrected after a reviewer has read it is not evidence, and the
+tdd record for this round names which of its findings the cited red covers and which it does not.
+
 ## Slices
 
 The starting slice plan, one session each; the solution stage adopts or amends it (SEEN-104). A slice is at most 2 points and a ticket has at most four.
