@@ -682,6 +682,69 @@ reviews and the findings, and both numbers were wrong: written from memory one p
 lesson that a count in prose drifts from the thing it counts. The journal holds them and can be asked. They
 are not written here.
 
+**The seventh Codex round died on its usage limit twice without a verdict, so the second reviewer ran as a
+pre-check**, to find what would make the next Codex round return the ticket before that round was spent. It
+paid for itself: four findings, no criterion unmet, and no behavioural defect. The four repairs held under
+attack, and the attacking is worth recording, because it is the first round on this ticket that tried to break
+a fix rather than to read it. F42's refusal answers 23001 at read committed, repeatable read and serialisable,
+on two connections each; its sentinel propagates a planted 23514 rather than reading it as an unspent id; and
+the serialisable conflict between two concurrent tenant creations turns out to be the marketplaces seed
+trigger, reproduced in an isolated schema, predating this ticket's change entirely.
+
+**F43 and F44 are one sentence in two object classes, and both were statements the file's own behaviour
+contradicted.** F39 withdrew the premise that no default privilege can subtract PostgreSQL's built-in grant to
+PUBLIC, and the withdrawal reached part 6, the journal and this Outcome. It did not reach part 8's self-check,
+its raise, or two shipped failure messages, so part 8 ended up contradicting itself inside one file: line 654
+said no default privilege could prevent it while lines 521 to 535 said part 6's global revoke is exactly what
+does. Two of the four are text a person reads at the moment a check fires, which is the worst place for a false
+explanation, so each now names the three things genuinely outside part 6's reach rather than a law that is not
+one.
+
+F44 is the same clause about types, and correcting it is a change of reason and not of behaviour. Measured
+again rather than inherited, because a sentence carried forward without being run is this ticket's recurring
+defect: a domain is born reachable and a global revoke of usage on types does reach it, so the reason `'T'`
+carries no revoke moves from impossible to unnecessary. It is unnecessary twice over, since usage on a type is
+not a route to a row and since the statement would reach no type this schema has, the row types of its own
+tables being outside a default privilege altogether. The round was told that concluding the revoke should be
+written would be a larger change than the finding, and to say so rather than take it; it did not need to.
+
+**What stops those two recurring is that the withdrawn claim is now data.** `WITHDRAWN_BIRTH_CLAIMS` holds it
+one row per spelling with the class it is about, and a scanner reads comments, raise messages and assertion
+messages alike, so the sentence surviving, being copied or coming back is caught wherever a person would meet
+it. Its limit is stated at the constant: it holds the words the claim was written in and cannot catch the same
+mistake in new words, which is why each class now carries a measurement beside it.
+
+**F45 is the guard built to close a class having the shape of the class.** F40 made `repository.ts` the only
+module that may open a file, and the half that made that a rule matched only the `node:`-prefixed spellings, so
+`from 'fs'`, `from 'child_process'` and `require('fs')` walked past while Node resolves them identically; the
+walk also collected only `.ts` while vitest runs four more extensions. The instrument changed rather than the
+pattern: the compiler's own pre-processor is asked what a module imports, and the answer is judged against an
+allow-list of imports that cannot read, each with a written reason. That inverts the deny-list shape this
+ticket has now produced findings about at CODEX-02, F20, F30 and here.
+
+`no-restricted-imports` was weighed and rejected on measurement rather than preference, which is the part worth
+keeping: eslint reported nothing for `require('fs')` in a `.cjs` file, nothing for `await import('fs')` in an
+`.mjs` file, and flagged a relative specifier despite the negation, so it would have caught a strict subset
+while looking like a stronger guarantee. The RED found something the finding had not: the old pattern reported
+this suite's own test file, because the new cases quote `'node:fs'` inside a string. A pattern over source text
+cannot tell an import from a quotation, in either direction.
+
+**F46 is the same lesson inside the newest mechanism.** F42's guarantee rests on the registry's key giving
+`on conflict (tenant_id)` an arbiter, and part 8 asked `pg_index` to describe the shape instead. Two keys pass
+that description and break the guarantee: a partial unique index, where the erasure fails 42P10, and a
+deferrable primary key, which the finding did not name and where the refusal falls open silently. `indpred`
+and `indisvalid` would close the first, `indimmediate` the second, and the attribute after those is the one
+nobody enumerates. So the check runs the statements the guarantee rests on, against a probe id taken back by
+the same raise the refusal already uses, which is F42's own move one level up on the file's doctrine that
+enforcement beats description.
+
+**The pattern that outlasted every finding.** Twice more this round, a guard answered the question in front of
+it while its comment claimed a wider one, and twice more the fix was to stop describing and start enforcing:
+ask the compiler rather than a pattern, run the statement rather than read the catalogue. Set beside F19's
+`relkind`, F30's `relacl` and F39's per-schema revoke, the ticket's whole history is one shape. The durable
+answers were three: enumerate and require a reason for each member, ask the database to enforce what a comment
+claims, and hold a withdrawn claim as data so it cannot quietly come back.
+
 ## Slices
 
 The starting slice plan, one session each; the solution stage adopts or amends it (SEEN-104). A slice is at most 2 points and a ticket has at most four.
