@@ -1046,33 +1046,36 @@ export interface WithdrawnShapeClaim {
  * not in the comment that argues for it (F83).
  *
  * The SQLSTATE class, measured rather than declared unreachable. The fourth review
- * offered the widening in a shape with a fact behind it, unlike the bare cardinal and
- * the English noun phrase this file refuses below: the corpus is small and countable,
- * and a scanner could read a five-character code out of a migration comment and
- * measure it against what the database answers. Counted: 28 comment lines in the ten
- * migrations of this set carry a SQLSTATE token, 29 occurrences across 9 distinct
- * codes, one line carrying `42809` twice. What the count does not support is the
- * scanner. Nine of the 29 state a code the database no longer answers for the
- * statement their sentence names, and eight of the nine are true of what they
- * describe. Measured on the delivered stack as `service_role` in a rolled-back
- * transaction: `update public.marketplaces set marketplace` answers 23001 and
- * `update public.tenants set tenant_id` answers 23001, where part 9's head says the
- * rename the cascade was for is refused 23503 by the keys and part 8 says the
- * tenant's foreign keys refuse the move with 23503. Both sentences are about a
- * layer, both were measured before the trigger that now fires first existed, and
- * both are the argument for putting that trigger there: five of the eight are the
- * before-and-after measurement a section writes to justify itself, and three are
- * present-tense statements of what a key buys in the absence of the trigger above
- * it. A scanner measuring each code against what the database answers now would
- * report all nine and be right about one, a precision of one in nine on the only
- * class it exists for, and telling the eight from the one means deciding whether a
- * sentence is about the delivered statement or about the layer underneath it, which
- * is a tense and a subject read out of English. That is the guess this file declines
- * two paragraphs below for the noun phrase, and it is declined here for the same
- * reason: a guard whose report cannot be trusted is worse than none, because it is
- * read as coverage. So the SQLSTATE is held as the sentence, exactly as the denial
- * of an index is, and the half that can be believed is the assertion in the suite
- * that runs the statement and prints the code the database gave it.
+ * offered the widening in the one shape that had a fact behind it, unlike the bare
+ * cardinal and the English noun phrase this file refuses below: the corpus of
+ * five-character codes written into the comments of this set is small enough to
+ * enumerate, and a scanner could read each one out and measure it against what the
+ * database answers. It was enumerated and measured, and the numbers are in the
+ * journal of the round that took them rather than here, for the reason the paragraph
+ * above this one is about: a comment that counts something is a comment that is wrong
+ * at the next migration, and this very sentence would have been, because the repair
+ * of F83 changed the corpus it would have been counting.
+ *
+ * What the measurement found is that most of the codes a scanner would report are
+ * true. A section of a migration states the code a statement answered before the
+ * section existed, because that measurement is the argument for the section; and a
+ * section states what a key buys where the trigger above it is what now fires first.
+ * Measured on the delivered stack as `service_role` in a rolled-back transaction:
+ * `update public.marketplaces set marketplace` answers 23001 and `update
+ * public.tenants set tenant_id` answers 23001, where part 9's head says the rename
+ * the cascade was for is refused 23503 by the keys and part 8 says the tenant's own
+ * foreign keys refuse the move with 23503. Both sentences are about a layer, both
+ * were taken before the trigger that supersedes them existed, and both are the
+ * argument for putting it there. A scanner would report every one of them and be
+ * right about the single instance F83 is, and telling the true ones from that one
+ * means deciding whether a sentence is about the delivered statement or about the
+ * layer underneath it, which is a tense and a subject read out of English. That is
+ * the guess this file declines two paragraphs below for the noun phrase and declines
+ * here for the same reason: a guard whose report cannot be trusted is worse than
+ * none, because it is read as coverage. So the SQLSTATE is held as the sentence,
+ * exactly as the denial of an index is, and the half that can be believed is the
+ * assertion in the suite that runs the statement and prints the code the database
+ * gave it.
  *
  * Why this is held as the sentence and not caught by a scanner, which is a decision
  * and not an omission. `migrationColumnReferences` can be believed because it
