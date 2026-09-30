@@ -172,9 +172,9 @@ create table public.message_threads (
   -- marketplace or mail: which rail this thread is carried on, and therefore
   -- which one a reply goes back out through.
   channel text not null,
-  -- The marketplace's own thread id, or the mail thread's Message-ID root. The
-  -- upsert key for message ingest belongs to SEEN-061, so there is no unique
-  -- index on it here.
+  -- The marketplace's own thread id, or the mail thread's Message-ID root: the
+  -- identifier a second read of the same page is recognised by, which is what makes
+  -- message ingest able to correct a thread rather than write it again.
   external_thread_id text,
   subject text,
   status text,

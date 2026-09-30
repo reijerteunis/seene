@@ -926,6 +926,61 @@ export const WITHDRAWN_BIRTH_CLAIMS: readonly WithdrawnBirthClaim[] = [
   },
 ];
 
+/** One sentence this set wrote about the shape of a relation, and withdrew. */
+export interface WithdrawnShapeClaim {
+  /** The relation it was written about, schema-qualified. */
+  readonly relation: string;
+  /** How it was spelled, in fragments, joined by a space before it is looked for. */
+  readonly spelling: readonly string[];
+  /** What is true instead, for the reader who has just been sent here by a guard. */
+  readonly instead: string;
+}
+
+/**
+ * The claims about what keys and indexes a relation carries that this set has made
+ * and withdrawn, in the same shape and for the same reason as
+ * `WITHDRAWN_BIRTH_CLAIMS` above.
+ *
+ * One claim. Part 2 created `public.message_threads` and wrote above the column
+ * that the upsert key for message ingest belonged to SEEN-061 and that there was
+ * therefore no unique index on it here. Part 9 added one, because SEEN-061 and
+ * SEEN-062 cannot write their upsert without it, so the sentence is false of the
+ * delivered schema and it is in the file a person opens to find out what the table
+ * is. That is F70's class one step over: F70 is a comment describing a column that
+ * is not there, this is a comment describing the absence of an index that is.
+ *
+ * Why this is held as the sentence and not caught by a scanner, which is a decision
+ * and not an omission. `migrationColumnReferences` can be believed because it
+ * compares a name against `pg_attribute`: the reference is a name, and a name is
+ * either in the catalogue or not. The claim here is a negation in English. To catch
+ * the class rather than this instance, a guard would have to recognise that "there
+ * is no unique index on it here", "this column is not keyed", "the upsert key is
+ * SEEN-061's to add" and whatever the next author writes are all denials, and then
+ * decide which relation and which kind of index each denies, from prose. Every one
+ * of those steps is a guess, and a guard whose report cannot be trusted is worse
+ * than none, because it is read as coverage. Matching on `index` and asking
+ * `pg_index` inverts the error rather than removing it: a comment that correctly
+ * says a column is part of the upsert key would be reported, and this set has
+ * fourteen of those.
+ *
+ * So what is held here is the sentence, in the fragments it was written in, which
+ * catches it surviving, being copied or coming back, exactly as the birth claims
+ * are. The half that catches the claim becoming true again, because somebody
+ * dropped the index, is `pg_index` beside the guard in `schema.test.ts`, and the
+ * half that catches the index being there and useless is the upsert the same file
+ * runs.
+ */
+export const WITHDRAWN_SHAPE_CLAIMS: readonly WithdrawnShapeClaim[] = [
+  {
+    relation: 'public.message_threads',
+    spelling: ['upsert key for message ingest belongs to SEEN-061,', 'so there is no unique'],
+    instead: 'part 9 creates one, on (tenant_id, connection_id, external_thread_id) and with no '
+      + 'predicate, because the upsert SEEN-061 and SEEN-062 have to write needs a unique index '
+      + 'to arbitrate and cannot infer a partial one. The key is not SEEN-061\'s to add: what is '
+      + 'SEEN-061\'s is the statement that uses it',
+  },
+];
+
 /**
  * The relation kind a sequence answers to, in `pg_class` and in `pg_default_acl`
  * alike.

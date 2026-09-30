@@ -53,6 +53,7 @@ import {
   TENANT_PREFIXED_PATH_COLUMNS, TICKETS_DIRECTORY,
   TRADE_RECORD_MIGRATION_MARKER, TRADE_RECORD_TABLES,
   VIEW_SECURITY_OPTION, VIEW_SECURITY_OPTION_TRUE, WITHDRAWN_BIRTH_CLAIMS,
+  WITHDRAWN_SHAPE_CLAIMS,
 } from './tables';
 
 // The local Supabase stack's Postgres, the address `pnpm dev:up` prints when it
@@ -1252,16 +1253,53 @@ function linesWhere(contents: string, phrase: string, span: number): number[] {
 function withdrawnClaimsStillStanding(
   sources: readonly ScannedSource[], objectClass?: string,
 ): string[] {
+  return claimsStillStanding(sources, WITHDRAWN_BIRTH_CLAIMS
+    .filter((claim) => objectClass === undefined || claim.objectClass === objectClass)
+    .map((claim) => ({
+      about: `a ${claim.objectClass}`, spelling: claim.spelling, instead: claim.instead,
+    })));
+}
+
+/**
+ * Every withdrawn claim about what keys and indexes a relation carries that is
+ * still written down, named with the file and the line it is written on.
+ *
+ * The same scan over a second list, rather than a second scan: what differs
+ * between a claim about how an object is born and a claim about the shape of a
+ * relation is the words and what is written beside them to measure it, and neither
+ * is the reading. F70's guard catches a comment naming a column that is not there,
+ * because a name is in `pg_attribute` or it is not; a comment denying an index is
+ * a negation in English, and `WITHDRAWN_SHAPE_CLAIMS` says why nothing here tries
+ * to recognise one.
+ */
+function withdrawnShapeClaimsStillStanding(sources: readonly ScannedSource[]): string[] {
+  return claimsStillStanding(sources, WITHDRAWN_SHAPE_CLAIMS.map((claim) => ({
+    about: claim.relation, spelling: claim.spelling, instead: claim.instead,
+  })));
+}
+
+/** One withdrawn sentence as the scan reads it: the words, what they were written
+ * about, and what is true instead. */
+interface ScannedClaim {
+  about: string;
+  spelling: readonly string[];
+  instead: string;
+}
+
+/** The body both of the two above are: every claim in the list that is still
+ * written down in any of the sources, at the line its sentence starts on. */
+function claimsStillStanding(
+  sources: readonly ScannedSource[], claims: readonly ScannedClaim[],
+): string[] {
   const standing: string[] = [];
   for (const source of sources) {
     const prose = proseOf(source.contents);
-    for (const claim of WITHDRAWN_BIRTH_CLAIMS) {
-      if (objectClass !== undefined && claim.objectClass !== objectClass) continue;
+    for (const claim of claims) {
       const phrase = claim.spelling.join(' ');
       if (!prose.includes(phrase)) continue;
       const where = linesWhere(source.contents, phrase, claim.spelling.length + 1);
       standing.push(`${source.file}:${where.join(', ') || 'somewhere'} still says "${phrase}" of `
-        + `a ${claim.objectClass}, and ${claim.instead}`);
+        + `${claim.about}, and ${claim.instead}`);
     }
   }
   return standing;
@@ -5980,6 +6018,87 @@ describe('the evidence an erasure has to reach, and the path a row may name', ()
       }
     });
 
+  it('binds the path a row may name, and neither end of the upload it cannot see', async () => {
+    // F67, and it is a measurement of the constraint's reach rather than of a
+    // defect: what is asserted here stays true after SEEN-022 and SEEN-027 have
+    // done their part, because they close it in the code that uploads and nothing
+    // in a database can.
+    //
+    // Three facts, in one transaction, and the schema states all three. A row may
+    // name a path under its own prefix where no object stands, and it is accepted,
+    // because a check constraint reads the row it is written on and `storage.objects`
+    // is not reachable from one. An object may stand under the prefix with no row
+    // naming it, and the erasure finds it anyway, because the worklist sweeps the
+    // bucket rather than the evidence table, which is the half this schema does
+    // keep. And an object may stand outside the prefix with the rows all compliant,
+    // and the erasure walks past it: after the tenant is deleted the bytes are in
+    // the bucket with nothing in any table able to say whose they were, which is
+    // F63's outcome reached through the constraint that reads as closing it.
+    //
+    // What closes the third is named in the assertion rather than left to a reader:
+    // the SCHEMA_OBLIGATIONS rows for this table, the criteria they hold SEEN-022
+    // and SEEN-027 to, and the two guards above that go red when either is dropped.
+    await client.query('begin');
+    try {
+      const tenant = (await client.query<{ tenant_id: string }>(
+        "insert into public.tenants (name) values ('Tenant whose upload is not the row') "
+        + 'returning tenant_id',
+      )).rows[0].tenant_id;
+      const claim = (await client.query<{ id: string }>(
+        "insert into public.claims (tenant_id, marketplace) values ($1, 'bol') returning id",
+        [tenant],
+      )).rows[0].id;
+      const promised = `${tenant}/claims/${claim}/carrier-proof.pdf`;
+      const unnamed = `${tenant}/claims/${claim}/uploaded-without-a-row.pdf`;
+      const outside = 'shared/uploads/buyer-invoice.pdf';
+      for (const name of [unnamed, outside]) {
+        await client.query(
+          'insert into storage.objects (bucket_id, name) values ($1, $2)', [EVIDENCE_BUCKET, name],
+        );
+      }
+      const aRowNamingNoObject = await answered(() => client.query(
+        'insert into public.evidence (tenant_id, claim_id, storage_path) values ($1, $2, $3)',
+        [tenant, claim, promised],
+      ));
+      await client.query('delete from public.tenants where tenant_id = $1', [tenant]);
+      const swept = (await client.query<{ object_name: string }>(
+        `select object_name from ${PENDING_OBJECT_ERASURES_TABLE} where tenant_id = $1
+          order by object_name`, [tenant],
+      )).rows.map((row) => row.object_name);
+      const left = (await client.query<{ name: string }>(
+        'select name from storage.objects where bucket_id = $1 and name = $2',
+        [EVIDENCE_BUCKET, outside],
+      )).rows.map((row) => row.name);
+      const measured = {
+        aRowNamingNoObject,
+        sweptByTheErasure: swept,
+        standingAfterTheErasure: left,
+        whoseCriteriaCloseIt: SCHEMA_OBLIGATIONS
+          .filter((entry) => entry.relation === 'public.evidence')
+          .flatMap((entry) => entry.tickets),
+      };
+      expect(
+        measured,
+        'The check on storage_path binds the text a row holds. An evidence row naming a path no '
+        + `object stands at answered ${measured.aRowNamingNoObject}; the erasure swept `
+        + `${JSON.stringify(measured.sweptByTheErasure)}, which includes the object no row named `
+        + 'and excludes the one uploaded outside the prefix; and that one is still in the bucket '
+        + `as ${JSON.stringify(measured.standingAfterTheErasure)} with the tenant and every row `
+        + 'of it gone. That is the reach of the constraint and not a defect in it: a check '
+        + 'constraint cannot read storage.objects, so only the code that uploads can close the '
+        + 'third fact, which is what the SCHEMA_OBLIGATIONS rows for this table hold '
+        + `${measured.whoseCriteriaCloseIt.join(' and ')} to in their own acceptance criteria`,
+      ).toEqual({
+        aRowNamingNoObject: 'accepted',
+        sweptByTheErasure: [unnamed],
+        standingAfterTheErasure: [outside],
+        whoseCriteriaCloseIt: ['SEEN-022', 'SEEN-027'],
+      });
+    } finally {
+      await client.query('rollback');
+    }
+  });
+
   it('offers no untyped column an invoice can carry a recovery share in', async () => {
     // F66. The chain is built carefully up to the second-last link: a settlement
     // line is ingested, and `claims.credited_by_settlement_line_id` is a real
@@ -6842,6 +6961,59 @@ describe('a marketplace identifier, and the line id a marketplace gave a row', (
       + 'with no identifier cannot be found again, so ingest writes it once per read, and the '
       + 'upsert key is what refuses it (23502)',
     ).toEqual({ withNoIdentifier: '23502', withTheOneTheRailGaveIt: 'accepted' });
+  });
+
+  it('no longer denies, where the table is created, the index this file adds', async () => {
+    // F70's class one step over, found while F69 was being fixed. Part 2 created
+    // message_threads and wrote above the column that the upsert key for message
+    // ingest was SEEN-061's and that there was therefore no unique index on it
+    // here. Part 9 adds one, because SEEN-061 and SEEN-062 cannot write their
+    // upsert without it. A person looking for the shape of the table opens the part
+    // that creates it, which is the file the sentence is in.
+    //
+    // Two halves, because the sentence can be wrong in either direction. The words
+    // are held in `WITHDRAWN_SHAPE_CLAIMS` and looked for wherever a person meets
+    // them, which catches the sentence surviving, being copied or coming back; the
+    // catalogue is asked whether the index it denies is really there, which catches
+    // the claim becoming true again because somebody dropped the index. Neither of
+    // them is the upsert, which is run two tests above: an index that exists and
+    // cannot arbitrate passes this and fails that, which is why both are here.
+    //
+    // `pg_index` is the right instrument for this one claim and the wrong one for
+    // the class, and `WITHDRAWN_SHAPE_CLAIMS` says why: a denial of an index is a
+    // negation in English, and a guard that went looking for one would be matching
+    // prose and reporting a number nobody could trust.
+    const { rows } = await client.query<{ index: string; partial: boolean }>(
+      `select i.indexrelid::regclass::text as index, i.indpred is not null as partial
+         from pg_catalog.pg_index i
+         join pg_catalog.pg_attribute a
+           on a.attrelid = i.indrelid and a.attname = 'external_thread_id'
+          and a.attnum > 0 and not a.attisdropped
+        where i.indrelid = 'public.message_threads'::regclass and i.indisunique
+          and a.attnum = any(i.indkey::smallint[])
+        order by 1`,
+    );
+    const measured = {
+      uniqueIndexesOnTheThreadId: rows.map(
+        (row) => `${row.index}${row.partial ? ' (partial)' : ''}`,
+      ),
+      stillStanding: withdrawnShapeClaimsStillStanding(sourcesThatDocumentTheSet()),
+    };
+    expect(
+      measured,
+      'The part that creates public.message_threads tells a reader it carries no unique index on '
+      + `the thread id, and the catalogue answers ${JSON.stringify(measured.uniqueIndexesOnTheThreadId)}. `
+      + 'A sentence denying a key the schema does carry sends the author of SEEN-061 to write the '
+      + 'index that is already there or the upsert without one, which is F70 one step over: that '
+      + 'guard compares a column name against pg_attribute and can be believed, and no guard can '
+      + 'recognise a denial in English. What is still standing: '
+      + `${measured.stillStanding.join('; ') || 'nothing'}`,
+    ).toEqual({
+      uniqueIndexesOnTheThreadId: [
+        'message_threads_tenant_id_connection_id_external_thread_id_key',
+      ],
+      stillStanding: [],
+    });
   });
 
   it('refuses a rename of a catalogue identifier, with rows under it and without', async () => {
