@@ -17,7 +17,7 @@
 import { randomUUID } from 'node:crypto';
 
 import { Client } from 'pg';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import {
   BILLING_CRITICAL_TABLES, CLIENT_BOUND_ROLES, ERASURE_REGISTRY_TABLE, TABLE_RELKINDS,
@@ -36,6 +36,46 @@ const NEEDED = ['tenants', 'connections', 'orders'] as const;
 
 /** And the tables the findings and claims block needs. */
 const NEEDED_FOR_CLAIMS = ['tenants', 'claims', 'findings'] as const;
+
+/**
+ * The instant every seeded date and timestamp takes its value from, and the
+ * instant the partitioned probe's partition is built around.
+ *
+ * F41. The probes at the end of this file declared a partition for values from
+ * 2026-01-01 to 2027-01-01 while `valueFor` read a timestamp off the clock, so the
+ * row was routed by whatever day the suite ran on. Two of the three would have
+ * begun raising SQLSTATE 23514, `no partition of relation found for row`, on
+ * 1 January 2027; the sixth Codex review demonstrated it by running the file with
+ * `new Date()` answering 2027-01-02, for a failure that says nothing about this
+ * schema.
+ *
+ * A literal here would repair that and nothing more. The next author to add a
+ * partitioned probe copies the literal, the year it names arrives, and the finding
+ * is written again, which is how the seeded date below came to be a second copy of
+ * the same idea. So the bound is not written beside the value: it is computed from
+ * it. `partitionYearAround` is the only place a range covering a seeded row is
+ * spelled, and a partition built by it holds the row because it was built around
+ * the row. Moving this constant moves the bound with it, which is the property a
+ * second literal cannot have.
+ *
+ * Mid-year and in UTC on purpose. The bounds carry an explicit offset, so neither
+ * end of the range is a reading of the session's TimeZone, and an instant six
+ * months from either end could not be walked over one by a zone in any case.
+ */
+const SEEDED_INSTANT = new Date('2026-06-15T12:00:00.000Z');
+
+/**
+ * The half-open range a Postgres range partition is declared with in order to hold
+ * `instant`: the UTC calendar year it falls in, with the offset spelled out so
+ * that each bound is an instant rather than a local midnight.
+ *
+ * The parts are digits taken from a Date, because a partition bound has to be a
+ * constant in the statement's own text and cannot be a parameter.
+ */
+function partitionYearAround(instant: Date): { from: string; to: string } {
+  const year = instant.getUTCFullYear();
+  return { from: `${year}-01-01T00:00:00+00`, to: `${year + 1}-01-01T00:00:00+00` };
+}
 
 /** Host, port and database only: a connection string carries a password, and a
  * test's own failure text is read again in a journal record and in a CI log. */
@@ -1017,8 +1057,11 @@ describe('tenant isolation on every table in the public schema', () => {
     if (type === 'text' || type.startsWith('character')) return label;
     if (type === 'bigint' || type === 'integer' || type === 'smallint') return 1;
     if (type.startsWith('numeric')) return 1;
-    if (type === 'date') return '2026-09-29';
-    if (type.startsWith('timestamp')) return new Date().toISOString();
+    // Both from SEEDED_INSTANT, and neither from the clock: a date-bounded
+    // constraint anywhere in this schema, of which a range partition is the one
+    // this file already meets, decides whether a row is accepted from this value.
+    if (type === 'date') return SEEDED_INSTANT.toISOString().slice(0, 10);
+    if (type.startsWith('timestamp')) return SEEDED_INSTANT.toISOString();
     if (type === 'boolean') return false;
     if (type === 'jsonb' || type === 'json') return '{}';
     throw new Error(
@@ -1181,9 +1224,14 @@ describe('tenant isolation on every table in the public schema', () => {
     );
     const relations = [PARTITIONED_PROBE];
     if (options.withPartition) {
+      // Derived from the instant the row will carry rather than written out beside
+      // it, so the partition covers the seeded value because it was built around
+      // it. F41: the two were written separately, the value came off the clock, and
+      // they agreed only while the calendar happened to put them together.
+      const { from, to } = partitionYearAround(SEEDED_INSTANT);
       await client.query(
         `create table public.${PARTITION_PROBE} partition of public.${PARTITIONED_PROBE}
-           for values from ('2026-01-01') to ('2027-01-01')`,
+           for values from ('${from}') to ('${to}')`,
       );
       relations.push(PARTITION_PROBE);
     }
@@ -1573,5 +1621,123 @@ describe('tenant isolation on every table in the public schema', () => {
       'Postgres did not refuse the row for want of a partition, so the classification above '
       + `rests on something the database does not say: ${refusal}`,
     ).toMatch(/no partition of relation/);
+  });
+
+  /**
+   * The wall clocks the three probes above have to hold under.
+   *
+   * The two edges of the range are named exactly rather than a date somewhere
+   * outside it, because a repair that moved the seeded value from the clock to a
+   * literal in the following year would pass a far-future case and still be a
+   * fixture with twelve months to live. A range partition's upper bound is
+   * exclusive, so the first of these is the precise instant such a fixture stops
+   * seeding, and the second is the same expiry read backwards.
+   */
+  const FOREIGN_CLOCKS = [
+    '2027-01-01T00:00:00.000Z',
+    '2025-12-31T23:59:59.999Z',
+    // What the sixth Codex review set the clock to when it demonstrated F41.
+    '2027-01-02T12:00:00.000Z',
+    // Far enough out that no bound anybody writes by hand will cover it.
+    '2099-06-01T00:00:00.000Z',
+  ] as const;
+
+  it('seeds the partitioned probe the same way whatever day the suite is run on', async () => {
+    // F41. The three probes above worked because of the date they were run on. The
+    // fixture declares its partition for values from 2026-01-01 to 2027-01-01 and
+    // `valueFor` took a timestamp from `new Date()`, so the row was routed by a
+    // value the calendar supplied, and on 1 January 2027 there is no partition of
+    // the relation for it: two of the three would have started raising SQLSTATE
+    // 23514 for a reason that has nothing to do with this schema.
+    //
+    // Asserting that the seeded value is a literal rather than a clock would be
+    // asserting the shape of the repair. What is measured instead is the property
+    // the repair owes: the same fixture, built and seeded under four clocks none
+    // of which the old range covers, accepts the row, routes it into the
+    // partition, and stores one and the same instant every time.
+    // The derivation at the edges of a year, rather than an assumption that it
+    // holds there. A range partition's upper bound is exclusive, so the last
+    // instant of a year belongs to that year's range and the first instant of the
+    // next belongs to the next one. A bound derived a year out would cover none of
+    // the seeded values a boundary instant produces, and the clocks below would
+    // then be measuring the wrong thing rather than failing.
+    expect(
+      [
+        partitionYearAround(new Date('2026-01-01T00:00:00.000Z')),
+        partitionYearAround(new Date('2026-12-31T23:59:59.999Z')),
+        partitionYearAround(new Date('2027-01-01T00:00:00.000Z')),
+      ],
+      'The range derived for an instant at the edge of a year is not the year that instant falls '
+      + 'in, so a seeded value near a boundary would be routed into no partition at all',
+    ).toEqual([
+      { from: '2026-01-01T00:00:00+00', to: '2027-01-01T00:00:00+00' },
+      { from: '2026-01-01T00:00:00+00', to: '2027-01-01T00:00:00+00' },
+      { from: '2027-01-01T00:00:00+00', to: '2028-01-01T00:00:00+00' },
+    ]);
+
+    const measured: Record<string, unknown> = {};
+    const stored: string[] = [];
+    // Only the Date global is replaced. `pg` drives a query from socket events
+    // rather than from a timer and this connection was opened in `beforeAll`,
+    // outside this window, but a fixture that stopped the runner's timers would
+    // hang the driver rather than fail it, so the sleep below says that setTimeout
+    // still runs on its own with nothing advancing a clock for it.
+    vi.useFakeTimers({ toFake: ['Date'] });
+    try {
+      await new Promise((resume) => { setTimeout(resume, 5); });
+      for (const clock of FOREIGN_CLOCKS) {
+        vi.setSystemTime(new Date(clock));
+        measured[clock] = await rolledBack(async () => {
+          await createPartitionedProbe(TENANCY_CLAUSES[0], { withPartition: true });
+          const columns = await requiredColumns();
+          const keys = await mandatoryKeys(columns);
+          let said = 'accepted';
+          await client.query('savepoint seeding');
+          try {
+            await seedRow(PARTITIONED_PROBE, b, 'clock-independence probe', columns, keys);
+            await client.query('release savepoint seeding');
+          } catch (error) {
+            said = (error as Error).message;
+            // A refused statement aborts the transaction, and the counts below are
+            // read inside the same one: without this they would fail with 25P02 and
+            // say nothing about partitions.
+            await client.query('rollback to savepoint seeding');
+          }
+          const held: Record<string, number> = {};
+          for (const relation of [PARTITIONED_PROBE, PARTITION_PROBE]) {
+            const { rows } = await client.query<{ total: string }>(
+              `select count(*) as total from public.${relation} where tenant_id = $1`,
+              [b],
+            );
+            held[relation] = Number(rows[0].total);
+          }
+          // Read as a UTC timestamp without a zone, so what is compared across the
+          // four runs is the instant and not how a session renders one.
+          const { rows: stamps } = await client.query<{ at: string | null }>(
+            `select min(recorded_at at time zone 'utc')::text as at
+               from public.${PARTITIONED_PROBE} where tenant_id = $1`,
+            [b],
+          );
+          stored.push(stamps[0].at ?? `nothing was written under ${clock}`);
+          return { said, ...held };
+        });
+      }
+    } finally {
+      vi.useRealTimers();
+    }
+    expect(
+      measured,
+      'The partitioned probe does not seed under every clock, so the three tests above pass on '
+      + 'the date they happen to be run on rather than on anything this schema does: '
+      + JSON.stringify(measured, null, 2),
+    ).toEqual(Object.fromEntries(FOREIGN_CLOCKS.map((clock) => [
+      clock, { said: 'accepted', [PARTITIONED_PROBE]: 1, [PARTITION_PROBE]: 1 },
+    ])));
+    expect(
+      [...new Set(stored)],
+      'The four runs wrote four different instants, so the value the fixture seeds is still a '
+      + 'reading of the clock and the range that covers it today is a range that will stop '
+      + `covering it: ${stored.join(', ')}`,
+    ).toHaveLength(1);
   });
 });
