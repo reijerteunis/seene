@@ -23,7 +23,7 @@
 import { Client } from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
-import { ERASURE_REGISTRY_TABLE, EXTERNALLY_SOURCED_TABLES } from './tables';
+import { ERASURE_REGISTRY_TABLE, EXTERNALLY_SOURCED_TABLES, TABLE_RELKINDS } from './tables';
 
 // The local Supabase stack's Postgres, the address `pnpm dev:up` prints when it
 // starts. Overridden by SEEN_DATABASE_URL so CI or a second stack needs no code
@@ -212,12 +212,20 @@ describe('the upsert key on every externally sourced table', () => {
 
   beforeAll(async () => {
     client = await connect();
+    // On both relation families, and it is worth saying what that does and does
+    // not buy, because it is not the gap F36 closed in `rls.test.ts`. This is an
+    // existence gate over five named tables, not a catalogue-driven inventory: its
+    // failure mode is a loud refusal to run, never a pass. What widening answers is
+    // the day one of these five is partitioned by date, which `orders` and
+    // `settlement_lines` are the obvious candidates for: asking for `relkind = 'r'`
+    // alone would report a table that plainly exists as missing and send its author
+    // to `pnpm db:reset` for a schema that is already applied.
     const { rows } = await client.query<{ name: string }>(
       `select c.relname as name
          from pg_catalog.pg_class c
          join pg_catalog.pg_namespace n on n.oid = c.relnamespace
-        where n.nspname = 'public' and c.relkind = 'r' and c.relname = any($1)`,
-      [[...NEEDED]],
+        where n.nspname = 'public' and c.relkind = any($2) and c.relname = any($1)`,
+      [[...NEEDED], Object.keys(TABLE_RELKINDS)],
     );
     const present = rows.map((row) => row.name);
     const missing = NEEDED.filter((table) => !present.includes(table));

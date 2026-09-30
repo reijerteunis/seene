@@ -20,7 +20,8 @@ import { Client } from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import {
-  BILLING_CRITICAL_TABLES, CLIENT_BOUND_ROLES, ERASURE_REGISTRY_TABLE, TENANT_CLAIM,
+  BILLING_CRITICAL_TABLES, CLIENT_BOUND_ROLES, ERASURE_REGISTRY_TABLE, TABLE_RELKINDS,
+  TENANCY_CLAUSES, TENANT_CLAIM,
 } from './tables';
 
 // The local Supabase stack's Postgres, the address `pnpm dev:up` prints when it
@@ -68,14 +69,19 @@ async function connect(): Promise<Client> {
 }
 
 /** Which of the tables this test reads do not exist yet, named rather than left
- * to a driver error halfway through a fixture. */
+ * to a driver error halfway through a fixture.
+ *
+ * On both relation families for the reason the families exist: a table this gate
+ * asks for that a later migration partitions answers to `relkind = 'p'`, and the
+ * gate would report it missing and refuse to run rather than let anything pass, so
+ * what widening buys is a true message and not a hole closed. */
 async function absent(client: Client, needed: readonly string[]): Promise<string[]> {
   const { rows } = await client.query<{ name: string }>(
     `select c.relname as name
        from pg_catalog.pg_class c
        join pg_catalog.pg_namespace n on n.oid = c.relnamespace
-      where n.nspname = 'public' and c.relkind = 'r' and c.relname = any($1)`,
-    [[...needed]],
+      where n.nspname = 'public' and c.relkind = any($2) and c.relname = any($1)`,
+    [[...needed], Object.keys(TABLE_RELKINDS)],
   );
   const present = rows.map((row) => row.name);
   return needed.filter((table) => !present.includes(table));
@@ -884,6 +890,14 @@ describe('tenant isolation on every table in the public schema', () => {
   let client: Client;
   /** Every table of the public schema, in the order a row can be seeded into them. */
   let governed: string[];
+  /** The ones a row is written to directly, which is every one of them but a
+   * partition, whose rows arrive by routing from its parent, and a partitioned
+   * table with no partition, which no row reaches at all. */
+  let seeded: string[];
+  /** Each partition and the parent it hangs from. */
+  let partitionOf: Map<string, string>;
+  /** The partitioned tables with nothing under them for a row to be routed into. */
+  let partitionless: string[];
   let a: string;
   let b: string;
 
@@ -896,6 +910,34 @@ describe('tenant isolation on every table in the public schema', () => {
   let required: Required[];
   let mandatory: Mandatory[];
 
+  /**
+   * A relation of the public schema whose rows this database's policies govern:
+   * its name, the parent it is a partition of, and whether it is a partitioned
+   * table with nothing under it for a row to be routed into.
+   */
+  interface Governed { name: string; partitionOf: string | null; partitionless: boolean }
+
+  /** Every such relation, read from the catalogue on each call rather than once,
+   * because the probes below create one and then ask what this block would have
+   * done with it. */
+  async function governedRelations(): Promise<Governed[]> {
+    const { rows } = await client.query<Governed>(
+      `select c.relname as name,
+              case when c.relispartition then p.relname end as "partitionOf",
+              (c.relkind = 'p' and not exists (
+                 select 1 from pg_catalog.pg_inherits child where child.inhparent = c.oid
+               )) as partitionless
+         from pg_catalog.pg_class c
+         join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+         left join pg_catalog.pg_inherits i on i.inhrelid = c.oid
+         left join pg_catalog.pg_class p on p.oid = i.inhparent
+        where n.nspname = 'public' and c.relkind = any($1)
+        order by c.relname`,
+      [Object.keys(TABLE_RELKINDS)],
+    );
+    return rows;
+  }
+
   async function requiredColumns(): Promise<Required[]> {
     const { rows } = await client.query<Required>(
       `select c.relname as table, a.attname as column,
@@ -904,10 +946,11 @@ describe('tenant isolation on every table in the public schema', () => {
          join pg_catalog.pg_class c on c.oid = a.attrelid
          join pg_catalog.pg_namespace n on n.oid = c.relnamespace
          left join pg_catalog.pg_attrdef d on d.adrelid = c.oid and d.adnum = a.attnum
-        where n.nspname = 'public' and c.relkind = 'r'
+        where n.nspname = 'public' and c.relkind = any($1)
           and a.attnum > 0 and not a.attisdropped and a.attnotnull
           and d.adbin is null and a.attidentity = '' and a.attgenerated = ''
         order by c.relname, a.attnum`,
+      [Object.keys(TABLE_RELKINDS)],
     );
     return rows;
   }
@@ -917,7 +960,7 @@ describe('tenant isolation on every table in the public schema', () => {
    * only ones a seeded row has to satisfy. Reading all of them instead would make
    * the seeding order cyclic over keys that are nullable and need no parent at all.
    */
-  async function mandatoryKeys(): Promise<Mandatory[]> {
+  async function mandatoryKeys(columns: readonly Required[]): Promise<Mandatory[]> {
     const { rows } = await client.query<Mandatory>(
       `select c.relname as table, p.relname as parent,
               (select array_agg(att.attname order by k.ord)
@@ -936,7 +979,7 @@ describe('tenant isolation on every table in the public schema', () => {
         where n.nspname = 'public' and con.contype = 'f'`,
     );
     const isRequired = (table: string, column: string): boolean =>
-      required.some((entry) => entry.table === table && entry.column === column);
+      columns.some((entry) => entry.table === table && entry.column === column);
     return rows.filter((key) => key.columns.every((column) => isRequired(key.table, column)));
   }
 
@@ -984,6 +1027,62 @@ describe('tenant isolation on every table in the public schema', () => {
     );
   }
 
+  /**
+   * One row of `table` belonging to this tenant, built from the catalogue: every
+   * required column takes a value of its own type and every mandatory foreign key
+   * takes a parent row the tenant already holds.
+   *
+   * It is a function of its own rather than the body of the loop below because the
+   * partitioned-table probes seed a relation they have just created, and a probe
+   * that wrote its row some other way would say nothing about how this fixture
+   * writes one.
+   */
+  async function seedRow(
+    table: string, tenant: string, label: string,
+    columns: readonly Required[], keys: readonly Mandatory[],
+  ): Promise<void> {
+    const row: Record<string, unknown> = { tenant_id: tenant };
+    for (const key of keys.filter((entry) => entry.table === table)) {
+      if (key.parent === 'tenants') continue;
+      const parent = await client.query<Record<string, unknown>>(
+        `select ${key.parentColumns.join(', ')} from public.${key.parent}
+          where tenant_id = $1 limit 1`,
+        [tenant],
+      );
+      if (parent.rowCount === 0) {
+        throw new Error(
+          `No row in public.${key.parent} for ${label} to hang a row of public.${table} from, `
+          + 'so this fixture cannot seed the table and the cross-tenant read below would pass '
+          + 'against an empty table.',
+        );
+      }
+      key.columns.forEach((column, index) => {
+        row[column] = parent.rows[0][key.parentColumns[index]];
+      });
+    }
+    for (const column of columns.filter((entry) => entry.table === table)) {
+      if (row[column.column] !== undefined) continue;
+      row[column.column] = valueFor(
+        column.type,
+        `${label} ${table}.${column.column} ${randomUUID().slice(0, 8)}`,
+      );
+    }
+    const names = Object.keys(row);
+    try {
+      await client.query(
+        `insert into public.${table} (${names.join(', ')})
+         values (${names.map((_, index) => `$${index + 1}`).join(', ')})`,
+        names.map((name) => row[name]),
+      );
+    } catch (cause) {
+      throw new Error(
+        `This fixture could not seed public.${table} for ${label}, so the cross-tenant read `
+        + `below would pass against an empty table. Postgres said: ${(cause as Error).message}`,
+        { cause },
+      );
+    }
+  }
+
   /** One tenant with a row in every table of the public schema, as the owner role. */
   async function seedTenant(label: string): Promise<string> {
     const created = await client.query<{ tenant_id: string }>(
@@ -991,7 +1090,7 @@ describe('tenant isolation on every table in the public schema', () => {
       [label],
     );
     const tenant = created.rows[0].tenant_id;
-    for (const table of governed) {
+    for (const table of seeded) {
       if (table === 'tenants') continue;
       // A trigger seeds the marketplaces catalogue for a new tenant, and a row a
       // trigger wrote is as much this tenant's row as one written here.
@@ -1000,46 +1099,7 @@ describe('tenant isolation on every table in the public schema', () => {
         [tenant],
       );
       if ((already.rowCount ?? 0) > 0) continue;
-      const row: Record<string, unknown> = { tenant_id: tenant };
-      for (const key of mandatory.filter((entry) => entry.table === table)) {
-        if (key.parent === 'tenants') continue;
-        const parent = await client.query<Record<string, unknown>>(
-          `select ${key.parentColumns.join(', ')} from public.${key.parent}
-            where tenant_id = $1 limit 1`,
-          [tenant],
-        );
-        if (parent.rowCount === 0) {
-          throw new Error(
-            `No row in public.${key.parent} for ${label} to hang a row of public.${table} from, `
-            + 'so this fixture cannot seed the table and the cross-tenant read below would pass '
-            + 'against an empty table.',
-          );
-        }
-        key.columns.forEach((column, index) => {
-          row[column] = parent.rows[0][key.parentColumns[index]];
-        });
-      }
-      for (const column of required.filter((entry) => entry.table === table)) {
-        if (row[column.column] !== undefined) continue;
-        row[column.column] = valueFor(
-          column.type,
-          `${label} ${table}.${column.column} ${randomUUID().slice(0, 8)}`,
-        );
-      }
-      const names = Object.keys(row);
-      try {
-        await client.query(
-          `insert into public.${table} (${names.join(', ')})
-           values (${names.map((_, index) => `$${index + 1}`).join(', ')})`,
-          names.map((name) => row[name]),
-        );
-      } catch (cause) {
-        throw new Error(
-          `This fixture could not seed public.${table} for ${label}, so the cross-tenant read `
-          + `below would pass against an empty table. Postgres said: ${(cause as Error).message}`,
-          { cause },
-        );
-      }
+      await seedRow(table, tenant, label, required, mandatory);
     }
     return tenant;
   }
@@ -1052,6 +1112,7 @@ describe('tenant isolation on every table in the public schema', () => {
    */
   async function visibleTo(
     claims: Record<string, string> | null, owner: string,
+    tables: readonly string[] = governed,
   ): Promise<Record<string, number>> {
     await client.query('savepoint probe');
     try {
@@ -1063,7 +1124,7 @@ describe('tenant isolation on every table in the public schema', () => {
       }
       await client.query('set local role authenticated');
       const seen: Record<string, number> = {};
-      for (const table of governed) {
+      for (const table of tables) {
         const { rows } = await client.query<{ total: string }>(
           `select count(*) as total from public.${table} where tenant_id = $1`,
           [owner],
@@ -1090,16 +1151,56 @@ describe('tenant isolation on every table in the public schema', () => {
     }
   }
 
+  /** The partitioned table the three probes below add to the public schema, and the
+   * one partition under it. A later migration will add a real one: `orders` and
+   * `settlement_lines` grow by a marketplace page a day and are the obvious
+   * candidates for range partitioning by date. */
+  const PARTITIONED_PROBE = 'seen_partitioned_tenancy_probe';
+  const PARTITION_PROBE = 'seen_partition_tenancy_probe';
+
+  /**
+   * A partitioned table carrying everything this schema asks of a table: a
+   * `tenant_id` referencing the tenant, row-level security enabled and one select
+   * policy, on the parent and on the partition alike.
+   *
+   * Both are named rather than the parent alone, because a partition is a relation
+   * of its own: enabling row-level security on the parent leaves `relrowsecurity`
+   * false on the partition and the parent's policy is the parent's alone, so a
+   * partition owes its own. The grant is what lets the read below be made as
+   * `authenticated` at all; without it the probe would pass on a privilege rather
+   * than on a policy.
+   */
+  async function createPartitionedProbe(
+    clause: string, options: { withPartition: boolean },
+  ): Promise<void> {
+    await client.query(
+      `create table public.${PARTITIONED_PROBE} (
+         tenant_id uuid not null references public.tenants (tenant_id) on delete cascade,
+         recorded_at timestamptz not null,
+         note text) partition by range (recorded_at)`,
+    );
+    const relations = [PARTITIONED_PROBE];
+    if (options.withPartition) {
+      await client.query(
+        `create table public.${PARTITION_PROBE} partition of public.${PARTITIONED_PROBE}
+           for values from ('2026-01-01') to ('2027-01-01')`,
+      );
+      relations.push(PARTITION_PROBE);
+    }
+    for (const relation of relations) {
+      await client.query(`alter table public.${relation} enable row level security`);
+      await client.query(
+        `create policy tenant_isolation on public.${relation} for select to authenticated
+           using (${clause})`,
+      );
+      await client.query(`grant select on public.${relation} to authenticated`);
+    }
+  }
+
   beforeAll(async () => {
     client = await connect();
-    const { rows } = await client.query<{ name: string }>(
-      `select c.relname as name
-         from pg_catalog.pg_class c
-         join pg_catalog.pg_namespace n on n.oid = c.relnamespace
-        where n.nspname = 'public' and c.relkind = 'r'
-        order by c.relname`,
-    );
-    if (rows.length === 0) {
+    const relations = await governedRelations();
+    if (relations.length === 0) {
       throw new Error(
         'There is not one table in the public schema, so a cross-tenant read proves nothing '
         + 'about any policy. The trade record migrations have not been applied; apply them with '
@@ -1107,8 +1208,24 @@ describe('tenant isolation on every table in the public schema', () => {
       );
     }
     required = await requiredColumns();
-    mandatory = await mandatoryKeys();
-    governed = seedOrder(rows.map((row) => row.name));
+    mandatory = await mandatoryKeys(required);
+    governed = seedOrder(relations.map((relation) => relation.name));
+    partitionOf = new Map(
+      relations
+        .filter((relation) => relation.partitionOf !== null)
+        .map((relation) => [relation.name, relation.partitionOf as string]),
+    );
+    partitionless = relations
+      .filter((relation) => relation.partitionless)
+      .map((relation) => relation.name);
+    // A row is written through the parent, which is the path a policy on the parent
+    // governs and the path an application takes, and Postgres routes it into the
+    // partition that covers its values. So a partition is read and never written to:
+    // writing into one directly would mean constructing a value inside that
+    // partition's own bounds, and it would be a row no application writes.
+    seeded = governed.filter(
+      (table) => !partitionOf.has(table) && !partitionless.includes(table),
+    );
     // In a transaction that is never committed, for the reason the first describe
     // of this file gives: an erasure leaves a tombstone nothing can remove, and a
     // rollback does not.
@@ -1127,8 +1244,22 @@ describe('tenant isolation on every table in the public schema', () => {
     // The guard on the three assertions below. Each of them is of the shape "the
     // tables this request could read another tenant's rows from are none", and a
     // table with no rows in it answers that with nothing whatever its policy says.
+    //
+    // A partition is counted differently, for the reason the probes at the end of
+    // this block argue: its rows arrive by Postgres routing a row written through
+    // the parent, so one partition of a parent holds the seeded row and any others
+    // hold none. What is asked of a partition here is that its parent is not empty,
+    // which the parent's own pair asks already, and its own tenant_id, enabled
+    // row-level security and policy are asked of it by `schema.test.ts`, where it
+    // answers as the relation of kind 'r' that it is.
+    //
+    // A partitioned table with no partition at all is the case that reasoning runs
+    // out on, and it is named on a line of its own rather than folded in with the
+    // empty tables: no row reaches it by any path, so no read goes through its
+    // policy and this block cannot say anything about it whatever its clause is.
     const empty: string[] = [];
     for (const table of governed) {
+      if (partitionOf.has(table)) continue;
       for (const [name, tenant] of [['A', a], ['B', b]] as const) {
         const { rows } = await client.query<{ total: string }>(
           `select count(*) as total from public.${table} where tenant_id = $1`,
@@ -1139,9 +1270,15 @@ describe('tenant isolation on every table in the public schema', () => {
     }
     expect(
       empty,
-      `${empty.length} of the ${governed.length * 2} tenant-and-table pairs this block reads hold `
-      + 'no row at all, so a policy on them could expose every tenant and the read below would '
-      + `still find nothing: ${empty.join(', ')}`,
+      `${empty.length} of the ${(governed.length - partitionOf.size) * 2} tenant-and-table pairs `
+      + 'this block writes to hold no row at all, so a policy on them could expose every tenant '
+      + `and the read below would still find nothing: ${empty.join(', ')}`,
+    ).toEqual([]);
+    expect(
+      partitionless,
+      `${partitionless.length} partitioned tables in the public schema have no partition under `
+      + 'them, so no row reaches them by any path and no read goes through the policy on them: '
+      + `${partitionless.join(', ')}. Give each one a partition, or drop it.`,
     ).toEqual([]);
   });
 
@@ -1184,7 +1321,8 @@ describe('tenant isolation on every table in the public schema', () => {
     // serves.
     //
     // Everything the twenty-nine tables are guarded by is per table and stops at
-    // `relkind = 'r'`. A view is a different relation kind, it is born holding
+    // the two kinds a policy of this database governs, which since F36 is what this
+    // block reads. A view is in neither family, it is born holding
     // schema public's default access control list, and it is not subject to the
     // row-level security of the tables underneath it unless it was created `with
     // (security_invoker = true)`: by default it runs with its owner's rights, and
@@ -1279,4 +1417,161 @@ describe('tenant isolation on every table in the public schema', () => {
         + `reading the table: using (${unnoticed.join('), using (')})`,
       ).toEqual([]);
     });
+
+  it('seeds a partitioned table a later migration adds, and reads it back through the parent',
+    async () => {
+      // F36. A partitioned table answers to `relkind = 'p'`, and this block read
+      // the catalogue for `relkind = 'r'` alone while the catalogue half in
+      // `schema.test.ts` had been moved onto both kinds by F29. The two families
+      // disagreed across one package, and the half that disagreed was the
+      // behavioural one: a partitioned table carrying tenant_id, row-level
+      // security and a conforming policy passed every catalogue guard and was
+      // never seeded and never read through, so the probe F29's round rested on as
+      // the real answer was the one guard that did not run on the relation kind
+      // F29 was about.
+      await rolledBack(async () => {
+        await createPartitionedProbe(TENANCY_CLAUSES[0], { withPartition: true });
+
+        // The catalogue half passes it, which is what makes this a gap rather than
+        // a relation nothing guards: tenant_id is there, row-level security is on,
+        // and the policy is one of the clauses this schema allows.
+        const { rows: catalogue } = await client.query<{
+          name: string; tenancy: boolean; enabled: boolean; clause: string | null;
+        }>(
+          `select c.relname as name, c.relrowsecurity as enabled,
+                  exists (select 1 from pg_catalog.pg_attribute a
+                           where a.attrelid = c.oid and a.attname = 'tenant_id'
+                             and not a.attisdropped) as tenancy,
+                  (select pg_catalog.pg_get_expr(pol.polqual, pol.polrelid)
+                     from pg_catalog.pg_policy pol
+                    where pol.polrelid = c.oid limit 1) as clause
+             from pg_catalog.pg_class c
+             join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+            where n.nspname = 'public' and c.relname = any($1)
+            order by c.relname`,
+          [[PARTITION_PROBE, PARTITIONED_PROBE]],
+        );
+        const allowed = TENANCY_CLAUSES as readonly string[];
+        expect(
+          catalogue.map((relation) => [
+            relation.name, relation.tenancy, relation.enabled,
+            allowed.includes(relation.clause ?? ''),
+          ]),
+          'The probe relations do not satisfy the catalogue half, so a probe that skips them '
+          + 'skips nothing and this test says nothing about the two families disagreeing: '
+          + JSON.stringify(catalogue),
+        ).toEqual([
+          [PARTITION_PROBE, true, true, true],
+          [PARTITIONED_PROBE, true, true, true],
+        ]);
+
+        const named = (await governedRelations()).map((relation) => relation.name);
+        expect(
+          [PARTITIONED_PROBE, PARTITION_PROBE].filter((name) => !named.includes(name)),
+          `The ${named.length} relations this block seeds and reads through leave out a `
+          + 'partitioned table the catalogue half has just passed, so its policy is never '
+          + 'exercised by a read and nothing here would notice if it exposed every tenant',
+        ).toEqual([]);
+
+        const columns = await requiredColumns();
+        const keys = await mandatoryKeys(columns);
+        await seedRow(PARTITIONED_PROBE, a, 'partitioned probe A', columns, keys);
+        await seedRow(PARTITIONED_PROBE, b, 'partitioned probe B', columns, keys);
+
+        // Written through the parent, which is the path a policy on the parent
+        // governs and the path an application takes, and routed by Postgres into
+        // the partition, which is why both hold the row and neither was written to
+        // directly.
+        const held: Record<string, number> = {};
+        for (const relation of [PARTITIONED_PROBE, PARTITION_PROBE]) {
+          const { rows } = await client.query<{ total: string }>(
+            `select count(*) as total from public.${relation} where tenant_id = $1`,
+            [b],
+          );
+          held[relation] = Number(rows[0].total);
+        }
+        expect(
+          held,
+          "The session that wrote the rows reads none of tenant B's back through one of the two, "
+          + 'so the cross-tenant read below would report no leak whatever the policy allowed: '
+          + JSON.stringify(held),
+        ).toEqual({ [PARTITIONED_PROBE]: 1, [PARTITION_PROBE]: 1 });
+
+        const leaked = await visibleTo(
+          { [TENANT_CLAIM]: a }, b, [PARTITIONED_PROBE, PARTITION_PROBE],
+        );
+        expect(
+          Object.keys(leaked),
+          "A request carrying tenant A's claim read rows belonging to tenant B through a "
+          + `partitioned table or its partition: ${Object.entries(leaked)
+            .map(([name, total]) => `${name} (${total})`).join(', ')}`,
+        ).toEqual([]);
+      });
+    });
+
+  it('reports a partitioned table whose policy never compares the tenant', async () => {
+    // What reading through the parent is worth, measured rather than asserted, in
+    // the shape the leaking-clause probe above uses. The clause is CODEX-02's: it
+    // asks only whether the caller has a tenant and then shows them every tenant's
+    // rows, and it is what a partitioned table carries when the author of its
+    // migration writes the policy from memory. Both the parent and the partition
+    // have to report it, because a read through either is a read a request makes.
+    const leaked = await rolledBack(async () => {
+      await createPartitionedProbe('seen.current_tenant() is not null', { withPartition: true });
+      const columns = await requiredColumns();
+      const keys = await mandatoryKeys(columns);
+      await seedRow(PARTITIONED_PROBE, a, 'leaking partitioned probe A', columns, keys);
+      await seedRow(PARTITIONED_PROBE, b, 'leaking partitioned probe B', columns, keys);
+      return visibleTo({ [TENANT_CLAIM]: a }, b, [PARTITIONED_PROBE, PARTITION_PROBE]);
+    });
+    expect(
+      Object.keys(leaked),
+      "A permissive policy on a partitioned table that hands every tenant's rows to every other "
+      + `tenant was reported by ${Object.keys(leaked).length} of the two relations a request can `
+      + 'read it through, so this block would pass over the relation kind F29 was about',
+    ).toEqual([PARTITIONED_PROBE, PARTITION_PROBE]);
+  });
+
+  it('names a partitioned table with no partition under it, which no row reaches', async () => {
+    // The obstacle this rework had to settle. A partitioned parent accepts a row
+    // only where a partition covering that row's values exists, so seeding through
+    // the parent is the right path and the partition is filled by Postgres routing
+    // the row: writing into a partition directly would mean constructing a value
+    // inside that partition's own bounds, and it would be a row no application
+    // writes, because an application writes to the table it was given.
+    //
+    // Where that runs out is a parent with no partition at all. No row reaches it
+    // by any path, so its policy can never be read through and the probe cannot
+    // say anything about it. That is its own kind of gap rather than a table that
+    // happened to come up empty, and the fixture classifies it as one so the
+    // emptiness guard can name it instead of passing over it.
+    const { classification, refusal } = await rolledBack(async () => {
+      await createPartitionedProbe(TENANCY_CLAUSES[0], { withPartition: false });
+      const parent = (await governedRelations())
+        .find((relation) => relation.name === PARTITIONED_PROBE);
+      const columns = await requiredColumns();
+      const keys = await mandatoryKeys(columns);
+      let said = 'accepted';
+      try {
+        await seedRow(PARTITIONED_PROBE, a, 'partitionless probe', columns, keys);
+      } catch (error) {
+        said = (error as Error).message;
+      }
+      return {
+        classification: parent === undefined ? 'not listed at all' : parent.partitionless,
+        refusal: said,
+      };
+    });
+    expect(
+      classification,
+      'A partitioned table with no partition under it is not classified as one no row can be '
+      + 'written to, so the emptiness guard has nothing to name it by: '
+      + JSON.stringify(classification),
+    ).toBe(true);
+    expect(
+      refusal,
+      'Postgres did not refuse the row for want of a partition, so the classification above '
+      + `rests on something the database does not say: ${refusal}`,
+    ).toMatch(/no partition of relation/);
+  });
 });

@@ -407,7 +407,12 @@ the 46 green runs since, because 20 consecutive runs were green before it too.
 
 F25's other half was the erasure registry growing about 13 rows a run, because tests that erased a tenant to
 tidy up could not tidy up: part 8 makes a tombstone permanent, which is the point of it. Those fixtures now
-roll back, and each asserts it left no tombstone. It is worth saying what this half was not: every tenant id
+roll back, and each asserts it left no tombstone. That is true of the fixtures it names and not of the suite
+as a whole, and the difference is worth stating because the sentence used to imply otherwise: F28's race block
+is the one whose fixtures must commit, since a race between two sessions has no single-transaction form, so
+the registry still grows on every run, by one row, measured across a run rather than counted from the
+fixtures. That is the same hygiene the F25 round described and not a
+regression of it. It is worth saying what this half was not: every tenant id
 in the suite is server-generated and never supplied, so no test could ever have collided with a tombstone and
 the growth could not have caused a failure.
 

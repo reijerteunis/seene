@@ -632,6 +632,24 @@ export const CLIENT_BOUND_ROLES = ['anon', 'authenticated'] as const;
  * both tenants' rows where the same role reading through the parent sees one
  * tenant's. A partition therefore owes its own enabled policy, and asking every
  * relation of kind `'r'` for one is how it is asked for.
+ *
+ * The seventh review of SEEN-008 (F36) is that the two families were agreed on in
+ * `schema.test.ts` and nowhere else: `rls.test.ts` and `uniqueness.test.ts` still
+ * read `relkind = 'r'` beside it, and the first of those is the behavioural half,
+ * which seeds a row of each tenant into every governed relation and reads each back
+ * as `authenticated`. So the guard F29's round rested on as the real answer, rather
+ * than the textual one CODEX-02 defeated, was the one guard that did not run on the
+ * relation kind F29 was about: a partitioned table would have passed the catalogue
+ * and never had a read made through its policy. Both files are on these two kinds
+ * now.
+ *
+ * What that costs the fixture is one rule, and it is the parent's: a row is written
+ * through the partitioned table and Postgres routes it into the partition covering
+ * its values, because that is the path a policy on the parent governs and the path
+ * an application takes. A partition is therefore read and never written to, which
+ * leaves one case no row reaches at all, a partitioned table with no partition
+ * under it, and `rls.test.ts` names that as its own kind of gap rather than letting
+ * it pass as a table that happened to be empty.
  */
 export const TABLE_RELKINDS: Readonly<Record<string, string>> = {
   p: 'a partitioned table',
