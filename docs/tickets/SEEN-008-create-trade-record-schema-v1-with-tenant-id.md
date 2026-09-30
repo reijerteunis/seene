@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-006, SEEN-092, SEEN-094]
-status: doing
+status: review
 ---
 # SEEN-008: Create trade-record schema v1 with tenant_id and RLS on every table
 
@@ -23,7 +23,7 @@ status: doing
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | doing |
+| Status | review |
 
 ## Description
 
@@ -31,11 +31,11 @@ Write the Supabase migration for trade-record schema v1 in packages/core/db: ten
 
 ## Acceptance criteria
 
-- [ ] Migration applies on an empty database and pnpm db:reset re-applies it without error
-- [ ] A test that lists every table in the public schema finds tenant_id and an enabled RLS policy on 100% of them
-- [ ] A query with tenant A's JWT returns zero rows from tenant B's orders in an integration test
-- [ ] Unique index on (tenant_id, marketplace, external_id) exists on orders, shipments, returns, settlements and settlement_lines
-- [ ] marketplaces seed contains the six marketplaces with capability flags matching the routing table in architecture.md
+- [x] Migration applies on an empty database and pnpm db:reset re-applies it without error
+- [x] A test that lists every table in the public schema finds tenant_id and an enabled RLS policy on 100% of them
+- [x] A query with tenant A's JWT returns zero rows from tenant B's orders in an integration test
+- [x] Unique index on (tenant_id, marketplace, external_id) exists on orders, shipments, returns, settlements and settlement_lines
+- [x] marketplaces seed contains the six marketplaces with capability flags matching the routing table in architecture.md
 
 ## Outcome
 
@@ -936,7 +936,10 @@ of a negation. The parser now refuses a cell whose text after the mode runs into
 reading the first and keeping the rest, which is the same shape as every deny-list this ticket has replaced.
 
 **What the audit ruled out is worth as much as what it found**, because it is the first time anything measured
-these rather than asserting them: no view, materialised view, foreign or partitioned table in `public`; every
+these rather than asserting them. It measured the eight parts that existed when it ran, which is not the tree
+being delivered, and the difference was not academic: part 9 then added the one partial unique index on the
+list and F69 is what caught it. Read as of the audit, then, and true of the delivered tree only where a later
+finding says so: no view, materialised view, foreign or partitioned table in `public`; every
 `seen` function with an empty `search_path` and only `current_tenant` reachable; every temporal column
 `timestamptz` and every cents column `bigint`; `external_id` not null on all five tables of criterion 4; no
 partial or expression unique index anywhere; no `NOT VALID` and no `DEFERRABLE` constraint; all eight set-null
@@ -950,6 +953,75 @@ the honest green, taken once both were in the tree. And the reconciliation of th
 to ten, which had been reserved, was done by the second batch because the gate refuses a green that exited
 non-zero and two assertions were failing on it. Totals only, no part renumbered, and said plainly rather than
 folded in.
+
+**A sixth review, in Claude Code this time, returned it on five more, and two of them were high.** The three
+Codex rounds before it had all died on a usage limit, so the review that finally read this diff was a subagent
+at full depth: the triage settled coverage, lint, gitleaks and the fingerprint with no model at all, handed
+over the three it could only half settle with the remainder named, and gave the reviewer the whole diff because
+`slice_files` failed. It reproduced both highs against the live database in a rolled-back transaction rather
+than arguing them.
+
+**Both highs were the same defect this ticket has now produced seven times: a guard whose comment claims more
+than the guard does.** F67 is that part 10's `check (storage_path like tenant_id::text || '/%')` binds the text
+an evidence row stores and never the object the bytes went to. Upload to `shared/uploads/x.pdf`, store
+`<tenant>/claims/<claim>/x.pdf`, and the check passes while the object survives the tenant's erasure unfound,
+which is precisely the outcome F63 measured, in the file written to close F63. The migration had then used that
+constraint to argue SEEN-022 was owed no criterion. F68 is that the keys part 9 added reference `connections`
+on three columns with no on-update action, so they default to NO ACTION and refuse the rename part 3's
+`on update cascade` exists to propagate, from the moment a connection has one child, while two paragraphs of
+part 9 said a rename still carries its connections with it.
+
+**F67's answer is F63's answer, and the reason is the same.** A check constraint can read no table but the row
+it is on, so no statement in this schema can make that check about the upload; claiming otherwise was the whole
+defect. The paragraph now states its reach and its limit in F63's own terms, and the withdrawal is held as data
+rather than as prose, because a comment nothing reads is the class that produced F67 and F70 in the first
+place: `SCHEMA_OBLIGATIONS` makes the suite red unless `public.evidence` and `public.statements` name the
+tickets that owe the prefix and unless each of those tickets carries the criterion. SEEN-041 joined SEEN-022
+and SEEN-027 there, because `statements.storage_path` was constrained for the same reason and no ticket had
+been told about it either. The reach itself is then pinned as behaviour and not only as a promise: a row may
+name a path no object stands at, an object under the prefix that no row names is still swept, and an object
+outside the prefix is walked past, and all three stay true once the obligation tickets close the third where it
+can be closed, which is the uploading code.
+
+**F68 went the other way, and on a measurement rather than a preference.** Cascading down the chain was the
+obvious repair and it is wrong: `on update cascade` has no per-column form, so putting it on the key from
+`orders` to `connections` would also make an update of `connections.tenant_id` rewrite every order beneath it,
+which is the exact hole part 9's other trigger closes on the one table that had it, bought four more times for
+a rename nobody has asked for. So the identifier is immutable, a trigger says so and refuses with 23001 whether
+or not anything hangs below, and part 3's cascades are left in the shape part 3 wrote them and are now provably
+inert, which both files state. A schema that answers `accepted` on an idle account and `23503` on a trading one
+is not a rule, and that was the real finding.
+
+**F69 is F46 reproduced two rounds after F46 was fixed.** Part 9's `message_threads` index was partial, so the
+`ON CONFLICT` upsert SEEN-061 and SEEN-062 are specified to write fails with 42P10, which is the SQLSTATE part
+9 itself quoted as the failure its three new indexes exist to prevent, and the self-check that approved it
+asked `pg_index` for a description exactly as part 8 had before F46 made it run the statement. The index is
+non-partial, `external_thread_id` is not null, the self-check runs the statements, and `message_threads` has an
+upsert test of its own beside the `order_lines` one.
+
+**F70 is the set describing a column it no longer has**, parts 3 and 7 creating, arguing for and classifying
+`invoices.recovery_share_lines` that part 10 drops, so a reader of the schema meets a reversed decision
+presented as a deliberate one. The set is forward-only by convention, so the repair is not a pointer to part
+10 but a scanner: `migrationColumnReferences` refuses any migration sentence describing a column the delivered
+schema does not hold. That guard can be trusted because a column reference is a name and `pg_attribute`
+settles it.
+
+**Where the same widening was refused, and why that is the more useful half.** Fixing F70 surfaced part 2's
+sentence that `message_threads` carries no unique index on the thread id, which part 9 had made false and the
+column scanner cannot see. Catching the class rather than the instance would mean recognising that "there is
+no unique index on it here", "this column is not keyed" and "the upsert key is SEEN-061's to add" are all
+denials and inferring from English which relation and which kind of index each denies; matching on the word
+`index` and asking `pg_index` inverts the error instead of removing it, because this set has fourteen comments
+that correctly say a column is part of an upsert key and every one would be reported. So the class is left
+uncaught and said to be, and the instance is held as data in `WITHDRAWN_SHAPE_CLAIMS` beside what is true
+instead, where it cannot survive, be copied or come back. A guard that reports a number nobody can trust is
+worse than a gap somebody has written down.
+
+**F71 was the status drift, for the third time on this ticket**, the file saying `doing` with five unticked
+criteria while the journal stood at review. Notes 207 and 261 are the first two. The order this attempt now
+holds to is the one the reviewer read out of the earlier commits: the regression, the advance out of tdd, and
+then the `## Outcome`, the status and the ticks in one commit before the triage, so the fingerprint the review
+attests covers a ticket file that already says what it delivered.
 
 ## Slices
 
