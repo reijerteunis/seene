@@ -1074,6 +1074,61 @@ list is. The standard this ticket settled on is that a guard reporting a number 
 gap somebody has written down, and it now has three such gaps written down rather than three guards that would
 have to be believed.
 
+**The fourth review found the thing every round before it had been circling, and it was high.** F78 is a
+cross-tenant credential move: one `update public.connections set tenant_id` carries a seller account's
+`credential_ref`, its scopes and its status into another tenant, the receiving tenant's own signed-in user then
+reads that row under its own claim, the owning tenant reads nothing, and no audit event is written by either
+party. It was accepted while the connection was idle and refused 23503 once it had traded, which is the shape
+part 9's own comments call the worst of the two answers, three times over, and it is the same credential move the
+trigger twenty lines above exists to prevent by the cascade route. Part 9 had declared the gap generically, as a
+wider question than F65 that it did not settle, without noticing that on this one table the wider question is
+F65. F80 was the same defect one column over, `claims.marketplace` being the third authored identifier where the
+file counted two.
+
+**The prediction recorded at the previous round was wrong and is left standing rather than quietly dropped.**
+The reasoning there was that the class had produced twelve prose findings and that a thirteenth would mean the
+review had stopped paying for itself. What it produced instead was a reproducible hole with credentials in it,
+because "the last two rounds were prose" had been allowed to stand in for "this round will be". The lesson is
+about the inference and not about the class: a review whose last findings were cheap is not a review whose next
+finding is cheap, and nothing in the record supported turning the one into the other.
+
+**So the repair is the class and the class is derived from the catalogue, which is what finally settled it.**
+Every finding from F55 onwards was some column that should not change with nothing stopping it, found one at a
+time, and every repair enumerated by hand the columns it happened to be looking at: the head of part 9 said
+"both places this schema writes one" where there were three, and F72's section said "one of the two columns that
+hold one" where nine hold the identifier. A count written by hand was the defect each time, so no count is
+written by hand now. Two rules over `pg_catalog` give the set: `tenant_id` on every table of `public` that
+carries one, and the key column of a catalogue key together with every column whose own foreign key points at
+that key. The second rule is what tells an authored identifier from a derived one without reading English, and
+the reason it works is that a foreign key names exactly one unique key of its parent: a key pointing at
+`(tenant_id, marketplace)` says only that the value is in the catalogue and leaves it free to become any of the
+six, while a key pointing at `connections (tenant_id, id, marketplace)` pins it to a parent row chosen first.
+That yields 32 members, three of them a marketplace identifier and 29 a `tenant_id`, and it excludes the other
+six `marketplace` columns and every `*_id` reference for reasons the rules state rather than for reasons somebody
+remembered. One trigger function carries the column in `tg_argv`, a `DO` block creates the 28 triggers no
+bespoke guard already covers, and the suite derives the same set independently and probes every member with an
+`UPDATE` on an idle row and on a trading one. A column that enters the set later with nothing guarding it makes
+the suite red on arrival, which is the property none of the hand-written enumerations had.
+`IMMUTABLE_IDENTIFIER_EXCEPTIONS` is empty and says why, and names the one case the rules cannot see: an
+identifier this schema authors that no key points at, of which there is none today.
+
+**What that fix then measured is the argument for having written it that way.** F78 was reported as the idle
+case on one table. The RED at record 293 shows twelve columns moving a row into another tenant, and seven of them
+did it with children already attached, because those children hang on nullable keys or on none:
+`approvals`, `findings`, `invoices`, `policies`, `products`, `statements` and `users`. The finding understated
+its own reach, and a repair scoped to the finding would have closed one of the twelve and left the sentence
+about the other eleven still true.
+
+**Three things the round noticed and did not close**, recorded because each is a limit of the guard rather than
+a gap in the schema. `public.tenants.tenant_id` has no idle state to probe, because the seed trigger gives every
+new tenant six catalogue rows, so its two answers agree for that reason rather than because of the trigger.
+`marketplaces.tenant_id` would answer 23505 on both probes if its bespoke guard were dropped, so that one member
+could pass for a reason that is not a guard, and the fixture clears the target tenant's rows to avoid it
+wherever it can. And re-parenting is a different class from an authored identifier: `order_lines.marketplace` is
+filled by a trigger and is immutable only for as long as `orders.marketplace` is, and no trigger refuses an
+update of a parent reference directly. Widening to that would need its own decision, so it is written down
+rather than guessed at.
+
 ## Slices
 
 The starting slice plan, one session each; the solution stage adopts or amends it (SEEN-104). A slice is at most 2 points and a ticket has at most four.
