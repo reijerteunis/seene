@@ -135,11 +135,22 @@ The branch was rebased onto main after the review, so its receipt attests only t
 review's fourth finding: it had been stacked on SEEN-112's branch, which carried 2,100 lines of another
 ticket's work and that ticket's file still at `status: doing`.
 
-Left open, named rather than done: `pg_default_acl` still grants the four write privileges to `anon` and
-`authenticated` on tables that do not exist yet, so the next migration's table is born writable by the role a
-browser is bound to. The new privilege assertion fails loudly when that happens, which is detection rather than
-prevention; narrowing it with `alter default privileges` changes every future migration and was not in the
-decision above.
+Left open when this paragraph was written, and closed since: `pg_default_acl` granted the four write
+privileges to `anon` and `authenticated` on tables that did not exist yet, so the next migration's table was
+born writable by the role a browser is bound to, and this paragraph said that narrowing it with `alter default
+privileges` changed every future migration and was not in the decision above.
+
+That is no longer true of the tree this ticket delivers, and the sentence is corrected here rather than left
+for a reader who stops before the F19 and F39 paragraphs further down. Part 6 revokes the default privileges,
+and F39 later established that the global form with no `in schema` clause subtracts PostgreSQL's own grant to
+PUBLIC where the per-schema form cannot. Measured on the delivered tree: a table created in `public` is born
+`{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}` with no `anon` or `authenticated` entry at all, a
+function `{postgres=X,service_role=X}` with `has_function_privilege` false for both, and a sequence
+`{postgres=rwU,service_role=rwU}`. It is prevention, not detection.
+
+F54 is what that sentence cost: a withdrawn premise left standing where a person meets it, in the one document
+the withdrawn-claim scanner deliberately does not read, which is the same class as F43, F44 and F50 and the
+fourth time this ticket has produced it in prose rather than in code.
 
 ### The second review's three remaining findings, closed
 

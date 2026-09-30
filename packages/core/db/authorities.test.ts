@@ -127,7 +127,13 @@ const SYNTHETIC_SOURCE = 'packages/core/db/synthetic.ts';
  * reporting nothing. Written with no type annotation, which is how an author
  * avoiding the guard writes it and is the only form that proves anything: with
  * `typeof import('node:fs')` in a type position the pre-processor reports the
- * specifier from the type and the loader is never the reason. */
+ * specifier from the type and the loader is never the reason.
+ *
+ * The bundler's glob is one more way of asking, and F52 is what it cost to leave
+ * it out. `import.meta.glob` names a literal pattern and vitest hands back what it
+ * matches, with `?raw` handing back the text rather than the module, so a source
+ * written this way read the whole of docs/prd/prd.md while both instruments
+ * reported nothing. */
 const READING_SOURCES: [source: string, reported: string][] = [
   ["import { readFileSync } from 'node:fs';", 'node:fs'],
   ["import { readFileSync } from 'fs';", 'fs'],
@@ -142,6 +148,8 @@ const READING_SOURCES: [source: string, reported: string][] = [
   ["import { helper } from '../../../scripts/helper';", '../../../scripts/helper'],
   ["import { vi } from 'vitest';\nconst fs: any = await vi.importActual('node:fs');", 'node:fs'],
   ["import { vi } from 'vitest';\nconst cp: any = await vi.importMock('child_process');", 'child_process'],
+  ["const prd: any = import.meta.glob('../../../docs/prd/prd.md', { query: '?raw', import: 'default', eager: true });",
+    '../../../docs/prd/prd.md'],
 ];
 
 /** Sources that read nothing, so that the guard is not passing by objecting to
@@ -262,6 +270,75 @@ describe('the spelling a reading import is written with', () => {
       objected,
       'These specifiers name a file this scan collects, spelled as TypeScript allows them to be '
       + `spelled, and the guard reports them, so resolution is stricter than the runtime: ${objected.join(' | ')}`,
+    ).toEqual([]);
+  });
+
+  it('names a repository file a call is handed, under whatever name the call is made', () => {
+    // F52, and the fifth arrival of the class CODEX-03, F34, F40, F45 and F47 each
+    // closed one spelling of. `import.meta.glob('../../../docs/prd/prd.md', { query:
+    // '?raw', eager: true })` is a read: a literal written in the source, the text of
+    // the file handed back, no import syntax for the pre-processor to report and no
+    // name the loader list held. Measured before this was written: a module of this
+    // package written that way read 27272 characters of docs/prd/prd.md, turbo did
+    // not hash it, and the guard named nothing.
+    //
+    // So the instrument that answers here is not the list of call names. Five
+    // spellings arrived one at a time because a list of names has to anticipate the
+    // sixth, and the walk already visits every call in the file: a string literal at
+    // any call, under any name, that resolves to a repository file this package's own
+    // scan did not collect is reported, and the name at the call is not consulted.
+    // The two cases below that are written under a name no list holds are the point.
+    // What that cannot do is judge `node:fs`, which names no file, so the list is
+    // still what answers for a loader handed a module, and both are asserted here.
+    expect(
+      repositoryPathExists(UNHASHED_AUTHORITY) && !testTaskInputs().includes(UNHASHED_AUTHORITY),
+      `${UNHASHED_AUTHORITY} is either absent or hashed now, so a source globbing it demonstrates `
+      + 'no hazard. Name a file that is there and is not hashed.',
+    ).toBe(true);
+    const reported: [source: string, why: string][] = [
+      ["const prd: any = import.meta.glob('../../../docs/prd/prd.md', { query: '?raw', eager: true });",
+        'the glob grammar reads an authority nothing hashes and neither instrument names it'],
+      ["const docs: any = import.meta.glob(['./tables.ts', '../../../docs/prd/prd.md'], { eager: true });",
+        'a pattern in an array is invisible to a rule that reads the first argument only, and the '
+        + 'array form is what a source globbing two things is written with'],
+      ["const prd: any = import.meta.glob('/docs/prd/prd.md', { query: '?raw', eager: true });",
+        'the bundler resolves a leading slash against the repository root, so this spelling reads '
+        + 'the same file without a relative specifier anywhere in it'],
+      ["const load = import.meta.glob;\nconst prd: any = load('../../../docs/prd/prd.md', { eager: true });",
+        'the call is made under a name no list holds, which is how the sixth spelling arrives if '
+        + 'what answers here is a list of names'],
+      ["const prd: any = readAuthority('../../../docs/prd/prd.md');",
+        'any call handed the path of a repository file this scan did not collect is a read this '
+        + 'package cannot account for, whatever the callee is called'],
+    ];
+    const missed = reported
+      .filter(([source]) => readingImportsOf(source, SYNTHETIC_SOURCE).length === 0)
+      .map(([source, why]) => `${source.replace('\n', ' ')} -> ${why}`);
+    expect(
+      missed,
+      `These sources obtain a repository file and the guard names nothing: ${missed.join(' | ')}`,
+    ).toEqual([]);
+    // The other half of the measurement, because a rule that reads every literal at
+    // every call is a rule that can object to ordinary code. These are the shapes
+    // that made an unrestricted version of it report four sources of this package
+    // when it was measured: a literal that resolves to a directory rather than a
+    // file, and a literal that is an extension or a separator rather than a path.
+    const settled = [
+      "const own: any = import.meta.glob('./tables.ts', { eager: true });",
+      "const migrations = names.filter((name) => name.endsWith('.sql'));",
+      "const parts = file.split('/');",
+      "const trimmed = entry.trim().replace(/\\s+$/, '');",
+      "const inside = specifier.startsWith('.');",
+      "const bin = join(root, 'node_modules', '.bin', 'turbo');",
+    ];
+    const objected = settled
+      .map((source) => [source, readingImportsOf(source, SYNTHETIC_SOURCE)] as const)
+      .filter(([, named]) => named.length > 0)
+      .map(([source, named]) => `${source} -> ${named.join(', ')}`);
+    expect(
+      objected,
+      'The guard reports a literal that names no repository file, so it objects to ordinary code '
+      + `and would be loosened by the next person to meet it: ${objected.join(' | ')}`,
     ).toEqual([]);
   });
 

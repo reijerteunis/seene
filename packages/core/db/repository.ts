@@ -66,9 +66,27 @@
  * the transitivity is what the code does rather than what a sentence beside it
  * says, and it survives somebody editing the skip list without ever hearing of
  * this finding.
+ *
+ * F52 is the seventh, and it arrived the way most of the six before it did: as a
+ * spelling nobody had thought of. `import.meta.glob` is a third grammar in which
+ * a module of this package writes a literal and is handed a repository file, and
+ * it is the bundler's rather than the language's or the runner's, so the
+ * pre-processor reported nothing and the list of loader names held no entry for
+ * it. Measured before this was written: a module here globbing
+ * `../../../docs/prd/prd.md` with `?raw` read 27272 characters of it, turbo
+ * hashed none of them, and the guard named nothing.
+ *
+ * The glob is named in the loader list, so that its literal meets the allow-list
+ * an import meets and there is one rule rather than three. But five spellings
+ * closed one at a time are five rules about how the next one is written, which is
+ * the mistake this module has now made at every size, so a third instrument is
+ * added that consults no name at all: a string literal anywhere in a call that
+ * resolves to a repository file this package's own walk did not collect is
+ * reported, whatever the call is called. What that buys, what it costs and what
+ * it still cannot see are at `repositoryFilesNamedIn`.
  */
 import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { extname, join, posix, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -359,26 +377,44 @@ export function packageSources(): string[] {
  * imported one is.
  *
  * Matched by the name at the call and not by what it was reached through, so
- * `vi.importActual`, `vitest.importActual` and a destructured `importActual` are
- * one case, and an alias bound to another name is not seen. A deny-list of names
- * has the weakness every deny-list here has had, and it is used anyway because
- * the alternative is reporting every string literal in the file, which is the
- * false positive the pattern this replaced was withdrawn for.
+ * `vi.importActual`, `vitest.importActual`, `import.meta.glob` and a destructured
+ * `importActual` are one case, and an alias bound to another name is not seen by
+ * this instrument. That last weakness is why this is no longer the only one:
+ * `repositoryFilesNamedIn` reads the same calls without consulting a name. What
+ * this list is still needed for is the literal that names no file, `node:fs`
+ * above all, where the allow-list is the only thing that can answer.
+ *
+ * `glob` is F52 and is the bundler's rather than the runner's. `import.meta.glob`
+ * takes a literal pattern, or an array of them, and vitest hands back what it
+ * matches, which with `?raw` is the text of the file rather than a module. Named
+ * here rather than given a rule of its own so that a globbed pattern meets the
+ * same allow-list an imported specifier meets: `./tables` is admitted whichever
+ * of the three grammars asks for it, and `node:fs` is reported whichever does.
  */
-export const MODULE_LOADING_CALLS = ['importActual', 'importMock'];
+export const MODULE_LOADING_CALLS = ['glob', 'importActual', 'importMock'];
 
-/** The specifiers a source hands to one of those calls, in the order they appear.
+/**
+ * The source text parsed, once, so that the two walks below read one tree.
+ *
  * The parse is of text already in hand and opens nothing; a file that does not
- * parse yields the calls the parser did recover, which is more than none. */
-function loadedSpecifiers(contents: string, source: string): string[] {
+ * parse yields the calls the parser did recover, which is more than none.
+ */
+function parseSource(contents: string, source: string): ts.SourceFile {
   const jsx = ['.jsx', '.tsx'].includes(extname(source));
-  const parsed = ts.createSourceFile(
+  return ts.createSourceFile(
     `specifiers${jsx ? '.tsx' : '.ts'}`,
     contents,
     ts.ScriptTarget.Latest,
     false,
     jsx ? ts.ScriptKind.TSX : ts.ScriptKind.TS,
   );
+}
+
+/** The specifiers a source hands to one of those calls, in the order they appear.
+ * Both the single literal `vi.importActual` takes and the array of them a glob may
+ * be written with, because a rule that reads the first argument and expects a
+ * string is a rule about how the pattern is punctuated. */
+function loadedSpecifiers(parsed: ts.SourceFile): string[] {
   const found: string[] = [];
   const visit = (node: ts.Node): void => {
     if (ts.isCallExpression(node)) {
@@ -387,9 +423,13 @@ function loadedSpecifiers(contents: string, source: string): string[] {
       if (ts.isPropertyAccessExpression(expression)) called = expression.name.text;
       else if (ts.isIdentifier(expression)) called = expression.text;
       const [first] = node.arguments;
-      if (called !== undefined && MODULE_LOADING_CALLS.includes(called)
-        && first !== undefined && ts.isStringLiteralLike(first)) {
-        found.push(first.text);
+      if (called !== undefined && MODULE_LOADING_CALLS.includes(called) && first !== undefined) {
+        if (ts.isStringLiteralLike(first)) found.push(first.text);
+        else if (ts.isArrayLiteralExpression(first)) {
+          for (const element of first.elements) {
+            if (ts.isStringLiteralLike(element)) found.push(element.text);
+          }
+        }
       }
     }
     ts.forEachChild(node, visit);
@@ -464,6 +504,92 @@ function resolvedInPackage(specifier: string, source: string, collected: Set<str
   return candidatePaths(target).some((candidate) => collected.has(candidate));
 }
 
+/** Whether a repository-relative path is a file on disk. Asked rather than
+ * computed, and asked inside a try, because a string literal is prose as often as
+ * it is a path and the filesystem answers a sentence longer than a path may be
+ * with an error rather than with `false`. */
+function isRepositoryFile(candidate: string): boolean {
+  if (candidate === '' || candidate.startsWith('..')) return false;
+  try {
+    return statSync(join(REPOSITORY_ROOT, candidate), { throwIfNoEntry: false })?.isFile() === true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Every repository file a source names at a call, whatever the call is named.
+ *
+ * This is F52's real answer, and the one instrument here that asks nothing about
+ * spelling. Five arrivals of one hazard were closed one at a time, each by adding
+ * the newest spelling to a list: three `node:` specifiers, then every grammar the
+ * pre-processor knows, then the runner's two loaders, then the bundler's glob. A
+ * list of names is a prediction of how the sixth is written, and the record of
+ * this module's predictions is five for five against. The walk already visits
+ * every call in the file, so it can measure the argument instead of recognising
+ * the callee: a literal that resolves to a repository file this package's own walk
+ * did not collect is a file a test can be handed the contents of, and nothing
+ * about the name in front of it changes that.
+ *
+ * What it costs, measured on this tree before it was written. An unrestricted
+ * version, reporting any literal that resolved to anything on disk, named four
+ * calls across two sources: `join(root, 'node_modules')`, `file.split('/')`,
+ * `specifier.startsWith('.')` and a `replace` with an empty string. All four
+ * resolve to a directory rather than to a file, because an empty string, a dot
+ * and a slash all name the directory they are joined to, so requiring a file
+ * leaves this reporting nothing on the sources as they stand. That is the whole
+ * of the false-positive measurement and it is worth repeating if it ever starts
+ * objecting: a guard that cries at ordinary code is a guard somebody loosens.
+ *
+ * A bare literal is resolved against the source's own directory and not against
+ * the repository root, which is the one place generosity was declined. `turbo.json`
+ * and `package.json` are file names at the root, and a test asserting that a name
+ * equals one of them is naming a file rather than reading it. What that leaves
+ * open is a repository-relative path handed to a call, which is how
+ * `readRepositoryFile` itself is called; reaching content from one takes either
+ * that reader, which refuses a path the task does not hash, or a module the
+ * allow-list already reports the import of.
+ *
+ * What it cannot see: a path assembled from pieces or computed, since there is no
+ * literal to measure; a literal that names a file not on disk while the suite
+ * runs; and a literal written anywhere other than an argument. The bundler's glob
+ * needs a literal argument by its own design, so the first of those is not a route
+ * through the case this was written for.
+ */
+function repositoryFilesNamedIn(
+  parsed: ts.SourceFile,
+  source: string,
+  collected: Set<string>,
+): string[] {
+  const found: string[] = [];
+  const consider = (literal: string): void => {
+    const candidates = [posix.join(posix.dirname(source), literal)];
+    if (literal.startsWith('/')) {
+      // How the bundler reads a leading slash, and how a path of this machine
+      // reads if it happens to land inside the repository.
+      candidates.push(literal.slice(1), relative(REPOSITORY_ROOT, literal).replace(/\\/g, '/'));
+    }
+    if (candidates.some((candidate) => !collected.has(candidate) && isRepositoryFile(candidate))) {
+      found.push(literal);
+    }
+  };
+  const visit = (node: ts.Node): void => {
+    if (ts.isCallExpression(node) || ts.isNewExpression(node)) {
+      for (const argument of node.arguments ?? []) {
+        if (ts.isStringLiteralLike(argument)) consider(argument.text);
+        else if (ts.isArrayLiteralExpression(argument)) {
+          for (const element of argument.elements) {
+            if (ts.isStringLiteralLike(element)) consider(element.text);
+          }
+        }
+      }
+    }
+    ts.forEachChild(node, visit);
+  };
+  ts.forEachChild(parsed, visit);
+  return found;
+}
+
 /**
  * Everything a source imports that this package cannot vouch for as unable to
  * open a file, named as the source spells it.
@@ -487,41 +613,51 @@ function resolvedInPackage(specifier: string, source: string, collected: Set<str
  * it, and a loader handed `node:fs` or `../node_modules/pg` is as reported,
  * because there is one list and one resolver and not two of either.
  *
- * What is known to survive both, and would survive a lint rule equally, because
- * all three read the specifier a module was written with: `import()`, `require()`
- * or a loader call given a computed specifier, since there is no literal to
- * report; a loader reached under a name this does not match, such as a local
- * binding of `vi.importActual`; `createRequire` reached other than by importing
- * `node:module`, such as through `process.getBuiltinModule`; and anything
- * assembled and run through `eval` or `new Function`. None of those is shut here.
+ * Neither of those reads the file system, which is F52. Both ask what a name is
+ * allowed to mean, and `import.meta.glob('../../../docs/prd/prd.md')` was a name
+ * that meant a document. So `repositoryFilesNamedIn` answers a third time and
+ * consults no name at all: a literal at any call that is a repository file this
+ * walk did not collect is reported whatever the callee is. The three are a union
+ * and not a sequence, and only the first two can judge `node:fs`, which is a
+ * module and not a file.
+ *
+ * What is known to survive all three: `import()`, `require()` or a loader call
+ * given a computed specifier, since there is no literal to report; a loader
+ * reached under a name the list does not match and handed something that is not a
+ * file of this repository, such as a local binding of `vi.importActual` given
+ * `node:fs`; `createRequire` reached other than by importing `node:module`, such
+ * as through `process.getBuiltinModule`; anything assembled and run through
+ * `eval` or `new Function`; and a repository path built from pieces rather than
+ * written as one literal.
  *
  * That is what is known to survive and not a statement of all that does. It was
  * written as the whole list once, three items and the sentence that none of them
  * is shut here, and the fourth was `vi.importActual`: a literal specifier, in the
  * module this allow-list admitted on the ground that it could not reach a file,
  * found one round after a finding about a stated impossibility that was false.
- * What can honestly be said is the shape of the blind spot rather than its
- * membership. This reads the specifier a module was written with, in the two
- * places a module is written to name one, so anything that hands back a module
- * without a specifier written where this looks is unseen until somebody measures
- * it and adds it above. None of that is how an authority gets read by accident,
- * which is the case this guard is for; deliberate evasion is not what an
- * allow-list over one package's own sources can settle. A read from another
- * package's tests is out of reach for the separate reason that it runs under its
- * own task and its own cache key.
+ * The fifth was `import.meta.glob`, found one round after the paragraph saying so
+ * was written. What can honestly be said is the shape of the blind spot rather
+ * than its membership, and F52 has changed that shape rather than emptied it:
+ * what is read is still only what a source writes as a literal, now in three
+ * grammars and at every call, so anything that reaches a file without one is
+ * unseen until somebody measures it. None of that is how an authority gets read
+ * by accident, which is the case this guard is for; deliberate evasion is not
+ * what an allow-list over one package's own sources can settle. A read from
+ * another package's tests is out of reach for the separate reason that it runs
+ * under its own task and its own cache key.
  */
 export function readingImportsOf(contents: string, source: string): string[] {
+  const parsed = parseSource(contents, source);
   const imported = ts.preProcessFile(contents, true, true).importedFiles
     .map((reference) => reference.fileName)
-    .concat(loadedSpecifiers(contents, source));
+    .concat(loadedSpecifiers(parsed));
   // Measured once per call rather than once per specifier, and from disk rather
   // than from a cache, for the reason `packageFiles` gives: what is being asked
   // is what exists, and what exists does not change while the suite runs.
   const files = packageFiles();
   const collected = new Set([...files.sources, ...files.inert]);
-  return [...new Set(imported)]
-    .filter((specifier) => (specifier.startsWith('.')
-      ? !resolvedInPackage(specifier, source, collected)
-      : !(specifier in IMPORTS_THAT_CANNOT_READ)))
-    .sort();
+  const unvouched = imported.filter((specifier) => (specifier.startsWith('.')
+    ? !resolvedInPackage(specifier, source, collected)
+    : !(specifier in IMPORTS_THAT_CANNOT_READ)));
+  return [...new Set([...unvouched, ...repositoryFilesNamedIn(parsed, source, collected)])].sort();
 }

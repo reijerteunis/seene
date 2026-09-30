@@ -20,12 +20,14 @@
  * permissive policy, which is the only way to show that the assertion sees a
  * policy set and not the existence of one policy.
  */
+import { randomUUID } from 'node:crypto';
+
 import { Client } from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import {
-  listRepositoryDirectory, packageSources, readRepositoryFile, repositoryPathExists,
-  REPOSITORY_ROOT, testTaskInputs,
+  listRepositoryDirectory, PACKAGE_DIRECTORY, packageSources, readRepositoryFile,
+  repositoryPathExists, REPOSITORY_ROOT, SOURCE_EXTENSIONS, testTaskInputs,
 } from './repository';
 import {
   APPEND_ONLY_PRIVILEGES, APPEND_ONLY_TABLES, ARCHITECTURE_DOCUMENT,
@@ -1146,12 +1148,35 @@ function setSizesStatedInComments(sources: readonly ScannedSource[]): StatedSetS
  * which is where F39 and F50 were both found.
  */
 function sourcesThatDocumentTheSet(): ScannedSource[] {
-  const own = packageSources();
   const members = migrationFiles().filter((file) => file.includes(TRADE_RECORD_MIGRATION_MARKER));
-  return [...own, ...members, ARCHITECTURE_DOCUMENT].map((file) => ({
+  return filesThatDocumentTheSet(packageSources(), members).map((file) => ({
     file,
     contents: readRepositoryFile(file),
   }));
+}
+
+/**
+ * Which files that scan is over, given this package's modules and the members of
+ * the set. Pure over the names it is handed, which is F53.
+ *
+ * The test holding F49's fix used to compare the scan's file list against
+ * `packageSources()`, and the scan was built by spreading `packageSources()`, so
+ * the comparison held whatever this package contained and whatever the scan did
+ * with it. A narrowing to the names ending `.ts`, which is the exact defect F49
+ * removed, is invisible to a comparison like that for as long as every module
+ * here is named `.ts`, and all fourteen of them are. Only a name this package
+ * does not hold can tell a narrowed selection from an unnarrowed one, so the
+ * selection is asked about names rather than measured against the disk.
+ *
+ * What that leaves open, said here rather than left for a reader to assume it is
+ * covered: a caller that hands this a list somebody has already narrowed. There
+ * is one caller, and it is the six lines above.
+ */
+function filesThatDocumentTheSet(
+  own: readonly string[],
+  members: readonly string[],
+): string[] {
+  return [...own, ...members, ARCHITECTURE_DOCUMENT];
 }
 
 /**
@@ -1347,9 +1372,13 @@ function constrainedTicketFiles(): string[] {
  * one, so a fixture that erases its tenant outside a transaction leaves a row in
  * `seen.erased_tenants` on every run, in every database the suite is pointed at.
  * The fixtures here live in a transaction that is rolled back instead, which
- * takes the tombstone with them. This is hygiene and not correctness: every
- * tenant id in this suite is server-generated and never supplied, so no test can
- * collide with a tombstone and the growth can fail nothing.
+ * takes the tombstone with them. This is hygiene and not correctness: no test can
+ * collide with a tombstone, because a tenant id here is either server-generated or
+ * minted in the namespace F51 reserves, so the growth can fail nothing.
+ *
+ * The two blocks that cannot roll back, because a race needs two sessions, carry
+ * their own answer at `FIXTURE_TENANT_PREFIX`: recognisable ids, and a refusal to
+ * run at all against a database holding rows they did not write.
  */
 async function assertNoTombstones(
   client: Client,
@@ -2158,7 +2187,47 @@ describe('the migrations that write the schema', () => {
     ).toEqual([]);
   });
 
-  it('shows both guards every module this package can run, whatever it is named', () => {
+  it('shows both guards a module at every extension this package can run', () => {
+    // F53. The assertion below was written for F49 and measured nothing: it takes
+    // the scan's file list, subtracts it from `packageSources()`, and the scan is
+    // `packageSources()` spread into a longer list, so the difference is empty
+    // whatever this package holds and whatever the scan does with it. Restoring
+    // the narrowing F49 removed left it green, because all fourteen modules
+    // collected here are named `.ts` and a narrowing to `.ts` drops none of them.
+    // The green that recorded F49's fix was measured with a
+    // `withdrawn-claim-probe.test.mts` in the package, which is not in this tree,
+    // so what the assertion covered was a file nobody else will ever have.
+    //
+    // So the selection is asked about names instead, one per extension the runtime
+    // can load, and the names are this test's rather than the disk's: the eight
+    // are `SOURCE_EXTENSIONS`, which is what `packageFiles` walks and therefore
+    // what a module of this package may be called, and a scan that drops any of
+    // them puts a module a person reads outside both guards exactly as `.mts` was.
+    const probes = SOURCE_EXTENSIONS.map(
+      (extension) => `${PACKAGE_DIRECTORY}/db/probe${extension}`,
+    );
+    const member = `${MIGRATIONS_DIRECTORY}/20270101000000_${TRADE_RECORD_MIGRATION_MARKER}_x.sql`;
+    const carried = filesThatDocumentTheSet(probes, [member]);
+    expect(
+      probes.filter((file) => !carried.includes(file)),
+      'Modules at these extensions run under vitest and are read by a person, and the scan that '
+      + 'feeds the withdrawn-claim guard and the size guard would drop them, so both guards '
+      + 'report nothing about whatever such a module says. This is F49\'s defect exactly: the '
+      + 'walk behind the scan collects all eight, and a selection narrowed by how a file happens '
+      + 'to be named puts the seven that are not `.ts` back outside it',
+    ).toEqual([]);
+    // And the other two authorities are carried, so the assertion above cannot be
+    // satisfied by a selection that answers with its first argument and nothing
+    // else. The members are the set's own migrations; the architecture document is
+    // the other file in this repository where a rule about this schema is written.
+    expect(
+      carried.filter((file) => !probes.includes(file)),
+      'The set\'s own migrations and the architecture document are not in the scan, so a '
+      + 'withdrawn claim or a size restated in either of them is read by nobody',
+    ).toEqual([member, ARCHITECTURE_DOCUMENT]);
+  });
+
+  it('leaves no module of this package outside the scan, and says what it holds', () => {
     // F49. The scanner handed the guards `packageSources()` narrowed to the names
     // ending `.ts`, in the same change in which F45 widened that walk to the eight
     // extensions the runtime loads, and widened it because a `.test.mts` had been
@@ -2181,6 +2250,17 @@ describe('the migrations that write the schema', () => {
     // and the report says what the guards make of what was left out, because a
     // file named here is worth reading only beside the sentence in it that nobody
     // was going to be told about.
+    //
+    // What it cannot be, which is F53 and is why the assertion above it exists. It
+    // is a difference between the scan's files and the ones the scan is built
+    // from, so it is empty for every package that ever existed as long as the scan
+    // spreads `packageSources()` whole, and it fires only for a selection that
+    // drops a name it was handed. That is worth keeping and is not the regression
+    // F49 asked for: an extension narrowing drops nothing here, because there is
+    // no module in this package it would drop. What this still reports, and the
+    // reason it is left standing, is the second half of its own sentence: when a
+    // module is left out, it says what the two guards make of it rather than only
+    // that it was left out.
     const scanned = new Set(sourcesThatDocumentTheSet().map((source) => source.file));
     const unscanned = packageSources()
       .filter((file) => !scanned.has(file))
@@ -3213,6 +3293,156 @@ describe('the uniqueness part 8 asks its registry for', () => {
 });
 
 /**
+ * F51: the two blocks below are the only ones in this suite whose fixtures are
+ * committed, and a committed erasure is a row nothing can ever take back.
+ *
+ * `seen.refuse_erasure_registry_mutation` answers 23001 to a delete, an update and
+ * a truncate of the registry, which is F21's guarantee and is not a thing to
+ * soften so that a test can tidy up after itself. Every other fixture in this
+ * suite lives in a transaction that is rolled back, which takes its tombstone with
+ * it and is what `assertNoTombstones` describes; these two cannot, because a race
+ * between two sessions has no single-transaction form and an erasure that is
+ * rolled back is not one another session can race. So each run of this file adds
+ * three permanent rows: one for the race below, one per isolation level in the one
+ * after it. Measured against this stack from a reset registry: 0 rows, then 3,
+ * then 6.
+ *
+ * Against a local stack that is hygiene, because `pnpm db:reset` takes the whole
+ * database back. It stops being hygiene the moment this suite is pointed at a
+ * database holding real trade records, which SEEN-097's pilot stack and the
+ * Supabase EU project after SEEN-007 both are: a table whose rows mean `this
+ * tenant asked to be forgotten` fills with ids that were never customers, and
+ * neither the database nor this suite can say afterwards which rows those were.
+ *
+ * Two things are done about that, because neither is enough alone and neither may
+ * touch the append-only rule or the races themselves, which are what F28 and F42
+ * are known by.
+ *
+ * The ids are this suite's rather than the database's. Every tenant these two
+ * blocks create carries `FIXTURE_TENANT_PREFIX`, so a row left behind says what it
+ * is to anybody reading the registry, and the twelve random digits after the
+ * prefix keep two runs from colliding over an id that can never be created again.
+ * What that costs is that these fixtures supply a tenant id where the rest of the
+ * suite lets the default generate one, which is a route into `public.tenants` the
+ * races already use on their second session and so is measured either way.
+ *
+ * And the blocks refuse to run at all against a database holding a tombstone or a
+ * committed tenant outside that namespace, because a real erasure or a real tenant
+ * says this is a database somebody trades on. What that costs is stated rather
+ * than hidden: on such a database F28's and F42's evidence is not measured here,
+ * and it has to be measured on a stack that is disposable. The alternative is
+ * measuring it once and paying for it in that registry for ever.
+ */
+const FIXTURE_TENANT_PREFIX = '5ee00008-0000-4000-8000-';
+
+/** A tenant id in that namespace: the prefix and the last twelve digits of a
+ * generated uuid, which is a well-formed uuid no server-generated one collides
+ * with and no reader mistakes for a customer's. */
+function fixtureTenantId(): string {
+  return `${FIXTURE_TENANT_PREFIX}${randomUUID().slice(-12)}`;
+}
+
+/** What a database holds that those blocks did not write. */
+interface ForeignRows {
+  erasures: number;
+  tenants: number;
+}
+
+/**
+ * Why the two racing blocks below may not write a permanent tombstone into this
+ * database, or nothing when they may.
+ *
+ * Pure over what was counted, so it can be asked about a database this machine
+ * does not have: the state it refuses is one nothing may create on purpose, since
+ * planting a tombstone to prove the refusal would leave the row the refusal
+ * exists to prevent.
+ */
+function notDisposable(counted: ForeignRows): string | undefined {
+  const foreign = [
+    counted.erasures > 0
+      ? `${counted.erasures} tombstones in ${ERASURE_REGISTRY_TABLE}` : undefined,
+    counted.tenants > 0 ? `${counted.tenants} tenants in public.tenants` : undefined,
+  ].filter((part): part is string => part !== undefined);
+  if (foreign.length === 0) return undefined;
+  return `${foreign.join(' and ')} carry ids outside ${FIXTURE_TENANT_PREFIX}, so this database `
+    + 'has been traded on rather than being one `pnpm db:reset` can take back. The two blocks '
+    + 'about racing erasures commit theirs, and a committed erasure writes a tombstone part 8 '
+    + 'refuses every delete, update and truncate of, so running them here would add rows meaning '
+    + '"this tenant asked to be forgotten" for tenants who never existed, permanently. Point '
+    + 'SEEN_DATABASE_URL at a disposable stack to measure F28 and F42, and measure them there.';
+}
+
+/** The same question, asked of a database. Committed rows only, which is what the
+ * connection handed in reads: a fixture another block of this file is holding open
+ * in a transaction is not a tenant anybody trades with. */
+async function refuseUnlessDisposable(client: Client): Promise<void> {
+  const { rows } = await client.query<{ erasures: string; tenants: string }>(
+    `select (select count(*) from ${ERASURE_REGISTRY_TABLE}
+               where tenant_id::text not like $1) as erasures,
+            (select count(*) from public.tenants where tenant_id::text not like $1) as tenants`,
+    [`${FIXTURE_TENANT_PREFIX}%`],
+  );
+  const why = notDisposable({
+    erasures: Number(rows[0].erasures),
+    tenants: Number(rows[0].tenants),
+  });
+  if (why !== undefined) throw new Error(why);
+}
+
+describe('the database the two racing blocks below may leave a permanent tombstone in', () => {
+  it('refuses one holding an erasure or a tenant those blocks did not write', () => {
+    // Both halves, because either one alone says the database is somebody's. A
+    // tombstone outside the namespace is an erasure a person asked for; a tenant
+    // outside it is a tenant, and a database with tenants acquires erasures.
+    expect(
+      notDisposable({ erasures: 1, tenants: 0 }),
+      'A registry already holding a real erasure is written to anyway, which is the registry '
+      + 'this finding is about filling with rows nobody can tell from the ones around them',
+    ).toMatch(/1 tombstones in seen\.erased_tenants/);
+    expect(
+      notDisposable({ erasures: 0, tenants: 3 }),
+      'A database holding tenants is treated as disposable, so the first stack with a customer '
+      + 'on it and no erasure yet is polluted before it ever has one',
+    ).toMatch(/3 tenants in public\.tenants/);
+    expect(
+      notDisposable({ erasures: 2, tenants: 5 }),
+      'A database that is both is reported by half of what it is, so a reader repairs one and '
+      + 'meets the other',
+    ).toMatch(/2 tombstones in seen\.erased_tenants and 5 tenants in public\.tenants/);
+  });
+
+  it('runs against one holding nothing but what those blocks wrote', () => {
+    // The other half of the same question, and the reason the count is of what is
+    // outside the namespace rather than of everything: a stack these blocks have
+    // already run against holds their tombstones and nothing else, and refusing
+    // there would mean F28 and F42 are measured once per database.
+    expect(
+      notDisposable({ erasures: 0, tenants: 0 }),
+      'A database holding nothing these blocks did not write is refused, so the races are '
+      + 'measured once and never again on the same stack',
+    ).toBeUndefined();
+  });
+
+  it('gives every fixture an id a reader can tell from a customer\'s', () => {
+    const minted = [fixtureTenantId(), fixtureTenantId()];
+    expect(
+      minted.filter((id) => !id.startsWith(FIXTURE_TENANT_PREFIX)),
+      'A fixture id outside the namespace is a permanent tombstone reading as an erasure '
+      + 'somebody asked for',
+    ).toEqual([]);
+    expect(
+      minted.filter((id) => !/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/.test(id)),
+      'A fixture id that is not a uuid is refused by the column before any race is measured',
+    ).toEqual([]);
+    expect(
+      new Set(minted).size,
+      'Two fixtures share an id, and an id a tombstone stands for can never be created again, so '
+      + 'the second run of this file measures a refusal it was not asking for',
+    ).toBe(2);
+  });
+});
+
+/**
  * F28: the refusal above rests on a read, and a read does not see an erasure that
  * has not committed yet.
  *
@@ -3245,12 +3475,14 @@ describe('the uniqueness part 8 asks its registry for', () => {
  * than carrying on, because a run in which the interleaving did not happen proves
  * nothing and must not read as a pass.
  *
- * This is the one block here whose fixtures are committed, and it has to be: an
- * erasure that is rolled back is not an erasure another session can race. It
- * therefore leaves a tombstone in the registry on every run, permanently, as part 8
- * intends and `assertNoTombstones` describes. That is hygiene and not correctness,
- * for the same reason given there: every id is server-generated and never supplied,
- * so nothing a later run creates can collide with one.
+ * This is the first of the two blocks here whose fixtures are committed, and they
+ * have to be: an erasure that is rolled back is not an erasure another session can
+ * race. It therefore leaves a tombstone in the registry on every run, permanently,
+ * as part 8 intends. What that costs and what is done about it is F51, stated at
+ * `FIXTURE_TENANT_PREFIX`: the tenant it creates carries an id of this suite's own
+ * rather than a server-generated one, so the row it leaves says what it is, and
+ * the block refuses to run at all against a database holding tombstones or tenants
+ * it did not write.
  */
 describe('a tenant id being erased by one session while another inserts it', () => {
   /** How long the second session is given to reach its lock wait. It is reached in
@@ -3301,11 +3533,12 @@ describe('a tenant id being erased by one session while another inserts it', () 
   }
 
   /** A committed tenant, because an erasure that is rolled back is not one another
-   * session can race. */
+   * session can race. Its id is this suite's rather than the column's, so that the
+   * tombstone it leaves behind says what it is: F51. */
   async function seedCommitted(name: string): Promise<string> {
     const { rows } = await observer.query<{ tenant_id: string }>(
-      'insert into public.tenants (name) values ($1) returning tenant_id',
-      [name],
+      'insert into public.tenants (tenant_id, name) values ($1, $2) returning tenant_id',
+      [fixtureTenantId(), name],
     );
     return rows[0].tenant_id;
   }
@@ -3329,6 +3562,7 @@ describe('a tenant id being erased by one session while another inserts it', () 
         + 'public.tenants does not exist. Apply the trade record migrations with `pnpm db:reset`.',
       );
     }
+    await refuseUnlessDisposable(observer);
     const { rows } = await inserting.query<{ pid: number }>('select pg_backend_pid() as pid');
     insertingPid = rows[0].pid;
   });
@@ -3441,8 +3675,9 @@ describe('a tenant id being erased by one session while another inserts it', () 
  *
  * Committed fixtures, as the block above and for the same reason: an erasure that
  * is rolled back is not one another session can race. Each case therefore leaves
- * one permanent tombstone per run, which is what part 8 intends and what
- * `assertNoTombstones` describes.
+ * one permanent tombstone per run, which is what part 8 intends, and each carries
+ * an id in the namespace F51 reserves for exactly that, on a database this block
+ * has refused to run against unless it holds nothing else of the kind.
  */
 describe('a tenant id created and erased after another session pinned its snapshot', () => {
   /** The two isolation levels that pin one snapshot for a whole transaction,
@@ -3487,9 +3722,11 @@ describe('a tenant id created and erased after another session pinned its snapsh
       const { rows: [creating] } = await spending.query<{ xid: string }>(
         'select pg_current_xact_id()::text as xid',
       );
+      // Its id is this suite's rather than the column's, so that the tombstone it
+      // leaves behind says what it is: F51.
       const { rows: [created] } = await spending.query<{ tenant_id: string }>(
-        'insert into public.tenants (name) values ($1) returning tenant_id',
-        [`Tenant erased under an older ${level} snapshot`],
+        'insert into public.tenants (tenant_id, name) values ($1, $2) returning tenant_id',
+        [fixtureTenantId(), `Tenant erased under an older ${level} snapshot`],
       );
       tenant = created.tenant_id;
       await spending.query('commit');
@@ -3544,6 +3781,7 @@ describe('a tenant id created and erased after another session pinned its snapsh
         + 'public.tenants does not exist. Apply the trade record migrations with `pnpm db:reset`.',
       );
     }
+    await refuseUnlessDisposable(observer);
   });
 
   afterAll(async () => {
@@ -5491,5 +5729,58 @@ describe('schema seen, which the Data API does not serve', () => {
     } finally {
       await client.query('rollback');
     }
+  });
+});
+
+/**
+ * F51: what this file leaves behind in the erasure registry, read after it has
+ * left it.
+ *
+ * Two blocks above commit their erasures, because a race between two sessions has
+ * no single-transaction form, and a committed erasure writes a tombstone that
+ * part 8 refuses every delete, update and truncate of. That is F21's guarantee
+ * and is not a thing to soften for a test's convenience, so the rows stay: three
+ * per run of this file, one for the first race and one per isolation level in the
+ * second.
+ *
+ * Which is why they have to be recognisable. A tombstone reads `this tenant id
+ * was erased on somebody's request`, and one carrying a server-generated uuid is
+ * indistinguishable from a customer's. Measured against this stack before the ids
+ * were reserved: a reset registry held 3 rows after one run and 6 after two, all
+ * of them ordinary uuids, and nothing in the database or in this suite could say
+ * which of them had ever been a tenant.
+ *
+ * This block is the measurement rather than the argument. It runs last, after
+ * both races, and reads the whole registry: every row in it is either one the
+ * races wrote, and says so in its id, or one the guard at `refuseUnlessDisposable`
+ * should have refused to run beside.
+ */
+describe('the erasure registry this file ran against', () => {
+  let client: Client;
+
+  beforeAll(async () => {
+    client = await connect();
+  });
+
+  afterAll(async () => {
+    await client?.end();
+  });
+
+  it('holds no tombstone an auditor could read as a customer', async () => {
+    const { rows } = await client.query<{ tenant_id: string }>(
+      `select tenant_id::text as tenant_id from ${ERASURE_REGISTRY_TABLE}
+        where tenant_id::text not like $1 order by erased_at`,
+      [`${FIXTURE_TENANT_PREFIX}%`],
+    );
+    const found = rows.map((row) => row.tenant_id);
+    expect(
+      found,
+      `${ERASURE_REGISTRY_TABLE} holds ${found.length} tombstones outside the fixture namespace `
+      + `${FIXTURE_TENANT_PREFIX}: ${found.join(', ') || 'none'}. Either the races above wrote `
+      + 'ids nothing can tell from a customer\'s, which is a registry meaning "these tenants '
+      + 'asked to be forgotten" filling with tenants who never existed and cannot be removed, or '
+      + 'this database has erased a real tenant and the races should have refused to run in it. '
+      + 'Take a local stack back with `pnpm db:reset`',
+    ).toEqual([]);
   });
 });
