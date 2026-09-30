@@ -32,11 +32,13 @@ import {
   APPEND_ONLY_PRIVILEGES, APPEND_ONLY_TABLES, BUYER_PII_COLUMNS, BUYER_PII_COMMENT_TERMS,
   BUYER_PII_MARKER, CLIENT_BOUND_ROLES, COLUMN_GRANTABLE_PRIVILEGES,
   CONSTRAINED_NOT_BUYER_PII_COLUMNS, CONSTRAINED_NOT_BUYER_PII_MARKER,
-  CROSS_TENANT_FOREIGN_KEY_EXEMPTIONS, DATA_API_ROLES, DEFAULT_ACL_OBJECT_CLASSES,
+  CROSS_TENANT_FOREIGN_KEY_EXEMPTIONS, DATA_API_CONFIG, DATA_API_ROLES, DATA_API_SCHEMAS,
+  DATA_API_SCHEMAS_SETTING, DEFAULT_ACL_OBJECT_CLASSES,
   ERASURE_REGISTRY_COLUMNS, ERASURE_REGISTRY_TABLE,
   FORBIDDEN_PRIVILEGE_STATEMENTS, FREE_TEXT_TYPE_NAMES, FUNCTION_PRIVILEGE,
   GOVERNED_PRIVILEGES,
-  HASHED_REPOSITORY_DOCUMENTS, MIGRATION_SET_HEADER, MIGRATIONS_DIRECTORY,
+  HASHED_REPOSITORY_DOCUMENTS, HELPER_SCHEMA, HELPER_SCHEMA_CALLABLE_ROUTINES,
+  MIGRATION_SET_HEADER, MIGRATIONS_DIRECTORY,
   NON_TABLE_RELKINDS, NOT_BUYER_PII_MARKER, PROKIND_NAMES,
   RELATION_RULE_MIGRATION_MARKER, RELKIND_NAMES,
   SEQUENCE_PRIVILEGES, SEQUENCE_RELKIND,
@@ -4460,6 +4462,292 @@ describe('the sequences in the public schema', () => {
         anonHoldsUsageOnTheDomain: true,
         anonHoldsUsageOnTheRowTypeOfATable: true,
         anonReadingTheTableWhoseRowTypeItHolds: { answer: '42501', rows: null },
+      });
+    } finally {
+      await client.query('rollback');
+    }
+  });
+});
+
+/**
+ * Schema `seen`, which no guard in this package had ever asked anything.
+ *
+ * Every helper above takes a schema name and every call site passed `public`. That
+ * was recorded three times inside this ticket before any finding named it, and
+ * what it produced is the second review's F38: `seen.touch_updated_at()` and
+ * `seen.refuse_erasure_registry_mutation()` were born with PostgreSQL's EXECUTE to
+ * PUBLIC and never revoked, `anon` holds USAGE on this schema from part 1, and so
+ * `anon` could name and call both while the suite ran green. They returned
+ * `trigger` and answered 0A000, so nothing crossed; the hazard was the next author,
+ * who adds a helper here that returns something else and copies the pattern of the
+ * functions around it, omission included.
+ *
+ * What this block checks, and why these and not others. `seen` and `public` do not
+ * owe the same things, so the guards are not the same guards: `public` is served by
+ * the Data API and owes an emptiness, `seen` is not served and owes an allow-list,
+ * because `seen.current_tenant()` has to be callable by `authenticated` or every
+ * policy in the trade record returns nothing. Five questions are asked. Which
+ * schemas the Data API serves, because that is the premise the other four rest on
+ * and it lived in prose alone. Which routines here a browser-bound role can
+ * execute, which is F38 and is the only one of the five that is behaviour rather
+ * than an inventory. Whether the one allowed routine's access control list still
+ * names the three roles part 1 grants it to and no longer names PUBLIC. Whether any
+ * relation or sequence here is reachable, which is `seen.erased_tenants` and
+ * `seen.marketplace_catalogue` today and whatever a later migration adds beside
+ * them. And whether the schema has acquired a `pg_default_acl` entry or a CREATE
+ * grant, which are the two ways a later object here would be born granted or be put
+ * here by somebody other than a migration.
+ *
+ * What is deliberately left out, because a guard that checks everything is one
+ * nobody maintains. There is no tenancy or row-level-security assertion over
+ * `seen`: criterion 2 is a statement about `public`, and the two tables here belong
+ * to no tenant and could not satisfy it, so the property they are held to is
+ * unreachability instead, which is the stronger one for them. There is no free-text
+ * or buyer-PII classification over `seen`: part 7 reads `public` by design, the
+ * registry's columns are already asserted to be exactly the two a tombstone may
+ * hold, and `seen.marketplace_catalogue` is a static catalogue of the six
+ * marketplaces with no prose in it. Nothing here asks PostgREST over HTTP what it
+ * is actually serving; the configuration file is what this repository states and
+ * what a cloud project would be configured from, and a suite that opened an HTTP
+ * connection to answer a question about a committed line would be paying a
+ * dependency for no more certainty. And no attempt is made to assert what
+ * `supabase_admin` has done in this schema, for the reason part 6 records for
+ * `public`: that grantor's entries are outside what the migration role can read
+ * meaningfully or revoke at all.
+ */
+describe('schema seen, which the Data API does not serve', () => {
+  let client: Client;
+
+  beforeAll(async () => {
+    client = await connect();
+  });
+
+  afterAll(async () => {
+    await client?.end();
+  });
+
+  it('is not served by the Data API, which is what every rule about where an object lives '
+    + 'rests on', () => {
+    // Text about text, and it is here rather than in a comment because the sentence
+    // it guards is load-bearing four times over in this migration set and was
+    // written down nowhere a test could reach. If `seen` joins this list, the
+    // erasure registry becomes a table endpoint, every helper here becomes a
+    // `POST /rpc/<name>`, and the allow-list below stops being an acceptable rule
+    // without anything else in the suite noticing.
+    const configured = readFileSync(join(REPOSITORY_ROOT, DATA_API_CONFIG), 'utf8');
+    const match = DATA_API_SCHEMAS_SETTING.exec(configured);
+    expect(match, `${DATA_API_CONFIG} has no \`schemas = [...]\` line, so what the Data API `
+      + 'serves cannot be read from the file this repository configures it with').not.toBeNull();
+    const served = (match?.[1] ?? '')
+      .split(',')
+      .map((entry) => entry.trim().replace(/^["']|["']$/g, ''))
+      .filter((entry) => entry.length > 0)
+      .sort();
+    expect(
+      served,
+      `${DATA_API_CONFIG} serves ${served.join(', ')}. Schema ${HELPER_SCHEMA} being absent from `
+      + 'that list is the reason the erasure registry is not a table endpoint, the reason part 6 '
+      + 'can send a materialised view and a foreign table to a schema outside public, and the '
+      + 'reason a callable routine here is a smaller thing than a callable routine there. A '
+      + 'schema added to it is a decision to publish everything in it',
+    ).toEqual([...DATA_API_SCHEMAS]);
+  });
+
+  it('lets a browser-bound role execute the tenancy helper and nothing else', async () => {
+    // F38. The allow-list is composed rather than spelled, so that adding a role to
+    // CLIENT_BOUND_ROLES widens this assertion instead of silently leaving the new
+    // role unasked, and so that the expected strings carry the same shape the guard
+    // produces: a routine that became `security definer` would report "running with
+    // its owner rights" and stop matching, which is the condition that makes the one
+    // exception an acceptable one.
+    const callable = await executableRoutinesIn(client, HELPER_SCHEMA);
+    const allowed = HELPER_SCHEMA_CALLABLE_ROUTINES
+      .flatMap((signature) => CLIENT_BOUND_ROLES
+        .map((role) => `${HELPER_SCHEMA}.${signature} is a function that ${role} can execute`));
+    expect(
+      callable,
+      `${callable.length} routines in schema ${HELPER_SCHEMA} can be executed by a role a browser `
+      + `request is bound to, where ${allowed.length} may be. This schema is not served by the `
+      + 'Data API, so none of them is an endpoint, but `anon` holds USAGE here and can name and '
+      + 'call any of them: a routine is born with PostgreSQL\'s own EXECUTE to PUBLIC and stays '
+      + 'callable until its own migration revokes it, which no default privilege can do for it. '
+      + `The guard reported: ${callable.join('; ')}`,
+    ).toEqual(allowed);
+  });
+
+  it('grants the tenancy helper to the three request-bound roles by name and to PUBLIC no '
+    + 'longer', async () => {
+    // The other half of what part 1 writes, and the half a grant statement hides. The
+    // three grants beside the function read as the whole of its access control list
+    // and are not: `create function` had already given EXECUTE to PUBLIC, the grants
+    // sit beside that rather than replace it, and until part 1 revoked it the three
+    // named grants bought nothing that was not already true of every role in the
+    // database.
+    //
+    // Removing it is safe and that was established rather than assumed, because
+    // getting it wrong returns nothing from every table in the schema. Measured on
+    // this stack: thirty policies reference the helper and nothing else in the
+    // database does, no column default, no check constraint, no view definition and
+    // no other routine body; every one of those thirty policies is `to
+    // authenticated`, which holds an explicit grant; of the ten roles that lose
+    // EXECUTE with PUBLIC gone, eight hold no privilege on any of the twenty-nine
+    // tables, so they are refused 42501 before a policy is evaluated at all, and the
+    // remaining two carry BYPASSRLS, so no policy is applied to them and the helper
+    // is never called on their behalf. Then behaviourally, in a rolled-back
+    // transaction with the grant revoked: `authenticated` carrying a tenant claim
+    // still read exactly its own tenant's row out of two.
+    const { clientRolesNamed, publicIsNamed } = await routineAccessControlList(
+      client, `${HELPER_SCHEMA}.current_tenant()`,
+    );
+    expect(
+      { clientRolesNamed, publicIsNamed },
+      'The access control list of the tenancy helper has to name the roles part 1 grants it to '
+      + 'and must not name PUBLIC, because a grant to PUBLIC is the route past every guard that '
+      + `matches a grantee by name. It reads ${clientRolesNamed.join(', ') || 'no client role'}`
+      + `${publicIsNamed ? ' and PUBLIC' : ' and not PUBLIC'}`,
+    ).toEqual({ clientRolesNamed: [...CLIENT_BOUND_ROLES], publicIsNamed: false });
+  });
+
+  it('holds no relation and no sequence a browser-bound role can reach', async () => {
+    // seen.erased_tenants and seen.marketplace_catalogue, and whatever is put here
+    // next. Asked over both relation families and over sequences in one breath,
+    // because the question this schema owes is the same for all of them and is not
+    // the question public owes: there is no view here that may publish itself by
+    // granting its own select, and no table here that carries a tenancy policy. A
+    // reachable relation in `seen` is a defect whatever its kind, and a tombstone a
+    // request-bound role can delete is a tenant id that can be created again a
+    // statement later.
+    //
+    // `service_role` is asked as well as the two browser-bound roles, which is the
+    // one place this guard is stricter than its counterpart in public. There it is
+    // granted per table by name and is how the API writes the trade record; here it
+    // is the role the defect at F21 was measured with, and part 8's own self-check
+    // already refuses it any privilege on the registry.
+    const reachable = [
+      ...(await effectivePrivilegesIn(
+        client, HELPER_SCHEMA,
+        [...Object.keys(TABLE_RELKINDS), ...Object.keys(NON_TABLE_RELKINDS)],
+        DATA_API_ROLES,
+      )).map((holding) => `${HELPER_SCHEMA}.${named(holding)} lets ${holding.role} `
+        + holdingLabel(holding)),
+      ...await sequencesReachableIn(client, HELPER_SCHEMA),
+    ];
+    expect(
+      reachable,
+      `${reachable.length} objects in schema ${HELPER_SCHEMA} can be reached by a role the Data `
+      + 'API binds a request to. Nothing here belongs to a tenant, so nothing here can carry the '
+      + 'tenancy that would make reaching it safe, and the boundary is the privilege alone: '
+      + reachable.join('; '),
+    ).toEqual([]);
+  });
+
+  it('files no default privilege and lets no request-bound role create anything here', async () => {
+    // The two routes by which a later object in `seen` would arrive already reachable,
+    // rather than be made reachable by a statement somebody wrote. Part 8 states the
+    // first as a measured fact, that this schema carries no `pg_default_acl` entry at
+    // all and so a table created here starts owner-only, and rests its revoke on it;
+    // that is a claim about behaviour in a file that explains itself, which is exactly
+    // what this ticket has learned to put an assertion beside.
+    //
+    // What this pair does not cover is said as carefully as what it does, because
+    // reading it as the whole of the prevention is how F38 happened. A function is
+    // still born callable by PUBLIC with no default privilege involved anywhere, and
+    // no statement of this kind can reach that; the allow-list above is what sees it
+    // and each function's own revoke is what closes it.
+    const measured = {
+      defaultPrivilegesFiledHere: await defaultPrivilegesForClientRolesIn(client, HELPER_SCHEMA),
+      rolesThatCanCreateHere: (await client.query<{ role: string }>(
+        `select r.rolname as role
+           from pg_catalog.pg_roles r
+          where (r.rolname = any($1) or r.rolname = 'service_role')
+            and has_schema_privilege(r.oid, $2, 'CREATE')
+          order by r.rolname`,
+        [[...CLIENT_BOUND_ROLES], HELPER_SCHEMA],
+      )).rows.map((row) => row.role),
+      rolesThatCanEnterHere: (await client.query<{ role: string }>(
+        `select r.rolname as role
+           from pg_catalog.pg_roles r
+          where (r.rolname = any($1) or r.rolname = 'service_role')
+            and has_schema_privilege(r.oid, $2, 'USAGE')
+          order by r.rolname`,
+        [[...CLIENT_BOUND_ROLES], HELPER_SCHEMA],
+      )).rows.map((row) => row.role),
+    };
+    expect(
+      measured,
+      `Schema ${HELPER_SCHEMA} may file no default privilege, because an object created here has `
+      + 'to start owner-only for part 8\'s revoke on the erasure registry to mean what it says; '
+      + 'and no role a request is bound to may hold CREATE here, because a role that can put a '
+      + 'function in this schema can put one there that the allow-list was written to stop. USAGE '
+      + 'is the one thing all three do hold, deliberately and not as an oversight: the tenancy '
+      + 'helper is evaluated as the caller inside every policy, so a request that could not enter '
+      + `this schema would read every table in the trade record as empty. Measured: ${JSON.stringify(measured)}`,
+    ).toEqual({
+      defaultPrivilegesFiledHere: [],
+      rolesThatCanCreateHere: [],
+      rolesThatCanEnterHere: [...CLIENT_BOUND_ROLES, 'service_role'].sort(),
+    });
+  });
+
+  it('would see a helper a later migration added here, born callable by anon', async () => {
+    // What the allow-list is worth nothing without, and the hazard F38 names stated
+    // as a measurement rather than as a prediction. The probe returns text rather
+    // than `trigger`, which is the whole of the difference between the two functions
+    // F38 found and the one the next author writes: those answered 0A000 because of
+    // what they returned, and this one answers with the row. Two tenants are inserted
+    // so that the count shows a tenant boundary was crossed and not merely that a
+    // call was accepted.
+    //
+    // The second half is the fix, measured on the same object: `revoke all on
+    // function ... from public` is one statement and is the whole of the prevention
+    // here, where in schema public the same statement leaves `anon=X` standing
+    // because the default access control list there names the role outright. That
+    // asymmetry is why part 8's revokes are written the way they are and why they
+    // are not the rule for writing a function in `public`.
+    await client.query('begin');
+    try {
+      await client.query(
+        "insert into public.tenants (name) values ('Tenant A'), ('Tenant B')",
+      );
+      await client.query(
+        `create function ${HELPER_SCHEMA}.seen_helper_probe() returns setof text `
+        + 'language sql security definer as $$ select name from public.tenants $$',
+      );
+      const bornWith = {
+        routinesTheGuardReports: (await executableRoutinesIn(client, HELPER_SCHEMA))
+          .filter((entry) => entry.includes('seen_helper_probe')),
+        anonCallingIt: await answeredAs(
+          client, 'anon', `select * from ${HELPER_SCHEMA}.seen_helper_probe()`,
+        ),
+      };
+      await client.query(
+        `revoke all on function ${HELPER_SCHEMA}.seen_helper_probe() from public`,
+      );
+      const afterTheRevoke = {
+        routinesTheGuardReports: (await executableRoutinesIn(client, HELPER_SCHEMA))
+          .filter((entry) => entry.includes('seen_helper_probe')),
+        anonCallingIt: await answeredAs(
+          client, 'anon', `select * from ${HELPER_SCHEMA}.seen_helper_probe()`,
+        ),
+      };
+      expect(
+        { bornWith, afterTheRevoke },
+        'A `security definer` helper created in schema seen, which nobody granted anything on, '
+        + 'is callable by `anon` and hands back every tenant\'s rows, because a routine is born '
+        + 'with EXECUTE to PUBLIC and `anon` holds USAGE on this schema. That is the hazard the '
+        + 'allow-list above exists to catch and the revoke in each migration exists to close, and '
+        + `both halves are measured here: ${JSON.stringify({ bornWith, afterTheRevoke })}`,
+      ).toEqual({
+        bornWith: {
+          routinesTheGuardReports: CLIENT_BOUND_ROLES.map((role) => `${HELPER_SCHEMA}`
+            + `.seen_helper_probe() is a function running with its owner rights that ${role} `
+            + 'can execute'),
+          anonCallingIt: { answer: 'accepted', rows: 2 },
+        },
+        afterTheRevoke: {
+          routinesTheGuardReports: [],
+          anonCallingIt: { answer: '42501', rows: null },
+        },
       });
     } finally {
       await client.query('rollback');

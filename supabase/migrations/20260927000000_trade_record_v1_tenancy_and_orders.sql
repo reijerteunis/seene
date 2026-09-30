@@ -62,6 +62,34 @@ comment on function seen.current_tenant() is
 
 grant execute on function seen.current_tenant() to anon, authenticated, service_role;
 
+-- And from nobody else, which the three grants above do not say on their own.
+-- `create function` gives every routine PostgreSQL's own EXECUTE to PUBLIC, and a
+-- later grant sits beside that rather than replacing it, so without this line the
+-- three roles named above were being handed something every role in the database
+-- already had and the access control list read `{=X/postgres, postgres=X, anon=X,
+-- authenticated=X, service_role=X}`. It is the grant no guard that matches a
+-- grantee by name can see (F30), on the one function in this schema that has to
+-- stay callable, which is the worst place in the set for it to be sitting unread.
+--
+-- Removing it does not break policy evaluation, and that was established rather
+-- than argued, because getting it wrong makes every table in this schema read as
+-- empty for every request. Measured against this stack, in this order. Thirty
+-- policies reference this helper and nothing else in the database does: no column
+-- default, no check constraint, no view definition and no other routine body.
+-- Every one of those thirty policies is `to authenticated`, and `authenticated`
+-- holds the explicit grant above. Ten roles lose EXECUTE when PUBLIC goes; eight of
+-- them hold no privilege on any of the twenty-nine tables, so a statement of theirs
+-- is refused 42501 before a policy is reached at all, and the remaining two carry
+-- BYPASSRLS, so no policy is applied to them and this function is never called on
+-- their behalf. Then behaviourally, with the revoke in place inside a rolled-back
+-- transaction: `authenticated` carrying a tenant claim still read exactly its own
+-- tenant's row out of two.
+--
+-- What this is not. It is not a boundary against whoever holds the database, and it
+-- does not make the helper secret: the three roles a request is bound to can still
+-- call it, as they must, and what it returns is the caller's own claim.
+revoke execute on function seen.current_tenant() from public;
+
 -- updated_at that cannot lie: ingest upserts the same row many times, and a
 -- column the writer has to remember to set is a column that is eventually wrong.
 create or replace function seen.touch_updated_at()
@@ -74,6 +102,23 @@ begin
   return new;
 end;
 $$;
+
+-- Callable through its triggers and not by name, as every other function this set
+-- creates in `seen` is. Nothing is lost by it: a trigger fires as the table's
+-- trigger whatever the firing role holds, and `create trigger` below is written by
+-- the owner, so the revoke costs the schema nothing it uses.
+--
+-- What it closes is small today and is the reason it is written all the same. This
+-- function was left at PostgreSQL's default until the second review of SEEN-008
+-- (F38) measured it: `proacl` null, which is EXECUTE to PUBLIC, and `anon` holds
+-- USAGE on this schema from the grant above, so `anon` could name and call it. It
+-- was harmless because it returns `trigger` and answers 0A000, "trigger functions
+-- can only be called as triggers", which is a property of what it happens to return
+-- and not of anything this migration did. The hazard was never this function. It
+-- was the next helper written here, by an author copying the shape of the ones
+-- around it, returning something other than `trigger`, and callable by a caller who
+-- never signed in. Part 8's self-check refuses that shape for the whole schema.
+revoke all on function seen.touch_updated_at() from public;
 
 -- Tenancy -------------------------------------------------------------------
 

@@ -358,29 +358,6 @@ create trigger refuse_tenant_id_change before update on public.tenants
   for each row when (new.tenant_id is distinct from old.tenant_id)
   execute function seen.refuse_tenant_id_change();
 
--- No function here is callable except through its trigger and this migration, as
--- seen.seed_marketplaces is not: a security definer function reachable by name is
--- a privilege handed to whoever can name it.
---
--- Why `from public` is the whole of the revoke here, and would not be one line from
--- here in schema public. Measured this round against this stack: schema `seen`
--- carries no `pg_default_acl` entry at all, so a function created here is born with
--- the single grant PostgreSQL writes itself, EXECUTE to PUBLIC, and taking that
--- away leaves `{postgres=X/postgres}` and refuses `anon` with SQLSTATE 42501.
--- Schema public is not like that: its default access control list names `anon` and
--- `authenticated` on functions as well as on relations, so these five statements
--- written there would leave both roles holding EXECUTE, with the access control
--- list still reading `anon=X/postgres` and `anon` reading every tenant's rows
--- through a security definer body. That is the sixth review of SEEN-008 (F32), and
--- part 6 is where the default is taken away. So the sentence above is about the
--- functions this file creates in `seen` and is not the rule for writing one in a
--- schema the Data API serves.
-revoke all on function seen.lock_tenant_id(uuid) from public;
-revoke all on function seen.lock_tenant_id_for_erasure() from public;
-revoke all on function seen.record_tenant_erasure() from public;
-revoke all on function seen.refuse_erased_tenant_id() from public;
-revoke all on function seen.refuse_tenant_id_change() from public;
-
 -- The registry is append-only too -----------------------------------------------
 --
 -- Without this the refusal above is defeated in one statement: delete the
@@ -417,6 +394,50 @@ create trigger erased_tenants_append_only
 create trigger erased_tenants_no_truncate
   before truncate on seen.erased_tenants
   for each statement execute function seen.refuse_erasure_registry_mutation();
+
+-- Nothing this file creates is callable by name --------------------------------
+--
+-- No function here is callable except through its trigger and this migration, as
+-- seen.seed_marketplaces is not: a security definer function reachable by name is
+-- a privilege handed to whoever can name it.
+--
+-- This block sits at the end of the file and did not, which is the correction the
+-- second review of SEEN-008 (F38) asked for and the smaller half of it. It stood
+-- above the append-only trigger and listed five of the six functions this file
+-- creates, so the one written after it,
+-- seen.refuse_erasure_registry_mutation(), was left at PostgreSQL's default while
+-- the sentence above said otherwise. A list of everything a file creates cannot
+-- live anywhere but after the last thing it creates, so a function added later is
+-- added above it and is visibly absent from a list on the next screen. That is the
+-- ordering half; the self-check below is the half that does not depend on anybody
+-- noticing.
+--
+-- Why `from public` is the whole of the revoke here, and would not be one line from
+-- here in schema public. Measured against this stack: schema `seen` carries no
+-- `pg_default_acl` entry at all, so a function created here is born with the single
+-- grant PostgreSQL writes itself, EXECUTE to PUBLIC, and taking that away leaves
+-- `{postgres=X/postgres}` and refuses `anon` with SQLSTATE 42501. Schema public is
+-- not like that: its default access control list names `anon` and `authenticated`
+-- on functions as well as on relations, so these six statements written there would
+-- leave both roles holding EXECUTE, with the access control list still reading
+-- `anon=X/postgres` and `anon` reading every tenant's rows through a security
+-- definer body. That is the sixth review of SEEN-008 (F32), and part 6 is where the
+-- default is taken away. So the sentence above is about the functions this file
+-- creates in `seen` and is not the rule for writing one in a schema the Data API
+-- serves.
+--
+-- What the revoke is not, said because F38 is what reading it too widely produced.
+-- It is not a defence that follows the schema: it closes these six and says nothing
+-- about the seventh. There is no statement that makes schema `seen` safe once and
+-- for all, because `alter default privileges` adds to PostgreSQL's built-in default
+-- rather than replacing it and so cannot reach the grant to PUBLIC that every new
+-- routine is born with.
+revoke all on function seen.lock_tenant_id(uuid) from public;
+revoke all on function seen.lock_tenant_id_for_erasure() from public;
+revoke all on function seen.record_tenant_erasure() from public;
+revoke all on function seen.refuse_erased_tenant_id() from public;
+revoke all on function seen.refuse_erasure_registry_mutation() from public;
+revoke all on function seen.refuse_tenant_id_change() from public;
 
 -- What this migration claims, measured rather than asserted ---------------------
 --
@@ -491,6 +512,69 @@ begin
   if not has_table_privilege('service_role', 'public.tenants', 'update') then
     raise exception 'the fix was over-broad in the other direction: service_role can no longer '
       'update a tenant at all, where what is refused is a change of tenant_id and not a rename';
+  end if;
+
+  -- The revoke block above, asked of the database instead of read off the file.
+  --
+  -- This is the last migration of the set, so it is the only place a claim about
+  -- the whole of schema `seen` can be made, and the claim the block above makes is
+  -- exactly the kind this ticket has learned not to leave unasserted: a statement
+  -- in a file about the file's own behaviour. F38 is what an unasserted one cost,
+  -- and it was not found by anybody reading the revoke list, because a list is read
+  -- for what it holds and not for what it omits.
+  --
+  -- Asked of every routine in the schema and not of the six named above, which is
+  -- the difference between fixing F38 and closing the way it arrived. A function
+  -- added here by part 1, by part 3 or by a later ticket's migration is born with
+  -- PostgreSQL's EXECUTE to PUBLIC, `anon` holds USAGE on this schema, and so it is
+  -- callable by name by a caller who never signed in until its own migration says
+  -- otherwise. There is no default privilege that prevents it and none that could,
+  -- so this raises instead: the migration set fails as it applies rather than
+  -- leaving a sentence that reads true.
+  --
+  -- seen.current_tenant() is the one exception and has to be, because it is
+  -- evaluated as the caller inside all thirty policies and a request that could not
+  -- call it would read every table in the trade record as empty. It is safe for a
+  -- reason that belongs to the function rather than to this list: it is not
+  -- security definer, so it runs as the caller and lends them nothing, and its body
+  -- reads a request setting and touches no relation. Both halves are asked, so a
+  -- later `create or replace` that made it security definer is caught here too.
+  --
+  -- Asked as has_function_privilege rather than by reading proacl, for the reason
+  -- part 4 records: a null access control list is the state in which every role can
+  -- execute, a grant to PUBLIC names no role, and a privilege held through
+  -- membership of another role is written in no list at all.
+  select string_agg(format('%s can execute %s.%s(%s)%s',
+                           h.role, n.nspname, p.proname,
+                           pg_catalog.pg_get_function_identity_arguments(p.oid),
+                           case when p.prosecdef then ', which runs as its owner' else '' end),
+                    ', ' order by p.proname, h.role)
+    into offenders
+    from pg_catalog.pg_proc p
+    join pg_catalog.pg_namespace n on n.oid = p.pronamespace
+    cross join (values ('anon'), ('authenticated'), ('service_role')) as h(role)
+   where n.nspname = 'seen'
+     and p.oid <> 'seen.current_tenant()'::regprocedure
+     and has_function_privilege(h.role, p.oid, 'EXECUTE');
+
+  if offenders is not null then
+    raise exception 'a routine in schema seen is callable by a role the application binds a '
+      'request to, where seen.current_tenant() is the only one that may be. A routine here is '
+      'born with EXECUTE to PUBLIC and anon holds usage on the schema, so it is callable by name '
+      'until its own migration revokes it from public: %', offenders;
+  end if;
+
+  if not has_function_privilege('authenticated', 'seen.current_tenant()', 'EXECUTE') then
+    raise exception 'the fix was over-broad: authenticated can no longer execute '
+      'seen.current_tenant(), which every policy in the trade record evaluates as the caller, so '
+      'every table in schema public now reads as empty for every request';
+  end if;
+
+  if (select prosecdef from pg_catalog.pg_proc
+       where oid = 'seen.current_tenant()'::regprocedure) then
+    raise exception 'seen.current_tenant() has become security definer. It is the one routine in '
+      'schema seen a request-bound role may call, and it is only safe to leave callable while it '
+      'runs as the caller and lends them none of its owner rights';
   end if;
 end;
 $$;

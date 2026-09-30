@@ -857,6 +857,82 @@ export const PROKIND_NAMES: Readonly<Record<string, string>> = {
 };
 
 /**
+ * The schema the tenancy helpers and the erasure registry live in.
+ *
+ * Every guard in this package asked about `public` and nothing else until the
+ * second review of SEEN-008 (F38), which is how two functions here came to be
+ * executable by `anon` with no test in the suite able to see it. What makes this
+ * schema worth its own guards rather than the same ones is that it is the one
+ * place the trade record keeps objects the Data API does not serve, so the rules
+ * `public` owes and the rules `seen` owes are not the same rules and a guard that
+ * copied them across would be wrong in one direction or the other.
+ */
+export const HELPER_SCHEMA = 'seen';
+
+/**
+ * The routines in schema `seen` a browser-bound role is meant to be able to
+ * execute, of the eleven that are here.
+ *
+ * An allow-list where the guard on schema `public` is an emptiness, and the
+ * asymmetry is the point rather than an inconsistency. `public` is served by the
+ * Data API, so a routine there is a `POST /rpc/<name>` endpoint and the rule can
+ * be that no browser-bound role executes anything at all. `seen` is not served,
+ * and the rule cannot be that: `seen.current_tenant()` is evaluated as the caller
+ * inside every one of the thirty policies, so `authenticated` has to hold USAGE on
+ * this schema and EXECUTE on this function or every table in the trade record
+ * reads as empty for every request. The exception is safe for a reason that is a
+ * property of the function rather than of the list: it is not `security definer`,
+ * so it runs as the caller and lends them nothing, and its body reads a setting
+ * and touches no relation at all. The guard reports `security definer` beside
+ * every routine it finds, so the allow-list stops matching if that ever changes.
+ *
+ * Why an allow-list is needed here at all, when nothing in `seen` is reachable
+ * through an endpoint. A routine is born `proacl` null, which is PostgreSQL's own
+ * EXECUTE to PUBLIC, and `anon` holds USAGE on this schema, so a function added
+ * here is callable by name by a caller who never signed in unless its own migration
+ * revokes that. `alter default privileges` cannot close it, measured on this stack
+ * for schema `public` at F32: a `pg_default_acl` entry is merged into the built-in
+ * default by adding to it rather than by replacing it, so there is no one statement
+ * that makes the schema safe and each routine's own revoke is the whole of the
+ * prevention. The two F38 found, `seen.touch_updated_at()` and
+ * `seen.refuse_erasure_registry_mutation()`, were harmless only because both return
+ * `trigger` and answer 0A000, "trigger functions can only be called as triggers",
+ * which is a property of what they happened to return and not of anything the
+ * migrations did.
+ */
+export const HELPER_SCHEMA_CALLABLE_ROUTINES = ['current_tenant()'] as const;
+
+/** Where the Data API's schema list is written, relative to the repository root. */
+export const DATA_API_CONFIG = 'supabase/config.toml';
+
+/**
+ * How that file spells the list, and the schemas it is allowed to hold.
+ *
+ * The premise underneath every sentence in this ticket that says an object is out
+ * of reach because of where it lives: `seen.erased_tenants` is outside `public` so
+ * that a list of which brands have left is outside the Data API, part 6 sends a
+ * materialised view and a foreign table to a schema the Data API does not serve,
+ * and the allow-list above is an allow-list rather than an emptiness for the same
+ * reason. All of that was written down in prose and in no assertion, so a later
+ * ticket adding `seen` to this line would publish the erasure registry and the
+ * helpers as endpoints and every one of those sentences would quietly become
+ * false while the suite stayed green.
+ *
+ * Read from the file rather than from the running stack, because the file is the
+ * only place this repository states it: PostgREST is configured from here, a
+ * cloud project would be configured from here too, and asking the container over
+ * HTTP would make the suite depend on a service it does not otherwise need to
+ * answer a question about a committed line of configuration.
+ */
+export const DATA_API_SCHEMAS = ['graphql_public', 'public'] as const;
+
+/** The `schemas = [...]` line of the `[api]` section, matched rather than parsed:
+ * the repository has no TOML reader, and a regular expression that finds the one
+ * array this assertion is about is a smaller dependency than one that would parse
+ * a file to read a single line of it. */
+export const DATA_API_SCHEMAS_SETTING = /^\s*schemas\s*=\s*\[([^\]]*)\]/m;
+
+/**
  * The option a view in the public schema has to carry, and the values Postgres
  * accepts for it.
  *
