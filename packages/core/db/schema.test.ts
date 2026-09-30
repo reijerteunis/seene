@@ -3027,6 +3027,189 @@ describe('a tenant id being erased by one session while another inserts it', () 
 });
 
 /**
+ * F42: the lock serialises two sessions, and a snapshot older than both of them
+ * is not something serialising can repair.
+ *
+ * The pair above take the same advisory lock, so the registry is never read while
+ * an erasure of that id is open. That closes the window in which the erasure is
+ * uncommitted and says nothing about a session whose snapshot was taken before
+ * the erasure began: the lock is free by the time such a session asks for it, and
+ * waiting for nobody refreshes nothing. Measured against this stack, as
+ * `service_role` on both sides, with a second session at repeatable read:
+ *
+ *   1. The second session begins and counts `public.tenants`, which pins the one
+ *      snapshot it has for its whole life. The id does not exist yet, and neither
+ *      does the transaction that will create it.
+ *   2. The first session creates a tenant and commits, writes an audit event for
+ *      it, erases it and commits. The tombstone stands and the audit event went
+ *      with the tenant, as part 2 intends.
+ *   3. The second session inserts that tenant id. The advisory lock is free, the
+ *      existence test reads a snapshot older than the tombstone, and the primary
+ *      key finds no live tuple to conflict with because the row it would have
+ *      conflicted with is committed-deleted. Accepted.
+ *
+ * The id is then live and tombstoned at once with no audit events behind it,
+ * which is the state the whole of part 8 exists to make impossible, reached by
+ * two ordinary sessions with nothing disabled and nothing held.
+ *
+ * The distinction that decides what a fix has to do, because it is what tells
+ * this apart from a race the database already refuses: a snapshot pinned while
+ * the row still exists is not this. There the erasure's delete conflicts with the
+ * second session's insert, Postgres refuses it with 40001, and the id is not
+ * resurrected. What this needs is a snapshot older than the id's creation, so
+ * that the insert has no conflicting tuple and the existence test has no
+ * tombstone in view.
+ *
+ * Both levels that give a transaction one snapshot for its whole life are asked,
+ * and serialisable is the point rather than thoroughness: it is the level a
+ * caller reaches for in order to be safe, and it was measured accepting this
+ * ordering too, so the hole is not a read-committed one that a stricter caller
+ * escapes. Read committed is absent because it takes a fresh snapshot per
+ * statement, which is the block above.
+ *
+ * The ordering is forced rather than hoped for, and the forcing is asserted with
+ * everything else: the second session reports the xmax of its snapshot and the
+ * first reports the transaction id that creates the tenant, and a run in which
+ * the creating transaction was already in the reader's snapshot has not measured
+ * this defect and must not read as a pass.
+ *
+ * Committed fixtures, as the block above and for the same reason: an erasure that
+ * is rolled back is not one another session can race. Each case therefore leaves
+ * one permanent tombstone per run, which is what part 8 intends and what
+ * `assertNoTombstones` describes.
+ */
+describe('a tenant id created and erased after another session pinned its snapshot', () => {
+  /** The two isolation levels that pin one snapshot for a whole transaction,
+   * spelled as Postgres spells them. */
+  const PINNING_LEVELS = ['repeatable read', 'serializable'] as const;
+
+  let pinned: Client;
+  let spending: Client;
+  let observer: Client;
+
+  /** How many rows of `relation` carry this id, read on a third connection so
+   * that neither session's transaction decides the answer. */
+  async function rowsFor(relation: string, tenant: string): Promise<number> {
+    const { rows } = await observer.query<{ total: string }>(
+      `select count(*) as total from ${relation} where tenant_id = $1`,
+      [tenant],
+    );
+    return Number(rows[0].total);
+  }
+
+  /** The ordering above, run at one isolation level, and what an observer sees
+   * afterwards. Everything it creates is committed, so the cleanup is explicit. */
+  async function raceAPinnedSnapshot(level: string): Promise<Record<string, unknown>> {
+    let tenant: string | undefined;
+    let theInsert = 'not attempted';
+    try {
+      // The snapshot this session keeps for its whole life, taken before the
+      // transaction that creates the id exists. The count is what pins it; the
+      // xmax is what proves when.
+      await pinned.query(`begin isolation level ${level}`);
+      await pinned.query('set local role service_role');
+      const { rows: [snapshot] } = await pinned.query<{ xmax: string }>(
+        'select count(*) as tenants, pg_snapshot_xmax(pg_current_snapshot())::text as xmax '
+        + 'from public.tenants',
+      );
+
+      // The id is created and committed. pg_current_xact_id assigns and reports
+      // this transaction's id, which is the number the reader's xmax is read
+      // against.
+      await spending.query('begin');
+      await spending.query('set local role service_role');
+      const { rows: [creating] } = await spending.query<{ xid: string }>(
+        'select pg_current_xact_id()::text as xid',
+      );
+      const { rows: [created] } = await spending.query<{ tenant_id: string }>(
+        'insert into public.tenants (name) values ($1) returning tenant_id',
+        [`Tenant erased under an older ${level} snapshot`],
+      );
+      tenant = created.tenant_id;
+      await spending.query('commit');
+
+      // And spent, with an audit event behind it so that the observer below can
+      // tell an erasure from no erasure the way an auditor would.
+      await spending.query('begin');
+      await spending.query('set local role service_role');
+      await spending.query(
+        `insert into public.audit_events (tenant_id, event_type, actor)
+         values ($1, 'test.written_before_erasure', 'test')`,
+        [tenant],
+      );
+      await spending.query('delete from public.tenants where tenant_id = $1', [tenant]);
+      await spending.query('commit');
+
+      try {
+        await pinned.query(
+          'insert into public.tenants (tenant_id, name) values ($1, $2)',
+          [tenant, 'Tenant put back from a snapshot older than its erasure'],
+        );
+        theInsert = 'accepted';
+      } catch (error) {
+        theInsert = (error as { code?: string }).code ?? (error as Error).message;
+      }
+      await pinned.query(theInsert === 'accepted' ? 'commit' : 'rollback');
+
+      return {
+        theCreationWasOutsideTheSnapshot: BigInt(creating.xid) >= BigInt(snapshot.xmax),
+        theInsert,
+        liveRowsAfterwards: await rowsFor('public.tenants', tenant),
+        tombstones: await rowsFor(ERASURE_REGISTRY_TABLE, tenant),
+        auditEventsBehindIt: await rowsFor('public.audit_events', tenant),
+      };
+    } finally {
+      await pinned.query('rollback').catch(() => undefined);
+      await spending.query('rollback').catch(() => undefined);
+      if (tenant) {
+        await observer
+          .query('delete from public.tenants where tenant_id = $1', [tenant])
+          .catch(() => undefined);
+      }
+    }
+  }
+
+  beforeAll(async () => {
+    [pinned, spending, observer] = await Promise.all([connect(), connect(), connect()]);
+    const present = await tablesIn(observer, 'public');
+    if (!present.includes('tenants')) {
+      throw new Error(
+        'This test cannot say anything about an erasure a second session cannot see: '
+        + 'public.tenants does not exist. Apply the trade record migrations with `pnpm db:reset`.',
+      );
+    }
+  });
+
+  afterAll(async () => {
+    await Promise.all([pinned?.end(), spending?.end(), observer?.end()]);
+  });
+
+  for (const level of PINNING_LEVELS) {
+    it(`is refused the insert a ${level} snapshot cannot see the tombstone from`, async () => {
+      const measured = await raceAPinnedSnapshot(level);
+      expect(
+        measured,
+        `A session at ${level} whose snapshot was pinned before the id existed inserted that `
+        + `erased id and was ${measured.theInsert}, leaving ${measured.liveRowsAfterwards} `
+        + `tenant rows carrying it, ${measured.tombstones} tombstones for it and `
+        + `${measured.auditEventsBehindIt} audit events behind it. Live and tombstoned at once `
+        + 'with no audit history is the state part 8 exists to make impossible, and a refusal '
+        + '(23001) is the only answer that keeps the id spent. The ordering was forced: the '
+        + 'transaction that created the id is outside the reader\'s snapshot '
+        + `(${measured.theCreationWasOutsideTheSnapshot}), without which the run measured a `
+        + 'reader that could see the erasure all along and proves nothing',
+      ).toEqual({
+        theCreationWasOutsideTheSnapshot: true,
+        theInsert: '23001',
+        liveRowsAfterwards: 0,
+        tombstones: 1,
+        auditEventsBehindIt: 0,
+      });
+    }, 40_000);
+  }
+});
+
+/**
  * CODEX-01: a foreign key that references the parent's id alone lets a child row
  * name a parent belonging to another tenant, and the cascade then carries one
  * tenant's erasure into another tenant's trade record.

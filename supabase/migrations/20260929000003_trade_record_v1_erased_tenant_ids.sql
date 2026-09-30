@@ -54,6 +54,18 @@
 -- on the id before they touch it, so the check cannot run inside the window the
 -- erasure is open. What that costs and what it was chosen over is beside the lock.
 --
+-- And the refusal no longer rests on a read at all. A lock can stop two sessions
+-- interleaving; it cannot make a transaction see what its snapshot was taken
+-- before, and F42 is that difference measured: a session that pins a snapshot at
+-- repeatable read before the id exists, and inserts that id after another session
+-- has created it, erased it and committed both, finds the lock free, the tombstone
+-- outside its snapshot and no live row to conflict with, and is accepted.
+-- Serialisable was measured accepting it too. So the check is a write now. It
+-- inserts the tombstone it was asking after and takes the insert back, because a
+-- unique index answers from what has committed rather than from what the asker can
+-- see. What that costs, and which half of the candidate the F28 round rejected
+-- this keeps, are beside the refusal.
+--
 -- The erasure itself is untouched and stays untouched. Deletion on request is a
 -- promise this schema has to keep, and a fix that made a tenant undeletable, or
 -- that held its audit events back from the cascade, would be a worse defect than
@@ -168,15 +180,21 @@ revoke all on seen.erased_tenants from anon, authenticated, service_role;
 -- waited the erasure out; it was rejected because it is true only at read committed.
 -- Under repeatable read the transaction has one snapshot for its whole life, the
 -- second ask reads the same stale rows as the first, and the guarantee fails open
--- silently in an isolation level a later application might reasonably choose.
+-- silently in an isolation level a later application might reasonably choose. That
+-- sentence was true of the first ask as well and this round did not see it, which is
+-- what F42 then measured; the refusal below no longer asks by reading, and the
+-- reasoning for that is written there.
 -- Making the registry authoritative through a constraint rather than a read was the
 -- other candidate: a table of every id ever issued, referenced by public.tenants,
 -- turns the check into a row lock the database takes without being asked. It was
 -- rejected because that table holds the ids of living tenants rather than only spent
 -- ones, which is a different table with a different meaning and a different privacy
 -- story, and because marking a row erased is an update, so the registry would have
--- to stop being append-only to carry it. Raising the isolation level was not a
--- candidate at all: this schema cannot decide what its callers run at.
+-- to stop being append-only to carry it. Those two reasons are about the table and
+-- they still stand, so the table is still not built; what F42 retook is the
+-- mechanism underneath it, which the registry as it already stands can give.
+-- Raising the isolation level was not a candidate at all: this schema cannot decide
+-- what its callers run at.
 create or replace function seen.lock_tenant_id(id uuid)
 returns void
 language sql
@@ -259,18 +277,81 @@ create trigger record_erasure after delete on public.tenants
 -- And the id is refused ever after ----------------------------------------------
 --
 -- Security definer for the same reason and for a second one. The reason: the
--- registry is unreadable by every role the application uses, so an invoker-rights
+-- registry is untouchable by every role the application uses, so an invoker-rights
 -- function would be refused the table outright and the refusal would never fire.
 -- The second: row-level security is enabled on the registry with no policy, so
--- under the invoker's rights this `exists` would answer what the caller can see
--- rather than what is there, and a caller who can see nothing would be told the id
--- is free. An existence test that is really a visibility test is the failure mode
--- worth naming here, because it fails open and it fails silently.
+-- under the invoker's rights a question about the registry would answer what the
+-- caller can see rather than what is there, and a caller who can see nothing would
+-- be told the id is free. A test that is really a visibility test is the failure
+-- mode worth naming here, because it fails open and it fails silently.
 --
--- And F28 is the same failure mode in time rather than in privilege: an existence
--- test is also a test of what has committed. The lock comes first for that reason
--- and is a statement of its own, because the check that follows it is what takes the
--- fresh snapshot the waiting was for.
+-- Why this asks by writing rather than by reading, which is F42. This was
+-- `exists (select 1 from seen.erased_tenants ...)`, and an existence test over a
+-- snapshot answers for the moment the snapshot was taken. At read committed that
+-- moment is this statement's, so the answer is current, and F28's lock is what keeps
+-- the statement from running while an erasure is open. At repeatable read and at
+-- serialisable the moment is the transaction's first statement, and a tombstone
+-- written after it is invisible however long the transaction has waited. Measured
+-- against this stack as `service_role` on both sides: one session pins its snapshot
+-- before the id exists at all, a second creates that tenant and commits, erases it
+-- and commits, and the first session's insert of the same id is accepted. The lock
+-- is free, because the erasure has finished; the primary key has nothing live to
+-- conflict with, because the row it would conflict with is committed-deleted; and
+-- the existence test is looking at a world in which the tenant was never created.
+-- The id is live and tombstoned at once with no audit events behind it, which is
+-- what this whole file exists to prevent. A snapshot pinned while the tenant row
+-- already stands is a different case and was already refused: there the erasure's
+-- delete conflicts with the insert and Postgres answers 40001.
+--
+-- The mechanism. A unique index is not read through a snapshot: an insert conflicts
+-- with a committed entry and waits on an uncommitted one whatever isolation level
+-- the inserter runs at, which is exactly the property the existence test lacks. So
+-- the check inserts the tombstone it was asking after, into the registry's own
+-- primary key, and takes the insert back. A conflict is the tombstone standing and
+-- becomes the refusal; no conflict is the id being unspent. The undo is a `raise`
+-- the block catches, because rolling back part of its own body is the one thing a
+-- PL/pgSQL block can only do through an exception handler, and the code it raises is
+-- a private one whose whole purpose is to be caught two lines further on. Nothing
+-- else can raise it: the only statement inside the block is the insert, and the
+-- registry carries no insert trigger.
+--
+-- Retaking the F28 decision rather than inheriting it. That round rejected the
+-- constraint direction for two reasons written beside the lock above, and both are
+-- about the table it would have needed: a registry of every id ever issued holds
+-- living tenants' ids rather than spent ones, which is a different privacy story,
+-- and marking a row erased is an update, which would end the registry's
+-- append-only guarantee. Neither reason is touched here, because no such table is
+-- built: the registry stays tombstones only, two columns, append-only, and a record
+-- that an erasure happened rather than of who was erased. What is taken from that
+-- candidate is the half worth having, an index instead of a read. The other
+-- direction the seventh review offered was to refuse the insert outright when the
+-- isolation level is not read committed. It is simpler and it was not chosen: it
+-- refuses a legitimate writer for a level it cannot serve, and the level it would
+-- refuse most certainly is serialisable, which is what a careful caller reaches for
+-- in order to be safe. A guarantee that holds at every isolation level is worth more
+-- than one stated for a single one.
+--
+-- What it costs. Creating a tenant now writes a registry row and takes it back, so
+-- each creation leaves one dead heap tuple and one dead index entry for autovacuum,
+-- and runs inside a subtransaction. A tenant is a brand and is created a handful of
+-- times a month, so the price is paid where there is almost nothing to pay; this
+-- would be the wrong shape on a table that is written to constantly. The read it
+-- replaced is not kept beside it as a fast path, because two mechanisms for one
+-- guarantee leave a reader guessing which of them is load-bearing.
+--
+-- What it does not cover, beyond what the head of this file says about whoever
+-- holds the database. It is reached by an insert into public.tenants and says
+-- nothing about a route that is not one. And a refused id is an id that stays
+-- spent, not an erasure that can be undone: the audit events the cascade took are
+-- gone, and that is what makes the refusal the only thing left to keep the erasure
+-- legible.
+--
+-- The lock stays and is no longer what makes the guarantee true: the insert below
+-- would wait on an uncommitted tombstone by itself, which is F28's window closed by
+-- the index rather than by the lock. It is kept because it makes both sides queue
+-- on the id in one order before either touches the registry, which is what keeps
+-- their waiting free of a cycle, and it is taken outside the block below so that
+-- the probe's rollback and the lock's lifetime have nothing to do with each other.
 create or replace function seen.refuse_erased_tenant_id()
 returns trigger
 language plpgsql
@@ -280,23 +361,31 @@ as $$
 begin
   perform seen.lock_tenant_id(new.tenant_id);
 
-  if exists (
-    select 1 from seen.erased_tenants e where e.tenant_id = new.tenant_id
-  ) then
-    raise exception
-      'tenant id % was erased on request and cannot be created again. A new tenant gets a new '
-      'uuid; reusing an erased id would leave it resolving in every token, Stripe customer and '
-      'invoice that names it with no audit events behind it, and the erasure would stop being '
-      'distinguishable from no erasure at all.', new.tenant_id
-      using errcode = 'restrict_violation';
-  end if;
+  begin
+    insert into seen.erased_tenants (tenant_id) values (new.tenant_id);
+    raise exception 'the tenant id is unspent, so the row that asked is taken back'
+      using errcode = 'SEEN1';
+  exception
+    when unique_violation then
+      raise exception
+        'tenant id % was erased on request and cannot be created again. A new tenant gets a new '
+        'uuid; reusing an erased id would leave it resolving in every token, Stripe customer and '
+        'invoice that names it with no audit events behind it, and the erasure would stop being '
+        'distinguishable from no erasure at all.', new.tenant_id
+        using errcode = 'restrict_violation';
+    when sqlstate 'SEEN1' then
+      null;
+  end;
 
   return new;
 end;
 $$;
 
 comment on function seen.refuse_erased_tenant_id() is
-  'Refuses an insert into public.tenants carrying a tenant id a previous erasure consumed.';
+  'Refuses an insert into public.tenants carrying a tenant id a previous erasure consumed. It '
+  'asks by inserting that tombstone into the registry and taking the insert back, because a '
+  'unique index answers from what has committed while a read answers from the snapshot the '
+  'asking transaction happens to hold.';
 
 create trigger refuse_erased_tenant_id before insert on public.tenants
   for each row execute function seen.refuse_erased_tenant_id();
@@ -514,6 +603,28 @@ begin
       'tombstoned id on insert and the trigger that refuses any change of tenant_id, so an '
       'erasure is still reversible by one route or another, or is still raceable by two '
       'sessions';
+  end if;
+
+  -- The index the refusal now rests on, asked of the catalogue because losing it
+  -- fails open and fails quietly. The refusal asks whether an id is spent by
+  -- inserting the tombstone and taking the insert back: with a unique index over
+  -- tenant_id that insert conflicts, and without one it succeeds every time, is
+  -- rolled back every time, and every erased id becomes creatable again with
+  -- nothing raising anywhere. The primary key is what provides it today; what is
+  -- asked for is the property and not the constraint's name, so a later migration
+  -- may re-shape the key and may not drop the uniqueness.
+  if not exists (
+    select 1
+      from pg_catalog.pg_index i
+     where i.indrelid = 'seen.erased_tenants'::regclass
+       and i.indisunique and i.indislive and i.indnkeyatts = 1
+       and i.indkey[0] = (select a.attnum from pg_catalog.pg_attribute a
+                           where a.attrelid = 'seen.erased_tenants'::regclass
+                             and a.attname = 'tenant_id')
+  ) then
+    raise exception 'seen.erased_tenants carries no unique index over tenant_id alone, so the '
+      'insert that refuses a spent id has nothing to conflict with, every erased id is '
+      'creatable again, and nothing raises to say so';
   end if;
 
   if not has_table_privilege('service_role', 'public.tenants', 'delete') then
