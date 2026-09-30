@@ -608,21 +608,34 @@ async function foreignTablesIn(client: Client, schema: string): Promise<string[]
  * answer to this one and could not be: a default privilege is a statement about
  * relations that do not exist yet, so there is nothing to ask it about, and
  * `pg_default_acl` is the only place the statement is written down.
+ *
+ * Entries filed against no schema at all are read beside the schema's own, and
+ * that is the seventh review of SEEN-008 (F39) read in the direction the finding
+ * did not go. `alter default privileges` with no `in schema` clause stores
+ * `defaclnamespace = 0` and applies to the named schema as surely as an entry
+ * naming it: part 6 uses that form to take PostgreSQL's built-in EXECUTE to PUBLIC
+ * off every routine the migration role creates, which is the statement that makes
+ * a function in public preventable rather than merely detectable. A guard reading
+ * only the schema's own entries could not see that prevention granted back, which
+ * is the same defect one scope out as F30 was one grantee out, so the scope is
+ * reported in the message rather than assumed.
  */
 async function defaultPrivilegesForClientRolesIn(
   client: Client, schema: string,
 ): Promise<string[]> {
   const { rows } = await client.query<{
-    grantor: string; objectClass: string; role: string; privilege: string;
+    grantor: string; objectClass: string; role: string; privilege: string; scope: number;
   }>(
     `select d.defaclrole::regrole::text as grantor,
             d.defaclobjtype as "objectClass",
+            d.defaclnamespace as scope,
             case when a.grantee = 0 then 'PUBLIC'
                  else a.grantee::regrole::text end as role,
             a.privilege_type as privilege
        from pg_catalog.pg_default_acl d
        cross join lateral aclexplode(d.defaclacl) a
-      where d.defaclnamespace = (select oid from pg_catalog.pg_namespace where nspname = $1)
+      where (d.defaclnamespace = (select oid from pg_catalog.pg_namespace where nspname = $1)
+             or d.defaclnamespace = 0)
         and d.defaclobjtype = any($3)
         and d.defaclrole = current_user::regrole
         and (a.grantee::regrole::text = any($2) or a.grantee = 0)
@@ -631,7 +644,7 @@ async function defaultPrivilegesForClientRolesIn(
   );
   return rows.map((row) => `${row.role} holds ${row.privilege} on every `
     + `${DEFAULT_ACL_OBJECT_CLASSES[row.objectClass] ?? row.objectClass} ${row.grantor} `
-    + `creates in ${schema}`);
+    + `creates in ${row.scope === 0 ? 'any schema' : schema}`);
 }
 
 /**
@@ -690,13 +703,17 @@ async function executableRoutinesIn(client: Client, schema: string): Promise<str
 /** The client-bound roles named in a routine's own access control list, and
  * whether PUBLIC is named there too.
  *
- * The two halves of what part 6's revoke can and cannot reach, kept apart because
- * only one of them is a promise. `alter default privileges ... revoke all on
- * functions from anon, authenticated` takes the two named grants off every function
- * the migration role creates next. It cannot take PUBLIC's EXECUTE off one, because
- * that grant is part of the default access control list a new routine starts from
- * and a `pg_default_acl` entry is merged into that default by adding to it. So the
- * first half is asserted as a guarantee and the second as the limit it is. */
+ * The two halves of what part 6's two revokes reach, kept apart because they are
+ * two statements and a round that loses one of them would still read as safe on the
+ * other. `alter default privileges ... in schema public ... from anon,
+ * authenticated` takes the two named grants off every function the migration role
+ * creates next, and `alter default privileges ... revoke execute on functions from
+ * public`, filed against no schema, takes PostgreSQL's own grant to PUBLIC off it.
+ * Five rounds of this ticket recorded the second as impossible, on a measurement of
+ * the per-schema form which cannot subtract a grant that was never filed against a
+ * schema; the seventh review (F39) is that the global form can, and both halves are
+ * now asserted as guarantees. PUBLIC is read as a grantee of its own because it
+ * names no role and is the one an ACL query matching by name walks past. */
 async function routineAccessControlList(
   client: Client, signature: string,
 ): Promise<{ clientRolesNamed: string[]; publicIsNamed: boolean }> {
@@ -714,6 +731,25 @@ async function routineAccessControlList(
       .includes(role)),
     publicIsNamed: named.includes('PUBLIC'),
   };
+}
+
+/**
+ * Whether one named role can execute one routine, asked of the database.
+ *
+ * The other half of `routineAccessControlList`, and it is kept separate from the
+ * inventory above because the question is not the same one: a list says which
+ * grants were written down and this says what a role can do, and the gap between
+ * the two is where every routine finding in this ticket lived. It takes the role as
+ * an argument rather than looping over the browser-bound pair, because the
+ * assertion that matters most about the default privileges is the one about
+ * `service_role`, which is neither of them and must stay true.
+ */
+async function canExecute(client: Client, role: string, signature: string): Promise<boolean> {
+  const { rows } = await client.query<{ allowed: boolean }>(
+    'select has_function_privilege($1, $2::regprocedure, $3) as allowed',
+    [role, signature, FUNCTION_PRIVILEGE],
+  );
+  return rows[0].allowed;
 }
 
 /**
@@ -3949,6 +3985,17 @@ describe('the functions in the public schema', () => {
       // above is worth nothing without. The function is the one the reproduction
       // used, and the two tenants are inserted here so that the count proves rows
       // crossed a tenant boundary and not merely that a call was accepted.
+      //
+      // The grant is written here and is the point rather than setup. Until F39 the
+      // database supplied this state by itself, so the fixture said nothing and got
+      // its hazard from the default privileges every Supabase project ships with;
+      // that is exactly what made the suite refuse a working prevention, because a
+      // test that needs the unsafe default in order to demonstrate the hazard is a
+      // test that requires the unsafe default. The hazard is now created by the
+      // three words that create it in the wild: a later ticket's migration writing
+      // `grant execute` on its own RPC, which is the ordinary Supabase instruction
+      // and the one route into this schema prevention cannot close, because somebody
+      // meant it.
       await client.query('begin');
       try {
         await client.query(
@@ -3957,6 +4004,9 @@ describe('the functions in the public schema', () => {
         await client.query(
           'create function public.seen_rpc_probe() returns setof text '
           + 'language sql security definer as $$ select name from public.tenants $$',
+        );
+        await client.query(
+          'grant execute on function public.seen_rpc_probe() to anon, authenticated',
         );
         const measured = {
           routinesTheGuardReports: (await executableRoutinesIn(client, 'public'))
@@ -4023,11 +4073,13 @@ describe('the functions in the public schema', () => {
       //
       // The default privilege is granted back inside the probe, and that is the
       // point rather than a convenience. Part 6 revoked it, so a function created
-      // here now is not born naming either role and `from public` would close it;
-      // the state this measures is the one every Supabase database ships with and
-      // the one a single `alter default privileges ... grant` restores. What has to
-      // stay true whatever the default is, is that the two statements are not each
-      // other's shorthand.
+      // here now is born naming neither role and `from public` would close it; this
+      // restores the half of the shipped default that names the roles, which is the
+      // half the statement under test cannot reach. What has to stay true whatever
+      // the default is, is that the two statements are not each other's shorthand.
+      // The other half of the shipped default, PostgreSQL's grant to PUBLIC, is not
+      // restored here and does not need to be: it is what `from public` reaches, and
+      // leaving it closed shows that the named grants alone keep `anon` reading.
       await client.query('begin');
       try {
         await client.query(
@@ -4088,56 +4140,68 @@ describe('the functions in the public schema', () => {
       }
     });
 
-  it('is born with neither browser-bound role in its own access control list, and with PUBLIC '
-    + 'in it, which no default privilege can change', async () => {
-    // The prevention half of F32 and its limit, in the one measurement that can
-    // hold both. Part 6 revokes the default privileges on functions from `anon` and
-    // `authenticated`, so a function created next is not born naming them; that is
-    // a guarantee and it is asserted.
-    //
-    // PostgreSQL's own default access control list for a routine grants EXECUTE to
-    // PUBLIC, and `alter default privileges` cannot take that away: a
-    // `pg_default_acl` entry is merged into the built-in default by adding to it.
-    // Measured on PostgreSQL 17.6 on this stack, with `alter default privileges for
-    // role postgres in schema public revoke all on functions from public` applied on
-    // top of part 6's revoke, `pg_default_acl` read
-    // `{postgres=X/postgres,service_role=X/postgres}` and the next function created
-    // there was still born `{=X/postgres,postgres=X/postgres,service_role=X/postgres}`.
-    // So prevention reaches the two named grants and stops there, which is the
-    // reason the guard above asks what a role can do rather than what a list says
-    // and the reason the suite is the boundary for a function rather than the
-    // migration: the pull request that adds the first function to schema public
-    // fails here, in it.
-    await client.query('begin');
-    try {
-      await client.query(
-        'create function public.seen_born_callable_probe() returns int '
-        + 'language sql as $$ select 1 $$',
-      );
-      const measured = {
-        ...await routineAccessControlList(client, 'public.seen_born_callable_probe()'),
-        whatTheDatabaseSaysAnonCanDo: (await client.query<{ allowed: boolean }>(
-          'select has_function_privilege($1, $2::regprocedure, $3) as allowed',
-          ['anon', 'public.seen_born_callable_probe()', FUNCTION_PRIVILEGE],
-        )).rows[0].allowed,
-      };
-      expect(
-        measured,
-        'A function was created in schema public and its own access control list reads '
-        + `${JSON.stringify(measured)}. Neither browser-bound role may be named in it, which is `
-        + 'what part 6\'s `revoke all on functions from anon, authenticated` buys. PUBLIC is '
-        + 'named in it and cannot be taken out by any default privilege, which is why this is '
-        + 'asserted as true rather than hoped away, and why the assertion that no function in '
-        + 'this schema is executable by a browser-bound role is the boundary that has to hold',
-      ).toEqual({
-        clientRolesNamed: [],
-        publicIsNamed: true,
-        whatTheDatabaseSaysAnonCanDo: true,
-      });
-    } finally {
-      await client.query('rollback');
-    }
-  });
+  it('is born callable by service_role and by no browser-bound role, PUBLIC included',
+    async () => {
+      // Prevention, whole, where five rounds of this ticket recorded that prevention
+      // was impossible. The seventh Codex review of SEEN-008 (F39) is that the
+      // impossibility was a property of the statement those rounds tried and not of
+      // PostgreSQL: `alter default privileges ... in schema public ... from public`
+      // cannot subtract the built-in grant, because the built-in grant is not filed
+      // against a schema, and `alter default privileges for role postgres revoke
+      // execute on functions from public`, with no `in schema` clause at all, is
+      // filed the same way the built-in grant is and does subtract it.
+      //
+      // Measured on PostgreSQL 17.6 on this stack in a rolled-back transaction,
+      // both forms one after the other. With the per-schema form applied on top of
+      // part 6's revoke, `pg_default_acl` for schema public read
+      // `{postgres=X/postgres,service_role=X/postgres}` and the function created
+      // next was still born `{=X/postgres,postgres=X/postgres,service_role=X/postgres}`
+      // with `has_function_privilege('anon', ...)` true, which is what notes 154 and
+      // 159 recorded and generalised too far. With the global form, `pg_default_acl`
+      // gains a row whose `defaclnamespace` is 0, and the function created next is
+      // born `{postgres=X/postgres,service_role=X/postgres}` with no PUBLIC entry at
+      // all and `anon`, `authenticated` both false.
+      //
+      // `service_role` is asserted in the same measurement rather than in one of its
+      // own, because the two halves are what makes this a fix instead of an outage:
+      // the per-schema entry on public still names `service_role`, and the global
+      // revoke takes away the built-in grant underneath it without touching it. A
+      // version of this that left `service_role` unable to call the next function in
+      // public would pass every security assertion in this file and break every RPC
+      // the product ever writes.
+      await client.query('begin');
+      try {
+        await client.query(
+          'create function public.seen_born_callable_probe() returns int '
+          + 'language sql as $$ select 1 $$',
+        );
+        const measured = {
+          ...await routineAccessControlList(client, 'public.seen_born_callable_probe()'),
+          whatTheDatabaseSaysAnonCanDo: await canExecute(
+            client, 'anon', 'public.seen_born_callable_probe()',
+          ),
+          whatTheDatabaseSaysServiceRoleCanDo: await canExecute(
+            client, 'service_role', 'public.seen_born_callable_probe()',
+          ),
+        };
+        expect(
+          measured,
+          'A function was created in schema public and its own access control list reads '
+          + `${JSON.stringify(measured)}. Neither browser-bound role may be named in it and `
+          + 'PUBLIC may not be either, because PUBLIC is the grantee `anon` reaches EXECUTE '
+          + 'through and the one the first five rounds of this ticket recorded as unreachable. '
+          + '`service_role` must still hold it, or the next function this schema gains answers '
+          + 'nothing to the role every worker and API call connects as',
+        ).toEqual({
+          clientRolesNamed: [],
+          publicIsNamed: false,
+          whatTheDatabaseSaysAnonCanDo: false,
+          whatTheDatabaseSaysServiceRoleCanDo: true,
+        });
+      } finally {
+        await client.query('rollback');
+      }
+    });
 
   it('would see a default privilege on functions a later migration granted back', async () => {
     // The prevention half asked of the database rather than of part 6's file. The
@@ -4230,16 +4294,15 @@ describe('the sequences in the public schema', () => {
     // three things `anon` was able to do before the fix, beside what every guard
     // that existed before this round says about the same object.
     //
-    // The contrast with F32 is the reason this assertion can be written at all and
-    // is what a later reader most needs from this block. For a function, `alter
-    // default privileges ... revoke` cannot finish the job: PostgreSQL grants
-    // EXECUTE to PUBLIC on every routine as a baseline and a `pg_default_acl` entry
-    // is merged into that baseline by adding to it, so a function in public is still
-    // born callable by `anon` after the revoke and what part 6 closed there was
-    // detection with a bound. PostgreSQL grants a new sequence nothing to PUBLIC, so
-    // there is no baseline underneath for the revoke to fail to reach, and this
-    // assertion is a prevention rather than a bound. Measured on PostgreSQL 17.6 on
-    // this stack: after the revoke the sequence is born
+    // The contrast with F32 is why this assertion takes one statement where the one
+    // on functions takes two, and it is what a later reader most needs from this
+    // block. PostgreSQL grants EXECUTE to PUBLIC on every routine as a baseline, so
+    // a function needs the per-schema revoke for the named grants and a second
+    // revoke filed against no schema for the built-in one; five rounds of this
+    // ticket recorded the second as impossible and the seventh review (F39) showed
+    // it is not. PostgreSQL grants a new sequence nothing to PUBLIC, so there is no
+    // baseline underneath this revoke and one statement is the whole of it. Measured
+    // on PostgreSQL 17.6 on this stack: after the revoke the sequence is born
     // `{postgres=rwU/postgres,service_role=rwU/postgres}` with no PUBLIC entry at
     // all, and all three calls are refused.
     //
@@ -4704,6 +4767,17 @@ describe('schema seen, which the Data API does not serve', () => {
     // because the default access control list there names the role outright. That
     // asymmetry is why part 8's revokes are written the way they are and why they
     // are not the rule for writing a function in `public`.
+    //
+    // The grant to PUBLIC is written here rather than waited for, and what it means
+    // changed with F39. It is the grant PostgreSQL used to make by itself on every
+    // routine, so until part 6 gained its global revoke this fixture got its hazard
+    // from the database and a later author installing prevention would have been
+    // told by this test that they had broken something. The grant now says in one
+    // line what the hazard is: a routine in this schema that carries EXECUTE to
+    // PUBLIC, however it came by it, is callable by `anon`, because `anon` holds
+    // USAGE here. Part 6 stops it arriving by default and part 8's revokes stop it
+    // arriving from a routine created before part 6 runs; neither stops somebody
+    // writing it, which is what this measures.
     await client.query('begin');
     try {
       await client.query(
@@ -4712,6 +4786,9 @@ describe('schema seen, which the Data API does not serve', () => {
       await client.query(
         `create function ${HELPER_SCHEMA}.seen_helper_probe() returns setof text `
         + 'language sql security definer as $$ select name from public.tenants $$',
+      );
+      await client.query(
+        `grant execute on function ${HELPER_SCHEMA}.seen_helper_probe() to public`,
       );
       const bornWith = {
         routinesTheGuardReports: (await executableRoutinesIn(client, HELPER_SCHEMA))

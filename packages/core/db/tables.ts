@@ -749,9 +749,11 @@ export const RELKIND_NAMES: Readonly<Record<string, string>> = {
  * procedure and an aggregate alike, so `on functions` is one statement for all
  * three; the grammar spells it `on functions` and `on routines` means the same
  * thing. `'S'` is a sequence, whether `create sequence` made it or a `bigserial` or
- * identity column did, and it is the one class of the three where the revoke is the
- * whole of prevention rather than a bound on it; `SEQUENCE_PRIVILEGES` records the
- * measurement that says so.
+ * identity column did, and it is the one class of the three where one revoke is the
+ * whole of prevention: a routine needs two, because PostgreSQL grants EXECUTE to
+ * PUBLIC on every one it creates and only a default privilege filed against no
+ * schema subtracts that, which is the seventh review of SEEN-008 (F39) and part 6's
+ * global statement. `SEQUENCE_PRIVILEGES` records the measurement for `'S'`.
  *
  * `'T'` is a type or a domain, and it is here for detection alone, because there is
  * nothing to revoke. Measured on this stack: `pg_default_acl` holds no `'T'` row at
@@ -889,12 +891,16 @@ export const HELPER_SCHEMA = 'seen';
  * Why an allow-list is needed here at all, when nothing in `seen` is reachable
  * through an endpoint. A routine is born `proacl` null, which is PostgreSQL's own
  * EXECUTE to PUBLIC, and `anon` holds USAGE on this schema, so a function added
- * here is callable by name by a caller who never signed in unless its own migration
- * revokes that. `alter default privileges` cannot close it, measured on this stack
- * for schema `public` at F32: a `pg_default_acl` entry is merged into the built-in
- * default by adding to it rather than by replacing it, so there is no one statement
- * that makes the schema safe and each routine's own revoke is the whole of the
- * prevention. The two F38 found, `seen.touch_updated_at()` and
+ * here was callable by name by a caller who never signed in unless its own
+ * migration revoked that, and part 6's global `alter default privileges ... revoke
+ * execute on functions from public` is what stopped it being born that way. That
+ * statement is filed against no schema, so it reaches this one; the rounds that
+ * wrote F32 concluded no statement could, on a measurement of the per-schema form,
+ * and the seventh review (F39) showed the conclusion belonged to the form rather
+ * than to PostgreSQL. The allow-list is still needed, for two reasons neither of
+ * which the fix touches: a routine created before part 6 runs is born with the
+ * built-in grant, and a grant somebody writes on purpose is not a default at all.
+ * The two F38 found, `seen.touch_updated_at()` and
  * `seen.refuse_erasure_registry_mutation()`, were harmless only because both return
  * `trigger` and answer 0A000, "trigger functions can only be called as triggers",
  * which is a property of what they happened to return and not of anything the

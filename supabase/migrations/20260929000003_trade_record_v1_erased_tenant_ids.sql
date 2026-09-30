@@ -414,9 +414,12 @@ create trigger erased_tenants_no_truncate
 --
 -- Why `from public` is the whole of the revoke here, and would not be one line from
 -- here in schema public. Measured against this stack: schema `seen` carries no
--- `pg_default_acl` entry at all, so a function created here is born with the single
--- grant PostgreSQL writes itself, EXECUTE to PUBLIC, and taking that away leaves
--- `{postgres=X/postgres}` and refuses `anon` with SQLSTATE 42501. Schema public is
+-- `pg_default_acl` entry of its own, so a function created here carries the single
+-- grant PostgreSQL writes itself, EXECUTE to PUBLIC, unless something has taken
+-- that away, and taking it away leaves `{postgres=X/postgres}` and refuses `anon`
+-- with SQLSTATE 42501. Part 6's global revoke is what takes it away before this
+-- file runs; these statements are what takes it away when the set is re-applied
+-- against a database that has lost it. Schema public is
 -- not like that: its default access control list names `anon` and `authenticated`
 -- on functions as well as on relations, so these six statements written there would
 -- leave both roles holding EXECUTE, with the access control list still reading
@@ -428,10 +431,19 @@ create trigger erased_tenants_no_truncate
 --
 -- What the revoke is not, said because F38 is what reading it too widely produced.
 -- It is not a defence that follows the schema: it closes these six and says nothing
--- about the seventh. There is no statement that makes schema `seen` safe once and
--- for all, because `alter default privileges` adds to PostgreSQL's built-in default
--- rather than replacing it and so cannot reach the grant to PUBLIC that every new
--- routine is born with.
+-- about the seventh. What does follow the schema is part 6's global `alter default
+-- privileges ... revoke execute on functions from public`, which is filed against
+-- no schema and so reaches this one, and it is why a seventh helper added here
+-- after part 6 runs is born `{postgres=X/postgres}` rather than callable by
+-- everybody. This file used to say no such statement was possible, on the F32
+-- rounds' conclusion that a default privilege can only add to PostgreSQL's
+-- built-in default; the seventh review (F39) showed that conclusion was about the
+-- per-schema form alone and is false of the global one. These six statements stay
+-- and are no longer the only thing between a helper here and `anon`. In a fresh
+-- apply of this set part 6 has already run, so these six find nothing left to
+-- revoke; what they still close is this set re-applied against a database whose
+-- global entry somebody has granted back, and what they still carry is each file's
+-- guarantee being readable in the file that makes it.
 revoke all on function seen.lock_tenant_id(uuid) from public;
 revoke all on function seen.lock_tenant_id_for_erasure() from public;
 revoke all on function seen.record_tenant_erasure() from public;

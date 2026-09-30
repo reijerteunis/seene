@@ -116,6 +116,77 @@ alter default privileges for role postgres in schema public
 alter default privileges for role postgres in schema public
   revoke all on functions from anon, authenticated;
 
+-- And the grant underneath that one, which five rounds of this ticket recorded as
+-- unreachable and which is reachable ----------------------------------------
+--
+-- This paragraph corrects the file it is in. The rounds that wrote F32 concluded
+-- that a function cannot be prevented from being born callable by `anon`, only
+-- detected: PostgreSQL grants EXECUTE to PUBLIC on every routine as a baseline, a
+-- `pg_default_acl` entry is merged into that baseline by adding to it, so a revoke
+-- cannot subtract the grant that actually reaches a browser. That conclusion was
+-- written into this file at length, into journal notes 154 and 159 and into the
+-- ticket's Outcome, and the seventh Codex review of SEEN-008 (F39) demonstrated it
+-- is false. It is wrong in one respect and everything else in it follows: the
+-- impossibility belonged to the statement those rounds tried, not to PostgreSQL.
+--
+-- A default privilege is filed against a grantor and, optionally, a schema. The
+-- revoke above names `in schema public`, so it is filed against schema public, and
+-- the built-in EXECUTE to PUBLIC is filed against no schema at all. A per-schema
+-- entry cannot subtract a grant that is not in its scope, which is the whole of
+-- what those rounds measured and is true. A default privilege written with no `in
+-- schema` clause is filed the same way the built-in grant is, and it can.
+--
+-- Measured on PostgreSQL 17.6 on this stack, both forms one after the other in a
+-- rolled-back transaction, before this statement existed. With `alter default
+-- privileges for role postgres in schema public revoke execute on functions from
+-- public`, the entry for schema public read `{postgres=X/postgres,
+-- service_role=X/postgres}` and the function created next was still born
+-- `{=X/postgres,postgres=X/postgres,service_role=X/postgres}` with
+-- `has_function_privilege('anon', ..., 'EXECUTE')` true. With the statement below,
+-- `pg_default_acl` gains a row whose `defaclnamespace` is 0 reading
+-- `{postgres=X/postgres}`, and the function created next is born
+-- `{postgres=X/postgres,service_role=X/postgres}`: no PUBLIC entry at all, `anon`
+-- and `authenticated` both false, `service_role` still true. So prevention here is
+-- complete, on the same terms the sequence revoke below is, and the detection this
+-- file describes as the bound is now the second line and not the first.
+--
+-- What it costs, because it is the widest statement in this migration set and the
+-- only one that is not confined to a schema. It applies to every routine the
+-- migration role creates anywhere, so what it takes away is exactly the built-in
+-- grant and nothing that anybody wrote down: a per-schema entry naming a role is
+-- untouched, which is why `service_role` keeps EXECUTE on the next function in
+-- public and why the `storage` entry, which names `anon` and `authenticated` on
+-- functions, is not narrowed by this either. The one place it changes an outcome in
+-- this repository is schema `seen`, which carries no entry of its own: a helper
+-- created there after this file is born `{postgres=X/postgres}` and no other role
+-- can call it until its migration grants one. That is already the end state of
+-- every helper parts 7 and 8 create, because each of them is followed by `revoke
+-- all on function ... from public`, so nothing in this set changes shape; what
+-- changes is that a helper somebody forgets to revoke is now safe by default rather
+-- than callable by `anon`, and a helper a request must call needs the explicit
+-- grant `seen.current_tenant()` already carries. Part 8's revokes are kept rather
+-- than deleted, because they are what makes each file's guarantee readable in the
+-- file that makes it and because they still close a routine created before this
+-- statement runs.
+--
+-- What it does not cost, measured rather than reasoned, because a global statement
+-- that broke the platform would be found by nobody until it did. An extension is
+-- the one ordinary route by which a migration creates routines it did not write:
+-- `create extension postgres_fdw` and `create extension citext with schema
+-- extensions` were both run under this statement in a rolled-back transaction, and
+-- every routine either produced is owned by `supabase_admin`, not by the migration
+-- role, so this entry does not apply to them at all and `authenticated` can execute
+-- them exactly as before. That is the same fact from the other side as the limit
+-- below: Supabase escalates `create extension`, so the objects land under a grantor
+-- this role cannot revoke for, and note 167's open item stands unchanged. A
+-- migration that puts an extension in `public` without `with schema extensions`
+-- still produces routines `anon` can execute, `revoke ... from anon` still answers
+-- "no privileges could be revoked", and the self-check at the foot of this file is
+-- still what refuses the migration. Prevention below covers what this role creates;
+-- it does not cover what this role asks the platform to create.
+alter default privileges for role postgres
+  revoke execute on functions from public;
+
 -- And the functions already in this schema, which are none of them -----------
 --
 -- A default privilege says nothing about an object that already exists, so the
@@ -177,40 +248,35 @@ $$;
 -- that a later reader measuring the default access control list and finding two
 -- entries per class knows that one of them was left deliberately.
 --
--- The second limit, and this one has no grantor behind it. `alter default
--- privileges` can take the two named grants off the functions created next and it
--- cannot take away the EXECUTE PostgreSQL grants to PUBLIC on every routine,
--- because that grant is part of the default access control list a new object starts
--- from and a `pg_default_acl` entry is merged into that default by adding to it.
--- Measured on PostgreSQL 17.6 on this stack, with `alter default privileges for
--- role postgres in schema public revoke all on functions from public` applied on
--- top of the revoke above: `pg_default_acl` reads
--- `{postgres=X/postgres,service_role=X/postgres}` and the function created next is
--- still born `{=X/postgres,postgres=X/postgres,service_role=X/postgres}`, which
--- `has_function_privilege('anon', ..., 'EXECUTE')` answers true.
+-- The second limit this file used to state here is withdrawn, and what stands in
+-- its place is above rather than below. It read that `alter default privileges`
+-- cannot take away the EXECUTE PostgreSQL grants to PUBLIC on every routine, so
+-- prevention was impossible and detection with a bound was all there was. That is
+-- false, F39 demonstrated it, and the statement that closes it is the global revoke
+-- two sections up with the measurement beside it. It is corrected here as well as
+-- there because this is where a reader looking for the limits of this file arrives,
+-- and a paragraph that had been wrong for five rounds should not be found only by
+-- somebody who read the whole file from the top.
 --
--- So for a function, unlike a relation, the revoke above is not the whole of
--- prevention and this file does not claim it is. What it buys is that the next
--- function in public is not born with `anon` and `authenticated` written into its
--- own list, so one `revoke ... from public` beside its `create function` closes it
--- rather than half-closing it. What carries the rest is the guard in
--- packages/core/db/schema.test.ts, which asks `has_function_privilege` of every
--- routine in this schema for both browser-bound roles: the pull request that adds
--- the first function to public fails the suite inside itself. The one mechanism
--- that would make prevention complete is the event trigger the next paragraph
--- declines, and the reason it gives holds for a relation and does not hold here,
--- because a relation added later is unreachable until somebody grants it and a
--- function added later is reachable at once. Reversing a decision this file records
--- is a gate's call and not a rework round's, so it is written down as the choice it
--- is rather than taken quietly.
+-- So the three classes this file reaches are now alike: a relation, a routine and a
+-- sequence created next by the migration role are each born unreachable by a
+-- browser-bound role, and the guards in packages/core/db/schema.test.ts are the
+-- second line rather than the only one. What the guards still carry alone is the
+-- grantor limit above, an object `supabase_admin` creates, which no statement this
+-- role can write reaches at all.
 --
--- And one step deliberately not taken. An event trigger on `ddl_command_end` would
--- refuse a non-invoker view in public at the moment it is created, and this role
--- can own one. It is not written, because it would fire on every later ticket's
--- DDL in a schema this ticket does not own the future of, and because with the
--- defaults revoked a view added later is unreachable by a browser-bound role until
--- somebody writes a grant for it by hand. The rule below and the guards in
--- packages/core/db/schema.test.ts carry the deliberate case.
+-- And one step deliberately not taken, on a reason that is now the only one it has.
+-- An event trigger on `ddl_command_end` would refuse a non-invoker view in public
+-- at the moment it is created, and this role can own one. When this file first
+-- declined it, part of the reason given was that a relation added later is
+-- unreachable until somebody grants it while a function added later is reachable at
+-- once, which made the decline look like a choice taken in spite of a known hole.
+-- The hole is closed, so the decline now rests on what it should have rested on:
+-- an event trigger fires on every later ticket's DDL in a schema this ticket does
+-- not own the future of, and with the defaults revoked nothing this role creates in
+-- public is reachable by a browser-bound role until somebody writes a grant for it
+-- by hand. The rule below and the guards in packages/core/db/schema.test.ts carry
+-- the deliberate case, which is somebody writing that grant on purpose.
 
 -- Born out of reach, which is the last quarter and the one a revoke finishes ---
 --
@@ -245,16 +311,14 @@ $$;
 -- in, which is why the guard in packages/core/db/schema.test.ts measures the value
 -- left behind and not only the answer the call got.
 --
--- And the one respect in which this revoke buys more than the revoke above it,
--- which is what a later reader will most need from this file, because the two
--- statements read alike and only one of them is a promise. PostgreSQL grants
--- EXECUTE to PUBLIC on every routine it creates, and a `pg_default_acl` entry is
--- merged into that baseline by adding to it, so the revoke on functions cannot
--- reach the grant that actually makes a new function callable by `anon`: what it
--- closed there was detection with a bound, as the paragraphs above say at length.
--- PostgreSQL grants a new sequence nothing to PUBLIC, so there is no baseline
--- underneath this one for a revoke to fail to reach, and prevention here is
--- complete. Measured on PostgreSQL 17.6 on this stack with this statement applied:
+-- And the one respect in which this revoke is simpler than the two statements above
+-- it, which is worth saying because all three now buy the same thing by different
+-- routes. PostgreSQL grants EXECUTE to PUBLIC on every routine it creates, so a
+-- function needs two statements: the per-schema revoke takes the named grants away
+-- and the global revoke takes the built-in one away underneath it. PostgreSQL
+-- grants a new sequence nothing to PUBLIC, so there is no baseline underneath this
+-- one and one statement is the whole of it. Measured on PostgreSQL 17.6 on this
+-- stack with this statement applied:
 -- a sequence created next is born `{postgres=rwU/postgres,service_role=rwU/postgres}`
 -- with no PUBLIC entry at all, `has_sequence_privilege('anon', ...)` is false for
 -- USAGE, SELECT and UPDATE alike, and `nextval`, `select last_value` and `setval`
@@ -607,6 +671,33 @@ begin
   if offenders is not null then
     raise exception 'a revoke was over-broad: service_role no longer holds % by default in '
       'schema public, and every worker and API call in this product connects as it', offenders;
+  end if;
+
+  -- And the one guarantee in this file that is filed against no schema, asked for
+  -- by the shape of its own row rather than by what it grants. The global revoke is
+  -- the statement that takes PostgreSQL's built-in EXECUTE to PUBLIC off every
+  -- routine this role creates next, and a grant back to PUBLIC does not leave a
+  -- weaker row behind: it deletes the row, because the entry then matches the
+  -- built-in default and PostgreSQL stops filing it. So the check is that the row
+  -- exists and that PUBLIC is not in it, and absence is the failure this catches on
+  -- a re-apply. `defaclnamespace = 0` is how a default privilege with no `in schema`
+  -- clause is stored, and it is asked for by number because there is no schema to
+  -- name and a join to `pg_namespace` drops the row.
+  if not exists (
+    select 1
+      from pg_catalog.pg_default_acl d
+     where d.defaclnamespace = 0
+       and d.defaclobjtype = 'f'
+       and d.defaclrole = 'postgres'::regrole
+       and not exists (
+         select 1 from aclexplode(d.defaclacl) a where a.grantee = 0
+       )
+  ) then
+    raise exception 'the global default privilege on functions is not in place, so the next '
+      'routine this role creates is born with PostgreSQL''s own EXECUTE to PUBLIC and every '
+      'role there is can call it, `anon` included. A per-schema revoke cannot subtract that '
+      'grant, which is what the sixth review of this ticket concluded was the end of the '
+      'matter and the seventh disproved';
   end if;
 
   -- And the objects that already exist, which the revokes above say nothing about.

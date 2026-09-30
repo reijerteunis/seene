@@ -531,13 +531,29 @@ tenants' names through three lines of SQL. Worse, the lockdown statement this re
 times, `revoke all on function ... from public`, leaves `anon=X` standing and `anon` still reads; only
 `revoke ... from anon, authenticated` refuses it.
 
-**And F32 is only detected, not prevented, which this ticket says rather than rounds off.** PostgreSQL grants
-EXECUTE to PUBLIC on every routine as a baseline and a `pg_default_acl` entry adds to that baseline rather
-than replacing it, so after the revoke a function in `public` is still born callable by `anon`. What is closed
-is detection: the pull request adding the first function fails the suite inside itself and part 6 raises when
-the migration applies. The only complete prevention is an event trigger part 6 declines, and the reason it
-gives for declining, that a relation added later is unreachable until somebody grants it, is true of a
-relation and false of a function. That decision should be retaken rather than inherited.
+**F32 was recorded as detected and not prevented, and F39 is that the record was wrong.** Five rounds
+concluded that PostgreSQL grants EXECUTE to PUBLIC on every routine as a baseline, that a `pg_default_acl`
+entry adds to that baseline rather than replacing it, and therefore that a function in `public` cannot be
+stopped being born callable by `anon`. The conclusion belonged to the statement those rounds tried and not to
+PostgreSQL: a default privilege written `in schema public` cannot subtract a grant filed against no schema,
+and one written with no `in schema` clause at all can. Measured on PostgreSQL 17.6 on this stack, both forms
+one after the other: after `alter default privileges for role postgres revoke execute on functions from
+public`, a function created next in `public` is born `{postgres=X,service_role=X}` with `anon` and
+`authenticated` both refused and `service_role` still holding EXECUTE. Part 6 now carries that statement, its
+self-check refuses the migration if the per-schema form is put back, and the thirty policies were re-measured
+against the change: each tenant reads its own order and no other. The cost of the one statement in this set
+that is filed against no schema is that a helper created in `seen` after part 6 is owner-only until its own
+migration grants otherwise, which is already what every helper here is. Extensions are untouched, measured:
+Supabase creates extension objects as `supabase_admin`, so this grantor's entry never applies to them, and
+`create extension` without `with schema extensions` remains the open route note 167 names. The event trigger
+part 6 declines is now declined on the one reason that survives, that it fires on every later ticket's DDL,
+rather than on a hole that is closed.
+
+**And three of this ticket's own tests were enforcing the defect.** They demonstrated the hazard by creating a
+function and letting the database supply the unsafe grant, so a later author installing the prevention above
+would have been told by this suite that they had broken something. Each now grants its own unsafe state in
+one line. That is the half of F39 worth carrying forward past this ticket: a fixture that depends on a bad
+default to show a hazard has quietly made the bad default a requirement.
 
 **F33 is the same sentence's fourth quarter and here the revoke is the whole of prevention.** `config.toml`
 names the auto-exposed class as tables, views, sequences and functions; `'r'` covered two, F32 the third, F33

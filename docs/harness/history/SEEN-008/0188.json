@@ -1,0 +1,59 @@
+{
+  "sequence": 188,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-30T10:32:33.152714+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 10,
+  "actor": "codex:reviewer",
+  "session": "a00943ab9615",
+  "head": "09a5107bfb2f1f94d78430d925d76c3c345176ce",
+  "prev_hash": "ed202a17ef241792bd1fad72adde28548a567e7b277b8ffd850990044957377f",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 11,
+    "reason": "Independent Codex full review returns on F39-F42: incorrect routine-default premise, omitted config cache input, expiring partition fixtures and repeatable-read tenant resurrection. All five explicit acceptance criteria are met, including criterion 2. Full review and limitations recorded in note 187; QA 186 passed the exact reviewed tree.",
+    "findings": [
+      {
+        "id": "F39",
+        "severity": "medium",
+        "file": "supabase/migrations/20260929000001_trade_record_v1_relations_that_are_not_tables.sql:178",
+        "claim": "The routine exposure decision incorrectly rules out global default privileges, and the regression suite rejects a working prevention.",
+        "failure_scenario": "In the disposable database, a new postgres-owned public SECURITY DEFINER function was callable by anon. After ALTER DEFAULT PRIVILEGES FOR ROLE postgres REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC, with no IN SCHEMA clause, the next function was not callable by anon or authenticated and remained callable by service_role. The full suite under this hardened global default passed 129 tests and failed three tests which require newly created public/seen functions to be callable by anon (schema.test.ts around 3996, 4132 and 4740). Existing helper access and positive RLS reads continued to pass. Therefore a later migration author installing effective prevention is rejected by the tests, while the present migration deliberately preserves exposure on a false premise. Per-schema REVOKE cannot subtract global grants; global REVOKE can override PostgreSQL's built-in PUBLIC EXECUTE default. Retake the F32 decision, account for required explicit grants, and make unsafe-function detector fixtures explicitly grant their unsafe state rather than mandate it as the database default. This does not solve functions owned by supabase_admin: CREATE EXTENSION postgres_fdw without WITH SCHEMA extensions independently produced five callable public routines owned by supabase_admin; a postgres REVOKE returned a warning and left anon access true. Keep that ownership limitation explicit.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F40",
+        "severity": "medium",
+        "file": "turbo.json:54",
+        "claim": "The new exposed-schema guard reads supabase/config.toml, but the core test task does not hash that file.",
+        "failure_scenario": "After a cached green core test, a change confined to the exposed schemas in supabase/config.toml leaves the task inputs unchanged, so turbo can replay success without executing the F38 guard that checks public and graphql_public are the complete exposed set. An actual turbo run test --filter=@seen/core --dry=json resolved 27 inputs and hash 484d4fd0654227f7; supabase/config.toml was absent. The schema test reads DATA_API_CONFIG while the configured repository inputs and the corresponding cache-input assertion cover the architecture, constrained tickets and migrations only. Add the config to the task inputs and the input-coverage assertion. This is an input-list reproduction, not a claim that the repository config was edited during review.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F41",
+        "severity": "low",
+        "file": "packages/core/db/rls.test.ts:1184",
+        "claim": "The partitioned-table regression probes expire at the end of 2026 because their seeded timestamp comes from the wall clock.",
+        "failure_scenario": "The partition fixture accepts recorded_at from 2026-01-01 to 2027-01-01, while seedRow/valueFor uses new Date().toISOString(). Running rls.test.ts with a temporary preload that makes no-argument new Date() return 2027-01-02T12:00:00Z produced 25 passes and two failures: the positive parent-seeding test and the missing-tenant-predicate test both raised SQLSTATE 23514, no partition found for row. Date.now and timers were left unchanged. Use a deterministic timestamp inside the partition, or derive the fixture boundaries and seed consistently, and verify the year boundary.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F42",
+        "severity": "medium",
+        "file": "supabase/migrations/20260929000003_trade_record_v1_erased_tenant_ids.sql:280",
+        "claim": "An old repeatable-read snapshot can miss the erased-tenant tombstone and resurrect a consumed tenant ID despite the advisory lock.",
+        "failure_scenario": "Reproduced with two writing sessions both SET ROLE service_role. Session B begins REPEATABLE READ and selects from tenants to establish its snapshot before the ID exists. Session A inserts a tenant, commits, deletes that tenant and commits. Session B then inserts the same tenant_id and commits successfully. An observer sees living=true, tombstoned=true and audit_events=0 for that ID. The advisory lock serialises access but does not refresh B's snapshot, so the EXISTS check misses the committed tombstone. A different probe whose snapshot was established after the original tenant insert was correctly refused with 40001; that does not cover this earlier-snapshot case. The existing READ COMMITTED race test also does not cover it. Use a constraint/authority that cannot miss consumption, or explicitly refuse unsupported isolation before allowing this write, and add this exact two-session ordering as a regression.",
+        "status": "open",
+        "resolution": ""
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}
