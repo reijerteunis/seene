@@ -324,7 +324,11 @@ class ReviewGateTest(GateTest):
     def test_a_finding_may_omit_the_file_and_line(self):
         finding = dict(id='R-01', severity='medium', claim='No test covers the empty settlement',
                        failure_scenario='An empty settlement file would go unnoticed',
-                       status='resolved', resolution='Added the case')
+                       status='resolved', resolution='Added the case',
+                       # SEEN-114: a medium finding still names no file, which is
+                       # what this test is about; it still needs rule_candidate,
+                       # which is a different field asking a different question.
+                       rule_candidate='none: a stand-in finding, not a real one')
         self.evaluate('review', self.review(findings=[finding]), records=self.tdd_done())
 
     def test_an_unknown_severity_is_refused(self):

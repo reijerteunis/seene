@@ -66,6 +66,12 @@ def finding(identifier, severity, file=None):
                 resolution='Fixed')
     if file is not None:
         body['file'] = file
+    # SEEN-114: a medium finding or above carries rule_candidate, and this
+    # fixture is read by the gate as well as by calibration, so it carries one
+    # like a real finding would. `file` stays conditional above, because
+    # FindingFileTest's whole point is that a medium finding still needs none.
+    if severity in gates.RULE_CANDIDATE_SEVERITIES:
+        body['rule_candidate'] = 'none: a stand-in finding for a calibration test, not a real one'
     return body
 
 
@@ -937,7 +943,8 @@ class ReturningFindingsTest(CommandTest):
         self.reach_tdd()
         record = self.send_back([dict(id='F1', severity='medium', claim='It breaks',
                                       failure_scenario='Like this', status='open',
-                                      resolution='')])
+                                      resolution='',
+                                      rule_candidate='none: a stand-in finding, not a real one')])
         self.assertEqual(record['data']['findings'][0]['status'], 'open')
 
     def test_a_returning_blocking_finding_still_has_to_name_its_file(self):

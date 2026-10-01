@@ -404,7 +404,9 @@ REVIEW = {
     'findings': [{'id': 'F1', 'severity': 'high', 'file': 'harness/journal.py:31',
                   'claim': 'A record edited after the fact reads back without complaint',
                   'failure_scenario': 'Edit 0002.json, run history, and the chain still verifies',
-                  'status': 'open', 'resolution': ''}],
+                  'status': 'open', 'resolution': '',
+                  # SEEN-114: a high finding also carries rule_candidate now.
+                  'rule_candidate': 'none: a stand-in finding, not a real one'}],
     'checks': [],
     'verdict': 'return',
 }
