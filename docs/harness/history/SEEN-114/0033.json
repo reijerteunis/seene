@@ -1,0 +1,50 @@
+{
+  "sequence": 33,
+  "ticket": "SEEN-114",
+  "timestamp": "2026-10-01T09:57:46.360246+00:00",
+  "harness_version": "2",
+  "kind": "handoff",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "6973478f0bee",
+  "head": "0ee978f47766d007c342bc89471717d3d83e4c03",
+  "prev_hash": "236fcc2908fbb4ec2aec91f29af8997b68793e5e21a253add2c8ad36e2f3bf8c",
+  "data": {
+    "pack": ".harness-drafts/SEEN-114-handoff.md",
+    "sha256": "6cf6f65f81e81f34ed3de8251c2fede3ff15fac33d09702d4ca8983740b0fae8",
+    "estimated_tokens": 1093,
+    "token_limit": 2000,
+    "slice": {
+      "position": 3,
+      "total": 4,
+      "done": 2,
+      "declared": true,
+      "inferred": 4,
+      "entry": {
+        "name": "rule_candidate on every finding that could have been a rule",
+        "points": 1,
+        "files": [
+          "harness/gates.py",
+          "harness/templates/review.json",
+          "harness/agents/seen-reviewer.md",
+          "docs/harness/skill.md",
+          "docs/harness/workflow.md",
+          ".claude/skills/seen-harness/SKILL.md",
+          ".agents/skills/seen-harness/SKILL.md",
+          ".claude/agents/seen-reviewer.md",
+          ".codex/agents/seen-reviewer.toml",
+          "harness/tests/test_gates.py"
+        ],
+        "red": "A review advance carrying a medium finding with no rule_candidate is accepted, so the test asserting the refusal fails; and the same test asserts a low finding without the field is still accepted and a malformed value is refused, neither of which the gate does today."
+      }
+    },
+    "auto": false,
+    "figures": {
+      "session": "6973478f0bee",
+      "output_tokens": 350434,
+      "tool_calls": 229,
+      "unavailable": null
+    }
+  }
+}
