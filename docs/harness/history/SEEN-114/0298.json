@@ -1,0 +1,80 @@
+{
+  "sequence": 298,
+  "ticket": "SEEN-114",
+  "timestamp": "2026-10-01T20:40:52.594602+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 13,
+  "actor": "claude:implementer",
+  "session": "ad77b7a13315",
+  "head": "03958e73c5fbf504390a259263b9de180d6e7008",
+  "prev_hash": "2e6be5fc890f338dca895ee4bb1adc767d96da7bc1843314e3da874b14234d96",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": null,
+          "behaviour": "First in this record because its checks are the oldest of this attempt, and it belongs to no slice: it is the fourth review's four findings, of which one was in the deliverable and three were not. The staged run reads NUL-delimited paths into three arrays with read -r -d '', the extension decides which array a path joins in a case rather than a regex over a flattened string, and each tool is handed \"${array[@]}\", so a staged path with a space reaches Biome, ast-grep and dependency-cruiser whole; the two shellcheck disable=SC2086 comments are gone with the splitting they excused, and so is the keep helper, which existed only to filter the flattened list (F21). The knip fixture computes integer cents, Math.round((amountCents * 15) / 100) in both of its functions, so commissionCents(1001) is 150 rather than 150.15 (F20); nothing tests a fixture's incidental arithmetic on purpose, and all twenty-three rules still refuse their own fixture after it, 23 of 23 at check 282. And the ticket file is corrected twice: the paragraph predicting the doctor warning no longer says how many findings name the candidate, for the same reason the weekly figures are not quoted, because report.rule_loop counts them from the journal on the day it is asked (F18), and the deferred typecheck paragraph's figure for the six test files now names the check that printed it, 122 diagnostics at check 277 (F19).",
+          "failure_reason": "With scripts/rules.sh back at its committed version and a violating packages/core/src/violation with space.ts staged, three of the sixty tests of harness/tests/test_rules.py failed. StagedPathWithASpaceTest.test_the_staged_run_refuses_a_violation_in_a_path_with_a_space failed with \"AssertionError: 'violation with space.ts' not found in\" the script's own output, which read 'Checked 0 files in 231ms. No fixes applied.' and 'biome: ok in 0s', then 'ast-grep: ok in 0s', and then dependency-cruiser refusing three paths that do not exist, 'packages/core/src/violation', 'with' and 'space.ts', each 'No such file or directory (os error 2)'. The script did exit 1, which is why the first assertion passed, but it exited on dependency-cruiser's internal errors over the fragments of one path rather than on the euro sign the fixture carries, and the rule scoped to that path, ast-grep/no-euro-sign, reported ok having read nothing. The two cheap tests that read the script failed beside it: test_the_staged_run_hands_each_tool_only_the_staged_paths with \"AssertionError: '\\\"${code_paths[@]}\\\"' not found in\" run_staged, and test_the_staged_run_never_word_splits_its_path_list with \"AssertionError: '$code_paths' unexpectedly found in\" the same function.",
+          "red": 278,
+          "green": 279
+        },
+        {
+          "position": 1,
+          "behaviour": "The compiler's four checking flags, Biome in place of ESLint for format and lint with its three type-aware rules on, and rules/registry.toml with harness rules --check and --fixtures behind it, the fixture report ending in the line that says what it proved. The seven workspace projects typecheck under the flags, check 139, and the workspace builds, check 185.",
+          "failure_reason": "./scripts/rules.sh fixtures named seven of this slice's eight rules as not firing, in the runner's own words: 'the fixture compiles with noUncheckedIndexedAccess on, so this rule is not firing' and the same for exactOptionalPropertyTypes and noImplicitOverride, and 'biome.json is not in this repository, so what would run is biome's own defaults rather than this repository's rules, and nothing a default refuses proves a rule' for recommended, noFloatingPromises, noMisusedPromises and useAwaitThenable. The traceability check refused the same seven first, each as 'is in rules/registry.toml and tsconfig.base.json does not enable it'. The green's last line is the whole proof in one sentence, every rule id grouped by tool.",
+          "red": 281,
+          "green": 282
+        },
+        {
+          "position": 2,
+          "behaviour": "The ground rules no general linter knows, as five ast-grep rules and eight dependency-cruiser layering rules, knip for dead exports, the exports map on all seven packages, and the pre-commit hook that runs the set over the staged paths. The budget measured rather than assumed: check 293 runs the hook's own mode over this branch's staged paths, 34 files through Biome and 46 modules through dependency-cruiser, in 889ms against ten seconds; check 294 runs the whole set over the tree in 1.255s; knip is clean on packages/core at 136 and on the connectors at 137; every rule is traceable at 295. The three measurements are this attempt's own, because the staged run itself changed with F21 and a figure read from the script it replaced would describe code that is no longer here.",
+          "failure_reason": "python3 -m unittest harness.tests.test_rules failed four of its sixty: ThisRepositoryTest.test_every_rule_in_this_repository_is_traceable listed all fourteen of this slice's rules, each as 'ast-grep/no-euro-sign is in rules/registry.toml and sgconfig.yml does not enable it' and the same sentence for .dependency-cruiser.json over the eight layering rules and knip.json over no-unused-exports; WhereTheSetRunsTest.test_the_pre_commit_hook_runs_the_set_over_the_staged_files failed with \"'./scripts/rules.sh staged' not found\" in the hook as it stood before this slice; test_every_workspace_package_declares_an_exports_map failed with \"'exports' not found\" in @seen/api's manifest; and StagedPathWithASpaceTest.test_the_staged_run_refuses_a_violation_in_a_path_with_a_space failed with 'AssertionError: 0 != 1', because with sgconfig.yml and .dependency-cruiser.json moved aside the only tool left to run was Biome, which reported 'Checked 1 file in 264ms' and 'biome: ok in 1s', and the euro sign in the staged path is ast-grep's rule and not Biome's. That fourth test arrived with F21 and it reads this slice's wiring as much as the quoting: a staged violation is refused only if the configurations this slice adds are there.",
+          "red": 283,
+          "green": 284
+        },
+        {
+          "position": 3,
+          "behaviour": "rule_candidate required on every review finding at medium severity or above, with its three shapes checked and the refusal naming an example of each.",
+          "failure_reason": "Four of harness/tests/test_gates.py's eight cases failed with 'AssertionError: HarnessError not raised': the gate accepted a review advance carrying a medium finding with no rule_candidate, accepted a malformed value, accepted 'none:' with no reason, and accepted an id naming a tool nothing runs.",
+          "red": 285,
+          "green": 286
+        },
+        {
+          "position": 4,
+          "behaviour": "The loop back: the weekly report's four figures, the doctor warning for a candidate that recurred with no rule written, and the nine fixtures slice 3's required field invalidated.",
+          "failure_reason": "Thirty-one failures across this slice's files, 29 errors and 2 failures in 725 tests. Twenty-two errored on functions that did not exist: 'AttributeError: module harness.report has no attribute rule_loop' eight times, the same for rules_added_in_week three times and render_rules twice, 'AttributeError: module harness.rules has no attribute arrival_dates' three times, 'KeyError: warnings' from doctor.report three times, the fixture report's own summary twice as 'no attribute summary' and 'KeyError: summary', and the harness rule's fixture result once as \"KeyError: 'harness/no-live-marketplace-host'\", because reverting harness/rules.py takes the runner that proves it with the rest. Nine were the fixtures carrying a medium or higher finding, erroring on the field slice 3 made required: four in test_calibration.py's FindingFileTest and ReturningFindingsTest, three in test_stage_gates.py, and two in test_hooks.py's SubagentStopTest.",
+          "red": 287,
+          "green": 288
+        },
+        {
+          "position": null,
+          "behaviour": "WhereTheSetRunsTest: the two callers of the set, as tests rather than as one measurement. That the hook calls the runner on the staged paths and never on the tree, that the staged mode hands each tool only those paths and runs knip in neither, that every tool goes through timed so the ten-second budget is measured on every commit, that CI runs rules --check, rules --fixtures and the tree run, and that all seven packages declare an exports map. It belongs to no single slice because the wiring spans two: the runner and the workflow steps arrived with slice 1, the hook block and the exports maps with slice 2.",
+          "failure_reason": "With scripts/rules.sh absent, the workflow back at its pre-ticket version and the hook and the seven manifests back at theirs, seven of the eight report a failure: four error with 'FileNotFoundError: No such file or directory: scripts/rules.sh' because there is no runner to read, and three fail with \"'rules --check' not found\" in the workflow, \"'./scripts/rules.sh staged' not found\" in the hook and \"'exports' not found\" in @seen/api's manifest. The eighth is test_the_hook_never_runs_the_set_over_the_whole_tree, the guard that the hook never runs the tree, which an absent block cannot break. The fourth error is F21's own test_the_staged_run_never_word_splits_its_path_list, which reads the runner like the three beside it and so cannot run without it.",
+          "red": 289,
+          "green": 290
+        },
+        {
+          "position": null,
+          "behaviour": "Last in this record because its checks are the newest. The plan was amended at attempt 10 to name the one file this round needed and no slice had, `harness/secrets.py`, which the triage's slice_files check caught and was right about, so every pair including this one is recorded again against the tree that amendment describes. The first review's seven medium findings answered. harness/no-live-marketplace-host is the twenty-third rule, proven by calling the check over a fixture rather than spawning an interpreter, with secrets.marketplace_hosts skipping rules/fixtures/ because that is the one place in the tree where a violation is supposed to live, and with gitleaks left out deliberately and the reason written where it will be read (F4). Two tests run harness report --week as the command and read the rule loop out of the report and the payload (F1). Three hold harness return --findings to rule_candidate, the path eight cases had never covered (F6). One sentence in workflow.md stops saying knip runs in the hook (F11). The three findings in the ticket file are corrected there: every figure names its check, the Outcome no longer counts its own returns or sessions, and the deferred typecheck work no longer points at a ticket that does not exist (F2, F3, F5). The suite and the build are recorded (F8, checks 185 and 186), and the knowledge graph is rebuilt for the rule set it did not know (F7). Recorded again at attempt 11 with every count in this record read out of the check that entry cites: the second review returned the ticket on F13, because three of the six rounds named a test total their own red did not report, and the rule F13 asks for is a tdd gate that compares a figure in the prose against the recorded output the way it already compares the citation.",
+          "failure_reason": "One red carrying all four of the round's testable findings, by making the mutation each finding describes. Seven of 176 tests report, six as failures and one as an error: test_the_registry_carries_a_rule_for_each_tool_the_set_runs with the harness runner registered and the registry entry reverted, \"AssertionError: 'harness' not found in {'tsconfig', 'knip', 'ast-grep', 'biome', 'dependency-cruiser'}\"; test_the_harness_check_is_proven_by_its_own_fixture, the one error, with \"KeyError: 'harness/no-live-marketplace-host'\" on the missing entry; test_the_fixture_tree_is_not_read_by_the_check_it_proves with the rules/fixtures/ exclusion removed, which is the mutation that would make the new fixture fail the repository's own lint; both weekly-report tests with the rule-loop branch in cli.py switched off, one failing on '## The rule loop' and one on 'Recurred without a rule'; and two of the three return-path tests with the rule_candidate check wrapped in 'if resolved:', exactly as the finding said would leave the suite green, both with 'AssertionError: HarnessError not raised'.",
+          "red": 291,
+          "green": 292
+        }
+      ],
+      "regression": 296,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "ad77b7a13315",
+      "output_tokens": 622936,
+      "tool_calls": 286,
+      "unavailable": null
+    }
+  }
+}
