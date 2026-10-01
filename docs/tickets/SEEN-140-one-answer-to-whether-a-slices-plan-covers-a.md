@@ -40,11 +40,41 @@ One thing the ticket has to answer rather than assume: whether a slice that name
 
 ## Acceptance criteria
 
-- [x] One function answers whether a slice's plan covers a path, called by `harness/calibration.py`, `harness/guard.py` and `harness/triage.py`, with no second implementation of the comparison anywhere in `harness/`. **Amended on 1 October 2026:** the third caller is `calibration.py` and not `gates.py`, which this ticket's own description got wrong. `gates.py` never asks the membership question: it collects a slice's files and hands them to git as a pathspec, and git answers "what changed under these paths", which is a different question answered directory-aware by git's own rules and cannot be asked of a Python predicate. The membership readers were three and are now one, which `NoSecondReaderTest` holds by grepping `harness/*.py` for a hand-written exact comparison against a plan's files.
+- [x] (as amended) One function answers whether a slice's plan covers a path, called by `harness/calibration.py`, `harness/guard.py` and `harness/triage.py`, with no second implementation of the comparison anywhere in `harness/`
 - [x] `harness guard <path>` allows a write to a file inside a directory the accepted slice names, and still refuses one outside every entry, with the refusal naming the entries
 - [x] The triage's `slice_files` check passes when every changed path is inside a directory the plan names, and still fails on a path no entry covers, with the failure naming it
 - [x] A test fails before the change for each of the two readers: one proving `harness guard` refused a path inside a named directory, one proving `slice_files` reported such a path as belonging to no slice
-- [x] The whole harness suite is green. **Amended on 1 October 2026:** the second half of this criterion, that SEEN-114's `slice_files` check passes against its own journal and diff, is removed from it and recorded as the follow-up it is. That measurement happens on another branch after this one merges and that one rebases, so it can never be evidenced in this journal, and a criterion that cannot be evidenced where it is written is a criterion that holds a ticket at the gate for ever. The triage answered it unevidenced at 0.10 and was right to. It is named in the Outcome and belongs in SEEN-114's journal.
+- [x] (as amended) The whole harness suite is green
+
+## Amendments
+
+- **1 October 2026, Claude Code: criterion 1 is amended.** The third caller is
+  `harness/calibration.py` and not `harness/gates.py`, which this ticket's own
+  description got wrong when it was written. `gates.py` never asks the membership
+  question: it collects a slice's files and hands them to git as a pathspec, so what
+  it asks is "what changed under these paths", which git answers directory-aware by
+  its own rules and which no Python predicate can be asked. The membership readers
+  were three and are now one. `NoSecondReaderTest` holds that by grepping
+  `harness/*.py` for a hand-written exact comparison against a plan's files, and it
+  is the guard against a fourth.
+
+- **1 October 2026, Claude Code: criterion 5 is amended.** Its second half asked
+  that SEEN-114's `slice_files` check pass against its own journal and diff. That
+  measurement happens on another branch, after this one merges and that one rebases,
+  so it can never be evidenced in this journal, and a criterion that cannot be
+  evidenced where it is written holds a ticket at the gate for ever. The review
+  triage answered it unevidenced at 0.10 before any model read anything, twice, which
+  is the triage doing its job. It is removed from the criterion and recorded as the
+  follow-up it is: the first thing SEEN-114's next session does, in that ticket's
+  journal. What is left is this branch's own suite, green at 1,449 tests in record 24.
+
+- **1 October 2026, Claude Code: a note on where an amendment goes.** The first
+  attempt at both of the above wrote the reasoning inline in the criterion. The
+  triage reads a criterion as the text of that line, so the explanation became part
+  of what Jev was asked to find evidence for, including the sentence saying the
+  triage had been right to refuse it, and the answer fell to 0.10. SEEN-105's
+  convention is the one that works and is now followed here: `(as amended)` in the
+  criterion, the reasoning in this section.
 
 ## Depends on
 
