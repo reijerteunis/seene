@@ -15,11 +15,11 @@ export const connection: ConnectionOptions = {
   port: Number(process.env.REDIS_PORT ?? 6379),
 };
 
-export interface HelloPayload {
+interface HelloPayload {
   name: string;
 }
 
-export interface HelloResult {
+interface HelloResult {
   greeted: string;
 }
 

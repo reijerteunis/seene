@@ -6,6 +6,10 @@
   "description": "Secrets, storage and telemetry behind interfaces, so the cloud is a configuration and not a refactor.",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./package.json": "./package.json"
+  },
   "scripts": {
     "test": "vitest run",
     "lint": "biome check src",

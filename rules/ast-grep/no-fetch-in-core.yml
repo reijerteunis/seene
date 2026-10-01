@@ -1,0 +1,15 @@
+# Why: rules/registry.toml, ast-grep/no-fetch-in-core.
+id: no-fetch-in-core
+language: Tsx
+severity: error
+message: packages/core reaches no network. A marketplace call belongs in a connector, behind the generated client.
+note: |
+  docs/architecture.md, Services: packages/core is the domain, and its
+  reconciliation is pure functions with tests. fetch is a global, so no import
+  names it and dependency-cruiser/core-no-io cannot see this call at all.
+files:
+  - "packages/core/src/**"
+rule:
+  any:
+    - pattern: fetch($$$ARGS)
+    - pattern: globalThis.fetch($$$ARGS)

@@ -13,3 +13,21 @@ if ! command -v gitleaks >/dev/null 2>&1; then
 fi
 
 gitleaks protect --staged --redact --no-banner
+
+# The rule set over the staged paths: Biome, ast-grep and dependency-cruiser, each
+# handed only the files this commit touches, which is what keeps it inside the
+# ten-second budget SEEN-114 sets. scripts/rules.sh prints what each tool took, so
+# the budget is measured on every commit rather than assumed once. knip is not
+# here and runs in CI: a dead export is a property of the whole import graph and
+# cannot be judged from a staged file.
+#
+# Guarded on the binary rather than refusing: a fresh clone has no node_modules
+# until pnpm install, and a hook that refused there would make the first commit of
+# every clone an argument with the tooling. It says so instead, and CI runs the
+# same rules on the tree whatever this hook could not run.
+if [ -x node_modules/.bin/biome ]; then
+  ./scripts/rules.sh staged
+else
+  echo "pre-commit: node_modules is not installed, so the rule set did not run." >&2
+  echo "            Run pnpm install. CI runs the same rules on the whole tree." >&2
+fi

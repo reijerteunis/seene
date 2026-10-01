@@ -65,7 +65,7 @@ export function findRepositoryRoot(from: string = process.cwd()): string | null 
 
 /**
  * The repository root, or an error naming where it looked. For callers that only
- * ever run inside the repository, such as the cloud-SDK boundary test, where no
+ * ever run inside the repository, such as a test reading a fixture out of it, where no
  * root is a broken assumption rather than a deployment.
  */
 export function repositoryRoot(from: string = process.cwd()): string {

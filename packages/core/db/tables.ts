@@ -46,8 +46,6 @@ export const TRADE_RECORD_TABLES = [
   'users',
 ] as const;
 
-export type TradeRecordTable = (typeof TRADE_RECORD_TABLES)[number];
-
 /**
  * The tables whose rows arrive from a marketplace and are therefore upserted on
  * the marketplace's own identifier: each carries a unique index on

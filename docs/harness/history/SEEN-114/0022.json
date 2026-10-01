@@ -1,0 +1,16 @@
+{
+  "sequence": 22,
+  "ticket": "SEEN-114",
+  "timestamp": "2026-10-01T09:04:43.406391+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "6973478f0bee",
+  "head": "7945ec4e62cad1789d6c4d75fefe9e36a6c4266d",
+  "prev_hash": "e8aef478e5f1dcd704e61b7e6a3023e2f7e9bd2fed202d19f19103bc09b3c2a6",
+  "data": {
+    "text": "# Where the workflow.md repair lands, and why it is slice 4 and not now\n\nRuud's decision, taken at the slice 1 boundary: the regression SEEN-139's docs\nregeneration left in `docs/harness/workflow.md` is repaired inside SEEN-114\nrather than in a separate pull request to main.\n\nIt lands in slice 4, which already names `docs/harness/workflow.md` in its file\nlist, as its own commit with its own message. Three reasons for the timing rather\nthan doing it in the next ten minutes:\n\n**It cannot unblock main from here.** Fixing the document on this branch makes\nthis branch's CI green and leaves main red until this ticket merges. The two open\npull requests, SEEN-110 and SEEN-112, stay red either way. So the only thing the\nrepair has to unblock is this ticket's own `verify-delivery`, and that is at the\nend.\n\n**Slice 2 does not name the file, and the guard is right to refuse it.** Doing it\nnow would mean either a second `return` to solution to widen slice 2's file list,\nwhich buys nothing the ordering does not already buy, or writing the file through\na shell to get around the PreToolUse guard, which is the one thing a guard exists\nto stop. Slice 4 names the file because it documents `rule_candidate` and the\ndoctor warning there; the repair is the same file in the same slice.\n\n**The restore is a merge, not a revert.** SEEN-139's commit both reverted ten\nparagraphs and added content that must stay: the correctness programme section\nthis ticket belongs to, Sprint 8, epic E11 and the ticket counts. So the repair\ntakes the current file and restores the ten paragraphs from cf604d9 one at a\ntime, and the two table rows with them. That is careful work, and it is better\ndone in the slice whose other business is the same document than wedged between\ntwo ast-grep rules.\n\nWhat slice 4 must restore, from `git show cf604d9:docs/harness/workflow.md`:\nthe five paragraphs of the context-per-session section (the delegation, what a\nsubagent costs, the forecast, the hooks), the review triage and the route, the\nshadow rule, what Jev is and is not, the Outcome convention, the two open\nquestions, and the Hooks and Permissions rows of the assistants table. The\nassertion that must pass is\n`harness.tests.test_triage.PartlySettledIsDocumentedTest`, which asks for every\nname in `triage.PARTLY_SETTLED`; passing it is necessary and not sufficient, and\nthe test to run after is the whole harness suite.\n"
+  }
+}

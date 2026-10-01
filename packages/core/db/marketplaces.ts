@@ -46,7 +46,7 @@ export const MARKETPLACE_COLUMNS: Record<MarketplaceId, string> = {
  * the heading is what the document says, so rewording a row in the document fails
  * the test rather than silently dropping a capability.
  */
-export const CAPABILITY_ROWS = [
+const CAPABILITY_ROWS = [
   { key: 'ingest_orders', heading: 'Ingest orders, shipments, returns' },
   { key: 'ingest_settlements', heading: 'Ingest settlements, fees, invoices' },
   { key: 'detect_errors', heading: 'Detect fee errors, lost shipments, return shortfalls' },
@@ -58,7 +58,7 @@ export const CAPABILITY_ROWS = [
   { key: 'sponsored_placements', heading: 'Sponsored placements' },
 ] as const;
 
-export type CapabilityKey = (typeof CAPABILITY_ROWS)[number]['key'];
+type CapabilityKey = (typeof CAPABILITY_ROWS)[number]['key'];
 
 /**
  * What a cell can say. `api` is the agent acting end to end, `assisted` is the
@@ -71,7 +71,7 @@ export type CapabilityKey = (typeof CAPABILITY_ROWS)[number]['key'];
  */
 export const CAPABILITY_MODES = ['api', 'assisted', 'code', 'none', 'none found', 'n/a'] as const;
 
-export type CapabilityMode = (typeof CAPABILITY_MODES)[number];
+type CapabilityMode = (typeof CAPABILITY_MODES)[number];
 
 /** One cell of the routing table: the mode, and whatever the cell said after it. */
 export interface Capability {

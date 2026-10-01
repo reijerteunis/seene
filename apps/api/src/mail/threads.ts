@@ -20,7 +20,7 @@ export interface MessageThread {
   messages: ThreadMessage[];
 }
 
-export interface ThreadMessage {
+interface ThreadMessage {
   id: string;
   direction: 'inbound' | 'outbound';
   from: string;

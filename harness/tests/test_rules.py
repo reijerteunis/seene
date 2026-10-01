@@ -17,6 +17,7 @@ it is what CI runs, and it is the only place the live registry is read.
 """
 
 import json
+import shutil
 import sys
 import unittest
 
@@ -304,6 +305,30 @@ class FixtureTest(ProjectTest):
         self.assertFalse(results[0]['fired'])
         self.assertIn('not installed', results[0]['detail'])
 
+    def test_the_fixture_tree_carries_the_ast_grep_rules(self):
+        """A rule proven in a tree that holds no rules is a rule nothing proved.
+
+        sgconfig.yml names its `ruleDirs` relative to itself, so copying that
+        configuration into the fixture tree without the directory it points at
+        leaves ast-grep scanning with no rule loaded at all, and the fixture
+        passes for the one reason a fixture must never pass for. It is the same
+        absence as a tool running on its own defaults, one level further in: the
+        configuration is present and what it configures is not.
+        """
+        self.write('sgconfig.yml', 'ruleDirs:\n  - rules/ast-grep\n')
+        self.write('rules/ast-grep/no-euro-sign.yml',
+                   'id: no-euro-sign\nlanguage: Tsx\nseverity: error\n')
+        self.write('rules/fixtures/ast-grep-no-euro-sign/packages/core/src/a.ts',
+                   'export const label = 1;\n')
+        tree = rules._fixture_tree(self.root, 'rules/fixtures/ast-grep-no-euro-sign')
+        try:
+            self.assertTrue((tree / 'sgconfig.yml').is_file(), 'the configuration was not copied')
+            self.assertTrue((tree / 'rules' / 'ast-grep' / 'no-euro-sign.yml').is_file(),
+                            'sgconfig.yml was copied into the fixture tree without the rule '
+                            'directory it names, so ast-grep would scan the fixture with no rule')
+        finally:
+            shutil.rmtree(tree, ignore_errors=True)
+
     def test_a_fixture_directory_that_is_empty_is_reported(self):
         """An empty fixture cannot refuse anything, and would pass quietly.
 
@@ -336,9 +361,16 @@ class ThisRepositoryTest(unittest.TestCase):
     def test_every_rule_in_this_repository_is_traceable(self):
         self.assertEqual(rules.problems(PROJECT), [])
 
-    def test_the_registry_carries_a_rule_for_each_tool_the_hook_runs(self):
+    def test_the_registry_carries_a_rule_for_each_tool_the_set_runs(self):
+        """Five tools, and a tool with no entry is a tool nobody can trace.
+
+        The compiler and Biome arrived first; ast-grep, dependency-cruiser and
+        knip are the three that carry the rules no general linter can express,
+        and a configuration file added without an entry is what the check in
+        `problems` refuses from the other direction.
+        """
         carried = {found['tool'] for found in rules.load(PROJECT)}
-        for tool in ('tsconfig', 'biome'):
+        for tool in ('tsconfig', 'biome', 'ast-grep', 'dependency-cruiser', 'knip'):
             self.assertIn(tool, carried)
 
 

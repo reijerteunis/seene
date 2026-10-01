@@ -1,0 +1,29 @@
+# Why: rules/registry.toml, ast-grep/money-as-integer-cents.
+id: money-as-integer-cents
+language: Tsx
+severity: error
+message: Money is integer cents here. Parse to cents with integer arithmetic, and keep the currency in its own field.
+note: |
+  CLAUDE.md: amounts are in cents as integers with a currency code. This rule is
+  the half a pattern can express: decimal parsing, decimal formatting, and a
+  non-integer literal bound to a name that says it is money. The branded Cents
+  type that catches the rest is SEEN-135.
+files:
+  - "packages/core/**"
+ignores:
+  - "**/dist/**"
+  - "**/coverage/**"
+rule:
+  any:
+    - pattern: parseFloat($$$ARGS)
+    - pattern: Number.parseFloat($$$ARGS)
+    - pattern: $RECEIVER.toFixed($$$DIGITS)
+    - all:
+        - kind: variable_declarator
+        - has:
+            field: name
+            regex: '(?i)cents|amount|price|fee'
+        - has:
+            field: value
+            kind: number
+            regex: '\.'

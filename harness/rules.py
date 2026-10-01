@@ -105,8 +105,15 @@ BINARY_FOR_TOOL = {
 # Everything a fixture tree needs beside the fixture itself: the configurations
 # the tools read, copied so that the run is against the real rules, and the
 # workspace manifests a resolver needs to answer what `@seen/core` is.
+#
+# `rules/ast-grep` is a directory rather than a file and is here for the same
+# reason the configurations are. sgconfig.yml names its `ruleDirs` relative to
+# itself, so copying the configuration without the directory it points at leaves
+# ast-grep scanning the fixture with no rule loaded, and the fixture then passes
+# for the one reason a fixture must never pass for.
 FIXTURE_SUPPORT = ('biome.json', 'sgconfig.yml', '.dependency-cruiser.json', 'knip.json',
-                   'tsconfig.base.json', 'package.json', 'pnpm-workspace.yaml')
+                   'tsconfig.base.json', 'package.json', 'pnpm-workspace.yaml',
+                   'rules/ast-grep')
 
 
 def load(root):
@@ -331,7 +338,10 @@ def _fixture_tree(root, fixture):
     for name in FIXTURE_SUPPORT:
         source = root / name
         if source.is_file():
+            (tree / name).parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(source, tree / name)
+        elif source.is_dir():
+            shutil.copytree(source, tree / name, dirs_exist_ok=True)
     modules = root / 'node_modules'
     if modules.is_dir():
         (tree / 'node_modules').symlink_to(modules)

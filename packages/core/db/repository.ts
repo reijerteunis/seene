@@ -140,7 +140,7 @@ export const READER_MODULE = `${PACKAGE_DIRECTORY}/db/repository.ts`;
  * package and never collected to be asked what it imports. The reason is now the
  * rule rather than a claim about it.
  */
-export const IMPORTS_THAT_CANNOT_READ: Record<string, string> = {
+const IMPORTS_THAT_CANNOT_READ: Record<string, string> = {
   // The runner, admitted because every test file here imports it and removing it
   // is not available, not because it cannot reach a file. It can: `vi` hands out
   // `importActual` and `importMock`, which take a literal specifier and return the
@@ -408,7 +408,7 @@ export function packageSources(): string[] {
  * same allow-list an imported specifier meets: `./tables` is admitted whichever
  * of the three grammars asks for it, and `node:fs` is reported whichever does.
  */
-export const MODULE_LOADING_CALLS = ['glob', 'importActual', 'importMock'];
+const MODULE_LOADING_CALLS = ['glob', 'importActual', 'importMock'];
 
 /**
  * The source text parsed, once, so that the two walks below read one tree.

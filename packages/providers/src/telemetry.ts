@@ -201,7 +201,7 @@ export function otlpTracesPayload(service: string, spans: readonly Span[]): unkn
   };
 }
 
-export function otlpAttributes(attributes: Attributes): unknown[] {
+function otlpAttributes(attributes: Attributes): unknown[] {
   return Object.entries(attributes)
     .filter(([, value]) => value !== undefined)
     .map(([key, value]) => ({ key, value: otlpValue(value as AttributeValue) }));
