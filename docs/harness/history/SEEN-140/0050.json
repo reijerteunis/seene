@@ -1,0 +1,16 @@
+{
+  "sequence": 50,
+  "ticket": "SEEN-140",
+  "timestamp": "2026-10-01T13:50:01.592393+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "review",
+  "attempt": 6,
+  "actor": "claude:implementer",
+  "session": "6973478f0bee",
+  "head": "d8633aa6bc8767ed0aa8e1366e5f4b1fc490ceae",
+  "prev_hash": "65ccc71eec6ac2446f131ab2c0971b57908ec1c60b9bb7b0a4f18f87ccbcf1e4",
+  "data": {
+    "text": "# Two review rounds done, and the third is the founder's\n\nWhere SEEN-140 stands: at review, attempt 6, with every finding of both rounds\nfixed and the regression green at 1,453 tests, coverage on `packages/core` at 100.0\nwith a delta of 0.0, `doctor` clean, and the triage passing all five criteria.\n\n## What the two rounds found\n\n**Round one, F1 (high), `harness/triage.py:517`.** `named_in_solution=path in named`\nwas a fourth exact-membership reader of the question this ticket exists to unify, and\n`file_subject` writes that value into the state Jev reads as \"Named by the solution\nrecord\" when it answers `reviewer_must_read`. So the wrong answer was being given in\nthe place where it does the most harm. Fixed at record 37, and the ticket's own\npre-work, which said there were exactly three readers, was wrong because the grep\nthat found them looked only for the negative form.\n\n**Round two, F1 (medium) and F2 (low),** both on the instrument rather than the fix,\nwhich that round confirmed correct. The module allowlist would have missed a reader\nborn in any unlisted module; the comparator, matched by unparsed text, would have\nmissed `entry.get('files') or []`. Both fixed at record 46, at the root: `kpi.py`'s\n`named` is now `agent_names`, which is what it holds and which is what made an\nallowlist look necessary, and the comparator is matched as a subtree.\n\n## Why this stops here\n\nSEEN-118 states the rule: a finding needs a failing test, taste is not a finding, and\n**the third round is the founder's**. Two rounds have run. Advancing out of review\nneeds a review record whose findings are all resolved, which means a third round that\nreads the two fixes and attests them, and that round is Ruud's to call rather than\nthis session's to spawn.\n\nWhat a third round would read is small and bounded: `git show d525c4b` and the commit\nafter it, which is `harness/triage.py`'s one line, `harness/kpi.py`'s one rename and\n`harness/tests/test_calibration.py`'s `NoSecondReaderTest`. Nothing else moved.\n\n## The one thing worth saying about the two rounds together\n\nBoth rounds found the same shape of defect at one remove from each other. Round one\nfound a reader the instrument could not see; round two found that the instrument's\nscope and its matching could each hide another. The ticket is about giving one\nquestion one answer, and what it took was three passes at being able to tell whether\nthere is one. That is the review machinery earning its cost: a high finding and two\nmore in files this session had read and judged finished.\n\nSEEN-114 remains parked and unrebased, waiting for this to merge. The measurement\nthat judges this ticket is its `slice_files` check passing against its own diff, and\nthat is the first thing SEEN-114's next session does.\n"
+  }
+}
