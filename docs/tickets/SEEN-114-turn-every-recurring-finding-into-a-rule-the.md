@@ -60,9 +60,9 @@ Sprint 0 delivered 63 review findings on 20 tickets (2 blocking, 18 high, 27 med
 Delivered on 1 October 2026 in four slices: the compiler and the formatter with the registry, the
 ground rules with their fixtures and the hook, `rule_candidate` on the review gate, and the loop back
 through the weekly report and `doctor`. Twenty-three rules, each with a citation a reader can open and
-a fixture the rule itself refuses. 1,557 harness tests pass (check 317), the workspace build is green
+a fixture the rule itself refuses. 1,561 harness tests pass (check 339), the workspace build is green
 (check 185) and so is every test of the six packages that need no local stack, 196 of them in
-`packages/core` (check 186), coverage on `packages/core` is 100.0 with a delta of 0.0 (check 318),
+`packages/core` (check 186), coverage on `packages/core` is 100.0 with a delta of 0.0 (check 340),
 and `doctor` reports no problems. It will report a **warning** once this ticket is inside the
 calibration window, and that is the loop working rather than a defect: several of this ticket's own
 findings name `harness/outcome-figure-names-its-record` as the rule that would have caught them, no such
