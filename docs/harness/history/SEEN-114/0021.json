@@ -1,0 +1,54 @@
+{
+  "sequence": 21,
+  "ticket": "SEEN-114",
+  "timestamp": "2026-10-01T08:48:27.601185+00:00",
+  "harness_version": "2",
+  "kind": "handoff",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "6973478f0bee",
+  "head": "4e2039582d0ba485bc38c28b34b643a168a4fcba",
+  "prev_hash": "bd62f4a495801329806c381eba9ef7d9e6a459009f2bc8c8cd246cb08015a61b",
+  "data": {
+    "pack": ".harness-drafts/SEEN-114-handoff.md",
+    "sha256": "abd30bbb173f78dc2bc6269dfe6fae109876939e87d50bba8d6477c56d6beb1d",
+    "estimated_tokens": 1109,
+    "token_limit": 2000,
+    "slice": {
+      "position": 2,
+      "total": 4,
+      "done": 1,
+      "declared": true,
+      "inferred": 4,
+      "entry": {
+        "name": "The ground rules, the fixtures and the hook",
+        "points": 2,
+        "files": [
+          "sgconfig.yml",
+          "rules/ast-grep",
+          ".dependency-cruiser.json",
+          "knip.json",
+          "rules/registry.toml",
+          "rules/fixtures",
+          "scripts/rules.sh",
+          ".githooks/pre-commit",
+          ".github/workflows/ci.yml",
+          "package.json",
+          "apps",
+          "packages",
+          "harness/rules.py",
+          "harness/tests/test_rules.py"
+        ],
+        "red": "Every ast-grep, dependency-cruiser and knip fixture is accepted by the tree as it stands, so `./scripts/rules.sh fixtures` names each rule as not firing: the euro sign, the em and en dash, money as a non-integer, fetch inside packages/core, a credential literal in a test, node:fs inside packages/core, a marketplace write outside the policy gate, a query outside the repository layer, an app importing another app, a cloud SDK outside packages/providers, the connectors importing the agent, the network outside the generated clients, and an unused export in packages/core."
+      }
+    },
+    "auto": false,
+    "figures": {
+      "session": "6973478f0bee",
+      "output_tokens": 325851,
+      "tool_calls": 221,
+      "unavailable": null
+    }
+  }
+}
