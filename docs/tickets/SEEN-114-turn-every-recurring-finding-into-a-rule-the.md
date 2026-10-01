@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-090, SEEN-107]
-status: doing
+status: review
 priority: P0
 ---
 # SEEN-114: Turn every recurring finding into a rule the pre-commit hook runs in seconds
@@ -24,7 +24,7 @@ priority: P0
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | doing |
+| Status | review |
 | Priority | P0 (correctness and speed programme, see docs/harness/workflow.md) |
 
 ## Description
@@ -33,11 +33,11 @@ Sprint 0 delivered 63 review findings on 20 tickets (2 blocking, 18 high, 27 med
 
 ## Acceptance criteria
 
-- [ ] tsconfig.base.json carries strict, noUncheckedIndexedAccess, exactOptionalPropertyTypes and noImplicitOverride, and every TypeScript project in the tree typechecks. **Amended on 1 October 2026:** "the tree" is read as the seven projects `pnpm turbo run typecheck` compiles, because `packages/core/tsconfig.json` includes only `src/**/*` and so the nine files of `packages/core/db/`, which are SEEN-008's trade-record schema and its tests, are in no project at all and were already outside the typecheck before this ticket. Nine is what `git ls-files packages/core/db` returns, at this commit and at SEEN-008's own merge (check 253); the figure this amendment first carried was eleven and was never right. Compiling them needs a second project with an ESM module setting, because `db/repository.ts` reads `import.meta.url` and the base configuration is commonjs, and the three source modules then report five diagnostics under the four flags, all of them in `db/marketplaces.ts`, with `db/repository.ts` and `db/tables.ts` clean (check 254). That work is not this ticket's and has no ticket of its own yet; the Outcome says what one would have to carry.
-- [ ] Biome, ast-grep and dependency-cruiser run on staged files in the pre-commit hook in under ten seconds, and in CI on the tree, with the ground rules above each proven by a fixture that fails (among them: node:fs imported inside packages/core, a marketplace write outside the policy gate, a query outside the repository layer)
-- [ ] Every review finding at medium or above carries rule_candidate, and the review gate refuses a record without it
-- [ ] harness report --week lists findings a rule could have caught, the rules added, and any candidate that recurred without a rule
-- [ ] knip reports zero unused exports on packages/core and the connectors, every package declares an exports map, and each rule in the set cites a finding id or an architecture section, enforced in CI
+- [x] tsconfig.base.json carries strict, noUncheckedIndexedAccess, exactOptionalPropertyTypes and noImplicitOverride, and every TypeScript project in the tree typechecks. **Amended on 1 October 2026:** "the tree" is read as the seven projects `pnpm turbo run typecheck` compiles, because `packages/core/tsconfig.json` includes only `src/**/*` and so the nine files of `packages/core/db/`, which are SEEN-008's trade-record schema and its tests, are in no project at all and were already outside the typecheck before this ticket. Nine is what `git ls-files packages/core/db` returns, at this commit and at SEEN-008's own merge (check 253); the figure this amendment first carried was eleven and was never right. Compiling them needs a second project with an ESM module setting, because `db/repository.ts` reads `import.meta.url` and the base configuration is commonjs, and the three source modules then report five diagnostics under the four flags, all of them in `db/marketplaces.ts`, with `db/repository.ts` and `db/tables.ts` clean (check 254). That work is not this ticket's and has no ticket of its own yet; the Outcome says what one would have to carry.
+- [x] Biome, ast-grep and dependency-cruiser run on staged files in the pre-commit hook in under ten seconds, and in CI on the tree, with the ground rules above each proven by a fixture that fails (among them: node:fs imported inside packages/core, a marketplace write outside the policy gate, a query outside the repository layer)
+- [x] Every review finding at medium or above carries rule_candidate, and the review gate refuses a record without it
+- [x] harness report --week lists findings a rule could have caught, the rules added, and any candidate that recurred without a rule
+- [x] knip reports zero unused exports on packages/core and the connectors, every package declares an exports map, and each rule in the set cites a finding id or an architecture section, enforced in CI
 
 ## Depends on
 
@@ -60,9 +60,9 @@ Sprint 0 delivered 63 review findings on 20 tickets (2 blocking, 18 high, 27 med
 Delivered on 1 October 2026 in four slices: the compiler and the formatter with the registry, the
 ground rules with their fixtures and the hook, `rule_candidate` on the review gate, and the loop back
 through the weekly report and `doctor`. Twenty-three rules, each with a citation a reader can open and
-a fixture the rule itself refuses. 1,555 harness tests pass (check 248), the workspace build is green
+a fixture the rule itself refuses. 1,555 harness tests pass (check 272), the workspace build is green
 (check 185) and so is every test of the six packages that need no local stack, 196 of them in
-`packages/core` (check 186), coverage on `packages/core` is 100.0 with a delta of 0.0 (check 249),
+`packages/core` (check 186), coverage on `packages/core` is 100.0 with a delta of 0.0 (check 273),
 and `doctor` reports no problems. It will report a **warning** once this ticket is inside the
 calibration window, and that is the loop working rather than a defect: two of this ticket's own findings
 name `harness/outcome-figure-names-its-record` as the rule that would have caught them, no such rule is
@@ -74,9 +74,9 @@ one is a figure nobody can re-measure.
 
 | Where | What runs | Measured |
 |---|---|---|
-| pre-commit, on the staged paths | gitleaks, then Biome, ast-grep and dependency-cruiser | 940ms, with 34 files through Biome and 46 modules through dependency-cruiser, against a ten-second budget (check 245) |
-| CI, harness job | `harness rules --check` | 23 rules read in both directions in 79ms; reads files, needs no workspace (check 247) |
-| CI, monorepo job | `harness rules --fixtures`, then `turbo run lint`, then `scripts/rules.sh tree` | every one of the 23 rules refuses its own fixture in 3.29s (check 234), and 1.311s for the whole set over the tree (check 246) |
+| pre-commit, on the staged paths | gitleaks, then Biome, ast-grep and dependency-cruiser | 987ms, with 34 files through Biome and 46 modules through dependency-cruiser, against a ten-second budget (check 269) |
+| CI, harness job | `harness rules --check` | 23 rules read in both directions in 76ms; reads files, needs no workspace (check 271) |
+| CI, monorepo job | `harness rules --fixtures`, then `turbo run lint`, then `scripts/rules.sh tree` | every one of the 23 rules refuses its own fixture in 3.29s (check 258), and 1.152s for the whole set over the tree (check 270) |
 
 `scripts/rules.sh` is the one definition of what running the set means, called by the hook and by CI,
 because SEEN-097 recorded what happens when the same environment has two definitions. knip is in CI
