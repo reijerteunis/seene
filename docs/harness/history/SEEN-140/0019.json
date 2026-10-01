@@ -1,0 +1,22 @@
+{
+  "sequence": 19,
+  "ticket": "SEEN-140",
+  "timestamp": "2026-10-01T13:01:47.843031+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "6973478f0bee",
+  "head": "826a4c01d2faa912f9f8aa0098310ce75c7c43b6",
+  "prev_hash": "31b5c681f3892020f38c7860e3cb33c147bfcec01ab9af5c3a146a16668cb506",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "solution",
+    "to_attempt": 3,
+    "reason": "Two bookkeeping errors in the plan, both mine, both named by the triage at record 17. The solution record's changes list does not name CLAUDE.md or docs/tickets/README.md, which are where a new ticket is registered, so slice_files reports them as changed by no slice. And the regression at record 14 ran before the Outcome was written, so the fingerprint check sees a tree that moved after the tests that passed: the Outcome goes in before the regression, not after it. Amending the plan and reordering, not arguing with either check.",
+    "findings": [],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}

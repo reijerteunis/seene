@@ -1,0 +1,38 @@
+{
+  "sequence": 26,
+  "ticket": "SEEN-140",
+  "timestamp": "2026-10-01T13:08:46.876367+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "session": "6973478f0bee",
+  "head": "826a4c01d2faa912f9f8aa0098310ce75c7c43b6",
+  "prev_hash": "987ab8776e2256640d473fe4de36499619d30ce7627d3527230dcb5da1df2116",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": 1,
+          "behaviour": "One function answers whether a slice's plan covers a path: normalise and covers move to harness/paths.py, calibration imports them back, and guard.py and triage.py call covers instead of comparing exactly.",
+          "failure_reason": "harness/tests/test_guard.py failed with 'AssertionError: 2 != 0 : Harness: packages/core/db/tables.ts is not one of the files slice 1 of 1 names: packages, harness/rules.py': the guard refused a file inside a directory the accepted slice names. The triage's and calibration's reds are records 7 and 8 of attempt 1 and stay in the journal as criterion 4's evidence: 'Changed but named by no slice and no changes entry: harness/rules/fixture.py' against a plan naming harness/rules, and \"AttributeError: module 'harness.calibration' has no attribute 'covers'\" with NoSecondReaderTest listing both exact comparisons by file and line.",
+          "red": 22,
+          "green": 23
+        }
+      ],
+      "regression": 24,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "6973478f0bee",
+      "output_tokens": 577118,
+      "tool_calls": 335,
+      "unavailable": null
+    }
+  }
+}

@@ -1,0 +1,128 @@
+{
+  "sequence": 20,
+  "ticket": "SEEN-140",
+  "timestamp": "2026-10-01T13:02:00.739122+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "solution",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "session": "6973478f0bee",
+  "head": "826a4c01d2faa912f9f8aa0098310ce75c7c43b6",
+  "prev_hash": "1ca88d65274484eeeabc4fccc5c8f0834f261829e2340d9e89d6659cc3e6893d",
+  "data": {
+    "from_stage": "solution",
+    "to_stage": "tdd",
+    "evidence": {
+      "mode": "code",
+      "approach": "One function, in the leaf module, called by the three readers. `normalise` and a public `covers(path, files)` move from `harness/calibration.py` to `harness/paths.py`, which imports nothing of the harness and whose docstring already says it holds structure rather than judgement. calibration imports them back, so its seven existing callers and its own tests are unchanged. `harness/guard.py` replaces `if relative not in entry['files']` with `if not covers(relative, entry['files'])`, and `harness/triage.py` replaces `path not in named` in `_slice_files_check` with the same call, keeping the exempt set as an exact comparison because a generated path and the ticket file are named exactly and are not directories. Nothing about the answer changes: `covers` is `_covers` moved, and a test pins its answers against the cases calibration's own tests already hold, so the move cannot quietly become a rewrite. One slice, because the two readers share one cause and a session that fixed one and not the other would leave the harness disagreeing with itself in a third way. Amended at attempt 3 on the triage's own signals, both of them right. The plan now names the two indexes a new ticket is registered in, and the Outcome is written before the regression rather than after it, because the reviewed-tree fingerprint covers the ticket file and a regression that ran before the Outcome is a regression against a tree that then moved.",
+      "changes": [
+        "harness/paths.py: `normalise` and `covers` move here, with the docstring explaining why one reader is the point rather than three.",
+        "harness/calibration.py: `normalise` and `_covers` are deleted and imported from paths; the seven call sites keep the names they use.",
+        "harness/guard.py: rule 4 asks `covers` instead of exact membership; the refusal message is unchanged, because it names the plan's own entries.",
+        "harness/triage.py: `_slice_files_check` asks `covers` for the plan's entries and keeps exact membership for the exempt set.",
+        "harness/tests/test_guard.py: a slice naming a directory covers a file inside it, and a path under no entry is still refused with the entries named.",
+        "harness/tests/test_triage.py: `slice_files` passes when every changed path is inside a named directory and still fails on a path no entry covers.",
+        "harness/tests/test_calibration.py: one test asserting the moved function answers what it answered here, so the move is proved to be a move.",
+        "docs/harness/workflow.md: one sentence, that the question has one reader.",
+        "docs/tickets/SEEN-140-one-answer-to-whether-a-slices-plan-covers-a.md, docs/tickets/README.md and CLAUDE.md: the ticket itself and its two index rows. Named at attempt 3 because the triage reported the two indexes as changed by no slice and no changes entry, which they were: a new ticket is registered in both and no plan had thought to say so."
+      ],
+      "migrations": [],
+      "tests_first": [
+        "The guard allows a file inside a directory the slice names. `python3 -m unittest harness.tests.test_guard -v`. The RED must demonstrate that `harness guard packages/core/db/tables.ts` is refused against an accepted slice naming `packages`, with the message naming the entries, and that a path under no entry is refused too, so the second assertion holds while the first flips.",
+        "The triage's slice_files passes on a path inside a named directory. `python3 -m unittest harness.tests.test_triage -v`. The RED must demonstrate that `slice_files` reports a changed path inside a directory the plan names as 'named by no slice and no changes entry', and that a genuinely unplanned path is still reported.",
+        "The move is a move. `python3 -m unittest harness.tests.test_calibration -v`. The RED is that `paths.covers` does not exist; the GREEN is that it answers every case `_covers` answered, dot directories included, which is F1 of SEEN-109's second review and must not be lost in the move."
+      ],
+      "slices": [
+        {
+          "name": "One reader for the question, called by all three",
+          "points": 1,
+          "files": [
+            "harness/paths.py",
+            "harness/calibration.py",
+            "harness/guard.py",
+            "harness/triage.py",
+            "harness/tests/test_guard.py",
+            "harness/tests/test_triage.py",
+            "harness/tests/test_calibration.py",
+            "docs/harness/workflow.md",
+            ".claude/skills/seen-harness/SKILL.md",
+            ".agents/skills/seen-harness/SKILL.md",
+            "docs/harness/skill.md",
+            "docs/tickets/SEEN-140-one-answer-to-whether-a-slices-plan-covers-a.md",
+            "docs/tickets/README.md",
+            "CLAUDE.md"
+          ],
+          "red": "Three failures, one per reader, each on the exact comparison rather than on an absent function. `harness guard` refuses `packages/core/db/tables.ts` against a slice naming `packages`; the triage's `slice_files` reports a changed path inside a named directory as belonging to no slice; and `paths.covers` does not exist, so the test pinning the moved function's answers fails on the import. At attempt 3 only the guard pair is replayed and cited: the triage's and calibration's reds are records 7 and 8 of attempt 1 and stay in the journal as criterion 4's evidence, which is what that criterion asks for."
+        }
+      ],
+      "alternatives": [
+        "Drop the underscore on `calibration._covers` and import calibration from guard.py. Rejected: guard.py runs inside a PreToolUse hook on every edit in both assistants, and calibration imports the journal, the routes and the thresholds to answer a question about two strings. paths.py imports pathlib and re.",
+        "Fix only guard.py, which is what unblocks the implementers. Rejected: the triage's copy is what returned SEEN-114 three times, and a ticket that fixed one of two identical comparisons would leave the harness disagreeing with itself in a way nobody would find again until it cost another ticket.",
+        "Make the comparison stricter instead, by refusing a plan that names a directory at the solution gate. Rejected as a different ticket and a founder's decision: it would have made SEEN-114 a different ticket rather than a passing one, and SEEN-114's record 107 argues that naming `apps` and `packages` was the true description of what a formatter adoption touches. The clarify record carries it as the question this ticket leaves open."
+      ],
+      "risks": [
+        "A loosened guard lets through an edit a plan did not intend, if a slice names a broad directory. Real and accepted, because it is what the plan said: the guard's job is to hold a session to the plan, not to second-guess it, and `gates.py` has read directory entries this way since SEEN-104. The narrower question, whether a plan should be allowed to name `packages`, is the one left open.",
+        "A loosened `slice_files` makes the triage's pass one quieter, and SEEN-109's calibration window reads it. Mitigated by the direction: the check moves from failing on every ticket whose plan names a directory to failing only on a path no entry covers, so it starts answering the question it was written to ask. Nothing that fails today and should fail starts passing.",
+        "Moving `normalise` could change a comparison by accident, which would be invisible: every caller is inside calibration and its tests pass either way if the function is subtly different. Mitigated by moving the body unchanged and by the third RED, which pins the moved function against the cases calibration's own tests hold, dot directories among them."
+      ],
+      "rollback": "Four functions and two call sites. Reverting the branch restores both exact comparisons, and nothing persists: no migration, no record format, no generated file but the skill copies, which `harness sync` rewrites. A ticket whose journal was written while this was in force is unaffected, because the guard and the triage read the plan at the moment they run and store no answer.",
+      "new_dependencies": [],
+      "tenant_tables": [
+        "none: this ticket touches no table, no migration and no query."
+      ],
+      "buyer_pii": "none: no buyer field is read, persisted or logged.",
+      "policy_gate_action": null,
+      "slice_points": 1,
+      "forecast": {
+        "available": false,
+        "observed_tickets": 4,
+        "required": 10
+      }
+    },
+    "decisions": [
+      {
+        "key": "solution_complete",
+        "question": "solution_complete",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.86,
+          "no": 0.14
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "key": "touches_billing_or_policy_gate",
+        "question": "touches_billing_or_policy_gate",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.27,
+          "no": 0.73
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}
