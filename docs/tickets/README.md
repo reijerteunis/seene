@@ -1,12 +1,12 @@
 # Tickets
 
-138 tickets for the Seen MVP, one file per ticket, grouped by sprint. Each file carries YAML frontmatter (id, epic, sprint, gate, estimate, executor, changes_agent_action, marketplaces, depends_on, status) so the backlog can be filtered with grep or loaded by a script. Status values: todo, doing, review, done, parked. Update the status line in the frontmatter and the table when a ticket moves; `harness doctor` reports a status that disagrees with the ticket's journal. A started ticket's file is owned by this repository: the generator behind the council artifact rewrites only tickets still at todo.
+139 tickets for the Seen MVP, one file per ticket, grouped by sprint. Each file carries YAML frontmatter (id, epic, sprint, gate, estimate, executor, changes_agent_action, marketplaces, depends_on, status) so the backlog can be filtered with grep or loaded by a script. Status values: todo, doing, review, done, parked. Update the status line in the frontmatter and the table when a ticket moves; `harness doctor` reports a status that disagrees with the ticket's journal. A started ticket's file is owned by this repository: the generator behind the council artifact rewrites only tickets still at todo.
 
 Conventions: branch `claude/<id>-<slug>` (or `codex/`), commit messages `feat(<id>): ...`, `fix(<id>): ...`, `docs(<id>): ...`; a ticket is done only when every acceptance criterion is checked and the tests named in it run in CI.
 
 ## Sprint 0: Harness first, then foundations, three read connectors, ingest, day-0 registrations
 
-24 Sep - 9 Oct 2026, gate G0, 55 tickets, 132 build points.
+24 Sep - 9 Oct 2026, gate G0, 56 tickets, 134 build points.
 
 | Ticket | Title | Epic | Pts | Executor | Status | Depends on |
 |---|---|---|---|---|---|---|
@@ -59,6 +59,7 @@ Conventions: branch `claude/<id>-<slug>` (or `codex/`), commit messages `feat(<i
 | [SEEN-137](SEEN-137-one-worked-example-per-acceptance-criterion.md) | One worked example per acceptance criterion before the solution stage, so the RED is a transcription | E10 | 1 | Claude Code | todo | SEEN-088, SEEN-117 |
 | [SEEN-138](SEEN-138-the-harness-has-its-own-regression-suite-five.md) | The harness has its own regression suite: five finished tickets replayed when its rules, hooks or prompts change | E10 | 3 | Claude Code | todo | SEEN-091, SEEN-104, SEEN-105 |
 | [SEEN-008](SEEN-008-create-trade-record-schema-v1-with-tenant-id.md) | Create trade-record schema v1 with tenant_id and RLS on every table | E0 | 5 | Claude Code | review | SEEN-006, SEEN-092, SEEN-094 |
+| [SEEN-139](SEEN-139-hand-the-immutability-guard-forward-to-every.md) | Hand the immutability guard forward to every migration that adds a table | E0 | 2 | Claude Code | todo | SEEN-008 |
 | [SEEN-009](SEEN-009-define-connector-interface-capability-matrix.md) | Define connector interface, capability matrix and credential access | E1 | 5 | Claude Code | todo | SEEN-006, SEEN-008 |
 | [SEEN-010](SEEN-010-add-per-marketplace-rate-limiting-with-header.md) | Add per-marketplace rate limiting with header-driven backoff | E1 | 3 | Claude Code | todo | SEEN-009 |
 | [SEEN-011](SEEN-011-build-bol-retailer-api-v10-connector-for-orders.md) | Build Bol Retailer API v10 connector for orders to commissions | E1 | 5 | Claude Code | todo | SEEN-003, SEEN-009, SEEN-010, SEEN-115 |
@@ -209,7 +210,7 @@ Conventions: branch `claude/<id>-<slug>` (or `codex/`), commit messages `feat(<i
 
 | Epic | Name | Goal | Tickets |
 |---|---|---|---|
-| E0 | Foundations and registrations | Stand up the monorepo, the EU infrastructure and the trade-record schema, and file every day-0 registration so nothing waits on a marketplace later. | SEEN-001, SEEN-002, SEEN-003, SEEN-004, SEEN-005, SEEN-006, SEEN-097, SEEN-008, SEEN-007 |
+| E0 | Foundations and registrations | Stand up the monorepo, the EU infrastructure and the trade-record schema, and file every day-0 registration so nothing waits on a marketplace later. | SEEN-001, SEEN-002, SEEN-003, SEEN-004, SEEN-005, SEEN-006, SEEN-097, SEEN-008, SEEN-139, SEEN-007 |
 | E1 | Connectors and ingest | Ingest orders, shipments, returns, settlements and listings from Bol, Amazon, eBay, Kaufland, Otto and Shopify into one idempotent, tenant-isolated trade record. | SEEN-009, SEEN-010, SEEN-011, SEEN-012, SEEN-013, SEEN-014, SEEN-015, SEEN-038, SEEN-044, SEEN-048, SEEN-052, SEEN-053, SEEN-054, SEEN-058, SEEN-059, SEEN-060, SEEN-073 |
 | E2 | Reconciliation, findings and audit | Match every settlement line to an order line, detect fee errors, lost shipments and return shortfalls with tested code, and deliver the audit PDF with a measured recoverable pool. | SEEN-016, SEEN-017, SEEN-018, SEEN-019, SEEN-020, SEEN-021, SEEN-022, SEEN-023, SEEN-025 |
 | E3 | Claims rail and evidence | File claims by API where a marketplace allows it and as one-click case packs where it does not, track each to a credit in an ingested settlement line, and keep hashed evidence. | SEEN-026, SEEN-027, SEEN-028, SEEN-029, SEEN-030, SEEN-031, SEEN-037, SEEN-066 |
