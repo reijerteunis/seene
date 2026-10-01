@@ -49,6 +49,10 @@ The baseline in docs/harness/reports/context-tools-baseline.json says 40,600 out
 - [SEEN-106](SEEN-106-enforce-the-harness-with-hooks-in-both.md): Enforce the harness with hooks in both assistants, generated from one source
 - [SEEN-107](SEEN-107-let-jev-settle-what-the-review-can-settle.md): Let Jev settle what the review can settle before a model reads the diff
 - [SEEN-108](SEEN-108-route-each-slice-to-a-model-and-an-effort-at.md): Route each slice to a model and an effort at solution, by rule first and by Jev second
+- [SEEN-111](SEEN-111-hold-a-slice-to-the-context-it-was-routed-to.md): Hold a slice to the context it was routed to, and price it before it is worked
+- [SEEN-112](SEEN-112-run-a-ticket-from-clarify-to-merge-in-one-go.md): Run a ticket from clarify to merge in one go, asking only what it cannot decide
+- [SEEN-113](SEEN-113-let-a-tdd-record-cite-the-evidence-a-return.md): Let a tdd record cite the evidence a return did not invalidate
+- [SEEN-138](SEEN-138-the-harness-has-its-own-regression-suite-five.md): The harness has its own regression suite: five finished tickets replayed when its rules, hooks or prompts change
 
 ## Context
 

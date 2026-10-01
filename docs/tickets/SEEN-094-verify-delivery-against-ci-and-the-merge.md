@@ -67,6 +67,7 @@ request.
 ## Blocks
 
 - [SEEN-095](SEEN-095-check-ticket-status-against-its-own-journal.md): Check a ticket's status against its own journal
+- [SEEN-120](SEEN-120-affected-only-checks-and-a-local-ci-that.md): Affected-only checks and a local CI that finishes in minutes
 - [SEEN-008](SEEN-008-create-trade-record-schema-v1-with-tenant-id.md): Create trade-record schema v1 with tenant_id and RLS on every table
 
 ## Context

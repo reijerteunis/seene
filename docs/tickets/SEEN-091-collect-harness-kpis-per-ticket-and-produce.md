@@ -116,6 +116,8 @@ the harness refusing something it should have refused.
 - [SEEN-099](SEEN-099-set-the-context-budget-and-measure-the-tools.md): Set the context budget and measure what the tools changed
 - [SEEN-092](SEEN-092-sync-the-harness-skill-to-claude-code-and-codex.md): Sync the harness skill to Claude Code and Codex and retire the Seene leftovers
 - [SEEN-104](SEEN-104-cap-a-session-at-one-slice-the-slice-plan-the.md): Cap a session at one slice: the slice plan, the budget and the handoff pack
+- [SEEN-123](SEEN-123-cap-harness-work-at-ten-percent-of-a-sprint-and.md): Cap harness work at ten percent of a sprint and make every harness ticket state its payback
+- [SEEN-138](SEEN-138-the-harness-has-its-own-regression-suite-five.md): The harness has its own regression suite: five finished tickets replayed when its rules, hooks or prompts change
 
 ## Context
 

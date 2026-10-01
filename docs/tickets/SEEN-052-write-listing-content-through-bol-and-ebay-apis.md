@@ -43,6 +43,7 @@ Implement the write side in packages/connectors: Bol Offers (price, stock, fulfi
 ## Blocks
 
 - [SEEN-057](SEEN-057-verify-listing-fixes-on-three-marketplaces-and.md): Verify listing fixes on three marketplaces and file Kaufland tickets
+- [SEEN-129](SEEN-129-list-a-supplier-s-catalogue-under-seen-s.md): List a supplier's catalogue under Seen's accounts with brand mapping and GPSR data
 
 ## Context
 

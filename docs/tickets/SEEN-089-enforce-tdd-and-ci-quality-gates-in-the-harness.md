@@ -93,6 +93,8 @@ moved to [SEEN-094](SEEN-094-verify-delivery-against-ci-and-the-merge.md).
 
 - [SEEN-091](SEEN-091-collect-harness-kpis-per-ticket-and-produce.md): Collect harness KPIs per ticket and produce weekly and sprint reports
 - [SEEN-092](SEEN-092-sync-the-harness-skill-to-claude-code-and-codex.md): Sync the harness skill to Claude Code and Codex and retire the Seene leftovers
+- [SEEN-116](SEEN-116-property-based-and-mutation-tests-on-the-money.md): Property-based and mutation tests on the money core, as a gate
+- [SEEN-136](SEEN-136-no-test-touches-the-clock-the-network-or.md): No test touches the clock, the network or randomness unfaked, and a flaky test is a defect
 
 ## Context
 

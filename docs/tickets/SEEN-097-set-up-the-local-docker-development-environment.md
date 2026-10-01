@@ -156,6 +156,9 @@ creates.
 
 ## Blocks
 
+- [SEEN-120](SEEN-120-affected-only-checks-and-a-local-ci-that.md): Affected-only checks and a local CI that finishes in minutes
+- [SEEN-122](SEEN-122-golden-path-end-to-end-tests-on-the-docker.md): Golden-path end-to-end tests on the docker stack with recorded marketplace fixtures
+- [SEEN-136](SEEN-136-no-test-touches-the-clock-the-network-or.md): No test touches the clock, the network or randomness unfaked, and a flaky test is a defect
 - [SEEN-007](SEEN-007-go-live-on-google-cloud-after-the-go-no-go.md): Go live on Google Cloud after the go/no-go decision
 
 ## Context
