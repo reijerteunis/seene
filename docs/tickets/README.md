@@ -58,7 +58,7 @@ Conventions: branch `claude/<id>-<slug>` (or `codex/`), commit messages `feat(<i
 | [SEEN-136](SEEN-136-no-test-touches-the-clock-the-network-or.md) | No test touches the clock, the network or randomness unfaked, and a flaky test is a defect | E10 | 2 | Claude Code | todo | SEEN-089, SEEN-097 |
 | [SEEN-137](SEEN-137-one-worked-example-per-acceptance-criterion.md) | One worked example per acceptance criterion before the solution stage, so the RED is a transcription | E10 | 1 | Claude Code | todo | SEEN-088, SEEN-117 |
 | [SEEN-138](SEEN-138-the-harness-has-its-own-regression-suite-five.md) | The harness has its own regression suite: five finished tickets replayed when its rules, hooks or prompts change | E10 | 3 | Claude Code | todo | SEEN-091, SEEN-104, SEEN-105 |
-| [SEEN-140](SEEN-140-one-answer-to-whether-a-slices-plan-covers-a.md) | One answer to whether a slice's plan covers a path | E10 | 1 | Claude Code | doing | none |
+| [SEEN-140](SEEN-140-one-answer-to-whether-a-slices-plan-covers-a.md) | One answer to whether a slice's plan covers a path | E10 | 1 | Claude Code | review | none |
 | [SEEN-008](SEEN-008-create-trade-record-schema-v1-with-tenant-id.md) | Create trade-record schema v1 with tenant_id and RLS on every table | E0 | 5 | Claude Code | review | SEEN-006, SEEN-092, SEEN-094 |
 | [SEEN-139](SEEN-139-hand-the-immutability-guard-forward-to-every.md) | Hand the immutability guard forward to every migration that adds a table | E0 | 2 | Claude Code | todo | SEEN-008 |
 | [SEEN-009](SEEN-009-define-connector-interface-capability-matrix.md) | Define connector interface, capability matrix and credential access | E1 | 5 | Claude Code | todo | SEEN-006, SEEN-008 |
