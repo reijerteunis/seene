@@ -1,0 +1,79 @@
+{
+  "ticket": "SEEN-140",
+  "delivered_at": "2026-10-01T14:23:35.982761+00:00",
+  "points": null,
+  "cycle_time_seconds": 7375,
+  "stage_seconds": {
+    "clarify": 72,
+    "solution": 68,
+    "tdd": 4925,
+    "review": 1574,
+    "deliver": 734
+  },
+  "attempts": 7,
+  "rework": 6,
+  "red_before_green": true,
+  "coverage": {
+    "package": "@seen/core",
+    "lines": 100.0,
+    "delta": 0.0
+  },
+  "findings": {
+    "by_severity": {
+      "high": 2,
+      "medium": 2,
+      "low": 4
+    },
+    "fixed": 8,
+    "waived": 0
+  },
+  "first_pass_ci": true,
+  "tokens": null,
+  "cost": null,
+  "escaped_defects": [],
+  "slices": {
+    "planned": 1,
+    "proven": 6
+  },
+  "sessions": 1,
+  "subagents": {
+    "briefs": 0,
+    "agents": [],
+    "review": "subagent",
+    "both": false
+  },
+  "review_triage": {
+    "record": 58,
+    "depth": "spot",
+    "model_depth": "spot",
+    "shadow": true,
+    "asked": true,
+    "rules": [],
+    "files": 12,
+    "focus": 12,
+    "excluded": 11,
+    "excluded_share": 0.9175,
+    "reviewer_output_tokens": null,
+    "reviewer_tokens": null
+  },
+  "execution": [
+    {
+      "position": 1,
+      "name": "One reader for the question, called by all three",
+      "points": 1,
+      "model": "haiku",
+      "effort": "high",
+      "source": "jev",
+      "rule": null,
+      "ran_on": null,
+      "ran_on_tier": null,
+      "output_tokens": 3610,
+      "cost_cents": null,
+      "routed_cost_cents": 1,
+      "cost_basis": "output tokens only, at the price of the model the slice ran on: a handoff record carries the session's output tokens and tool calls and nothing about input. routed_cost_cents prices the same tokens at the model the route chose, which in shadow is a counterfactual and not a cost"
+    }
+  ],
+  "output_tokens_per_slice": null,
+  "harness_version": "2",
+  "note": null
+}
