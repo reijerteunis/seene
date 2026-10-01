@@ -1,0 +1,16 @@
+{
+  "sequence": 187,
+  "ticket": "SEEN-114",
+  "timestamp": "2026-10-01T16:43:55.723522+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 9,
+  "actor": "claude:implementer",
+  "session": "ad77b7a13315",
+  "head": "9712689962531e67315f6f65f46b233f8a515427",
+  "prev_hash": "374055300fcf90721be48c66ecf014e7bab55f5c54342094065f8c74734a4273",
+  "data": {
+    "text": "# F8 closed, and the three low findings carried forward by decision\n\nRuud's call: fix F8, carry F9, F10 and F12. All four are now written where the next\nreader will meet them, which for a carried finding is the ticket's own\ncarried-forward section and not only this journal.\n\n## F8, and what the gap was hiding\n\nThe finding was an evidence gap: the branch rewrites twenty-six TypeScript sources,\nremoves nine exports and deletes a test file, and no recorded check ran\n`pnpm turbo run test` or `pnpm turbo run build`. Both are recorded now, and the gap\nwas hiding something after all, though not in this branch.\n\n- Check 185, `pnpm turbo run build --force`, green over all three buildable packages.\n- Check 184, `pnpm turbo run test --force`, **failed**, and it is recorded failing\n  because an absence is never a pass. `@seen/providers` cannot run here: its vitest\n  setup reads the Supabase keys from the running stack, and the stack is not running.\n- Check 186, the same command filtered to the six packages that need no stack, green:\n  210 tests, including `@seen/api`'s three test files, which this branch edited and\n  which check 139's typecheck never compiled because `apps/api/tsconfig.json` excludes\n  `**/*.test.ts`. That was the specific hole the finding pointed at, and it is clean.\n\n`supabase start` refuses on this machine: the stack's migration table already holds\n`20260924000000` and the CLI inserts it again, `duplicate key value violates unique\nconstraint \"schema_migrations_pkey\"`. I did not clear it, because the cure is\n`supabase stop --no-backup` or a `db reset` and both wipe the local development\ndatabase, which is not a thing to do to somebody's machine without asking. It is in\nthe carried-forward section as SEEN-097's environment rather than this ticket's, and\nit is worth more than the finding that surfaced it: a developer who cannot start the\nstack cannot run the suite the solution record named as the proof of the exports maps.\n\n## What the carried-forward section now says\n\nF9, the citation checked to the file and never to the section, with what closing it\ntakes. F10, the two HTTP libraries missing from `core-no-io`, which is two names in\none list. F12, the review template with no finding shape, and the choice between a\ncommented example and leaving it empty on purpose. And the stack.\n\n## What the next round owes, and the one thing it must not forget\n\nEleven of the twelve findings are closed or placed. What is left is the round that\nadvances: set `status: review` and tick the five boxes, update the Outcome's test\ncount to that round's own regression, and **run the regression after those edits and\nnot before**. The tree has moved since check 186 by this note's own ticket-file edit,\nso a triage run now would fail its fingerprint check and say so. That is the ordering\nthe receipt's meaning requires and the one every attempt at this ticket has had to\nlearn once.\n"
+  }
+}

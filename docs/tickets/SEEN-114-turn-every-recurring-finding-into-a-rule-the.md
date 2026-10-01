@@ -158,6 +158,34 @@ modules in it, fix the two errors in `db/marketplaces.ts`, and add it to what `p
 typecheck` builds. Until it exists, nothing compiles that directory, which is why criterion 1 above is
 read as the seven projects that command builds today.
 
+**A citation is checked to the file and never to the section.** `harness rules --check` accepts a
+citation whose path exists, so a rule citing `docs/architecture.md: Fee expectations`, a section nobody
+wrote, reads as traceable and passes in CI. Today's twenty-three citations are all accurate, so nothing
+is wrong in the tree; the gap is what the check would let in, and closing it means parsing headings out
+of the cited document and matching the part after the colon. Review finding F9.
+
+**Two HTTP libraries are denied everywhere except the package the rule is strictest about.**
+`dependency-cruiser/core-no-io` lists undici, axios, got and node-fetch and not superagent or request;
+`network-only-through-generated-clients`, which lists both, excludes `packages/core/src` by design; and
+`ast-grep/no-fetch-in-core` matches only `fetch(...)`. So `import superagent` inside the money core
+passes the hook and the tree run. The allow-list in `packages/core/db/repository.ts` does catch it,
+which is the complete instrument, so what is missing is the ten-second half. Two names in one `to.path`
+list. Review finding F10.
+
+**`harness/templates/review.json` carries no finding shape**, so the clarify record's named evidence
+for `rule_candidate`, "the field in harness/templates/review.json", has nothing in the diff answering
+it. The template ships `"findings": []` and there was nothing to add a field to; a session drafting a
+review from the template rather than from the reviewer's prompt sees no `rule_candidate` anywhere and
+learns of it from the gate. Either the template grows a commented example finding or it stays empty on
+purpose, and whichever it is should be written down once. Review finding F12.
+
+**`supabase start` refuses on this machine**, so `pnpm turbo run test` cannot run `@seen/providers`
+locally: the stack's own migration table already holds `20260924000000` and the CLI tries to insert it
+again, `duplicate key value violates unique constraint "schema_migrations_pkey"`. The six packages that
+need no stack were run and recorded (check 186, 210 tests), and CI runs all seven on a clean checkout.
+This is SEEN-097's environment rather than this ticket's, and it blocks the one check this ticket could
+not take: a developer who cannot start the stack cannot run the suite the solution record named.
+
 **`harness/guard.py` compares a path to the slice's file list exactly**, where `harness/gates.py`
 answers the same question with `_covers`, which reads a directory entry. So a slice naming
 `rules/fixtures` is refused a file inside it. That inconsistency is why one slice of this ticket wrote
