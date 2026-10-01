@@ -1,0 +1,59 @@
+{
+  "sequence": 87,
+  "ticket": "SEEN-114",
+  "timestamp": "2026-10-01T11:53:21.294906+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 4,
+  "actor": "claude:implementer",
+  "session": "6973478f0bee",
+  "head": "cbbeba41be9a817a267dbaaa0e7f6ac1fda04b3c",
+  "prev_hash": "94b7f363bd2f8fda003f93c98087807d2dad572ce1a68c8822bf1997373ac86b",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": 1,
+          "behaviour": "The compiler's four checking flags, Biome in place of ESLint for format and lint with its three type-aware rules on, and rules/registry.toml with harness rules --check and --fixtures behind it.",
+          "failure_reason": "./scripts/rules.sh fixtures named seven of this slice's eight rules as not firing, in the runner's own words: 'the fixture compiles with noUncheckedIndexedAccess on, so this rule is not firing' and the same for exactOptionalPropertyTypes and noImplicitOverride, and 'biome.json is not in this repository, so what would run is biome's own defaults rather than this repository's rules, and nothing a default refuses proves a rule' for the four Biome rules.",
+          "red": 75,
+          "green": 76
+        },
+        {
+          "position": 2,
+          "behaviour": "The ground rules no general linter knows, as five ast-grep rules and eight dependency-cruiser layering rules, knip for dead exports, the exports map per package, and the pre-commit hook that runs the set on the staged files.",
+          "failure_reason": "./scripts/rules.sh fixtures named all fourteen of this slice's rules as not firing: 'sgconfig.yml is not in this repository, so what would run is ast-grep's own defaults rather than this repository's rules' over the five ast-grep rules, the same for .dependency-cruiser.json over the eight layering rules and for knip.json over the dead-export rule.",
+          "red": 77,
+          "green": 78
+        },
+        {
+          "position": 3,
+          "behaviour": "rule_candidate required on every review finding at medium severity or above, with its three shapes checked and the refusal naming an example of each.",
+          "failure_reason": "Four of harness/tests/test_gates.py's eight cases failed with 'AssertionError: HarnessError not raised': the gate accepted a review advance carrying a medium finding with no rule_candidate, accepted a malformed value, accepted 'none:' with no reason, and accepted an id naming a tool nothing runs.",
+          "red": 79,
+          "green": 80
+        },
+        {
+          "position": 4,
+          "behaviour": "The loop back: the weekly report's four figures, the doctor warning for a candidate that recurred with no rule written, the nine fixtures slice 3's required field invalidated, and the ten paragraphs SEEN-139's docs regeneration reverted.",
+          "failure_reason": "Thirty failures across the three pieces of this slice. Nine fixtures carrying a medium or higher finding errored on the field slice 3 made required, in test_calibration.py's FindingFileTest and ReturningFindingsTest, test_stage_gates.py's three test_a_finding_may_omit_the_file_and_line cases and test_hooks.py's SubagentStopTest. Twenty errored on functions that did not exist, as 'AttributeError' on rules.arrival_dates, report.rule_loop, report.rules_added_in_week and report.render_rules, and 'KeyError: warnings' on doctor.report. And test_triage.PartlySettledIsDocumentedTest.test_the_workflow_names_every_partly_settled_check failed with \"'red_before_green' not found\", which is the guard on the paragraphs SEEN-139's docs regeneration reverted.",
+          "red": 83,
+          "green": 84
+        }
+      ],
+      "regression": 85,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "6973478f0bee",
+      "output_tokens": 473419,
+      "tool_calls": 285,
+      "unavailable": null
+    }
+  }
+}

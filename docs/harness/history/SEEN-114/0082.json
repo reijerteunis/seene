@@ -1,0 +1,32 @@
+{
+  "sequence": 82,
+  "ticket": "SEEN-114",
+  "timestamp": "2026-10-01T11:38:37.817273+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 4,
+  "actor": "claude:implementer",
+  "session": "6973478f0bee",
+  "head": "cbbeba41be9a817a267dbaaa0e7f6ac1fda04b3c",
+  "prev_hash": "14eea4944ff590447cd0e0ebbda6deb5dac3308b020c06ed8fdbf72a72b15be7",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_calibration harness.tests.test_stage_gates harness.tests.test_hooks harness.tests.test_report harness.tests.test_doctor harness.tests.test_rules harness.tests.test_triage"
+    ],
+    "phase": "green",
+    "exit_code": 1,
+    "model": "claude-opus-5",
+    "model_declared": "opus",
+    "agent_declared": null,
+    "duration_ms": 41,
+    "output": "E\n======================================================================\nERROR: test_calibration harness (unittest.loader._FailedTest.test_calibration harness)\n----------------------------------------------------------------------\nImportError: Failed to import test module: test_calibration harness\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/.local/share/mise/installs/python/3.14.5/lib/python3.14/unittest/loader.py\", line 137, in loadTestsFromName\n    module = __import__(module_name)\nModuleNotFoundError: No module named 'harness.tests.test_calibration harness'\n\n\n----------------------------------------------------------------------\nRan 1 test in 0.000s\n\nFAILED (errors=1)\n",
+    "output_sha256": "2bf13b6b6e24c0472f519a468edaa95f9ccf92b28dd73afa1e18a1589f1400f5",
+    "output_truncated": false,
+    "before": "7449ed10bd4e6631dbb93c2b700deba1ff5d187e4e1bdf6c9c7a68f57acb5350",
+    "after": "7449ed10bd4e6631dbb93c2b700deba1ff5d187e4e1bdf6c9c7a68f57acb5350"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "sequence": 68,
+  "ticket": "SEEN-114",
+  "timestamp": "2026-10-01T11:30:34.956611+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 4,
+  "actor": "claude:implementer",
+  "session": "6973478f0bee",
+  "head": "cbbeba41be9a817a267dbaaa0e7f6ac1fda04b3c",
+  "prev_hash": "5174d615cfb3ad42e52828997da8f7b834695977a5ebdf3d8d4bb93d077d1d5d",
+  "data": {
+    "command": [
+      "./node_modules/.bin/knip"
+    ],
+    "phase": "green",
+    "exit_code": 0,
+    "model": "claude-opus-5",
+    "model_declared": "opus",
+    "agent_declared": null,
+    "duration_ms": 452,
+    "output": "",
+    "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "output_truncated": false,
+    "before": "7449ed10bd4e6631dbb93c2b700deba1ff5d187e4e1bdf6c9c7a68f57acb5350",
+    "after": "7449ed10bd4e6631dbb93c2b700deba1ff5d187e4e1bdf6c9c7a68f57acb5350"
+  }
+}

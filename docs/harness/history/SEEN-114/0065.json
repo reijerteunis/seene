@@ -1,0 +1,23 @@
+{
+  "sequence": 65,
+  "ticket": "SEEN-114",
+  "timestamp": "2026-10-01T11:29:16.215286+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "session": "6973478f0bee",
+  "head": "cbbeba41be9a817a267dbaaa0e7f6ac1fda04b3c",
+  "prev_hash": "237753118e4f170226e845f630772858f54cf7d76a5fc271eb4ecd6c9d884440",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 4,
+    "reason": "The triage could see no evidence for: Biome, ast-grep and dependency-cruiser run on staged files in the pre-commit hook in under ten seconds, and in CI on the tree, with the ground rules above each proven by a fixture that fails (among them: node:fs imported inside packages/core, a marketplace write outside the policy gate, a query outside the repository layer); knip reports zero unused exports on packages/core and the connectors, every package declares an exports map, and each rule in the set cites a finding id or an architecture section, enforced in CI. A criterion with nothing behind it is answered at the tdd stage, by writing the test or the check that proves it, rather than by a reviewer reading a diff that does not contain it",
+    "unmet_criteria": [
+      2,
+      5
+    ]
+  }
+}

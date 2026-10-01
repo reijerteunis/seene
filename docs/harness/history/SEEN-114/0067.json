@@ -1,0 +1,29 @@
+{
+  "sequence": 67,
+  "ticket": "SEEN-114",
+  "timestamp": "2026-10-01T11:30:34.380332+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 4,
+  "actor": "claude:implementer",
+  "session": "6973478f0bee",
+  "head": "cbbeba41be9a817a267dbaaa0e7f6ac1fda04b3c",
+  "prev_hash": "9a6074adb46cb3524f6cdb2007e4782bce22d838b78d88fbf01bd90c7cf8282d",
+  "data": {
+    "command": [
+      "python3 harness/run.py rules --check"
+    ],
+    "phase": "green",
+    "exit_code": 127,
+    "model": "claude-opus-5",
+    "model_declared": "opus",
+    "agent_declared": null,
+    "duration_ms": 2,
+    "output": "The command could not be started: [Errno 2] No such file or directory: 'python3 harness/run.py rules --check'\n",
+    "output_sha256": "eb5cd32763aa40bc8c1504357688f55a4943b40126885d56e160c9c101c48366",
+    "output_truncated": false,
+    "before": "7449ed10bd4e6631dbb93c2b700deba1ff5d187e4e1bdf6c9c7a68f57acb5350",
+    "after": "7449ed10bd4e6631dbb93c2b700deba1ff5d187e4e1bdf6c9c7a68f57acb5350"
+  }
+}
