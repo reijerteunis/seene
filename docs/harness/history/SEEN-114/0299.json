@@ -1,0 +1,3308 @@
+{
+  "sequence": 299,
+  "ticket": "SEEN-114",
+  "timestamp": "2026-10-01T20:46:20.127552+00:00",
+  "harness_version": "2",
+  "kind": "triage",
+  "stage": "review",
+  "attempt": 13,
+  "actor": "claude:reviewer",
+  "session": "ad77b7a13315",
+  "head": "c3d80c149259ea40456887acd98c5f7e6264da51",
+  "prev_hash": "39b3fcf6f0df75a7496df919088b6a3ef425ae97ede4675ae2e1ace8d9d07801",
+  "data": {
+    "fingerprint": "371174a0221e7b81cd58b39954d82022bf642c3972089df02ea60d85d211fe51",
+    "code_fingerprint": "ae77f5101ef0714881cb1d301defe0a96a891be547bbaecd769e0429af53c13e",
+    "files": [
+      {
+        "path": ".agents/skills/seen-harness/SKILL.md",
+        "hunks": 1,
+        "added": 4,
+        "removed": 1,
+        "package": ".agents",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": ".claude/agents/seen-reviewer.md",
+        "hunks": 2,
+        "added": 14,
+        "removed": 1,
+        "package": ".claude",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": ".claude/skills/seen-harness/SKILL.md",
+        "hunks": 1,
+        "added": 4,
+        "removed": 1,
+        "package": ".claude",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": ".codex/agents/seen-reviewer.toml",
+        "hunks": 2,
+        "added": 14,
+        "removed": 1,
+        "package": ".codex",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": ".dependency-cruiser.json",
+        "hunks": 1,
+        "added": 82,
+        "removed": 0,
+        "package": "root",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": ".githooks/pre-commit",
+        "hunks": 1,
+        "added": 18,
+        "removed": 0,
+        "package": ".githooks",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": ".github/workflows/ci.yml",
+        "hunks": 3,
+        "added": 33,
+        "removed": 0,
+        "package": ".github",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "apps/api/package.json",
+        "hunks": 1,
+        "added": 10,
+        "removed": 1,
+        "package": "apps/api",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "apps/api/src/health.test.ts",
+        "hunks": 1,
+        "added": 1,
+        "removed": 1,
+        "package": "apps/api",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "apps/api/src/mail/mailpit.ts",
+        "hunks": 1,
+        "added": 3,
+        "removed": 1,
+        "package": "apps/api",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "apps/api/src/mail/outbound.test.ts",
+        "hunks": 1,
+        "added": 1,
+        "removed": 2,
+        "package": "apps/api",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "apps/api/src/mail/outbound.ts",
+        "hunks": 1,
+        "added": 1,
+        "removed": 1,
+        "package": "apps/api",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "apps/api/src/mail/postmark.ts",
+        "hunks": 4,
+        "added": 5,
+        "removed": 5,
+        "package": "apps/api",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "apps/api/src/mail/threads.ts",
+        "hunks": 1,
+        "added": 1,
+        "removed": 1,
+        "package": "apps/api",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "apps/api/src/webhooks/postmark.controller.ts",
+        "hunks": 2,
+        "added": 2,
+        "removed": 2,
+        "package": "apps/api",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "apps/api/src/webhooks/postmark.test.ts",
+        "hunks": 1,
+        "added": 1,
+        "removed": 1,
+        "package": "apps/api",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "apps/api/vitest.config.ts",
+        "hunks": 1,
+        "added": 3,
+        "removed": 1,
+        "package": "apps/api",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "apps/web/package.json",
+        "hunks": 1,
+        "added": 10,
+        "removed": 1,
+        "package": "apps/web",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "apps/web/src/site.ts",
+        "hunks": 1,
+        "added": 1,
+        "removed": 2,
+        "package": "apps/web",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "apps/worker/package.json",
+        "hunks": 1,
+        "added": 10,
+        "removed": 1,
+        "package": "apps/worker",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "apps/worker/src/hello.ts",
+        "hunks": 2,
+        "added": 3,
+        "removed": 3,
+        "package": "apps/worker",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "apps/worker/vitest.config.ts",
+        "hunks": 1,
+        "added": 3,
+        "removed": 1,
+        "package": "apps/worker",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "biome.json",
+        "hunks": 1,
+        "added": 56,
+        "removed": 0,
+        "package": "root",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "docs/harness/skill.md",
+        "hunks": 1,
+        "added": 4,
+        "removed": 1,
+        "package": "docs",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "docs/harness/workflow.md",
+        "hunks": 1,
+        "added": 1,
+        "removed": 1,
+        "package": "docs",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "docs/tickets/SEEN-114-turn-every-recurring-finding-into-a-rule-the.md",
+        "hunks": 4,
+        "added": 223,
+        "removed": 7,
+        "package": "docs",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": false
+      },
+      {
+        "path": "eslint.config.mjs",
+        "hunks": 1,
+        "added": 0,
+        "removed": 15,
+        "package": "root",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/agents/seen-reviewer.md",
+        "hunks": 2,
+        "added": 14,
+        "removed": 1,
+        "package": "harness",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/cli.py",
+        "hunks": 5,
+        "added": 51,
+        "removed": 2,
+        "package": "harness",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/doctor.py",
+        "hunks": 2,
+        "added": 51,
+        "removed": 2,
+        "package": "harness",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/gates.py",
+        "hunks": 5,
+        "added": 47,
+        "removed": 0,
+        "package": "harness",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/report.py",
+        "hunks": 3,
+        "added": 102,
+        "removed": 1,
+        "package": "harness",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/rules.py",
+        "hunks": 1,
+        "added": 663,
+        "removed": 0,
+        "package": "harness",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/secrets.py",
+        "hunks": 1,
+        "added": 9,
+        "removed": 1,
+        "package": "harness",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/tests/test_calibration.py",
+        "hunks": 4,
+        "added": 101,
+        "removed": 1,
+        "package": "harness",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/tests/test_doctor.py",
+        "hunks": 2,
+        "added": 66,
+        "removed": 1,
+        "package": "harness",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/tests/test_gates.py",
+        "hunks": 1,
+        "added": 108,
+        "removed": 0,
+        "package": "harness",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/tests/test_hooks.py",
+        "hunks": 1,
+        "added": 3,
+        "removed": 1,
+        "package": "harness",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/tests/test_report.py",
+        "hunks": 1,
+        "added": 149,
+        "removed": 0,
+        "package": "harness",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/tests/test_rules.py",
+        "hunks": 1,
+        "added": 648,
+        "removed": 0,
+        "package": "harness",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/tests/test_stage_gates.py",
+        "hunks": 1,
+        "added": 5,
+        "removed": 1,
+        "package": "harness",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "knip.json",
+        "hunks": 1,
+        "added": 5,
+        "removed": 0,
+        "package": "root",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "package.json",
+        "hunks": 1,
+        "added": 14,
+        "removed": 5,
+        "package": "root",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "packages/agent/package.json",
+        "hunks": 1,
+        "added": 5,
+        "removed": 1,
+        "package": "packages/agent",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "packages/connectors/package.json",
+        "hunks": 1,
+        "added": 5,
+        "removed": 1,
+        "package": "packages/connectors",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "packages/core/db/authorities.test.ts",
+        "hunks": 13,
+        "added": 114,
+        "removed": 83,
+        "package": "packages/core",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "packages/core/db/marketplaces.test.ts",
+        "hunks": 12,
+        "added": 40,
+        "removed": 39,
+        "package": "packages/core",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "packages/core/db/marketplaces.ts",
+        "hunks": 12,
+        "added": 44,
+        "removed": 43,
+        "package": "packages/core",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "packages/core/db/parallelism.test.ts",
+        "hunks": 1,
+        "added": 4,
+        "removed": 4,
+        "package": "packages/core",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "packages/core/db/repository.ts",
+        "hunks": 10,
+        "added": 61,
+        "removed": 39,
+        "package": "packages/core",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "packages/core/db/rls.test.ts",
+        "hunks": 68,
+        "added": 556,
+        "removed": 400,
+        "package": "packages/core",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "packages/core/db/schema.test.ts",
+        "hunks": 182,
+        "added": 2932,
+        "removed": 2465,
+        "package": "packages/core",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "packages/core/db/tables.ts",
+        "hunks": 16,
+        "added": 175,
+        "removed": 148,
+        "package": "packages/core",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "packages/core/db/uniqueness.test.ts",
+        "hunks": 9,
+        "added": 30,
+        "removed": 26,
+        "package": "packages/core",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "packages/core/package.json",
+        "hunks": 2,
+        "added": 5,
+        "removed": 1,
+        "package": "packages/core",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "packages/providers/package.json",
+        "hunks": 1,
+        "added": 5,
+        "removed": 1,
+        "package": "packages/providers",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "packages/providers/src/boundary.ts",
+        "hunks": 1,
+        "added": 0,
+        "removed": 102,
+        "package": "packages/providers",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "packages/providers/src/environment.ts",
+        "hunks": 1,
+        "added": 1,
+        "removed": 1,
+        "package": "packages/providers",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "packages/providers/src/index.ts",
+        "hunks": 2,
+        "added": 8,
+        "removed": 10,
+        "package": "packages/providers",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "packages/providers/src/no-cloud-sdk.test.ts",
+        "hunks": 1,
+        "added": 0,
+        "removed": 84,
+        "package": "packages/providers",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "packages/providers/src/selection.test.ts",
+        "hunks": 1,
+        "added": 1,
+        "removed": 1,
+        "package": "packages/providers",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "packages/providers/src/stack.test.ts",
+        "hunks": 2,
+        "added": 8,
+        "removed": 3,
+        "package": "packages/providers",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "packages/providers/src/storage.ts",
+        "hunks": 1,
+        "added": 1,
+        "removed": 6,
+        "package": "packages/providers",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "packages/providers/src/telemetry.ts",
+        "hunks": 3,
+        "added": 3,
+        "removed": 12,
+        "package": "packages/providers",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "pnpm-lock.yaml",
+        "hunks": 101,
+        "added": 916,
+        "removed": 710,
+        "package": "root",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "rules/ast-grep/money-as-integer-cents.yml",
+        "hunks": 1,
+        "added": 29,
+        "removed": 0,
+        "package": "rules",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "rules/ast-grep/no-credential-literal-in-tests.yml",
+        "hunks": 1,
+        "added": 20,
+        "removed": 0,
+        "package": "rules",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "rules/ast-grep/no-em-or-en-dash.yml",
+        "hunks": 1,
+        "added": 22,
+        "removed": 0,
+        "package": "rules",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "rules/ast-grep/no-euro-sign.yml",
+        "hunks": 1,
+        "added": 27,
+        "removed": 0,
+        "package": "rules",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "rules/ast-grep/no-fetch-in-core.yml",
+        "hunks": 1,
+        "added": 15,
+        "removed": 0,
+        "package": "rules",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "rules/fixtures/ast-grep-money-as-integer-cents/packages/core/src/violation.ts",
+        "hunks": 1,
+        "added": 9,
+        "removed": 0,
+        "package": "rules",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "rules/fixtures/ast-grep-no-credential-literal-in-tests/packages/core/src/violation.test.ts",
+        "hunks": 1,
+        "added": 8,
+        "removed": 0,
+        "package": "rules",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "rules/fixtures/ast-grep-no-em-or-en-dash/apps/web/app/violation.tsx",
+        "hunks": 1,
+        "added": 6,
+        "removed": 0,
+        "package": "rules",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "rules/fixtures/ast-grep-no-euro-sign/packages/core/src/violation.ts",
+        "hunks": 1,
+        "added": 2,
+        "removed": 0,
+        "package": "rules",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "rules/fixtures/ast-grep-no-fetch-in-core/packages/core/src/violation.ts",
+        "hunks": 1,
+        "added": 8,
+        "removed": 0,
+        "package": "rules",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "rules/fixtures/biome-nofloatingpromises/packages/core/src/violation.ts",
+        "hunks": 1,
+        "added": 10,
+        "removed": 0,
+        "package": "rules",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "rules/fixtures/biome-nomisusedpromises/packages/core/src/violation.ts",
+        "hunks": 1,
+        "added": 12,
+        "removed": 0,
+        "package": "rules",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "rules/fixtures/biome-recommended/packages/core/src/violation.ts",
+        "hunks": 1,
+        "added": 8,
+        "removed": 0,
+        "package": "rules",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "rules/fixtures/biome-useawaitthenable/packages/core/src/violation.ts",
+        "hunks": 1,
+        "added": 7,
+        "removed": 0,
+        "package": "rules",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "rules/fixtures/dependency-cruiser-connectors-no-agent/packages/agent/src/index.ts",
+        "hunks": 1,
+        "added": 1,
+        "removed": 0,
+        "package": "rules",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "rules/fixtures/dependency-cruiser-connectors-no-agent/packages/connectors/src/violation.ts",
+        "hunks": 1,
+        "added": 4,
+        "removed": 0,
+        "package": "rules",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "rules/fixtures/dependency-cruiser-core-no-apps-or-siblings/packages/connectors/src/index.ts",
+        "hunks": 1,
+        "added": 1,
+        "removed": 0,
+        "package": "rules",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "rules/fixtures/dependency-cruiser-core-no-apps-or-siblings/packages/core/src/violation.ts",
+        "hunks": 1,
+        "added": 4,
+        "removed": 0,
+        "package": "rules",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "rules/fixtures/dependency-cruiser-core-no-io/packages/core/src/violation.ts",
+        "hunks": 1,
+        "added": 6,
+        "removed": 0,
+        "package": "rules",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "rules/fixtures/dependency-cruiser-database-through-repository/apps/api/src/violation.ts",
+        "hunks": 1,
+        "added": 8,
+        "removed": 0,
+        "package": "rules",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "rules/fixtures/dependency-cruiser-marketplace-write-through-policy-gate/apps/api/src/violation.ts",
+        "hunks": 1,
+        "added": 4,
+        "removed": 0,
+        "package": "rules",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "rules/fixtures/dependency-cruiser-marketplace-write-through-policy-gate/packages/connectors/src/writes/offers.ts",
+        "hunks": 1,
+        "added": 4,
+        "removed": 0,
+        "package": "rules",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "rules/fixtures/dependency-cruiser-network-only-through-generated-clients/packages/connectors/src/violation.ts",
+        "hunks": 1,
+        "added": 4,
+        "removed": 0,
+        "package": "rules",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "rules/fixtures/dependency-cruiser-no-app-imports-another-app/apps/api/src/violation.ts",
+        "hunks": 1,
+        "added": 4,
+        "removed": 0,
+        "package": "rules",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "rules/fixtures/dependency-cruiser-no-app-imports-another-app/apps/web/src/site.ts",
+        "hunks": 1,
+        "added": 1,
+        "removed": 0,
+        "package": "rules",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "rules/fixtures/dependency-cruiser-no-cloud-sdk-outside-providers/apps/api/src/violation.ts",
+        "hunks": 1,
+        "added": 4,
+        "removed": 0,
+        "package": "rules",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "rules/fixtures/harness-no-live-marketplace-host/packages/connectors/src/violation.test.ts",
+        "hunks": 1,
+        "added": 17,
+        "removed": 0,
+        "package": "rules",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "rules/fixtures/knip-no-unused-exports/packages/core/package.json",
+        "hunks": 1,
+        "added": 10,
+        "removed": 0,
+        "package": "rules",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "rules/fixtures/knip-no-unused-exports/packages/core/src/fees.ts",
+        "hunks": 1,
+        "added": 11,
+        "removed": 0,
+        "package": "rules",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "rules/fixtures/knip-no-unused-exports/packages/core/src/index.ts",
+        "hunks": 1,
+        "added": 1,
+        "removed": 0,
+        "package": "rules",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "rules/fixtures/tsconfig-exactoptionalpropertytypes/packages/core/src/violation.ts",
+        "hunks": 1,
+        "added": 8,
+        "removed": 0,
+        "package": "rules",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "rules/fixtures/tsconfig-noimplicitoverride/packages/core/src/violation.ts",
+        "hunks": 1,
+        "added": 13,
+        "removed": 0,
+        "package": "rules",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "rules/fixtures/tsconfig-nouncheckedindexedaccess/packages/core/src/violation.ts",
+        "hunks": 1,
+        "added": 6,
+        "removed": 0,
+        "package": "rules",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "rules/fixtures/tsconfig-strict/packages/core/src/violation.ts",
+        "hunks": 1,
+        "added": 5,
+        "removed": 0,
+        "package": "rules",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "rules/registry.toml",
+        "hunks": 1,
+        "added": 353,
+        "removed": 0,
+        "package": "rules",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "scripts/rules.sh",
+        "hunks": 1,
+        "added": 141,
+        "removed": 0,
+        "package": "scripts",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "sgconfig.yml",
+        "hunks": 1,
+        "added": 31,
+        "removed": 0,
+        "package": "root",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "tsconfig.base.json",
+        "hunks": 1,
+        "added": 3,
+        "removed": 0,
+        "package": "root",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      }
+    ],
+    "criteria": [
+      "tsconfig.base.json carries strict, noUncheckedIndexedAccess, exactOptionalPropertyTypes and noImplicitOverride, and every TypeScript project in the tree typechecks. **Amended on 1 October 2026:** \"the tree\" is read as the seven projects `pnpm turbo run typecheck` compiles, because `packages/core/tsconfig.json` includes only `src/**/*` and so the nine files of `packages/core/db/`, which are SEEN-008's trade-record schema and its tests, are in no project at all and were already outside the typecheck before this ticket. Nine is what `git ls-files packages/core/db` returns, at this commit and at SEEN-008's own merge (check 253); the figure this amendment first carried was eleven and was never right. Compiling them needs a second project with an ESM module setting, because `db/repository.ts` reads `import.meta.url` and the base configuration is commonjs, and the three source modules then report five diagnostics under the four flags, all of them in `db/marketplaces.ts`, with `db/repository.ts` and `db/tables.ts` clean (check 254). That work is not this ticket's and has no ticket of its own yet; the Outcome says what one would have to carry.",
+      "Biome, ast-grep and dependency-cruiser run on staged files in the pre-commit hook in under ten seconds, and in CI on the tree, with the ground rules above each proven by a fixture that fails (among them: node:fs imported inside packages/core, a marketplace write outside the policy gate, a query outside the repository layer)",
+      "Every review finding at medium or above carries rule_candidate, and the review gate refuses a record without it",
+      "harness report --week lists findings a rule could have caught, the rules added, and any candidate that recurred without a rule",
+      "knip reports zero unused exports on packages/core and the connectors, every package declares an exports map, and each rule in the set cites a finding id or an architecture section, enforced in CI"
+    ],
+    "deterministic": [
+      {
+        "name": "coverage",
+        "outcome": "pass",
+        "detail": "@seen/core at 100.0%, +0.0 against the baseline"
+      },
+      {
+        "name": "lint",
+        "outcome": "pass",
+        "detail": "No live marketplace host in test code"
+      },
+      {
+        "name": "gitleaks",
+        "outcome": "pass",
+        "detail": "No leak in main..HEAD"
+      },
+      {
+        "name": "fingerprint",
+        "outcome": "fail",
+        "detail": "The tree changed after check 296: it ran against 11f9dacee0a3 and this triage reads 371174a0221e. The tests that passed are not the tests for this tree"
+      },
+      {
+        "name": "slice_files",
+        "outcome": "pass",
+        "detail": "All 103 changed files are named by the accepted slice plan, or are the ticket file the procedure itself writes"
+      },
+      {
+        "name": "red_before_green",
+        "outcome": "pass",
+        "detail": "Every slice cites a check that exited non-zero rather than one that passed. Whether it failed for the reason the slice states is not something the harness can read"
+      },
+      {
+        "name": "tests_added",
+        "outcome": "pass",
+        "detail": "Test files changed: apps/api/src/health.test.ts, apps/api/src/mail/outbound.test.ts, apps/api/src/webhooks/postmark.test.ts, harness/tests/test_calibration.py, harness/tests/test_doctor.py. Whether the behaviour this slice adds has one of its own is not something a path can say"
+      },
+      {
+        "name": "acceptance_entries",
+        "outcome": "pass",
+        "detail": "The clarify record restates 5 checks against 5 criteria in the ticket. Which check answers which criterion is not something either list says"
+      },
+      {
+        "name": "pull_request",
+        "outcome": "unavailable",
+        "detail": "gh could not answer, so the pull request body was not read. It is checked again at merge, where the receipt hash has to be in it"
+      }
+    ],
+    "rules": [
+      "fingerprint did not pass, so the reviewer reads everything: The tree changed after check 296: it ran against 11f9dacee0a3 and this triage reads 371174a0221e. The tests that passed are not the tests for this tree"
+    ],
+    "jev": {
+      "asked": false,
+      "model": null,
+      "reason": "The request was made and Jev did not answer: HTTPError: HTTP Error 400: Bad Request",
+      "answers": [
+        {
+          "key": "criterion_evidenced#1",
+          "question": "criterion_evidenced",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "criterion_evidenced#2",
+          "question": "criterion_evidenced",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "criterion_evidenced#3",
+          "question": "criterion_evidenced",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "criterion_evidenced#4",
+          "question": "criterion_evidenced",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "criterion_evidenced#5",
+          "question": "criterion_evidenced",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "diff_matches_solution",
+          "question": "diff_matches_solution",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#.agents/skills/seen-harness/SKILL.md",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#.claude/agents/seen-reviewer.md",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#.claude/skills/seen-harness/SKILL.md",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#.codex/agents/seen-reviewer.toml",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#.dependency-cruiser.json",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#.githooks/pre-commit",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#.github/workflows/ci.yml",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#apps/api/package.json",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#apps/api/src/health.test.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#apps/api/src/mail/mailpit.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#apps/api/src/mail/outbound.test.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#apps/api/src/mail/outbound.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#apps/api/src/mail/postmark.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#apps/api/src/mail/threads.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#apps/api/src/webhooks/postmark.controller.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#apps/api/src/webhooks/postmark.test.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#apps/api/vitest.config.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#apps/web/package.json",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#apps/web/src/site.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#apps/worker/package.json",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#apps/worker/src/hello.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#apps/worker/vitest.config.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#biome.json",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#docs/harness/skill.md",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#docs/harness/workflow.md",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#docs/tickets/SEEN-114-turn-every-recurring-finding-into-a-rule-the.md",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#eslint.config.mjs",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#harness/agents/seen-reviewer.md",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#harness/cli.py",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#harness/doctor.py",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#harness/gates.py",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#harness/report.py",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#harness/rules.py",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#harness/secrets.py",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#harness/tests/test_calibration.py",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#harness/tests/test_doctor.py",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#harness/tests/test_gates.py",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#harness/tests/test_hooks.py",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#harness/tests/test_report.py",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#harness/tests/test_rules.py",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#harness/tests/test_stage_gates.py",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#knip.json",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#package.json",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#packages/agent/package.json",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#packages/connectors/package.json",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#packages/core/db/authorities.test.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#packages/core/db/marketplaces.test.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#packages/core/db/marketplaces.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#packages/core/db/parallelism.test.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#packages/core/db/repository.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#packages/core/db/rls.test.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#packages/core/db/schema.test.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#packages/core/db/tables.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#packages/core/db/uniqueness.test.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#packages/core/package.json",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#packages/providers/package.json",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#packages/providers/src/boundary.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#packages/providers/src/environment.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#packages/providers/src/index.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#packages/providers/src/no-cloud-sdk.test.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#packages/providers/src/selection.test.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#packages/providers/src/stack.test.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#packages/providers/src/storage.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#packages/providers/src/telemetry.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#pnpm-lock.yaml",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#rules/ast-grep/money-as-integer-cents.yml",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#rules/ast-grep/no-credential-literal-in-tests.yml",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#rules/ast-grep/no-em-or-en-dash.yml",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#rules/ast-grep/no-euro-sign.yml",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#rules/ast-grep/no-fetch-in-core.yml",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#rules/fixtures/ast-grep-money-as-integer-cents/packages/core/src/violation.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#rules/fixtures/ast-grep-no-credential-literal-in-tests/packages/core/src/violation.test.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#rules/fixtures/ast-grep-no-em-or-en-dash/apps/web/app/violation.tsx",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#rules/fixtures/ast-grep-no-euro-sign/packages/core/src/violation.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#rules/fixtures/ast-grep-no-fetch-in-core/packages/core/src/violation.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#rules/fixtures/biome-nofloatingpromises/packages/core/src/violation.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#rules/fixtures/biome-nomisusedpromises/packages/core/src/violation.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#rules/fixtures/biome-recommended/packages/core/src/violation.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#rules/fixtures/biome-useawaitthenable/packages/core/src/violation.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#rules/fixtures/dependency-cruiser-connectors-no-agent/packages/agent/src/index.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#rules/fixtures/dependency-cruiser-connectors-no-agent/packages/connectors/src/violation.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#rules/fixtures/dependency-cruiser-core-no-apps-or-siblings/packages/connectors/src/index.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#rules/fixtures/dependency-cruiser-core-no-apps-or-siblings/packages/core/src/violation.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#rules/fixtures/dependency-cruiser-core-no-io/packages/core/src/violation.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#rules/fixtures/dependency-cruiser-database-through-repository/apps/api/src/violation.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#rules/fixtures/dependency-cruiser-marketplace-write-through-policy-gate/apps/api/src/violation.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#rules/fixtures/dependency-cruiser-marketplace-write-through-policy-gate/packages/connectors/src/writes/offers.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#rules/fixtures/dependency-cruiser-network-only-through-generated-clients/packages/connectors/src/violation.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#rules/fixtures/dependency-cruiser-no-app-imports-another-app/apps/api/src/violation.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#rules/fixtures/dependency-cruiser-no-app-imports-another-app/apps/web/src/site.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#rules/fixtures/dependency-cruiser-no-cloud-sdk-outside-providers/apps/api/src/violation.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#rules/fixtures/harness-no-live-marketplace-host/packages/connectors/src/violation.test.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#rules/fixtures/knip-no-unused-exports/packages/core/package.json",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#rules/fixtures/knip-no-unused-exports/packages/core/src/fees.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#rules/fixtures/knip-no-unused-exports/packages/core/src/index.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#rules/fixtures/tsconfig-exactoptionalpropertytypes/packages/core/src/violation.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#rules/fixtures/tsconfig-noimplicitoverride/packages/core/src/violation.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#rules/fixtures/tsconfig-nouncheckedindexedaccess/packages/core/src/violation.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#rules/fixtures/tsconfig-strict/packages/core/src/violation.ts",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#rules/registry.toml",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#scripts/rules.sh",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#sgconfig.yml",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "reviewer_must_read#tsconfig.base.json",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        },
+        {
+          "key": "review_depth",
+          "question": "review_depth",
+          "type": "score",
+          "options": [
+            "spot",
+            "full"
+          ],
+          "source": "unavailable",
+          "model": null,
+          "outcome": null,
+          "probabilities": {},
+          "confidence": null,
+          "score": null,
+          "threshold": null,
+          "passed": null,
+          "fallback_reason": "HTTPError: HTTP Error 400: Bad Request"
+        }
+      ]
+    },
+    "criteria_answers": [
+      {
+        "key": "criterion_evidenced#1",
+        "question": "criterion_evidenced",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "unavailable",
+        "model": null,
+        "outcome": null,
+        "probabilities": {},
+        "confidence": null,
+        "score": null,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": "HTTPError: HTTP Error 400: Bad Request",
+        "criterion": "tsconfig.base.json carries strict, noUncheckedIndexedAccess, exactOptionalPropertyTypes and noImplicitOverride, and every TypeScript project in the tree typechecks. **Amended on 1 October 2026:** \"the tree\" is read as the seven projects `pnpm turbo run typecheck` compiles, because `packages/core/tsconfig.json` includes only `src/**/*` and so the nine files of `packages/core/db/`, which are SEEN-008's trade-record schema and its tests, are in no project at all and were already outside the typecheck before this ticket. Nine is what `git ls-files packages/core/db` returns, at this commit and at SEEN-008's own merge (check 253); the figure this amendment first carried was eleven and was never right. Compiling them needs a second project with an ESM module setting, because `db/repository.ts` reads `import.meta.url` and the base configuration is commonjs, and the three source modules then report five diagnostics under the four flags, all of them in `db/marketplaces.ts`, with `db/repository.ts` and `db/tables.ts` clean (check 254). That work is not this ticket's and has no ticket of its own yet; the Outcome says what one would have to carry."
+      },
+      {
+        "key": "criterion_evidenced#2",
+        "question": "criterion_evidenced",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "unavailable",
+        "model": null,
+        "outcome": null,
+        "probabilities": {},
+        "confidence": null,
+        "score": null,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": "HTTPError: HTTP Error 400: Bad Request",
+        "criterion": "Biome, ast-grep and dependency-cruiser run on staged files in the pre-commit hook in under ten seconds, and in CI on the tree, with the ground rules above each proven by a fixture that fails (among them: node:fs imported inside packages/core, a marketplace write outside the policy gate, a query outside the repository layer)"
+      },
+      {
+        "key": "criterion_evidenced#3",
+        "question": "criterion_evidenced",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "unavailable",
+        "model": null,
+        "outcome": null,
+        "probabilities": {},
+        "confidence": null,
+        "score": null,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": "HTTPError: HTTP Error 400: Bad Request",
+        "criterion": "Every review finding at medium or above carries rule_candidate, and the review gate refuses a record without it"
+      },
+      {
+        "key": "criterion_evidenced#4",
+        "question": "criterion_evidenced",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "unavailable",
+        "model": null,
+        "outcome": null,
+        "probabilities": {},
+        "confidence": null,
+        "score": null,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": "HTTPError: HTTP Error 400: Bad Request",
+        "criterion": "harness report --week lists findings a rule could have caught, the rules added, and any candidate that recurred without a rule"
+      },
+      {
+        "key": "criterion_evidenced#5",
+        "question": "criterion_evidenced",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "unavailable",
+        "model": null,
+        "outcome": null,
+        "probabilities": {},
+        "confidence": null,
+        "score": null,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": "HTTPError: HTTP Error 400: Bad Request",
+        "criterion": "knip reports zero unused exports on packages/core and the connectors, every package declares an exports map, and each rule in the set cites a finding id or an architecture section, enforced in CI"
+      }
+    ],
+    "review_depth": "full",
+    "reviewer_model": "opus",
+    "model_depth": "full",
+    "focus": [
+      ".agents/skills/seen-harness/SKILL.md",
+      ".claude/agents/seen-reviewer.md",
+      ".claude/skills/seen-harness/SKILL.md",
+      ".codex/agents/seen-reviewer.toml",
+      ".dependency-cruiser.json",
+      ".githooks/pre-commit",
+      ".github/workflows/ci.yml",
+      "apps/api/package.json",
+      "apps/api/src/health.test.ts",
+      "apps/api/src/mail/mailpit.ts",
+      "apps/api/src/mail/outbound.test.ts",
+      "apps/api/src/mail/outbound.ts",
+      "apps/api/src/mail/postmark.ts",
+      "apps/api/src/mail/threads.ts",
+      "apps/api/src/webhooks/postmark.controller.ts",
+      "apps/api/src/webhooks/postmark.test.ts",
+      "apps/api/vitest.config.ts",
+      "apps/web/package.json",
+      "apps/web/src/site.ts",
+      "apps/worker/package.json",
+      "apps/worker/src/hello.ts",
+      "apps/worker/vitest.config.ts",
+      "biome.json",
+      "docs/harness/skill.md",
+      "docs/harness/workflow.md",
+      "docs/tickets/SEEN-114-turn-every-recurring-finding-into-a-rule-the.md",
+      "eslint.config.mjs",
+      "harness/agents/seen-reviewer.md",
+      "harness/cli.py",
+      "harness/doctor.py",
+      "harness/gates.py",
+      "harness/report.py",
+      "harness/rules.py",
+      "harness/secrets.py",
+      "harness/tests/test_calibration.py",
+      "harness/tests/test_doctor.py",
+      "harness/tests/test_gates.py",
+      "harness/tests/test_hooks.py",
+      "harness/tests/test_report.py",
+      "harness/tests/test_rules.py",
+      "harness/tests/test_stage_gates.py",
+      "knip.json",
+      "package.json",
+      "packages/agent/package.json",
+      "packages/connectors/package.json",
+      "packages/core/db/authorities.test.ts",
+      "packages/core/db/marketplaces.test.ts",
+      "packages/core/db/marketplaces.ts",
+      "packages/core/db/parallelism.test.ts",
+      "packages/core/db/repository.ts",
+      "packages/core/db/rls.test.ts",
+      "packages/core/db/schema.test.ts",
+      "packages/core/db/tables.ts",
+      "packages/core/db/uniqueness.test.ts",
+      "packages/core/package.json",
+      "packages/providers/package.json",
+      "packages/providers/src/boundary.ts",
+      "packages/providers/src/environment.ts",
+      "packages/providers/src/index.ts",
+      "packages/providers/src/no-cloud-sdk.test.ts",
+      "packages/providers/src/selection.test.ts",
+      "packages/providers/src/stack.test.ts",
+      "packages/providers/src/storage.ts",
+      "packages/providers/src/telemetry.ts",
+      "pnpm-lock.yaml",
+      "rules/ast-grep/money-as-integer-cents.yml",
+      "rules/ast-grep/no-credential-literal-in-tests.yml",
+      "rules/ast-grep/no-em-or-en-dash.yml",
+      "rules/ast-grep/no-euro-sign.yml",
+      "rules/ast-grep/no-fetch-in-core.yml",
+      "rules/fixtures/ast-grep-money-as-integer-cents/packages/core/src/violation.ts",
+      "rules/fixtures/ast-grep-no-credential-literal-in-tests/packages/core/src/violation.test.ts",
+      "rules/fixtures/ast-grep-no-em-or-en-dash/apps/web/app/violation.tsx",
+      "rules/fixtures/ast-grep-no-euro-sign/packages/core/src/violation.ts",
+      "rules/fixtures/ast-grep-no-fetch-in-core/packages/core/src/violation.ts",
+      "rules/fixtures/biome-nofloatingpromises/packages/core/src/violation.ts",
+      "rules/fixtures/biome-nomisusedpromises/packages/core/src/violation.ts",
+      "rules/fixtures/biome-recommended/packages/core/src/violation.ts",
+      "rules/fixtures/biome-useawaitthenable/packages/core/src/violation.ts",
+      "rules/fixtures/dependency-cruiser-connectors-no-agent/packages/agent/src/index.ts",
+      "rules/fixtures/dependency-cruiser-connectors-no-agent/packages/connectors/src/violation.ts",
+      "rules/fixtures/dependency-cruiser-core-no-apps-or-siblings/packages/connectors/src/index.ts",
+      "rules/fixtures/dependency-cruiser-core-no-apps-or-siblings/packages/core/src/violation.ts",
+      "rules/fixtures/dependency-cruiser-core-no-io/packages/core/src/violation.ts",
+      "rules/fixtures/dependency-cruiser-database-through-repository/apps/api/src/violation.ts",
+      "rules/fixtures/dependency-cruiser-marketplace-write-through-policy-gate/apps/api/src/violation.ts",
+      "rules/fixtures/dependency-cruiser-marketplace-write-through-policy-gate/packages/connectors/src/writes/offers.ts",
+      "rules/fixtures/dependency-cruiser-network-only-through-generated-clients/packages/connectors/src/violation.ts",
+      "rules/fixtures/dependency-cruiser-no-app-imports-another-app/apps/api/src/violation.ts",
+      "rules/fixtures/dependency-cruiser-no-app-imports-another-app/apps/web/src/site.ts",
+      "rules/fixtures/dependency-cruiser-no-cloud-sdk-outside-providers/apps/api/src/violation.ts",
+      "rules/fixtures/harness-no-live-marketplace-host/packages/connectors/src/violation.test.ts",
+      "rules/fixtures/knip-no-unused-exports/packages/core/package.json",
+      "rules/fixtures/knip-no-unused-exports/packages/core/src/fees.ts",
+      "rules/fixtures/knip-no-unused-exports/packages/core/src/index.ts",
+      "rules/fixtures/tsconfig-exactoptionalpropertytypes/packages/core/src/violation.ts",
+      "rules/fixtures/tsconfig-noimplicitoverride/packages/core/src/violation.ts",
+      "rules/fixtures/tsconfig-nouncheckedindexedaccess/packages/core/src/violation.ts",
+      "rules/fixtures/tsconfig-strict/packages/core/src/violation.ts",
+      "rules/registry.toml",
+      "scripts/rules.sh",
+      "sgconfig.yml",
+      "tsconfig.base.json"
+    ],
+    "shadow": true,
+    "shadow_source": "threshold",
+    "shadow_reason": "[review] triage_shadow is true in harness/thresholds.toml",
+    "would_exclude": [],
+    "excluded_share": 0.0,
+    "always_read": [
+      "docs/tickets/SEEN-114-turn-every-recurring-finding-into-a-rule-the.md",
+      "docs/harness/history/SEEN-114/"
+    ],
+    "reviewer_task": "Review SEEN-114 against its acceptance criteria and its journal.\n\nDepth: full, settled by triage record 299, in shadow mode, so the focus set is the whole diff and what the narrowing would have dropped is recorded rather than acted on\n\nRun the reviewer on opus by rule: the strongest model at full depth, one tier down at spot.\n\nRead these whatever the depth, because they are what a review is against and no focus set can hold them:\n- docs/tickets/SEEN-114-turn-every-recurring-finding-into-a-rule-the.md\n- docs/harness/history/SEEN-114/\n\nOf the diff, read these 103 file(s) and no others:\n- .agents/skills/seen-harness/SKILL.md\n- .claude/agents/seen-reviewer.md\n- .claude/skills/seen-harness/SKILL.md\n- .codex/agents/seen-reviewer.toml\n- .dependency-cruiser.json\n- .githooks/pre-commit\n- .github/workflows/ci.yml\n- apps/api/package.json\n- apps/api/src/health.test.ts\n- apps/api/src/mail/mailpit.ts\n- apps/api/src/mail/outbound.test.ts\n- apps/api/src/mail/outbound.ts\n- apps/api/src/mail/postmark.ts\n- apps/api/src/mail/threads.ts\n- apps/api/src/webhooks/postmark.controller.ts\n- apps/api/src/webhooks/postmark.test.ts\n- apps/api/vitest.config.ts\n- apps/web/package.json\n- apps/web/src/site.ts\n- apps/worker/package.json\n- apps/worker/src/hello.ts\n- apps/worker/vitest.config.ts\n- biome.json\n- docs/harness/skill.md\n- docs/harness/workflow.md\n- docs/tickets/SEEN-114-turn-every-recurring-finding-into-a-rule-the.md\n- eslint.config.mjs\n- harness/agents/seen-reviewer.md\n- harness/cli.py\n- harness/doctor.py\n- harness/gates.py\n- harness/report.py\n- harness/rules.py\n- harness/secrets.py\n- harness/tests/test_calibration.py\n- harness/tests/test_doctor.py\n- harness/tests/test_gates.py\n- harness/tests/test_hooks.py\n- harness/tests/test_report.py\n- harness/tests/test_rules.py\n- harness/tests/test_stage_gates.py\n- knip.json\n- package.json\n- packages/agent/package.json\n- packages/connectors/package.json\n- packages/core/db/authorities.test.ts\n- packages/core/db/marketplaces.test.ts\n- packages/core/db/marketplaces.ts\n- packages/core/db/parallelism.test.ts\n- packages/core/db/repository.ts\n- packages/core/db/rls.test.ts\n- packages/core/db/schema.test.ts\n- packages/core/db/tables.ts\n- packages/core/db/uniqueness.test.ts\n- packages/core/package.json\n- packages/providers/package.json\n- packages/providers/src/boundary.ts\n- packages/providers/src/environment.ts\n- packages/providers/src/index.ts\n- packages/providers/src/no-cloud-sdk.test.ts\n- packages/providers/src/selection.test.ts\n- packages/providers/src/stack.test.ts\n- packages/providers/src/storage.ts\n- packages/providers/src/telemetry.ts\n- pnpm-lock.yaml\n- rules/ast-grep/money-as-integer-cents.yml\n- rules/ast-grep/no-credential-literal-in-tests.yml\n- rules/ast-grep/no-em-or-en-dash.yml\n- rules/ast-grep/no-euro-sign.yml\n- rules/ast-grep/no-fetch-in-core.yml\n- rules/fixtures/ast-grep-money-as-integer-cents/packages/core/src/violation.ts\n- rules/fixtures/ast-grep-no-credential-literal-in-tests/packages/core/src/violation.test.ts\n- rules/fixtures/ast-grep-no-em-or-en-dash/apps/web/app/violation.tsx\n- rules/fixtures/ast-grep-no-euro-sign/packages/core/src/violation.ts\n- rules/fixtures/ast-grep-no-fetch-in-core/packages/core/src/violation.ts\n- rules/fixtures/biome-nofloatingpromises/packages/core/src/violation.ts\n- rules/fixtures/biome-nomisusedpromises/packages/core/src/violation.ts\n- rules/fixtures/biome-recommended/packages/core/src/violation.ts\n- rules/fixtures/biome-useawaitthenable/packages/core/src/violation.ts\n- rules/fixtures/dependency-cruiser-connectors-no-agent/packages/agent/src/index.ts\n- rules/fixtures/dependency-cruiser-connectors-no-agent/packages/connectors/src/violation.ts\n- rules/fixtures/dependency-cruiser-core-no-apps-or-siblings/packages/connectors/src/index.ts\n- rules/fixtures/dependency-cruiser-core-no-apps-or-siblings/packages/core/src/violation.ts\n- rules/fixtures/dependency-cruiser-core-no-io/packages/core/src/violation.ts\n- rules/fixtures/dependency-cruiser-database-through-repository/apps/api/src/violation.ts\n- rules/fixtures/dependency-cruiser-marketplace-write-through-policy-gate/apps/api/src/violation.ts\n- rules/fixtures/dependency-cruiser-marketplace-write-through-policy-gate/packages/connectors/src/writes/offers.ts\n- rules/fixtures/dependency-cruiser-network-only-through-generated-clients/packages/connectors/src/violation.ts\n- rules/fixtures/dependency-cruiser-no-app-imports-another-app/apps/api/src/violation.ts\n- rules/fixtures/dependency-cruiser-no-app-imports-another-app/apps/web/src/site.ts\n- rules/fixtures/dependency-cruiser-no-cloud-sdk-outside-providers/apps/api/src/violation.ts\n- rules/fixtures/harness-no-live-marketplace-host/packages/connectors/src/violation.test.ts\n- rules/fixtures/knip-no-unused-exports/packages/core/package.json\n- rules/fixtures/knip-no-unused-exports/packages/core/src/fees.ts\n- rules/fixtures/knip-no-unused-exports/packages/core/src/index.ts\n- rules/fixtures/tsconfig-exactoptionalpropertytypes/packages/core/src/violation.ts\n- rules/fixtures/tsconfig-noimplicitoverride/packages/core/src/violation.ts\n- rules/fixtures/tsconfig-nouncheckedindexedaccess/packages/core/src/violation.ts\n- rules/fixtures/tsconfig-strict/packages/core/src/violation.ts\n- rules/registry.toml\n- scripts/rules.sh\n- sgconfig.yml\n- tsconfig.base.json\n\nAlready settled with no model, so do not spend a read confirming any of them: coverage, lint, gitleaks, slice_files.\n\nPartly settled, and the rest is yours:\n- red_before_green: it passed, but it proves the cited check exited non-zero, never that it failed for the reason the slice states, which only a reader comparing the two can judge\n- tests_added: it passed, but it proves a test file is in the change, never that the behaviour the slice adds has a test of its own, which a one-line fixture edit satisfies just as well\n- acceptance_entries: it passed, but it counts the clarify record's checks against the ticket's criteria, never that each criterion has one, because neither list names the other\n\nNot settled, so they are yours:\n- fingerprint (fail): The tree changed after check 296: it ran against 11f9dacee0a3 and this triage reads 371174a0221e. The tests that passed are not the tests for this tree\n- pull_request (unavailable): gh could not answer, so the pull request body was not read. It is checked again at merge, where the receipt hash has to be in it\n\nReturn the review record's shape. Its `read` list must name every file you read and must cover the focus set above, which the review gate checks."
+  }
+}
