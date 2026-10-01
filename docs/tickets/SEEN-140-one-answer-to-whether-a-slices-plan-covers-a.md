@@ -163,6 +163,27 @@ Compare, so the loops drop out by construction rather than by exception. Two tes
 hold the instrument itself: one proving it sees a positive comparison, which is the
 blind spot F1 came through, and one proving a loop over the plan is not one.
 
+### The second review, and why the instrument needed fixing twice
+
+Two findings, both about the instrument and neither about the fix, which the round
+confirmed correct. The module allowlist was the first: four names, so a fifth reader
+born in any other module would have passed silently. The second was the comparator,
+matched against its unparsed text, so `entry.get('files') or []` is the same question
+asked with a default and was not recognised.
+
+Both are fixed at the root rather than patched. The allowlist existed only because
+`named` meant a plan's files in four modules and a set of agent names in `kpi.py`,
+and one name for two things is what made a list of modules look necessary; that
+variable is now `agent_names`, which is what it holds, and the scope is every module
+of the package, the only scope that cannot go out of date. The comparator is matched
+as a subtree of the Compare node, so a wrapped expression is seen.
+
+Four tests now hold the instrument itself, one per blind spot a review had to find:
+it sees a positive comparison, it does not see a loop, it scans every module, and it
+sees a wrapped comparator. That is the shape of this whole ticket repeated at one
+remove: a question with one answer, and an instrument that can actually tell whether
+there is one.
+
 ## Carried forward
 
 The policy question is open and is the founder's: whether the solution gate should refuse a plan whose

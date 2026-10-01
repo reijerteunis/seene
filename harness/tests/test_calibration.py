@@ -716,13 +716,33 @@ class NoSecondReaderTest(unittest.TestCase):
     asserting an exact answer, which is what a test is for.
     """
 
-    # The modules that read a slice's plan. kpi.py has a `named` holding agent
-    # names and is not one of them.
-    READERS = ('calibration.py', 'gates.py', 'guard.py', 'triage.py')
-
-    # What a plan's file list is called where it is read.
+    # What a plan's file list is spelled as where it is read. Matched as a subtree
+    # of the comparator and not against its unparsed text, which is F2 of the
+    # second review: `entry.get('files') or []` is the same question asked with a
+    # default, and an exact string match did not recognise it.
     PLAN_FILES = ("named", "planned", "entry['files']", "entry.get('files')",
                   'entry["files"]', 'entry.get("files")')
+
+    def _modules(self):
+        """Every module of the package, which is the only scope that cannot age.
+
+        F1 of the second review. This was once four names, and a fifth reader born
+        in any other module would have passed the test silently. The allowlist was
+        only ever needed because `named` meant a plan's files in four modules and a
+        set of agent names in kpi.py; that variable is now `agent_names` and the
+        scope is everything.
+        """
+        return sorted((PROJECT / 'harness').glob('*.py'))
+
+    def _scope_reason(self):
+        return 'every module of the package'
+
+    def _names_a_plan(self, node):
+        """Whether an expression holds a plan's files, anywhere inside it."""
+        for inner in ast.walk(node):
+            if ast.unparse(inner).strip() in self.PLAN_FILES:
+                return True
+        return False
 
     def _comparisons(self, module):
         """Every membership test in one module, as (line, the source of it)."""
@@ -735,15 +755,13 @@ class NoSecondReaderTest(unittest.TestCase):
             for operator, right in zip(node.ops, node.comparators):
                 if not isinstance(operator, (ast.In, ast.NotIn)):
                     continue
-                if ast.unparse(right).strip() in self.PLAN_FILES:
+                if self._names_a_plan(right):
                     found.append((node.lineno, lines[node.lineno - 1].strip()))
         return found
 
     def test_no_module_compares_a_path_to_a_slice_s_files_itself(self):
         offenders = []
-        for module in sorted((PROJECT / 'harness').glob('*.py')):
-            if module.name not in self.READERS:
-                continue
+        for module in self._modules():
             for number, line in self._comparisons(module):
                 offenders.append(f'{module.name}:{number}: {line}')
 
@@ -767,6 +785,29 @@ class NoSecondReaderTest(unittest.TestCase):
         module.write_text('def f(path, named):\n'
                           '    if path not in named:\n'
                           '        return False\n')
+        self.assertEqual([line for line, _ in self._comparisons(module)], [2])
+
+    def test_a_reader_in_a_module_nobody_listed_is_seen(self):
+        """F1 of the second review: the scope must not be an allowlist.
+
+        The instrument once scanned four named modules, so a fifth reader born in
+        any other one would have passed it silently. The scope is now every
+        module of the package, which is the only scope that cannot go out of date.
+        """
+        self.assertEqual(self._scope_reason(), 'every module of the package')
+        scanned = {module.name for module in self._modules()}
+        self.assertEqual(scanned, {module.name for module in (PROJECT / 'harness').glob('*.py')})
+
+    def test_a_comparator_wrapped_in_a_fallback_is_seen(self):
+        """F2 of the second review: a subtree, not a string.
+
+        `entry.get('files') or []` is the same question asked with a default, and
+        an exact match on the unparsed comparator did not recognise it.
+        """
+        module = pathlib.Path(self.enterContext(
+            tempfile.TemporaryDirectory())) / 'triage.py'
+        module.write_text('def f(path, entry):\n'
+                          "    return path in (entry.get('files') or [])\n")
         self.assertEqual([line for line, _ in self._comparisons(module)], [2])
 
     def test_a_loop_over_the_plan_is_not_a_comparison(self):

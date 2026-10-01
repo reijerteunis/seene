@@ -341,14 +341,18 @@ def subagents(records):
     if not briefs and review is None:
         return None
     from . import agents as roster
-    named = sorted({record['data']['agent'] for record in briefs})
+    # `agent_names` and not `named`: a plan's files are what `named` means
+    # everywhere else in this package, and one name for two things is what made
+    # NoSecondReaderTest need a list of modules to look at. F1 of SEEN-140's
+    # second review, fixed at the source rather than excepted.
+    agent_names = sorted({record['data']['agent'] for record in briefs})
     # F4 in SEEN-105's first review: any note carrying any agent name counted as a
     # brief, so a note from the reviewer made `both` true and the report
     # attributed a saving to a ticket the scout never ran on.
     return dict(briefs=len(briefs),
-                agents=named,
+                agents=agent_names,
                 review=review,
-                both=roster.SCOUT['name'] in named and review == 'subagent')
+                both=roster.SCOUT['name'] in agent_names and review == 'subagent')
 
 
 def _latest_triage(records):
