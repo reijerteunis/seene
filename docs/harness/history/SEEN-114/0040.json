@@ -1,0 +1,54 @@
+{
+  "sequence": 40,
+  "ticket": "SEEN-114",
+  "timestamp": "2026-10-01T10:24:57.505619+00:00",
+  "harness_version": "2",
+  "kind": "handoff",
+  "stage": "tdd",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "session": "6973478f0bee",
+  "head": "e56c7f9874dde273b44785d2a1cee1d81049d04c",
+  "prev_hash": "905511f18599b30c34acc1c61ab034851f1deed178776b3b6748b2986a7c591a",
+  "data": {
+    "pack": ".harness-drafts/SEEN-114-handoff.md",
+    "sha256": "154a5924607f7793219464ccd29ac9459c9f7bdb55cbb661039fe1df02d84fda",
+    "estimated_tokens": 1147,
+    "token_limit": 2000,
+    "slice": {
+      "position": 4,
+      "total": 4,
+      "done": 3,
+      "declared": true,
+      "inferred": 0,
+      "entry": {
+        "name": "The loop back: the weekly report and the doctor warning",
+        "points": 2,
+        "files": [
+          "harness/report.py",
+          "harness/rules.py",
+          "harness/doctor.py",
+          "harness/cli.py",
+          "harness/tests/test_report.py",
+          "harness/tests/test_doctor.py",
+          "harness/tests/test_rules.py",
+          "harness/tests/test_calibration.py",
+          "harness/tests/test_stage_gates.py",
+          "harness/tests/test_hooks.py",
+          "docs/harness/skill.md",
+          "docs/harness/workflow.md",
+          ".claude/skills/seen-harness/SKILL.md",
+          ".agents/skills/seen-harness/SKILL.md"
+        ],
+        "red": "Three reds in this slice, each failing for its own reason before anything is written. The weekly report over a window whose findings carry rule_candidate shows none of the four figures criterion 4 asks for, and doctor reports nothing for a candidate recorded twice in two tickets with no rule written, so both tests fail on the absent sections. And the nine fixtures slice 3's required field invalidated are failing now, in test_calibration.py, test_stage_gates.py and test_hooks.py, which is the red the fixture work turns green."
+      }
+    },
+    "auto": false,
+    "figures": {
+      "session": "6973478f0bee",
+      "output_tokens": 362813,
+      "tool_calls": 234,
+      "unavailable": null
+    }
+  }
+}
