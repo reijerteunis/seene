@@ -50,3 +50,40 @@ rule:
             field: value
             kind: number
             regex: '\.'
+    # A credit line is a negative amount, so the same literal behind a minus sign
+    # is the same defect in the same three positions. The value is a
+    # unary_expression there rather than a number, which is why it needs its own
+    # three clauses (SEEN-114 F30).
+    - all:
+        - kind: variable_declarator
+        - has:
+            field: name
+            regex: '(?i)cents|amount|price|fee'
+        - has:
+            field: value
+            kind: unary_expression
+            has:
+              kind: number
+              regex: '\.'
+    - all:
+        - kind: pair
+        - has:
+            field: key
+            regex: '(?i)cents|amount|price|fee'
+        - has:
+            field: value
+            kind: unary_expression
+            has:
+              kind: number
+              regex: '\.'
+    - all:
+        - kind: public_field_definition
+        - has:
+            field: name
+            regex: '(?i)cents|amount|price|fee'
+        - has:
+            field: value
+            kind: unary_expression
+            has:
+              kind: number
+              regex: '\.'

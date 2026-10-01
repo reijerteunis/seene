@@ -1,0 +1,32 @@
+{
+  "sequence": 345,
+  "ticket": "SEEN-114",
+  "timestamp": "2026-10-01T23:03:14.396438+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 16,
+  "actor": "claude:implementer",
+  "session": "ad77b7a13315",
+  "head": "4b026d1247bc7c1ae841f90e2405b1e6deb42342",
+  "prev_hash": "fa0a82ad28639c16818096ac9fdaad048308b3a0ecb2c8579cf66f97a92d72dc",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_rules"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "model": "claude-opus-5",
+    "model_declared": "opus",
+    "agent_declared": "seen-implementer",
+    "duration_ms": 16209,
+    "output": ".....................................................F.F..........F\n======================================================================\nFAIL: test_money_as_integer_cents_reads_a_negative_amount (harness.tests.test_rules.WhatTheRulesActuallyRefuseTest.test_money_as_integer_cents_reads_a_negative_amount)\nSEEN-114 F30: a credit line is a negative amount.\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_rules.py\", line 771, in test_money_as_integer_cents_reads_a_negative_amount\n    self.assertEqual(len(money), 3, [row.get('text') for row in money])\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 0 != 3 : []\n\n======================================================================\nFAIL: test_the_cloud_sdk_deny_list_names_every_sdk_its_entry_claims (harness.tests.test_rules.WhatTheRulesActuallyRefuseTest.test_the_cloud_sdk_deny_list_names_every_sdk_its_entry_claims)\nSEEN-114 F33: the assertion the deleted boundary test carried.\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_rules.py\", line 748, in test_the_cloud_sdk_deny_list_names_every_sdk_its_entry_claims\n    self.assertIn(sdk, pattern, f'{sdk} is in the registry entry and not in the rule')\n    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: '@aws-sdk' not found in '(^|node_modules/)(@google-cloud/|@azure/|googleapis($|/)|google-auth|aws-sdk($|/)|firebase-admin($|/))' : @aws-sdk is in the registry entry and not in the rule\n\n======================================================================\nFAIL: test_the_staged_run_step_sits_in_a_job_that_installs_the_workspace (harness.tests.test_rules.WhereTheSetRunsTest.test_the_staged_run_step_sits_in_a_job_that_installs_the_workspace)\nSEEN-114 F32: a skipped test is a green step.\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_rules.py\", line 576, in test_the_staged_run_step_sits_in_a_job_that_installs_the_workspace\n    self.assertIn('pnpm install', holding[0],\n    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                  'the job running the staged-run test does not install the workspace, '\n                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                  'so the test skips and the step is green having executed nothing')\n                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 'pnpm install' not found in \"harness:\\n    name: Harness tests (Python 3.12)\\n    runs-on: ubuntu-latest\\n    steps:\\n      - uses: actions/checkout@v4\\n        with:\\n          # doctor asks git which journal records were ever committed as a\\n          # modification, which a shallow clone cannot answer.\\n          fetch-depth: 0\\n\\n      - uses: actions/setup-python@v5\\n        with:\\n          python-version: '3.12'\\n\\n      - name: Harness tests\\n        run: python3 -m unittest discover -s harness/tests -v\\n\\n      # core.hooksPath is a per-clone setting, so a fresh checkout has none and\\n      # doctor rightly says so. Setting it here is the same single command a\\n      # person runs after cloning.\\n      - name: Wire up the git hooks\\n        run: git config core.hooksPath .githooks\\n\\n      - name: Harness self-check\\n        run: python3 harness/run.py doctor\\n\\n      # Every rule of the set says what it stands on, in both directions: a rule a\\n      # tool enables that rules/registry.toml does not carry fails here, and so\\n      # does a registry entry for a rule nothing runs (SEEN-114). It reads files\\n      # and needs no workspace, which is why it is in this job and the fixture\\n      # proof is in the one that installs.\\n      - name: Every rule in the set is traceable\\n        run: python3 harness/run.py rules --check\\n\\n      # The one test that runs scripts/rules.sh rather than reading it, so the\\n      # staged mode is executed in CI and not only asserted about. It needs the\\n      # workspace, which is why it is here and not in the harness job, and it is\\n      # named rather than folded into a wider run because it takes a second and\\n      # the suite it belongs to takes six minutes (SEEN-114 F23: a test that\\n      # skips in every job is a test CI does not have).\\n      - name: The staged run reads a path with a space\\n        run: python3 -m unittest harness.tests.test_rules.StagedPathWithASpaceTest\\n\" : the job running the staged-run test does not install the workspace, so the test skips and the step is green having executed nothing\n\n----------------------------------------------------------------------\nRan 67 tests in 16.137s\n\nFAILED (failures=3)\n",
+    "output_sha256": "ff5eac6d0a772713dd3193e77ec5befc5509fe3666f4c45dc1045e61184de11c",
+    "output_truncated": false,
+    "before": "944fbe9f34859fd24d0ce2aa14f49c87a52ce78c4bb9f422e53d8108aa3984f9",
+    "after": "944fbe9f34859fd24d0ce2aa14f49c87a52ce78c4bb9f422e53d8108aa3984f9"
+  }
+}

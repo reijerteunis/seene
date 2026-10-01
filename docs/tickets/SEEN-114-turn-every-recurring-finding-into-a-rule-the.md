@@ -193,9 +193,12 @@ rule nor the registry mentions. Narrowing the pattern to a whole JWT, `eyJ` then
 keeps the SEEN-097 F2 case the rule cites and needs the fixture narrowed with it. Review finding F26.
 
 **`harness coverage` takes no `--model`, so a coverage check declares neither a model nor an agent.**
-All seventeen in this journal carry nulls where every other check carries `opus` and most carry
-`seen-implementer`, so the tdd gate's rule that a check recorded under a model the route did not choose
-is refused cannot bind the one check a coverage figure is read from. The command is untouched by this
+Every coverage check in this journal carries nulls where every other check carries `opus` and most
+carry `seen-implementer`, so the tdd gate's rule that a check recorded under a model the route did not
+choose is refused cannot bind the one check a coverage figure is read from. Counted as "every" rather
+than as a number, which is SEEN-114 F31: a census of this ticket's own journal goes stale with every
+record the ticket adds after the sentence is written, and the sentence that said seventeen was
+overtaken by the next coverage run thirty-four minutes later. The command is untouched by this
 diff and the gap predates it, so it belongs to a harness ticket. Review finding F27.
 
 **`fixture_results` goes quiet on a registry entry whose tool has no runner.** A `gitleaks` entry with a

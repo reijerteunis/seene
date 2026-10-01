@@ -175,9 +175,15 @@ fixture = "rules/fixtures/ast-grep-money-as-integer-cents"
 reason = """Half a cent a line over a 90 day settlement file is a reconciliation that disagrees with \
 the marketplace and a claim that cannot be evidenced. What a pattern can express is the tractable \
 half, and this rule is only that half: decimal parsing (parseFloat, Number.parseFloat) and decimal \
-formatting (toFixed) anywhere in packages/core, and a non-integer numeric literal bound to a name \
-that says it is cents, an amount, a price or a fee. The rest is a type rather than a pattern, and \
-it is SEEN-135's branded Cents."""
+formatting (toFixed) anywhere in packages/core, and a numeric literal written with a decimal point, \
+with or without a leading minus, bound by a name that says it is cents, an amount, a price or a fee \
+in one of the three positions money is written in: a variable declarator, an object property, a \
+class field. Said that precisely because SEEN-114 F24 and F30 were both the gap between this \
+sentence and the pattern under it. Three forms it does not read, each by measurement rather than by \
+assumption: a literal in exponent notation, which carries no decimal point; a parameter default, \
+which sits in none of the three positions; and an amount that arrives as a string or a variable, \
+which no pattern can follow. All three are a type rather than a pattern, and so is the rest: it is \
+SEEN-135's branded Cents."""
 
 [[rule]]
 id = "ast-grep/no-fetch-in-core"
@@ -270,7 +276,9 @@ packages/providers/src/boundary.ts and its test, which searched source text for 
 grammars one at a time and produced two recorded defects about exactly that: the wrong line, line \
 0 for an import broken over several lines, and require and dynamic import taught to it one at a \
 time. A resolver reads every grammar there is. The SDK list is the one boundary.ts carried: \
-@google-cloud, @aws-sdk, @azure, googleapis, google-auth-library, aws-sdk and firebase-admin."""
+@google-cloud, @aws-sdk, @azure, googleapis, google-auth, aws-sdk and firebase-admin, and a test \
+holds the list to this sentence, because boundary.ts carried that assertion and its deletion left \
+the seven names in the pattern alone (SEEN-114 F33)."""
 
 [[rule]]
 id = "dependency-cruiser/database-through-repository"

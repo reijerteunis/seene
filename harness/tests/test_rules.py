@@ -19,6 +19,7 @@ it is what CI runs, and it is the only place the live registry is read.
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
@@ -555,6 +556,27 @@ class WhereTheSetRunsTest(unittest.TestCase):
         for step in ('rules --check', 'rules --fixtures', './scripts/rules.sh tree'):
             self.assertIn(step, workflow)
 
+    def test_the_staged_run_step_sits_in_a_job_that_installs_the_workspace(self):
+        """SEEN-114 F32: a skipped test is a green step.
+
+        `python3 -m unittest` over a class whose only test skips prints OK and
+        exits 0, and `StagedPathWithASpaceTest` skips wherever node_modules is
+        absent. So naming the step in the workflow is not enough: moved into the
+        harness job, where it would read naturally beside the other Python steps
+        and where nothing installs, the step stays green and the staged mode is
+        unexecuted again, which is the state F23 described. The job that runs it
+        has to be a job that installs.
+        """
+        workflow = self.workflow()
+        # The jobs, split on their two-space keys, so the step and the install can
+        # be asked for inside the same one rather than anywhere in the file.
+        jobs = re.split(r'\n  (?=\w[\w-]*:\n)', workflow)
+        holding = [job for job in jobs if 'StagedPathWithASpaceTest' in job]
+        self.assertEqual(len(holding), 1, 'exactly one job runs the staged-run test')
+        self.assertIn('pnpm install', holding[0],
+                      'the job running the staged-run test does not install the workspace, '
+                      'so the test skips and the step is green having executed nothing')
+
     def test_ci_executes_the_staged_run_and_does_not_only_read_it(self):
         """SEEN-114 F23: the one test that runs the script has to run somewhere.
 
@@ -705,6 +727,50 @@ class WhatTheRulesActuallyRefuseTest(unittest.TestCase):
         output = result.stdout + result.stderr
         self.assertIn('core-no-io', output)
         self.assertNotEqual(result.returncode, 0, output)
+
+    def test_the_cloud_sdk_deny_list_names_every_sdk_its_entry_claims(self):
+        """SEEN-114 F33: the assertion the deleted boundary test carried.
+
+        `packages/providers/src/boundary.ts` held a test saying the list names
+        every SDK the rule is about, so that adding or removing one is a
+        deliberate edit. Deleting the module took that assertion with it and left
+        the seven names in the pattern alone, where dropping one leaves
+        `rules --check` green, the fixture firing on another SDK, and the tree
+        clean. The registry entry names the seven; this holds the pattern to it.
+        """
+        rules_file = json.loads((PROJECT / '.dependency-cruiser.json').read_text())
+        pattern = next(rule['to']['path'] for rule in rules_file['forbidden']
+                       if rule.get('name') == 'no-cloud-sdk-outside-providers')
+        entry = next(found for found in rules.load(PROJECT)
+                     if found['id'] == 'dependency-cruiser/no-cloud-sdk-outside-providers')
+        for sdk in ('@google-cloud', '@aws-sdk', '@azure', 'googleapis', 'google-auth',
+                    'aws-sdk', 'firebase-admin'):
+            self.assertIn(sdk, pattern, f'{sdk} is in the registry entry and not in the rule')
+            self.assertIn(sdk, entry['reason'], f'{sdk} is in the rule and not in its entry')
+
+    def test_money_as_integer_cents_reads_a_negative_amount(self):
+        """SEEN-114 F30: a credit line is a negative amount.
+
+        The value behind a minus sign is a unary_expression rather than a number,
+        so the three clauses that read a literal missed it in all three positions.
+        What the rule still does not read is now written in its registry entry
+        rather than left to a reader to discover: exponent notation, a parameter
+        default, and an amount that arrives as a string.
+        """
+        self.installed('ast-grep')
+        self.probe.write_text('const negative = { feeAmount: -0.15 };\n'
+                              'const priceNeg = -19.99;\n'
+                              'class Credit { private feeAmount = -0.49; }\n'
+                              'const intCents = { feeCents: 150 };\n')
+        result = subprocess.run(
+            [str(PROJECT / 'node_modules' / '.bin' / 'ast-grep'), 'scan',
+             str(self.probe.relative_to(PROJECT)), '--json=compact'],
+            cwd=PROJECT, capture_output=True, text=True, timeout=120)
+        money = [row for row in json.loads(result.stdout or '[]')
+                 if row.get('ruleId') == 'money-as-integer-cents']
+        self.assertEqual(len(money), 3, [row.get('text') for row in money])
+        self.assertFalse([row for row in money if 'feeCents: 150' in row['text']],
+                         'an integer number of cents is what the rule asks for')
 
     def test_money_as_integer_cents_reads_a_schedule_and_a_tariff(self):
         """F24: the two positions a fee schedule is actually written in.
