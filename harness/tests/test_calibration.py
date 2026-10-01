@@ -5,10 +5,14 @@ model ever take effect, so what is asserted here is that the rule is applied as
 written rather than that a number came out favourable.
 """
 
+import ast
 import json
+import pathlib
+import re
+import tempfile
 import unittest
 
-from harness import calibration, gates, journal as journal_module, report, thresholds
+from harness import calibration, gates, journal as journal_module, paths, report, thresholds
 from harness.errors import HarnessError
 from harness.tests.helpers import PROJECT, ProjectTest
 from harness.tests.test_delivery import DeliveryWalk
@@ -645,6 +649,226 @@ class SecondReviewTest(ProjectTest):
                           returned_findings=[finding('F1', 'blocking', 'harness/skipped.py:2')],
                           findings=[finding('F1', 'high', 'harness/other.py:9')])
         self.assertEqual(len(calibration.latest_findings(records)), 2)
+
+
+class OneReaderOfTheQuestionTest(unittest.TestCase):
+    """SEEN-140: `covers` is `_covers` moved, and these are the answers it moved with.
+
+    Every caller of the comparison was inside this module, so calibration's own
+    tests would pass against a subtly different function living somewhere else.
+    What is pinned here is the answers themselves, dot directories among them,
+    which is F1 of the second review above and the one case a rewrite would
+    quietly lose.
+    """
+
+    def test_an_entry_equal_to_the_path_covers_it(self):
+        self.assertTrue(paths.covers('harness/b.py', ['harness/b.py']))
+
+    def test_an_entry_that_is_a_directory_covers_what_is_under_it(self):
+        self.assertTrue(paths.covers('packages/core/db/tables.ts', ['packages']))
+
+    def test_a_dot_directory_entry_covers_what_is_under_it(self):
+        self.assertTrue(paths.covers('.codex/agents/x.toml', ['.codex/']))
+
+    def test_a_dot_prefixed_spelling_on_either_side_is_one_path(self):
+        self.assertTrue(paths.covers('.claude/agents/x.md', ['./.claude/agents/x.md']))
+        self.assertTrue(paths.covers(paths.normalise('./.claude/agents/x.md'), ['.claude']))
+
+    def test_a_name_sharing_a_prefix_is_not_under_it(self):
+        self.assertFalse(paths.covers('packages-old/core/db/tables.ts', ['packages']))
+
+    def test_an_entry_under_the_path_does_not_cover_it(self):
+        self.assertFalse(paths.covers('packages', ['packages/core/db/tables.ts']))
+
+    def test_nothing_is_covered_and_nothing_covers(self):
+        self.assertFalse(paths.covers(None, ['packages']))
+        self.assertFalse(paths.covers('packages/core/db/tables.ts', []))
+        self.assertFalse(paths.covers('packages/core/db/tables.ts', [None, '', '  ']))
+
+    def test_an_absolute_path_is_placed_nowhere(self):
+        self.assertIsNone(paths.normalise('/packages/core/db/tables.ts'))
+        self.assertFalse(paths.covers(paths.normalise('/packages/core'), ['packages']))
+
+    def test_the_route_verdict_reads_the_very_same_function(self):
+        self.assertIs(calibration.covers, paths.covers)
+        self.assertIs(calibration.normalise, paths.normalise)
+
+
+class NoSecondReaderTest(unittest.TestCase):
+    """Criterion 1 of SEEN-140: one implementation of the comparison in harness/.
+
+    The syntax tree rather than a grep, and the reason is F1 of this ticket's first
+    review. The first version of this test was a regex for `not in named`, which
+    could not see `named_in_solution=path in named` at triage.py:517: a fourth
+    reader of the question, feeding Jev's reviewer_must_read state with the very
+    answer this ticket exists to correct. Widening the regex to both directions
+    then matched three lines that are not comparisons at all, `for position in
+    named` among them, because a regex cannot tell a membership test from a loop.
+
+    An `ast.Compare` can. `for path in named` is a `comprehension.iter` and never a
+    Compare, so the loops drop out by construction rather than by exception, and
+    what is left is a path being tested against a plan's files. The modules are
+    the ones that read a plan: a `named` elsewhere in the harness holds something
+    else, and a test that guessed from the variable's name would be the same kind
+    of blunt instrument one round later.
+
+    The tests are not scanned. A test comparing a path to a list exactly is
+    asserting an exact answer, which is what a test is for.
+    """
+
+    # What a plan's file list is spelled as where it is read. Matched as a subtree
+    # of the comparator and not against its unparsed text, which is F2 of the
+    # second review: `entry.get('files') or []` is the same question asked with a
+    # default, and an exact string match did not recognise it.
+    PLAN_FILES = ("named", "planned", "entry['files']", "entry.get('files')",
+                  'entry["files"]', 'entry.get("files")')
+
+    def _modules(self):
+        """Every module of the package, which is the only scope that cannot age.
+
+        F1 of the second review. This was once four names, and a fifth reader born
+        in any other module would have passed the test silently. The allowlist was
+        only ever needed because `named` meant a plan's files in four modules and a
+        set of agent names in kpi.py; that variable is now `agent_names` and the
+        scope is everything.
+        """
+        return sorted((PROJECT / 'harness').glob('*.py'))
+
+    def _scope_reason(self):
+        return 'every module of the package'
+
+    def _names_a_plan(self, node):
+        """Whether a comparator is a plan's file list, rather than mentions one.
+
+        Three passes at this. An exact match on the unparsed comparator missed
+        `entry.get('files') or []`, which is the same question asked with a
+        default, and that was F2 of the second review. Walking every node of the
+        comparator instead caught that and then flagged any line with the word
+        `named` or `planned` anywhere inside a membership test, which this package
+        reuses for the unmet criteria of a return and the points a sprint planned,
+        and that was F4 of the third.
+
+        So the question is what the comparator is: the list itself, or an `or`
+        whose alternatives include it, which is the only wrapping that leaves it
+        still being the list. A tuple of two unrelated things is not, and neither
+        is anything else that merely contains the word.
+        """
+        if ast.unparse(node).strip() in self.PLAN_FILES:
+            return True
+        if isinstance(node, ast.BoolOp) and isinstance(node.op, ast.Or):
+            return any(ast.unparse(value).strip() in self.PLAN_FILES
+                       for value in node.values)
+        return False
+
+    def _comparisons(self, module):
+        """Every membership test in one module, as (line, the source of it)."""
+        source = module.read_text()
+        lines = source.splitlines()
+        found = []
+        for node in ast.walk(ast.parse(source)):
+            if not isinstance(node, ast.Compare):
+                continue
+            for operator, right in zip(node.ops, node.comparators):
+                if not isinstance(operator, (ast.In, ast.NotIn)):
+                    continue
+                if self._names_a_plan(right):
+                    found.append((node.lineno, lines[node.lineno - 1].strip()))
+        return found
+
+    def test_no_module_compares_a_path_to_a_slice_s_files_itself(self):
+        offenders = []
+        for module in self._modules():
+            for number, line in self._comparisons(module):
+                offenders.append(f'{module.name}:{number}: {line}')
+
+        self.assertEqual(offenders, [],
+                         "Whether a slice's plan covers a path is paths.covers and nothing "
+                         'else; these answer it themselves and will one day answer it '
+                         'differently')
+
+    def test_the_instrument_can_see_a_positive_comparison(self):
+        """The blind spot F1 came through, proved on source of its own shape.
+
+        Without this the test above could lose either direction again and read as
+        passing, which is how the first version of it was written and believed.
+        """
+        module = pathlib.Path(self.enterContext(
+            tempfile.TemporaryDirectory())) / 'triage.py'
+        module.write_text('def f(path, named):\n'
+                          '    return dict(named_in_solution=path in named)\n')
+        self.assertEqual([line for line, _ in self._comparisons(module)], [2])
+
+        module.write_text('def f(path, named):\n'
+                          '    if path not in named:\n'
+                          '        return False\n')
+        self.assertEqual([line for line, _ in self._comparisons(module)], [2])
+
+    def test_a_reader_in_a_module_nobody_listed_is_seen(self):
+        """F1 of the second review: the scope must not be an allowlist.
+
+        The instrument once scanned four named modules, so a fifth reader born in
+        any other one would have passed it silently. The scope is now every
+        module of the package, which is the only scope that cannot go out of date.
+        """
+        self.assertEqual(self._scope_reason(), 'every module of the package')
+        scanned = {module.name for module in self._modules()}
+        self.assertEqual(scanned, {module.name for module in (PROJECT / 'harness').glob('*.py')})
+
+    def test_a_comparator_wrapped_in_a_fallback_is_seen(self):
+        """F2 of the second review: a subtree, not a string.
+
+        `entry.get('files') or []` is the same question asked with a default, and
+        an exact match on the unparsed comparator did not recognise it.
+        """
+        module = pathlib.Path(self.enterContext(
+            tempfile.TemporaryDirectory())) / 'triage.py'
+        module.write_text('def f(path, entry):\n'
+                          "    return path in (entry.get('files') or [])\n")
+        self.assertEqual([line for line, _ in self._comparisons(module)], [2])
+
+    def test_a_word_a_plan_shares_with_something_else_is_not_a_reader(self):
+        """F4 of the third review: the comparator must be the plan, not mention it.
+
+        Walking every node of a comparator traded a false negative for a false
+        positive. `named` and `planned` are reused across this package for things
+        that are not a slice's files at all, among them the unmet criteria of a
+        return and the points a sprint planned, so a membership test against one of
+        those would have been reported as a second reader and failed the suite on a
+        change with nothing to do with this question.
+
+        The direction of that error was the safe one, a loud failure rather than a
+        silent miss, which is why the round rated it low. It is still wrong, and the
+        narrow repair is to ask what the comparator is rather than what it contains.
+        """
+        module = pathlib.Path(self.enterContext(
+            tempfile.TemporaryDirectory())) / 'forecast.py'
+        module.write_text('def f(cost, planned, actual_prior):\n'
+                          '    return cost in (planned, actual_prior)\n')
+        self.assertEqual(self._comparisons(module), [])
+
+        # And the two shapes that are the question keep being seen, so the repair
+        # cannot be a quiet undoing of F2 and F3.
+        module.write_text('def f(path, named, entry):\n'
+                          '    return path in named\n')
+        self.assertEqual([line for line, _ in self._comparisons(module)], [2])
+        module.write_text('def f(path, entry):\n'
+                          "    return path in (entry.get('files') or [])\n")
+        self.assertEqual([line for line, _ in self._comparisons(module)], [2])
+
+    def test_a_loop_over_the_plan_is_not_a_comparison(self):
+        """Three lines the widened regex matched and none of them is a reader.
+
+        `for position in named` and `{path for path in named if path}` are a loop
+        and a comprehension. The instrument drops them because they are not
+        Compare nodes, not because anything here lists them as exceptions.
+        """
+        module = pathlib.Path(self.enterContext(
+            tempfile.TemporaryDirectory())) / 'triage.py'
+        module.write_text('def f(named):\n'
+                          '    for position in named or []:\n'
+                          '        pass\n'
+                          '    return {path for path in named if path}\n')
+        self.assertEqual(self._comparisons(module), [])
 
 
 class GoLiveDecisionTest(ProjectTest):

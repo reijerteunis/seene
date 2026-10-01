@@ -1,0 +1,43 @@
+{
+  "sequence": 42,
+  "ticket": "SEEN-140",
+  "timestamp": "2026-10-01T13:39:29.644796+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 5,
+  "actor": "claude:reviewer",
+  "session": "6973478f0bee",
+  "head": "648c7aef7d4b9c0028d6db39d94ee82ccf670829",
+  "prev_hash": "1e23b36b753a173ecd6eeee959acff3c933dcec05a7d36be547690744af7f2c7",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "solution",
+    "to_attempt": 6,
+    "reason": "The second review confirms F1 of the first round is fixed and returns on two new findings, both about the instrument's scope rather than the production fix. Both are real and both have a root cause worth fixing rather than patching: the module allowlist exists only because two different things in harness/ are called named, one a plan's files and one a set of agent names, so the allowlist goes and kpi.py's variable is renamed to what it holds; and the comparator is matched by unparsed text where it should be matched as a subtree, so a wrapped expression slides past. Amending the plan to name harness/kpi.py.",
+    "findings": [
+      {
+        "id": "F1",
+        "severity": "medium",
+        "file": "harness/tests/test_calibration.py:697",
+        "claim": "NoSecondReaderTest's scope narrowed from every harness/*.py module to a hardcoded four-name allowlist, with no reasoning recorded for the other modules beyond kpi.py, so a reader of the plan-coverage question born in any unlisted module would pass the test silently.",
+        "failure_scenario": "A future ticket adds harness/scoring.py with `if path in solution_files:`, reimplementing what covers() answers. The test iterates harness/*.py but skips every module not in READERS, so scoring.py is never inspected and the test stays green while a fifth reader exists, reproducing the defect this ticket exists to prevent.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "none: rules/registry.toml does not exist on this branch, because SEEN-114 creates it and has not landed."
+      },
+      {
+        "id": "F2",
+        "severity": "low",
+        "file": "harness/tests/test_calibration.py:706",
+        "claim": "The instrument matches a Compare node's comparator by exact ast.unparse text against a fixed tuple, so a comparison against the same set wrapped in a fallback expression is not recognised even inside one of the scanned modules.",
+        "failure_scenario": "A future edit in triage.py writes `if path in (entry.get('files') or []):` instead of calling covers. ast.unparse of the comparator is `entry.get('files') or []`, which is not a member of PLAN_FILES, so the comparison is not flagged and the test stays green while a hand-written reader reappears.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "none: rules/registry.toml does not exist on this branch, because SEEN-114 creates it and has not landed."
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}

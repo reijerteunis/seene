@@ -1,0 +1,151 @@
+{
+  "sequence": 59,
+  "ticket": "SEEN-140",
+  "timestamp": "2026-10-01T14:11:21.786559+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "review",
+  "attempt": 7,
+  "actor": "claude:reviewer",
+  "session": "6973478f0bee",
+  "head": "c61f4e671bc66f4e164362f1bc45624f527644fa",
+  "prev_hash": "2223e695837d7ab061df16705e57feec36adfe096e7903e40a2d8b8bbae9a654",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "deliver",
+    "evidence": {
+      "reviewer": "claude:reviewer",
+      "independence": "subagent",
+      "reviewer_session": "SEEN-140-review-round-3-founder-called",
+      "read": [
+        "docs/tickets/SEEN-140-one-answer-to-whether-a-slices-plan-covers-a.md",
+        "docs/harness/history/SEEN-140/",
+        "harness/triage.py",
+        "harness/paths.py",
+        "harness/kpi.py",
+        "harness/calibration.py",
+        "harness/guard.py",
+        "harness/tests/test_calibration.py",
+        "harness/tests/test_guard.py",
+        "harness/tests/test_triage.py",
+        "harness/tests/test_kpi.py",
+        "CLAUDE.md",
+        "docs/harness/workflow.md",
+        "docs/tickets/README.md"
+      ],
+      "acceptance_evidence": [
+        "1 (as amended): one function answers the question and no module answers it itself. Records 37, 46 and 54; NoSecondReaderTest rerun against the current tree finds zero offenders across every harness/*.py module, and the third round reproduced that independently. The amendment naming calibration.py rather than gates.py is in the Amendments section with its reason.",
+        "2: harness guard allows a file inside a directory the slice names and refuses one outside every entry, naming the entries. RED record 6, GREEN records 9, 23 and 30; harness/tests/test_guard.py test_a_file_inside_a_directory_the_slice_names_is_allowed_at_tdd carries both halves.",
+        "3: the triage's slice_files passes inside a named directory and still fails on a path no entry covers. RED record 7, GREEN record 10; harness/tests/test_triage.py DirectorySliceTest carries both directions.",
+        "4: a test failed before the change for each reader. Records 6, 7 and 8 for the three counted at the start, record 36 for the fourth the first review found, records 45 and 53 for the instrument's own two blind spots.",
+        "5 (as amended): the whole harness suite is green. Record 55, 1,454 tests, exit 0; record 56, coverage on packages/core 100.0 at a delta of 0.0. The second half of the original criterion was amended out with its reason recorded."
+      ],
+      "findings": [
+        {
+          "id": "F1",
+          "severity": "high",
+          "file": "harness/triage.py:522",
+          "claim": "Round one. file_facts() computed named_in_solution with an exact comparison, feeding Jev's reviewer_must_read state with a false 'not named' for every file under a directory the plan names.",
+          "failure_scenario": "A solution plan names a directory, as SEEN-114's formatter slices named apps and packages. Every file under it was reported to Jev as not named by the solution record, defeating the purpose of the ticket at the one place the wrong answer does the most harm.",
+          "status": "resolved",
+          "resolution": "harness/triage.py:522 now reads named_in_solution=covers(path, named), with covers imported from harness/paths.py. The third round traced the whole call chain from file_facts to file_subject, confirmed no other hand-written comparison remains in it, and reran NoSecondReaderTest against the tree to find zero offenders. RED record 36, GREEN record 37.",
+          "rule_candidate": "none: rules/registry.toml does not exist on this branch, because SEEN-114 creates it and has not landed."
+        },
+        {
+          "id": "F2",
+          "severity": "medium",
+          "file": "harness/tests/test_calibration.py:697",
+          "claim": "Round two. The instrument scanned a hardcoded four-module allowlist, so a reader of the question born in any unlisted module would pass it silently.",
+          "failure_scenario": "A future ticket adds harness/scoring.py reimplementing the membership test; the allowlist never looks at it and the regression test stays green while a fifth reader exists, reproducing the defect this ticket exists to prevent.",
+          "status": "resolved",
+          "resolution": "The allowlist is removed and the scan is every harness/*.py unconditionally, which was only possible once kpi.py's local named, holding agent names, became agent_names. The third round checked the rename is complete across harness/*.py and test_kpi.py and found no leftover reader. RED record 45, GREEN record 46.",
+          "rule_candidate": "none: rules/registry.toml does not exist on this branch, because SEEN-114 creates it and has not landed."
+        },
+        {
+          "id": "F3",
+          "severity": "low",
+          "file": "harness/tests/test_calibration.py:723",
+          "claim": "Round two. The comparator was matched against its unparsed text, so a comparison against the same set wrapped in a fallback was not recognised.",
+          "failure_scenario": "A future edit in triage.py writes `if path in (entry.get('files') or []):` instead of calling covers. The exact text match does not see it and a hand-written reader reappears undetected.",
+          "status": "resolved",
+          "resolution": "The comparator is matched structurally, and after F4 it is matched as what the comparator is rather than what it contains: the plan's file list, or an or whose alternatives include it. test_a_comparator_wrapped_in_a_fallback_is_seen reproduces the pattern and the third round ran it independently. RED record 45, GREEN records 46 and 54.",
+          "rule_candidate": "none: rules/registry.toml does not exist on this branch, because SEEN-114 creates it and has not landed."
+        },
+        {
+          "id": "F4",
+          "severity": "low",
+          "file": "harness/tests/test_calibration.py:740",
+          "claim": "Round three, raised against the fix that round had just confirmed. Walking every node of a comparator flagged any bare occurrence of named or planned inside a membership test, with no requirement that the comparator be the plan's file list, and this package reuses both words for the unmet criteria of a return and the points a sprint planned.",
+          "failure_scenario": "A harness module writes `if cost in (planned, actual_prior):` where planned means points planned for a sprint. The instrument flags it as a second reader of the plan-coverage question, which the round reproduced by running _comparisons against that source, and a future unrelated change fails the whole regression suite on a line that never asks whether a slice's plan covers a path.",
+          "status": "resolved",
+          "resolution": "_names_a_plan now asks what the comparator is: the plan's file list, or an or whose alternatives include it, which is the only wrapping that leaves it still being the list. A tuple of two unrelated things is not. RED record 53, which failed on exactly the source the round constructed, GREEN record 54, and the same test holds both shapes that are the question so the repair cannot quietly undo F2 and F3. The round's own suggestion, renaming the colliding identifiers, is right in principle and is a rename across half a dozen modules that this ticket does not own; the narrower repair is recorded in the Outcome, as is the fact that this is the one change here no independent context has read.",
+          "rule_candidate": "none: rules/registry.toml does not exist on this branch, because SEEN-114 creates it and has not landed."
+        }
+      ],
+      "checks": [
+        "The third round reread file_facts to file_subject and confirmed file_subject performs no comparison of its own, so the fix at file_facts is the complete fix for F1.",
+        "It ran an independent ast.Compare walk over every harness/*.py file and cross-checked each hit by hand: no raw plan-coverage comparison remains outside the ones routed through paths.covers at calibration.py, guard.py and triage.py.",
+        "It confirmed kpi.py's `in agent_names` is a set of agent names and unrelated to the question, which is why that rename was what let the allowlist go.",
+        "It reproduced the regression independently at 1,453 tests before F4's fix; record 55 is 1,454 after it.",
+        "red_before_green, tests_added and acceptance_entries were the partly settled checks and the first round compared each RED's actual output against the slice's stated failure reason rather than only its exit code.",
+        "pull_request was unavailable at every triage because no pull request exists yet; the first round confirmed that with gh pr view. It is checked again at merge, where the receipt hash has to be in the body."
+      ],
+      "security_checklist": [
+        "No secret in the diff: gitleaks ran in the pre-commit hook on every commit of this branch and over the whole history at 514 commits, finding nothing.",
+        "No new dependency: this ticket adds none, so there is no lockfile change and nothing to audit.",
+        "No live marketplace call in a test: the change is four Python functions and their tests, and harness lint passes.",
+        "No PII field and no agent action: this ticket touches no table, no migration, no query and no tool, which the solution record states and the diff bears out."
+      ],
+      "verdict": "pass",
+      "tree": "c1114cf2dc9e03049369380b105b73d92d525ac5af4751595d7e5bc408caf99f"
+    },
+    "decisions": [
+      {
+        "key": "severity",
+        "question": "severity",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high",
+          "blocking"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "high",
+        "probabilities": {
+          "low": 0.03,
+          "medium": 0.14,
+          "high": 0.75,
+          "blocking": 0.08
+        },
+        "confidence": 0.72,
+        "score": 1.88,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      },
+      {
+        "key": "must_fix",
+        "question": "must_fix",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.58,
+          "no": 0.42
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.7,
+        "passed": false,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

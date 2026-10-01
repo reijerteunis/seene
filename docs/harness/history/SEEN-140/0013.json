@@ -1,0 +1,39 @@
+{
+  "sequence": 13,
+  "ticket": "SEEN-140",
+  "timestamp": "2026-10-01T12:50:47.919358+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "6973478f0bee",
+  "head": "178cd6e0818331c370c2d76c43482acaa9483c6e",
+  "prev_hash": "7bfd68ee5b9a6c1e8cfc2ffdca86a939db2631d39e642ec5eec566b068cfc895",
+  "data": {
+    "command": [
+      "pnpm",
+      "--filter",
+      "@seen/core",
+      "test",
+      "--",
+      "--coverage.enabled",
+      "--coverage.reporter=json-summary"
+    ],
+    "phase": "coverage",
+    "exit_code": 0,
+    "model": "claude-opus-5",
+    "model_declared": null,
+    "agent_declared": null,
+    "duration_ms": 3946,
+    "output": "\n> @seen/core@0.0.0 test /Users/ruudvanengelenhoven/Development/seene/packages/core\n> vitest run -- --coverage.enabled --coverage.reporter=json-summary\n\n\n RUN  v3.2.7 /Users/ruudvanengelenhoven/Development/seene/packages/core\n\n• turbo 2.11.3\n ✓ db/schema.test.ts (125 tests) 974ms\n ✓ db/rls.test.ts (33 tests) 743ms\n• turbo 2.11.3\n ✓ db/authorities.test.ts (10 tests) 144ms\n ✓ db/uniqueness.test.ts (15 tests) 56ms\n• turbo 2.11.3\n ✓ db/marketplaces.test.ts (9 tests) 49ms\n ✓ src/index.test.ts (3 tests) 1ms\n ✓ db/parallelism.test.ts (1 test) 1ms\n\n Test Files  7 passed (7)\n      Tests  196 passed (196)\n   Start at  14:50:44\n   Duration  3.37s (transform 134ms, setup 0ms, collect 693ms, tests 1.97s, environment 0ms, prepare 178ms)\n\n",
+    "output_sha256": "d4914fbec46d5e65b8ae6c21061529288c4ca9f0a1734fcda5c1d595c194e66c",
+    "output_truncated": false,
+    "before": "9fef5449c2b96a384ad6dfa0d8b1029d5b7cac558f059b49e2201899757b55c3",
+    "after": "9fef5449c2b96a384ad6dfa0d8b1029d5b7cac558f059b49e2201899757b55c3",
+    "package": "@seen/core",
+    "lines": 100.0,
+    "baseline": 100.0,
+    "delta": 0.0
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "sequence": 52,
+  "ticket": "SEEN-140",
+  "timestamp": "2026-10-01T14:01:51.392131+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 6,
+  "actor": "claude:reviewer",
+  "session": "6973478f0bee",
+  "head": "02ba0015074406519bd03c2bf9c9d6be0a86105b",
+  "prev_hash": "2edaeb5a4e00152066b6b22b66fa6be6d9b643ee5b7e5456e7dac9a400866570",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 7,
+    "reason": "Round three attests all three earlier findings resolved and raises F4, which is right: the subtree match flags a bare named or planned anywhere inside a comparator, so an unrelated membership test would fail the suite. Fixing it narrower than the rename the round suggests: the comparator must be the plan's file list, or an or-fallback whose values include it, rather than merely containing it somewhere. That closes the false positive without renaming an identifier in half a dozen modules, which is a wider change than this ticket owns.",
+    "findings": [
+      {
+        "id": "F4",
+        "severity": "low",
+        "file": "harness/tests/test_calibration.py:740",
+        "claim": "The subtree match that fixed round two's F2 trades a false-negative risk for a false-positive one: _names_a_plan walks every node of a comparator and flags any bare occurrence of named or planned anywhere inside it, with no requirement that the comparator as a whole be the plan's file list. harness/*.py already reuses both words for unrelated meanings.",
+        "failure_scenario": "A harness module writes `if cost in (planned, actual_prior):` where planned means points planned for a sprint. The instrument flags it as a second reader of the plan-coverage question, reproduced by running _comparisons against that source, and a future unrelated change fails the whole regression suite on a line that never asks whether a slice's plan covers a path.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "none: rules/registry.toml does not exist on this branch, because SEEN-114 creates it and has not landed."
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}

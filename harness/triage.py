@@ -27,7 +27,7 @@ import re
 
 from . import calibration, gates, jev, journal, kpi, risk, routing, secrets
 from .errors import HarnessError, require
-from .paths import FINGERPRINT_EXCLUDED
+from .paths import FINGERPRINT_EXCLUDED, covers
 
 # Pass one, in the order a reader wants them: what the tests said, what the tree
 # says, what the journal says, and what is outside the repository.
@@ -367,9 +367,17 @@ def _slice_files_check(files, named, exempt):
     excluded for the reason `generated_paths` gives, which is a wider set than the
     fingerprint's. Neither is excluded from the diff, only from this check: they
     changed, and the reviewer can still be sent to them.
+
+    `covers` is the one reader of whether the plan names a path, so an entry that
+    is a directory names the files under it, as it has for the route verdict since
+    SEEN-104. Before SEEN-140 this comparison was its own, and exact, which is what
+    returned SEEN-114 three times over about forty files its plan did name. The
+    exempt set stays exact: a generated copy and the ticket file are named exactly
+    and neither is a directory.
     """
     exempt = set(exempt)
-    outside = sorted(path for path in files if path not in named and path not in exempt)
+    outside = sorted(path for path in files
+                     if not covers(path, named) and path not in exempt)
     if not outside:
         return _entry('slice_files', PASS,
                       f'All {len(files)} changed files are named by the accepted slice plan, '
@@ -506,7 +514,12 @@ def file_facts(repository, files, named, records, attempt):
                           package=package_of(path),
                           risk_percentile=scored.get('percentile'),
                           coverage_delta=delta,
-                          named_in_solution=path in named))
+                          # Through `covers`, so a plan naming a directory names what is
+                          # inside it here too. This is the fact Jev reads as "Named by
+                          # the solution record" when it decides what the reviewer must
+                          # read, and an exact comparison answered no for every file
+                          # under a named directory: F1 of SEEN-140's first review.
+                          named_in_solution=covers(path, named)))
     return facts
 
 

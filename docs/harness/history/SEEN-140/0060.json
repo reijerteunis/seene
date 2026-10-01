@@ -1,0 +1,67 @@
+{
+  "sequence": 60,
+  "ticket": "SEEN-140",
+  "timestamp": "2026-10-01T14:23:35.982761+00:00",
+  "harness_version": "2",
+  "kind": "receipt",
+  "stage": "deliver",
+  "attempt": 7,
+  "actor": "claude:implementer",
+  "session": "6973478f0bee",
+  "head": "4e5fd652523a7b38ab3d8e8fffdd4d8af6df1365",
+  "prev_hash": "9b7e04e24e69ab8a3fad8946270d5f571659d01eaffce836304dc9f37d935ac1",
+  "data": {
+    "from_stage": "deliver",
+    "to_stage": "delivered",
+    "commit": "4e5fd652523a7b38ab3d8e8fffdd4d8af6df1365",
+    "branch": "claude/SEEN-140-one-answer-to-whether-a-slice-covers-a-path",
+    "remote": "origin",
+    "tree": "c1114cf2dc9e03049369380b105b73d92d525ac5af4751595d7e5bc408caf99f",
+    "pull_request": "https://github.com/reijerteunis/seene/pull/34",
+    "limits": [
+      "The three readers now agree and nothing here decides whether they should have had a directory to disagree about. Whether the solution gate should refuse a plan whose slices name overlapping directories is open and is the founder's: this ticket made the readers agree, which was the defect, and SEEN-114's record 107 argues both sides of the policy.",
+      "One commit in this delivery is not this ticket's. `docs(SEEN-114): restore the workflow paragraphs SEEN-139 reverted` is a cherry-pick -x of SEEN-114's own commit, carried because a cited regression must exit zero, test_the_workflow_names_every_partly_settled_check fails on main since SEEN-139's docs regeneration, and the repair lived on a branch parked waiting for this ticket. A reader should not take it as this ticket's work, and SEEN-114 keeps the commit it was asked to carry.",
+      "F4's fix, ten lines in NoSecondReaderTest's helper, is the one change here no independent context has read. The round that raised it rated it low, its failure mode is a loud false failure rather than a silent miss, it is not triggered anywhere in the tree, and a test fails without it. A reader should not assume every line of this delivery was reviewed by somebody who did not write it.",
+      "What finally judges this ticket is not in its own journal and is not proven by this receipt: SEEN-114's slice_files check passing against its own diff once this merges and that branch rebases. Until that is measured, the evidence here is this branch's own suite.",
+      "The fix is behaviourally looser in two places and never stricter, so no ticket that passed before can start failing. What it cannot do is make a plan's directory entry mean something narrower than git already means by it: harness/gates.py hands a slice's files to git as a pathspec and that reading is unchanged."
+    ],
+    "evidence": {
+      "remote": "origin",
+      "pull_request": "https://github.com/reijerteunis/seene/pull/34",
+      "limits": [
+        "The three readers now agree and nothing here decides whether they should have had a directory to disagree about. Whether the solution gate should refuse a plan whose slices name overlapping directories is open and is the founder's: this ticket made the readers agree, which was the defect, and SEEN-114's record 107 argues both sides of the policy.",
+        "One commit in this delivery is not this ticket's. `docs(SEEN-114): restore the workflow paragraphs SEEN-139 reverted` is a cherry-pick -x of SEEN-114's own commit, carried because a cited regression must exit zero, test_the_workflow_names_every_partly_settled_check fails on main since SEEN-139's docs regeneration, and the repair lived on a branch parked waiting for this ticket. A reader should not take it as this ticket's work, and SEEN-114 keeps the commit it was asked to carry.",
+        "F4's fix, ten lines in NoSecondReaderTest's helper, is the one change here no independent context has read. The round that raised it rated it low, its failure mode is a loud false failure rather than a silent miss, it is not triggered anywhere in the tree, and a test fails without it. A reader should not assume every line of this delivery was reviewed by somebody who did not write it.",
+        "What finally judges this ticket is not in its own journal and is not proven by this receipt: SEEN-114's slice_files check passing against its own diff once this merges and that branch rebases. Until that is measured, the evidence here is this branch's own suite.",
+        "The fix is behaviourally looser in two places and never stricter, so no ticket that passed before can start failing. What it cannot do is make a plan's directory entry mean something narrower than git already means by it: harness/gates.py hands a slice's files to git as a pathspec and that reading is unchanged."
+      ]
+    },
+    "checks": [
+      {
+        "name": "Harness tests (Python 3.12)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Knowledge graph",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Monorepo (Node 24)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Secrets and supply chain",
+        "conclusion": "success",
+        "runs": 1
+      }
+    ],
+    "coverage": {
+      "package": "@seen/core",
+      "lines": 100.0,
+      "delta": 0.0
+    }
+  }
+}

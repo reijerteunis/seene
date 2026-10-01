@@ -1,0 +1,111 @@
+{
+  "sequence": 21,
+  "ticket": "SEEN-140",
+  "timestamp": "2026-10-01T13:02:01.146944+00:00",
+  "harness_version": "2",
+  "kind": "route",
+  "stage": "tdd",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "session": "6973478f0bee",
+  "head": "826a4c01d2faa912f9f8aa0098310ce75c7c43b6",
+  "prev_hash": "fd027b955e6ae693314ea23a6dd14387d42441ac34fbe3df07e74f476eb038f2",
+  "data": {
+    "solution": 20,
+    "shadow": true,
+    "strongest": "opus",
+    "tiers": [
+      "haiku",
+      "sonnet",
+      "opus"
+    ],
+    "rules": [],
+    "jev": {
+      "asked": true,
+      "model": "jev-1.13.0",
+      "reason": null,
+      "answers": [
+        {
+          "key": "implementation_model#1",
+          "question": "implementation_model",
+          "type": "score",
+          "options": [
+            "haiku",
+            "sonnet",
+            "opus"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "haiku",
+          "probabilities": {
+            "haiku": 0.67,
+            "sonnet": 0.24,
+            "opus": 0.09
+          },
+          "confidence": 0.36,
+          "score": 0.42,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_effort#1",
+          "question": "implementation_effort",
+          "type": "score",
+          "options": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "high",
+          "probabilities": {
+            "low": 0.01,
+            "medium": 0.13,
+            "high": 0.86
+          },
+          "confidence": 0.78,
+          "score": 1.86,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        }
+      ]
+    },
+    "execution": [
+      {
+        "position": 1,
+        "name": "One reader for the question, called by all three",
+        "points": 1,
+        "files": [
+          "harness/paths.py",
+          "harness/calibration.py",
+          "harness/guard.py",
+          "harness/triage.py",
+          "harness/tests/test_guard.py",
+          "harness/tests/test_triage.py",
+          "harness/tests/test_calibration.py",
+          "docs/harness/workflow.md",
+          ".claude/skills/seen-harness/SKILL.md",
+          ".agents/skills/seen-harness/SKILL.md",
+          "docs/harness/skill.md",
+          "docs/tickets/SEEN-140-one-answer-to-whether-a-slices-plan-covers-a.md",
+          "docs/tickets/README.md",
+          "CLAUDE.md"
+        ],
+        "red": "Three failures, one per reader, each on the exact comparison rather than on an absent function. `harness guard` refuses `packages/core/db/tables.ts` against a slice naming `packages`; the triage's `slice_files` reports a changed path inside a named directory as belonging to no slice; and `paths.covers` does not exist, so the test pinning the moved function's answers fails on the import. At attempt 3 only the guard pair is replayed and cited: the triage's and calibration's reds are records 7 and 8 of attempt 1 and stay in the journal as criterion 4's evidence, which is what that criterion asks for.",
+        "model": "haiku",
+        "effort": "high",
+        "source": "jev",
+        "rule": null,
+        "reason": null,
+        "model_probability": 0.67,
+        "effort_probability": 0.86,
+        "model_passed": true,
+        "model_threshold": 0.5,
+        "implementer_task": "Work slice 1 of SEEN-140: One reader for the question, called by all three.\n\nRun it on haiku at high effort, because Jev chose it at 0.67.\nThe model is what reaches the work: in Claude Code as the per-invocation model on the seen-implementer agent, and in Codex as the model this instruction names when you spawn it. The effort is recorded, carried and reported rather than applied, on either assistant: the generated copies do not vary by slice, because a file whose content depended on the ticket in hand was wrong on a detached HEAD, after a replan and after the receipt. Neither is yours to change.\n\nPoints: 1.\nFiles: harness/paths.py, harness/calibration.py, harness/guard.py, harness/triage.py, harness/tests/test_guard.py, harness/tests/test_triage.py, harness/tests/test_calibration.py, docs/harness/workflow.md, .claude/skills/seen-harness/SKILL.md, .agents/skills/seen-harness/SKILL.md, docs/harness/skill.md, docs/tickets/SEEN-140-one-answer-to-whether-a-slices-plan-covers-a.md, docs/tickets/README.md, CLAUDE.md\n\nIts RED must demonstrate: Three failures, one per reader, each on the exact comparison rather than on an absent function. `harness guard` refuses `packages/core/db/tables.ts` against a slice naming `packages`; the triage's `slice_files` reports a changed path inside a named directory as belonging to no slice; and `paths.covers` does not exist, so the test pinning the moved function's answers fails on the import. At attempt 3 only the guard pair is replayed and cited: the triage's and calibration's reds are records 7 and 8 of attempt 1 and stay in the journal as criterion 4's evidence, which is what that criterion asks for.\n\nWrite the test first and record it with:\n  python3 harness/run.py check SEEN-140 --phase red --actor <tool>:implementer --model haiku -- <command>\nThen write only what turns it green and record that the same way. The `--model haiku` is not optional: a subagent inherits its parent's session id, so the log records the model of the session that spawned you and not yours, and without the declaration the tdd gate compares the wrong two names. Then stop: do not start the next slice and do not advance the stage."
+      }
+    ]
+  }
+}

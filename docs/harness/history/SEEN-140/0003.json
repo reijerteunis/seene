@@ -1,0 +1,87 @@
+{
+  "sequence": 3,
+  "ticket": "SEEN-140",
+  "timestamp": "2026-10-01T12:21:53.107973+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "6973478f0bee",
+  "head": "2b85da7f20648b6dd67dbf5a2dafb644b4fb318b",
+  "prev_hash": "af336954a61637981e79c646cb8a8ff56fccd4684ae6dcf08182388a8d479364",
+  "data": {
+    "from_stage": "clarify",
+    "to_stage": "solution",
+    "evidence": {
+      "scope": "Make the three readers of \"does this slice's plan cover this changed path\" agree, by giving them one function to call. Its edge: it changes no rule about what a plan may name and widens nothing. `calibration._covers` already reads a directory entry and has done since SEEN-104; this ticket moves that one answer to where `guard.py` and `triage.py` can call it and deletes their two exact comparisons. Whether a plan should be allowed to name a directory at all is a policy question the ticket raises and does not settle.",
+      "acceptance": [
+        "1. One function answers the question, called by gates, guard and triage, with no second implementation in harness/. Evidence: the three call sites reading one name, and a test that greps harness/ for an exact-membership comparison against a slice's files and finds none. Measured before anything was written: there are exactly three readers today, at calibration.py:332 (directory-aware, used at 379 and 383 for the route verdict), guard.py:131 (`relative not in entry['files']`) and triage.py:372 (`path not in named`). gates.py has no fourth: `_files_the_slice_covers` collects a slice's files and hands them to git as a pathspec, which is directory-aware by git's own rules.",
+        "2. `harness guard <path>` allows a write inside a directory the accepted slice names and still refuses one outside every entry, naming the entries. Evidence: a RED where guard refuses `packages/core/db/tables.ts` against a slice naming `packages`, and the same test asserting a path under no entry is still refused with the file list in the message.",
+        "3. The triage's `slice_files` check passes when every changed path is inside a directory the plan names and still fails on a path no entry covers, naming it. Evidence: a RED where `slice_files` reports such a path as belonging to no slice, and a case holding the failure for a genuinely unplanned path.",
+        "4. A test fails before the change for each of the two readers. Evidence: two recorded REDs, one per reader, failing on the exact comparison rather than on an absent function.",
+        "5. The whole harness suite is green and SEEN-114's `slice_files` passes against its own journal and diff. Evidence: a green regression, and the triage re-run on SEEN-114's branch after this merges, which is the measurement the ticket is judged by and is recorded in SEEN-114's journal rather than this one."
+      ],
+      "decisions": [
+        "The shared function goes in `harness/paths.py` and `normalise` goes with it. paths.py is the leaf module: it imports `pathlib` and `re` and nothing of the harness, and its docstring says it holds structure rather than judgement, which is what a path comparison is. The alternative, exporting `calibration._covers` by dropping its underscore, would make `guard.py` import `calibration`, which imports the journal and the routes, to answer a question about two strings. triage.py already imports calibration and would not care; guard.py runs inside a PreToolUse hook on every edit and should keep its import graph small.",
+        "The behaviour is not widened, and that is the whole discipline of this ticket. `_covers` answers true when a named entry equals the path or is a prefix of it ending in a separator, through `normalise`, and that is what the route verdict has used since SEEN-104 and what F1 of SEEN-109's second review fixed for dot directories. The two exact comparisons are brought up to it and nothing is brought down to them. A test asserts the shared function's answers are the ones calibration's own tests already pin.",
+        "The guard's refusal keeps naming the slice's entries, not a normalised form of them. A session that reads 'is not one of the files slice 2 of 4 names: sgconfig.yml, rules/ast-grep, ...' can go and look at those names in the solution record; a normalised list would be a second spelling of the plan.",
+        "Proceeding with the policy question open, which only the founder can settle: whether the solution gate should refuse a plan whose slices name overlapping directories. SEEN-114's record 107 argues that `apps` and `packages` was the true description of a formatter adoption, and SEEN-114's own cost argues the other way, because overlapping directory entries are also why none of its slices had a stable file set across a return. The observation that settles it is the next ticket that plans a slice over a directory: this ticket makes the readers agree, which is the defect, and a decision about what a plan may name is a change to the solution gate and belongs to whoever makes it.",
+        "SEEN-114 stays parked and is not rebased by this ticket. Its branch carries four proved slices and a journal that explains why it stopped; rebasing it is its own next session's work once this is on main, and doing it from here would put two tickets' changes in one branch, which is the SEEN-006 R-03 finding."
+      ],
+      "open_questions": [],
+      "changes_agent_action": false,
+      "graph_impact": [
+        "repowise why harness/guard.py (record 2): no architectural decision governs it; one commit, SEEN-106, which created it. So the exact comparison was written once, in the ticket that built the hooks, and nothing since has had a reason to look at it. Nothing in its rationale comments is about directory entries.",
+        "The readers, from the files rather than a graph query: calibration.py:332 `_covers` with `normalise` at :73; guard.py:131; triage.py:372 inside `_slice_files_check`. calibration's `normalise` has seven callers, all inside calibration, so moving it is a rename in one module plus an import.",
+        "Blast radius of the behaviour change: `harness guard`, which the PreToolUse hook calls on every edit in both assistants, and the triage's pass one, which decides review depth and is read by SEEN-109's calibration window. Both get looser, never stricter, so no ticket that passes today can start failing."
+      ]
+    },
+    "decisions": [
+      {
+        "key": "clarified",
+        "question": "clarified",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.85,
+          "no": 0.15
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.8,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "key": "risk",
+        "question": "risk",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "medium",
+        "probabilities": {
+          "low": 0.27,
+          "medium": 0.73,
+          "high": 0.0
+        },
+        "confidence": 0.6,
+        "score": 0.73,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

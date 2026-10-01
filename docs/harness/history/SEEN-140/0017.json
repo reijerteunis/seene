@@ -1,0 +1,721 @@
+{
+  "sequence": 17,
+  "ticket": "SEEN-140",
+  "timestamp": "2026-10-01T13:00:40.053575+00:00",
+  "harness_version": "2",
+  "kind": "triage",
+  "stage": "review",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "6973478f0bee",
+  "head": "8885f3e423a5471a4bec3dd7d236e31a1a3fecb2",
+  "prev_hash": "84adf86f178823181f36b5928c2fe3348a817545cef5fbc46e54c8a585d3764c",
+  "data": {
+    "fingerprint": "a1416677f7e9a12ed0897186e4e4e876eefd07eb1ab58b0a9c3ad971751cab05",
+    "code_fingerprint": "7a924b9e0d9e5c666f94c914b78f02e6bf8d010da76a326e306ba4d80a761830",
+    "files": [
+      {
+        "path": "CLAUDE.md",
+        "hunks": 2,
+        "added": 2,
+        "removed": 1,
+        "package": "root",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": false
+      },
+      {
+        "path": "docs/harness/workflow.md",
+        "hunks": 5,
+        "added": 25,
+        "removed": 7,
+        "package": "docs",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "docs/tickets/README.md",
+        "hunks": 3,
+        "added": 3,
+        "removed": 2,
+        "package": "docs",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": false
+      },
+      {
+        "path": "docs/tickets/SEEN-140-one-answer-to-whether-a-slices-plan-covers-a.md",
+        "hunks": 1,
+        "added": 120,
+        "removed": 0,
+        "package": "docs",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": false
+      },
+      {
+        "path": "harness/calibration.py",
+        "hunks": 4,
+        "added": 3,
+        "removed": 50,
+        "package": "harness",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/guard.py",
+        "hunks": 2,
+        "added": 6,
+        "removed": 3,
+        "package": "harness",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/paths.py",
+        "hunks": 1,
+        "added": 60,
+        "removed": 0,
+        "package": "harness",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/tests/test_calibration.py",
+        "hunks": 2,
+        "added": 70,
+        "removed": 1,
+        "package": "harness",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/tests/test_guard.py",
+        "hunks": 2,
+        "added": 34,
+        "removed": 0,
+        "package": "harness",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/tests/test_triage.py",
+        "hunks": 1,
+        "added": 40,
+        "removed": 0,
+        "package": "harness",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/triage.py",
+        "hunks": 2,
+        "added": 10,
+        "removed": 2,
+        "package": "harness",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      }
+    ],
+    "criteria": [
+      "One function answers whether a slice's plan covers a path, called by `harness/calibration.py`, `harness/guard.py` and `harness/triage.py`, with no second implementation of the comparison anywhere in `harness/`. **Amended on 1 October 2026:** the third caller is `calibration.py` and not `gates.py`, which this ticket's own description got wrong. `gates.py` never asks the membership question: it collects a slice's files and hands them to git as a pathspec, and git answers \"what changed under these paths\", which is a different question answered directory-aware by git's own rules and cannot be asked of a Python predicate. The membership readers were three and are now one, which `NoSecondReaderTest` holds by grepping `harness/*.py` for a hand-written exact comparison against a plan's files.",
+      "`harness guard <path>` allows a write to a file inside a directory the accepted slice names, and still refuses one outside every entry, with the refusal naming the entries",
+      "The triage's `slice_files` check passes when every changed path is inside a directory the plan names, and still fails on a path no entry covers, with the failure naming it",
+      "A test fails before the change for each of the two readers: one proving `harness guard` refused a path inside a named directory, one proving `slice_files` reported such a path as belonging to no slice",
+      "The whole harness suite is green, and SEEN-114's `slice_files` check passes against its own journal and diff, which is the measurement this ticket is judged by"
+    ],
+    "deterministic": [
+      {
+        "name": "coverage",
+        "outcome": "pass",
+        "detail": "@seen/core at 100.0%, +0.0 against the baseline"
+      },
+      {
+        "name": "lint",
+        "outcome": "pass",
+        "detail": "No live marketplace host in test code"
+      },
+      {
+        "name": "gitleaks",
+        "outcome": "pass",
+        "detail": "No leak in main..HEAD"
+      },
+      {
+        "name": "fingerprint",
+        "outcome": "fail",
+        "detail": "The tree changed after check 14: it ran against 31dbb2e8e6ba and this triage reads a1416677f7e9. The tests that passed are not the tests for this tree"
+      },
+      {
+        "name": "slice_files",
+        "outcome": "fail",
+        "detail": "Changed but named by no slice and no changes entry: CLAUDE.md, docs/tickets/README.md"
+      },
+      {
+        "name": "red_before_green",
+        "outcome": "pass",
+        "detail": "Every slice cites a check that exited non-zero rather than one that passed. Whether it failed for the reason the slice states is not something the harness can read"
+      },
+      {
+        "name": "tests_added",
+        "outcome": "pass",
+        "detail": "Test files changed: harness/tests/test_calibration.py, harness/tests/test_guard.py, harness/tests/test_triage.py. Whether the behaviour this slice adds has one of its own is not something a path can say"
+      },
+      {
+        "name": "acceptance_entries",
+        "outcome": "pass",
+        "detail": "The clarify record restates 5 checks against 5 criteria in the ticket. Which check answers which criterion is not something either list says"
+      },
+      {
+        "name": "pull_request",
+        "outcome": "unavailable",
+        "detail": "gh could not answer, so the pull request body was not read. It is checked again at merge, where the receipt hash has to be in it"
+      }
+    ],
+    "rules": [
+      "fingerprint did not pass, so the reviewer reads everything: The tree changed after check 14: it ran against 31dbb2e8e6ba and this triage reads a1416677f7e9. The tests that passed are not the tests for this tree",
+      "slice_files did not pass, so the reviewer reads everything: Changed but named by no slice and no changes entry: CLAUDE.md, docs/tickets/README.md"
+    ],
+    "jev": {
+      "asked": true,
+      "model": "jev-1.13.0",
+      "reason": null,
+      "answers": [
+        {
+          "key": "criterion_evidenced#1",
+          "question": "criterion_evidenced",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "yes",
+          "probabilities": {
+            "yes": 0.65,
+            "no": 0.35
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.6,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "criterion_evidenced#2",
+          "question": "criterion_evidenced",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "yes",
+          "probabilities": {
+            "yes": 0.83,
+            "no": 0.17
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.6,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "criterion_evidenced#3",
+          "question": "criterion_evidenced",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "yes",
+          "probabilities": {
+            "yes": 0.62,
+            "no": 0.38
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.6,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "criterion_evidenced#4",
+          "question": "criterion_evidenced",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "yes",
+          "probabilities": {
+            "yes": 0.91,
+            "no": 0.09
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.6,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "criterion_evidenced#5",
+          "question": "criterion_evidenced",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "no",
+          "probabilities": {
+            "yes": 0.1,
+            "no": 0.9
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.6,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "diff_matches_solution",
+          "question": "diff_matches_solution",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "no",
+          "probabilities": {
+            "yes": 0.46,
+            "no": 0.54
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.6,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#CLAUDE.md",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "no",
+          "probabilities": {
+            "yes": 0.26,
+            "no": 0.74
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#docs/harness/workflow.md",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "no",
+          "probabilities": {
+            "yes": 0.28,
+            "no": 0.72
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#docs/tickets/README.md",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "no",
+          "probabilities": {
+            "yes": 0.18,
+            "no": 0.82
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#docs/tickets/SEEN-140-one-answer-to-whether-a-slices-plan-covers-a.md",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "no",
+          "probabilities": {
+            "yes": 0.2,
+            "no": 0.8
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#harness/calibration.py",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "no",
+          "probabilities": {
+            "yes": 0.34,
+            "no": 0.66
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#harness/guard.py",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "no",
+          "probabilities": {
+            "yes": 0.43,
+            "no": 0.57
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#harness/paths.py",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "yes",
+          "probabilities": {
+            "yes": 0.51,
+            "no": 0.49
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#harness/tests/test_calibration.py",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "no",
+          "probabilities": {
+            "yes": 0.2,
+            "no": 0.8
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#harness/tests/test_guard.py",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "no",
+          "probabilities": {
+            "yes": 0.21,
+            "no": 0.79
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#harness/tests/test_triage.py",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "no",
+          "probabilities": {
+            "yes": 0.2,
+            "no": 0.8
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#harness/triage.py",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "no",
+          "probabilities": {
+            "yes": 0.4,
+            "no": 0.6
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "review_depth",
+          "question": "review_depth",
+          "type": "score",
+          "options": [
+            "spot",
+            "full"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "spot",
+          "probabilities": {
+            "spot": 0.67,
+            "full": 0.33
+          },
+          "confidence": 0.34,
+          "score": 0.33,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        }
+      ]
+    },
+    "criteria_answers": [
+      {
+        "key": "criterion_evidenced#1",
+        "question": "criterion_evidenced",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.65,
+          "no": 0.35
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null,
+        "criterion": "One function answers whether a slice's plan covers a path, called by `harness/calibration.py`, `harness/guard.py` and `harness/triage.py`, with no second implementation of the comparison anywhere in `harness/`. **Amended on 1 October 2026:** the third caller is `calibration.py` and not `gates.py`, which this ticket's own description got wrong. `gates.py` never asks the membership question: it collects a slice's files and hands them to git as a pathspec, and git answers \"what changed under these paths\", which is a different question answered directory-aware by git's own rules and cannot be asked of a Python predicate. The membership readers were three and are now one, which `NoSecondReaderTest` holds by grepping `harness/*.py` for a hand-written exact comparison against a plan's files."
+      },
+      {
+        "key": "criterion_evidenced#2",
+        "question": "criterion_evidenced",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.83,
+          "no": 0.17
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null,
+        "criterion": "`harness guard <path>` allows a write to a file inside a directory the accepted slice names, and still refuses one outside every entry, with the refusal naming the entries"
+      },
+      {
+        "key": "criterion_evidenced#3",
+        "question": "criterion_evidenced",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.62,
+          "no": 0.38
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null,
+        "criterion": "The triage's `slice_files` check passes when every changed path is inside a directory the plan names, and still fails on a path no entry covers, with the failure naming it"
+      },
+      {
+        "key": "criterion_evidenced#4",
+        "question": "criterion_evidenced",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.91,
+          "no": 0.09
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null,
+        "criterion": "A test fails before the change for each of the two readers: one proving `harness guard` refused a path inside a named directory, one proving `slice_files` reported such a path as belonging to no slice"
+      },
+      {
+        "key": "criterion_evidenced#5",
+        "question": "criterion_evidenced",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.1,
+          "no": 0.9
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": false,
+        "fallback_reason": null,
+        "criterion": "The whole harness suite is green, and SEEN-114's `slice_files` check passes against its own journal and diff, which is the measurement this ticket is judged by"
+      }
+    ],
+    "review_depth": "full",
+    "reviewer_model": "opus",
+    "model_depth": "spot",
+    "focus": [
+      "CLAUDE.md",
+      "docs/harness/workflow.md",
+      "docs/tickets/README.md",
+      "docs/tickets/SEEN-140-one-answer-to-whether-a-slices-plan-covers-a.md",
+      "harness/calibration.py",
+      "harness/guard.py",
+      "harness/paths.py",
+      "harness/tests/test_calibration.py",
+      "harness/tests/test_guard.py",
+      "harness/tests/test_triage.py",
+      "harness/triage.py"
+    ],
+    "shadow": true,
+    "shadow_source": "threshold",
+    "shadow_reason": "[review] triage_shadow is true in harness/thresholds.toml",
+    "would_exclude": [
+      "CLAUDE.md",
+      "docs/harness/workflow.md",
+      "docs/tickets/README.md",
+      "docs/tickets/SEEN-140-one-answer-to-whether-a-slices-plan-covers-a.md",
+      "harness/calibration.py",
+      "harness/guard.py",
+      "harness/tests/test_calibration.py",
+      "harness/tests/test_guard.py",
+      "harness/tests/test_triage.py",
+      "harness/triage.py"
+    ],
+    "excluded_share": 0.8633,
+    "always_read": [
+      "docs/tickets/SEEN-140-one-answer-to-whether-a-slices-plan-covers-a.md",
+      "docs/harness/history/SEEN-140/"
+    ],
+    "reviewer_task": "Review SEEN-140 against its acceptance criteria and its journal.\n\nDepth: full, settled by triage record 17, in shadow mode, so the focus set is the whole diff and what the narrowing would have dropped is recorded rather than acted on\n\nRun the reviewer on opus by rule: the strongest model at full depth, one tier down at spot.\n\nRead these whatever the depth, because they are what a review is against and no focus set can hold them:\n- docs/tickets/SEEN-140-one-answer-to-whether-a-slices-plan-covers-a.md\n- docs/harness/history/SEEN-140/\n\nOf the diff, read these 11 file(s) and no others:\n- CLAUDE.md\n- docs/harness/workflow.md\n- docs/tickets/README.md\n- docs/tickets/SEEN-140-one-answer-to-whether-a-slices-plan-covers-a.md\n- harness/calibration.py\n- harness/guard.py\n- harness/paths.py\n- harness/tests/test_calibration.py\n- harness/tests/test_guard.py\n- harness/tests/test_triage.py\n- harness/triage.py\n\nAlready settled with no model, so do not spend a read confirming any of them: coverage, lint, gitleaks.\n\nPartly settled, and the rest is yours:\n- red_before_green: it passed, but it proves the cited check exited non-zero, never that it failed for the reason the slice states, which only a reader comparing the two can judge\n- tests_added: it passed, but it proves a test file is in the change, never that the behaviour the slice adds has a test of its own, which a one-line fixture edit satisfies just as well\n- acceptance_entries: it passed, but it counts the clarify record's checks against the ticket's criteria, never that each criterion has one, because neither list names the other\n\nNot settled, so they are yours:\n- fingerprint (fail): The tree changed after check 14: it ran against 31dbb2e8e6ba and this triage reads a1416677f7e9. The tests that passed are not the tests for this tree\n- slice_files (fail): Changed but named by no slice and no changes entry: CLAUDE.md, docs/tickets/README.md\n- pull_request (unavailable): gh could not answer, so the pull request body was not read. It is checked again at merge, where the receipt hash has to be in it\n\nReturn the review record's shape. Its `read` list must name every file you read and must cover the focus set above, which the review gate checks."
+  }
+}

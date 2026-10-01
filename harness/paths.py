@@ -111,3 +111,63 @@ NON_CODE_TEMPLATE = 'tdd-non-code.json'
 # submitting them unchanged is not evidence of an unedited template.
 ENUMERATED_KEYS = frozenset({'mode', 'change_type', 'verdict', 'independence', 'severity',
                              'status', 'id', 'phase', 'remote', 'reviewer'})
+
+
+def normalise(path):
+    """One spelling of a repository-relative path, or nothing for one that is not.
+
+    Both sides of every comparison come through here, because a finding, a
+    triage's `would_exclude` and a slice's file list are written by different
+    hands. The `./` prefix is removed as a prefix and not as a set of characters:
+    `str.lstrip('./')` strips every leading `.` and `/`, which turned
+    `.claude/agents/x.md` into `claude/agents/x.md` and made a finding in any dot
+    directory match nothing while looking like a path that had been read. F1 of
+    SEEN-109's first review, on a list where four of the thirteen excluded files
+    were dot directories.
+
+    An absolute path returns nothing. It cannot be compared with anything a
+    triage records, so it is placed nowhere rather than silently placed outside.
+    """
+    if not path:
+        return None
+    path = str(path).strip()
+    while path.startswith('./'):
+        path = path[2:]
+    if not path or path.startswith('/'):
+        return None
+    return path.rstrip('/') or None
+
+
+def covers(path, files):
+    """Whether a plan's named files contain this path, directories included.
+
+    The one reader of that question, and the reason it lives here: three places
+    asked it and two disagreed with the third. The route verdict read a directory
+    entry, so a slice naming `packages` was charged with a finding in
+    `packages/core/db/tables.ts`; the edit guard and the triage's `slice_files`
+    each compared exactly, so the same plan covered nothing inside it. SEEN-114
+    met all three in one ticket: refused the right to write files its plan named,
+    then returned three times over about forty files reported as belonging to no
+    slice. SEEN-140 brought the two exact comparisons up to this answer and moved
+    nothing down to theirs.
+
+    Through `normalise`, like every other path comparison. The first version
+    repeated the `lstrip('./')` that module's docstring was written to explain,
+    one function below it and on the other side of the same comparison, where it
+    decides the route verdict rather than the triage one: a finding in a dot
+    directory was charged to no slice, so a downgraded slice that produced it
+    read as having produced nothing, and findings are the only per-slice measure
+    the route rule has. F1 of SEEN-109's second review, on a repository where
+    SEEN-104 and SEEN-105 planned slices over `.claude/`, `.codex/` and
+    `.agents/`.
+
+    Whether a plan should be allowed to name a directory at all is a separate
+    question, open since SEEN-140 raised it and the founder's to settle.
+    """
+    if path is None:
+        return False
+    for named in files:
+        named = normalise(named)
+        if named is not None and (path == named or path.startswith(named + '/')):
+            return True
+    return False

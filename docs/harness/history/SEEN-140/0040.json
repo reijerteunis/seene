@@ -1,0 +1,38 @@
+{
+  "sequence": 40,
+  "ticket": "SEEN-140",
+  "timestamp": "2026-10-01T13:34:33.375379+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 5,
+  "actor": "claude:implementer",
+  "session": "6973478f0bee",
+  "head": "d525c4b9b5478bdb800e72ce0a2c26a31a2a750e",
+  "prev_hash": "fdacae3f7f81248d0852b9e6ce1272a36ee10d7723de8290c1b0382f755567a8",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": 1,
+          "behaviour": "One function answers whether a slice's plan covers a path: normalise and covers live in harness/paths.py, calibration imports them back, and guard.py, triage.py's _slice_files_check and triage.py's file_facts all call covers instead of comparing exactly. The fourth of those was F1 of the first review.",
+          "failure_reason": "harness/tests/test_calibration.py's NoSecondReaderTest failed with \"AssertionError: Lists differ: ['triage.py:517: named_in_solution=path in named))'] != []\", once its instrument became the syntax tree and could see a positive comparison. The earlier reds of this slice are records 6, 7, 8, 22 and 29, each on one of the three readers counted before the review found the fourth: the guard refusing packages/core/db/tables.ts against a slice naming packages, slice_files reporting harness/rules/fixture.py against a plan naming harness/rules, and paths.covers not existing.",
+          "red": 36,
+          "green": 37
+        }
+      ],
+      "regression": 38,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "6973478f0bee",
+      "output_tokens": 608238,
+      "tool_calls": 357,
+      "unavailable": null
+    }
+  }
+}

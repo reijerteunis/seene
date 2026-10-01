@@ -1,0 +1,22 @@
+{
+  "sequence": 28,
+  "ticket": "SEEN-140",
+  "timestamp": "2026-10-01T13:08:53.904927+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "session": "6973478f0bee",
+  "head": "852dda1894e8575907300a02b52d613dab076ebb",
+  "prev_hash": "11062306fb7228cdd3cb717c1bf117ff4755f780eacb9eaa603a8a39a0d24b68",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 4,
+    "reason": "The triage could see no evidence for: The whole harness suite is green. **Amended on 1 October 2026:** the second half of this criterion, that SEEN-114's `slice_files` check passes against its own journal and diff, is removed from it and recorded as the follow-up it is. That measurement happens on another branch after this one merges and that one rebases, so it can never be evidenced in this journal, and a criterion that cannot be evidenced where it is written is a criterion that holds a ticket at the gate for ever. The triage answered it unevidenced at 0.10 and was right to. It is named in the Outcome and belongs in SEEN-114's journal.. A criterion with nothing behind it is answered at the tdd stage, by writing the test or the check that proves it, rather than by a reviewer reading a diff that does not contain it",
+    "unmet_criteria": [
+      5
+    ]
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "sequence": 57,
+  "ticket": "SEEN-140",
+  "timestamp": "2026-10-01T14:10:32.533012+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 7,
+  "actor": "claude:implementer",
+  "session": "6973478f0bee",
+  "head": "ed244003107c667fbeec01a1684c173910936dec",
+  "prev_hash": "a5689819b2d3c775bafe0e9cefc5009c78eb26dd60240ec308a792085be991d0",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": 1,
+          "behaviour": "One function answers whether a slice's plan covers a path: normalise and covers live in harness/paths.py, calibration imports them back, and guard.py, triage.py's _slice_files_check and triage.py's file_facts all call covers instead of comparing exactly. The fourth of those was F1 of the first review.",
+          "failure_reason": "NoSecondReaderTest's sixth case failed with \"AssertionError: Lists differ: [(2, 'return cost in (planned, actual_prior)')] != []\": the instrument flagged a membership test against a word a plan shares with something else as a second reader of the plan-coverage question. The earlier reds of this slice are records 6, 7, 8, 22, 29, 36 and 45, one per property three reviews had to find.",
+          "red": 53,
+          "green": 54
+        }
+      ],
+      "regression": 55,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "6973478f0bee",
+      "output_tokens": 650191,
+      "tool_calls": 377,
+      "unavailable": null
+    }
+  }
+}
