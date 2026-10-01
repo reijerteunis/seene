@@ -469,6 +469,18 @@ export interface MutableIdentifier {
  * already created on the existing database, since the loop only declines to create
  * one and never removes one, and this constant brought level with it. The reason is
  * the third column and not a comment, because it is what a reviewer argues with.
+ *
+ * F87 is that sentence having been false for 29 of the 32 members it is about, every
+ * one whose basis is tenancy. `rls.test.ts` also asserts that the derived set reached
+ * every writable table carrying a `tenant_id`, and it computed that from the member
+ * list this constant filters, so the three edits above left the suite red with
+ * `Tables carrying a tenant_id the derived set did not reach: users`: the derivation
+ * had reached the column and the exemption had removed it, and the author was sent to
+ * look for a hole in the two rules instead. The reach is now asked of the derivation
+ * and reads no exemption, because an exemption is a decision about what may move and
+ * not a failure of the rules to reach a table, and the three edits are again the
+ * whole of the cost for every member of the set. Whoever moves that computation back
+ * onto the filtered list restores the fourth cost without writing it down.
  */
 export const IMMUTABLE_IDENTIFIER_EXCEPTIONS: readonly MutableIdentifier[] = [];
 

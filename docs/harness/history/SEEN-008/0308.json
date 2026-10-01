@@ -1,0 +1,50 @@
+{
+  "sequence": 308,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-30T23:55:36.576423+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 19,
+  "actor": "claude:reviewer",
+  "session": "a00943ab9615",
+  "head": "fae2da59c4b079982ebd68237c2633e72ce596c5",
+  "prev_hash": "199689a537d72e01095c26b269e1e2e1693b27ae4e30b1eaa8d02d4659e69405",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 20,
+    "reason": "The fifth Claude Code review returned the ticket on three, none high, and for the second round running nothing of the schema kind survived.\n\nIt attacked the tables rather than reading them. All five criteria verified by execution against the live database: tenancy measured over both relation families, 29 of 29 on each of the three questions with the negative query returning no rows; the cross-tenant read measured with a claim, with no claim and with a malformed claim; the five criterion-4 indexes measured unique and non-partial; the seed compared cell by cell with the routing table. The whole suite run independently of the journal's own greens, 194 tests. And the three questions the brief set about the new work are answered yes: seen.guard_authored_identifiers() is owner-only with has_function_privilege false for anon, authenticated and service_role alike, not security definer so it lends no owner privilege; forced to fail mid-way with a planted conflicting trigger name it created nothing it could not finish and left the schema exactly as the drop had; its restore path returns pg_get_triggerdef byte-identical to the shipped definition; and no state could be built in which the two lists disagree and the suite passes.\n\nAll three findings are about the machinery, and two of them are in what the previous round built.\n\nF86 is F45's lesson arriving in the newest guard in the file: the F84 scan counts its own source text for the name followed by an open bracket, which cannot tell a call from a quotation. Narrowing the protected call does fail the test, which is the guard working; adding one comment line that quotes the unnarrowed call restores the count and every assertion passes again, over a re-opened F79 in which the public.tenants entry is read by nobody. That entry holds F81's own sentence, the one record 292 quoted as the declaration of the F78 gap, so it could come back into the migration with 194 tests green. The comment beside the scan records that the probe calls are held as a value to hide them from it, without noticing that the scan counts text rather than calls.\n\nF87 is a sentence written last round that says it states a cost in full and is false for 29 of the 32 members it is about: tablesWithNoTenancyMember is computed from the exception-filtered list, so exempting any tenant_id reports its table as one the derivation never reached, which diagnoses the opposite of what happened and sends the author hunting a hole in the two rules.\n\nF88 is low and is the exemption probe's fallback choosing a column no exemption could make mutable, so a later bespoke trigger on claims.marketplace would make the test report that an entry does not work in production when the real cause is the fixture's choice.\n\nThe reviewer widened nothing on taste, agreed with the SQLSTATE refusal at record 303 after checking it, and left the round's declared gaps declared rather than reporting them back.\n\nReturned to tdd.",
+    "findings": [
+      {
+        "id": "F86",
+        "severity": "medium",
+        "file": "packages/core/db/schema.test.ts:7512",
+        "claim": "The guard added for F84 counts callers of withdrawnShapeClaimsStillStanding by searching its own source text for the name followed by an open bracket, which cannot tell a call from a quotation, so narrowing the catch-all call back to a relation and mentioning the call in one comment restores the count and re-opens F79 with the suite green.",
+        "failure_scenario": "Measured on the delivered tree with the scan lifted out verbatim into a standalone reproduction. As delivered it reports one unnarrowed call and four narrowed relations. Narrowing the call at line 7472 to pass 'public.claims', which is the exact defect F79 was returned for, reports zero unnarrowed and the test goes red, which is the guard working. Adding one comment line above the test that quotes the unnarrowed call reports one unnarrowed again, and then every assertion in the test passes: callsThatNarrowToNoRelation is 1, onlyTheCatchAllReads is the public.tenants entry so its length is still greater than zero, readByTheUnnarrowedCall is 1 because the probe calls the function through a value rather than through the scanned name, and readByAnyNarrowedCall is 0 because none of the five narrowed relations is public.tenants. In that state the public.tenants entry of WITHDRAWN_SHAPE_CLAIMS is read by no caller in the file, and that entry holds F81's own sentence, the one record 292 quoted as the declaration of the F78 gap: it could come back into referential_integrity.sql with 194 tests green. This is F45's finding, that a pattern over source text cannot tell an import from a quotation in either direction, applied to the newest guard in the file, and the comment at line 7507 records that the probe calls are held as a value to hide them from the scan without noticing that the scan counts text rather than calls.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F87",
+        "severity": "medium",
+        "file": "packages/core/db/tables.ts:467",
+        "claim": "The doc comment states in full, as the thing a later author weighs, that an exemption costs three edits in one migration, and for 29 of the 32 members of the derived set those three edits leave the suite red: rls.test.ts computes tablesWithNoTenancyMember from the exception-filtered member list, so exempting any tenant_id reports its table as one the derivation never reached.",
+        "failure_scenario": "rls.test.ts:2198 builds members by filtering authoredIdentifiers through IMMUTABLE_IDENTIFIER_EXCEPTIONS, and rls.test.ts:2229 then computes tablesWithNoTenancyMember as the writable tables carrying no tenancy member, asserted against an empty array. So an author who needs users.tenant_id to become mutable for a support path makes exactly the three edits the constant names, the entry in seen.mutable_identifiers(), the drop trigger and the mirror entry here, and the suite fails with Tables carrying a tenant_id the derived set did not reach: users. That message diagnoses the opposite of what happened: the derivation did reach it and the exemption removed it, so the author is sent to look for a hole in the two catalogue rules rather than at the assertion that refuses their exemption. The claim holds only for the three marketplace members, whose basis is authored identifier and which that filter does not read, so the sentence is true of 3 of 32 members and false of 29. If a tenancy exemption is meant to be impossible then that is a fourth cost and a decision, and the sentence that says the cost is said in full is where it belongs; either way this is the class F81, F82, F83 and F73 are, written into the file this round.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F88",
+        "severity": "low",
+        "file": "packages/core/db/rls.test.ts:2299",
+        "claim": "The exemption probe falls back to the first loop-made trigger when no loop-made trigger sits on an authored-identifier member, and that fallback is a tenant_id whose update is refused 23503 by a mandatory parent key whether or not the trigger stands, so the test fails with a message about the exemption list when what failed was the choice of column.",
+        "failure_scenario": "chosen prefers a loop-made trigger on a member whose basis is authored identifier. Today exactly one qualifies, claims.marketplace: connections.marketplace and marketplaces.marketplace carry the bespoke triggers, which the loop deliberately leaves alone. The moment a later round gives claims.marketplace a bespoke trigger and its own message, which is precisely what F72 did for connections.marketplace and for the reason part 9 states at line 714, find returns undefined and chosen becomes the first loop-made member, which is agent_actions.tenant_id. Measured on the delivered database: with immutable_tenant_id dropped from public.agent_actions, updating public.agent_actions set tenant_id to another tenant is still refused, by agent_actions_agent_run_id_fkey with 23503, because the target tenant holds no agent_runs row. So acceptedWithTheEntry is false, the test reports that an entry in seen.mutable_identifiers() does not take the refusal off in production, and the true cause is that the fixture picked a column no exemption could ever make mutable. A throw naming the miss, as the two throws above it do, would say so instead.",
+        "status": "open",
+        "resolution": ""
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}

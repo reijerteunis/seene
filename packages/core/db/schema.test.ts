@@ -28,7 +28,8 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { CAPABILITY_MODES, parseCapabilityCell } from './marketplaces';
 import {
   listRepositoryDirectory, PACKAGE_DIRECTORY, packageSources, readRepositoryFile,
-  repositoryPathExists, REPOSITORY_ROOT, SOURCE_EXTENSIONS, testTaskInputs,
+  repositoryPathExists, REPOSITORY_ROOT, SOURCE_EXTENSIONS,
+  stringArgumentsOfCallsTo, testTaskInputs,
 } from './repository';
 import {
   APPEND_ONLY_PRIVILEGES, APPEND_ONLY_TABLES, ARCHITECTURE_DOCUMENT,
@@ -7502,27 +7503,51 @@ describe('a marketplace identifier, and the line id a marketplace gave a row', (
     // than written down, so a caller added later moves the probe instead of
     // stranding it, and the argument list of each call is read rather than the
     // relations of the list, so a call that stops passing one is seen.
-    // Held as a value and called through it, so that the two probes below are not
-    // themselves found by the scan that counts the callers.
+    // Held as a value and called through it, so that the probes below are not
+    // themselves found by the counter that counts the callers.
     const scan = withdrawnShapeClaimsStillStanding;
     const scanner = withdrawnShapeClaimsStillStanding.name;
-    const own = readRepositoryFile(`${PACKAGE_DIRECTORY}/db/schema.test.ts`);
-    const narrowed: string[] = [];
-    let unnarrowed = 0;
-    for (let at = own.indexOf(`${scanner}(`); at >= 0; at = own.indexOf(`${scanner}(`, at + 1)) {
-      if (own.slice(0, at).endsWith('function ')) continue;
-      let depth = 0;
-      let end = at + scanner.length;
-      do {
-        if (own[end] === '(') depth += 1;
-        if (own[end] === ')') depth -= 1;
-        end += 1;
-      } while (depth > 0 && end < own.length);
-      const argument = own.slice(at + scanner.length + 1, end - 1);
-      const relation = /'([^']+)'/.exec(argument);
-      if (relation === null) unnarrowed += 1;
-      else narrowed.push(relation[1]);
+    const ownPath = `${PACKAGE_DIRECTORY}/db/schema.test.ts`;
+    const own = readRepositoryFile(ownPath);
+
+    // F86, and it is F45's finding again. The count was a search of this file's own
+    // text for the name followed by an open bracket, and a pattern over text cannot
+    // tell a call from a quotation in either direction: narrowing the call above did
+    // turn this red, which is the guard half working, but one comment line quoting
+    // the unnarrowed call put the count back and every assertion here passed again,
+    // over a re-opened F79 in which the `public.tenants` entry was read by nobody.
+    // `repository.ts` made this exact move once, off a pattern over text and onto
+    // the compiler's syntax tree, and this asks that tree the same question: a call
+    // expression whose callee is this name, and the string literals that call
+    // passes. So the quotations written out below are quotations and the one call is
+    // a call, and both attacks are measured here rather than left to a reviewer.
+    const narrowedTo = (contents: string): string[][] => stringArgumentsOfCallsTo(
+      contents, ownPath, scanner,
+    );
+    const unnarrowedIn = (contents: string): number => narrowedTo(contents)
+      .filter((literals) => literals.length === 0).length;
+    const narrowed = narrowedTo(own)
+      .filter((literals) => literals.length > 0).map((literals) => literals[0]);
+
+    // The two attacks, as text. The plain narrowing is the defect F79 was returned
+    // for and has to take the count to zero, because that is the guard working; the
+    // same narrowing with the call quoted back, once in a comment and once in a
+    // string, has to leave it at zero, because neither quotation is a call. The
+    // quotation is written out in full here, which is what makes this test its own
+    // first attack: a count over text finds the call twice in this file.
+    const theUnnarrowedCall = 'withdrawnShapeClaimsStillStanding(sourcesThatDocumentTheSet())';
+    const narrowedBack = `${theUnnarrowedCall.slice(0, -1)}, 'public.claims')`;
+    const plainNarrowing = own.replace(theUnnarrowedCall, narrowedBack);
+    if (plainNarrowing === own) {
+      throw new Error(
+        `This file no longer spells the unnarrowed call ${theUnnarrowedCall}, so the attacks `
+        + 'below replaced nothing and measure nothing. Spell it as the file spells it, or move '
+        + 'the narrowing to wherever the unnarrowed call now is.',
+      );
     }
+    const withAComment = `${plainNarrowing}\n// ${theUnnarrowedCall}\n`;
+    const quotedInAString = `const quoted = ${JSON.stringify(theUnnarrowedCall)};`;
+    const withAStringLiteral = `${plainNarrowing}\n${quotedInAString}\n`;
 
     // The entries only the unnarrowed call can reach, and prose carrying the first of
     // them that this repository does not hold. The fabricated source is a migration
@@ -7535,7 +7560,10 @@ describe('a marketplace identifier, and the line id a marketplace gave a row', (
       contents: probe.spelling.map((fragment) => `-- ${fragment}`).join('\n'),
     }];
     const measured = {
-      callsThatNarrowToNoRelation: unnarrowed,
+      callsThatNarrowToNoRelation: unnarrowedIn(own),
+      underThePlainNarrowing: unnarrowedIn(plainNarrowing),
+      underTheNarrowingAndAComment: unnarrowedIn(withAComment),
+      underTheNarrowingAndAStringLiteral: unnarrowedIn(withAStringLiteral),
       readByTheUnnarrowedCall: scan(fabricated).length,
       readByAnyNarrowedCall: narrowed.reduce(
         (found, relation) => found + scan(fabricated, relation).length, 0,
@@ -7553,9 +7581,18 @@ describe('a marketplace identifier, and the line id a marketplace gave a row', (
       + `sentence the repository does not contain: the unnarrowed call reported `
       + `${measured.readByTheUnnarrowedCall} of them and the narrowed calls reported `
       + `${measured.readByAnyNarrowedCall}, so if the unnarrowed one is ever given a relation `
-      + 'these entries become unread and this line is what says so',
+      + 'these entries become unread and this line is what says so. And the count is of call '
+      + 'expressions in the syntax tree and not of the name in the text, because a count over '
+      + 'text is restored by a comment quoting the call it no longer has (F86): narrowing the '
+      + `call in this file's own text takes the count to ${measured.underThePlainNarrowing}, `
+      + `quoting it back in a comment leaves it at ${measured.underTheNarrowingAndAComment} and `
+      + `in a string at ${measured.underTheNarrowingAndAStringLiteral}, and all three have to be `
+      + 'zero for the narrowing to be the thing this catches',
     ).toEqual({
       callsThatNarrowToNoRelation: 1,
+      underThePlainNarrowing: 0,
+      underTheNarrowingAndAComment: 0,
+      underTheNarrowingAndAStringLiteral: 0,
       readByTheUnnarrowedCall: 1,
       readByAnyNarrowedCall: 0,
     });

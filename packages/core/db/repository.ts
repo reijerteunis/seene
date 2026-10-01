@@ -439,6 +439,58 @@ function loadedSpecifiers(parsed: ts.SourceFile): string[] {
 }
 
 /**
+ * The string literals each call of a named function passes, one array per call, in
+ * the order the calls appear in the source.
+ *
+ * Asked of the compiler's syntax tree rather than of the text, which is the whole
+ * reason it is worth a function here. A guard that counts its own callers by
+ * searching for the name followed by an open bracket cannot tell a call from a
+ * quotation in either direction: one comment line quoting a call restores a count
+ * the code no longer earns, and a call written across two lines or with a comment
+ * between the brackets is missed. That is F45, which took the import reading in
+ * this module off a pattern over text, and F86 is the same finding about the caller
+ * count in `schema.test.ts`, so the reading is shared rather than written twice. A
+ * quotation is not a call here because a comment is not in the tree at all and a
+ * string literal is not a callee.
+ *
+ * Matched by the name at the call and not by what it was reached through, exactly
+ * as `loadedSpecifiers` is: `f(x)`, `o.f(x)` and a destructured `f` are one case.
+ * What it cannot see is that same weakness, and the caller relies on it: a function
+ * bound to another name and called through that name is not a call of this one,
+ * which is how `schema.test.ts` keeps its own probe calls out of its own count.
+ * Every string literal in the argument list is returned rather than the first,
+ * because which argument carries the meaning is the caller's question and a rule
+ * about position is a rule about how the call is punctuated.
+ *
+ * The parse is of text already in hand and opens nothing. `source` decides only
+ * whether the text is read as TSX, and a file that does not parse yields the calls
+ * the parser did recover, which is more than none.
+ */
+export function stringArgumentsOfCallsTo(
+  contents: string, source: string, name: string,
+): string[][] {
+  const found: string[][] = [];
+  const visit = (node: ts.Node): void => {
+    if (ts.isCallExpression(node)) {
+      const { expression } = node;
+      let called: string | undefined;
+      if (ts.isPropertyAccessExpression(expression)) called = expression.name.text;
+      else if (ts.isIdentifier(expression)) called = expression.text;
+      if (called === name) {
+        const literals: string[] = [];
+        for (const argument of node.arguments) {
+          if (ts.isStringLiteralLike(argument)) literals.push(argument.text);
+        }
+        found.push(literals);
+      }
+    }
+    ts.forEachChild(node, visit);
+  };
+  ts.forEachChild(parseSource(contents, source), visit);
+  return found;
+}
+
+/**
  * The extension a specifier is written with, beside the extensions the file it
  * names may actually be written with.
  *

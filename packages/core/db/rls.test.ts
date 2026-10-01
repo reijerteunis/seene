@@ -21,7 +21,8 @@ import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import {
   BILLING_CRITICAL_TABLES, CLIENT_BOUND_ROLES, ERASURE_REGISTRY_TABLE,
-  IMMUTABLE_IDENTIFIER_EXCEPTIONS, TABLE_RELKINDS, TENANCY_CLAUSES, TENANT_CLAIM,
+  IMMUTABLE_IDENTIFIER_EXCEPTIONS, MutableIdentifier,
+  TABLE_RELKINDS, TENANCY_CLAUSES, TENANT_CLAIM,
 } from './tables';
 
 // The local Supabase stack's Postgres, the address `pnpm dev:up` prints when it
@@ -2011,7 +2012,111 @@ describe('every identifier this schema authors, and whether an update can move o
   /** Every table a row can be written into directly, in the order they can be
    * written in. */
   let writable: string[];
+  /** The derived set as the two rules return it, with nothing taken out of it. */
+  let derived: AuthoredIdentifier[];
+  /** The members this file probes: the derivation less whatever is exempted. */
   let members: AuthoredIdentifier[];
+
+  /**
+   * The two things this file measures the derived set by: the members it probes,
+   * and the writable tables carrying a `tenant_id` that the two rules did not
+   * reach. Computed together, and taking the exemptions, because the two read them
+   * differently and the question of what either answers under an exemption has to
+   * be askable at all.
+   *
+   * F87. The reach used to be computed from the probe list, which is the derivation
+   * with the exemptions taken out of it, so exempting any `tenant_id` reported its
+   * table as one the derivation never reached. An author who makes exactly the three
+   * edits `IMMUTABLE_IDENTIFIER_EXCEPTIONS` states the cost to be is then told
+   * `Tables carrying a tenant_id the derived set did not reach: users`, which
+   * diagnoses the opposite of what happened: the rules reached the column and a
+   * decision was recorded about it. That sends the author to look for a hole in the
+   * two catalogue rules rather than at the assertion refusing the exemption, and it
+   * made the stated cost false for 29 of the 32 members, every one whose basis is
+   * tenancy.
+   *
+   * So the reach is asked of the derivation and the exemptions are not read for it.
+   * That is what the assertion is for: it proves the two rules reached every
+   * writable table carrying a `tenant_id`, and an exemption is a decision about what
+   * may move rather than a failure of reach. The other honest answer was to declare
+   * a tenancy exemption impossible, which would make the refusal correct and the
+   * cost a fourth one to write down; it was declined because nothing in either rule
+   * distinguishes the two bases, the exemption list is mirrored into the schema and
+   * honoured there by one loop that reads no basis either, and a rule that is really
+   * a refusal belongs where the refusal is rather than in a count of edits.
+   */
+  function derivationAsMeasured(
+    tables: readonly string[],
+    derivation: readonly AuthoredIdentifier[],
+    exempted: readonly MutableIdentifier[],
+  ): { probed: AuthoredIdentifier[]; tablesWithNoTenancyMember: string[] } {
+    return {
+      probed: derivation.filter((member) => !exempted.some(
+        (exception) => exception.column === `${member.relation}.${member.column}`,
+      )),
+      tablesWithNoTenancyMember: tables.filter((table) => !derivation.some(
+        (member) => member.relation === table && member.basis === 'tenancy',
+      )),
+    };
+  }
+
+  /** One trigger the loop in part 9 created, as `pg_catalog` reports it. */
+  interface LoopMadeTrigger {
+    readonly relation: string;
+    readonly column: string;
+    readonly trigger: string;
+  }
+
+  /**
+   * The member the exemption probe measures what an entry buys on: one the loop in
+   * part 9 put a trigger on, whose basis is the authored identifier rule.
+   *
+   * F88. It used to fall back to the first loop-made trigger when none qualified,
+   * and that fallback is a `tenant_id`, which no entry in any list can make mutable:
+   * moving one is refused 23503 by a mandatory parent key whether the trigger stands
+   * or not. Measured on the delivered database with `immutable_tenant_id` dropped
+   * from `public.agent_actions`, the update was still refused, by
+   * `agent_actions_agent_run_id_fkey`, because the target tenant holds no
+   * `agent_runs` row. So the probe would have reported that an entry in
+   * `seen.mutable_identifiers()` does not take the refusal off in production when
+   * what failed was the choice of column, and that report is the opposite of what
+   * had happened. Today exactly one member qualifies, `claims.marketplace`:
+   * `connections.marketplace` and `marketplaces.marketplace` carry the bespoke
+   * triggers the loop leaves alone, and the round that gives `claims.marketplace` one
+   * of its own, as F72 did for `connections.marketplace`, is the round the fallback
+   * would have been taken. It refuses instead, naming the miss, as the two refusals
+   * around it do.
+   */
+  function chosenForTheExemptionProbe(
+    loopMade: readonly LoopMadeTrigger[], probed: readonly AuthoredIdentifier[],
+  ): LoopMadeTrigger {
+    if (loopMade.length === 0) {
+      throw new Error(
+        'No trigger in schema public was created by the loop in part 9, so exempting a member '
+        + 'from it would prove nothing about what an entry in seen.mutable_identifiers() buys. '
+        + 'Either the loop created none, which the migration raises on, or its naming changed.',
+      );
+    }
+    const chosen = loopMade.find((row) => probed.some(
+      (member) => member.relation === row.relation && member.column === row.column
+        && member.basis === 'authored identifier',
+    ));
+    if (chosen === undefined) {
+      throw new Error(
+        'No trigger the loop in part 9 made sits on a member of the authored identifier rule, so '
+        + 'there is no column here an exemption could make mutable and nothing to measure what an '
+        + `entry in seen.mutable_identifiers() buys. The loop made ${loopMade.length} trigger`
+        + `${loopMade.length === 1 ? '' : 's'}, on `
+        + `${loopMade.map((row) => `${row.relation}.${row.column}`).join(', ')}, and the set `
+        + 'probed holds none of them as an authored identifier. Falling back to any of those is '
+        + 'falling back to a tenant_id, whose update a mandatory parent key refuses 23503 whether '
+        + 'the trigger stands or not, so the probe would report the exemption list for what this '
+        + 'fixture chose. Give it a column keyed at a catalogue that the loop guards, or say here '
+        + 'why there is no longer one.',
+      );
+    }
+    return chosen;
+  }
 
   /** The SQLSTATE the database answered with, or `accepted` when it did not refuse.
    * Behind a savepoint, so a refusal can be measured and the transaction carry on to
@@ -2195,8 +2300,10 @@ describe('every identifier this schema authors, and whether an update can move o
         const relation = relations.find((entry) => entry.name === table);
         return relation !== undefined && relation.partitionOf === null && !relation.partitionless;
       });
-    members = (await authoredIdentifiers(client)).filter((member) => !IMMUTABLE_IDENTIFIER_EXCEPTIONS
-      .some((exception) => exception.column === `${member.relation}.${member.column}`));
+    derived = await authoredIdentifiers(client);
+    members = derivationAsMeasured(
+      writable, derived, IMMUTABLE_IDENTIFIER_EXCEPTIONS,
+    ).probed;
   });
 
   afterAll(async () => {
@@ -2226,11 +2333,9 @@ describe('every identifier this schema authors, and whether an update can move o
       answeringTwoWays: named((answer) => answer.idle !== answer.trading),
       unprobed: named((answer) => answer.idle === 'no row to probe'
         || answer.trading === 'no row to probe'),
-      tablesWithNoTenancyMember: writable.filter(
-        (table) => !members.some(
-          (member) => member.relation === table && member.basis === 'tenancy',
-        ),
-      ),
+      tablesWithNoTenancyMember: derivationAsMeasured(
+        writable, derived, IMMUTABLE_IDENTIFIER_EXCEPTIONS,
+      ).tablesWithNoTenancyMember,
     };
     expect(
       measured,
@@ -2248,6 +2353,97 @@ describe('every identifier this schema authors, and whether an update can move o
     ).toEqual({
       moved: [], answeringTwoWays: [], unprobed: [], tablesWithNoTenancyMember: [],
     });
+  });
+
+  it('reports a table the two rules did not reach, and never an exempted one', () => {
+    // F87. The assertion above reports the writable tables carrying a `tenant_id`
+    // that the derived set did not reach, and it was computed from the probe list,
+    // which is the derivation with the exemptions taken out of it. So an author who
+    // makes exactly the three edits `IMMUTABLE_IDENTIFIER_EXCEPTIONS` names, for any
+    // of the 29 members whose basis is tenancy, is told that the derived set did not
+    // reach their table, which diagnoses the opposite of what happened: the rules
+    // reached the column and a decision was recorded about it. Both questions are
+    // asked here of the same derivation and the same exemption, so that an exemption
+    // cannot read as a hole in the rules and the assertion cannot read as vacuous.
+    const aTenancyMember = derived.find(
+      (member) => member.basis === 'tenancy' && writable.includes(member.relation),
+    );
+    if (aTenancyMember === undefined) {
+      throw new Error(
+        'No member of the derived set is a tenant_id on a writable table, so there is nothing an '
+        + 'exemption could be probed on here and nothing for the assertion above to reach.',
+      );
+    }
+    const exempted = `${aTenancyMember.relation}.${aTenancyMember.column}`;
+    const underAnExemption = derivationAsMeasured(writable, derived, [
+      { column: exempted, reason: 'a probe in rls.test.ts, exempted in no migration' },
+    ]);
+    // And a table no rule reached, so that the assertion is shown reporting one
+    // rather than passing because it cannot report anything at all.
+    const neverReached = 'a_table_the_two_rules_never_reached';
+    const withOneMissed = derivationAsMeasured(
+      [...writable, neverReached], derived, IMMUTABLE_IDENTIFIER_EXCEPTIONS,
+    );
+    const measured = {
+      reportedUnderAnExemption: underAnExemption.tablesWithNoTenancyMember,
+      stillProbedUnderTheExemption: underAnExemption.probed
+        .some((member) => `${member.relation}.${member.column}` === exempted),
+      reportedWhenARuleMissedATable: withOneMissed.tablesWithNoTenancyMember,
+    };
+    expect(
+      measured,
+      `With ${exempted} named in seen.mutable_identifiers() and mirrored in `
+      + 'IMMUTABLE_IDENTIFIER_EXCEPTIONS, which is the whole of the three edits that constant '
+      + 'states the cost of an exemption to be, this file stops probing the column and goes on '
+      + 'saying that the two rules reached its table: an exemption is a decision about what may '
+      + 'move and not a failure of the rules to reach it, and a message that calls it a hole in '
+      + 'the rules sends the author to look in the wrong place (F87). What was reported under '
+      + `the exemption: ${measured.reportedUnderAnExemption.join(', ') || 'nothing'}, and the `
+      + `column is ${measured.stillProbedUnderTheExemption ? 'still probed' : 'no longer probed'}. `
+      + 'And a writable table the two rules never reached has to be reported, or this assertion '
+      + `proves nothing: it reported ${measured.reportedWhenARuleMissedATable.join(', ') || 'nothing'}`,
+    ).toEqual({
+      reportedUnderAnExemption: [],
+      stillProbedUnderTheExemption: false,
+      reportedWhenARuleMissedATable: [neverReached],
+    });
+  });
+
+  it('refuses to probe an exemption on a column no exemption could make mutable', () => {
+    // F88. The probe below picks a member the loop in part 9 put a trigger on and
+    // whose basis is the authored identifier rule, and fell back to the first
+    // loop-made trigger when none qualified. Today exactly one qualifies,
+    // `claims.marketplace`: `connections.marketplace` and `marketplaces.marketplace`
+    // carry the bespoke triggers the loop leaves alone. The moment a later round
+    // gives `claims.marketplace` a bespoke trigger of its own, which is exactly what
+    // F72 did for `connections.marketplace`, the fallback becomes a `tenant_id`, and
+    // a `tenant_id` cannot be made mutable by any entry in any list: moving it is
+    // refused 23503 by a mandatory parent key whether the trigger stands or not. The
+    // probe would then report that an entry in `seen.mutable_identifiers()` does not
+    // take the refusal off in production, when what failed was the choice of column.
+    const loopMade = [
+      { relation: 'agent_actions', column: 'tenant_id', trigger: 'immutable_tenant_id' },
+      { relation: 'claims', column: 'marketplace', trigger: 'immutable_marketplace' },
+    ];
+    const tenancyOnly: AuthoredIdentifier[] = [{
+      relation: 'agent_actions', column: 'tenant_id', basis: 'tenancy',
+      catalogue: null, catalogueColumn: null,
+    }];
+    const bothKinds: AuthoredIdentifier[] = [...tenancyOnly, {
+      relation: 'claims', column: 'marketplace', basis: 'authored identifier',
+      catalogue: 'marketplaces', catalogueColumn: 'marketplace',
+    }];
+    expect(
+      chosenForTheExemptionProbe(loopMade, bothKinds),
+      'Where a loop-made trigger sits on a member of the authored identifier rule, that is the '
+      + 'member the exemption probe measures, and the tenancy member beside it is not.',
+    ).toEqual(loopMade[1]);
+    expect(
+      () => chosenForTheExemptionProbe(loopMade, tenancyOnly),
+      'With no loop-made trigger on a member of the authored identifier rule, there is nothing '
+      + 'here an exemption could make mutable, and the probe has to say that rather than fall '
+      + 'back to a tenant_id and report the exemption list for what the fixture chose (F88).',
+    ).toThrowError(/authored identifier rule/);
   });
 
   it('holds one exemption list, which the schema and this file cannot carry differently', async () => {
@@ -2296,17 +2492,7 @@ describe('every identifier this schema authors, and whether an update can move o
           and pg_catalog.pg_get_triggerdef(t.oid) like '%seen.refuse_identifier_change(%'
         order by 1, 2`,
     );
-    const chosen = loopMade.find((row) => members.some(
-      (member) => member.relation === row.relation && member.column === row.column
-        && member.basis === 'authored identifier',
-    )) ?? loopMade[0];
-    if (chosen === undefined) {
-      throw new Error(
-        'No trigger in schema public was created by the loop in part 9, so exempting a member '
-        + 'from it would prove nothing about what an entry in seen.mutable_identifiers() buys. '
-        + 'Either the loop created none, which the migration raises on, or its naming changed.',
-      );
-    }
+    const chosen = chosenForTheExemptionProbe(loopMade, members);
     const member = members.find(
       (entry) => entry.relation === chosen.relation && entry.column === chosen.column,
     );
