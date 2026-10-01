@@ -514,7 +514,12 @@ def file_facts(repository, files, named, records, attempt):
                           package=package_of(path),
                           risk_percentile=scored.get('percentile'),
                           coverage_delta=delta,
-                          named_in_solution=path in named))
+                          # Through `covers`, so a plan naming a directory names what is
+                          # inside it here too. This is the fact Jev reads as "Named by
+                          # the solution record" when it decides what the reviewer must
+                          # read, and an exact comparison answered no for every file
+                          # under a named directory: F1 of SEEN-140's first review.
+                          named_in_solution=covers(path, named)))
     return facts
 
 

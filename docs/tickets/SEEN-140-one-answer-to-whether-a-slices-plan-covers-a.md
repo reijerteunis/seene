@@ -138,7 +138,32 @@ SEEN-114's own commit onto this branch with `git cherry-pick -x`, so the restore
 one-point ticket instead of a parked one, and SEEN-114 keeps the commit it was asked to carry: git
 drops the duplicate when that branch rebases. Record 14 is the regression at 1,449 tests green.
 
-### Carried forward
+#### F1, and what it says about the test that missed it
+
+The first review returned this ticket on a fourth reader nobody had counted:
+`harness/triage.py:517` computed `named_in_solution=path in named`, an exact
+comparison against the plan's own file list, and `file_subject` writes that straight
+into the state Jev reads as "Named by the solution record" when it decides what the
+reviewer must read. So the one answer this ticket set out to give had a fourth
+dissenter, in the place where the wrong answer does the most harm, and it is
+plausibly part of why SEEN-114's criteria 2 and 5 scored 0.36 and 0.41: every file
+under `apps` and `packages` was shown to Jev as named by no slice.
+
+The ticket's own pre-work said there were exactly three readers. It was wrong, and
+the reason is the instrument: the grep that found them looked for `not in`, and this
+one is positive. `NoSecondReaderTest` had the same blind spot, so the test that was
+criterion 1's evidence could not see the case criterion 1 is about.
+
+Widening the regex to both directions then matched three lines that are not
+comparisons at all, `for position in named` among them, because a regex cannot tell
+a membership test from a loop. So the instrument is now the syntax tree: an
+`ast.Compare` with `In` or `NotIn` whose comparator is a plan's file list, over the
+four modules that read a plan. A `for` clause is a `comprehension.iter` and never a
+Compare, so the loops drop out by construction rather than by exception. Two tests
+hold the instrument itself: one proving it sees a positive comparison, which is the
+blind spot F1 came through, and one proving a loop over the plan is not one.
+
+## Carried forward
 
 The policy question is open and is the founder's: whether the solution gate should refuse a plan whose
 slices name overlapping directories. This ticket made the readers agree, which was the defect. Whether

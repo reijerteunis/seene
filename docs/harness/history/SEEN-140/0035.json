@@ -1,0 +1,33 @@
+{
+  "sequence": 35,
+  "ticket": "SEEN-140",
+  "timestamp": "2026-10-01T13:24:35.127510+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 4,
+  "actor": "claude:reviewer",
+  "session": "6973478f0bee",
+  "head": "33685bdea2e41b7f034dfb4c4a843124819a52c3",
+  "prev_hash": "fa49c707a4754292b60be09c5ab2067fa320879eff2ef9b614904066d1c17d5b",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 5,
+    "reason": "F1 at harness/triage.py:517, found by the reviewer and verified: named_in_solution is a fourth exact-membership reader of the question this ticket exists to unify, and it feeds Jev's reviewer_must_read state. My own pre-work said there were exactly three readers and was wrong, because the grep that found them looked for the negative form and this one is positive. NoSecondReaderTest has the same blind spot, so the test that is the evidence for criterion 1 could not see the case criterion 1 is about.",
+    "findings": [
+      {
+        "id": "F1",
+        "severity": "high",
+        "file": "harness/triage.py:517",
+        "claim": "file_facts() computes named_in_solution=path in named, an exact-membership comparison against the plan's raw file list that is never routed through paths.covers(), so a file actually covered by a directory entry in the plan is reported to Jev's reviewer_must_read question as not named by the solution. A fourth reader of the question this ticket exists to unify, and undetected by NoSecondReaderTest because its regex matches the negative form and not the positive one used here.",
+        "failure_scenario": "A future solution plan names a directory, as SEEN-114's formatter slices named apps and packages. Every changed file under it is handled correctly by the guard, by slice_files and by the route verdict, but file_subject() still writes 'Named by the solution record: no' into Jev's reviewer_must_read state for that file, which is the false signal SEEN-140 set out to eliminate, relocated to the one place its own regression test cannot see.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "none: rules/registry.toml does not exist on this branch, because SEEN-114 creates it and has not landed, so there is no rule id to cite."
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}

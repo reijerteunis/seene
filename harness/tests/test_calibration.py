@@ -5,8 +5,11 @@ model ever take effect, so what is asserted here is that the rule is applied as
 written rather than that a number came out favourable.
 """
 
+import ast
 import json
+import pathlib
 import re
+import tempfile
 import unittest
 
 from harness import calibration, gates, journal as journal_module, paths, report, thresholds
@@ -694,26 +697,92 @@ class OneReaderOfTheQuestionTest(unittest.TestCase):
 class NoSecondReaderTest(unittest.TestCase):
     """Criterion 1 of SEEN-140: one implementation of the comparison in harness/.
 
-    A grep rather than a call graph, because what went wrong was not a wrong call
-    but two hand-written comparisons, each reading as obviously right where it
-    stood. The modules are scanned and not the tests: a test comparing a path to
-    a list exactly is asserting an exact answer, which is what a test is for.
+    The syntax tree rather than a grep, and the reason is F1 of this ticket's first
+    review. The first version of this test was a regex for `not in named`, which
+    could not see `named_in_solution=path in named` at triage.py:517: a fourth
+    reader of the question, feeding Jev's reviewer_must_read state with the very
+    answer this ticket exists to correct. Widening the regex to both directions
+    then matched three lines that are not comparisons at all, `for position in
+    named` among them, because a regex cannot tell a membership test from a loop.
+
+    An `ast.Compare` can. `for path in named` is a `comprehension.iter` and never a
+    Compare, so the loops drop out by construction rather than by exception, and
+    what is left is a path being tested against a plan's files. The modules are
+    the ones that read a plan: a `named` elsewhere in the harness holds something
+    else, and a test that guessed from the variable's name would be the same kind
+    of blunt instrument one round later.
+
+    The tests are not scanned. A test comparing a path to a list exactly is
+    asserting an exact answer, which is what a test is for.
     """
 
-    EXACT_MEMBERSHIP = re.compile(
-        r"""not\s+in\s+(named|planned|entry\[['"]files['"]\]|entry\.get\(['"]files['"]\))""")
+    # The modules that read a slice's plan. kpi.py has a `named` holding agent
+    # names and is not one of them.
+    READERS = ('calibration.py', 'gates.py', 'guard.py', 'triage.py')
+
+    # What a plan's file list is called where it is read.
+    PLAN_FILES = ("named", "planned", "entry['files']", "entry.get('files')",
+                  'entry["files"]', 'entry.get("files")')
+
+    def _comparisons(self, module):
+        """Every membership test in one module, as (line, the source of it)."""
+        source = module.read_text()
+        lines = source.splitlines()
+        found = []
+        for node in ast.walk(ast.parse(source)):
+            if not isinstance(node, ast.Compare):
+                continue
+            for operator, right in zip(node.ops, node.comparators):
+                if not isinstance(operator, (ast.In, ast.NotIn)):
+                    continue
+                if ast.unparse(right).strip() in self.PLAN_FILES:
+                    found.append((node.lineno, lines[node.lineno - 1].strip()))
+        return found
 
     def test_no_module_compares_a_path_to_a_slice_s_files_itself(self):
         offenders = []
         for module in sorted((PROJECT / 'harness').glob('*.py')):
-            for number, line in enumerate(module.read_text().splitlines(), start=1):
-                if self.EXACT_MEMBERSHIP.search(line):
-                    offenders.append(f'{module.name}:{number}: {line.strip()}')
+            if module.name not in self.READERS:
+                continue
+            for number, line in self._comparisons(module):
+                offenders.append(f'{module.name}:{number}: {line}')
 
         self.assertEqual(offenders, [],
                          "Whether a slice's plan covers a path is paths.covers and nothing "
                          'else; these answer it themselves and will one day answer it '
                          'differently')
+
+    def test_the_instrument_can_see_a_positive_comparison(self):
+        """The blind spot F1 came through, proved on source of its own shape.
+
+        Without this the test above could lose either direction again and read as
+        passing, which is how the first version of it was written and believed.
+        """
+        module = pathlib.Path(self.enterContext(
+            tempfile.TemporaryDirectory())) / 'triage.py'
+        module.write_text('def f(path, named):\n'
+                          '    return dict(named_in_solution=path in named)\n')
+        self.assertEqual([line for line, _ in self._comparisons(module)], [2])
+
+        module.write_text('def f(path, named):\n'
+                          '    if path not in named:\n'
+                          '        return False\n')
+        self.assertEqual([line for line, _ in self._comparisons(module)], [2])
+
+    def test_a_loop_over_the_plan_is_not_a_comparison(self):
+        """Three lines the widened regex matched and none of them is a reader.
+
+        `for position in named` and `{path for path in named if path}` are a loop
+        and a comprehension. The instrument drops them because they are not
+        Compare nodes, not because anything here lists them as exceptions.
+        """
+        module = pathlib.Path(self.enterContext(
+            tempfile.TemporaryDirectory())) / 'triage.py'
+        module.write_text('def f(named):\n'
+                          '    for position in named or []:\n'
+                          '        pass\n'
+                          '    return {path for path in named if path}\n')
+        self.assertEqual(self._comparisons(module), [])
 
 
 class GoLiveDecisionTest(ProjectTest):
