@@ -1,0 +1,33 @@
+{
+  "sequence": 139,
+  "ticket": "SEEN-114",
+  "timestamp": "2026-10-01T15:06:55.018593+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 7,
+  "actor": "claude:implementer",
+  "session": "ad77b7a13315",
+  "head": "8c3c8278f81fbbbf84d20b98df90e3789cc1cad6",
+  "prev_hash": "4bdd0d711a1ab0d14a9530719d73013cf070eba2359e3475d3f11d6f731901d5",
+  "data": {
+    "command": [
+      "pnpm",
+      "turbo",
+      "run",
+      "typecheck",
+      "--force"
+    ],
+    "phase": "green",
+    "exit_code": 0,
+    "model": "claude-opus-5",
+    "model_declared": "opus",
+    "agent_declared": null,
+    "duration_ms": 1286,
+    "output": "• turbo 2.11.3\n\n   • Packages in scope: @seen/agent, @seen/api, @seen/connectors, @seen/core, @seen/providers, @seen/web, @seen/worker\n   • Running typecheck in 7 packages\n   • Remote caching disabled\n\n@seen/providers:typecheck: cache bypass, force executing 5536b338b9cc3551\n@seen/core:typecheck: cache bypass, force executing e398a922ff12432a\n@seen/api:typecheck: cache bypass, force executing 7600b423ae57d2ce\n@seen/connectors:typecheck: cache bypass, force executing 32a48a2754a006f9\n@seen/worker:typecheck: cache bypass, force executing 57a3e138e40e20b1\n@seen/agent:typecheck: cache bypass, force executing a320458169d9d97b\n@seen/web:typecheck: cache bypass, force executing acc7cb26821fdf6a\n@seen/providers:typecheck: \n@seen/providers:typecheck: > @seen/providers@0.0.0 typecheck /Users/ruudvanengelenhoven/Development/seene/packages/providers\n@seen/providers:typecheck: > tsc --noEmit -p tsconfig.json\n@seen/providers:typecheck: \n@seen/api:typecheck: \n@seen/api:typecheck: > @seen/api@0.0.0 typecheck /Users/ruudvanengelenhoven/Development/seene/apps/api\n@seen/api:typecheck: > tsc --noEmit -p tsconfig.json\n@seen/api:typecheck: \n@seen/connectors:typecheck: \n@seen/connectors:typecheck: > @seen/connectors@0.0.0 typecheck /Users/ruudvanengelenhoven/Development/seene/packages/connectors\n@seen/connectors:typecheck: > tsc --noEmit -p tsconfig.json\n@seen/connectors:typecheck: \n@seen/agent:typecheck: \n@seen/agent:typecheck: > @seen/agent@0.0.0 typecheck /Users/ruudvanengelenhoven/Development/seene/packages/agent\n@seen/agent:typecheck: > tsc --noEmit -p tsconfig.json\n@seen/agent:typecheck: \n@seen/worker:typecheck: \n@seen/worker:typecheck: > @seen/worker@0.0.0 typecheck /Users/ruudvanengelenhoven/Development/seene/apps/worker\n@seen/worker:typecheck: > tsc --noEmit -p tsconfig.json\n@seen/worker:typecheck: \n@seen/core:typecheck: \n@seen/core:typecheck: > @seen/core@0.0.0 typecheck /Users/ruudvanengelenhoven/Development/seene/packages/core\n@seen/core:typecheck: > tsc --noEmit -p tsconfig.json\n@seen/core:typecheck: \n@seen/web:typecheck: \n@seen/web:typecheck: > @seen/web@0.0.0 typecheck /Users/ruudvanengelenhoven/Development/seene/apps/web\n@seen/web:typecheck: > tsc --noEmit -p tsconfig.json\n@seen/web:typecheck: \n\n Tasks:    7 successful, 7 total\nCached:    0 cached, 7 total\n  Time:    1.022s \n\n",
+    "output_sha256": "1835e21836eea996a6d1e384ce90ab831e278e7c6949003224f85adaa309d066",
+    "output_truncated": false,
+    "before": "91e6b5c461172216f71b227bc1cfd916634ae8232a48697f81115bb4c72659b0",
+    "after": "91e6b5c461172216f71b227bc1cfd916634ae8232a48697f81115bb4c72659b0"
+  }
+}

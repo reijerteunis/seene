@@ -418,8 +418,6 @@ class ThisRepositoryTest(unittest.TestCase):
             self.assertIn(tool, carried)
 
 
-if __name__ == '__main__':
-    unittest.main()
 
 
 class WhereTheSetRunsTest(unittest.TestCase):
@@ -522,3 +520,7 @@ class WhereTheSetRunsTest(unittest.TestCase):
         for path in found:
             manifest = json.loads(path.read_text())
             self.assertIn('exports', manifest, f'{path} declares no exports map')
+
+
+if __name__ == '__main__':
+    unittest.main()
