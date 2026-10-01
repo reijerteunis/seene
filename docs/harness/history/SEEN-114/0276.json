@@ -1,0 +1,63 @@
+{
+  "sequence": 276,
+  "ticket": "SEEN-114",
+  "timestamp": "2026-10-01T20:03:50.309597+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 12,
+  "actor": "claude:reviewer",
+  "session": "ad77b7a13315",
+  "head": "7ebc864ded81d1e8f85d76db93dbef8c95c04582",
+  "prev_hash": "149846713e72455bb44281cd38bc488864f589d86283acadf85b917fb396417a",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 13,
+    "reason": "The fourth review, on opus at full depth because the triage's judgements were again absent, returns the ticket on one medium finding that is a single word and raises three low ones, two of which are about the deliverable rather than the account of it. It verified the substance far beyond the record: it re-ran the whole rule set and got 23 of 23 fixtures firing and no violation in the tree, built a throwaway tree and watched the real script in staged mode refuse a real violation with all three tools, confirmed the deleted provider boundary is replaced by something stricter by making the resolver catch a require, a dynamic import and a bare import, compared every reformatted TypeScript file before and after with whitespace normalised away and found no assertion moved, and opened all 23 citations. F18: the paragraph predicting this ticket's own doctor warning says two findings name the recurring candidate and three do, F2, F14 and F15, which the shipped rule_loop confirms against this journal. F19: one figure in the carried-forward paragraph names no check. F20: the knip fixture computes a fee as Math.round(cents * 15) / 100, which is not integer cents, in a file called fees.ts that no rule of the set can see. F21: the staged run passes its path list unquoted, so a staged path with a space is word-split and Biome and ast-grep both report ok having checked nothing, which is an absence reported as a pass in the one script this ticket exists to make trustworthy.",
+    "findings": [
+      {
+        "id": "F18",
+        "severity": "medium",
+        "file": "docs/tickets/SEEN-114-turn-every-recurring-finding-into-a-rule-the.md:67",
+        "claim": "The Outcome says two of this ticket's findings name harness/outcome-figure-names-its-record, and three do, so the paragraph that exists to predict the doctor warning predicts the wrong number.",
+        "failure_scenario": "F2, F14 and F15 are all medium and all carry rule_candidate 'harness/outcome-figure-names-its-record' (F16 carries it too, at low, which rule_loop correctly ignores). Running the shipped code over this ticket's own journal, report.rule_loop returns recurred = {'harness/outcome-figure-names-its-record': [SEEN-114 F2, SEEN-114 F14, SEEN-114 F15]}, three refs. So once SEEN-114 is delivered and inside the calibration window, doctor and harness report --week will print 'recurred on 3 finding(s)' while the Outcome tells the reader to expect two, and a reader meeting the warning cannot tell whether the harness or the ticket is wrong. The sentence was introduced by commit dbcc60e, the commit that fixed F15, and F15 is one of the findings it failed to count; the count will move again the moment another finding names the same candidate, which is why the Outcome's own rule for the weekly report figures is the shape this sentence needs.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "harness/outcome-figure-names-its-record"
+      },
+      {
+        "id": "F19",
+        "severity": "low",
+        "file": "docs/tickets/SEEN-114-turn-every-recurring-finding-into-a-rule-the.md:168",
+        "claim": "The carried-forward paragraph's figure 'adding the six test files takes it past a hundred' names no check, in an Outcome that states every figure names the check it was read from.",
+        "failure_scenario": "Check 254, the only tsc run in the journal, compiles three files and prints five diagnostics; no check compiles the six test files. The next session sizing the deferred tsconfig work has to re-run tsc itself to know what it is taking on. The figure is true, which is why this is low rather than the same severity as F18: compiling all nine files under the four flags gives 122 diagnostics today.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "harness/outcome-figure-names-its-record"
+      },
+      {
+        "id": "F20",
+        "severity": "low",
+        "file": "rules/fixtures/knip-no-unused-exports/packages/core/src/fees.ts:5",
+        "claim": "The knip fixture's two functions compute a fee as Math.round(amountCents * 15) / 100, which is not integer cents, in a file called fees.ts on a packages/core-shaped path that no rule of the set can see.",
+        "failure_scenario": "commissionCents(1001) returns 150.15, a non-integer 'cents' value, because the rounding happens before the division. The fixture exists to carry an unused export, so the arithmetic is incidental, but rules/fixtures is out of scope for ast-grep/money-as-integer-cents and for Biome, so the one example of a fee calculation a reader will find under rules/ is one the money ground rule forbids, and the first connector or fee ticket to copy its shape gets a reconciliation that disagrees with the marketplace by fractions of a cent. Math.round(amountCents * 15 / 100) is the same fixture with correct arithmetic.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "none: the fixture tree is deliberately outside every rule's scope, so no rule of this set can ever read it; what catches it is SEEN-135's branded Cents in the one place fixtures are not excluded from, review"
+      },
+      {
+        "id": "F21",
+        "severity": "low",
+        "file": "scripts/rules.sh:69",
+        "claim": "The staged run passes the path list unquoted, so a staged path containing a space is split and every tool silently checks nothing while the hook prints ok.",
+        "failure_scenario": "Stage apps/web/app/my page.tsx. run_staged hands Biome the two words 'apps/web/app/my' and 'page.tsx'; with --no-errors-on-unmatched Biome prints 'Checked 0 files' and exits 0, and ast-grep prints two ERROR lines for the missing paths and also exits 0 (both measured). The hook prints 'biome: ok' and 'ast-grep: ok', failed stays 0, and the commit goes through with the file unread by three of the four tools. CI's tree run catches it afterwards, which is why this is low rather than higher, but an absence reported as a pass is the one thing harness/rules.py is written not to do.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "none: the script disables shellcheck SC2086 on purpose and shellcheck is not a tool of the set; what would catch it is a test staging a path with a space, which is a test rather than a static rule"
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}

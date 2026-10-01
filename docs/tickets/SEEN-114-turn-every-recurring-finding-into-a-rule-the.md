@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-090, SEEN-107]
-status: review
+status: doing
 priority: P0
 ---
 # SEEN-114: Turn every recurring finding into a rule the pre-commit hook runs in seconds
@@ -24,7 +24,7 @@ priority: P0
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | review |
+| Status | doing |
 | Priority | P0 (correctness and speed programme, see docs/harness/workflow.md) |
 
 ## Description
@@ -33,11 +33,11 @@ Sprint 0 delivered 63 review findings on 20 tickets (2 blocking, 18 high, 27 med
 
 ## Acceptance criteria
 
-- [x] tsconfig.base.json carries strict, noUncheckedIndexedAccess, exactOptionalPropertyTypes and noImplicitOverride, and every TypeScript project in the tree typechecks. **Amended on 1 October 2026:** "the tree" is read as the seven projects `pnpm turbo run typecheck` compiles, because `packages/core/tsconfig.json` includes only `src/**/*` and so the nine files of `packages/core/db/`, which are SEEN-008's trade-record schema and its tests, are in no project at all and were already outside the typecheck before this ticket. Nine is what `git ls-files packages/core/db` returns, at this commit and at SEEN-008's own merge (check 253); the figure this amendment first carried was eleven and was never right. Compiling them needs a second project with an ESM module setting, because `db/repository.ts` reads `import.meta.url` and the base configuration is commonjs, and the three source modules then report five diagnostics under the four flags, all of them in `db/marketplaces.ts`, with `db/repository.ts` and `db/tables.ts` clean (check 254). That work is not this ticket's and has no ticket of its own yet; the Outcome says what one would have to carry.
-- [x] Biome, ast-grep and dependency-cruiser run on staged files in the pre-commit hook in under ten seconds, and in CI on the tree, with the ground rules above each proven by a fixture that fails (among them: node:fs imported inside packages/core, a marketplace write outside the policy gate, a query outside the repository layer)
-- [x] Every review finding at medium or above carries rule_candidate, and the review gate refuses a record without it
-- [x] harness report --week lists findings a rule could have caught, the rules added, and any candidate that recurred without a rule
-- [x] knip reports zero unused exports on packages/core and the connectors, every package declares an exports map, and each rule in the set cites a finding id or an architecture section, enforced in CI
+- [ ] tsconfig.base.json carries strict, noUncheckedIndexedAccess, exactOptionalPropertyTypes and noImplicitOverride, and every TypeScript project in the tree typechecks. **Amended on 1 October 2026:** "the tree" is read as the seven projects `pnpm turbo run typecheck` compiles, because `packages/core/tsconfig.json` includes only `src/**/*` and so the nine files of `packages/core/db/`, which are SEEN-008's trade-record schema and its tests, are in no project at all and were already outside the typecheck before this ticket. Nine is what `git ls-files packages/core/db` returns, at this commit and at SEEN-008's own merge (check 253); the figure this amendment first carried was eleven and was never right. Compiling them needs a second project with an ESM module setting, because `db/repository.ts` reads `import.meta.url` and the base configuration is commonjs, and the three source modules then report five diagnostics under the four flags, all of them in `db/marketplaces.ts`, with `db/repository.ts` and `db/tables.ts` clean (check 254). That work is not this ticket's and has no ticket of its own yet; the Outcome says what one would have to carry.
+- [ ] Biome, ast-grep and dependency-cruiser run on staged files in the pre-commit hook in under ten seconds, and in CI on the tree, with the ground rules above each proven by a fixture that fails (among them: node:fs imported inside packages/core, a marketplace write outside the policy gate, a query outside the repository layer)
+- [ ] Every review finding at medium or above carries rule_candidate, and the review gate refuses a record without it
+- [ ] harness report --week lists findings a rule could have caught, the rules added, and any candidate that recurred without a rule
+- [ ] knip reports zero unused exports on packages/core and the connectors, every package declares an exports map, and each rule in the set cites a finding id or an architecture section, enforced in CI
 
 ## Depends on
 
@@ -64,10 +64,12 @@ a fixture the rule itself refuses. 1,555 harness tests pass (check 272), the wor
 (check 185) and so is every test of the six packages that need no local stack, 196 of them in
 `packages/core` (check 186), coverage on `packages/core` is 100.0 with a delta of 0.0 (check 273),
 and `doctor` reports no problems. It will report a **warning** once this ticket is inside the
-calibration window, and that is the loop working rather than a defect: two of this ticket's own findings
-name `harness/outcome-figure-names-its-record` as the rule that would have caught them, no such rule is
-written, and a candidate recurring twice with none is exactly what the warning is for. The rule is
-carried below. Every figure in this Outcome names the check it was read from, because a figure without
+calibration window, and that is the loop working rather than a defect: several of this ticket's own
+findings name `harness/outcome-figure-names-its-record` as the rule that would have caught them, no such
+rule is written, and a candidate recurring with none is exactly what the warning is for. How many is not
+stated here, for the reason the weekly figures below are not: `report.rule_loop` counts them from the
+journal on the day it is asked, and the last finding to name that candidate was the one that corrected
+this paragraph. The rule is carried below. Every figure in this Outcome names the check it was read from, because a figure without
 one is a figure nobody can re-measure.
 
 ### What runs, and how fast
@@ -165,8 +167,8 @@ SEEN-008's schema and its tests, are never compiled by `pnpm turbo run typecheck
 because `db/repository.ts` reads `import.meta.url` while the base configuration is commonjs, and the
 work is larger than it looks: the three source modules give five diagnostics under the four flags, all
 in `db/marketplaces.ts`, two `TS2322`, two `TS2345` and one `TS2532`, with the other two clean (check
-254); adding the six test files takes it past a hundred, because a test that indexes an array is what
-`noUncheckedIndexedAccess` is about and these tests index a great many. **No ticket carries this
+254); adding the six test files takes it to 122, because a test that indexes an array is what
+`noUncheckedIndexedAccess` is about and these tests index a great many (check 277). **No ticket carries this
 yet**, and this paragraph says so rather than pointing at an id a reader would not find. One would have
 to add a second tsconfig project for `packages/core/db` with an ESM `module` setting, put the nine
 files in it, fix the five diagnostics in `db/marketplaces.ts` and whatever the tests then report, and
