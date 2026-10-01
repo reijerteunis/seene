@@ -1,0 +1,22 @@
+{
+  "sequence": 18,
+  "ticket": "SEEN-140",
+  "timestamp": "2026-10-01T13:00:40.063043+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "6973478f0bee",
+  "head": "8885f3e423a5471a4bec3dd7d236e31a1a3fecb2",
+  "prev_hash": "3ea65ed467ff8cde1fefc3715fd28c5c8d5d5c96d9769286677bee8fb8a0769a",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 2,
+    "reason": "The triage could see no evidence for: The whole harness suite is green, and SEEN-114's `slice_files` check passes against its own journal and diff, which is the measurement this ticket is judged by. A criterion with nothing behind it is answered at the tdd stage, by writing the test or the check that proves it, rather than by a reviewer reading a diff that does not contain it",
+    "unmet_criteria": [
+      5
+    ]
+  }
+}

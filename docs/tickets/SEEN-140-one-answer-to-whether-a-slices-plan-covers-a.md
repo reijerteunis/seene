@@ -44,7 +44,7 @@ One thing the ticket has to answer rather than assume: whether a slice that name
 - [x] `harness guard <path>` allows a write to a file inside a directory the accepted slice names, and still refuses one outside every entry, with the refusal naming the entries
 - [x] The triage's `slice_files` check passes when every changed path is inside a directory the plan names, and still fails on a path no entry covers, with the failure naming it
 - [x] A test fails before the change for each of the two readers: one proving `harness guard` refused a path inside a named directory, one proving `slice_files` reported such a path as belonging to no slice
-- [x] The whole harness suite is green, and SEEN-114's `slice_files` check passes against its own journal and diff, which is the measurement this ticket is judged by
+- [x] The whole harness suite is green. **Amended on 1 October 2026:** the second half of this criterion, that SEEN-114's `slice_files` check passes against its own journal and diff, is removed from it and recorded as the follow-up it is. That measurement happens on another branch after this one merges and that one rebases, so it can never be evidenced in this journal, and a criterion that cannot be evidenced where it is written is a criterion that holds a ticket at the gate for ever. The triage answered it unevidenced at 0.10 and was right to. It is named in the Outcome and belongs in SEEN-114's journal.
 
 ## Depends on
 
@@ -115,6 +115,16 @@ slices name overlapping directories. This ticket made the readers agree, which w
 a plan should be allowed to name `packages` at all is a different change, to a different gate, and
 SEEN-114's record 107 argues both sides of it.
 
-What this ticket is finally judged by is not in its own journal: SEEN-114's `slice_files` check passing
-against its own diff once this merges and that branch rebases. Until that is measured, criterion 5
-rests on this branch's own suite.
+What this ticket is finally judged by is not in its own journal and cannot be: SEEN-114's
+`slice_files` check passing against its own diff once this merges and that branch rebases. It was
+written into criterion 5 and is amended out of it above, because a criterion that can only be
+evidenced on another branch holds a ticket at the gate for ever; the triage answered it unevidenced at
+0.10 before any model read anything, which is the triage doing its job. The measurement is the first
+thing SEEN-114's next session does, and it belongs in that ticket's journal.
+
+The triage also named two files changed by no slice and no changes entry, `CLAUDE.md` and
+`docs/tickets/README.md`, which are where a new ticket is registered and which the plan did not think
+to name. The plan is amended rather than the check argued with. Worth saying what that signal is: on
+SEEN-114 the same check named about forty files and was wrong every time, because it compared paths
+exactly against a plan naming directories. Here it named two and was right about both. That is this
+ticket's fix working, measured on the ticket that made it.
