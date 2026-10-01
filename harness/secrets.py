@@ -95,7 +95,15 @@ def _files(root):
         if not path.is_file():
             continue
         relative = str(path.relative_to(root))
-        if relative.startswith(('.git/', 'node_modules/', 'graphify-out/', '.turbo/')):
+        # `rules/fixtures/` is the one place in the tree where a violation is
+        # supposed to live: every fixture there is a file its own rule must
+        # refuse, and this check is the rule behind one of them. The other tools
+        # ignore it by scope already, ast-grep and dependency-cruiser being
+        # pointed at `apps` and `packages`, and nothing runs those files either,
+        # because the workspace globs are `apps/*` and `packages/*`. A check that
+        # walks the whole tree has to be told, which is this line (SEEN-114 F4).
+        if relative.startswith(('.git/', 'node_modules/', 'graphify-out/', '.turbo/',
+                                'rules/fixtures/')):
             continue
         if '/node_modules/' in relative or '__pycache__/' in relative:
             continue

@@ -43,9 +43,18 @@ REGISTRY = Path('rules') / 'registry.toml'
 
 # The tools the registry may name. A tool with a configuration file is
 # cross-checked against it; a tool with None has no file this module can read,
-# and its entry is held to its citation and its fixture like any other. gitleaks
-# and the harness's own checks are in the set because they run in the same hook,
-# and a registry that left them out would not be a map of what runs.
+# and its entry is held to its citation and its fixture like any other. The
+# harness's own checks are in the set because they run in the same hook, and a
+# registry that left them out would not be a map of what runs: SEEN-114 F4 was
+# this comment saying so while the registry carried no entry for either of them.
+#
+# gitleaks is the one tool of the set with no entry, deliberately. A fixture
+# proving it would have to carry a string gitleaks detects, and the hook runs
+# `gitleaks protect --staged` on every commit, so nobody could commit the fixture
+# without an allowlist weakening the control the rule is about. An entry whose
+# fixture cannot exist is the padding this registry refuses in every other
+# direction, so the reason is written here instead, where the next person to ask
+# will look.
 CONFIG_FOR_TOOL = {
     'tsconfig': 'tsconfig.base.json',
     'biome': 'biome.json',
@@ -100,6 +109,12 @@ BINARY_FOR_TOOL = {
     'ast-grep': 'node_modules/.bin/ast-grep',
     'dependency-cruiser': 'node_modules/.bin/depcruise',
     'knip': 'node_modules/.bin/knip',
+    # Not a binary: the harness's own checks are Python in this repository, and
+    # the module that holds the one with a rule id is what has to be present for
+    # the rule to be provable at all. Resolved under the root like the others, so
+    # `binaries` needs no special case and a tree without the harness in it
+    # reports the rule as unproven rather than as fired.
+    'harness': 'harness/secrets.py',
 }
 
 # Everything a fixture tree needs beside the fixture itself: the configurations
@@ -515,12 +530,37 @@ def _run_knip(entry, tree, binary):
     return True, 'knip reported an unused export: ' + _tail(output)
 
 
+def _run_harness(entry, tree, binary):
+    """One of the harness's own checks, run over the fixture tree.
+
+    A Python call rather than a subprocess, because that is what the hook runs
+    too: `harness lint` is this function's caller in anger, and proving it by
+    spawning a second interpreter would prove the command line rather than the
+    check. The dispatch is on the rule's own name, so a registry entry naming a
+    check this module does not have is reported as unproven rather than passing
+    quietly.
+    """
+    from . import secrets
+    name = str(entry.get('id') or '').partition('/')[2]
+    if name != 'no-live-marketplace-host':
+        return False, (f'no check in harness/secrets.py answers to {name!r}, so there is nothing '
+                       'to run against this fixture')
+    found = secrets.marketplace_hosts(tree)
+    if not found:
+        return False, ('the fixture names no live marketplace host in a test file, so this rule is '
+                       'not firing')
+    first = found[0]
+    return True, (f'harness lint refused the fixture and named the host: '
+                  f'{first["path"]}:{first["line"]} names {first["host"]}')
+
+
 RUNNER_FOR_TOOL = {
     'tsconfig': _run_tsconfig,
     'biome': _run_biome,
     'ast-grep': _run_ast_grep,
     'dependency-cruiser': _run_dependency_cruiser,
     'knip': _run_knip,
+    'harness': _run_harness,
 }
 
 

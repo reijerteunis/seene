@@ -406,16 +406,46 @@ class ThisRepositoryTest(unittest.TestCase):
         self.assertEqual(rules.problems(PROJECT), [])
 
     def test_the_registry_carries_a_rule_for_each_tool_the_set_runs(self):
-        """Five tools, and a tool with no entry is a tool nobody can trace.
+        """A tool with no entry is a tool nobody can trace.
 
         The compiler and Biome arrived first; ast-grep, dependency-cruiser and
         knip are the three that carry the rules no general linter can express,
         and a configuration file added without an entry is what the check in
-        `problems` refuses from the other direction.
+        `problems` refuses from the other direction. Read from
+        `RUNNER_FOR_TOOL` rather than from a list written here, which is SEEN-114
+        F4: the harness's own check ran in the hook and in CI with no registry
+        entry, so a reviewer naming it as a rule candidate had it counted as a
+        rule nobody had written, and a list in this test would have had to be
+        edited to notice.
         """
         carried = {found['tool'] for found in rules.load(PROJECT)}
-        for tool in ('tsconfig', 'biome', 'ast-grep', 'dependency-cruiser', 'knip'):
-            self.assertIn(tool, carried)
+        for tool in sorted(rules.RUNNER_FOR_TOOL):
+            self.assertIn(tool, carried, f'{tool} runs in the set and the registry does not name it')
+
+    def test_the_harness_check_is_proven_by_its_own_fixture(self):
+        """The one rule of the set whose tool is this repository's own Python.
+
+        The others are proven by a binary the lockfile pins. This one is proven
+        the way the hook runs it, by calling the check, so what the fixture
+        proves is `harness lint` and not a command line.
+        """
+        results = {found['id']: found
+                   for found in rules.fixture_results(PROJECT, binaries=rules.binaries(PROJECT))}
+        found = results['harness/no-live-marketplace-host']
+        self.assertTrue(found['fired'], found['detail'])
+        host = 'api.' + 'bol.com'  # Split so this assertion is not itself a violation.
+        self.assertIn(host, found['detail'])
+
+    def test_the_fixture_tree_is_not_read_by_the_check_it_proves(self):
+        """Otherwise the fixture would fail the repository's own lint.
+
+        Every fixture in the set is a violation by construction, and the four
+        binaries ignore them by scope. This check walks the whole tree, so it is
+        told, and the tell is what keeps `harness lint` green with a fixture in
+        the tree that names a live marketplace.
+        """
+        from harness import secrets
+        self.assertEqual(secrets.marketplace_hosts(PROJECT), [])
 
 
 
@@ -534,7 +564,9 @@ class SummaryTest(unittest.TestCase):
     def test_the_summary_names_every_rule_grouped_by_its_tool(self):
         answer = rules.report(PROJECT)
         line = answer['summary']
-        self.assertIn('22 rules in the registry', line)
+        # Counted from the registry rather than written here, so a rule added
+        # next week does not fail this test for the one reason it must not.
+        self.assertIn(f'{len(answer["rules"])} rules in the registry', line)
         for tool in ('tsconfig', 'biome', 'ast-grep', 'dependency-cruiser', 'knip'):
             self.assertIn(f'{tool}: ', line)
         for name in ('core-no-io', 'database-through-repository',

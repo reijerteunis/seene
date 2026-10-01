@@ -331,3 +331,23 @@ reason = """An export nothing imports is usually a second definition of somethin
 core two definitions of one fee expectation is a wrong claim rather than untidiness. It also holds \
 the package boundary from the other side: with an exports map per package and no dead exports, the \
 only way into a package is the entry point its manifest declares."""
+
+# ---------------------------------------------------------------------------
+# The harness's own checks. Not a tool with a configuration file: the check is
+# Python in this repository and runs in the same pre-commit hook as the other
+# four, so the registry names it for the reason it names them. SEEN-114 F4: a
+# reviewer writing `harness/no-live-marketplace-host` as a finding's rule
+# candidate was getting it counted as a candidate nobody had written a rule for,
+# while the rule had been running in CI since SEEN-090.
+
+[[rule]]
+id = "harness/no-live-marketplace-host"
+tool = "harness"
+citation = "CLAUDE.md: Working a ticket, 4"
+fixture = "rules/fixtures/harness-no-live-marketplace-host"
+reason = """A connector test pointed at a live marketplace fails when the marketplace is slow, spends \
+the rate limit the pilots share, and reads a real seller account from CI. Connector tests run against \
+recorded fixtures, and the one line that would undo that is a URL somebody pasted while debugging. \
+This check reads every tracked file in any language rather than only TypeScript, which is why it is \
+the harness's own and not an ast-grep rule: the same host in a Python fixture or a shell script is \
+the same defect."""
