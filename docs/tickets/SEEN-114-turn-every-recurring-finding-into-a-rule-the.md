@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-090, SEEN-107]
-status: review
+status: doing
 priority: P0
 ---
 # SEEN-114: Turn every recurring finding into a rule the pre-commit hook runs in seconds
@@ -24,7 +24,7 @@ priority: P0
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | review |
+| Status | doing |
 | Priority | P0 (correctness and speed programme, see docs/harness/workflow.md) |
 
 ## Description
@@ -33,11 +33,11 @@ Sprint 0 delivered 63 review findings on 20 tickets (2 blocking, 18 high, 27 med
 
 ## Acceptance criteria
 
-- [x] tsconfig.base.json carries strict, noUncheckedIndexedAccess, exactOptionalPropertyTypes and noImplicitOverride, and every TypeScript project in the tree typechecks. **Amended on 1 October 2026:** "the tree" is read as the seven projects `pnpm turbo run typecheck` compiles, because `packages/core/tsconfig.json` includes only `src/**/*` and so the eleven modules of `packages/core/db/`, which are SEEN-008's trade-record schema and its tests, are in no project at all and were already outside the typecheck before this ticket. Compiling them needs a second project with an ESM module setting, because `db/repository.ts` reads `import.meta.url` and the base configuration is commonjs, and two of them carry genuine errors under the new flags. That work is not this ticket's and has no ticket of its own yet; the Outcome says what one would have to carry.
-- [x] Biome, ast-grep and dependency-cruiser run on staged files in the pre-commit hook in under ten seconds, and in CI on the tree, with the ground rules above each proven by a fixture that fails (among them: node:fs imported inside packages/core, a marketplace write outside the policy gate, a query outside the repository layer)
-- [x] Every review finding at medium or above carries rule_candidate, and the review gate refuses a record without it
-- [x] harness report --week lists findings a rule could have caught, the rules added, and any candidate that recurred without a rule
-- [x] knip reports zero unused exports on packages/core and the connectors, every package declares an exports map, and each rule in the set cites a finding id or an architecture section, enforced in CI
+- [ ] tsconfig.base.json carries strict, noUncheckedIndexedAccess, exactOptionalPropertyTypes and noImplicitOverride, and every TypeScript project in the tree typechecks. **Amended on 1 October 2026:** "the tree" is read as the seven projects `pnpm turbo run typecheck` compiles, because `packages/core/tsconfig.json` includes only `src/**/*` and so the nine files of `packages/core/db/`, which are SEEN-008's trade-record schema and its tests, are in no project at all and were already outside the typecheck before this ticket. Nine is what `git ls-files packages/core/db` returns, at this commit and at SEEN-008's own merge (check 253); the figure this amendment first carried was eleven and was never right. Compiling them needs a second project with an ESM module setting, because `db/repository.ts` reads `import.meta.url` and the base configuration is commonjs, and the three source modules then report five diagnostics under the four flags, all of them in `db/marketplaces.ts`, with `db/repository.ts` and `db/tables.ts` clean (check 254). That work is not this ticket's and has no ticket of its own yet; the Outcome says what one would have to carry.
+- [ ] Biome, ast-grep and dependency-cruiser run on staged files in the pre-commit hook in under ten seconds, and in CI on the tree, with the ground rules above each proven by a fixture that fails (among them: node:fs imported inside packages/core, a marketplace write outside the policy gate, a query outside the repository layer)
+- [ ] Every review finding at medium or above carries rule_candidate, and the review gate refuses a record without it
+- [ ] harness report --week lists findings a rule could have caught, the rules added, and any candidate that recurred without a rule
+- [ ] knip reports zero unused exports on packages/core and the connectors, every package declares an exports map, and each rule in the set cites a finding id or an architecture section, enforced in CI
 
 ## Depends on
 
@@ -63,8 +63,12 @@ through the weekly report and `doctor`. Twenty-three rules, each with a citation
 a fixture the rule itself refuses. 1,555 harness tests pass (check 248), the workspace build is green
 (check 185) and so is every test of the six packages that need no local stack, 196 of them in
 `packages/core` (check 186), coverage on `packages/core` is 100.0 with a delta of 0.0 (check 249),
-`doctor` reports no problems and no warnings. Every figure in this Outcome names the check it was read from, because a figure without one is
-a figure nobody can re-measure.
+and `doctor` reports no problems. It will report a **warning** once this ticket is inside the
+calibration window, and that is the loop working rather than a defect: two of this ticket's own findings
+name `harness/outcome-figure-names-its-record` as the rule that would have caught them, no such rule is
+written, and a candidate recurring twice with none is exactly what the warning is for. The rule is
+carried below. Every figure in this Outcome names the check it was read from, because a figure without
+one is a figure nobody can re-measure.
 
 ### What runs, and how fast
 
@@ -145,23 +149,28 @@ serious enough to ask what would have caught it. The rule-id shape is built from
 `harness report --week` carries four figures, not the three the criterion asks for. The fourth is the
 count of findings in the window that predate the field, because a finding recorded before this ticket
 carries none and a report that counted those as "no rule could have caught it" would read as though
-every old finding had been triaged against the rule set. Today a reader sees: 0 findings a rule could
-have caught, all 23 rules added this week, no candidate recurring without a rule, and 11 findings that
-predate the field. A candidate that recurred twice with no rule written is a `doctor` **warning** and
+every old finding had been triaged against the rule set. Today a reader running `harness report --week` sees no finding
+a rule could have caught, every rule of the registry listed as added this week, no candidate recurring
+without a rule, and the findings that predate the field counted apart from all of it. No figure is
+quoted here: the report is generated from the journal on the day it is asked for, and a number copied
+into this file would be a second answer going stale. A candidate that recurred twice with no rule written is a `doctor` **warning** and
 not a problem, leaving `ok` true, because `doctor` runs in CI and at the end of every turn through the
 Stop hook and a problem there would block every unrelated ticket until somebody wrote a rule.
 
 ### Carried for other tickets
 
-**`packages/core/db` is in no tsconfig project.** Eleven modules, SEEN-008's schema and its tests, are
-never compiled by `pnpm turbo run typecheck`. Criterion 1 is amended above with the reason. Compiling
-them needs a second project with an ESM module setting, because `db/repository.ts` reads
-`import.meta.url` while the base configuration is commonjs, and `db/marketplaces.ts` carries two
-genuine `exactOptionalPropertyTypes` and `noUncheckedIndexedAccess` errors. **No ticket carries this
+**`packages/core/db` is in no tsconfig project.** Nine files, three source modules and six test files,
+SEEN-008's schema and its tests, are never compiled by `pnpm turbo run typecheck` (check 253). Criterion
+1 is amended above with the reason. Compiling them needs a second project with an ESM module setting,
+because `db/repository.ts` reads `import.meta.url` while the base configuration is commonjs, and the
+work is larger than it looks: the three source modules give five diagnostics under the four flags, all
+in `db/marketplaces.ts`, two `TS2322`, two `TS2345` and one `TS2532`, with the other two clean (check
+254); adding the six test files takes it past a hundred, because a test that indexes an array is what
+`noUncheckedIndexedAccess` is about and these tests index a great many. **No ticket carries this
 yet**, and this paragraph says so rather than pointing at an id a reader would not find. One would have
-to add a second tsconfig project for `packages/core/db` with an ESM `module` setting, put the eleven
-modules in it, fix the two errors in `db/marketplaces.ts`, and add it to what `pnpm turbo run
-typecheck` builds. Until it exists, nothing compiles that directory, which is why criterion 1 above is
+to add a second tsconfig project for `packages/core/db` with an ESM `module` setting, put the nine
+files in it, fix the five diagnostics in `db/marketplaces.ts` and whatever the tests then report, and
+add it to what `pnpm turbo run typecheck` builds. Until it exists, nothing compiles that directory, which is why criterion 1 above is
 read as the seven projects that command builds today.
 
 **The post-commit hook CLAUDE.md describes is not in this repository.** `.githooks` holds only
@@ -172,6 +181,25 @@ commit, which is why a post-commit hook may be the wrong instrument and why this
 decision rather than an omission to patch: either the hook exists and every commit pays for it, or
 `doctor` grows the cheaper half of it and warns when the graph's own commit is behind HEAD, or CLAUDE.md
 stops describing a hook that is not there. Review finding F7, whose rule candidate is that warning.
+
+**The two prose ground rules read only TypeScript, and their citations say anywhere.** `no-em-or-en-dash`
+and `no-euro-sign` are scoped to `apps/**` and `packages/**` and ast-grep parses the Tsx grammar, so a
+dash or a euro sign in a document, a ticket, a `.py` module, a migration or a shell script passes the
+hook, the tree run and CI. There is one in the tree today, in `.codegraph/.gitignore`, which is tracked
+and which the full set passes. The registry already makes the argument for the other direction, in the
+entry for `harness/no-live-marketplace-host`: a check that has to read every tracked file in any
+language is the harness's own and not an ast-grep rule, and the same reasoning applies to these two. A
+whole-tree version needs the exclusions `marketplace_hosts` already carries, because the journals quote
+third-party output verbatim. Review finding F17.
+
+**A figure in a record that its own cited check does not contain.** Four findings on this ticket were
+that defect: F2, three figures in the Outcome; F13, three test totals in a tdd record; F14, a path count
+in no check at all; F15, a module count that was never right and sat inside an acceptance criterion. The
+rule F13 asked for is `harness/tdd-record-count-matches-check`, a refusal at the tdd gate when a
+`failure_reason` names a test total the check it cites does not print. The gate already holds the
+record's `red` and `green` to the checks they name, so this is the same comparison one layer in, over
+output the journal already stores. Four of one kind is what the weekly report's recurrence list exists
+to say out loud, and this ticket is the evidence for its own next rule.
 
 **A citation is checked to the file and never to the section.** `harness rules --check` accepts a
 citation whose path exists, so a rule citing `docs/architecture.md: Fee expectations`, a section nobody

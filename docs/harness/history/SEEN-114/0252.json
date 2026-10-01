@@ -1,0 +1,53 @@
+{
+  "sequence": 252,
+  "ticket": "SEEN-114",
+  "timestamp": "2026-10-01T19:01:43.741572+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 11,
+  "actor": "claude:reviewer",
+  "session": "ad77b7a13315",
+  "head": "c3ecbae8e27dd293307b737ddfba2bfa3b82c126",
+  "prev_hash": "9e909164eb937e09e586ae12a73f4aab2393092b36091018e2755acabaaee888",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 12,
+    "reason": "The third review, a subagent on opus at full depth because the triage's judgements were absent rather than passed, returns the ticket on one medium finding and raises two low ones. It verified the round it was convened for: the three denominators F13 named now match reds 235, 239 and 243 exactly, the hook row carries only figures check 245 prints, and it re-ran harness rules --check, scripts/rules.sh fixtures and scripts/rules.sh tree independently, getting 23 traceable rules, 23 of 23 fixtures refused and no violation in the tree. F15 is the same class of defect one layer deeper and in the worst place for it: the amended acceptance criterion says packages/core/db holds eleven modules and git ls-files returns nine, at this commit and at SEEN-008's own merge, so the count was never right; and the error claim disagrees with itself across two paragraphs, 'two of them carry genuine errors' against 'marketplaces.ts carries two errors', where compiling the three source modules under the four flags gives five diagnostics in one of them. Verified both before recording. F16 and F17 are low: two Outcome claims that name no check, one of which this ticket's own doctor warning will invert after merge, and the two prose ground rules reading only TypeScript while their citations say anywhere, with a tracked file carrying an em dash today to prove it.",
+    "findings": [
+      {
+        "id": "F15",
+        "severity": "medium",
+        "file": "docs/tickets/SEEN-114-turn-every-recurring-finding-into-a-rule-the.md:36",
+        "claim": "The amended criterion 1 and the carried-forward paragraph both say packages/core/db holds eleven modules, and it has held nine since the commit that created it, so the one figure in this ticket that is part of the definition of done does not match the directory it names and names no check it could be read from.",
+        "failure_scenario": "Line 36 (the amendment to criterion 1) says 'the eleven modules of packages/core/db/, which are SEEN-008's trade-record schema and its tests, are in no project at all'; line 156 says 'Eleven modules, SEEN-008's schema and its tests, are never compiled'; line 162 tells the next session to 'put the eleven modules in it'. git ls-files packages/core/db returns nine paths (authorities.test.ts, marketplaces.test.ts, marketplaces.ts, parallelism.test.ts, repository.ts, rls.test.ts, schema.test.ts, tables.ts, uniqueness.test.ts), and git ls-tree at 2391c80 (SEEN-008's own merge), at beaf3b0 and at 254008f returns nine as well, so the count was never right rather than having gone stale. The session that picks up the carried work runs ls, finds nine, and cannot tell whether two modules were deleted, whether the figure counted packages/core/vitest.config.ts and the manifest too, or whether it was simply wrong, because no check in the journal counts that directory. The same paragraph pair carries a second instance: line 36 says 'two of them carry genuine errors under the new flags', meaning two modules, while line 160 says marketplaces.ts 'carries two genuine exactOptionalPropertyTypes and noUncheckedIndexedAccess errors', meaning one module with two errors, and compiling marketplaces.ts alone under the four flags reports five diagnostics in those two classes (TS2322 twice, TS2532 once, TS2345 twice), while tables.ts is clean and repository.ts reports only the import.meta or module problem the paragraph already attributes to the module setting. The ticket file is inside the reviewed-tree fingerprint, so a pass freezes all of this: it cannot be corrected after the review without another return.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "harness/outcome-figure-names-its-record"
+      },
+      {
+        "id": "F16",
+        "severity": "low",
+        "file": "docs/tickets/SEEN-114-turn-every-recurring-finding-into-a-rule-the.md:66",
+        "claim": "Two claims in the Outcome name no check at all, in the sentence that then states every figure names the check it was read from, and one of them stops being true the moment this ticket is delivered.",
+        "failure_scenario": "Line 66 ends the measured sentence with 'doctor reports no problems and no warnings' while its four neighbours each cite a check, and line 150 states four figures, '0 findings a rule could have caught, all 23 rules added this week, no candidate recurring without a rule, and 11 findings that predate the field', with no record behind them. Both are true today: I ran python3 harness/run.py doctor (ok true, no problems, no warnings) and computed report.rule_loop over the two tickets week 40 covers, which returns caught [], recurred {}, predates 11. The doctor claim then inverts by this ticket's own mechanism: F2 and F14 in this journal both carry rule_candidate harness/outcome-figure-names-its-record, so once SEEN-114 is counted in the calibration window, rule_recurrence_warnings reports that candidate as recurred on two findings with no rule written, and doctor answers with a warning. A reader after merge runs doctor, sees a warning, and finds the Outcome saying there is none, with no check to tell which run the sentence described.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "harness/outcome-figure-names-its-record"
+      },
+      {
+        "id": "F17",
+        "severity": "low",
+        "file": "rules/registry.toml:162",
+        "claim": "ast-grep/no-em-or-en-dash and ast-grep/no-euro-sign cite ground rules that say 'anywhere, in code, docs or customer-facing copy' and 'in code comments or docs', and both rules read only TypeScript under apps and packages, so the uncovered half of each citation is enforced by nothing and is not in the carried-forward section.",
+        "failure_scenario": "rules/ast-grep/no-em-or-en-dash.yml:9-11 and no-euro-sign.yml:9-11 scope both rules to apps/** and packages/**, and ast-grep parses only the Tsx grammar, so a dash or a euro sign in docs/prd/prd.md, in a ticket file, in a harness .py module, in a .sql migration or in a shell script passes the hook, scripts/rules.sh tree and CI. One such file is in the tree now: .codegraph/.gitignore:1 reads 'CodeGraph data files - local to each machine' with an em dash, and the full set over the tree passes, which I confirmed by running scripts/rules.sh tree myself. The registry makes exactly this argument for the twenty-third rule, that harness/no-live-marketplace-host is the harness's own check because it 'reads every tracked file in any language rather than only TypeScript', and the same reasoning was not applied to the two ground rules that are about prose. The consequence is the cost the ticket exists to remove: the next dash in a document is caught by a reviewer rather than by a rule. A whole-tree version would need the exclusions marketplace_hosts already has, since the journal records quote third-party tool output containing em dashes verbatim.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "harness/no-em-or-en-dash-in-any-tracked-file"
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}
