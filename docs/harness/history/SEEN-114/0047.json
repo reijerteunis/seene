@@ -1,0 +1,32 @@
+{
+  "sequence": 47,
+  "ticket": "SEEN-114",
+  "timestamp": "2026-10-01T10:42:38.502316+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "session": "6973478f0bee",
+  "head": "e56c7f9874dde273b44785d2a1cee1d81049d04c",
+  "prev_hash": "794cc12fcb3034adb85dd01358db3397fbb0924d6fc7f6dd15adcfb97026a74a",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_doctor.RuleRecurrenceWarningTest"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "model": "claude-opus-5",
+    "model_declared": "sonnet",
+    "agent_declared": "seen-implementer",
+    "duration_ms": 3257,
+    "output": "EEE..............\n======================================================================\nERROR: test_a_candidate_recurring_twice_is_a_warning_and_not_a_problem (harness.tests.test_doctor.RuleRecurrenceWarningTest.test_a_candidate_recurring_twice_is_a_warning_and_not_a_problem)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_doctor.py\", line 252, in test_a_candidate_recurring_twice_is_a_warning_and_not_a_problem\n    for warning in report['warnings']), report['warnings'])\n                   ~~~~~~^^^^^^^^^^^^\nKeyError: 'warnings'\n\n======================================================================\nERROR: test_a_candidate_seen_once_is_not_a_warning (harness.tests.test_doctor.RuleRecurrenceWarningTest.test_a_candidate_seen_once_is_not_a_warning)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_doctor.py\", line 258, in test_a_candidate_seen_once_is_not_a_warning\n    self.assertEqual(report['warnings'], [])\n                     ~~~~~~^^^^^^^^^^^^\nKeyError: 'warnings'\n\n======================================================================\nERROR: test_a_healthy_project_carries_an_empty_warnings_list (harness.tests.test_doctor.RuleRecurrenceWarningTest.test_a_healthy_project_carries_an_empty_warnings_list)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_doctor.py\", line 262, in test_a_healthy_project_carries_an_empty_warnings_list\n    self.assertEqual(self.report()['warnings'], [])\n                     ~~~~~~~~~~~~~^^^^^^^^^^^^\nKeyError: 'warnings'\n\n----------------------------------------------------------------------\nRan 17 tests in 3.168s\n\nFAILED (errors=3)\n",
+    "output_sha256": "18971c978199b9852279108c1e9d57e0adb740bcf4e2438b93f32adbd914e03a",
+    "output_truncated": false,
+    "before": "b3ba2c5baedaa17523a18455e93c7f2679885e1e0b268264f623b90f3ca50ef7",
+    "after": "b3ba2c5baedaa17523a18455e93c7f2679885e1e0b268264f623b90f3ca50ef7"
+  }
+}

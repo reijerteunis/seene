@@ -1027,6 +1027,7 @@ UNMEASURABLE = [
 
 def write_report(repository, args):
     from . import calibration as calibrating, report as reporting
+    from . import rules as rule_set
     require(args.week or args.sprint is not None or args.calibration,
             'Ask for --week, --sprint <n> or --calibration')
     rules = thresholds.load(repository.root)
@@ -1060,6 +1061,20 @@ def write_report(repository, args):
         year, week, _ = date.fromisoformat(when).isocalendar()
         name = f'{year}-W{week:02d}'
         title = f'Week {week} of {year}'
+    # SEEN-114's rule loop, read only for `--week`: the criterion asks for it
+    # of that report by name, and "rules added" is dated against an ISO week,
+    # which a sprint's own date range does not carry.
+    rule_loop_section = None
+    if args.sprint is None:
+        registry = rule_set.load(repository.root)
+        ticket_records = []
+        for entry in covered:
+            folder = repository.root / HISTORY / entry['ticket']
+            if folder.is_dir():
+                ticket_records.append((entry['ticket'], journal.read(folder)))
+        rule_loop_section = reporting.rule_loop(ticket_records, registry)
+        rule_loop_section['rules_added'] = reporting.rules_added_in_week(
+            registry, rule_set.arrival_dates(repository.root), when)
     budget = rules['context']
     baseline_path = repository.root / budget['baseline']
     section = None
@@ -1079,8 +1094,10 @@ def write_report(repository, args):
     # is the one a reader most needs told.
     shadow = calibrating.effective_shadow(repository.root, rules)
     payload = dict(name=name, generated_for=name, tickets=covered, totals=totals,
-                   unmeasurable=UNMEASURABLE, context=section, review_triage_shadow=shadow)
-    markdown = reporting.render(title, covered, totals, UNMEASURABLE, section, budget, shadow)
+                   unmeasurable=UNMEASURABLE, context=section, review_triage_shadow=shadow,
+                   rule_loop=rule_loop_section)
+    markdown = reporting.render(title, covered, totals, UNMEASURABLE, section, budget, shadow,
+                                rule_loop_section)
     written = reporting.write(repository.root, name, markdown, payload)
     return dict(written, tickets=len(covered), totals=totals)
 

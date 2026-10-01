@@ -3,7 +3,7 @@
 import unittest
 import json
 
-from harness import doctor, thresholds
+from harness import doctor, journal as journal_module, thresholds
 from harness.errors import HarnessError
 from harness.repository import Repository
 from harness.tests.test_lifecycle import CommandTest, clarify_evidence
@@ -196,6 +196,71 @@ class DeliverStatusTest(DoctorTest):
 
         self.assertEqual(doctor.report(Repository(self.root),
                                        thresholds.load(self.root))['problems'], [])
+
+
+def _record(sequence, kind, ticket, when, **data):
+    return dict(sequence=sequence, ticket=ticket, timestamp=when, harness_version='2',
+                kind=kind, stage='review', attempt=1, actor='claude:implementer',
+                session='a' * 12, head='0' * 40, prev_hash=None, data=data)
+
+
+def _finding(identifier, severity, rule_candidate):
+    return dict(id=identifier, severity=severity, claim='It breaks',
+                failure_scenario='It breaks like this', status='resolved', resolution='Fixed',
+                rule_candidate=rule_candidate)
+
+
+def _plant(root, ticket, when, finding):
+    """One delivered ticket's journal, written to disk and chained like a real one."""
+    folder = root / 'docs' / 'harness' / 'history' / ticket
+    folder.mkdir(parents=True, exist_ok=True)
+    records = [
+        _record(1, 'start', ticket, when),
+        _record(2, 'advance', ticket, when, from_stage='review', to_stage='deliver',
+               decisions=[],
+               evidence=dict(reviewer='codex:reviewer', independence='subagent', read=[],
+                             findings=[finding], verdict='pass')),
+        _record(3, 'receipt', ticket, when, commit='a' * 40),
+    ]
+    previous = None
+    for record in records:
+        path = folder / f'{record["sequence"]:04d}.json'
+        path.write_bytes(journal_module.serialise(dict(record, prev_hash=previous)))
+        previous = journal_module.digest(path)
+    return folder
+
+
+class RuleRecurrenceWarningTest(DoctorTest):
+    """SEEN-114 criterion 4's doctor half: a warning and never a problem.
+
+    Two counted tickets, delivered after `[calibration] counted_from`, each
+    carrying a finding whose `rule_candidate` names the same id and that id
+    is not in `rules/registry.toml` (there is none in this throwaway
+    project): the candidate has recurred and no rule has been written for it.
+    """
+
+    when = '2026-10-10T09:00:00+00:00'
+
+    def test_a_candidate_recurring_twice_is_a_warning_and_not_a_problem(self):
+        _plant(self.root, 'SEEN-801', self.when,
+              _finding('F1', 'high', 'ast-grep/no-settlement-mutation'))
+        _plant(self.root, 'SEEN-802', self.when,
+              _finding('F2', 'medium', 'ast-grep/no-settlement-mutation'))
+        report = self.report()
+        self.assertTrue(report['ok'], report['problems'])
+        self.assertTrue(any('ast-grep/no-settlement-mutation' in warning
+                            for warning in report['warnings']), report['warnings'])
+
+    def test_a_candidate_seen_once_is_not_a_warning(self):
+        _plant(self.root, 'SEEN-801', self.when,
+              _finding('F1', 'high', 'ast-grep/no-settlement-mutation'))
+        report = self.report()
+        self.assertEqual(report['warnings'], [])
+
+    def test_a_healthy_project_carries_an_empty_warnings_list(self):
+        self.start()
+        self.assertEqual(self.report()['warnings'], [])
+
 
 if __name__ == '__main__':  # pragma: no cover - a module must run on its own
     unittest.main()

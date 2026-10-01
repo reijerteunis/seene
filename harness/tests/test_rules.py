@@ -17,6 +17,7 @@ it is what CI runs, and it is the only place the live registry is read.
 """
 
 import json
+import os
 import shutil
 import sys
 import unittest
@@ -254,6 +255,49 @@ class RegistryTest(ProjectTest):
         self.biome(noFloatingPromises='nursery')
         problems = self.problems()
         self.assertTrue(any('registry' in problem for problem in problems), problems)
+
+
+class ArrivalDateTest(RegistryTest):
+    """When a rule arrived, read from git rather than from a new registry field.
+
+    `rules/registry.toml` already carries five required fields, and it is not
+    a file this slice's own plan names: `harness guard` refuses an edit to it
+    from here, and a sixth field nine existing entries would need the day it
+    was added is not a field this slice can add responsibly. Git already
+    knows the answer without the registry carrying anything new: the first
+    commit whose diff of the file introduces the id's own line is read with
+    `git log -S`, the pickaxe search.
+    """
+
+    def commit(self, when, message='feat: a rule'):
+        self.git('add', 'rules/registry.toml')
+        os.environ['GIT_AUTHOR_DATE'] = when
+        os.environ['GIT_COMMITTER_DATE'] = when
+        self.addCleanup(os.environ.pop, 'GIT_AUTHOR_DATE', None)
+        self.addCleanup(os.environ.pop, 'GIT_COMMITTER_DATE', None)
+        self.git('commit', '-q', '-m', message)
+
+    def test_a_rule_is_dated_by_the_commit_that_introduced_its_id(self):
+        self.registry(entry('ast-grep/no-euro-sign'))
+        self.commit('2026-09-24T09:00:00+00:00')
+        dates = rules.arrival_dates(self.root)
+        # git's own `%cI` normalises a +00:00 offset to Z, which is what is
+        # asserted here; `datetime.fromisoformat` reads both shapes alike.
+        self.assertEqual(dates['ast-grep/no-euro-sign'], '2026-09-24T09:00:00Z')
+
+    def test_a_rule_added_later_in_a_second_commit_is_dated_by_that_one(self):
+        self.registry(entry('ast-grep/no-euro-sign'))
+        self.commit('2026-09-24T09:00:00+00:00', message='feat: the first rule')
+        self.registry(entry('ast-grep/no-euro-sign'), entry('biome/noFloatingPromises'))
+        self.commit('2026-10-01T09:00:00+00:00', message='feat: a second rule')
+        dates = rules.arrival_dates(self.root)
+        self.assertEqual(dates['ast-grep/no-euro-sign'], '2026-09-24T09:00:00Z')
+        self.assertEqual(dates['biome/noFloatingPromises'], '2026-10-01T09:00:00Z')
+
+    def test_a_rule_never_committed_carries_no_date(self):
+        """Written but not committed, as every other test in this file leaves it."""
+        self.registry(entry('ast-grep/no-euro-sign'))
+        self.assertEqual(rules.arrival_dates(self.root), {})
 
 
 class FixtureTest(ProjectTest):

@@ -124,6 +124,44 @@ def load(root):
     return tomllib.loads(path.read_text()).get('rule') or []
 
 
+def arrival_dates(root):
+    """When each rule in the registry first appeared there, read from git.
+
+    SEEN-114's weekly report needs to say which rules were added this week
+    (criterion 4), and the honest place to date an entry would be a sixth
+    field beside `ENTRY_KEYS`. That field is not here: `rules/registry.toml`
+    is not a file this slice's own plan names, `harness guard` refuses an
+    edit to it from here, and a field nine existing entries would need to be
+    missing on day one is not a field this slice can add responsibly. Git
+    already carries the answer without asking the registry for anything new:
+    the first commit whose diff of this file introduces the id's own line is
+    when the rule arrived, and `git log -S` (the "pickaxe") finds exactly
+    that commit, `--follow` carrying it across a rename of the file itself.
+
+    An id with no such commit, because the registry is not inside a git
+    repository, or because the line was never actually committed, is simply
+    left out of the answer. That is the same absence `configured` and
+    `fixture_results` already report elsewhere in this module as what it is,
+    rather than guessed at: a rule dated nothing rather than dated today.
+    """
+    root = Path(root)
+    found = {}
+    for entry in load(root):
+        identifier = entry.get('id')
+        if not identifier or identifier in found:
+            continue
+        result = subprocess.run(
+            ['git', 'log', '--follow', '--format=%cI', '--reverse', '-S',
+             f'id = "{identifier}"', '--', str(REGISTRY)],
+            cwd=str(root), capture_output=True, text=True, check=False)
+        if result.returncode != 0:
+            continue
+        lines = [line for line in result.stdout.splitlines() if line.strip()]
+        if lines:
+            found[identifier] = lines[0]
+    return found
+
+
 def _tsconfig_rules(root):
     """The compiler's checking flags this repository turns on."""
     path = Path(root) / CONFIG_FOR_TOOL['tsconfig']

@@ -204,7 +204,7 @@ def render_cost(by_model, prices):
 
 
 def render(title, tickets, figures, unmeasurable, context_section=None, context_rules=None,
-           shadow=None):
+           shadow=None, rule_loop_section=None):
     """A report anyone can read without opening a journal.
 
     The last section names what could not be measured and why, because a report
@@ -244,6 +244,8 @@ def render(title, tickets, figures, unmeasurable, context_section=None, context_
         lines.append('- none recorded')
     if shadow is not None:
         lines += calibration_line(shadow)
+    if rule_loop_section is not None:
+        lines += render_rules(rule_loop_section)
     if context_section is not None:
         lines += render_context(context_section, context_rules)
     lines += ['', '## Not measurable yet', '']
@@ -379,3 +381,102 @@ def calibration_line(shadow):
     return ['', '## The review triage', '',
             f'In shadow: {"yes" if shadow["shadow"] else "no"}, by the {shadow["source"]}. '
             f'{shadow["reason"]}', '']
+
+
+def rule_loop(ticket_records, registry):
+    """SEEN-114's rule loop: what the registry caught, what recurred, what predates it.
+
+    `ticket_records` is every ticket's own `(id, records)` pair for the window
+    this is asked about, read once here rather than inside `calibration`
+    itself: `rules/registry.toml` is checked against directly, which is a
+    question the calibration window has never had to ask before. `registry`
+    is `rules.load(root)`.
+
+    Four figures rather than the three the criterion names, because a finding
+    recorded before this gate existed carries no `rule_candidate` key at all
+    (`predates`), and counting that as "no rule could have caught it" would
+    read as though every old finding had been triaged against the rule set.
+    A finding whose candidate is `none: <reason>` answered the question
+    already and is counted in neither list: it is not a miss, and it is not
+    recurring, because nobody is proposing a rule for it.
+
+    Low severity is out of scope entirely, the same floor `gates.check_findings`
+    applies: a low finding carries no `rule_candidate` by design, so reading
+    one here would double-count the saving the gate already makes as though
+    it were a backlog of untriaged findings.
+    """
+    from . import calibration, gates
+    registry_ids = {entry['id'] for entry in registry
+                    if isinstance(entry, dict) and entry.get('id')}
+    caught, candidates, predates = [], {}, 0
+    for ticket, records in ticket_records:
+        for finding in calibration.latest_findings(records):
+            if finding.get('severity') not in gates.RULE_CANDIDATE_SEVERITIES:
+                continue
+            if 'rule_candidate' not in finding:
+                predates += 1
+                continue
+            candidate = finding['rule_candidate']
+            if not isinstance(candidate, str) or candidate.startswith('none:'):
+                continue
+            ref = dict(ticket=ticket, id=finding.get('id'))
+            if candidate in registry_ids:
+                caught.append(dict(ref, rule=candidate))
+            else:
+                candidates.setdefault(candidate, []).append(ref)
+    recurred = {candidate: refs for candidate, refs in candidates.items() if len(refs) >= 2}
+    return dict(caught=caught, recurred=recurred, predates=predates)
+
+
+def rules_added_in_week(registry, arrivals, when):
+    """Registry entries whose arrival, by git, falls in the ISO week of `when`.
+
+    `arrivals` is `rules.arrival_dates(root)`: a rule with no date there (the
+    registry has never been committed, or `git log -S` found nothing) is left
+    out rather than guessed into either week, the same absence `rule_loop`
+    leaves a `none:` candidate out of either of its own two lists.
+    """
+    target = date.fromisoformat(when).isocalendar()[:2]
+    found = []
+    for entry in registry:
+        if not isinstance(entry, dict) or not entry.get('id'):
+            continue
+        arrived = arrivals.get(entry['id'])
+        if not arrived:
+            continue
+        moment = datetime.fromisoformat(arrived.replace('Z', '+00:00'))
+        if moment.date().isocalendar()[:2] == target:
+            found.append(entry)
+    return found
+
+
+def render_rules(section):
+    """What SEEN-114's rule loop found this week, beside the rule it is read by.
+
+    Four figures, in the order a reader meets them: what the rule set already
+    caught, what rules arrived, what has recurred with no rule written for it
+    yet, and what the window cannot say anything about because it predates
+    the field. The last line is not a footnote: the first weeks this report
+    runs are mostly that figure, and a report that buried it would read as
+    though every old finding had already been triaged against the rule set.
+    """
+    lines = ['', '## The rule loop', '',
+             f'- Findings a rule could have caught: {len(section["caught"])}']
+    for item in section['caught']:
+        lines.append(f'  - {item["ticket"]} {item.get("id") or "?"}: `{item["rule"]}`')
+    added = section.get('rules_added') or []
+    lines.append('- Rules added this week: '
+                 + (', '.join(f'`{entry["id"]}`' for entry in added) if added else 'none'))
+    recurred = section.get('recurred') or {}
+    if recurred:
+        lines.append('- Recurred without a rule:')
+        for candidate, refs in sorted(recurred.items()):
+            named = ', '.join(f'{ref["ticket"]} {ref.get("id") or "?"}' for ref in refs)
+            lines.append(f'  - `{candidate}`, on {len(refs)} finding(s): {named}')
+    else:
+        lines.append('- Recurred without a rule: none')
+    lines.append(f'- Findings that predate rule_candidate: {section["predates"]}')
+    if section['predates']:
+        lines.append('  Recorded before this gate existed, so they named no candidate at all; '
+                     'not counted as findings no rule could catch.')
+    return lines
