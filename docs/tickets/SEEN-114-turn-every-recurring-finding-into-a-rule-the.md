@@ -168,11 +168,15 @@ and 63 carry the diagnosis and the replay; the two questions it raises, where th
 comes from and whether the solution gate should refuse a plan whose slices overlap, belong to a harness
 ticket of their own.
 
-**The paragraphs SEEN-139 reverted are restored here**, on Ruud's decision, because this ticket already
-edited `docs/harness/workflow.md`. SEEN-139's docs regeneration was built from a branch point before
-SEEN-106, SEEN-107, SEEN-109 and SEEN-111 landed and reverted ten of its paragraphs, which the guard
-SEEN-107 wrote caught; CI had been red on main since. Commit `c43bc57`, kept separate so a reader can
-read it apart from the rest.
+**The paragraphs SEEN-139 reverted are no longer this ticket's to restore, and were.** SEEN-139's docs
+regeneration was built from a branch point before SEEN-106, SEEN-107, SEEN-109 and SEEN-111 landed and
+reverted ten paragraphs of `docs/harness/workflow.md`, which the guard SEEN-107 wrote caught, and CI
+had been red on main since. This ticket carried the repair as commit `c43bc57` on Ruud's decision,
+because it already edited that document. SEEN-140 then needed the same repair to make its own
+regression exit zero, cherry-picked `c43bc57` with `-x`, and merged first; the rebase onto main
+dropped the commit from this branch as already upstream, which is what a cherry-pick is for. So the
+restore is in main and is not in this diff, and this paragraph says so rather than leaving a claim
+about a commit a reader would not find.
 
 ### What it cost
 
