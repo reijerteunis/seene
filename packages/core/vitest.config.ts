@@ -3,6 +3,18 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     environment: 'node',
+    // One test file at a time. Vitest runs files in parallel workers by default,
+    // and every file under db/ connects to the same local Postgres: the
+    // schema-mutating ones drop and re-add a foreign key, create roles, policies
+    // and views, while another file is seeding the very tables those statements
+    // take an ACCESS EXCLUSIVE lock on. The two wait on each other and Postgres
+    // breaks the cycle by refusing one of them, which surfaces as a test failing
+    // with SQLSTATE 40P01 and an assertion message that blames the schema. It
+    // needs the timing to line up, so it is rare and cannot be asked for on
+    // demand, which is what makes it expensive: a green suite is not evidence the
+    // hazard is gone. Speed is not what this costs, because the whole suite runs
+    // in about a second either way. db/parallelism.test.ts asserts this setting.
+    fileParallelism: false,
     coverage: {
       provider: 'v8',
       // json-summary is what the harness reads; text is for a person watching.

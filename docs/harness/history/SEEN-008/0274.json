@@ -1,0 +1,430 @@
+{
+  "sequence": 274,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-30T20:19:34.787658+00:00",
+  "harness_version": "2",
+  "kind": "triage",
+  "stage": "review",
+  "attempt": 15,
+  "actor": "claude:reviewer",
+  "session": "a00943ab9615",
+  "head": "86fba8c97af0b1799159a5589f2823f2f2a64b2b",
+  "prev_hash": "828b10b24c8d9741ae82ebf5d6003d906a99e679b2d84d4c37d03861232e6576",
+  "data": {
+    "fingerprint": "26b0d39908550aaaf8299c3af65abc8d082a25e241ea68861498c9ebfd2888c8",
+    "code_fingerprint": "f61efb22e83505a487edde6857dc34c3ad174369147379f02e309f55823ff863",
+    "files": [
+      {
+        "path": "docs/tickets/SEEN-008-create-trade-record-schema-v1-with-tenant-id.md",
+        "hunks": 3,
+        "added": 916,
+        "removed": 2,
+        "package": "docs",
+        "risk_percentile": 46.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": false
+      },
+      {
+        "path": "docs/tickets/SEEN-027-build-the-claims-rail-with-api-assisted-and.md",
+        "hunks": 1,
+        "added": 3,
+        "removed": 0,
+        "package": "docs",
+        "risk_percentile": 46.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": false
+      },
+      {
+        "path": "docs/tickets/SEEN-032-write-append-only-audit-events-before-every.md",
+        "hunks": 1,
+        "added": 3,
+        "removed": 0,
+        "package": "docs",
+        "risk_percentile": 46.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": false
+      },
+      {
+        "path": "docs/tickets/SEEN-034-build-agent-runtime-v1-with-the-fixed-tool-set.md",
+        "hunks": 1,
+        "added": 3,
+        "removed": 0,
+        "package": "docs",
+        "risk_percentile": 46.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": false
+      },
+      {
+        "path": "docs/tickets/SEEN-040-issue-invoices-with-recovery-share-lines-from.md",
+        "hunks": 1,
+        "added": 1,
+        "removed": 1,
+        "package": "docs",
+        "risk_percentile": 46.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": false
+      },
+      {
+        "path": "docs/tickets/SEEN-062-parse-the-forwarded-mailbox-via-postmark.md",
+        "hunks": 1,
+        "added": 3,
+        "removed": 0,
+        "package": "docs",
+        "risk_percentile": 46.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": false
+      },
+      {
+        "path": "docs/tickets/SEEN-083-expire-amazon-pii-after-30-days-and-delete.md",
+        "hunks": 1,
+        "added": 1,
+        "removed": 0,
+        "package": "docs",
+        "risk_percentile": 46.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": false
+      },
+      {
+        "path": "packages/core/db/authorities.test.ts",
+        "hunks": 1,
+        "added": 402,
+        "removed": 0,
+        "package": "packages/core",
+        "risk_percentile": 46.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": false
+      },
+      {
+        "path": "packages/core/db/marketplaces.test.ts",
+        "hunks": 1,
+        "added": 346,
+        "removed": 0,
+        "package": "packages/core",
+        "risk_percentile": 46.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "packages/core/db/marketplaces.ts",
+        "hunks": 1,
+        "added": 283,
+        "removed": 0,
+        "package": "packages/core",
+        "risk_percentile": 46.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "packages/core/db/parallelism.test.ts",
+        "hunks": 1,
+        "added": 51,
+        "removed": 0,
+        "package": "packages/core",
+        "risk_percentile": 46.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": false
+      },
+      {
+        "path": "packages/core/db/repository.ts",
+        "hunks": 1,
+        "added": 663,
+        "removed": 0,
+        "package": "packages/core",
+        "risk_percentile": 46.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": false
+      },
+      {
+        "path": "packages/core/db/rls.test.ts",
+        "hunks": 1,
+        "added": 1856,
+        "removed": 0,
+        "package": "packages/core",
+        "risk_percentile": 46.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "packages/core/db/schema.test.ts",
+        "hunks": 1,
+        "added": 6743,
+        "removed": 0,
+        "package": "packages/core",
+        "risk_percentile": 46.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "packages/core/db/tables.ts",
+        "hunks": 1,
+        "added": 1217,
+        "removed": 0,
+        "package": "packages/core",
+        "risk_percentile": 46.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "packages/core/db/uniqueness.test.ts",
+        "hunks": 1,
+        "added": 325,
+        "removed": 0,
+        "package": "packages/core",
+        "risk_percentile": 46.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "packages/core/package.json",
+        "hunks": 1,
+        "added": 15,
+        "removed": 2,
+        "package": "packages/core",
+        "risk_percentile": 46.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "packages/core/vitest.config.ts",
+        "hunks": 1,
+        "added": 12,
+        "removed": 0,
+        "package": "packages/core",
+        "risk_percentile": 46.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": false
+      },
+      {
+        "path": "pnpm-lock.yaml",
+        "hunks": 11,
+        "added": 122,
+        "removed": 0,
+        "package": "root",
+        "risk_percentile": 46.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": false
+      },
+      {
+        "path": "supabase/migrations/20260927000000_trade_record_v1_tenancy_and_orders.sql",
+        "hunks": 1,
+        "added": 477,
+        "removed": 0,
+        "package": "supabase",
+        "risk_percentile": 46.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": false
+      },
+      {
+        "path": "supabase/migrations/20260927000001_trade_record_v1_claims_and_agent.sql",
+        "hunks": 1,
+        "added": 510,
+        "removed": 0,
+        "package": "supabase",
+        "risk_percentile": 46.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": false
+      },
+      {
+        "path": "supabase/migrations/20260927000002_trade_record_v1_commerce_and_marketplaces_seed.sql",
+        "hunks": 1,
+        "added": 453,
+        "removed": 0,
+        "package": "supabase",
+        "risk_percentile": 46.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": false
+      },
+      {
+        "path": "supabase/migrations/20260927000003_trade_record_v1_read_only_client_roles.sql",
+        "hunks": 1,
+        "added": 236,
+        "removed": 0,
+        "package": "supabase",
+        "risk_percentile": 46.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": false
+      },
+      {
+        "path": "supabase/migrations/20260929000000_trade_record_v1_tenant_scoped_foreign_keys.sql",
+        "hunks": 1,
+        "added": 202,
+        "removed": 0,
+        "package": "supabase",
+        "risk_percentile": 46.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": false
+      },
+      {
+        "path": "supabase/migrations/20260929000001_trade_record_v1_relations_that_are_not_tables.sql",
+        "hunks": 1,
+        "added": 771,
+        "removed": 0,
+        "package": "supabase",
+        "risk_percentile": 46.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": false
+      },
+      {
+        "path": "supabase/migrations/20260929000002_trade_record_v1_free_text_classification.sql",
+        "hunks": 1,
+        "added": 472,
+        "removed": 0,
+        "package": "supabase",
+        "risk_percentile": 46.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": false
+      },
+      {
+        "path": "supabase/migrations/20260929000003_trade_record_v1_erased_tenant_ids.sql",
+        "hunks": 1,
+        "added": 787,
+        "removed": 0,
+        "package": "supabase",
+        "risk_percentile": 46.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": false
+      },
+      {
+        "path": "supabase/migrations/20260930000000_trade_record_v1_referential_integrity.sql",
+        "hunks": 1,
+        "added": 615,
+        "removed": 0,
+        "package": "supabase",
+        "risk_percentile": 46.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": false
+      },
+      {
+        "path": "supabase/migrations/20260930000001_trade_record_v1_evidence_and_billing.sql",
+        "hunks": 1,
+        "added": 327,
+        "removed": 0,
+        "package": "supabase",
+        "risk_percentile": 46.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": false
+      },
+      {
+        "path": "turbo.json",
+        "hunks": 1,
+        "added": 72,
+        "removed": 1,
+        "package": "root",
+        "risk_percentile": 46.2,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      }
+    ],
+    "criteria": [
+      "Migration applies on an empty database and pnpm db:reset re-applies it without error",
+      "A test that lists every table in the public schema finds tenant_id and an enabled RLS policy on 100% of them",
+      "A query with tenant A's JWT returns zero rows from tenant B's orders in an integration test",
+      "Unique index on (tenant_id, marketplace, external_id) exists on orders, shipments, returns, settlements and settlement_lines",
+      "marketplaces seed contains the six marketplaces with capability flags matching the routing table in architecture.md"
+    ],
+    "deterministic": [
+      {
+        "name": "coverage",
+        "outcome": "pass",
+        "detail": "@seen/core at 100.0%, +0.0 against the baseline"
+      },
+      {
+        "name": "lint",
+        "outcome": "pass",
+        "detail": "No live marketplace host in test code"
+      },
+      {
+        "name": "gitleaks",
+        "outcome": "pass",
+        "detail": "No leak in main..HEAD"
+      },
+      {
+        "name": "fingerprint",
+        "outcome": "pass",
+        "detail": "The tree is the one check 269 ran against"
+      },
+      {
+        "name": "slice_files",
+        "outcome": "fail",
+        "detail": "Changed but named by no slice and no changes entry: docs/tickets/SEEN-027-build-the-claims-rail-with-api-assisted-and.md, docs/tickets/SEEN-032-write-append-only-audit-events-before-every.md, docs/tickets/SEEN-034-build-agent-runtime-v1-with-the-fixed-tool-set.md, docs/tickets/SEEN-040-issue-invoices-with-recovery-share-lines-from.md, docs/tickets/SEEN-062-parse-the-forwarded-mailbox-via-postmark.md, docs/tickets/SEEN-083-expire-amazon-pii-after-30-days-and-delete.md, packages/core/db/authorities.test.ts, packages/core/db/parallelism.test.ts, packages/core/db/repository.ts, packages/core/vitest.config.ts, pnpm-lock.yaml, supabase/migrations/20260927000000_trade_record_v1_tenancy_and_orders.sql, supabase/migrations/20260927000001_trade_record_v1_claims_and_agent.sql, supabase/migrations/20260927000002_trade_record_v1_commerce_and_marketplaces_seed.sql, supabase/migrations/20260927000003_trade_record_v1_read_only_client_roles.sql, supabase/migrations/20260929000000_trade_record_v1_tenant_scoped_foreign_keys.sql, supabase/migrations/20260929000001_trade_record_v1_relations_that_are_not_tables.sql, supabase/migrations/20260929000002_trade_record_v1_free_text_classification.sql, supabase/migrations/20260929000003_trade_record_v1_erased_tenant_ids.sql, supabase/migrations/20260930000000_trade_record_v1_referential_integrity.sql, supabase/migrations/20260930000001_trade_record_v1_evidence_and_billing.sql"
+      },
+      {
+        "name": "red_before_green",
+        "outcome": "pass",
+        "detail": "Every slice cites a check that exited non-zero rather than one that passed. Whether it failed for the reason the slice states is not something the harness can read"
+      },
+      {
+        "name": "tests_added",
+        "outcome": "pass",
+        "detail": "Test files changed: packages/core/db/authorities.test.ts, packages/core/db/marketplaces.test.ts, packages/core/db/parallelism.test.ts, packages/core/db/rls.test.ts, packages/core/db/schema.test.ts. Whether the behaviour this slice adds has one of its own is not something a path can say"
+      },
+      {
+        "name": "acceptance_entries",
+        "outcome": "pass",
+        "detail": "The clarify record restates 5 checks against 5 criteria in the ticket. Which check answers which criterion is not something either list says"
+      },
+      {
+        "name": "pull_request",
+        "outcome": "unavailable",
+        "detail": "gh could not answer, so the pull request body was not read. It is checked again at merge, where the receipt hash has to be in it"
+      }
+    ],
+    "rules": [
+      "This change touches billing or the policy gate, so the review is full depth by rule",
+      "This change carries a migration, so the review is full depth by rule",
+      "slice_files did not pass, so the reviewer reads everything: Changed but named by no slice and no changes entry: docs/tickets/SEEN-027-build-the-claims-rail-with-api-assisted-and.md, docs/tickets/SEEN-032-write-append-only-audit-events-before-every.md, docs/tickets/SEEN-034-build-agent-runtime-v1-with-the-fixed-tool-set.md, docs/tickets/SEEN-040-issue-invoices-with-recovery-share-lines-from.md, docs/tickets/SEEN-062-parse-the-forwarded-mailbox-via-postmark.md, docs/tickets/SEEN-083-expire-amazon-pii-after-30-days-and-delete.md, packages/core/db/authorities.test.ts, packages/core/db/parallelism.test.ts, packages/core/db/repository.ts, packages/core/vitest.config.ts, pnpm-lock.yaml, supabase/migrations/20260927000000_trade_record_v1_tenancy_and_orders.sql, supabase/migrations/20260927000001_trade_record_v1_claims_and_agent.sql, supabase/migrations/20260927000002_trade_record_v1_commerce_and_marketplaces_seed.sql, supabase/migrations/20260927000003_trade_record_v1_read_only_client_roles.sql, supabase/migrations/20260929000000_trade_record_v1_tenant_scoped_foreign_keys.sql, supabase/migrations/20260929000001_trade_record_v1_relations_that_are_not_tables.sql, supabase/migrations/20260929000002_trade_record_v1_free_text_classification.sql, supabase/migrations/20260929000003_trade_record_v1_erased_tenant_ids.sql, supabase/migrations/20260930000000_trade_record_v1_referential_integrity.sql, supabase/migrations/20260930000001_trade_record_v1_evidence_and_billing.sql"
+    ],
+    "jev": {
+      "asked": false,
+      "model": null,
+      "reason": "Full depth is settled by rule, so no request was made: This change touches billing or the policy gate, so the review is full depth by rule",
+      "answers": []
+    },
+    "criteria_answers": [],
+    "review_depth": "full",
+    "reviewer_model": "opus",
+    "model_depth": "full",
+    "focus": [
+      "docs/tickets/SEEN-008-create-trade-record-schema-v1-with-tenant-id.md",
+      "docs/tickets/SEEN-027-build-the-claims-rail-with-api-assisted-and.md",
+      "docs/tickets/SEEN-032-write-append-only-audit-events-before-every.md",
+      "docs/tickets/SEEN-034-build-agent-runtime-v1-with-the-fixed-tool-set.md",
+      "docs/tickets/SEEN-040-issue-invoices-with-recovery-share-lines-from.md",
+      "docs/tickets/SEEN-062-parse-the-forwarded-mailbox-via-postmark.md",
+      "docs/tickets/SEEN-083-expire-amazon-pii-after-30-days-and-delete.md",
+      "packages/core/db/authorities.test.ts",
+      "packages/core/db/marketplaces.test.ts",
+      "packages/core/db/marketplaces.ts",
+      "packages/core/db/parallelism.test.ts",
+      "packages/core/db/repository.ts",
+      "packages/core/db/rls.test.ts",
+      "packages/core/db/schema.test.ts",
+      "packages/core/db/tables.ts",
+      "packages/core/db/uniqueness.test.ts",
+      "packages/core/package.json",
+      "packages/core/vitest.config.ts",
+      "pnpm-lock.yaml",
+      "supabase/migrations/20260927000000_trade_record_v1_tenancy_and_orders.sql",
+      "supabase/migrations/20260927000001_trade_record_v1_claims_and_agent.sql",
+      "supabase/migrations/20260927000002_trade_record_v1_commerce_and_marketplaces_seed.sql",
+      "supabase/migrations/20260927000003_trade_record_v1_read_only_client_roles.sql",
+      "supabase/migrations/20260929000000_trade_record_v1_tenant_scoped_foreign_keys.sql",
+      "supabase/migrations/20260929000001_trade_record_v1_relations_that_are_not_tables.sql",
+      "supabase/migrations/20260929000002_trade_record_v1_free_text_classification.sql",
+      "supabase/migrations/20260929000003_trade_record_v1_erased_tenant_ids.sql",
+      "supabase/migrations/20260930000000_trade_record_v1_referential_integrity.sql",
+      "supabase/migrations/20260930000001_trade_record_v1_evidence_and_billing.sql",
+      "turbo.json"
+    ],
+    "shadow": true,
+    "shadow_source": "threshold",
+    "shadow_reason": "[review] triage_shadow is true in harness/thresholds.toml",
+    "would_exclude": [],
+    "excluded_share": 0.0,
+    "always_read": [
+      "docs/tickets/SEEN-008-create-trade-record-schema-v1-with-tenant-id.md",
+      "docs/harness/history/SEEN-008/"
+    ],
+    "reviewer_task": "Review SEEN-008 against its acceptance criteria and its journal.\n\nDepth: full, settled by triage record 274, in shadow mode, so the focus set is the whole diff and what the narrowing would have dropped is recorded rather than acted on\n\nRun the reviewer on opus by rule: the strongest model at full depth, one tier down at spot.\n\nRead these whatever the depth, because they are what a review is against and no focus set can hold them:\n- docs/tickets/SEEN-008-create-trade-record-schema-v1-with-tenant-id.md\n- docs/harness/history/SEEN-008/\n\nOf the diff, read these 30 file(s) and no others:\n- docs/tickets/SEEN-008-create-trade-record-schema-v1-with-tenant-id.md\n- docs/tickets/SEEN-027-build-the-claims-rail-with-api-assisted-and.md\n- docs/tickets/SEEN-032-write-append-only-audit-events-before-every.md\n- docs/tickets/SEEN-034-build-agent-runtime-v1-with-the-fixed-tool-set.md\n- docs/tickets/SEEN-040-issue-invoices-with-recovery-share-lines-from.md\n- docs/tickets/SEEN-062-parse-the-forwarded-mailbox-via-postmark.md\n- docs/tickets/SEEN-083-expire-amazon-pii-after-30-days-and-delete.md\n- packages/core/db/authorities.test.ts\n- packages/core/db/marketplaces.test.ts\n- packages/core/db/marketplaces.ts\n- packages/core/db/parallelism.test.ts\n- packages/core/db/repository.ts\n- packages/core/db/rls.test.ts\n- packages/core/db/schema.test.ts\n- packages/core/db/tables.ts\n- packages/core/db/uniqueness.test.ts\n- packages/core/package.json\n- packages/core/vitest.config.ts\n- pnpm-lock.yaml\n- supabase/migrations/20260927000000_trade_record_v1_tenancy_and_orders.sql\n- supabase/migrations/20260927000001_trade_record_v1_claims_and_agent.sql\n- supabase/migrations/20260927000002_trade_record_v1_commerce_and_marketplaces_seed.sql\n- supabase/migrations/20260927000003_trade_record_v1_read_only_client_roles.sql\n- supabase/migrations/20260929000000_trade_record_v1_tenant_scoped_foreign_keys.sql\n- supabase/migrations/20260929000001_trade_record_v1_relations_that_are_not_tables.sql\n- supabase/migrations/20260929000002_trade_record_v1_free_text_classification.sql\n- supabase/migrations/20260929000003_trade_record_v1_erased_tenant_ids.sql\n- supabase/migrations/20260930000000_trade_record_v1_referential_integrity.sql\n- supabase/migrations/20260930000001_trade_record_v1_evidence_and_billing.sql\n- turbo.json\n\nAlready settled with no model, so do not spend a read confirming any of them: coverage, lint, gitleaks, fingerprint.\n\nPartly settled, and the rest is yours:\n- red_before_green: it passed, but it proves the cited check exited non-zero, never that it failed for the reason the slice states, which only a reader comparing the two can judge\n- tests_added: it passed, but it proves a test file is in the change, never that the behaviour the slice adds has a test of its own, which a one-line fixture edit satisfies just as well\n- acceptance_entries: it passed, but it counts the clarify record's checks against the ticket's criteria, never that each criterion has one, because neither list names the other\n\nNot settled, so they are yours:\n- slice_files (fail): Changed but named by no slice and no changes entry: docs/tickets/SEEN-027-build-the-claims-rail-with-api-assisted-and.md, docs/tickets/SEEN-032-write-append-only-audit-events-before-every.md, docs/tickets/SEEN-034-build-agent-runtime-v1-with-the-fixed-tool-set.md, docs/tickets/SEEN-040-issue-invoices-with-recovery-share-lines-from.md, docs/tickets/SEEN-062-parse-the-forwarded-mailbox-via-postmark.md, docs/tickets/SEEN-083-expire-amazon-pii-after-30-days-and-delete.md, packages/core/db/authorities.test.ts, packages/core/db/parallelism.test.ts, packages/core/db/repository.ts, packages/core/vitest.config.ts, pnpm-lock.yaml, supabase/migrations/20260927000000_trade_record_v1_tenancy_and_orders.sql, supabase/migrations/20260927000001_trade_record_v1_claims_and_agent.sql, supabase/migrations/20260927000002_trade_record_v1_commerce_and_marketplaces_seed.sql, supabase/migrations/20260927000003_trade_record_v1_read_only_client_roles.sql, supabase/migrations/20260929000000_trade_record_v1_tenant_scoped_foreign_keys.sql, supabase/migrations/20260929000001_trade_record_v1_relations_that_are_not_tables.sql, supabase/migrations/20260929000002_trade_record_v1_free_text_classification.sql, supabase/migrations/20260929000003_trade_record_v1_erased_tenant_ids.sql, supabase/migrations/20260930000000_trade_record_v1_referential_integrity.sql, supabase/migrations/20260930000001_trade_record_v1_evidence_and_billing.sql\n- pull_request (unavailable): gh could not answer, so the pull request body was not read. It is checked again at merge, where the receipt hash has to be in it\n\nReturn the review record's shape. Its `read` list must name every file you read and must cover the focus set above, which the review gate checks."
+  }
+}

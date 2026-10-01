@@ -1,0 +1,16 @@
+{
+  "sequence": 231,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-30T14:19:00.839113+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 13,
+  "actor": "claude:reviewer",
+  "session": "a00943ab9615",
+  "head": "0d05572da9c275ed49dfa442643fe8d1f6b53881",
+  "prev_hash": "91fd7a106d36a923ffbb1b42069d2c39817b71421413dd2d690090002304f050",
+  "data": {
+    "text": "A correction to the reason on record 230, which lost a clause to the shell before it was\nwritten, and a note on the habit that keeps causing it.\n\nThe sentence should read: written as an author avoiding the guard would, as\n  const fs: any = await vi.importActual('node:fs');\nit reports only [\"vitest\"], which is allow-listed as handing a test no way to open a path.\n\nWhat happened is that the clause was wrapped in backticks inside a double-quoted shell\nargument, so zsh tried to expand it and dropped it. The record now says \"written as an\nauthor avoiding the guard would, , it reports only\", with the spelling that is the whole\npoint of F47 missing from it. The journal is append-only and record 230 stands as written;\nthis note is where the sentence lives.\n\nThat is the third time this session that a backtick inside a double-quoted shell string has\neaten authored text: twice in a commit message, once here. The first was caught because the\ncommit could be amended before it was pushed, the second because the message was re-read\nafterwards, and this one because the shell printed its complaint. None of them was caught by\nintent. The rule that would have prevented all three is to pass prose through a file or a\nheredoc rather than through an argument, which is what every harness note in this ticket\nalready does and what the `--reason` flag does not offer.\n\n## What F47 is, restated so the journal carries it once correctly\n\n`packages/core/db/repository.ts` allows `vitest` in `IMPORTS_THAT_CANNOT_READ` on the stated\nground that the test runner \"hands a test no way to open a path\". That is false.\n`vi.importActual` takes a literal specifier, and `ts.preProcessFile` does not report it, so a\nmodule of this package can obtain `node:fs` or `node:child_process` while `readingImportsOf`\nreturns nothing and the guard that exists to make the reader unavoidable says the package is\nclean. `rls.test.ts` already imports `vi`, so the hazard is one line from a module that\nexists.\n\nMeasured here before the finding was recorded, and one false negative of my own is worth\nrecording with it. Written with `typeof import('node:fs')` in a type position, the\npre-processor does report `node:fs`, because a type-only import is still an import to it, and\nmy first probe therefore said the guard was fine. Removing the type annotation, which is what\nan author avoiding the guard would do, leaves only `[\"vitest\"]`. The lesson is the one this\nticket keeps producing: a probe that includes a construct the guard handles proves nothing\nabout the construct it does not.\n\nIt is also F44's shape one round after F44: a stated impossibility that is false, sitting in\na list the module presents as complete. The module names three survivals, a computed\nspecifier, `createRequire` other than through `node:module`, and `eval`. This is a fourth,\nwith a literal specifier, and a lint rule would miss it too.\n"
+  }
+}

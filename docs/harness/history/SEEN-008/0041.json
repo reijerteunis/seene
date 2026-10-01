@@ -1,0 +1,38 @@
+{
+  "sequence": 41,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-27T18:07:39.884367+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "7d7d5075c36370b88e2354e59ef72ecb1ac7055f",
+  "prev_hash": "57f05c797866b35de45fcb0ca989767721d8390813a11633ff7b2a12bec82f27",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": 4,
+          "behaviour": "The second review's three remaining findings, which the review gate requires resolved rather than carried. The `test` task's cache key now hashes `supabase/migrations/**` through `$TURBO_ROOT$`, so a migration that changes nothing inside a package can no longer replay a cached pass over the only tests that guard tenancy, privileges and the append-only table; measured both ways, with a probe migration producing a cache hit and the old count before the change and twelve named failures after it. The six blanket grants are removed from parts 1 to 3 rather than forbidden in a comment, with a test that reads every file under `supabase/migrations` and fails on one, so the next author meets a failing test; part 4 now revokes update, delete and truncate on `audit_events` from the service role itself, so it reads true on its own rather than only after the tails that used to precede it. And the six buyer PII column comments state which encryption at rest the schema relies on, the storage layer only, that the value itself is cleartext to a restore-drill dump and to any service-role query, and that column-level encryption is owed and unowned before SEEN-082 takes its first dump, held in place by an assertion rather than by prose. The privilege set after the change is identical to the baseline the review measured by execution.",
+          "failure_reason": "`pnpm --filter @seen/core test` exited 1 with three failures of 61 tests, in the runner's words: \"The cache key of @seen/core#test covers 11 files and 0 of 5 migrations, so a turbo cache hit can report these database tests as passed without ever running them against a changed schema\"; \"6 blanket privilege statements in the migrations, each of which reaches every table in the schema including the ones an earlier migration narrowed\", naming all six across the three files; and \"Buyer PII columns whose comment does not state which encryption at rest the schema relies on today and what is still owed and by whom\", naming all six columns.",
+          "red": 35,
+          "green": 37
+        }
+      ],
+      "regression": 40,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "a00943ab9615",
+      "output_tokens": 719307,
+      "tool_calls": 400,
+      "unavailable": null
+    }
+  }
+}

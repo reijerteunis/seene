@@ -1,0 +1,63 @@
+{
+  "sequence": 251,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-30T17:20:57.885867+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 13,
+  "actor": "claude:reviewer",
+  "session": "a00943ab9615",
+  "head": "e8622f2606279d2dff1c3476f8a97683f2bd2eef",
+  "prev_hash": "f6a3077bb35240601137fa61ca19cd657590fec756e6a20b9351a506108502e1",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 14,
+    "reason": "Fifth pre-check, run because three consecutive Codex rounds died on the usage limit without a verdict, the last at 201,584 tokens. Advisory: only the other assistant satisfies the gate. Its verdict is pass and it re-verified all five criteria against the live database rather than against the journal, so this return is to fix four findings it raised while passing, not a judgement that the work is unsound.\n\nAsked to separate findings by kind, it reports essentially nothing of the schema kind. The tables, tenancy, privileges, foreign keys, erasure guarantees and seeds held against everything it attacked them with: 29 relations all carrying tenant_id with RLS and a tenancy policy, 57 foreign keys all tenant-scoped with no exemption, anon holding nothing on any of them, a new table and function and sequence in public all born with postgres and service_role only.\n\nF51 is the one that touches a real table and is fixture hygiene rather than a migration defect: two describes must commit because a race between two sessions has no single-transaction form, so every suite run writes three rows into seen.erased_tenants that nothing can remove, since delete, update and truncate there are refused 23001 by the registry's own trigger. Measured 27 to 30 on one file and bisected by describe. Harmless against a local stack that can be reset, and not harmless the moment the suite is pointed at a database holding real trade records.\n\nF52 is the fifth arrival of the unhashed-authority class: import.meta.glob names a literal specifier and returns a repository file, and neither instrument in readingImportsOf looks at a glob call. Measured reading docs/prd/prd.md with the suite green at 151 tests. It sits inside the blind spot the doc comment honestly describes, so no sentence is false, and the F47 paragraph's own point is that a member of that blind spot is added once somebody measures it.\n\nF53 is the sharpest and is about the round before last. F49's test compares packageSources() against a set built from packageSources(), so both its assertions are empty by construction and it cannot fail on any tree. Restoring the exact narrowing F49 removed leaves it green, because every collected source on this tree ends in .ts. The fix and the widened extension list are real; the test that is supposed to keep them is not.\n\nF54 is the Outcome stating as left open a hazard the shipped schema closed, and stating that the fix which shipped was declined, in the one document the withdrawn-claim scanner deliberately does not read.",
+    "findings": [
+      {
+        "id": "F51",
+        "severity": "medium",
+        "kind": "schema",
+        "file": "packages/core/db/schema.test.ts:3255",
+        "claim": "Two describe blocks erase tenants outside a transaction, so every run of the core suite writes three permanent and unremovable rows into seen.erased_tenants, in whatever database the suite is pointed at.",
+        "failure_scenario": "Measured on the reviewed tree. `seen.erased_tenants` held 27 rows; running only `db/schema.test.ts` left 30. Bisected by describe: 'a tenant id being erased by one session while another inserts it' (schema.test.ts:3255) adds one row per run and 'a tenant id created and erased after another session pinned its snapshot' (schema.test.ts:3447) adds two, because both need committed state on two connections and so cannot live inside the rolled-back transaction the rest of the file uses. The rows cannot be taken back: `delete from seen.erased_tenants` as the owning role is refused 23001 by seen.refuse_erasure_registry_mutation, and so are update and truncate, so the only way back is `pnpm db:reset`. Point the suite at any database that holds real trade records (the pilot stack of SEEN-097, or the Supabase EU project after the SEEN-007 go decision) and the registry whose meaning is 'these tenant ids were erased on a person's request' fills with three ids per run that were never customers and can never be removed, while db:reset is not available. The hazard is named twice in this branch and guarded in the two places it could be: rls.test.ts:141-149 with assertNoTombstones, and schema.test.ts:2291-2296 for the append-only describe. Nothing names it for these two, and neither has an assertNoTombstones.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F52",
+        "severity": "medium",
+        "kind": "guard",
+        "file": "packages/core/db/repository.ts:513",
+        "claim": "import.meta.glob is a third grammar in which a module of this package names a literal specifier and gets a repository file back, and neither instrument in readingImportsOf looks at it, so a module can read an authority turbo does not hash with the guard reporting nothing.",
+        "failure_scenario": "Measured on the reviewed tree. A file `packages/core/db/zz-glob-probe.test.ts` containing `import.meta.glob('../../../docs/prd/prd.md', { query: '?raw', import: 'default', eager: true })` returned the text of docs/prd/prd.md, which turbo does not hash into @seen/core#test; `pnpm --filter @seen/core test` then reported 8 files and 151 tests passed, authorities.test.ts's 'leaves this package no way to read an authority around that reader' among them. Asked directly, `readingImportsOf(\"const docs = import.meta.glob('../../../docs/prd/prd.md', { query: '?raw', eager: true });\", 'packages/core/db/synthetic.ts')` returns []. ts.preProcessFile does not report it because it is a call and not an import, and MODULE_LOADING_CALLS names only importActual and importMock. This is the same class as F45 and F47 and the fifth arrival of it; it sits inside the blind spot the doc comment honestly describes ('anything that hands back a module without a specifier written where this looks'), so no sentence in the file is false, but it is now measured rather than hypothetical, and the F47 paragraph's whole point is that a member of that blind spot is added once somebody measures it. The probe file was deleted and the suite re-run green at 150 tests.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F53",
+        "severity": "medium",
+        "kind": "guard",
+        "file": "packages/core/db/schema.test.ts:2161",
+        "claim": "The test that holds F49's fix in place is a tautology: it compares packageSources() against a set built from packageSources(), so its two assertions are empty by construction and cannot fail on any tree.",
+        "failure_scenario": "sourcesThatDocumentTheSet() returns `[...packageSources(), ...members, ARCHITECTURE_DOCUMENT]`, and the test computes `unscanned = packageSources().filter((file) => !scanned.has(file))` where `scanned` is the file set of that return. `scanned` is a superset of `packageSources()` unconditionally, so `unscanned` is always [], and `unseen` is derived only from `unscanned`, so it is always [] too. The assertion `toEqual({ unscanned: [], unseen: [] })` therefore holds whatever the package contains. Worse, the specific regression it names cannot fail it either: restoring `packageSources().filter((file) => file.endsWith('.ts'))`, the exact narrowing F49 removed, leaves `unscanned` empty on this tree, because every one of the fourteen files under packages/core that the walk collects as a source ends in `.ts` (measured by `find`). The green at record 240 was produced by a `withdrawn-claim-probe.test.mts` that is not in the tree, so what ships is a test that would pass with the behaviour removed. The fix, and the widened SOURCE_EXTENSIONS behind it, are real; only the test that is supposed to keep them is not.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F54",
+        "severity": "low",
+        "kind": "guard",
+        "file": "docs/tickets/SEEN-008-create-trade-record-schema-v1-with-tenant-id.md:138",
+        "claim": "The Outcome states as left open a hazard the shipped schema closed, and states that the fix which shipped was declined.",
+        "failure_scenario": "Lines 138 to 141 read: 'Left open, named rather than done: pg_default_acl still grants the four write privileges to anon and authenticated on tables that do not exist yet, so the next migration's table is born writable by the role a browser is bound to. The new privilege assertion fails loudly when that happens, which is detection rather than prevention; narrowing it with alter default privileges changes every future migration and was not in the decision above.' Measured now, in a rolled-back transaction: a table created in public by postgres is born `{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}` with no anon or authenticated entry at all, a function `{postgres=X,service_role=X}` with has_function_privilege false for both, and a sequence `{postgres=rwU,service_role=rwU}`. Prevention by `alter default privileges` is exactly what part 6 and F39 shipped. A reader of the delivery record who stops before line 325 concludes the next migration's table is born writable and that the schema relies on detection, which is false of the tree the receipt attests. This is the F43, F44 and F50 class, a withdrawn premise left standing where a person meets it, in the one document the WITHDRAWN_BIRTH_CLAIMS scanner deliberately does not read. Mitigating, and why this is low rather than medium: the paragraph sits under a dated heading, the later 'Still left open' list at line 160 says the remaining open items are all harness-side, and F19 at line 325 and F39 at line 624 describe the fix correctly.",
+        "status": "open",
+        "resolution": ""
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}

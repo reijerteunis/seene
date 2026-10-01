@@ -1,0 +1,50 @@
+{
+  "sequence": 292,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-30T22:13:10.918106+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 17,
+  "actor": "claude:reviewer",
+  "session": "a00943ab9615",
+  "head": "66f025d0bf7c4085358b5842672d69ef8f2a67a7",
+  "prev_hash": "35abc5cdd8a99f07d7e1e17ddf4f79fb836706905a55f97fdfe9fbc69802b946",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 18,
+    "reason": "The third Claude Code review returned the ticket on three, and one of them is high and is not prose.\n\nF78 is a cross-tenant credential move, reproduced against the live database as service_role. One update of public.connections.tenant_id carries a seller account's credential_ref, scopes and status into another tenant; that tenant's own signed-in user then reads the row under its own claim and the owning tenant reads nothing, with no audit event written by either party and nothing raised. It is accepted while the connection is idle and refused 23503 once it has traded, which is the two-answer shape part 9's own comments call the worst of the two answers three times over, and it is the same credential move the refuse_marketplace_tenant_change trigger twenty lines above exists to prevent by the cascade route. Part 9 declares the gap generically, as a wider question than F65 that is not settled here, without saying that on this one table the wider question is F65's own credential move by a simpler route.\n\nF80 is the same class one column over: claims.marketplace is the third authored identifier, not the second part 9 enumerates, and it is keyed straight to the catalogue so all six values are valid, so one update repoints a submitted claim onto a rail it was not filed on while its external_case_id and claim_text stay as filed. Every other marketplace column refuses the same statement.\n\nF79 is that withdrawnShapeClaimsStillStanding filters by relation and every one of its four callers passes one, so its doc comment's promise that an unmeasured claim is still read by the catch-all is false of this function though true of its birth-claim twin. A fifth entry would be read by nothing.\n\nWhat held: all five criteria re-measured by execution rather than read out of the journal, and every repair of the previous two rounds. The prediction recorded at the previous return, that a thirteenth instance of the prose class would mean the loop had stopped paying, does not apply to this round: F78 is a reproducible cross-tenant hole with credentials in it, and the review earned its cost.\n\nReturned to tdd.",
+    "findings": [
+      {
+        "id": "F78",
+        "severity": "high",
+        "file": "supabase/migrations/20260930000000_trade_record_v1_referential_integrity.sql:463",
+        "claim": "One UPDATE of public.connections.tenant_id moves a seller account's Secret Manager credential reference into another tenant, accepted while the connection is idle and refused 23503 once it has traded, which is the exact outcome and the exact two-answer shape part 9 writes the refuse_marketplace_tenant_change trigger twenty lines above to prevent by the cascade route.",
+        "failure_scenario": "Reproduced against the live database in a rolled-back transaction, as service_role, which is the role apps/api and apps/worker reach an onboarding or a repair path as. Tenants A and B; A holds one Bol connection with credential_ref projects/seen/secrets/bol-tenantA, scopes {orders,offers} and status active, and no rows under it. Updating public.connections set tenant_id = B where id = the connection is accepted, UPDATE 1. Tenant B's own signed-in user then reads that row under RLS with its own claim: belongs_to_b true, credential_ref, scopes and status all returned. Tenant A reads 0 rows for the same credential_ref. No audit event was written by either party, and nothing raised. The identical statement on a connection carrying one order is refused 23503 by orders_connection_id_fkey, so the schema answers accepted on an idle account and 23503 on a trading one, which part 9's own comments call the worst of the two answers three times over. There is no trigger on public.connections for this column: the only update trigger is refuse_connection_marketplace_change, gated on new.marketplace is distinct from old.marketplace, and the delivered suite's own assertion message at packages/core/db/rls.test.ts:1858 tells the next reader that a refusal is what keeps the credential pointer of one seller account inside the tenant that owns it. Part 9 line 463 declares the gap generically, that a childless row's tenant_id can still be moved by a role that can write it and that this is a wider question than F65 and not settled here, which is accurate and does not say that on this one table the wider question is F65's own credential move. The guard is one statement in the shape this file already writes three times, with the same idle-and-trading UPDATE probe the F72 test already has, so nothing here needs a corpus measurement or an English-parsing guess.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F79",
+        "severity": "medium",
+        "file": "packages/core/db/schema.test.ts:1392",
+        "claim": "withdrawnShapeClaimsStillStanding says in its own doc comment that a claim gaining a row with no measurement of its own is still guarded by somebody because calling it with no relation reports every claim, and no caller in the suite calls it with no relation, so a fifth WITHDRAWN_SHAPE_CLAIM naming a new relation is read by nothing.",
+        "failure_scenario": "The function filters WITHDRAWN_SHAPE_CLAIMS by the relation argument when one is given, and all four call sites give one: public.message_threads, public.marketplaces, public.connections and public.invoices. The birth-claim twin does have the catch-all the sentence describes, which is what makes the asymmetry invisible to a reader who checked one of the two. So the next round does what this round did, adds a withdrawn sentence for a fifth relation with its instead written out, and nothing reads it: the sentence it was added to catch can survive, be copied into a third file or come back, and the suite stays green. That is the exact mechanism the Outcome leans on as the third of its three durable answers and the one it already narrowed once, at F50, for claiming more than it buys.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F80",
+        "severity": "medium",
+        "file": "supabase/migrations/20260930000000_trade_record_v1_referential_integrity.sql:115",
+        "claim": "Part 9 says it makes a marketplace identifier immutable in both places this schema writes one, and there are three: public.claims.marketplace is the third column whose value is chosen rather than derived from a parent, it is keyed straight to the catalogue so every one of the six is a valid new value, and one UPDATE changes the marketplace of a submitted claim with nothing refusing it.",
+        "failure_scenario": "Measured against the live database as service_role in a rolled-back transaction. A claim at status submitted with marketplace bol: updating public.claims set marketplace = 'amazon' is accepted and the row reads back as amazon. The same statement on every other marketplace column is refused: orders, shipments and settlement_lines all answer 23503 because their parent does not carry the new value, public.marketplaces answers 23001 by refuse_marketplace_rename, and public.connections answers 23001 by the trigger F72 added this round. claims is the exception by construction and part 9 says so at lines 79 to 81, that only claims gets a key straight to the catalogue because a claim hangs from nothing else that names a marketplace, which is the same reason its value cannot be held in place by a parent. The F72 section then states at line 571 that it made one of the two columns that hold one immutable, where nine columns hold the identifier and three of them are authored rather than derived. The consequence is the one part 9 argues for the other two: claims.marketplace is what the claims rail, the capability matrix and SEEN-066's deadline watch route a filed claim on, and SEEN-031 matches the credit that makes it billable, so a repointed claim tracks the wrong rail's case id while its external_case_id and claim_text stay as filed. No test asks it: every marketplace-disagreement probe on claims in that block is an INSERT, which is F27's lesson and the one F72's test was written for, applied to one column of the two it enumerated.",
+        "status": "open",
+        "resolution": ""
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}

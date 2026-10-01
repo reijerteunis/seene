@@ -1,0 +1,41 @@
+{
+  "sequence": 43,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-27T18:35:55.317843+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 3,
+  "actor": "claude:reviewer",
+  "session": "a00943ab9615",
+  "head": "f97a6ffa83feff5819079ec74e9fefafb9c5b62b",
+  "prev_hash": "b99dd9a7dafd4aaeeca55741a6837d3680b5619b2a8180e4b1749d3f84848be1",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 4,
+    "reason": "The third review confirmed all three remaining findings fixed, each by execution rather than by the account: the cache key resolves and both an added and an edited migration bust it, with the guard test failing loudly when turbo is absent or errors; the six blanket grants are gone with the end state byte-for-byte the measured baseline, erasure still possible, the self-check raising on five injected failures and the new scanner catching a grant in a spelling that was never removed; and the buyer PII statement is both assertable and accurate rather than overclaiming. It returns the ticket on two documentation findings, both introduced by this session. F13: the rewritten Outcome assigns the two open harness defects to SEEN-112, whose criteria never mention the guard, and to SEEN-113, which this branch cannot see, so a later reader would treat as owned what nobody owns; that is the class of error F11 was raised for and it would be carried by the receipt. F14: the three migrations whose tails now point at part 4 still head themselves part N of 3, so each contradicts itself about the size of a set whose fourth member holds the whole privilege boundary.",
+    "findings": [
+      {
+        "id": "F13",
+        "severity": "medium",
+        "file": "docs/tickets/SEEN-008-create-trade-record-schema-v1-with-tenant-id.md:171",
+        "claim": "The rewritten Outcome hands the three defects it leaves open to two owners that do not own them: SEEN-112, whose seven acceptance criteria say nothing about the guard, and SEEN-113, which does not exist anywhere in the repository as this branch sees it.",
+        "failure_scenario": "A later session reading the closing paragraph treats both as owned. The guard's exact-path match is said to be SEEN-112's, so it works around it through Bash as this round did; SEEN-112, status todo with criteria only about the run loop and no mention of the guard, harness/guard.py or a path prefix, then runs to a green verify-delivery without touching guard.py, and the fifth ticket meets the same refusal. plan_accepted_at is said to be SEEN-113's, and grepping the tree returns that one sentence only, so nobody works it and the next post-return slice again starts blocked until a session declares its own progress. Line 94 of the same file, written before the rewrite, said the guard defect needs a harness ticket of its own, which was true, and SEEN-106, which built the guard as four rules and no fifth, is done. This is the class of error F11 was raised for: a statement in the Outcome the tree contradicts, now carried by the receipt fingerprint.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F14",
+        "severity": "low",
+        "file": "supabase/migrations/20260927000000_trade_record_v1_tenancy_and_orders.sql:1",
+        "claim": "This round rewrote the tails of parts 1, 2 and 3 to point at part 4 while leaving each file's first line reading part 1 of 3, part 2 of 3 and part 3 of 3, so all three files now contradict themselves about how many migrations the set has.",
+        "failure_scenario": "The author of the next migration opens part 3, the last one the headers count, reads that it grants no table privilege because part 4 decides the privileges of every table in the schema, and has already been told by line 1 that the set is three files. Stopping at the three the headers count, they never read part 4's per-table boundary or its self-check, write their table and leave the default ACL standing, and the new table is born writable by authenticated and anon, which is the hazard this same Outcome lists as still open and the one removing the blanket grants was meant to route the next author away from. Before this round parts 1 to 3 did not mention part 4 at all, so the self-contradiction is new in this diff.",
+        "status": "open",
+        "resolution": ""
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "sequence": 247,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-30T16:50:59.411509+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 13,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "33d8c4b96f3486df4931c236b4b68811135a8ed5",
+  "prev_hash": "2f87455269798317a0ec6555e0f59922a1175583be5bb80a9fe5c66eaeef2ef5",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": null,
+          "behaviour": "F47: a module loader handed a literal specifier is judged by the same allow-list as an import, so vi.importActual('node:fs') is reported exactly as importing it is. The vitest entry says why it is admitted rather than claiming it cannot reach a file, and the survivals paragraph no longer claims to be complete.",
+          "failure_reason": "`pnpm --filter @seen/core test` exited 1: AssertionError: These sources reach the filesystem and the guard does not name what they reach it through, so a module written this way reads an authority nothing hashes: import { vi } from 'vitest'; | AssertionError: This module obtained node:fs and read a file turbo does not hash, and the guard reports nothing about it, because ts.preProcessFile does not see a literal specifier handed to vi.import",
+          "red": 233,
+          "green": 234
+        },
+        {
+          "position": null,
+          "behaviour": "F48: a relative specifier is admitted only when it resolves to a member of what the walk actually collected, so the transitivity the comment claims is the predicate's implementation rather than an assertion about it, and a specifier that cannot be resolved is reported.",
+          "failure_reason": "`pnpm --filter @seen/core test` exited 1: AssertionError: These sources are admitted by the relative rule and should not be: import { readFileSync } from '../node_modules/pg'; -> a relative specifier into a directory the walk skips is admitte | AssertionError: This module obtained node:fs through a relative specifier into packages/core/node_modules and read a file turbo does not hash, and the guard reports nothing about it, because insidePac",
+          "red": 236,
+          "green": 237
+        },
+        {
+          "position": null,
+          "behaviour": "F49: both the withdrawn-claim guard and the set-size guard see every module this package can run, and docs/architecture.md with them. The ticket's Outcome is outside by a recorded decision rather than by omission.",
+          "failure_reason": "`pnpm --filter @seen/core test` exited 1: AssertionError: These modules of this package run under vitest and are read by a person, and the scan that feeds the withdrawn-claim guard and the size guard passed over them, so both guards report no",
+          "red": 239,
+          "green": 240
+        }
+      ],
+      "regression": 244,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "a00943ab9615",
+      "output_tokens": 2217895,
+      "tool_calls": 1057,
+      "unavailable": null
+    }
+  }
+}

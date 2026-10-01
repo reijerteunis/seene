@@ -1,0 +1,59 @@
+{
+  "sequence": 230,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-30T14:18:30.500775+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 12,
+  "actor": "claude:reviewer",
+  "session": "a00943ab9615",
+  "head": "0d05572da9c275ed49dfa442643fe8d1f6b53881",
+  "prev_hash": "7172ca4e873c521e6ad0d6da8461fd9ed07d0be6c6c6814f94bdec763bc3fb1c",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 13,
+    "reason": "Second review, round four, run again as a pre-check because Codex's quota is the binding constraint and its seventh round died on the limit twice without a verdict. Advisory for the gate, which only the other assistant can satisfy. No criterion unmet; all five are met and criterion 2 was not re-opened. F47 is high and verified here before recording, including one false negative of my own: written with typeof import('node:fs') in a type position the pre-processor does report it, and written as an author avoiding the guard would, , it reports only ['vitest'], which is allow-listed as handing a test no way to open a path. So a module of this package obtains node:fs and reads an unhashed authority while readingImportsOf returns nothing, and rls.test.ts already imports vi. That is F44's shape, a stated impossibility that is false, one round after F44, and the module's own list of what survives it is given as complete without it. F48 is the same paragraph's transitivity claim, false for the four directories the walk skips, one of which exists. F49 is sourcesThatDocumentTheSet narrowing packageSources back to .ts in the same round F45 widened it to eight extensions because vitest runs four of the others, so the withdrawn-claim guard and the set-size guard are both blind to a file the suite runs. F50 is the Outcome claiming a withdrawn claim cannot quietly come back where the mechanism holds only the words it was written in, in a subset of the files. F46's probe survived every attack made on cost, re-apply, concurrency and key shape.",
+    "findings": [
+      {
+        "id": "F47",
+        "severity": "high",
+        "file": "packages/core/db/repository.ts:95",
+        "claim": "`vitest` is allow-listed as \"the test runner, which hands a test no way to open a path\", and that is false: `vi.importActual` is a literal-specifier dynamic import that `ts.preProcessFile` does not report, so a module of this package can obtain node:fs and node:child_process with the guard reporting nothing, and it is not among the three survivals the module names as the whole of what gets past it.",
+        "failure_scenario": "Measured, not predicted. A source reading `import { vi } from 'vitest'; const fs = await vi.importActual<typeof import('node:fs')>('node:fs'); fs.readFileSync('docs/prd/prd.md','utf8')` was run under this repository's own vitest 3.2.7 and passed: it read docs/prd/prd.md, which is the exact file authorities.test.ts uses as the unhashed authority, and `vi.importActual('node:child_process')` handed back execFileSync. `ts.preProcessFile` on the same text reports `['vitest']` and nothing else, and `vitest` is in IMPORTS_THAT_CANNOT_READ, so `readingImportsOf` returns [] and the test named 'leaves this package no way to read an authority around that reader' passes. rls.test.ts:20 already imports `vi` in this package, so the hazard is one line from a module that exists. The consequence is the class this ticket has now produced five findings about: an author adds a guard that compares the database against docs/architecture.md or a ticket, reads it this way, turbo does not hash it, and a cached pass is replayed over a document no test read (CODEX-03, F34, F40, F45). Two things make this a finding rather than a preference. The stated reason for the entry is a claim of impossibility that is false, which is F44's shape exactly, one round after F44. And the module states its survivals as complete, \"What survives this... a computed specifier; `createRequire` reached other than by importing `node:module`; and anything assembled and run through `eval` or `new Function`. None of those is shut here\", while this one has a literal specifier and would be missed by a lint rule too, so it belongs in that paragraph and is absent from it. A second entry is inaccurate on the same axis without being exploitable: `pg` is described as reaching \"a socket and not the working tree\", and pg depends on pgpass (pnpm-lock.yaml), which opens $PGPASSFILE or ~/.pgpass from disk.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F48",
+        "severity": "medium",
+        "file": "packages/core/db/repository.ts:86",
+        "claim": "The allow-list's stated transitivity for relative specifiers, \"the module it names is collected by `packageSources` and asked the same question, so the allow-list holds transitively\", is false for the four directory names `packageFiles` skips, and one of them exists on disk today.",
+        "failure_scenario": "`insidePackage` admits any relative specifier whose joined path starts with `packages/core/`, and `packageFiles` walks the package while skipping `.turbo`, `coverage`, `dist` and `node_modules`. `packages/core/node_modules` exists (it holds pg, @types and @vitest as pnpm links), so a module at packages/core/db/x.ts writing `import { readFileSync } from '../node_modules/<anything>'` is filtered out as \"inside the package\" by readingImportsOf and is never collected to be asked what it imports, because the walk passed over the directory it lives in. Nothing then stands between that module and an unhashed authority, and the sentence a later author reads says the opposite. Less exploitable than F47 and in the same paragraph, so it is corroboration of the same defect rather than a second one: the guard's survivals are a longer list than the module states.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F49",
+        "severity": "medium",
+        "file": "packages/core/db/schema.test.ts:1112",
+        "claim": "`sourcesThatDocumentTheSet` narrows `packageSources()` back to `.ts` with no reason given, in the same change in which F45 widened that collection to eight extensions precisely because vitest runs a test file at four of the others, so both the withdrawn-claim guard and the set-size guard are blind to a file the suite is running.",
+        "failure_scenario": "`packageSources().filter((file) => file.endsWith('.ts'))` excludes `.mts`, `.cts`, `.tsx`, `.js`, `.jsx`, `.mjs` and `.cjs` (note `'x.mts'.endsWith('.ts')` is false). A module added at packages/core/db/helpers.mts that restates one of WITHDRAWN_BIRTH_CLAIMS, in a comment, a raise message or an assertion message, is scanned by neither `withdrawnClaimsStillStanding` nor `setSizesStatedInComments`, so the F43/F44 guard and the F37 guard both pass while the sentence a person meets is the withdrawn one. Every source of the package is `.ts` today, so this is prospective, but it is the same hole in the same round: the F45 RED at record 218 failed precisely because a `.test.mts` ran, read docs/prd/prd.md and was never collected, and this filter puts that extension back outside the reach of the guard beside it. Two sites the scanner does not read either, which the module does not say: the ticket's own Outcome and docs/architecture.md, both of which the withdrawal at F39 had to reach and neither of which anything now watches.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F50",
+        "severity": "low",
+        "file": "docs/tickets/SEEN-008-create-trade-record-schema-v1-with-tenant-id.md",
+        "claim": "The Outcome's closing paragraph gives \"hold a withdrawn claim as data so it cannot quietly come back\" as a durable answer, which is stronger than the mechanism it names, and tables.ts says so itself.",
+        "failure_scenario": "WITHDRAWN_BIRTH_CLAIMS holds the words each sentence was written in, and its own comment states the limit: \"it does not catch a new sentence making the same mistake in new words, and nothing textual could\". Add F49 and the guard reads only this package's `.ts` files and the trade_record_v1 migrations, not the ticket file, not docs/architecture.md and not a `.mts` module. So the claim that is guarded against coming back is the exact phrasing in a subset of the files, which is worth having and is not \"cannot quietly come back\". A reader of the Outcome, which is what the next ticket's author reads, takes the stronger sentence and writes the claim again in their own words. The other two durable answers are supported: part 8's probe and the schema tests do ask the database to enforce what the comments claim, and the enumerate-with-a-reason answer is what F47 shows still needs a true reason per member.",
+        "status": "open",
+        "resolution": ""
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}

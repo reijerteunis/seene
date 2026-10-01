@@ -1,0 +1,16 @@
+{
+  "sequence": 272,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-30T20:19:17.164442+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 15,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "86fba8c97af0b1799159a5589f2823f2f2a64b2b",
+  "prev_hash": "eb2a0bb9b81d859638a298e141e757288b451066c6edaa59ef753817827ef8c3",
+  "data": {
+    "text": "# The rework round after the schema audit carried three REDs and can cite one pair\n\nThe return at record 262 named twelve findings, and the repairs went out as two batches\nagainst two new migration parts. That left three RED records where the tdd record can\ncarry one pair, so what the pair cannot say is said here.\n\n**Record 263 is not a RED and nothing should read it as one.** It reports the public schema\nmissing 16 of the 29 tables and a deadlock on the tenancy probe. That is not a test failing\nfor the reason a slice states; it is the other batch's `pnpm db:reset` landing inside this\none's run. The two batches were given files that did not overlap and were run at the same\ntime, and files were the wrong unit: they shared one local Postgres and one working tree.\nRecord 266, exit 1, is the same mistake reaching the green.\n\n**Record 264 is the RED for the referential integrity batch** (F55, F61, F56, F57, F59,\nF60, F62, F65): three orders carrying one external id and three spellings of one\nmarketplace all accepted, an order carrying `marketplace='amazon'` accepted on a Bol\nconnection, and two shipments with one external id on one order.\n\n**Record 265 is the RED for the evidence and billing batch** (F63, F64, F66, F58), and it\nis the pair the tdd record cites, because both batches greened at 267 and the gate orders\neach red strictly after the previous slice's green. Citing 264 instead would leave 265\nuncited; citing both is refused by `harness/gates.py:1125`, and it is refused correctly:\ntwo entries sharing one green are not two slices.\n\nSo the record claims `position: null`, which is what this round is. It is not slice 1 to 4\nof the accepted plan; it is rework the return created, and naming it as a plan slice would\nbe a claim the plan does not support.\n\n**Record 267 is the honest green**, taken once both batches were in the tree, exit 0, 178\ntests. Record 268 ran before the `## Outcome` was written and so certifies a tree the\ndelivery record is not in; record 269 is the regression that covers it, and it is the one\nthe tdd record cites.\n"
+  }
+}

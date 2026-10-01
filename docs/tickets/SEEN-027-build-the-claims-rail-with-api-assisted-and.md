@@ -29,11 +29,14 @@ status: todo
 
 Implement the claims rail in packages/core/claims and apps/worker: the claims and claim_events tables in use, one ClaimRail interface with mode api (agent submits through the connector), assisted (agent prepares a case pack, a human confirms in one click, then tracking) and track (outcome watched in settlements and mail), plus the evidence table and store in Supabase Storage with sha256 on write. Mode is chosen from the capability matrix per marketplace so adding a marketplace is a matrix row, not a new flow.
 
+What a claim event may hold is settled by SEEN-008. The trade record schema classifies `claim_events.detail` as not buyer PII on the condition that this ticket keeps the buyer's own words out of it: the event says what happened to the claim and when, by reference, and the submitted text stays in `claims.claim_text`, where SEEN-083's 30-day expiry job looks for it. A copy in the event log is a second one nobody expires. The same schema constrains `evidence.storage_path` to begin with the row's own `tenant_id`, and that check binds the text a row holds and not the object an upload wrote: a deletion on request sweeps the bucket by that prefix, so an object uploaded outside it survives the erasure with nothing able to say whose it was (SEEN-008, F63 and F67), and the upload this ticket writes is the only place the object's own name is decided. The reason is in that column's comment in `supabase/migrations/20260929000002_trade_record_v1_free_text_classification.sql`, SEEN-008's second review recorded the promise living nowhere this ticket's author would read it as F34, and `packages/core/db/schema.test.ts` goes red if the criterion below leaves this ticket.
+
 ## Acceptance criteria
 
 - [ ] ClaimRail resolves mode api for eBay and assisted for Bol and Amazon from the capability matrix
 - [ ] Every state change on a claim writes a claim_events row with actor, from status and to status
-- [ ] Evidence upload stores the object, records sha256 and source, and rejects a second upload with a different hash for the same path
+- [ ] The detail of a claim_events row records what happened by reference and never a copy of the buyer's words, with the submitted text left in claims.claim_text alone
+- [ ] Evidence upload stores the object in the evidence bucket under the tenant's own prefix, so the object name begins with the tenant_id and a slash, records sha256 and source, and rejects a second upload with a different hash for the same path
 - [ ] A finding moves to claimed when its claim is submitted and back to open if submission fails
 
 ## Slices
@@ -41,7 +44,7 @@ Implement the claims rail in packages/core/claims and apps/worker: the claims an
 The starting slice plan, one session each; the solution stage adopts or amends it (SEEN-104). A slice is at most 2 points and a ticket has at most four.
 
 1. ClaimRail interface, mode from the capability matrix, claims and claim_events in use (2 pt). RED: eBay resolves to api and Bol to assisted, and every state change writes a claim_events row
-2. Evidence table and store with sha256 on write (1 pt). RED: a second upload of the same bytes is refused
+2. Evidence table and store with sha256 on write (1 pt). RED: an upload lands under the tenant's own prefix and a second upload of the same bytes is refused
 3. Finding state: claimed on submission, back to open on failure, and the track mode watcher (2 pt). RED: a failed submission returns the finding to open with the failure recorded
 
 ## Depends on

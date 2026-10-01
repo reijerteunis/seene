@@ -1,0 +1,36 @@
+{
+  "sequence": 39,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-27T18:02:16.541723+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "7d7d5075c36370b88e2354e59ef72ecb1ac7055f",
+  "prev_hash": "28f6a3a943085c4d2d5bb787a19e7f72c6b42f53cba48f820ee56166d04eeca0",
+  "data": {
+    "command": [
+      "pnpm",
+      "--filter",
+      "@seen/core",
+      "exec",
+      "vitest",
+      "run",
+      "--coverage.enabled",
+      "--coverage.reporter=json-summary"
+    ],
+    "phase": "coverage",
+    "exit_code": 0,
+    "model": "claude-opus-5",
+    "model_declared": "opus",
+    "agent_declared": null,
+    "duration_ms": 876,
+    "output": "\n RUN  v3.2.7 /Users/ruudvanengelenhoven/Development/seene/packages/core\n      Coverage enabled with v8\n\n ✓ src/index.test.ts (3 tests) 1ms\n ✓ db/marketplaces.test.ts (9 tests) 59ms\n ✓ db/uniqueness.test.ts (15 tests) 64ms\n ✓ db/rls.test.ts (15 tests) 111ms\n• turbo 2.11.3\n ✓ db/schema.test.ts (19 tests) 173ms\n\n Test Files  5 passed (5)\n      Tests  61 passed (61)\n   Start at  20:02:15\n   Duration  395ms (transform 108ms, setup 0ms, collect 213ms, tests 408ms, environment 0ms, prepare 197ms)\n\n",
+    "output_sha256": "062b16e371d48f5e961bc8f91711413c2d15e27cd8356b6b25a1688282fe89f7",
+    "output_truncated": false,
+    "before": "d6d02e532f3a766822b723d8b3f318e57461800fd7ab87e2a1320541f038b5ad",
+    "after": "d6d02e532f3a766822b723d8b3f318e57461800fd7ab87e2a1320541f038b5ad"
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "sequence": 49,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-27T18:53:43.606362+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 4,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "3c67b15c052576e8cc054cb939dbe3263457c15b",
+  "prev_hash": "2854de584588bf501a8163f928a8f1ac731f4402793d365c9edf3909011c3850",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": null,
+          "behaviour": "The third review's two documentation findings. Every migration's header now states the size of the set truthfully, part N of 4, and part 4 gained a paragraph defining the set and saying the count is asserted against the files on disk and is the route to its own per-table privilege boundary, because an author who stopped at the three the old headers counted would never read it and would leave the default ACL standing on a new table. A test holds the headers in place by counting the members from disk rather than from the number four, scoped to the trade record v1 filenames so the evidence bucket migration is outside the set and a fifth part does not punish its author; it is pure over the members it is handed and a second test shows it a synthetic set of five, so it cannot pass by finding nothing. No SQL statement changed: the diff over supabase/migrations filtered to non-comment lines is empty, so the privilege set, the policies and the seed are byte-identical to what the review measured three times. The round belongs to no single slice: it corrects text that four slices wrote.",
+          "failure_reason": "`pnpm --filter @seen/core test` exited 1, and the failure named four offenders where the finding named three: \"4 of the 4 migrations in the trade record v1 set state a size for it that the directory contradicts, so the file that decides every table's privileges is outside the set its own parts count\", listing parts 1 to 3 saying `part N of 3` against a set of 4, and part 4 stating no part number at all.",
+          "red": 44,
+          "green": 45
+        }
+      ],
+      "regression": 48,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "a00943ab9615",
+      "output_tokens": 744826,
+      "tool_calls": 423,
+      "unavailable": null
+    }
+  }
+}

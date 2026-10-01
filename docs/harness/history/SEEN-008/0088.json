@@ -1,0 +1,68 @@
+{
+  "sequence": 88,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-29T06:20:50.885583+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 7,
+  "actor": "claude:reviewer",
+  "session": "a00943ab9615",
+  "head": "e65446aa006ee1f3228defa6f7e144c50b6668aa",
+  "prev_hash": "751398a9691c816e1486ca9a9eeece334ab2664c7c00fdeeca632d9076737c9d",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 8,
+    "reason": "The second review the billing and agent-action tables require. Codex passed the ticket four times and could not have found this: its sandbox refused the database in every round, so every privilege finding it raised was derived rather than executed. F19 is high and reproduced here before recording: every tenancy, privilege and append-only guard this ticket writes filters relkind = 'r', and the standing default ACL on public grants anon arwdDxtm on relations, so a view added by a later migration is born readable by anon, runs with its owner's rights and ignores row-level security. Measured in a rolled-back transaction: anon is refused on public.shipments with 42501 and reads both tenants' buyer_name and buyer_address through a view over it, while the guard counts 29 tables and sees no view. SEEN-046 and SEEN-024 are the tickets that add exactly such views. Four more follow: the buyer PII inventory is scoped to columns named buyer%, so claim_text, message bodies and thread subjects carry buyer names with no marking and no expiry SEEN-083 can find; service_role can erase a tenant's whole audit trail and re-create the tenant under the same id; the Outcome's stated reason for the eight column-list set-null keys did not reproduce on a tenant erasure, only on an ordinary parent delete; and the append-only trigger's exception tests visibility rather than existence because the function is not security definer. No acceptance criterion is unmet: all five are met and independently evidenced against the live database.",
+    "findings": [
+      {
+        "id": "F19",
+        "severity": "high",
+        "file": "supabase/migrations/20260927000003_trade_record_v1_read_only_client_roles.sql:87",
+        "claim": "Every tenancy, privilege and append-only guard this ticket writes is filtered to `relkind = 'r'`, so a view or materialized view added to `public` by a later migration is born with Supabase's default ACL granting anon and authenticated everything, is exposed through the Data API, executes with its owner's rights and therefore ignores row-level security entirely, and no test or self-check in this ticket sees it.",
+        "failure_scenario": "Measured against the live stack in a rolled-back transaction. Two tenants, each with one finding of 999900 cents and one shipment carrying a buyer name and address. A later migration writes what SEEN-046 (Build customer-facing findings and claims views) and SEEN-024 would naturally write: `create view public.open_findings as select * from public.findings` and `create view public.buyer_book as select tenant_id, buyer_name, buyer_address from public.shipments`. Both are created with relacl `{postgres=arwdDxtm/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres}` from the pg_default_acl entry the Outcome names as still standing, which the Outcome describes only as making the next migration's *table* writable. A request bound to `authenticated` carrying tenant A's claim then reads 2 rows and 1999800 cents from public.open_findings where the base table gives it 1 row and 999900 cents; and `anon`, refused on public.shipments with SQLSTATE 42501, reads both tenants' buyer_name and buyer_address through public.buyer_book in full. A materialized view is worse, because row-level security never applies to one at all. Meanwhile schema.test.ts's tablesIn (line 82, `c.relkind = 'r'`) returns neither object, so the tenant_id, RLS, tenancy-expression and 29-table privilege assertions all still pass; rls.test.ts's every-table probe seeds and reads from the same relkind filter, so it never touches them; and part 4's own self-check at line 131 filters `c.relkind = 'r'` too, so the migration that created the view raises nothing. The ticket's stated guarantee, that an object added later without tenancy fails the test with nobody remembering to extend it, holds for tables and is false for exactly the object type the next customer-facing tickets add.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F20",
+        "severity": "medium",
+        "file": "packages/core/db/tables.ts:122",
+        "claim": "The buyer PII inventory SEEN-083 is told to expire from is scoped to columns whose name begins with `buyer`, so claims.claim_text, messages.body and message_threads.subject hold buyer names and addresses with no PII comment, no inventory entry and no expiry, and the assertion that claims the inventory is complete cannot see them.",
+        "failure_scenario": "BUYER_PII_COLUMNS lists six columns, all named buyer_name or buyer_address, and schema.test.ts:635 enforces completeness in both directions with `a.attname like 'buyer%'`, so the unlisted check can only ever find columns that are already named for the buyer. By the schema's own reasoning the inventory is short: the comment on evidence.buyer_name says a claim about a lost parcel cannot be made without the buyer's name and address, and claims.claim_text is documented as the text that was submitted, as submitted, kept verbatim because it is what a marketplace was actually told, so a lost-parcel claim filed by SEEN-027 puts that name and address into claims.claim_text. SEEN-061 and SEEN-062 write buyer correspondence into messages.body and message_threads.subject, which is where a buyer types their own delivery address. SEEN-083 builds its 30-day expiry from the list and from the column comments, finds six columns, and buyer PII then persists indefinitely in three columns this ticket created, breaking CLAUDE.md's rule that buyer PII expires after 30 days, while schema.test.ts reports the inventory complete. I confirmed against the live catalogue that none of claims.claim_text, messages.body, message_threads.subject, findings.evidence_refs or audit_events.payload carries any column comment at all.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F21",
+        "severity": "medium",
+        "file": "supabase/migrations/20260927000001_trade_record_v1_claims_and_agent.sql:361",
+        "claim": "The append-only guarantee is stated as holding against the application, but the role the application writes as can destroy a tenant's entire audit trail and then put a tenant back under the same tenant_id, so the erasure is indistinguishable from nothing having happened.",
+        "failure_scenario": "Measured in rolled-back transactions. Every direct route is genuinely closed: as the table owner, update, delete, truncate audit_events, truncate tenants cascade and deleting an agent_action that has audit events are all refused with SQLSTATE 23001 by seen.refuse_audit_mutation; as service_role, update, delete and truncate agent_actions cascade are refused with 42501 because service_role holds only INSERT+SELECT on audit_events. The one permitted route is the erasure the trigger allows. public.tenants.tenant_id is a plain uuid primary key with a default, so it is settable on insert: as service_role, `delete from public.tenants where tenant_id = X` followed by `insert into public.tenants (tenant_id, name) values (X, ...)` left 0 audit events for tenant X with a tenant row for X standing again. Everything else that was destroyed is re-ingestible, because orders, settlements and returns are read back from the marketplace APIs by design, so the audit trail is the only thing permanently lost and the tenant id still resolves in every JWT, Stripe customer mapping and invoice that references it. The migration's own paragraph says the guarantee is against the application and against a mistake and not against whoever holds the database; service_role is the application.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F22",
+        "severity": "low",
+        "file": "docs/tickets/SEEN-008-create-trade-record-schema-v1-with-tenant-id.md:231",
+        "claim": "The Outcome's stated reason for keeping the eight set-null keys in the column-list form did not reproduce: a bare set-null aborts an ordinary parent-row delete, not a tenant's erasure.",
+        "failure_scenario": "The Outcome says the eight keep set-null in the column-list form because a bare set-null would null tenant_id too and the not-null constraint would abort a tenant's erasure mid-statement. Measured: with claims_credited_by_settlement_line_id_fkey replaced by `(tenant_id, credited_by_settlement_line_id) references settlement_lines (tenant_id, id) on delete set null`, deleting the parent settlement_line was refused with SQLSTATE 23502, null value in column tenant_id of relation claims violates not-null constraint, exactly as the Outcome predicts; but `delete from public.tenants where tenant_id = X` with that same bare key in place was ACCEPTED, because the cascade happened to remove the claim before the set-null could fire on it. The shipped column-list form is correct and I verified it opens no cross-tenant hole, but the sentence the receipt carries states as fact an outcome that depends on the order Postgres schedules sibling cascade actions in and did not occur when run. The reason that reproduces every time is the parent-row delete, not the erasure.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F23",
+        "severity": "low",
+        "file": "supabase/migrations/20260927000001_trade_record_v1_claims_and_agent.sql:375",
+        "claim": "The append-only trigger's one exception tests whether the tenant row is visible to the invoker rather than whether it exists, because seen.refuse_audit_mutation is not security definer and its subquery over public.tenants is evaluated under the invoker's row-level security.",
+        "failure_scenario": "The branch reads `not exists (select 1 from public.tenants t where t.tenant_id = old.tenant_id)`. public.tenants has row-level security enabled with a policy bound to `to authenticated`, so for any role subject to that policy the subquery returns nothing for every tenant and the branch is permanently open. It is harmless today only by coincidence: the two roles that hold DELETE on audit_events, service_role and the owner, both carry rolbypassrls (measured), so absence and invisibility coincide for them. A later migration that grants delete on audit_events to a role a request is bound to would turn the exception into a blanket permission, and the only thing left standing would be that the audit_events policy set carries no DELETE policy. Adding `security definer` to the function makes the branch mean what its own comment says it means.",
+        "status": "open",
+        "resolution": ""
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}

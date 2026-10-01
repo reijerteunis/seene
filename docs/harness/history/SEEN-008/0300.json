@@ -1,0 +1,16 @@
+{
+  "sequence": 300,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-30T23:04:58.410791+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 19,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "c9ad2139c4eff8d4e542913416f4617ac69548fb",
+  "prev_hash": "59cbc0e285bbc0cfdc21ce716f21f9000ddc8d7af0944342a8351c02d3c3fb9c",
+  "data": {
+    "text": "# The tdd record at 297 cites a red that does not cover a third of its own slice\n\nF84's second half is about evidence I wrote, so it is recorded here rather than argued with.\n\nThe slice at record 297 names three findings, F78, F79 and F80, and cites record 293 as its RED.\nRecord 293's only failure is the derived-identifier probe, which is F78's and F80's. Its 123 schema\ntests all passed. The test carrying F79's repair, the call to `withdrawnShapeClaimsStillStanding`\nwith no relation, is the 124th: it did not exist when 293 ran and it was green on its first run.\nSo the record cites, for one of its three findings, a RED that proves nothing about it.\n\n**The gate could not have caught this and that is the point.** It orders `previous_green < red <\ngreen <= regression` and reads the exit codes; it cannot ask whether a red's failures cover the\nbehaviours the slice claims. Only a reader comparing the two can, which is exactly what the triage\nhands the reviewer as the remainder of `red_before_green`, and this is that check finding something.\n\n**It is the same error as the F67 boundary test one round earlier, and I did not learn it then.**\nThere the implementer told me plainly that the second half of its slice had gone green on its first\nrun because it characterised behaviour that already held, and said so rather than manufacturing a\nfailure. That was right, and the honest record would have said which half had a red and which did\nnot. Instead the slice's `behaviour` field listed everything the round changed and its\n`failure_reason` quoted the one assertion that failed, which reads as though the reason covers the\nbehaviour. Two rounds, same shape.\n\nWhat the harness offers for this is one field per slice and one pair per slice, so a round that\nrepairs three findings of which two share a red cannot say so structurally. What it can do is say it\nin the prose it already carries: name in `behaviour` which part the cited red covers and which part\nhad none, and why. That costs nothing and is what the next tdd record on this ticket will do.\n\nNot corrected in place, because record 297 is in the chain and a journal that can be edited after a\nreviewer has read it is not evidence. The inaccuracy stands, this record stands beside it, and the\nOutcome will carry it.\n"
+  }
+}

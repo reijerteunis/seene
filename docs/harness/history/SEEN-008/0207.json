@@ -1,0 +1,16 @@
+{
+  "sequence": 207,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-30T12:17:42.877934+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "review",
+  "attempt": 11,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "eee41d61d94587fc3d287ec8cd3ad1304fef3a13",
+  "prev_hash": "3f92393ed800f3a31b497c1649ecec95d4d8b48e7250f5792331aab020248afa",
+  "data": {
+    "text": "A procedural drift in this ticket's own file, recorded because a reviewer would otherwise\nfind it and because it is the kind of thing this ticket has produced findings about.\n\nThe sixth Codex review recorded its own return at record 188, which sent the ticket back to\ntdd. Every earlier return on this ticket was recorded by me, and I set the frontmatter\n`status` back to `doing` and unticked the five criteria each time. This one I did not: the\nreturn was already in the journal when I read it, my duplicate was correctly refused, and I\nwent straight to F39. So from record 188 until record 204 the ticket file said `status:\nreview` with all five criteria ticked while the journal said tdd, across four rework rounds.\n\nThe state is correct as this note is written: record 204 advanced to review, and the file\nsays review with five ticks, which is the order the receipt requires. Nothing about the\nreviewed-tree fingerprint is affected, because that is taken at the review gate and covers\nthe tree from there. What was wrong is the file asserting a stage the journal contradicted,\nwhich is what SEEN-095's status check exists to catch and what this ticket named at F22, F24,\nF35 and F38 in other files: a statement whose own record says otherwise.\n\nIt is recorded rather than quietly corrected because the four rework rounds ran against a\nticket file in that state, and a reviewer reading the history should see it rather than infer\nit from timestamps.\n"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "sequence": 3,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-27T06:42:21.826833+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "ac8affb9a62263bae886ebdec00ebdf2bd53dc29",
+  "prev_hash": "85c99e979f02c3136d4124716d2e77149e490a314a7bf46263fc45a225b27689",
+  "data": {
+    "text": "# seen-scout: what SEEN-008 can look up, and what nothing in the repository says\n\nCould not answer as asked: there is no list of capability flags separate from the routing table, so\ncriterion 5 is checked against the table verbatim.\n\nThe routing table, `docs/architecture.md:13-23`, is a nine by six capability matrix rather than flag\nand value pairs. Six marketplaces: Bol, Amazon (SP-API), eBay, Kaufland, Otto, Shopify. Nine capability\nrows: ingest orders, shipments and returns; ingest settlements, fees and invoices; detect fee errors;\nfile claims with evidence; track a claim outcome to credit; fix listings and content; buyer messages and\ncorrespondence; competing offers and price changes; sponsored placements. Each cell is one of `API`\n(often with the API named in brackets, for example Bol's \"Invoices + specifications, Commissions per\nEAN\"), `assisted`, `none` or `none found`, `n/a`, or `code`.\n\nThe trade record data model, `docs/architecture.md:74-110`: 29 entities in a Mermaid ER diagram at lines\n77 to 108, with the prose at line 110. Two binding statements there: every table carries `tenant_id` and\nRLS, and `marketplaces` is a static catalogue carrying the capability flags and the fee schedules. Two\nrules the architecture does **not** state: amounts in integer cents appears only as a code comment at\n`packages/core/src/index.ts:11`, and the uniqueness of `(tenant_id, marketplace, external_id)` appears\nonly in SEEN-008's own text at lines 30 and 37.\n\nWhat exists in the database layer: `supabase/migrations/20260924000000_evidence_bucket.sql:1-9` creates\none private `storage.buckets` row named `evidence` and nothing else, so there is no RLS pattern and no\nhelper to follow. `supabase/config.toml` sets the local ports, enables `db.seed` from `./seed.sql` at\nlines 65-70 and sets an auth JWT expiry at line 166; it configures no tenant claim. `packages/core` has\nno `db/` directory: `src/index.ts` exports `LEDGER_CURRENCY` and `sumCents`, with no client and no\ngenerated types.\n\n**Nothing documents the JWT tenant claim.** `docs/architecture.md:7` says only \"Postgres row-level\nsecurity by tenant\", and SEEN-008 at line 30 says \"bound to the JWT tenant claim\" without naming the\nclaim or giving an expression. It must be decided, not looked up.\n\n**No enum, constant or type for the six marketplace identifiers exists anywhere**, in `packages/core` or\nin the architecture: only the routing table's column headers and the ER diagram's `MARKETPLACE` entity\nname them.\n\nNot checked: `packages/connectors` and `docs/development-plan.md` for a marketplace identifier list.\n",
+    "agent": "seen-scout",
+    "words": 376
+  }
+}

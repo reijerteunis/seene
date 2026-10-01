@@ -1,0 +1,38 @@
+{
+  "sequence": 306,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-30T23:36:23.555451+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 19,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "b6d260998ac00fc252ce47c80085f26572c9dd2e",
+  "prev_hash": "48ccb1360b5ecef05993c7b0f058e7ed94c0de431bdd32b29084c6d38c69820d",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": null,
+          "behaviour": "F81 to F85. Three sentences that outlived what they described are removed and held in WITHDRAWN_SHAPE_CLAIMS with what is true instead: part 9's head no longer counts rename triggers and names the three rounds a count here has cost, its F65 section no longer declares the gap the foot of the same file closes, and part 5 says 23001 where the trigger now answers ahead of the not-null check. The exemption list becomes a thing the schema honours: seen.mutable_identifiers() is the list, the anonymous DO block becomes seen.guard_authored_identifiers() so it can read it and so the suite can call it twice, and the test measures what an entry buys rather than only that two empty lists match. Which part of this the cited RED covers, stated because note 300 records the same slice overclaiming twice: RED 301 covers F81, F82, F83 and F85, one named failure each. F84's guard is not in it. That test reads this module's own source for every call to the scanner and shows the catch-all a fabricated sentence, and it was green on its first run because it characterises a call that already existed; what it buys is that narrowing that call back to a relation now fails, which no red can demonstrate before the guard exists.",
+          "failure_reason": "function seen.mutable_identifiers() does not exist, and referential_integrity.sql:464 still says \"and a childless row's tenant_id can still be moved by a role that can write it. That is a wider question than F65 and it is not settled here\".",
+          "red": 301,
+          "green": 302
+        }
+      ],
+      "regression": 304,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "a00943ab9615",
+      "output_tokens": 2519722,
+      "tool_calls": 1155,
+      "unavailable": null
+    }
+  }
+}

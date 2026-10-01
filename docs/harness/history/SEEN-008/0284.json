@@ -1,0 +1,77 @@
+{
+  "sequence": 284,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-30T21:25:36.497738+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 16,
+  "actor": "claude:reviewer",
+  "session": "a00943ab9615",
+  "head": "b5179cb1f139eac963432bf4e3809ed7997d640d",
+  "prev_hash": "7cc7f92c25e43f2b595752401957b943d79bc1847e5d72f343d7143d095f37bb",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 17,
+    "reason": "The second Claude Code review at full depth returned the ticket on six more, one low and five medium, and the character of the round is the finding.\n\nEvery acceptance criterion was verified by execution against the live database rather than read out of the journal, and all five hold. The four F67 to F70 repairs each have a behavioural test that fails when the behaviour is removed. Every update route to a parent disagreement was probed and each is refused 23503; no partial, expression, deferrable or invalid unique index remains anywhere in public or seen, so F69's class is closed and not only its instance; the seed is an upsert so part 10's re-seed cannot cascade a tenant's connections away. Nothing the review could reach opened a cross-tenant, privilege, billing or erasure hole.\n\nF72 is the only finding with a behavioural component: the immutability trigger part 9 added covers public.marketplaces and not public.connections.marketplace, which carries the same identifier beside credential_ref, so a service_role write still answers accepted on an idle connection and 23503 on a trading one, which is the two-answer shape part 9's own comment says it removed.\n\nThe other five are one class, and it is the class this ticket has now produced twelve times: a sentence that outlived what it described. The F68 repair rewrote the withdrawn rename claim in two of the three places it lived and left the third in rls.test.ts. The F70 repair removed two of the three places the dropped column was argued for and left part 3's table comment asserting its contract. Part 9 says none of the nine keys carrying marketplace cascades on update and itself created one that does, 140 lines earlier, and repeats the false sentence in the raise message a person meets when the trigger refuses them. Part 4 miscounts the set as eight twice, in the paragraph whose subject is that every part states the size of the set and a test checks it. Part 8 calls itself the last migration two parts before the end.\n\nThree of those five are also guard gaps rather than only prose: migrationColumnReferences cannot see a sentence in a comment on table that names no column, setSizesStatedInComments reads a cardinal only in front of a member noun, and the withdrawn rename words are not held in WITHDRAWN_SHAPE_CLAIMS. Each is a place where the Outcome claims a scanner catches something standing uncaught two files away, which is why they are recorded as findings and not as tidying.\n\nReturned to tdd.",
+    "findings": [
+      {
+        "id": "F72",
+        "severity": "medium",
+        "file": "supabase/migrations/20260930000000_trade_record_v1_referential_integrity.sql:114",
+        "claim": "Part 9 says it makes a marketplace identifier immutable, and the trigger it adds covers only public.marketplaces: public.connections.marketplace carries the same identifier and still answers accepted on a connection with no children and 23503 on one with an order, which is the two-answer shape this section was written to remove.",
+        "failure_scenario": "Reproduced against the live database in a rolled-back transaction. Two tenants, each with a Bol connection; one connection has one order, the other has none. Updating public.connections set marketplace = 'amazon' on the idle connection is accepted and the row reads back as amazon; the same statement against the connection carrying one order is refused 23503. Part 9 line 114 says the file makes a marketplace identifier immutable, line 506 says the identifier is immutable, and the function comment at lines 535 to 538 says it does not accept a rename on an idle account that it refuses on a trading one. All three are false of connections.marketplace, which is the column every connector, the capability matrix and the claims rail route on and which sits beside credential_ref, the Secret Manager pointer for that seller account. So an ops-console or repair write as service_role during onboarding, before the first sync, points a Bol connection and its Bol credentials at the Amazon connector and is accepted, while the identical statement on any account that has traded is refused, which is the sentence part 9 itself calls the worst of the two answers. Nothing in the suite asks it: the rename test at schema.test.ts:7019 tests public.marketplaces only, and every marketplace-disagreement test in that block is an INSERT, which is F27's own lesson about the six probes that all tested insert.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F73",
+        "severity": "medium",
+        "file": "supabase/migrations/20260930000000_trade_record_v1_referential_integrity.sql:485",
+        "claim": "Part 9's F68 section states that the nine keys carrying marketplace name no update action and that all nine are NO ACTION, and two of the nine cascade on update, one of them created by part 9 itself 140 lines earlier; the false claim is repeated in the raise message a person meets at the moment the trigger fires.",
+        "failure_scenario": "Measured against the live database: nine foreign keys in public carry the marketplace column, and two of them name ON UPDATE CASCADE, connections_marketplace_fkey and claims_marketplace_fkey. Part 9 creates claims_marketplace_fkey at line 351 with on update cascade and argues for that clause at lines 341 to 348, then says at lines 485 to 486 that the chain this file builds is nine keys that carry marketplace from a child to its parent and none of them names an update action so all nine are NO ACTION. The raise message at lines 525 to 527 repeats it. A later author who meets that message when the trigger refuses a rename is told no key carrying this value cascades on update, and the repair that premise suggests is to add on update cascade to connections_marketplace_fkey so the rename can propagate. The clause is already there; the rename is refused by the seven keys that do not cascade. The same message therefore contradicts two other paragraphs of its own file, which state that part 3's cascades are kept in the shape part 3 wrote them and are now provably inert. This is F43's class, a false explanation in the text a person reads when a check fires, in the newest commit.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F74",
+        "severity": "medium",
+        "file": "supabase/migrations/20260927000002_trade_record_v1_commerce_and_marketplaces_seed.sql:133",
+        "claim": "The F70 repair removed the recovery_share_lines column comment and part 7's classification and left part 3's public.invoices table comment asserting the contract of the dropped column, in the file F70 itself identifies as the one a reader opens to find the shape of a table.",
+        "failure_scenario": "SEEN-040's author opens the migration that creates public.invoices. Line 119 still declares recovery_share_lines jsonb not null default '[]'::jsonb, which part 10 line 283 drops, and the table comment at lines 133 to 136 reads that a recovery share line exists only for a claim credited by an ingested settlement line, that a credit is billable through that link and that nothing here or in the console may write a billable event directly. That is precisely the contract F66 measured the database not enforcing, on a column part 10 removed for that reason. The author writes the recovery share into the column and gets 42703, or believes public.invoices itself carries and enforces the share lines, which is the misreading F70 was returned for. The compensating text is part 10's own comment on table public.invoices, which supersedes this one in the catalogue and sits in the file F70 established a reader does not reach. migrationColumnReferences cannot see it, because the sentence is prose in a comment on table statement and names no table.column pair, so the guard written to close F70 passes over the twin of the sentence it removed. This is the neighbouring-sentence pattern recorded at F22 and F24 and at F31.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F75",
+        "severity": "medium",
+        "file": "supabase/migrations/20260927000003_trade_record_v1_read_only_client_roles.sql:6",
+        "claim": "Part 4's header paragraph gives the set's size as eight twice where the directory holds ten, in the paragraph whose subject is that every part states the size of the set and that a test checks it, and the F37 scanner reads neither spelling while the Outcome says it fails when a count differs from disk.",
+        "failure_scenario": "Ten files under supabase/migrations carry the trade_record_v1 marker and every header reads part N of 10. Part 4's header says the set is these ten files at line 3 and then, in the same sentence, takes no part in the privilege boundary these eight hand to each other at line 6, and in the next sentence so a ninth part is added by numbering it and correcting the eight in front of it at lines 8 to 9. Both counts are stale by two. The suite is green, which is itself the proof that setSizesStatedInComments reads neither: it takes a count only from a sentence where a cardinal stands in front of a member noun, so these eight hand and the eight in front of it are invisible to it, and the function's own doc comment at schema.test.ts lines 1089 to 1097 says so. The Outcome at line 606 states the stronger thing, that a scanner reads every comment in the package and in the set's members and fails when a count differs from disk, which these two counters falsify. The consequence is the one F37 was raised for: a reader of part 4 who believes the set is eight never opens parts 9 and 10, which is where the marketplace identifier chain, the immutability trigger, the three upsert keys, the storage-path check and the billing column drop live. An author following line 8's instruction numbers their new file part 9 of 9 and corrects the eight headers in front of it, colliding with the existing parts 9 and 10.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F76",
+        "severity": "medium",
+        "file": "packages/core/db/rls.test.ts:1763",
+        "claim": "The F68 repair rewrote the withdrawn rename sentence in part 3 and in part 9's head and left it standing in rls.test.ts, presented in the present tense as a direct quotation of part 3, which no longer contains it.",
+        "failure_scenario": "The F65 block's docstring says that part 3 states the intent beside it, quoting that renaming an identifier in the catalogue carries the connections with it rather than orphaning them. Grepping the whole set for that sentence returns nothing in any migration: part 3 lines 391 to 396 now say the opposite, that the cascade is not as an invitation to rename an identifier and that the value should be treated as immutable once a connection exists, and part 9's two remaining mentions are explicitly historical. A reader of the F65 block, which is the block about connections_marketplace_fkey, is sent to part 3 for the rest of that reasoning and finds its negation, and the sentence quoted is the exact premise F68 returned the ticket for. The words are not held in WITHDRAWN_SHAPE_CLAIMS, so the scanner that reads this file cannot see them, which is the mechanism whose whole purpose is to catch a withdrawn claim surviving in a third place.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "F77",
+        "severity": "low",
+        "file": "supabase/migrations/20260929000003_trade_record_v1_erased_tenant_ids.sql:707",
+        "claim": "Part 8 says it is the last migration of the set and therefore the only place a claim about the whole of schema seen can be made, and parts 9 and 10 follow it and create four routines in seen that its schema-wide self-check never sees.",
+        "failure_scenario": "Part 8 line 707 reads that this is the last migration of the set so it is the only place a claim about the whole of schema seen can be made, and its self-check at lines 750 to 772 asks every routine in schema seen whether a request-bound role can execute it. Part 9 then creates seen.order_line_marketplace, seen.refuse_marketplace_tenant_change and seen.refuse_marketplace_rename, and part 10 creates seen.record_tenant_object_erasures, all after that check has run, so four of the fifteen routines in the schema are outside it by construction on every db:reset. The exposure itself is closed, by part 6's global default privilege and by each file's own revoke, and the standing guard is the schema.test.ts block at line 5444, so nothing leaks today. What fails is the instruction: a later author adding a helper to seen reads part 8's claim that its self-check covers the whole schema and does not write their own revoke, and for the three cases part 8 itself names as outside part 6's reach, a routine created before part 6, one created under another grantor, and a grant written back by hand, part 8 is the backstop it says it is only for parts 1 to 8.",
+        "status": "open",
+        "resolution": ""
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}

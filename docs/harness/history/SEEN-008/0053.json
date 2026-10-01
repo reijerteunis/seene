@@ -1,0 +1,59 @@
+{
+  "sequence": 53,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-28T23:00:43.161567+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 4,
+  "actor": "codex:reviewer",
+  "session": "a00943ab9615",
+  "head": "d7b29fbb5c02a31fab58ea4285a926caeca610c9",
+  "prev_hash": "1ec53534d21dc80d3b5125b0f73755a934e262ab9e7eff81bfe89cfa0a7441ef",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 5,
+    "reason": "The second review, and the first from the other assistant: an independent Codex session that authored none of the implementation or the journal, which is what the billing answer at the solution gate requires and what no Claude Code subagent can supply, since each inherits the implementing session's id. It returns the ticket on four findings, one high. CODEX-01 is a class no Claude round looked for: foreign keys between tenant-owned records reference id alone, so RLS enforces that a row belongs to your tenant but not that its parent does, and one tenant's erasure can cascade into another tenant's trade record. CODEX-02 shows the tenancy checker matching the substring current_tenant, so a policy reading current_tenant() is not null passes while exposing every tenant's evidence, demonstrated by running the actual function in memory. CODEX-03 finds turbo.json carrying the migrations but not docs/architecture.md, which the marketplace test reads, so a routing-table edit can replay a cached pass. CODEX-04 finds record 32 declaring no_findings while its reason names three. Two limits on the review are declared rather than hidden and both bear on its weight: the sandbox refused the database connection with EPERM, so the two privilege findings could not be independently closed and CODEX-01 is derived from the SQL rather than executed; and the account does not support opus, so the route's model rule was not met.",
+    "findings": [
+      {
+        "id": "CODEX-01",
+        "severity": "high",
+        "file": "supabase/migrations/20260927000000_trade_record_v1_tenancy_and_orders.sql:188",
+        "claim": "Foreign keys between tenant-owned records generally reference id alone, allowing cross-tenant relationships and deletion cascades. RLS on each row does not enforce that its parent belongs to the same tenant.",
+        "failure_scenario": "As service_role, create tenants A and B, a Bol connection C belonging to A, and an order with tenant_id B, connection_id C, marketplace bol and external_id cross-tenant-probe. Both independent foreign keys accept this combination. Deleting tenant A deletes C and cascades to B's order, while tenant B remains. A mismatched parent id during ingest therefore allows one tenant's erasure to destroy another tenant's trade record. This follows from the SQL definitions; local reproduction was blocked by the sandbox refusing the database connection.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "CODEX-02",
+        "severity": "medium",
+        "file": "packages/core/db/schema.test.ts:204",
+        "claim": "The tenancy checker accepts any policy clause containing the substring current_tenant, including clauses that expose every tenant's rows. The earlier F5 repair catches its two supplied examples but does not establish the claimed isolation guarantee.",
+        "failure_scenario": "Add a permissive select policy on public.evidence using (seen.current_tenant() is not null). Any authenticated request carrying a tenant claim can then read every tenant's evidence, including buyer PII. Executing the actual tenancyGapsIn function in memory with this catalogue row returned an empty findings list. The existing behavioural isolation tests do not query evidence, so they would not detect this policy either.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "CODEX-03",
+        "severity": "medium",
+        "file": "turbo.json:35",
+        "claim": "The test cache includes the migrations but omits docs/architecture.md, an input the marketplace acceptance test reads.",
+        "failure_scenario": "After caching a passing core test run, change only Amazon's ingest-orders routing cell from API to assisted in docs/architecture.md. The seed is unchanged, so turbo can replay the old pass instead of running the comparison that should fail. An independent turbo dry run reported sixteen task inputs including all migrations, with no architecture document in either the task inputs or the global file inputs.",
+        "status": "open",
+        "resolution": ""
+      },
+      {
+        "id": "CODEX-04",
+        "severity": "medium",
+        "file": "docs/harness/history/SEEN-008/0032.json",
+        "claim": "The second return declares no_findings true and carries an empty findings array although its reason explicitly identifies three unresolved findings requiring rework.",
+        "failure_scenario": "A calibration reader consumes record 32's structured findings and receives zero findings for a return caused by the missing migration cache inputs, the blanket grants and the undocumented PII encryption assumption. Their severities and file locations are absent, so the review cannot be accurately included in the recorded finding history or the narrowing assessment.",
+        "status": "open",
+        "resolution": ""
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}

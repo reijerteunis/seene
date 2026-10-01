@@ -1,0 +1,59 @@
+{
+  "sequence": 204,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-30T12:16:49.064281+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 11,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "b7445d073111eeef7e7c1e91ba73a5dd7dc4e34c",
+  "prev_hash": "7427017abee362e769a2517a13b03c5567e02c689ca6de6c4b9df48d8d84a680",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": null,
+          "behaviour": "F39: a function created in public after the set applies is born callable by no browser-bound role. The global alter default privileges with no in-schema clause subtracts PostgreSQL's built-in EXECUTE to PUBLIC, which the per-schema form cannot, so the F32 round's conclusion that prevention is impossible is withdrawn. Three fixtures that required the insecure state now grant their own hazard explicitly.",
+          "failure_reason": "`pnpm --filter @seen/core test` exited 1: AssertionError: A function was created in schema public and its own access control list reads {\"clientRolesNamed\":[],\"publicIsNamed\":true,\"whatTheDatabaseSaysAnonCanDo\":true,\"whatTheDatabaseSaysServiceRoleCanDo\":true}. Neither bro",
+          "red": 189,
+          "green": 190
+        },
+        {
+          "position": null,
+          "behaviour": "F40: a file this package cannot read is a file turbo does not hash. repository.ts is the only module that may open a file or start a process, it refuses a path turbo's resolved inputs do not carry, and no other module may import node:fs or node:child_process. Third instance of the shape after CODEX-03 and F34, fixed as the class.",
+          "failure_reason": "`pnpm --filter @seen/core test` exited 1: AssertionError: The cache key of @seen/core#test covers 27 files and not supabase/config.toml, which this suite reads as the authority on what the Data API serves. A change confined to its `schemas` line therefore leaves the task  | AssertionError: These sources can open a file or start a process without going through the reader at packages/core/db/repository.ts, so an authority read through one of them is hashed only if its author remembered to say so in tur",
+          "red": 192,
+          "green": 193
+        },
+        {
+          "position": null,
+          "behaviour": "F41: the partitioned probe derives its bounds and its seeded value from one instant, so it does not expire on 1 January 2027, with the year boundary verified at both exact edges rather than assumed.",
+          "failure_reason": "`pnpm --filter @seen/core test` exited 1: AssertionError: The partitioned probe does not seed under every clock, so the three tests above pass on the date they happen to be run on rather than on anything this schema does: {",
+          "red": 195,
+          "green": 196
+        },
+        {
+          "position": null,
+          "behaviour": "F42: the erased-id guard asks the unique index rather than a snapshot, by inserting the tombstone it was asking after and taking it back, so it answers from what has committed at every isolation level. An advisory lock serialises access and cannot refresh a fixed snapshot.",
+          "failure_reason": "`pnpm --filter @seen/core test` exited 1: AssertionError: A session at repeatable read whose snapshot was pinned before the id existed inserted that erased id and was accepted, leaving 1 tenant rows carrying it, 1 tombstones for it and 0 audit events behind it. Live and t | AssertionError: A session at serializable whose snapshot was pinned before the id existed inserted that erased id and was accepted, leaving 1 tenant rows carrying it, 1 tombstones for it and 0 audit events behind it. Live and tomb",
+          "red": 198,
+          "green": 199
+        }
+      ],
+      "regression": 201,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "a00943ab9615",
+      "output_tokens": 2046955,
+      "tool_calls": 1005,
+      "unavailable": null
+    }
+  }
+}

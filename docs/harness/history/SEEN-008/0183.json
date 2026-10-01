@@ -1,0 +1,80 @@
+{
+  "sequence": 183,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-30T10:18:26.991391+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 10,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "b8c98e8d92ba1e1932091e942388e00fb103b3dc",
+  "prev_hash": "a5afd5dd5485d08ee57690c2734a700d45df4c204e92383505811a5a32d1e722",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": null,
+          "behaviour": "F32: a function in public that a browser-bound role can execute fails the suite and raises when the migration applies. Part 6 revokes the default privileges on functions, strips every routine already there, and checks with has_function_privilege. Detection with a bound rather than prevention: PostgreSQL's built-in EXECUTE to PUBLIC on routines sits underneath the pg_default_acl entry where a revoke cannot reach it, and the migration says so.",
+          "failure_reason": "`pnpm --filter @seen/core test` exited 1: AssertionError: 2 default privileges stand on schema public, so every table, view, materialised view and function a later migration creates there is born holding them, a view is not subject to row-level security unless it says `security_inv | AssertionError: A select on every table created in schema public was granted by default to PUBLIC, a table was then created there, and `anon` answered {\"answer\":\"accepted\",\"rows\":1}, reading a row of a table it was never granted anything on",
+          "red": 152,
+          "green": 153
+        },
+        {
+          "position": null,
+          "behaviour": "F33: a sequence in public is born out of reach, and here the revoke is the whole of prevention, measured rather than predicted. defaclobjtype 'T' was checked in the same round and found harmless for a stated reason.",
+          "failure_reason": "`pnpm --filter @seen/core test` exited 1: AssertionError: 6 default privileges stand on schema public, so every table, view, materialised view, sequence and function a later migration creates there is born holding them, a view is not subject to row-level security unless it says `se | AssertionError: A select on every table created in schema public was granted by default to PUBLIC, a table was then created there, and `anon` answered {\"answer\":\"accepted\",\"rows\":1}, reading a row of a table it was never granted anything on",
+          "red": 156,
+          "green": 157
+        },
+        {
+          "position": null,
+          "behaviour": "F34: a classification that rests on another ticket keeping a promise says so in that ticket's acceptance criteria, and the suite asserts it, with the four ticket files in turbo's inputs for CODEX-03's reason.",
+          "failure_reason": "`pnpm --filter @seen/core test` exited 1: AssertionError: Classifications that rest on a ticket keeping a promise the ticket has never been told about: audit_events.payload is classified \"Not buyer PII\" only for as long as SEEN-032 writes it a certain way, and none of the 4 accepta | AssertionError: The cache key of @seen/core#test covers 22 files and none of these, which this suite reads from outside its own package and compares the database against, so a turbo cache hit can report the comparison as passed against a do",
+          "red": 161,
+          "green": 162
+        },
+        {
+          "position": null,
+          "behaviour": "F35: part 6 refuses a foreign table in public as it refuses a materialised view, which makes tables.ts's existing claim true rather than editing it down.",
+          "failure_reason": "`pnpm --filter @seen/core test` exited 1: AssertionError: A foreign table was created in the public schema and the database answered {\"informationSchemaCallsIt\":\"FOREIGN\",\"enableRowLevelSecurity\":\"42809\",\"createPolicy\":\"42809\",\"referenceToTenants\":\"0A000\",\"theGuardReports\":[\"seen_f",
+          "red": 164,
+          "green": 165
+        },
+        {
+          "position": null,
+          "behaviour": "F36: the behavioural cross-tenant probe covers partitioned tables, seeding through the parent because that is the path a policy governs, and reporting a parent with no partition as its own kind of gap.",
+          "failure_reason": "`pnpm --filter @seen/core test` exited 1: AssertionError: The 30 relations this block seeds and reads through leave out a partitioned table the catalogue half has just passed, so its policy is never exercised by a read and nothing here would notice if it exposed every tenant: expec | AssertionError: A partitioned table with no partition under it is not classified as one no row can be written to, so the emptiness guard has nothing to name it by: \"not listed at all\": expected 'not listed at all' to be true // Object.is eq",
+          "red": 169,
+          "green": 171
+        },
+        {
+          "position": null,
+          "behaviour": "F37: the migration set's size is stated in the headers and in no comment that can contradict them, enforced by a scanner over every comment in the package and the set. Hunting its twins found a count that was simply wrong, eighteen currency columns where there are sixteen.",
+          "failure_reason": "`pnpm --filter @seen/core test` exited 1: AssertionError: The directory holds 8 members of the set and every header counts them, and these comments hand a reader a different number, which is how the last part of the set goes unread: packages/core/db/schema.test.ts, comment at line ",
+          "red": 173,
+          "green": 175
+        },
+        {
+          "position": null,
+          "behaviour": "F38: schema seen has a guard, which is why F38 existed. public is served by the Data API so it owes an emptiness; seen is not and owes an allow-list, because authenticated must reach the tenancy helper or every policy returns nothing.",
+          "failure_reason": "`pnpm --filter @seen/core test` exited 1: AssertionError: 6 routines in schema seen can be executed by a role a browser request is bound to, where 2 may be. This schema is not served by the Data API, so none of them is an endpoint, but `anon` holds USAGE here and can name and call  | AssertionError: The access control list of the tenancy helper has to name the roles part 1 grants it to and must not name PUBLIC, because a grant to PUBLIC is the route past every guard that matches a grantee by name. It reads anon, authent",
+          "red": 177,
+          "green": 178
+        }
+      ],
+      "regression": 180,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "a00943ab9615",
+      "output_tokens": 1925851,
+      "tool_calls": 966,
+      "unavailable": null
+    }
+  }
+}

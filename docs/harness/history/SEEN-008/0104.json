@@ -1,0 +1,32 @@
+{
+  "sequence": 104,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-29T19:13:59.408681+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 8,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "e83682653d8a8a855b36211837090ebc8c4e8751",
+  "prev_hash": "07722ccb61d37c2e0950ab9db167b77c3c34ba5e6ba4991e664f6d3a30df121a",
+  "data": {
+    "command": [
+      "pnpm",
+      "--filter",
+      "@seen/core",
+      "test"
+    ],
+    "phase": "green",
+    "exit_code": 0,
+    "model": "claude-opus-5",
+    "model_declared": "opus",
+    "agent_declared": "seen-implementer",
+    "duration_ms": 968,
+    "output": "\n> @seen/core@0.0.0 test /Users/ruudvanengelenhoven/Development/seene/packages/core\n> vitest run\n\n\n RUN  v3.2.7 /Users/ruudvanengelenhoven/Development/seene/packages/core\n\n ✓ src/index.test.ts (3 tests) 1ms\n ✓ db/marketplaces.test.ts (9 tests) 65ms\n ✓ db/uniqueness.test.ts (15 tests) 66ms\n• turbo 2.11.3\n• turbo 2.11.3\n ✓ db/schema.test.ts (42 tests) 325ms\n ✓ db/rls.test.ts (24 tests) 367ms\n\n Test Files  5 passed (5)\n      Tests  93 passed (93)\n   Start at  21:13:58\n   Duration  597ms (transform 84ms, setup 0ms, collect 200ms, tests 823ms, environment 0ms, prepare 159ms)\n\n",
+    "output_sha256": "86a4384687a4566a28332c22ec8526212e9b743d85153d8d44778a83b25edeb2",
+    "output_truncated": false,
+    "before": "5a6891e995e5d439c4e8ab658fd57de6c497902a675fbe3a31bafe3529c83cc5",
+    "after": "5a6891e995e5d439c4e8ab658fd57de6c497902a675fbe3a31bafe3529c83cc5"
+  }
+}

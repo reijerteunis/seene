@@ -1,0 +1,33 @@
+{
+  "sequence": 37,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-27T17:51:28.892841+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "7d7d5075c36370b88e2354e59ef72ecb1ac7055f",
+  "prev_hash": "b527bf2044e6bae666ee33646b7a1d52fb21f29fbc3e0d70433054d6927ab82c",
+  "data": {
+    "command": [
+      "pnpm",
+      "turbo",
+      "run",
+      "test",
+      "--filter=@seen/core"
+    ],
+    "phase": "green",
+    "exit_code": 0,
+    "model": "claude-opus-5",
+    "model_declared": "opus",
+    "agent_declared": "seen-implementer",
+    "duration_ms": 846,
+    "output": "• turbo 2.11.3\n\n   • Packages in scope: @seen/core\n   • Running test in 1 package\n   • Remote caching disabled\n\n@seen/core:test: cache miss, executing 9b02be32364d9044\n@seen/core:test: \n@seen/core:test: > @seen/core@0.0.0 test /Users/ruudvanengelenhoven/Development/seene/packages/core\n@seen/core:test: > vitest run\n@seen/core:test: \n@seen/core:test: \n@seen/core:test:  RUN  v3.2.7 /Users/ruudvanengelenhoven/Development/seene/packages/core\n@seen/core:test: \n@seen/core:test:  ✓ src/index.test.ts (3 tests) 1ms\n@seen/core:test:  ✓ db/marketplaces.test.ts (9 tests) 55ms\n@seen/core:test:  ✓ db/uniqueness.test.ts (15 tests) 66ms\n@seen/core:test: • turbo 2.11.3\n@seen/core:test:  ✓ db/rls.test.ts (15 tests) 118ms\n@seen/core:test:  ✓ db/schema.test.ts (19 tests) 125ms\n@seen/core:test: \n@seen/core:test:  Test Files  5 passed (5)\n@seen/core:test:       Tests  61 passed (61)\n@seen/core:test:    Start at  19:51:28\n@seen/core:test:    Duration  296ms (transform 89ms, setup 0ms, collect 176ms, tests 366ms, environment 0ms, prepare 132ms)\n@seen/core:test: \n\n Tasks:    1 successful, 1 total\nCached:    0 cached, 1 total\n  Time:    642ms \n\n",
+    "output_sha256": "de0bfd9c2d74c6084fa287cba39ba70e47614ca710a67f9ed4ff48ae08989f20",
+    "output_truncated": false,
+    "before": "d6d02e532f3a766822b723d8b3f318e57461800fd7ab87e2a1320541f038b5ad",
+    "after": "d6d02e532f3a766822b723d8b3f318e57461800fd7ab87e2a1320541f038b5ad"
+  }
+}

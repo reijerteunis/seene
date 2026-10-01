@@ -1,0 +1,52 @@
+{
+  "sequence": 19,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-27T07:31:42.467247+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "ac8affb9a62263bae886ebdec00ebdf2bd53dc29",
+  "prev_hash": "6b00178f89ba396a1235a59263d936ee85c1e5c173b4d4280a518ccea868f0ac",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": 1,
+          "behaviour": "The `seen` schema, `seen.current_tenant()` and `seen.touch_updated_at()`, and thirteen tables: tenants, users, marketplaces, connections, products, listings, orders, order_lines, shipments, returns, settlements, settlement_lines, fee_expectations. Each carries tenant_id, has RLS enabled and takes the `tenant_isolation` policy from one `do` loop that also raises if a table has no tenant_id, so the expression exists once rather than 29 times. The five unique indexes on (tenant_id, marketplace, external_id) on the externally sourced tables among them. `seen.current_tenant()` is `stable parallel safe` with `set search_path = ''` and returns null when the claim is absent: an immutable function reading request.jwt.claims can be constant-folded into a cached plan and reused for another tenant's request, which is the leak the slice exists to prevent, and the change from the word the solution record used is recorded at record 10. Thirteen tables and not fourteen: the ER diagram settled the count.",
+          "failure_reason": "`pnpm --filter @seen/core test:db` exited 1 on absence only, in vitest's words: \"The public schema is missing 13 of the 13 tables the trade record names: connections, fee_expectations, listings, marketplaces, order_lines, orders, products, returns, settlement_lines, settlements, shipments, tenants, users\", and \"This test cannot query public.orders at all: tenants, connections, orders do not exist in the public schema. The trade record migration has not been applied, so there is no policy to prove anything about.\" Also \"seen.current_tenant() does not exist\". No policy assertion ran.",
+          "red": 8,
+          "green": 9
+        },
+        {
+          "position": 2,
+          "behaviour": "Eleven tables: findings, claims, claim_events, evidence, message_threads, messages, policies, agent_runs, agent_actions, approvals, audit_events, on the same tenancy loop. `audit_events` is append-only in three layers, stated in the migration rather than implied: update, delete and truncate revoked from anon, authenticated and service_role; select and insert policies rather than `for all`; and `seen.refuse_audit_mutation()` as a before update-or-delete row trigger and a before-truncate statement trigger that refuses the table's owner too. One branch permits the row through while the cascade from `tenants` is running, because erasure on request would otherwise be impossible, and the last test in the block asserts it. Buyer PII is a list on both sides, `BUYER_PII_COLUMNS` and the column comments, six entries across shipments, returns and evidence, and the test fails if a later migration adds a `buyer%` column the list does not carry. Three ER cardinalities could not be followed literally and are named in the migration: a finding's claim is nullable, an audit event's agent action is many-to-one and nullable, and the optional approval key sits on agent_actions as the diagram's cardinality requires.",
+          "failure_reason": "`pnpm --filter @seen/core test:db` exited 1, again on absence: \"The public schema is missing 11 of the 24 tables the trade record names: agent_actions, agent_runs, approvals, audit_events, claim_events, claims, evidence, findings, message_threads, messages, policies\"; \"This test cannot query public.findings or public.claims at all\"; \"This test cannot say anything about the append-only guarantee: audit_events does not exist in the public schema\"; and \"Buyer PII columns the schema does not have: evidence.buyer_address, evidence.buyer_name\". Slice 1's eight assertions passed throughout.",
+          "red": 11,
+          "green": 12
+        },
+        {
+          "position": 3,
+          "behaviour": "The last five tables, competitor_snapshots, price_changes, headroom_entries, invoices and statements; the marketplaces catalogue seeded once into `seen.marketplace_catalogue` outside `public` and copied per tenant by an after-insert trigger on tenants with a backfill loop, so `pnpm db:reset` leaves a seeded catalogue on a database with no tenants; the composite foreign key from connections to marketplaces on (tenant_id, marketplace), with no `on delete` clause so the cascade from tenants still succeeds in one statement; and the capabilities stored as the routing table states them rather than as booleans. It also found and fixed a trap: the blanket `grant ... on all tables in schema public` that each migration ends with re-grants update and delete on `audit_events` and had silently undone slice 2's revoke, so the migration revokes them again and warns any later migration ending the same way. `marketplaces.test.ts` parses the routing table out of docs/architecture.md on every run, with a ninth test that edits a cell in memory and requires the parse to disagree with the database, so the comparison is not vacuous. `uniqueness.test.ts` is written here and passed all fifteen assertions on its first run, because the accepted change list put its index in slice 1: that is recorded in the test's own header and at record 10, and no index was dropped to manufacture a failure.",
+          "failure_reason": "`pnpm --filter @seen/core test:db` exited 1 with four failures: \"The public schema is missing 5 of the 29 tables the trade record names: competitor_snapshots, headroom_entries, invoices, price_changes, statements\"; \"The static marketplaces catalogue does not exist: seen.marketplace_catalogue is not in the database, so none of the six marketplaces of the routing table and none of their nine capabilities have been seeded\"; \"A tenant reads 0 of the six marketplaces: none at all. A catalogue that exists and is invisible to the tenant that has to route on it is not seeded\"; and \"connections.marketplace accepts a marketplace that is not in the catalogue, so a typo at ingest opens a connection to a marketplace that does not exist\". The plan's stated RED for this slice, the duplicate insert being accepted, was impossible and record 10 says why.",
+          "red": 14,
+          "green": 15
+        }
+      ],
+      "regression": 18,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "a00943ab9615",
+      "output_tokens": 328338,
+      "tool_calls": 190,
+      "unavailable": null
+    }
+  }
+}

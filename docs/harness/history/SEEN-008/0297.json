@@ -1,0 +1,38 @@
+{
+  "sequence": 297,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-30T22:41:16.415019+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 18,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "00b0178150f6625f460715d491ca1821f26534e3",
+  "prev_hash": "d0e2f81411e3a362eb9b28b7cb99caed0b036268624409a2667a5bcf66d65024",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": null,
+          "behaviour": "F78, F79 and F80, fixed as the class rather than as three instances. Every column this schema authors is derived from pg_catalog by two rules and every member refuses an update that changes it: tenant_id on all 29 tables of public, and the key column of a catalogue key plus every column whose own foreign key points at that key, which is marketplaces.marketplace, connections.marketplace and claims.marketplace and nothing else. One trigger function carries the column name in tg_argv, a DO block creates the 28 triggers no bespoke guard already covers and self-checks that the set is non-empty and wholly guarded, and a test derives the same set and probes every member with an UPDATE on an idle row and on a trading one, so a column entering the set later with nothing guarding it makes the suite red on arrival. IMMUTABLE_IDENTIFIER_EXCEPTIONS is empty and says why, and names the one case the rules cannot see. F79 is fixed by the call and not the sentence: withdrawnShapeClaimsStillStanding is now called with no relation.",
+          "failure_reason": "What one update moved: agent_runs.tenant_id (idle accepted, trading 23503); approvals.tenant_id (idle accepted, trading accepted); claims.marketplace (idle accepted, trading accepted); claims.tenant_id (idle accepted, trading 23503); connections.tenant_id (idle accepted, trading 23503); findings.tenant_id (idle accepted, trading accepted); invoices.tenant_id (idle accepted, trading accepted); message_threads.tenant_id (idle accepted, trading 23503); policies.tenant_id (idle accepted, trading accepted); products.tenant_id (idle accepted, trading accepted); statements.tenant_id (idle accepted, trading accepted); users.tenant_id (idle accepted, trading accepted).",
+          "red": 293,
+          "green": 294
+        }
+      ],
+      "regression": 295,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "a00943ab9615",
+      "output_tokens": 2488274,
+      "tool_calls": 1148,
+      "unavailable": null
+    }
+  }
+}

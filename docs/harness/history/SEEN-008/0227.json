@@ -1,0 +1,59 @@
+{
+  "sequence": 227,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-30T14:02:10.347810+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 12,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "4da9876663f8d86c4c09b677df2b229b1b239c18",
+  "prev_hash": "77ae96cb6d4f30d5bee8965be435b0bab379b6dd66a4c5d2fa2268dc440354f5",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": null,
+          "behaviour": "F43: the premise F39 withdrew is gone from the four places a person meets it, two of them messages read at the moment a check fires, and each now names the three things genuinely outside part 6's reach. A helper created in seen is asserted born unreachable, which nothing measured before.",
+          "failure_reason": "`pnpm --filter @seen/core test` exited 1: AssertionError: A function was created in schema seen, granted nothing and revoked nothing, and the database answered {\"accessControlListIsNull\":false,\"grantedToAnybodyButItsOwner\":[],\"rolesThatCanExecuteIt\":[]}. It has ",
+          "red": 210,
+          "green": 212
+        },
+        {
+          "position": null,
+          "behaviour": "F44: the same clause about types, corrected from impossible to unnecessary. Re-measured rather than inherited: a global revoke of usage on types does reach a domain, and would reach no type this schema has.",
+          "failure_reason": "`pnpm --filter @seen/core test` exited 1: AssertionError: A domain was created in schema public and `anon` holds USAGE on it, and on the row type of every table here, through PostgreSQL's grant to PUBLIC, which no default privilege can take away. That is not a r | AssertionError: A function was created in schema seen, granted nothing and revoked nothing, and the database answered {\"accessControlListIsNull\":false,\"grantedToAnybodyButItsOwner\":[],\"rolesThatCanExecuteIt\":[]}. It has ",
+          "red": 214,
+          "green": 216
+        },
+        {
+          "position": null,
+          "behaviour": "F45: the reader guard asks the TypeScript pre-processor what a module imports and judges it against an allow-list, rather than matching node:-prefixed spellings with a pattern that missed 'fs', 'child_process' and require, and it collects every extension vitest runs.",
+          "failure_reason": "`pnpm --filter @seen/core test` exited 1: AssertionError: These sources can open a file or start a process without going through the reader at packages/core/db/repository.ts, so an authority read through one of them is hashed only if its author remembered to say | AssertionError: These sources reach the filesystem and the guard does not name what they reach it through, so a module written this way reads an authority nothing hashes: import { readFileSync } from 'fs'; | import { exe",
+          "red": 218,
+          "green": 219
+        },
+        {
+          "position": null,
+          "behaviour": "F46: part 8 runs the statements its guarantee rests on rather than asking pg_index to describe them, because a partial unique index and a deferrable primary key both pass the description and break the erasure.",
+          "failure_reason": "`pnpm --filter @seen/core test` exited 1: AssertionError: With the registry keyed by a partial unique index over tenant_id, the database answered {\"partEightRaised\":null,\"theErasure\":\"42P10\",\"theRefusal\":\"accepted\"}. A partial index arbitrates only a statement c | AssertionError: With the registry keyed by a deferrable primary key over tenant_id, the database answered {\"partEightRaised\":null,\"theErasure\":\"55000\",\"theRefusal\":\"accepted\"}. Postgres refuses a deferrable constraint as",
+          "red": 221,
+          "green": 222
+        }
+      ],
+      "regression": 224,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "a00943ab9615",
+      "output_tokens": 2139731,
+      "tool_calls": 1031,
+      "unavailable": null
+    }
+  }
+}

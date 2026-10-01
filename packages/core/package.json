@@ -5,12 +5,25 @@
   "description": "Deterministic reconciliation: matching, fee expectations and euro arithmetic as pure functions.",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
+  "//test": [
+    "test is the whole suite and is what `turbo run test` and therefore CI runs: the pure",
+    "functions under src/ and the schema, tenancy, privilege and uniqueness tests under db/.",
+    "The db half needs the local Supabase stack with the migrations applied, which CI has up",
+    "before it runs the tests and a developer gets from `pnpm dev:up` and `pnpm db:reset`.",
+    "test:unit is the database-free path, for a machine with no stack running; test:db is the",
+    "db half on its own. Neither is a substitute for test: a tenancy guard that only runs when",
+    "somebody types the filter command by hand guards nothing."
+  ],
   "scripts": {
     "test": "vitest run",
-    "lint": "eslint src",
+    "test:unit": "vitest run --dir src",
+    "test:db": "vitest run --dir db",
+    "lint": "eslint src db",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "devDependencies": {
-    "@vitest/coverage-v8": "^3.2.7"
+    "@types/pg": "^8.11.0",
+    "@vitest/coverage-v8": "^3.2.7",
+    "pg": "^8.13.0"
   }
 }

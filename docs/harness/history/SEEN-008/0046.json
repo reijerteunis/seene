@@ -1,0 +1,16 @@
+{
+  "sequence": 46,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-27T18:47:41.054178+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 4,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "3c67b15c052576e8cc054cb939dbe3263457c15b",
+  "prev_hash": "a22efa986347ad98f1639bfcdcac467f595758d25fb57d67b3df103f00184d45",
+  "data": {
+    "text": "# F13 and F14, the third review's two documentation findings, closed\n\nRED is record 44 and GREEN is record 45, 63 tests. The RED found **four** offenders where the finding named\nthree: parts 1 to 3 said \"of 3\" and part 4 stated no count at all, which is the same drift seen from the other\nside. In vitest's words: \"4 of the 4 migrations in the trade record v1 set state a size for it that the\ndirectory contradicts, so the file that decides every table's privileges is outside the set its own parts\ncount\", naming each file and what its first line said.\n\nThe headers now read \"Trade record v1, part N of 4\", and part 4 gained a paragraph defining the set, saying the\ncount is asserted against the files on disk, and saying the count is the route to its own per-table boundary.\nNo SQL statement changed: the diff over `supabase/migrations` filtered to non-comment lines is empty, so the\nprivilege set, the policies and the seed are byte-identical to what the review measured three times.\n\n**The assertion counts the set from disk rather than from the number four**, which was the trap worth avoiding:\nhard-coding four would fail the moment a fifth migration was added, punishing the next author for doing the\nright thing. Membership is the `trade_record_v1` segment of the filename, so the evidence bucket migration of\n24 September is outside the set: it is environment rather than trade record, it takes no part in the privilege\nboundary the four parts hand each other, and numbering it in would force every later ticket to renumber these\nheaders. The header wording agrees with that boundary, because it names the set it counts. A fifth part is\nadded by writing \"part 5 of 5\" and correcting the four in front of it; another ticket's migration is not a\nmember and needs no header.\n\nThe detector cannot pass by finding nothing: it is pure over the members it is handed, and a second test shows\nit a synthetic set of five, where five headers reading \"of 5\" yield no offenders, the same five reading \"of 4\"\nyield five, and a header copied from its predecessor yields exactly one.\n\nF13 was fixed by the orchestrating session rather than by the slice, because it is the Outcome's own text. The\nparagraph assigned the guard's exact-path match to SEEN-112, whose criteria never mention the guard, and\n`plan_accepted_at` to SEEN-113, which this branch cannot see; both fixes live on branches that are not merged.\nThe Outcome now says all three open defects are owned by nobody in this repository, and says why that is\ndeliberate: this text is carried by the receipt fingerprint, so a sentence claiming an owner the tree cannot\nshow would be a false statement in the delivery record. That is the same class of error F11 was raised for, and\nthe third review was right to catch it a second time.\n"
+  }
+}

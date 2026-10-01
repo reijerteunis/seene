@@ -1,0 +1,153 @@
+{
+  "sequence": 6,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-27T06:44:40.252283+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "solution",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "ac8affb9a62263bae886ebdec00ebdf2bd53dc29",
+  "prev_hash": "690e9f6c88b3854512c17b77f0ce56110436c4ab76be6c6d1d270b7c4056a51f",
+  "data": {
+    "from_stage": "solution",
+    "to_stage": "tdd",
+    "evidence": {
+      "mode": "code",
+      "approach": "One migration per slice under `supabase/migrations/`, not under `packages/core/db` as the ticket's description says: the Supabase CLI and `pnpm db:reset` read `supabase/migrations`, and a migration the CLI does not read is a migration that never applies. `packages/core/db/` holds the TypeScript side, the table list and the six marketplace identifiers as constants the tests and later tickets read, so the ticket's intent is kept and the file that has to be found by a tool is where the tool looks. The policy expression is written once as an immutable helper, `seen.current_tenant()`, reading the tenant from the request's JWT claims the way PostgREST sets them, and every table's policy is `tenant_id = seen.current_tenant()`; 29 copies of an expression is 29 places for it to be subtly different. Tests connect to the local stack with `pg` and set the claim the way PostgREST does per request (`set local role authenticated`, `set local request.jwt.claims`), which is what the policy reads. Criterion 2 reads `pg_catalog` rather than a list of table names, so a table added later without `tenant_id` or without an enabled policy fails it without anyone remembering to extend the test.",
+      "changes": [
+        "supabase/migrations/<timestamp>_trade_record_v1_tenancy_and_orders.sql: the `seen` schema, the `seen.current_tenant()` helper, `tenants`, `users`, `connections`, `marketplaces`, `products`, `listings`, `orders`, `order_lines`, `shipments`, `returns`, `settlements`, `settlement_lines`, `fee_expectations`, each with tenant_id, RLS enabled and the policy, and the unique indexes on the externally sourced tables among them.",
+        "supabase/migrations/<timestamp>_trade_record_v1_claims_and_agent.sql: `findings`, `claims`, `claim_events`, `evidence`, `message_threads`, `messages`, `policies`, `agent_runs`, `agent_actions`, `approvals`, `audit_events`, same treatment; `audit_events` additionally append-only, which SEEN-032 depends on.",
+        "supabase/migrations/<timestamp>_trade_record_v1_commerce_and_seed.sql: `competitor_snapshots`, `price_changes`, `headroom_entries`, `invoices`, `statements`, and the `marketplaces` catalogue seeded with the six marketplaces and their nine capabilities.",
+        "packages/core/db/tables.ts and packages/core/db/marketplaces.ts: the 29 table names and the six marketplace identifiers with their capabilities as constants, so a test and a later ticket read one list rather than two.",
+        "packages/core/db/schema.test.ts, rls.test.ts, uniqueness.test.ts and marketplaces.test.ts: criterion 2 from pg_catalog, criterion 3 cross-tenant, criterion 4 duplicate inserts, criterion 5 against the routing table read from docs/architecture.md at test time.",
+        "packages/core/package.json: `pg` and its types as dev dependencies, and a `test:db` script; the root `package.json` keeps `db:reset` as it is."
+      ],
+      "migrations": [
+        "Three forward-only migrations, one per slice, applied by `supabase db reset` in order. No down migrations: the local stack is reset rather than rolled back, and nothing is deployed to a cloud project until the SEEN-007 go decision.",
+        "`seen.current_tenant()` is created in the first migration and depended on by every policy in all three, so the first migration is the one that cannot be reordered."
+      ],
+      "tests_first": [
+        "Criterion 2, every table carries tenant_id and an enabled policy. `pnpm --filter @seen/core test:db -- schema.test.ts`. The RED must fail because the tables do not exist: the count of tables in the public schema is zero against the expected list, and the assertion names the tables it could not find rather than saying a number is wrong.",
+        "Criterion 3, cross-tenant isolation. `pnpm --filter @seen/core test:db -- rls.test.ts`. The RED must fail because `orders` does not exist; once it does, the test inserts two tenants' rows through the service role, then reads as each tenant with the claim set the way PostgREST sets it, and asserts zero rows from the other tenant. It must also assert that reading with no claim at all returns zero rows, because a policy that is permissive when the claim is missing passes the two-tenant test and leaks to an unauthenticated caller.",
+        "Criterion 4, the unique index. `pnpm --filter @seen/core test:db -- uniqueness.test.ts`. The RED must fail on the missing table; green is the second insert of the same (tenant_id, marketplace, external_id) being rejected on each of orders, shipments, returns, settlements and settlement_lines, asserted as a raised unique-violation rather than as an index name.",
+        "Criterion 5, the marketplaces seed. `pnpm --filter @seen/core test:db -- marketplaces.test.ts`. The RED must fail because the catalogue is empty; the test parses the routing table at docs/architecture.md:13-23 and compares its six columns and nine rows against the seeded rows, so a change to the document fails the test rather than drifting from it.",
+        "Criterion 1, the migration applies and re-applies. `pnpm db:reset`. The RED is the reset failing on the migration that does not yet exist or does not apply; it is recorded as the regression command of every slice, so a later slice that breaks an earlier slice's tables cannot pass."
+      ],
+      "slices": [
+        {
+          "name": "Tenancy, the policy helper, orders and the settlement tables",
+          "points": 2,
+          "files": [
+            "supabase/migrations",
+            "packages/core/db/tables.ts",
+            "packages/core/db/schema.test.ts",
+            "packages/core/db/rls.test.ts",
+            "packages/core/package.json"
+          ],
+          "red": "schema.test.ts finds none of the fourteen tables this slice creates and names them; rls.test.ts cannot query orders at all. Both must fail on absence, not on a policy being wrong, because nothing exists yet."
+        },
+        {
+          "name": "Findings, claims, evidence, messaging and the agent tables",
+          "points": 2,
+          "files": [
+            "supabase/migrations",
+            "packages/core/db/tables.ts",
+            "packages/core/db/schema.test.ts",
+            "packages/core/db/rls.test.ts"
+          ],
+          "red": "schema.test.ts finds the first slice's tables and none of the eleven this slice adds; rls.test.ts's cross-tenant read on findings and claims fails because those tables do not exist."
+        },
+        {
+          "name": "Commerce tables, the unique indexes and the marketplaces seed",
+          "points": 1,
+          "files": [
+            "supabase/migrations",
+            "packages/core/db/tables.ts",
+            "packages/core/db/marketplaces.ts",
+            "packages/core/db/schema.test.ts",
+            "packages/core/db/uniqueness.test.ts",
+            "packages/core/db/marketplaces.test.ts"
+          ],
+          "red": "uniqueness.test.ts's second insert of the same triple succeeds where it must be rejected, and marketplaces.test.ts finds an empty catalogue against the routing table's six columns and nine rows."
+        }
+      ],
+      "alternatives": [
+        "Migrations under packages/core/db, as the ticket's description says. Rejected because the Supabase CLI and `pnpm db:reset` read supabase/migrations: a migration outside it is never applied, so criterion 1 could not pass. The ticket's intent, that the schema belongs to core rather than to an app, is kept by putting the table list and the identifiers in packages/core/db.",
+        "A Postgres enum for the six marketplace identifiers. Rejected because adding a marketplace would then be a migration that rewrites a type in use by 29 tables, where a seeded row in a static catalogue is a row; the architecture already calls marketplaces a static catalogue.",
+        "Capability flags as booleans per capability. Rejected because the routing table's cells are API, assisted, none, n/a and code, and a boolean loses the distinction between assisted and absent, which is the distinction the claims rail routes on.",
+        "Testing criterion 3 through the local REST API with a real signed JWT. Rejected for this ticket because it needs a JWT-signing dependency and the local auth service to mint users, and what the policy actually reads is the request setting PostgREST derives from the verified token. The test sets exactly that setting, and the token path itself belongs to the ticket that wires Supabase Auth. Recorded as a limit of the test rather than as equivalence.",
+        "One migration for all 29 tables. Rejected because a slice is what one context can hold and the plan's three slices each have a RED of their own; one file would also make the second slice's RED indistinguishable from the first's."
+      ],
+      "risks": [
+        "A permissive policy that passes the two-tenant test and leaks to a caller with no claim at all. Mitigated by criterion 3's test asserting zero rows with no claim set, which is in tests_first rather than left to review.",
+        "`seen.current_tenant()` disagreeing with whatever the web application later puts in the token. Mitigated by naming the claim in the migration's own comment where that work will find it, and by criterion 3 failing rather than passing quietly if the two disagree.",
+        "Two new dev dependencies would trip the review's security checklist. Mitigated by adding one, `pg`, with its types, both recorded here so the lockfile and audit are checked at review rather than discovered there.",
+        "A later slice breaking an earlier slice's tables. Mitigated by `pnpm db:reset` being the regression command of every slice, so the whole schema re-applies from empty each time.",
+        "The local stack not running, which would make every RED fail for the wrong reason. Mitigated by the tests refusing with a clear message when the database is unreachable, so a RED that fails because Docker is down is distinguishable from a RED that fails because the table is missing."
+      ],
+      "rollback": "Nothing is deployed: the local stack is reset rather than rolled back, and no cloud project exists until the SEEN-007 go decision. The change is undone by reverting the branch's commits and running `pnpm db:reset`, which reapplies whatever migrations remain. There are deliberately no down migrations, because a down migration for a schema that has never been deployed is code nobody has run.",
+      "new_dependencies": [
+        "pg and @types/pg as dev dependencies of packages/core, because criterion 2 reads pg_catalog and criterion 3 sets the request claim per session, neither of which the REST API can do. Both are checked against the lockfile and audited at review, per the security checklist."
+      ],
+      "tenant_tables": [
+        "All 29 tables carry tenant_id and RLS enabled with the policy tenant_id = seen.current_tenant(): tenants, users, connections, marketplaces, products, listings, orders, order_lines, shipments, returns, settlements, settlement_lines, fee_expectations, findings, claims, claim_events, evidence, message_threads, messages, policies, agent_runs, agent_actions, approvals, audit_events, competitor_snapshots, price_changes, headroom_entries, invoices and statements.",
+        "marketplaces is the one that needs its reason recorded: it is a static catalogue with the same tenant_id column and policy for uniformity, because criterion 2 reads every table in the public schema and an exception would have to be spelled into the test, which is where exceptions go to be forgotten. It is seeded per tenant rather than globally.",
+        "audit_events is additionally append-only, with no update and no delete permitted, which is what SEEN-032 will write against."
+      ],
+      "buyer_pii": "The columns that will hold buyer name and address are on shipments, returns and evidence, created here and named so SEEN-083 has a list to expire rather than a search to do. Nothing in this ticket writes a buyer record; the 30-day expiry job and the encryption of those columns beyond the database's storage-level encryption are SEEN-083's.",
+      "policy_gate_action": null,
+      "slice_points": 5,
+      "forecast": {
+        "available": false,
+        "observed_tickets": 3,
+        "required": 10
+      }
+    },
+    "decisions": [
+      {
+        "key": "solution_complete",
+        "question": "solution_complete",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.62,
+          "no": 0.38
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "key": "touches_billing_or_policy_gate",
+        "question": "touches_billing_or_policy_gate",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.49,
+          "no": 0.51
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

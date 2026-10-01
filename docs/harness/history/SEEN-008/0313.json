@@ -1,0 +1,38 @@
+{
+  "sequence": 313,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-10-01T00:18:35.150716+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 20,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "926d9da384c93dbd934759bb444d1380f41ea556",
+  "prev_hash": "e4364afdcb6fd1a140e353e37d7ca6fcc652988e51b23a5caadcbba6fce7f88c",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": null,
+          "behaviour": "F86, F87 and F88, the last repair round. The guard that counts callers of the withdrawn-claims scanner now counts call expressions through a syntax-tree walk in repository.ts rather than searching its own source text, which is the move this repository already made at F45 when a pattern over text could not tell a type position from a value position, and both attacks are measured inside the test: the protected call is narrowed in a copy of the file's own source, then that narrowing is re-quoted once in a comment and once in a string literal, and all three variants must report no unnarrowed call. The reach assertion is computed from the unfiltered derivation, so an exemption no longer reports its table as one the two rules never reached, and the paragraph claiming to state an exemption's cost in full is now true of all 32 members rather than three. The exemption probe refuses with a named miss instead of falling back to a column no exemption could make mutable. Which part the cited RED covers: all three, one named failure each, and the F86 failure reports the count as 2 for the delivered file because the fixture quotation was itself counted, which is the defect demonstrating itself.",
+          "failure_reason": "Narrowing the call in this file's own text takes the count to 1, quoting it back in a comment leaves it at 2 and in a string at 2, where a call that is quoted is not a call.",
+          "red": 309,
+          "green": 310
+        }
+      ],
+      "regression": 311,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "a00943ab9615",
+      "output_tokens": 2551078,
+      "tool_calls": 1162,
+      "unavailable": null
+    }
+  }
+}

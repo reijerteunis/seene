@@ -16,7 +16,90 @@
       ]
     },
     "test": {
-      "dependsOn": []
+      "dependsOn": [],
+      // The migrations are an input to every test task, not only to the package
+      // that reads them today. The tenancy, privilege and append-only guards in
+      // @seen/core are the only database-dependent tests in the repository, and
+      // the default cache key of a task is the files of its own package: a
+      // migration adding a table with no tenant_id, or one born writable by
+      // `authenticated`, changes nothing under packages/core, so `turbo run test`
+      // replayed the recorded pass from the cache and no guard saw the new schema
+      // at all. Measured before this line was written: the same hash, `cache hit,
+      // replaying logs`, 57 passed, with exactly such a migration in the tree.
+      // CI escaped it only because it caches the pnpm store and not .turbo.
+      //
+      // An input list rather than `"cache": false`, so the cache still works and
+      // simply notices a migration. $TURBO_DEFAULT$ keeps the package's own files,
+      // which naming any input at all would otherwise replace, and $TURBO_ROOT$ is
+      // how a task reaches a path outside its package.
+      //
+      // The architecture document is here for the same reason, one round later.
+      // The marketplaces test parses the routing table of docs/architecture.md and
+      // compares it cell by cell with the seeded catalogue, with the document as
+      // the authority: change Amazon's ingest-orders cell from `API` to `assisted`
+      // and the seed no longer matches the document and the test has to say so.
+      // Nothing under packages/core changes when the document does, so the cache
+      // replayed the old pass and the comparison never ran. Measured before this
+      // line was written: seventeen inputs, every migration among them and no
+      // document; measured after, `cache miss, executing` on that one edited cell
+      // and the comparison failing as it should.
+      //
+      // The ticket files are here for the same reason, one round later again.
+      // Four columns are classified `Not buyer PII`, and two relations mean what
+      // they mean, only for as long as a later ticket writes them a certain way,
+      // and the schema test reads those tickets' acceptance criteria to check that
+      // each carries its obligation where its author will read it. SEEN-040 and
+      // SEEN-083 joined the list with part 10, which drops the untyped billing
+      // column and records what an erasure leaves in a bucket. Every one of them
+      // is still `status: todo`,
+      // and the plan generator rewrites a ticket at that status, so the criterion
+      // can be regenerated away with nothing under packages/core changing and the
+      // cache replaying a pass over a ticket the suite never read. By id and not
+      // by whole name, because the rest of a ticket's filename is a slug of its
+      // title and a retitle would otherwise silently hash nothing.
+      //
+      // SEEN-022, SEEN-027 and SEEN-041 joined them with F67, which is the
+      // obligation the schema states about a promise it cannot keep at all: the
+      // check on a storage path binds the text a row holds and not the object an
+      // upload wrote, so only the code that uploads can close it, and what tells
+      // those three authors is a criterion in their own files. This list is no
+      // longer extended by hand alone either: the assertion that reads it now
+      // covers every ticket named in `SCHEMA_OBLIGATIONS` as well as every one
+      // named in `CONSTRAINED_NOT_BUYER_PII_COLUMNS`, so a ticket added there and
+      // forgotten here fails the suite rather than failing at the read.
+      //
+      // The Supabase configuration is here for the same reason, one round later
+      // again, and it is the last entry that should ever be added by hand. `seen`
+      // being absent from its `schemas` line is why the erasure registry is not a
+      // table endpoint, why part 6 can send a materialised view and a foreign table
+      // to a schema outside public, and why the routines of `seen` owe an
+      // allow-list where the routines of public owe an emptiness. The guard that
+      // reads it was written with none of that hashed, so an edit confined to that
+      // line left the inputs untouched and the guard was replayed rather than run.
+      // Measured by the sixth Codex review before this line was written: 27 inputs,
+      // every migration and every other authority among them, and no configuration.
+      //
+      // What changed with it is that this list is no longer where the rule lives.
+      // packages/core/db/repository.ts is the only module in @seen/core that can
+      // open a file, it asks turbo through `--dry=json` what this task hashes and
+      // refuses to read a path that is not in the answer, and authorities.test.ts
+      // asserts that no other module there imports anything that can read one. An
+      // author who reads something new is refused at the read and sent here, rather
+      // than being relied on to remember that this list exists.
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/supabase/migrations/**",
+        "$TURBO_ROOT$/supabase/config.toml",
+        "$TURBO_ROOT$/docs/architecture.md",
+        "$TURBO_ROOT$/docs/tickets/SEEN-022-*.md",
+        "$TURBO_ROOT$/docs/tickets/SEEN-027-*.md",
+        "$TURBO_ROOT$/docs/tickets/SEEN-032-*.md",
+        "$TURBO_ROOT$/docs/tickets/SEEN-034-*.md",
+        "$TURBO_ROOT$/docs/tickets/SEEN-040-*.md",
+        "$TURBO_ROOT$/docs/tickets/SEEN-041-*.md",
+        "$TURBO_ROOT$/docs/tickets/SEEN-062-*.md",
+        "$TURBO_ROOT$/docs/tickets/SEEN-083-*.md"
+      ]
     },
     "lint": {
       "dependsOn": []

@@ -1,0 +1,32 @@
+{
+  "sequence": 157,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-30T08:53:44.205106+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 10,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "eb8ca713e4390ef92db3302d43abdb7e827f3c3e",
+  "prev_hash": "180c74114e004fb4da804695346bb27f810cd2afb0d992320c8f42e7536137e5",
+  "data": {
+    "command": [
+      "pnpm",
+      "--filter",
+      "@seen/core",
+      "test"
+    ],
+    "phase": "green",
+    "exit_code": 0,
+    "model": "claude-opus-5",
+    "model_declared": "opus",
+    "agent_declared": "seen-implementer",
+    "duration_ms": 1840,
+    "output": "\n> @seen/core@0.0.0 test /Users/ruudvanengelenhoven/Development/seene/packages/core\n> vitest run\n\n\n RUN  v3.2.7 /Users/ruudvanengelenhoven/Development/seene/packages/core\n\n• turbo 2.11.3\n• turbo 2.11.3\n ✓ db/schema.test.ts (65 tests) 410ms\n ✓ db/rls.test.ts (24 tests) 287ms\n ✓ db/uniqueness.test.ts (15 tests) 45ms\n ✓ db/marketplaces.test.ts (9 tests) 42ms\n ✓ src/index.test.ts (3 tests) 1ms\n ✓ db/parallelism.test.ts (1 test) 1ms\n\n Test Files  6 passed (6)\n      Tests  117 passed (117)\n   Start at  10:53:42\n   Duration  1.46s (transform 65ms, setup 0ms, collect 160ms, tests 787ms, environment 0ms, prepare 124ms)\n\n",
+    "output_sha256": "a53cbbdeda9d8eaf11cab18be332cb5dc2c3ee2e12ac0586691eb9b43bfc5427",
+    "output_truncated": false,
+    "before": "2a799e47a9f76e3a01e54cc46cbba5dc920d3d83742414f9adcf89d2722a6b67",
+    "after": "2a799e47a9f76e3a01e54cc46cbba5dc920d3d83742414f9adcf89d2722a6b67"
+  }
+}

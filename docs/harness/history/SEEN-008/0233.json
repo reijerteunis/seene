@@ -1,0 +1,32 @@
+{
+  "sequence": 233,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-09-30T14:25:09.479019+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 13,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "8a29711ad12a97d2b9422b67f8a9c8a6c6a1ee19",
+  "prev_hash": "fa4a5f17e36223d347e3ad822614e71738dae046e9c3bd9cde8c4803bd02dfcd",
+  "data": {
+    "command": [
+      "pnpm",
+      "--filter",
+      "@seen/core",
+      "test"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "model": "claude-opus-5",
+    "model_declared": "opus",
+    "agent_declared": "seen-implementer",
+    "duration_ms": 2989,
+    "output": "\n> @seen/core@0.0.0 test /Users/ruudvanengelenhoven/Development/seene/packages/core\n> vitest run\n\n\n RUN  v3.2.7 /Users/ruudvanengelenhoven/Development/seene/packages/core\n\n• turbo 2.11.3\n ✓ db/schema.test.ts (84 tests) 558ms\n ✓ db/rls.test.ts (28 tests) 339ms\n• turbo 2.11.3\n ❯ db/authorities.test.ts (8 tests | 1 failed) 69ms\n   ✓ the authorities this package reads and the cache key it runs under > hashes the Data API configuration, which four rules in this schema rest on 54ms\n   ✓ the authorities this package reads and the cache key it runs under > refuses to read a repository file the test task does not hash 0ms\n   ✓ the authorities this package reads and the cache key it runs under > leaves this package no way to read an authority around that reader 10ms\n   × the spelling a reading import is written with > names the module a source reads through, however the import is written 3ms\n     → These sources reach the filesystem and the guard does not name what they reach it through, so a module written this way reads an authority nothing hashes: import { vi } from 'vitest';\nconst fs: any = await vi.importActual('node:fs'); | import { vi } from 'vitest';\nconst cp: any = await vi.importMock('child_process');: expected [ …(2) ] to deeply equal []\n   ✓ the spelling a reading import is written with > judges a specifier the runner is handed by the list that judges an import 0ms\n   ✓ the spelling a reading import is written with > names nothing in a source that imports only what this package already imports 0ms\n   ✓ the files that scan reaches > classifies every file of this package as one that runs code or one that cannot 0ms\n   ✓ the files that scan reaches > covers every extension vitest runs a test file at 0ms\n ✓ db/uniqueness.test.ts (15 tests) 45ms\n• turbo 2.11.3\n ✓ db/marketplaces.test.ts (9 tests) 39ms\n ✓ src/index.test.ts (3 tests) 1ms\n ✓ db/parallelism.test.ts (1 test) 1ms\n• turbo 2.11.3\n ❯ db/importactual.probe.test.ts (1 test | 1 failed) 59ms\n   × F47: what the runner hands a module of this package > reads an unhashed authority through vi.importActual with the guard silent 59ms\n     → This module obtained node:fs and read a file turbo does not hash, and the guard reports nothing about it, because ts.preProcessFile does not see a literal specifier handed to vi.importActual and vitest is allow-listed as unable to open a path.: expected [] to include 'node:fs'\n\n⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯\n\n FAIL  db/authorities.test.ts > the spelling a reading import is written with > names the module a source reads through, however the import is written\nAssertionError: These sources reach the filesystem and the guard does not name what they reach it through, so a module written this way reads an authority nothing hashes: import { vi } from 'vitest';\nconst fs: any = await vi.importActual('node:fs'); | import { vi } from 'vitest';\nconst cp: any = await vi.importMock('child_process');: expected [ …(2) ] to deeply equal []\n\n\u001b[32m- Expected\u001b[39m\n\u001b[31m+ Received\u001b[39m\n\n\u001b[32m- []\u001b[39m\n\u001b[31m+ [\u001b[39m\n\u001b[31m+   \"import { vi } from 'vitest';\u001b[39m\n\u001b[31m+ const fs: any = await vi.importActual('node:fs');\",\u001b[39m\n\u001b[31m+   \"import { vi } from 'vitest';\u001b[39m\n\u001b[31m+ const cp: any = await vi.importMock('child_process');\",\u001b[39m\n\u001b[31m+ ]\u001b[39m\n\n ❯ db/authorities.test.ts:172:7\n    170|       'These sources reach the filesystem and the guard does not name …\n    171|       + `through, so a module written this way reads an authority noth…\n    172|     ).toEqual([]);\n       |       ^\n    173|   });\n    174| \n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯\n\n FAIL  db/importactual.probe.test.ts > F47: what the runner hands a module of this package > reads an unhashed authority through vi.importActual with the guard silent\nAssertionError: This module obtained node:fs and read a file turbo does not hash, and the guard reports nothing about it, because ts.preProcessFile does not see a literal specifier handed to vi.importActual and vitest is allow-listed as unable to open a path.: expected [] to include 'node:fs'\n ❯ db/importactual.probe.test.ts:42:7\n     40|       + 'nothing about it, because ts.preProcessFile does not see a li…\n     41|       + 'vi.importActual and vitest is allow-listed as unable to open …\n     42|     ).toContain('node:fs');\n       |       ^\n     43|   });\n     44| });\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯\n\n\n Test Files  2 failed | 6 passed (8)\n      Tests  2 failed | 147 passed (149)\n   Start at  16:25:06\n   Duration  2.52s (transform 111ms, setup 0ms, collect 700ms, tests 1.11s, environment 0ms, prepare 182ms)\n\n/Users/ruudvanengelenhoven/Development/seene/packages/core:\n ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @seen/core@0.0.0 test: `vitest run`\nExit status 1\n",
+    "output_sha256": "e1dc11bc60859ca5c559e511708a4374133fce36baf2a75a261f988e9446fd61",
+    "output_truncated": false,
+    "before": "acda60e794735df1ffa9bae5c5fb7b1bad3a25f979f13cb2566e0182958b3d0c",
+    "after": "acda60e794735df1ffa9bae5c5fb7b1bad3a25f979f13cb2566e0182958b3d0c"
+  }
+}
