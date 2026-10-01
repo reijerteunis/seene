@@ -47,47 +47,56 @@ timed() {
 # set the hook is about. Deleted paths are left out: a rule cannot be run over a
 # file that is gone, and running it over the version still in the index would
 # report a violation the commit removes.
+#
+# NUL-delimited, and read into arrays below rather than split on whitespace.
+# SEEN-114 F21: the first version split the list on $IFS, so a staged
+# `my page.tsx` reached Biome as two paths that do not exist, and Biome with
+# --no-errors-on-unmatched printed "Checked 0 files" and exited 0 while ast-grep
+# printed two errors and also exited 0. The hook said ok having read nothing,
+# which is the one thing this set must never do: an absence is not a pass.
 staged_paths() {
-  git diff --cached --name-only --diff-filter=ACMR
-}
-
-keep() {
-  grep -E "$1" || true
+  git diff --cached --name-only -z --diff-filter=ACMR
 }
 
 run_staged() {
-  local all code_paths
-  all=$(staged_paths)
-  if [ -z "$all" ]; then
+  local staged=() code_paths=() module_paths=() path
+  while IFS= read -r -d '' path; do
+    staged+=("$path")
+    # Biome and ast-grep read source files; dependency-cruiser reads the modules
+    # they import. All three are handed only the staged paths, which is the whole
+    # reason the hook fits in the budget. The extension decides which list a path
+    # joins, matched here rather than by a regex over the whole set, so that a
+    # path only ever exists as one array element.
+    case "$path" in
+      *.ts|*.tsx|*.js|*.jsx|*.mts|*.cts|*.mjs|*.cjs)
+        code_paths+=("$path")
+        module_paths+=("$path")
+        ;;
+      *.json)
+        code_paths+=("$path")
+        ;;
+    esac
+  done < <(staged_paths)
+
+  if [ ${#staged[@]} -eq 0 ]; then
     echo "Nothing is staged, so there is nothing to check."
     return 0
   fi
 
-  # Biome and ast-grep read source files; dependency-cruiser reads the modules
-  # they import. All three are handed only the staged paths, which is the whole
-  # reason the hook fits in the budget.
-  code_paths=$(printf '%s\n' "$all" | keep '\.(ts|tsx|js|jsx|mts|cts|mjs|cjs|json)$')
-
-  if [ -n "$code_paths" ] && [ -f biome.json ]; then
+  if [ ${#code_paths[@]} -gt 0 ] && [ -f biome.json ]; then
     started "Biome on the staged files"
-    # shellcheck disable=SC2086
-    timed biome "$bin/biome" check --no-errors-on-unmatched $code_paths
+    timed biome "$bin/biome" check --no-errors-on-unmatched "${code_paths[@]}"
   fi
 
-  local module_paths
-  module_paths=$(printf '%s\n' "$all" | keep '\.(ts|tsx|js|jsx|mts|cts|mjs|cjs)$')
-
-  if [ -n "$module_paths" ] && [ -f sgconfig.yml ]; then
+  if [ ${#module_paths[@]} -gt 0 ] && [ -f sgconfig.yml ]; then
     started "ast-grep on the staged files"
-    # shellcheck disable=SC2086
-    timed ast-grep "$bin/ast-grep" scan $module_paths
+    timed ast-grep "$bin/ast-grep" scan "${module_paths[@]}"
   fi
 
-  if [ -n "$module_paths" ] && [ -f .dependency-cruiser.json ]; then
+  if [ ${#module_paths[@]} -gt 0 ] && [ -f .dependency-cruiser.json ]; then
     started "dependency-cruiser on the staged files"
-    # shellcheck disable=SC2086
     timed dependency-cruiser "$bin/depcruise" --config .dependency-cruiser.json \
-      --output-type err --no-progress $module_paths
+      --output-type err --no-progress "${module_paths[@]}"
   fi
   return 0
 }

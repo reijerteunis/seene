@@ -18,8 +18,11 @@ it is what CI runs, and it is the only place the live registry is read.
 
 import json
 import os
+from pathlib import Path
 import shutil
+import subprocess
 import sys
+import tempfile
 import unittest
 
 from harness import rules
@@ -497,11 +500,26 @@ class WhereTheSetRunsTest(unittest.TestCase):
     def test_the_staged_run_hands_each_tool_only_the_staged_paths(self):
         staged = self.shell_function('run_staged')
         self.assertIn('staged_paths', staged)
-        for paths in ('$code_paths', '$module_paths'):
+        for paths in ('"${code_paths[@]}"', '"${module_paths[@]}"'):
             self.assertIn(paths, staged)
         # Biome over the tree is `biome check .`, which is the tree run's call and
         # would make the staged mode a tree run wearing its name.
         self.assertNotIn('check .', staged)
+
+    def test_the_staged_run_never_word_splits_its_path_list(self):
+        """SEEN-114 F21, as a rule rather than as a comment.
+
+        An unquoted `$code_paths` splits on whitespace, so a staged `my page.tsx`
+        reaches Biome as two paths that are not there, and Biome with
+        --no-errors-on-unmatched reports Checked 0 files and exits 0. The hook then
+        says ok having read nothing, which is the absence-is-not-a-pass rule this
+        whole module is written around, one layer out in the shell.
+        """
+        staged = self.shell_function('run_staged')
+        for unquoted in ('$code_paths', '$module_paths', '$all'):
+            self.assertNotIn(unquoted, staged.replace('${', '@{'))
+        self.assertIn("read -r -d ''", staged)
+        self.assertIn('-z', self.shell_function('staged_paths'))
 
     def test_knip_runs_over_the_tree_and_never_over_a_staged_file(self):
         """A dead export is a property of the whole import graph.
@@ -582,6 +600,48 @@ class SummaryTest(unittest.TestCase):
         answer = dict(rules=[dict(id='biome/noFloatingPromises')],
                       fixtures=[dict(id='biome/noFloatingPromises', fired=False, detail='no')])
         self.assertIn('0 of 1 rules refused', rules.summary(answer))
+
+
+class StagedPathWithASpaceTest(unittest.TestCase):
+    """A staged path with a space reaches every tool whole, measured.
+
+    SEEN-114 F21. The assertions above read the script; this one runs it, because
+    the defect was not in what the script said but in what the shell did with it.
+    It runs against this repository, since `scripts/rules.sh` cds to its own root
+    and there is no second tree to point it at: the violation is written here and
+    removed in tearDown, and the index is a throwaway, so the real index and the
+    real staging area are untouched.
+    """
+
+    # Under packages/core/src because that is where the rule being tripped is
+    # scoped, and with the space that used to split the list.
+    violation = PROJECT / 'packages' / 'core' / 'src' / 'violation with space.ts'
+
+    def setUp(self):
+        self.index = Path(tempfile.mkdtemp()) / 'index'
+        self.violation.write_text(
+            "/** A commission of \u20ac 1,50, written the one way the ground rules refuse. */\n"
+            "export const COMMISSION_LABEL = '\u20ac 1,50';\n")
+        environment = dict(os.environ, GIT_INDEX_FILE=str(self.index))
+        subprocess.run(['git', 'read-tree', 'HEAD'], cwd=PROJECT, env=environment, check=True,
+                       capture_output=True)
+        subprocess.run(['git', 'update-index', '--add', '--', str(self.violation.relative_to(PROJECT))],
+                       cwd=PROJECT, env=environment, check=True, capture_output=True)
+        self.environment = environment
+
+    def tearDown(self):
+        self.violation.unlink(missing_ok=True)
+        shutil.rmtree(self.index.parent, ignore_errors=True)
+
+    def test_the_staged_run_refuses_a_violation_in_a_path_with_a_space(self):
+        if not (PROJECT / 'node_modules' / '.bin' / 'ast-grep').exists():
+            self.skipTest('the workspace is not installed, so no tool can run')
+        result = subprocess.run(['./scripts/rules.sh', 'staged'], cwd=PROJECT,
+                                env=self.environment, capture_output=True, text=True, timeout=120)
+        output = result.stdout + result.stderr
+        self.assertEqual(result.returncode, 1, output)
+        self.assertIn('violation with space.ts', output)
+        self.assertNotIn('Checked 0 files', output)
 
 
 if __name__ == '__main__':
