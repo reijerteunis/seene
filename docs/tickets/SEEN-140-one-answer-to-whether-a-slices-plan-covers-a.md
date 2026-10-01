@@ -184,6 +184,36 @@ sees a wrapped comparator. That is the shape of this whole ticket repeated at on
 remove: a question with one answer, and an instrument that can actually tell whether
 there is one.
 
+### Three rounds, and the instrument settled on the third
+
+Round three, which Ruud called and which SEEN-118 reserves to the founder, attested
+all three earlier findings resolved and raised one more, F4, against the fix it had
+just confirmed: walking every node of a comparator traded a false negative for a
+false positive, because `named` and `planned` are reused across this package for the
+unmet criteria of a return and the points a sprint planned, so a membership test
+against either would have been reported as a second reader.
+
+The round's own suggestion was to rename the colliding identifiers, which is the
+pattern this ticket used twice already and is right in principle; it is also a rename
+across half a dozen modules and wider than this ticket owns. The narrower repair is to
+ask what the comparator **is** rather than what it contains: the plan's file list, or
+an `or` whose alternatives include it, which is the only wrapping that leaves it still
+being the list. A tuple of two unrelated things is not.
+
+So the instrument took three passes and each was a review's: an exact match that
+missed a wrapped comparator, a walk that caught it and flagged unrelated words, and a
+structural test that does neither. Six tests hold it now, one per property a round had
+to find: it sees a positive comparison, it does not see a loop, it scans every module,
+it sees a wrapped comparator, it does not see a word a plan shares with something
+else, and it finds nothing in the tree as it stands.
+
+Worth recording plainly: the F4 fix is the one change in this ticket no independent
+context has read. It is ten lines in a test's helper, rated low by the round that
+raised it, in the safe direction of error, not triggered anywhere in the tree, and
+pinned by a test that fails without it. A fourth round for that would cost more than
+it could find, and SEEN-118's rule is that the third round is where the list goes to
+the founder.
+
 ## Carried forward
 
 The policy question is open and is the founder's: whether the solution gate should refuse a plan whose

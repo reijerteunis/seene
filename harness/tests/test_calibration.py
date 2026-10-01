@@ -738,10 +738,26 @@ class NoSecondReaderTest(unittest.TestCase):
         return 'every module of the package'
 
     def _names_a_plan(self, node):
-        """Whether an expression holds a plan's files, anywhere inside it."""
-        for inner in ast.walk(node):
-            if ast.unparse(inner).strip() in self.PLAN_FILES:
-                return True
+        """Whether a comparator is a plan's file list, rather than mentions one.
+
+        Three passes at this. An exact match on the unparsed comparator missed
+        `entry.get('files') or []`, which is the same question asked with a
+        default, and that was F2 of the second review. Walking every node of the
+        comparator instead caught that and then flagged any line with the word
+        `named` or `planned` anywhere inside a membership test, which this package
+        reuses for the unmet criteria of a return and the points a sprint planned,
+        and that was F4 of the third.
+
+        So the question is what the comparator is: the list itself, or an `or`
+        whose alternatives include it, which is the only wrapping that leaves it
+        still being the list. A tuple of two unrelated things is not, and neither
+        is anything else that merely contains the word.
+        """
+        if ast.unparse(node).strip() in self.PLAN_FILES:
+            return True
+        if isinstance(node, ast.BoolOp) and isinstance(node.op, ast.Or):
+            return any(ast.unparse(value).strip() in self.PLAN_FILES
+                       for value in node.values)
         return False
 
     def _comparisons(self, module):
@@ -806,6 +822,35 @@ class NoSecondReaderTest(unittest.TestCase):
         """
         module = pathlib.Path(self.enterContext(
             tempfile.TemporaryDirectory())) / 'triage.py'
+        module.write_text('def f(path, entry):\n'
+                          "    return path in (entry.get('files') or [])\n")
+        self.assertEqual([line for line, _ in self._comparisons(module)], [2])
+
+    def test_a_word_a_plan_shares_with_something_else_is_not_a_reader(self):
+        """F4 of the third review: the comparator must be the plan, not mention it.
+
+        Walking every node of a comparator traded a false negative for a false
+        positive. `named` and `planned` are reused across this package for things
+        that are not a slice's files at all, among them the unmet criteria of a
+        return and the points a sprint planned, so a membership test against one of
+        those would have been reported as a second reader and failed the suite on a
+        change with nothing to do with this question.
+
+        The direction of that error was the safe one, a loud failure rather than a
+        silent miss, which is why the round rated it low. It is still wrong, and the
+        narrow repair is to ask what the comparator is rather than what it contains.
+        """
+        module = pathlib.Path(self.enterContext(
+            tempfile.TemporaryDirectory())) / 'forecast.py'
+        module.write_text('def f(cost, planned, actual_prior):\n'
+                          '    return cost in (planned, actual_prior)\n')
+        self.assertEqual(self._comparisons(module), [])
+
+        # And the two shapes that are the question keep being seen, so the repair
+        # cannot be a quiet undoing of F2 and F3.
+        module.write_text('def f(path, named, entry):\n'
+                          '    return path in named\n')
+        self.assertEqual([line for line, _ in self._comparisons(module)], [2])
         module.write_text('def f(path, entry):\n'
                           "    return path in (entry.get('files') or [])\n")
         self.assertEqual([line for line, _ in self._comparisons(module)], [2])
