@@ -420,3 +420,105 @@ class ThisRepositoryTest(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class WhereTheSetRunsTest(unittest.TestCase):
+    """The two places the set is called from, read from the files that are them.
+
+    `scripts/rules.sh` is the one definition of what running the rule set means,
+    and the hook and the CI workflow are the two callers the criterion names. The
+    rules themselves are proven against their fixtures, which is what `FixtureTest`
+    and `rules --fixtures` do; whether the hook and CI still call the runner was
+    proven by running each of them once and recording the result, and a
+    measurement taken on one afternoon is not a property the next commit keeps. An
+    edit moving knip into the staged run, or dropping the tree run from the
+    workflow, would leave every fixture firing and every other test here green.
+    These read the wiring, so the budget and the reach of the set are carried by
+    the regression instead.
+    """
+
+    def hook(self):
+        return (PROJECT / '.githooks' / 'pre-commit').read_text()
+
+    def workflow(self):
+        return (PROJECT / '.github' / 'workflows' / 'ci.yml').read_text()
+
+    def shell_function(self, name):
+        """One function's body out of scripts/rules.sh, by its opening line.
+
+        The two modes differ in what they hand each tool and in whether knip runs
+        at all, so a test about one of them has to read that one rather than the
+        whole file.
+        """
+        text = (PROJECT / 'scripts' / 'rules.sh').read_text()
+        opened = text.index(f'{name}() {{')
+        return text[opened:text.index('\n}\n', opened)]
+
+    def test_the_pre_commit_hook_runs_the_set_over_the_staged_files(self):
+        self.assertIn('./scripts/rules.sh staged', self.hook())
+
+    def test_the_hook_never_runs_the_set_over_the_whole_tree(self):
+        """What keeps the hook inside its ten-second budget, as a rule.
+
+        The budget is the reason the hook exists in this shape: the tree run takes
+        tens of seconds and belongs to CI, and a hook calling it would be a hook
+        people turn off with --no-verify.
+        """
+        self.assertNotIn('./scripts/rules.sh tree', self.hook())
+
+    def test_the_staged_run_hands_each_tool_only_the_staged_paths(self):
+        staged = self.shell_function('run_staged')
+        self.assertIn('staged_paths', staged)
+        for paths in ('$code_paths', '$module_paths'):
+            self.assertIn(paths, staged)
+        # Biome over the tree is `biome check .`, which is the tree run's call and
+        # would make the staged mode a tree run wearing its name.
+        self.assertNotIn('check .', staged)
+
+    def test_knip_runs_over_the_tree_and_never_over_a_staged_file(self):
+        """A dead export is a property of the whole import graph.
+
+        Asked of a staged file, knip reports every export the files around it
+        happen not to use, so it is in the tree run and in CI and not in the hook.
+        """
+        self.assertNotIn('knip', self.shell_function('run_staged'))
+        self.assertIn('knip', self.shell_function('run_tree'))
+
+    def test_every_tool_runs_through_timed_so_the_budget_is_measured(self):
+        """The hook prints what each tool took, on every commit.
+
+        A budget nobody measures is a budget that drifts, so each tool is invoked
+        through `timed` rather than called directly, in both modes.
+        """
+        for mode in ('run_staged', 'run_tree'):
+            body = self.shell_function(mode)
+            for line in body.splitlines():
+                stripped = line.strip()
+                if stripped.startswith('"$bin/'):
+                    self.fail(f'{mode} calls {stripped} without timing it')
+            self.assertIn('timed ', body)
+
+    def test_ci_runs_the_set_on_the_tree_and_proves_every_rule_and_every_citation(self):
+        """Criterion 2's other half and criterion 5's, in the workflow itself.
+
+        Three steps rather than one, because they need different runners: the
+        traceability check reads files and runs in the job with no workspace, the
+        fixture proof and the tree run need the installed tools.
+        """
+        workflow = self.workflow()
+        for step in ('rules --check', 'rules --fixtures', './scripts/rules.sh tree'):
+            self.assertIn(step, workflow)
+
+    def test_every_workspace_package_declares_an_exports_map(self):
+        """So nothing reaches into another package's internals.
+
+        Read from the workspace globs rather than from a list here, so a package
+        added without an exports map fails this test rather than being missed by
+        it.
+        """
+        found = sorted(PROJECT.glob('apps/*/package.json')) + \
+            sorted(PROJECT.glob('packages/*/package.json'))
+        self.assertEqual(len(found), 7, [str(path) for path in found])
+        for path in found:
+            manifest = json.loads(path.read_text())
+            self.assertIn('exports', manifest, f'{path} declares no exports map')
