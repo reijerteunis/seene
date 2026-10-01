@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-090, SEEN-107]
-status: doing
+status: review
 priority: P0
 ---
 # SEEN-114: Turn every recurring finding into a rule the pre-commit hook runs in seconds
@@ -24,7 +24,7 @@ priority: P0
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | doing |
+| Status | review |
 | Priority | P0 (correctness and speed programme, see docs/harness/workflow.md) |
 
 ## Description
@@ -33,11 +33,11 @@ Sprint 0 delivered 63 review findings on 20 tickets (2 blocking, 18 high, 27 med
 
 ## Acceptance criteria
 
-- [ ] tsconfig.base.json carries strict, noUncheckedIndexedAccess, exactOptionalPropertyTypes and noImplicitOverride, and every TypeScript project in the tree typechecks. **Amended on 1 October 2026:** "the tree" is read as the seven projects `pnpm turbo run typecheck` compiles, because `packages/core/tsconfig.json` includes only `src/**/*` and so the eleven modules of `packages/core/db/`, which are SEEN-008's trade-record schema and its tests, are in no project at all and were already outside the typecheck before this ticket. Compiling them needs a second project with an ESM module setting, because `db/repository.ts` reads `import.meta.url` and the base configuration is commonjs, and two of them carry genuine errors under the new flags. That work is not this ticket's and has no ticket of its own yet; the Outcome says what one would have to carry.
-- [ ] Biome, ast-grep and dependency-cruiser run on staged files in the pre-commit hook in under ten seconds, and in CI on the tree, with the ground rules above each proven by a fixture that fails (among them: node:fs imported inside packages/core, a marketplace write outside the policy gate, a query outside the repository layer)
-- [ ] Every review finding at medium or above carries rule_candidate, and the review gate refuses a record without it
-- [ ] harness report --week lists findings a rule could have caught, the rules added, and any candidate that recurred without a rule
-- [ ] knip reports zero unused exports on packages/core and the connectors, every package declares an exports map, and each rule in the set cites a finding id or an architecture section, enforced in CI
+- [x] tsconfig.base.json carries strict, noUncheckedIndexedAccess, exactOptionalPropertyTypes and noImplicitOverride, and every TypeScript project in the tree typechecks. **Amended on 1 October 2026:** "the tree" is read as the seven projects `pnpm turbo run typecheck` compiles, because `packages/core/tsconfig.json` includes only `src/**/*` and so the eleven modules of `packages/core/db/`, which are SEEN-008's trade-record schema and its tests, are in no project at all and were already outside the typecheck before this ticket. Compiling them needs a second project with an ESM module setting, because `db/repository.ts` reads `import.meta.url` and the base configuration is commonjs, and two of them carry genuine errors under the new flags. That work is not this ticket's and has no ticket of its own yet; the Outcome says what one would have to carry.
+- [x] Biome, ast-grep and dependency-cruiser run on staged files in the pre-commit hook in under ten seconds, and in CI on the tree, with the ground rules above each proven by a fixture that fails (among them: node:fs imported inside packages/core, a marketplace write outside the policy gate, a query outside the repository layer)
+- [x] Every review finding at medium or above carries rule_candidate, and the review gate refuses a record without it
+- [x] harness report --week lists findings a rule could have caught, the rules added, and any candidate that recurred without a rule
+- [x] knip reports zero unused exports on packages/core and the connectors, every package declares an exports map, and each rule in the set cites a finding id or an architecture section, enforced in CI
 
 ## Depends on
 
@@ -59,29 +59,35 @@ Sprint 0 delivered 63 review findings on 20 tickets (2 blocking, 18 high, 27 med
 
 Delivered on 1 October 2026 in four slices: the compiler and the formatter with the registry, the
 ground rules with their fixtures and the hook, `rule_candidate` on the review gate, and the loop back
-through the weekly report and `doctor`. Twenty-two rules, each with a citation a reader can open and a
-fixture the rule itself refuses. 1,548 harness tests pass (check 168), coverage on `packages/core` is
-100.0 with a delta of 0.0 (check 169), `doctor` reports no problems and no warnings. Every figure in
-this Outcome names the check it was read from, because a figure without one is a figure nobody can
-re-measure.
+through the weekly report and `doctor`. Twenty-three rules, each with a citation a reader can open and
+a fixture the rule itself refuses. 1,555 harness tests pass (check 204), the workspace build is green
+(check 185) and so are the 210 tests of the six packages that need no local stack (check 186), coverage
+on `packages/core` is 100.0 with a delta of 0.0 (check 205), `doctor` reports no problems and no
+warnings. Every figure in this Outcome names the check it was read from, because a figure without one is
+a figure nobody can re-measure.
 
 ### What runs, and how fast
 
 | Where | What runs | Measured |
 |---|---|---|
-| pre-commit, on the staged paths | gitleaks, then Biome, ast-grep and dependency-cruiser | 937ms over 55 staged paths, 34 files to Biome and 46 modules to dependency-cruiser, against a ten-second budget (check 157) |
-| CI, harness job | `harness rules --check` | 22 entries read in both directions in 75ms; reads files, needs no workspace (check 138) |
-| CI, monorepo job | `harness rules --fixtures`, then `turbo run lint`, then `scripts/rules.sh tree` | every rule refuses its own fixture in 3.2s (check 159), and 1.324s for the whole set over the tree (check 135) |
+| pre-commit, on the staged paths | gitleaks, then Biome, ast-grep and dependency-cruiser | 984ms over 58 staged paths, 34 files to Biome and 46 modules to dependency-cruiser, against a ten-second budget (check 201) |
+| CI, harness job | `harness rules --check` | 23 entries read in both directions in 76ms; reads files, needs no workspace (check 203) |
+| CI, monorepo job | `harness rules --fixtures`, then `turbo run lint`, then `scripts/rules.sh tree` | every rule refuses its own fixture in 4s (check 192), and 1.331s for the whole set over the tree (check 202) |
 
 `scripts/rules.sh` is the one definition of what running the set means, called by the hook and by CI,
 because SEEN-097 recorded what happens when the same environment has two definitions. knip is in CI
 and not in the hook: a dead export is a property of the whole import graph and cannot be judged from a
 staged file.
 
-### The twenty-two rules
+### The twenty-three rules
 
-Four compiler flags, four Biome rules, five ast-grep rules, eight dependency-cruiser layering rules
-and knip. `rules/registry.toml` is the one place each says what it stands on, and `harness rules
+Four compiler flags, four Biome rules, five ast-grep rules, eight dependency-cruiser layering rules,
+knip, and one of the harness's own checks: `harness/no-live-marketplace-host`, which is in the registry
+because it runs in the same hook as the other four and a registry that left it out would not be a map
+of what runs. It is proven the way the hook runs it, by calling the check over a fixture rather than
+spawning an interpreter. gitleaks runs in that hook too and is the one tool with no entry, deliberately:
+its fixture would have to carry a string gitleaks detects, which the hook itself would refuse to let
+anybody commit, and the reason is written in `harness/rules.py` where the next person will look. `rules/registry.toml` is the one place each says what it stands on, and `harness rules
 --check` reads it against the tools' own configurations **in both directions**: a rule a configuration
 enables that the registry does not carry fails the build, and so does a registry entry for a rule
 nothing runs, because a registry that only had to be a superset could be padded. A citation is the
@@ -140,7 +146,7 @@ serious enough to ask what would have caught it. The rule-id shape is built from
 count of findings in the window that predate the field, because a finding recorded before this ticket
 carries none and a report that counted those as "no rule could have caught it" would read as though
 every old finding had been triaged against the rule set. Today a reader sees: 0 findings a rule could
-have caught, all 22 rules added this week, no candidate recurring without a rule, and 11 findings that
+have caught, all 23 rules added this week, no candidate recurring without a rule, and 11 findings that
 predate the field. A candidate that recurred twice with no rule written is a `doctor` **warning** and
 not a problem, leaving `ok` true, because `doctor` runs in CI and at the end of every turn through the
 Stop hook and a problem there would block every unrelated ticket until somebody wrote a rule.
@@ -157,6 +163,15 @@ to add a second tsconfig project for `packages/core/db` with an ESM `module` set
 modules in it, fix the two errors in `db/marketplaces.ts`, and add it to what `pnpm turbo run
 typecheck` builds. Until it exists, nothing compiles that directory, which is why criterion 1 above is
 read as the seven projects that command builds today.
+
+**The post-commit hook CLAUDE.md describes is not in this repository.** `.githooks` holds only
+`pre-commit`, and `core.hooksPath` points at it, so nothing runs `graphify update .` after a commit and
+the committed graph goes stale silently: this ticket's own graph was a merge away from answering
+questions about a tree with no `harness/rules.py` in it. A rebuild here takes between one and two
+minutes over 1,805 files, which is why a post-commit hook may be the wrong instrument and why this is a
+decision rather than an omission to patch: either the hook exists and every commit pays for it, or
+`doctor` grows the cheaper half of it and warns when the graph's own commit is behind HEAD, or CLAUDE.md
+stops describing a hook that is not there. Review finding F7, whose rule candidate is that warning.
 
 **A citation is checked to the file and never to the section.** `harness rules --check` accepts a
 citation whose path exists, so a rule citing `docs/architecture.md: Fee expectations`, a section nobody
