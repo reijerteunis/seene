@@ -51,6 +51,7 @@ The starting slice plan, one session each; the solution stage adopts or amends i
 
 ## Blocks
 
+- [SEEN-115](SEEN-115-generate-the-marketplace-clients-from-the.md): Generate the marketplace clients from the official OpenAPI specs and validate every fixture against them
 - [SEEN-010](SEEN-010-add-per-marketplace-rate-limiting-with-header.md): Add per-marketplace rate limiting with header-driven backoff
 - [SEEN-011](SEEN-011-build-bol-retailer-api-v10-connector-for-orders.md): Build Bol Retailer API v10 connector for orders to commissions
 - [SEEN-012](SEEN-012-build-ebay-connector-for-orders-returns.md): Build eBay connector for orders, returns, transactions and payouts
@@ -62,6 +63,7 @@ The starting slice plan, one session each; the solution stage adopts or amends i
 - [SEEN-059](SEEN-059-verify-otto-rate-limits-and-obtain-otto-api-keys.md): Verify Otto rate limits and obtain Otto API keys
 - [SEEN-060](SEEN-060-build-the-otto-connector-for-orders-returns.md): Build the Otto connector for orders, returns, receipts and messages
 - [SEEN-077](SEEN-077-read-ad-reports-from-amazon-ads-bol-advertising.md): Read ad reports from Amazon Ads, Bol Advertising and eBay Promoted
+- [SEEN-128](SEEN-128-connection-ownership-and-storefront-mode-on-the.md): Connection ownership and storefront mode on the trade record
 
 ## Context
 

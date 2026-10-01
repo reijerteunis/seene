@@ -46,6 +46,9 @@ The review is the most expensive read in the procedure: a model reads the whole 
 ## Blocks
 
 - [SEEN-109](SEEN-109-calibrate-the-review-triage-and-the-routes-on.md): Calibrate the review triage and the routes on ten tickets before either saves a token
+- [SEEN-112](SEEN-112-run-a-ticket-from-clarify-to-merge-in-one-go.md): Run a ticket from clarify to merge in one go, asking only what it cannot decide
+- [SEEN-114](SEEN-114-turn-every-recurring-finding-into-a-rule-the.md): Turn every recurring finding into a rule the pre-commit hook runs in seconds
+- [SEEN-118](SEEN-118-a-finding-needs-a-failing-test-taste-is-not-a.md): A finding needs a failing test, taste is not a finding, and the third round is the founder's
 
 ## Context
 

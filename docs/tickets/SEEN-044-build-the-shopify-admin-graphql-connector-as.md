@@ -46,6 +46,8 @@ Implement packages/connectors/shopify against the Admin GraphQL API: products an
 
 - [SEEN-050](SEEN-050-ingest-listings-with-content-hash-and-drift.md): Ingest listings with content hash and drift detection
 - [SEEN-071](SEEN-071-model-net-margin-per-marketplace-from-cost.md): Model net margin per marketplace from cost layers
+- [SEEN-129](SEEN-129-list-a-supplier-s-catalogue-under-seen-s.md): List a supplier's catalogue under Seen's accounts with brand mapping and GPSR data
+- [SEEN-130](SEEN-130-dropship-flow-a-purchase-order-to-the-supplier.md): Dropship flow: a purchase order to the supplier on every storefront order, shipment and tracking back
 
 ## Context
 

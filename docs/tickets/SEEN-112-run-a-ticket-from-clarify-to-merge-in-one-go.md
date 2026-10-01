@@ -65,7 +65,8 @@ A human-executor ticket is refused at the start. SEEN-110 is the worked example:
 
 ## Blocks
 
-- none
+- [SEEN-113](SEEN-113-let-a-tdd-record-cite-the-evidence-a-return.md): Let a tdd record cite the evidence a return did not invalidate
+- [SEEN-119](SEEN-119-independent-slices-run-in-parallel-worktrees.md): Independent slices run in parallel worktrees
 
 ## Context
 

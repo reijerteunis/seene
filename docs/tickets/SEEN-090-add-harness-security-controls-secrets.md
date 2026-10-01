@@ -119,6 +119,7 @@ knows about.
 ## Blocks
 
 - [SEEN-092](SEEN-092-sync-the-harness-skill-to-claude-code-and-codex.md): Sync the harness skill to Claude Code and Codex and retire the Seene leftovers
+- [SEEN-114](SEEN-114-turn-every-recurring-finding-into-a-rule-the.md): Turn every recurring finding into a rule the pre-commit hook runs in seconds
 
 ## Context
 

@@ -44,6 +44,7 @@ Integrate Stripe in apps/api: create a Stripe customer per tenant, collect a SEP
 ## Blocks
 
 - [SEEN-040](SEEN-040-issue-invoices-with-recovery-share-lines-from.md): Issue invoices with recovery-share lines from credited claims only
+- [SEEN-131](SEEN-131-consumer-invoices-with-vat-by-destination-and.md): Consumer invoices with VAT by destination and the OSS return
 
 ## Context
 

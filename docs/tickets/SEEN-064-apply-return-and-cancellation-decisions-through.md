@@ -46,7 +46,7 @@ Add decide_return and decide_cancellation as agent actions in packages/agent wit
 
 ## Blocks
 
-- none
+- [SEEN-133](SEEN-133-returns-withdrawals-and-guarantee-cases-handled.md): Returns, withdrawals and guarantee cases handled as the seller of record
 
 ## Context
 

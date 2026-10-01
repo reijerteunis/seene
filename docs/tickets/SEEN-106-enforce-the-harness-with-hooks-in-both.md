@@ -186,7 +186,8 @@ a person can establish.
 
 ## Blocks
 
-- none
+- [SEEN-110](SEEN-110-verify-the-hooks-in-a-codex-session-and-close.md): Verify the hooks in a Codex session and close what SEEN-106 declined
+- [SEEN-117](SEEN-117-the-spec-session-writes-the-red-the-implementer.md): The spec session writes the RED; the implementer cannot touch it
 
 ## Context
 

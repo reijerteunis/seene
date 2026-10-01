@@ -63,6 +63,7 @@ The starting slice plan, one session each; the solution stage adopts or amends i
 - [SEEN-060](SEEN-060-build-the-otto-connector-for-orders-returns.md): Build the Otto connector for orders, returns, receipts and messages
 - [SEEN-077](SEEN-077-read-ad-reports-from-amazon-ads-bol-advertising.md): Read ad reports from Amazon Ads, Bol Advertising and eBay Promoted
 - [SEEN-081](SEEN-081-load-test-ingest-on-50-tenants-and-run-rate.md): Load test ingest on 50 tenants and run rate-limit chaos
+- [SEEN-130](SEEN-130-dropship-flow-a-purchase-order-to-the-supplier.md): Dropship flow: a purchase order to the supplier on every storefront order, shipment and tracking back
 
 ## Context
 

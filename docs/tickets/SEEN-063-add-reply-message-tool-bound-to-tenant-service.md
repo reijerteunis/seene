@@ -46,6 +46,7 @@ Add reply_message to packages/agent: it drafts a reply for a thread inside the t
 ## Blocks
 
 - [SEEN-067](SEEN-067-show-serve-threads-and-drafts-in-the-inbox.md): Show Serve threads and drafts in the inbox
+- [SEEN-133](SEEN-133-returns-withdrawals-and-guarantee-cases-handled.md): Returns, withdrawals and guarantee cases handled as the seller of record
 
 ## Context
 

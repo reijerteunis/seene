@@ -15,6 +15,8 @@ Read the three documents in this order before writing code: the PRD for what and
 - Local first, cloud by decision. Development and the first pilots run on the local Docker environment (`pnpm dev:up`: Supabase CLI stack, Redis, Mailpit, telemetry collector); CI runs the same services. Nothing is deployed to Google Cloud until Ruud records a go decision in the SEEN-007 journal. Code never imports a cloud SDK outside the provider packages: secrets, storage and telemetry are abstractions selected by configuration (.env.local, local Supabase Storage and the console now; Secret Manager, the Supabase EU project and Cloud Logging after go-live). Sync cadences are BullMQ repeatable jobs, not Cloud Scheduler.
 - Amounts are in cents as integers with a currency code; use `EUR` in text, never the euro sign in code comments or docs. British spelling. No em dashes or en dashes anywhere, in code, docs or customer-facing copy; use a plain hyphen or rewrite the sentence.
 - Buyer PII (names, addresses) is persisted only as far as a claim needs it, encrypted at rest, and expires after 30 days.
+- Two ways to sell: direct (the brand's accounts) and storefront (Seen as seller of record on Seen's own accounts, epic E11). Ownership is a column, never a second product: `connections.owner` is `brand` or `seen`, `tenants.selling_mode` per marketplace is `direct` or `storefront`, every row still carries the supplier's `tenant_id`, and in storefront mode Seen is the actor of every agent action. Consumer invoices, credit notes and supplier statements derive from ingested settlements and invoices only, the same rule as billing.
+- Rules before reading. The pre-commit hook runs the static rules (strict TypeScript, Biome, ast-grep ground rules, dependency-cruiser layering, knip) in seconds; a review finding a rule could have caught names the rule; the money core carries fast-check properties and a mutation-score floor. Marketplace clients are generated from the vendored OpenAPI contracts under `packages/connectors/specs`, never hand-typed from documentation; money and ids are branded types and every boundary has one zod schema its type is inferred from (SEEN-114 to SEEN-116, SEEN-135).
 
 ## Working a ticket
 
@@ -28,7 +30,8 @@ Every ticket runs through the Seen harness (`docs/harness/workflow.md`): five st
 6. Human tickets (executor `human`) are registrations, verifications against a live account and real-data runs. Do them with Ruud, record the outcome in the ticket file under a `## Outcome` heading, and never invent API facts a verification ticket was meant to establish.
 7. One slice per session. A session reads the PRD and the architecture once, at clarify; every later session starts from the handoff pack (`harness status --brief`), works one slice of at most 2 points, writes the next pack with `harness handoff` and ends. Research goes to the scout subagent and review to the reviewer subagent, each in a context of its own (`harness handoff` and `status --brief` are SEEN-104's and exist; the subagents and the hooks arrive with SEEN-105 and SEEN-106, and until then `/clear` at every slice boundary after writing the pack). The model and effort a slice runs on are read from the handoff pack once SEEN-108 lands and are never chosen inside the session; the review reads only what SEEN-107's triage leaves for it.
 8. Ticket files are owned by this repository once a ticket has started: the plan generator behind the council artifact rewrites only tickets still at `status: todo` and never touches a started ticket's criteria, `## Outcome` or amendments. Renumbering is never done on a started ticket, because receipts, journals and pull request bodies quote its id. No new ticket is above 3 points; a five-point ticket carries a `## Slices` section that the solution stage adopts or amends.
-9. When a ticket changes an agent action (`changes_agent_action: true`), the tool must declare reversibility, action type and a euro impact estimator, and the gate decision must be written to `agent_actions` and `audit_events` before execution.
+9. Harness work (epic E10) takes at most ten percent of a sprint's build points from Sprint 1 and states the KPI it will move in its clarify record (SEEN-123).
+10. When a ticket changes an agent action (`changes_agent_action: true`), the tool must declare reversibility, action type and a euro impact estimator, and the gate decision must be written to `agent_actions` and `audit_events` before execution.
 
 After cloning, wire up the git hooks once: `git config core.hooksPath .githooks`. The pre-commit hook
 runs gitleaks on staged changes, and `doctor` refuses until it is set.
@@ -51,12 +54,12 @@ call; it is not a command to run by hand.
 | [docs/prd/prd.md](docs/prd/prd.md) | Product requirements for the MVP: summary, problem, goals and non-goals, users, principles, scope by module, journeys, functional requirements FR-1 to FR-46, capability routing, pricing and metering, data and security, gates and metrics, release plan, risks, open questions, glossary |
 | [docs/architecture.md](docs/architecture.md) | MVP architecture: principles, capability routing per marketplace, system context, services, trade record data model, agent runtime and policy gate, modules, infrastructure and security, open verifications |
 | [docs/development-plan.md](docs/development-plan.md) | Sprint calendar (harness days from 24 Sep, Sprint 0 to 7 to 29 Jan 2027), gates G0 to G7, team and capacity, day-0 checklist, not in the MVP, risks |
-| [docs/harness/workflow.md](docs/harness/workflow.md) | The development harness as built: why, principles, the five stages and their stage gates, graphify, CodeGraph and Repowise with one role each, the context per session (slices, handoff packs, subagents, hooks), how the harness meets Claude Code and Codex, Jev AI, CI, the eleven KPIs, security controls, commands, repository layout, what the building settled, the harness tickets |
+| [docs/harness/workflow.md](docs/harness/workflow.md) | The development harness as built: why, principles, the five stages and their stage gates, graphify, CodeGraph and Repowise with one role each, the context per session (slices, handoff packs, subagents, hooks), how the harness meets Claude Code and Codex, Jev before the model (review triage, routes, calibration), the correctness programme (rules from findings, generated marketplace clients, property and mutation tests, the spec session, the bounded review, prioritised P0 to P2), Jev AI, CI, the eleven KPIs, security controls, commands, repository layout, what the building settled, the harness tickets |
 | [docs/tickets/README.md](docs/tickets/README.md) | Ticket index by sprint with points, executors, status and dependencies, plus the epic table |
 | [CONTEXT.md](CONTEXT.md) | Glossary: the harness terms, the product terms they collide with, and the resolution of the three meanings of gate |
 | [docs/adr/](docs/adr/) | Architecture decision records: journal integrity, the delivery receipt, the SEEN-086 bootstrap exemption, why an Outcome cannot count its own review rounds |
 
-### Tickets (113, 361 build points)
+### Tickets (138, 419 build points)
 
 | Ticket | Title | Epic | Size |
 |---|---|---|---|
@@ -95,6 +98,20 @@ call; it is not a command to run by hand.
 | [SEEN-111](docs/tickets/SEEN-111-hold-a-slice-to-the-context-it-was-routed-to.md) | Hold a slice to the context it was routed to, and price it before it is worked | E10 | 3 pt |
 | [SEEN-112](docs/tickets/SEEN-112-run-a-ticket-from-clarify-to-merge-in-one-go.md) | Run a ticket from clarify to merge in one go, asking only what it cannot decide | E10 | 3 pt |
 | [SEEN-113](docs/tickets/SEEN-113-let-a-tdd-record-cite-the-evidence-a-return.md) | Let a tdd record cite the evidence a return did not invalidate | E10 | 2 pt |
+| [SEEN-114](docs/tickets/SEEN-114-turn-every-recurring-finding-into-a-rule-the.md) | Turn every recurring finding into a rule the pre-commit hook runs in seconds | E10 | 3 pt |
+| [SEEN-115](docs/tickets/SEEN-115-generate-the-marketplace-clients-from-the.md) | Generate the marketplace clients from the official OpenAPI specs and validate every fixture against them | E10 | 3 pt |
+| [SEEN-116](docs/tickets/SEEN-116-property-based-and-mutation-tests-on-the-money.md) | Property-based and mutation tests on the money core, as a gate | E10 | 3 pt |
+| [SEEN-117](docs/tickets/SEEN-117-the-spec-session-writes-the-red-the-implementer.md) | The spec session writes the RED; the implementer cannot touch it | E10 | 2 pt |
+| [SEEN-118](docs/tickets/SEEN-118-a-finding-needs-a-failing-test-taste-is-not-a.md) | A finding needs a failing test, taste is not a finding, and the third round is the founder's | E10 | 2 pt |
+| [SEEN-119](docs/tickets/SEEN-119-independent-slices-run-in-parallel-worktrees.md) | Independent slices run in parallel worktrees | E10 | 3 pt |
+| [SEEN-120](docs/tickets/SEEN-120-affected-only-checks-and-a-local-ci-that.md) | Affected-only checks and a local CI that finishes in minutes | E10 | 2 pt |
+| [SEEN-121](docs/tickets/SEEN-121-bake-off-the-typescript-lsp-plugin-against.md) | Bake-off: the TypeScript LSP plugin against codegraph, keep one | E10 | 2 pt |
+| [SEEN-122](docs/tickets/SEEN-122-golden-path-end-to-end-tests-on-the-docker.md) | Golden-path end-to-end tests on the docker stack with recorded marketplace fixtures | E10 | 3 pt |
+| [SEEN-123](docs/tickets/SEEN-123-cap-harness-work-at-ten-percent-of-a-sprint-and.md) | Cap harness work at ten percent of a sprint and make every harness ticket state its payback | E10 | 1 pt |
+| [SEEN-135](docs/tickets/SEEN-135-branded-money-and-ids-one-schema-per-boundary.md) | Branded money and ids, one schema per boundary: the compiler catches the wrong-unit and wrong-id findings | E10 | 2 pt |
+| [SEEN-136](docs/tickets/SEEN-136-no-test-touches-the-clock-the-network-or.md) | No test touches the clock, the network or randomness unfaked, and a flaky test is a defect | E10 | 2 pt |
+| [SEEN-137](docs/tickets/SEEN-137-one-worked-example-per-acceptance-criterion.md) | One worked example per acceptance criterion before the solution stage, so the RED is a transcription | E10 | 1 pt |
+| [SEEN-138](docs/tickets/SEEN-138-the-harness-has-its-own-regression-suite-five.md) | The harness has its own regression suite: five finished tickets replayed when its rules, hooks or prompts change | E10 | 3 pt |
 | [SEEN-008](docs/tickets/SEEN-008-create-trade-record-schema-v1-with-tenant-id.md) | Create trade-record schema v1 with tenant_id and RLS on every table | E0 | 5 pt |
 | [SEEN-009](docs/tickets/SEEN-009-define-connector-interface-capability-matrix.md) | Define connector interface, capability matrix and credential access | E1 | 5 pt |
 | [SEEN-010](docs/tickets/SEEN-010-add-per-marketplace-rate-limiting-with-header.md) | Add per-marketplace rate limiting with header-driven backoff | E1 | 3 pt |
@@ -128,6 +145,7 @@ call; it is not a command to run by hand.
 | [SEEN-036](docs/tickets/SEEN-036-create-the-eval-set-of-30-real-findings-with.md) | Create the eval set of 30 real findings with expected drafts | E4 | 3 pt |
 | [SEEN-037](docs/tickets/SEEN-037-file-the-first-ten-claims-across-two.md) | File the first ten claims across two marketplaces from the inbox | E3 | human |
 | [SEEN-007](docs/tickets/SEEN-007-go-live-on-google-cloud-after-the-go-no-go.md) | Go live on Google Cloud after the go/no-go decision | E0 | 5 pt |
+| [SEEN-124](docs/tickets/SEEN-124-decide-the-storefront-legal-model-with-the-tax.md) | Decide the storefront legal model with the tax adviser: commissionaire or buy-resell, and where VAT is due | E11 | human |
 | Sprint 3 | 9 - 20 Nov 2026 | Reconcile module, Stripe billing, statements, Shopify | gate G3 |
 | [SEEN-038](docs/tickets/SEEN-038-verify-shopify-payments-payout-scopes-and.md) | Verify Shopify Payments payout scopes and create the custom app | E1 | human |
 | [SEEN-039](docs/tickets/SEEN-039-create-stripe-customers-with-sepa-and-card-and.md) | Create Stripe customers with SEPA and card and handle webhooks | E6 | 5 pt |
@@ -139,6 +157,7 @@ call; it is not a command to run by hand.
 | [SEEN-045](docs/tickets/SEEN-045-add-module-switches-per-tenant-with-scheduling.md) | Add module switches per tenant with scheduling and billing hooks | E7 | 3 pt |
 | [SEEN-046](docs/tickets/SEEN-046-build-customer-facing-findings-and-claims-views.md) | Build customer-facing findings and claims views | E5 | 5 pt |
 | [SEEN-047](docs/tickets/SEEN-047-issue-the-first-invoice-and-send-the-signed.md) | Issue the first invoice and send the signed statement | E6 | human |
+| [SEEN-125](docs/tickets/SEEN-125-open-seen-s-own-seller-accounts-on-bol-and.md) | Open Seen's own seller accounts on Bol and Amazon EU and obtain the brand authorisation pack | E11 | human |
 | Sprint 4 | 23 Nov - 4 Dec 2026 | Comply v1, Kaufland connector, listing fixes by API | gate G4 |
 | [SEEN-048](docs/tickets/SEEN-048-verify-kaufland-settlement-and-ticket-endpoints.md) | Verify Kaufland settlement and ticket endpoints and obtain keys | E1 | human |
 | [SEEN-049](docs/tickets/SEEN-049-encode-listing-spec-rules-per-marketplace-in.md) | Encode listing spec rules per marketplace in core | E7 | 5 pt |
@@ -150,6 +169,8 @@ call; it is not a command to run by hand.
 | [SEEN-055](docs/tickets/SEEN-055-monitor-unauthorised-sellers-from-competing.md) | Monitor unauthorised sellers from competing offers | E7 | 3 pt |
 | [SEEN-056](docs/tickets/SEEN-056-show-comply-defects-and-fix-diffs-in-the-inbox.md) | Show Comply defects and fix diffs in the inbox | E5 | 3 pt |
 | [SEEN-057](docs/tickets/SEEN-057-verify-listing-fixes-on-three-marketplaces-and.md) | Verify listing fixes on three marketplaces and file Kaufland tickets | E7 | human |
+| [SEEN-126](docs/tickets/SEEN-126-register-the-storefront-entity-for-epr-gpsr.md) | Register the storefront entity for EPR, GPSR responsible-person data and product liability cover | E11 | human |
+| [SEEN-127](docs/tickets/SEEN-127-write-the-storefront-agreement-supply-terms-the.md) | Write the storefront agreement: supply terms, the statement, the payout schedule, returns and the fee | E11 | human |
 | Sprint 5 | 7 - 18 Dec 2026 | Serve v1, forwarded mailbox, trust ramp, Otto connector | gate G5 |
 | [SEEN-058](docs/tickets/SEEN-058-verify-ebay-messaging-deprecation-and-choose.md) | Verify eBay messaging deprecation and choose the message path | E1 | human |
 | [SEEN-059](docs/tickets/SEEN-059-verify-otto-rate-limits-and-obtain-otto-api-keys.md) | Verify Otto rate limits and obtain Otto API keys | E1 | human |
@@ -181,6 +202,14 @@ call; it is not a command to run by hand.
 | [SEEN-083](docs/tickets/SEEN-083-expire-amazon-pii-after-30-days-and-delete.md) | Expire Amazon PII after 30 days and delete tenants on request | E9 | 3 pt |
 | [SEEN-084](docs/tickets/SEEN-084-build-the-day-120-metrics-dashboard-and-csv.md) | Build the day-120 metrics dashboard and CSV export | E9 | 5 pt |
 | [SEEN-085](docs/tickets/SEEN-085-run-restore-drill-close-pen-test-findings-sign.md) | Run restore drill, close pen-test findings, sign metrics pack | E9 | human |
+| [SEEN-128](docs/tickets/SEEN-128-connection-ownership-and-storefront-mode-on-the.md) | Connection ownership and storefront mode on the trade record | E11 | 3 pt |
+| Sprint 8 | 1 - 12 Feb 2027 | Storefront: Seen as seller of record, one supplier live on Bol | gate G8 |
+| [SEEN-129](docs/tickets/SEEN-129-list-a-supplier-s-catalogue-under-seen-s.md) | List a supplier's catalogue under Seen's accounts with brand mapping and GPSR data | E11 | 5 pt |
+| [SEEN-130](docs/tickets/SEEN-130-dropship-flow-a-purchase-order-to-the-supplier.md) | Dropship flow: a purchase order to the supplier on every storefront order, shipment and tracking back | E11 | 5 pt |
+| [SEEN-131](docs/tickets/SEEN-131-consumer-invoices-with-vat-by-destination-and.md) | Consumer invoices with VAT by destination and the OSS return | E11 | 5 pt |
+| [SEEN-132](docs/tickets/SEEN-132-supplier-statements-and-payouts-net-proceeds.md) | Supplier statements and payouts: net proceeds minus marketplace fees and the storefront fee, credits passed through | E11 | 5 pt |
+| [SEEN-133](docs/tickets/SEEN-133-returns-withdrawals-and-guarantee-cases-handled.md) | Returns, withdrawals and guarantee cases handled as the seller of record | E11 | 3 pt |
+| [SEEN-134](docs/tickets/SEEN-134-storefront-pilot-one-supplier-live-on-bol-under.md) | Storefront pilot: one supplier live on Bol under Seen's account, first statement paid | E11 | human |
 
 ## graphify
 

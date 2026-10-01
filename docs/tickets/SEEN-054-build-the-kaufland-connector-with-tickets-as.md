@@ -10,7 +10,7 @@ estimate: 5
 executor: claude-code
 changes_agent_action: false
 marketplaces: [kaufland]
-depends_on: [SEEN-009, SEEN-014, SEEN-027, SEEN-048]
+depends_on: [SEEN-009, SEEN-014, SEEN-027, SEEN-048, SEEN-115]
 status: todo
 ---
 # SEEN-054: Build the Kaufland connector with tickets as the claims rail
@@ -42,6 +42,7 @@ Implement packages/connectors/kaufland: orders, returns, settlement detail per S
 - [SEEN-014](SEEN-014-run-ingest-workers-with-idempotent-upserts-raw.md): Run ingest workers with idempotent upserts, raw archive and cadences
 - [SEEN-027](SEEN-027-build-the-claims-rail-with-api-assisted-and.md): Build the claims rail with api, assisted and track modes
 - [SEEN-048](SEEN-048-verify-kaufland-settlement-and-ticket-endpoints.md): Verify Kaufland settlement and ticket endpoints and obtain keys
+- [SEEN-115](SEEN-115-generate-the-marketplace-clients-from-the.md): Generate the marketplace clients from the official OpenAPI specs and validate every fixture against them
 
 ## Blocks
 

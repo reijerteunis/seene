@@ -89,6 +89,7 @@ exist: with a credential present, `harness decide --answer` still asked the mode
 
 - [SEEN-097](SEEN-097-set-up-the-local-docker-development-environment.md): Set up the local Docker development environment
 - [SEEN-089](SEEN-089-enforce-tdd-and-ci-quality-gates-in-the-harness.md): Enforce the TDD gates in the harness
+- [SEEN-135](SEEN-135-branded-money-and-ids-one-schema-per-boundary.md): Branded money and ids, one schema per boundary: the compiler catches the wrong-unit and wrong-id findings
 - [SEEN-008](SEEN-008-create-trade-record-schema-v1-with-tenant-id.md): Create trade-record schema v1 with tenant_id and RLS on every table
 - [SEEN-009](SEEN-009-define-connector-interface-capability-matrix.md): Define connector interface, capability matrix and credential access
 

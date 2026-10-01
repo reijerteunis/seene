@@ -191,7 +191,7 @@ every one of them in a delivered ticket.
 
 ## Blocks
 
-- [SEEN-112](SEEN-112-run-a-ticket-from-clarify-to-merge-in-one-go.md): its delivery waits on this, because its own criteria 3 and 4 lost their cited support to the attempt boundary
+- [SEEN-118](SEEN-118-a-finding-needs-a-failing-test-taste-is-not-a.md): A finding needs a failing test, taste is not a finding, and the third round is the founder's
 
 ## Context
 

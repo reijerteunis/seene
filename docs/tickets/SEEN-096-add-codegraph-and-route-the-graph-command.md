@@ -54,6 +54,7 @@ clone has context before its first build.
 ## Blocks
 
 - [SEEN-099](SEEN-099-set-the-context-budget-and-measure-the-tools.md): Set the context budget and measure what the tools changed
+- [SEEN-121](SEEN-121-bake-off-the-typescript-lsp-plugin-against.md): Bake-off: the TypeScript LSP plugin against codegraph, keep one
 
 ## Context
 

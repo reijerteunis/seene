@@ -42,6 +42,7 @@ Add packages/core/fees with versioned fee schedules per marketplace and category
 
 ## Blocks
 
+- [SEEN-116](SEEN-116-property-based-and-mutation-tests-on-the-money.md): Property-based and mutation tests on the money core, as a gate
 - [SEEN-017](SEEN-017-compute-fee-expectations-per-order-line-from.md): Compute fee_expectations per order line from schedules and APIs
 
 ## Context

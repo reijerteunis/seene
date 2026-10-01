@@ -10,7 +10,7 @@ estimate: 5
 executor: claude-code
 changes_agent_action: false
 marketplaces: [amazon]
-depends_on: [SEEN-001, SEEN-009, SEEN-010]
+depends_on: [SEEN-001, SEEN-009, SEEN-010, SEEN-115]
 status: todo
 ---
 # SEEN-013: Build Amazon SP-API connector for orders, reports and Finances
@@ -49,6 +49,7 @@ The starting slice plan, one session each; the solution stage adopts or amends i
 - [SEEN-001](SEEN-001-register-amazon-sp-api-developer-and-file-ads.md): Register Amazon SP-API developer and file Ads API application
 - [SEEN-009](SEEN-009-define-connector-interface-capability-matrix.md): Define connector interface, capability matrix and credential access
 - [SEEN-010](SEEN-010-add-per-marketplace-rate-limiting-with-header.md): Add per-marketplace rate limiting with header-driven backoff
+- [SEEN-115](SEEN-115-generate-the-marketplace-clients-from-the.md): Generate the marketplace clients from the official OpenAPI specs and validate every fixture against them
 
 ## Blocks
 

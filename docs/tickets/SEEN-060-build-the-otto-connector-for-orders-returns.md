@@ -10,7 +10,7 @@ estimate: 5
 executor: claude-code
 changes_agent_action: false
 marketplaces: [otto]
-depends_on: [SEEN-009, SEEN-014, SEEN-027, SEEN-059]
+depends_on: [SEEN-009, SEEN-014, SEEN-027, SEEN-059, SEEN-115]
 status: todo
 ---
 # SEEN-060: Build the Otto connector for orders, returns, receipts and messages
@@ -42,6 +42,7 @@ Implement packages/connectors/otto: orders, returns, receipts into settlements a
 - [SEEN-014](SEEN-014-run-ingest-workers-with-idempotent-upserts-raw.md): Run ingest workers with idempotent upserts, raw archive and cadences
 - [SEEN-027](SEEN-027-build-the-claims-rail-with-api-assisted-and.md): Build the claims rail with api, assisted and track modes
 - [SEEN-059](SEEN-059-verify-otto-rate-limits-and-obtain-otto-api-keys.md): Verify Otto rate limits and obtain Otto API keys
+- [SEEN-115](SEEN-115-generate-the-marketplace-clients-from-the.md): Generate the marketplace clients from the official OpenAPI specs and validate every fixture against them
 
 ## Blocks
 

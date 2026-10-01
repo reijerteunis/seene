@@ -61,6 +61,8 @@ Nothing in this ticket refuses on the budget. The threshold's own comment says o
 ## Blocks
 
 - [SEEN-112](SEEN-112-run-a-ticket-from-clarify-to-merge-in-one-go.md): Run a ticket from clarify to merge in one go, asking only what it cannot decide
+- [SEEN-117](SEEN-117-the-spec-session-writes-the-red-the-implementer.md): The spec session writes the RED; the implementer cannot touch it
+- [SEEN-119](SEEN-119-independent-slices-run-in-parallel-worktrees.md): Independent slices run in parallel worktrees
 
 ## Context
 

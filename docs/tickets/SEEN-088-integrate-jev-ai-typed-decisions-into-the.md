@@ -80,6 +80,7 @@ default user agent. Record 8 is a meaningless check, disowned in the note at rec
 - [SEEN-090](SEEN-090-add-harness-security-controls-secrets.md): Add harness security controls: secrets, permissions, injection, supply chain
 - [SEEN-092](SEEN-092-sync-the-harness-skill-to-claude-code-and-codex.md): Sync the harness skill to Claude Code and Codex and retire the Seene leftovers
 - [SEEN-101](SEEN-101-let-a-journal-survive-its-ticket-being-renamed.md): Let a journal survive its ticket being renamed
+- [SEEN-137](SEEN-137-one-worked-example-per-acceptance-criterion.md): One worked example per acceptance criterion before the solution stage, so the RED is a transcription
 
 ## Context
 

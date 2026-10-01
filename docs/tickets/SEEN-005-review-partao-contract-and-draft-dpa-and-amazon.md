@@ -42,7 +42,7 @@ Read the Partao contract for IP and non-compete clauses that could touch CTL and
 
 ## Blocks
 
-- none
+- [SEEN-124](SEEN-124-decide-the-storefront-legal-model-with-the-tax.md): Decide the storefront legal model with the tax adviser: commissionaire or buy-resell, and where VAT is due
 
 ## Context
 

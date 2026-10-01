@@ -51,6 +51,7 @@ The starting slice plan, one session each; the solution stage adopts or amends i
 
 ## Blocks
 
+- [SEEN-122](SEEN-122-golden-path-end-to-end-tests-on-the-docker.md): Golden-path end-to-end tests on the docker stack with recorded marketplace fixtures
 - [SEEN-037](SEEN-037-file-the-first-ten-claims-across-two.md): File the first ten claims across two marketplaces from the inbox
 - [SEEN-046](SEEN-046-build-customer-facing-findings-and-claims-views.md): Build customer-facing findings and claims views
 - [SEEN-056](SEEN-056-show-comply-defects-and-fix-diffs-in-the-inbox.md): Show Comply defects and fix diffs in the inbox
