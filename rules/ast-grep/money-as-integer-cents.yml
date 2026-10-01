@@ -27,3 +27,26 @@ rule:
             field: value
             kind: number
             regex: '\.'
+    # A fee schedule is written as an object literal and a tariff as a class
+    # field, which is how SEEN-016 and SEEN-071 will write them, so the same
+    # literal in those two positions is the same defect. SEEN-114 F24: the rule
+    # read only a variable declarator while its registry entry said it read a
+    # non-integer literal bound to a name that says it is money.
+    - all:
+        - kind: pair
+        - has:
+            field: key
+            regex: '(?i)cents|amount|price|fee'
+        - has:
+            field: value
+            kind: number
+            regex: '\.'
+    - all:
+        - kind: public_field_definition
+        - has:
+            field: name
+            regex: '(?i)cents|amount|price|fee'
+        - has:
+            field: value
+            kind: number
+            regex: '\.'

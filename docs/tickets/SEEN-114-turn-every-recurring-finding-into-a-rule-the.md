@@ -184,11 +184,35 @@ decision rather than an omission to patch: either the hook exists and every comm
 `doctor` grows the cheaper half of it and warns when the graph's own commit is behind HEAD, or CLAUDE.md
 stops describing a hook that is not there. Review finding F7, whose rule candidate is that warning.
 
+**A rule can refuse more than its own description claims, and two do.**
+`ast-grep/no-credential-literal-in-tests` matches the substring `eyJ` anywhere in a string or template
+in a test file, and every base64 encoding of a JSON object begins with those three characters, so a test
+asserting a recorded webhook payload is refused with advice about reading a credential from the
+environment that does not apply to it, and the author's way out is a suppression comment neither the
+rule nor the registry mentions. Narrowing the pattern to a whole JWT, `eyJ` then base64 then a dot,
+keeps the SEEN-097 F2 case the rule cites and needs the fixture narrowed with it. Review finding F26.
+
+**`harness coverage` takes no `--model`, so a coverage check declares neither a model nor an agent.**
+All seventeen in this journal carry nulls where every other check carries `opus` and most carry
+`seen-implementer`, so the tdd gate's rule that a check recorded under a model the route did not choose
+is refused cannot bind the one check a coverage figure is read from. The command is untouched by this
+diff and the gap predates it, so it belongs to a harness ticket. Review finding F27.
+
+**`fixture_results` goes quiet on a registry entry whose tool has no runner.** A `gitleaks` entry with a
+citation and a fixture directory would pass `rules --check`, because that tool has no configuration to
+cross-check, and would then appear in no fixture result and in no unproven list, leaving the summary
+reading "23 of 23 rules refused their own fixture" over a registry of twenty-four. The reason gitleaks
+has no entry is written in `harness/rules.py` where the next person looks, which is the guard; what the
+code does with an entry that arrives anyway is the one shape the rest of that module refuses. Review
+finding F28.
+
 **The two prose ground rules read only TypeScript, and their citations say anywhere.** `no-em-or-en-dash`
 and `no-euro-sign` are scoped to `apps/**` and `packages/**` and ast-grep parses the Tsx grammar, so a
 dash or a euro sign in a document, a ticket, a `.py` module, a migration or a shell script passes the
-hook, the tree run and CI. There is one in the tree today, in `.codegraph/.gitignore`, which is tracked
-and which the full set passes. The registry already makes the argument for the other direction, in the
+hook, the tree run and CI. Three tracked files carry one today and the full set passes all three:
+`.codegraph/.gitignore`, written by CodeGraph, and `supabase/config.toml` twice, written by the Supabase
+CLI. Both are third-party output, which is the same class as the journal records the next clause is
+about, so the whole-tree version needs its exclusions sized from the census and not from one example. The registry already makes the argument for the other direction, in the
 entry for `harness/no-live-marketplace-host`: a check that has to read every tracked file in any
 language is the harness's own and not an ast-grep rule, and the same reasoning applies to these two. A
 whole-tree version needs the exclusions `marketplace_hosts` already carries, because the journals quote

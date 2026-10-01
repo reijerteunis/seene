@@ -555,6 +555,17 @@ class WhereTheSetRunsTest(unittest.TestCase):
         for step in ('rules --check', 'rules --fixtures', './scripts/rules.sh tree'):
             self.assertIn(step, workflow)
 
+    def test_ci_executes_the_staged_run_and_does_not_only_read_it(self):
+        """SEEN-114 F23: the one test that runs the script has to run somewhere.
+
+        `StagedPathWithASpaceTest` needs the workspace, so it skips wherever
+        node_modules is absent, and the job that runs the harness suite does not
+        install it. Skipped in every job, it guarded F21's fix with two substring
+        assertions over the script's text, and a regression that kept both
+        substrings would have gone through. It is named in the job that installs.
+        """
+        self.assertIn('StagedPathWithASpaceTest', self.workflow())
+
     def test_every_workspace_package_declares_an_exports_map(self):
         """So nothing reaches into another package's internals.
 
@@ -642,6 +653,82 @@ class StagedPathWithASpaceTest(unittest.TestCase):
         self.assertEqual(result.returncode, 1, output)
         self.assertIn('violation with space.ts', output)
         self.assertNotIn('Checked 0 files', output)
+
+
+class WhatTheRulesActuallyRefuseTest(unittest.TestCase):
+    """Two rules whose registry entries promised more than their patterns read.
+
+    SEEN-114 F22 and F24, both found by the fifth review by running the rules
+    against shapes no fixture carried rather than by reading them. A fixture
+    proves a rule fires at all; these prove it fires where its own entry says it
+    does. Both write a probe into `packages/core/src`, because that is the scope
+    both rules are written for and the tools read the real configuration from the
+    repository root, and both remove it again.
+    """
+
+    probe = PROJECT / 'packages' / 'core' / 'src' / 'probe-what-rules-refuse.ts'
+
+    def tearDown(self):
+        self.probe.unlink(missing_ok=True)
+
+    def installed(self, tool):
+        if not (PROJECT / 'node_modules' / '.bin' / tool).exists():
+            self.skipTest(f'{tool} is not installed here')
+
+    def test_every_library_deny_list_anchors_the_bare_specifier(self):
+        """F22, as the comparison that would have caught it.
+
+        A specifier resolves to `node_modules/axios/...` when the package is
+        installed and to the bare `axios` when it is not, so a pattern anchored
+        only on `node_modules/` is silent on a dependency nobody has installed
+        yet, which is every dependency at the moment somebody writes the import.
+        Three of the four library deny-lists wrote `(^|node_modules/)` and
+        `core-no-io`, the one guarding the money core, wrote `node_modules/`.
+        """
+        rules_file = json.loads((PROJECT / '.dependency-cruiser.json').read_text())
+        by_name = {rule['name']: rule for rule in rules_file['forbidden'] if rule.get('name')}
+        for name in ('core-no-io', 'network-only-through-generated-clients',
+                     'database-through-repository', 'no-cloud-sdk-outside-providers'):
+            path = by_name[name]['to']['path']
+            self.assertIn('(^|node_modules/)', path,
+                          f'{name} matches an installed package and not a bare specifier')
+
+    def test_the_money_core_may_not_import_an_uninstalled_io_library(self):
+        """F22 again, run rather than read."""
+        self.installed('depcruise')
+        self.probe.write_text("import { Queue } from 'bullmq';\nexport const QUEUE = Queue;\n")
+        result = subprocess.run(
+            [str(PROJECT / 'node_modules' / '.bin' / 'depcruise'), '--config',
+             '.dependency-cruiser.json', '--output-type', 'err', '--no-progress',
+             str(self.probe.relative_to(PROJECT))],
+            cwd=PROJECT, capture_output=True, text=True, timeout=120)
+        output = result.stdout + result.stderr
+        self.assertIn('core-no-io', output)
+        self.assertNotEqual(result.returncode, 0, output)
+
+    def test_money_as_integer_cents_reads_a_schedule_and_a_tariff(self):
+        """F24: the two positions a fee schedule is actually written in.
+
+        SEEN-016 encodes fee schedules per marketplace and SEEN-071 models margin
+        from cost layers, and a schedule is an object literal and a tariff a class
+        field. The rule read only a variable declarator, so both passed while its
+        registry entry said it read a non-integer literal bound to a name that
+        says it is money.
+        """
+        self.installed('ast-grep')
+        self.probe.write_text('const priceEur = 19.99;\n'
+                              'const schedule = { feeCents: 1.5, price: 19.99 };\n'
+                              'class Tariff { private price = 19.99; }\n')
+        result = subprocess.run(
+            [str(PROJECT / 'node_modules' / '.bin' / 'ast-grep'), 'scan',
+             str(self.probe.relative_to(PROJECT)), '--json=compact'],
+            cwd=PROJECT, capture_output=True, text=True, timeout=120)
+        found = json.loads(result.stdout or '[]')
+        money = [row for row in found if row.get('ruleId') == 'money-as-integer-cents']
+        # One for the declarator, two for the object's properties, one for the field.
+        self.assertEqual(len(money), 4, [row.get('text') for row in money])
+        self.assertTrue(any('feeCents' in row['text'] for row in money), money)
+        self.assertTrue(any('private price' in row['text'] for row in money), money)
 
 
 if __name__ == '__main__':

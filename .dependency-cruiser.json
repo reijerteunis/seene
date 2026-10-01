@@ -6,7 +6,7 @@
       "comment": "Why: rules/registry.toml, dependency-cruiser/core-no-io.",
       "from": { "path": "^packages/core/src/" },
       "to": {
-        "path": "^(node:)?(fs|net|http|https|child_process|dgram|tls|worker_threads)($|/)|node_modules/(pg|bullmq|ioredis|undici|axios|got|node-fetch)/"
+        "path": "^(node:)?(fs|net|http|https|child_process|dgram|tls|worker_threads)($|/)|(^|node_modules/)(pg|bullmq|ioredis|undici|axios|got|node-fetch)($|/)"
       }
     },
     {

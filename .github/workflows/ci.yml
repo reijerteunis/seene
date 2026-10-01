@@ -145,6 +145,15 @@ jobs:
       - name: Every rule refuses its own fixture
         run: python3 harness/run.py rules --fixtures
 
+      # The one test that runs scripts/rules.sh rather than reading it, so the
+      # staged mode is executed in CI and not only asserted about. It needs the
+      # workspace, which is why it is here and not in the harness job, and it is
+      # named rather than folded into a wider run because it takes a second and
+      # the suite it belongs to takes six minutes (SEEN-114 F23: a test that
+      # skips in every job is a test CI does not have).
+      - name: The staged run reads a path with a space
+        run: python3 -m unittest harness.tests.test_rules.StagedPathWithASpaceTest
+
       # The per-package lint, which is Biome through turbo's cache and is what a
       # developer runs.
       - name: Lint
