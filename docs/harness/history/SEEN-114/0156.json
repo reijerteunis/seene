@@ -1,0 +1,32 @@
+{
+  "sequence": 156,
+  "ticket": "SEEN-114",
+  "timestamp": "2026-10-01T15:30:47.460533+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 8,
+  "actor": "claude:implementer",
+  "session": "ad77b7a13315",
+  "head": "b8db04a23a01dda18a40629ec1b3fc55603f755e",
+  "prev_hash": "28b4189047df1879b2bd64baf21c20cd89c117b6b4f2e3ce933ae499c174b4d6",
+  "data": {
+    "command": [
+      "env",
+      "GIT_INDEX_FILE=.harness-drafts/SEEN-114-staged-index",
+      "./scripts/rules.sh",
+      "staged"
+    ],
+    "phase": "green",
+    "exit_code": 1,
+    "model": "claude-opus-5",
+    "model_declared": "opus",
+    "agent_declared": null,
+    "duration_ms": 588,
+    "output": "==> Biome on the staged files\n/Users/ruudvanengelenhoven/Development/seene/eslint.config.mjs internalError/io  INTERNAL  ━━━━━━━━━━\n\n  × No such file or directory (os error 2)\n  \n  ! This diagnostic was derived from an internal Biome error. Potential bug, please report it if necessary.\n  \n\n/Users/ruudvanengelenhoven/Development/seene/packages/providers/src/boundary.ts internalError/io  INTERNAL  ━━━━━━━━━━\n\n  × No such file or directory (os error 2)\n  \n  ! This diagnostic was derived from an internal Biome error. Potential bug, please report it if necessary.\n  \n\n/Users/ruudvanengelenhoven/Development/seene/packages/providers/src/no-cloud-sdk.test.ts internalError/io  INTERNAL  ━━━━━━━━━━\n\n  × No such file or directory (os error 2)\n  \n  ! This diagnostic was derived from an internal Biome error. Potential bug, please report it if necessary.\n  \n\nChecked 34 files in 210ms. No fixes applied.\n    biome: ok in 1s\n==> ast-grep on the staged files\nERROR: eslint.config.mjs: No such file or directory (os error 2)\nERROR: packages/providers/src/boundary.ts: No such file or directory (os error 2)\nERROR: packages/providers/src/no-cloud-sdk.test.ts: No such file or directory (os error 2)\n    ast-grep: ok in 0s\n==> dependency-cruiser on the staged files\n\n  ERROR: Can't open 'eslint.config.mjs' for reading. Does it exist?\n\n    dependency-cruiser: FAILED in 0s\nThe rule set refused this change. Every rule says what it stands on in rules/registry.toml.\n",
+    "output_sha256": "cbf663b3c35dcf1e58c435b0f0e8dd9f4fa498e2c5a7020f8574b85bd2ddd95e",
+    "output_truncated": false,
+    "before": "64221074d684e553ffd1fbf73078c0084cb18ad0719f9f0a45d66aa5ace1522b",
+    "after": "64221074d684e553ffd1fbf73078c0084cb18ad0719f9f0a45d66aa5ace1522b"
+  }
+}

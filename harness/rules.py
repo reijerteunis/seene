@@ -583,6 +583,30 @@ def _tail(output, lines=6):
     return ' / '.join(kept) if kept else 'no output'
 
 
+def summary(answer):
+    """The one line a reader of a long report gets, grouped by tool.
+
+    A fixture run over twenty-two rules prints ten kilobytes of JSON, and
+    everything that reads the tail of a command rather than the whole of it was
+    getting a fragment of the last two entries: a terminal, a log, and the excerpt
+    a triage puts in front of Jev, which is capped at 800 characters and is how
+    SEEN-114's own criterion 2 came to read as unevidenced four times over.
+    Written last so it is the last thing in the JSON too, because the tail is
+    where it is wanted.
+    """
+    by_tool = {}
+    for entry in answer['rules']:
+        tool, _, name = str(entry['id']).partition('/')
+        by_tool.setdefault(tool, []).append(name)
+    grouped = '; '.join(f'{tool}: {", ".join(names)}' for tool, names in by_tool.items())
+    if 'fixtures' not in answer:
+        return (f'{len(answer["rules"])} rules in the registry, each citing a finding or a '
+                f'section of the architecture. {grouped}')
+    fired = [result['id'] for result in answer['fixtures'] if result['fired']]
+    return (f'{len(fired)} of {len(answer["fixtures"])} rules refused their own fixture and named '
+            f'themselves doing it. {grouped}')
+
+
 def report(root, fixtures=False):
     """What `harness rules` answers: the registry, its problems, and the proofs."""
     found = load(root)
@@ -595,4 +619,5 @@ def report(root, fixtures=False):
         answer['fixtures'] = results
         answer['unproven'] = [result['id'] for result in results if not result['fired']]
     answer['ok'] = not answer['problems'] and not answer.get('unproven')
+    answer['summary'] = summary(answer)
     return answer

@@ -522,5 +522,35 @@ class WhereTheSetRunsTest(unittest.TestCase):
             self.assertIn('exports', manifest, f'{path} declares no exports map')
 
 
+class SummaryTest(unittest.TestCase):
+    """The last line of a long report, which is the line most readers get.
+
+    A fixture run prints ten kilobytes of JSON and a terminal, a log and the
+    excerpt a triage hands Jev all read the end of it. So the end says what the
+    run proved: how many rules refused their own fixture, and which rules those
+    were, by tool.
+    """
+
+    def test_the_summary_names_every_rule_grouped_by_its_tool(self):
+        answer = rules.report(PROJECT)
+        line = answer['summary']
+        self.assertIn('22 rules in the registry', line)
+        for tool in ('tsconfig', 'biome', 'ast-grep', 'dependency-cruiser', 'knip'):
+            self.assertIn(f'{tool}: ', line)
+        for name in ('core-no-io', 'database-through-repository',
+                     'marketplace-write-through-policy-gate'):
+            self.assertIn(name, line)
+
+    def test_a_fixture_run_counts_the_rules_that_fired(self):
+        """Counted from the results rather than from the registry.
+
+        An unproven rule must not be summarised as a rule that fired, which is
+        the one way this line could lie.
+        """
+        answer = dict(rules=[dict(id='biome/noFloatingPromises')],
+                      fixtures=[dict(id='biome/noFloatingPromises', fired=False, detail='no')])
+        self.assertIn('0 of 1 rules refused', rules.summary(answer))
+
+
 if __name__ == '__main__':
     unittest.main()
