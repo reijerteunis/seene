@@ -12,7 +12,7 @@ changes_agent_action: false
 marketplaces: []
 depends_on: []
 fixes: SEEN-104
-status: todo
+status: doing
 priority: P0
 ---
 # SEEN-140: One answer to whether a slice's plan covers a path
@@ -25,7 +25,7 @@ priority: P0
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | todo |
+| Status | doing |
 | Priority | P0 (it blocks SEEN-114 at the review stage) |
 
 ## Description
