@@ -1,0 +1,43 @@
+{
+  "sequence": 230,
+  "ticket": "SEEN-114",
+  "timestamp": "2026-10-01T18:03:51.337994+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 10,
+  "actor": "claude:reviewer",
+  "session": "ad77b7a13315",
+  "head": "13725509b4d57c9ec63f292283607eb07b4168c9",
+  "prev_hash": "f07a4a7a8fb7208f3d5966e2942794e642b848d2908de91228b358f68fff1e39",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 11,
+    "reason": "The second review, a subagent on sonnet at the spot depth the triage settled, returns the ticket on two medium findings, both the same defect as the first review's F2 and both verified against the records they name. F13: the accepted tdd record narrates two of its six rounds with test-pool totals that match neither the check they cite nor any check in this journal, 'a hundred and two' where red 213 ran 58 and '716 tests' where red 217 ran 723. The failing counts and the failing test names are right in both, so the reds did fail for the reasons stated; the denominators are wrong, and a reader uses them to tell one slice's breakage from silent extra breakage. F14: the Outcome's hook row cites check 223 for 58 staged paths, and that number is in no committed record, only in a gitignored index file that will not survive the checkout. A third instance of F13 was found while verifying the two, and is the reviewer's finding rather than a new one: the findings round's own narration says 158 tests where red 221 ran 174. The twelve findings of the first review are all honestly accounted for, which the reviewer checked against the checks themselves rather than against their descriptions.",
+    "findings": [
+      {
+        "id": "F13",
+        "severity": "medium",
+        "file": "docs/harness/history/SEEN-114/0228.json:29",
+        "claim": "The accepted tdd record (sequence 228, the only tdd record the review gate can cite) narrates two of its six RED pairs with test-pool totals that match no check in the journal at all, including the check each narration cites.",
+        "failure_scenario": "Line 29: slice 2's failure_reason says 'python3 -m unittest harness.tests.test_rules failed three of its hundred and two', citing red 213/green 214. Both 213 and 214 report 'Ran 58 tests' (confirmed by re-running `python3 -m unittest harness.tests.test_rules` now: still 58). No record in the entire SEEN-114 journal (grepped for 'Ran 102 tests') ever shows 102. Line 43: slice 4's failure_reason says '29 errors and 2 failures in 716 tests', citing red 217, whose own output is 'Ran 723 tests ... FAILED (failures=2, errors=29)'; no record anywhere shows 716 either. The specific failing tests and their counts (3; 29+2) do match the cited checks exactly, so the RED genuinely failed for the stated reasons, but a reader using the record's own denominator as a sanity check against silent additional breakage gets the wrong baseline in both cases, in an append-only record nobody can correct after the fact.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "harness/tdd-record-count-matches-check"
+      },
+      {
+        "id": "F14",
+        "severity": "medium",
+        "file": "docs/tickets/SEEN-114-turn-every-recurring-finding-into-a-rule-the.md:73",
+        "claim": "The Outcome's hook-performance row cites check 223 for '58 staged paths', but check 223's own recorded output never states a path count, so the figure is not re-measurable from the record the ticket itself says it was read from.",
+        "failure_scenario": "Check 223's output is 'Checked 34 files in 316ms' (Biome) and '46 modules, 67 dependencies cruised' (dependency-cruiser) only; no line gives 58. I reproduced the 58 by running `GIT_INDEX_FILE=.harness-drafts/SEEN-114-staged-index git diff --cached --name-only --diff-filter=ACMR | wc -l`, which is the only way to get that number, and `.harness-drafts/` is listed in `.gitignore` (confirmed with `git check-ignore -v`), so that index file is scratch that will not survive past this checkout. A reader with only the committed journal, after the staged-index file is gone, can verify 34 and 46 from check 223 but cannot verify 58 from anything committed, violating the Outcome's own stated bar two sentences above the table: 'Every figure in this Outcome names the check it was read from, because a figure without one is a figure nobody can re-measure.' This specific sub-figure was not among the three the first review's F2 corrected, so it slipped through a full-depth review on the same row.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "harness/outcome-figure-names-its-record"
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}
