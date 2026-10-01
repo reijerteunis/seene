@@ -33,7 +33,7 @@ Sprint 0 delivered 63 review findings on 20 tickets (2 blocking, 18 high, 27 med
 
 ## Acceptance criteria
 
-- [ ] tsconfig.base.json carries strict, noUncheckedIndexedAccess, exactOptionalPropertyTypes and noImplicitOverride, and every TypeScript project in the tree typechecks. **Amended on 1 October 2026:** "the tree" is read as the seven projects `pnpm turbo run typecheck` compiles, because `packages/core/tsconfig.json` includes only `src/**/*` and so the eleven modules of `packages/core/db/`, which are SEEN-008's trade-record schema and its tests, are in no project at all and were already outside the typecheck before this ticket. Compiling them needs a second project with an ESM module setting, because `db/repository.ts` reads `import.meta.url` and the base configuration is commonjs, and two of them carry genuine errors under the new flags. That is a ticket of its own, named in the Outcome.
+- [ ] tsconfig.base.json carries strict, noUncheckedIndexedAccess, exactOptionalPropertyTypes and noImplicitOverride, and every TypeScript project in the tree typechecks. **Amended on 1 October 2026:** "the tree" is read as the seven projects `pnpm turbo run typecheck` compiles, because `packages/core/tsconfig.json` includes only `src/**/*` and so the eleven modules of `packages/core/db/`, which are SEEN-008's trade-record schema and its tests, are in no project at all and were already outside the typecheck before this ticket. Compiling them needs a second project with an ESM module setting, because `db/repository.ts` reads `import.meta.url` and the base configuration is commonjs, and two of them carry genuine errors under the new flags. That work is not this ticket's and has no ticket of its own yet; the Outcome says what one would have to carry.
 - [ ] Biome, ast-grep and dependency-cruiser run on staged files in the pre-commit hook in under ten seconds, and in CI on the tree, with the ground rules above each proven by a fixture that fails (among them: node:fs imported inside packages/core, a marketplace write outside the policy gate, a query outside the repository layer)
 - [ ] Every review finding at medium or above carries rule_candidate, and the review gate refuses a record without it
 - [ ] harness report --week lists findings a rule could have caught, the rules added, and any candidate that recurred without a rule
@@ -60,16 +60,18 @@ Sprint 0 delivered 63 review findings on 20 tickets (2 blocking, 18 high, 27 med
 Delivered on 1 October 2026 in four slices: the compiler and the formatter with the registry, the
 ground rules with their fixtures and the hook, `rule_candidate` on the review gate, and the loop back
 through the weekly report and `doctor`. Twenty-two rules, each with a citation a reader can open and a
-fixture the rule itself refuses. 1,521 harness tests pass, coverage on `packages/core` is 100.0 with a
-delta of 0.0, `doctor` reports no problems and no warnings.
+fixture the rule itself refuses. 1,548 harness tests pass (check 168), coverage on `packages/core` is
+100.0 with a delta of 0.0 (check 169), `doctor` reports no problems and no warnings. Every figure in
+this Outcome names the check it was read from, because a figure without one is a figure nobody can
+re-measure.
 
 ### What runs, and how fast
 
 | Where | What runs | Measured |
 |---|---|---|
-| pre-commit, on the staged paths | gitleaks, then Biome, ast-grep and dependency-cruiser | 0.66s over 51 staged paths, against a ten-second budget |
-| CI, harness job | `harness rules --check` | reads files, needs no workspace |
-| CI, monorepo job | `harness rules --fixtures`, then `turbo run lint`, then `scripts/rules.sh tree` | 1.45s for the whole set over the tree |
+| pre-commit, on the staged paths | gitleaks, then Biome, ast-grep and dependency-cruiser | 937ms over 55 staged paths, 34 files to Biome and 46 modules to dependency-cruiser, against a ten-second budget (check 157) |
+| CI, harness job | `harness rules --check` | 22 entries read in both directions in 75ms; reads files, needs no workspace (check 138) |
+| CI, monorepo job | `harness rules --fixtures`, then `turbo run lint`, then `scripts/rules.sh tree` | every rule refuses its own fixture in 3.2s (check 159), and 1.324s for the whole set over the tree (check 135) |
 
 `scripts/rules.sh` is the one definition of what running the set means, called by the hook and by CI,
 because SEEN-097 recorded what happens when the same environment has two definitions. knip is in CI
@@ -149,7 +151,12 @@ Stop hook and a problem there would block every unrelated ticket until somebody 
 never compiled by `pnpm turbo run typecheck`. Criterion 1 is amended above with the reason. Compiling
 them needs a second project with an ESM module setting, because `db/repository.ts` reads
 `import.meta.url` while the base configuration is commonjs, and `db/marketplaces.ts` carries two
-genuine `exactOptionalPropertyTypes` and `noUncheckedIndexedAccess` errors. Its own ticket.
+genuine `exactOptionalPropertyTypes` and `noUncheckedIndexedAccess` errors. **No ticket carries this
+yet**, and this paragraph says so rather than pointing at an id a reader would not find. One would have
+to add a second tsconfig project for `packages/core/db` with an ESM `module` setting, put the eleven
+modules in it, fix the two errors in `db/marketplaces.ts`, and add it to what `pnpm turbo run
+typecheck` builds. Until it exists, nothing compiles that directory, which is why criterion 1 above is
+read as the seven projects that command builds today.
 
 **`harness/guard.py` compares a path to the slice's file list exactly**, where `harness/gates.py`
 answers the same question with `_covers`, which reads a directory entry. So a slice naming
@@ -180,9 +187,13 @@ about a commit a reader would not find.
 
 ### What it cost
 
-Four slices against a three-point estimate, planned at seven points and delivered in four sessions, one
-orchestrating and three implementers. Two returns to solution against a target of 0.5 per ticket, and
-both were the same mistake in a different place: a solution record that named the files a change is
-written in and not the files the change makes fail. First the formatter rewriting twenty-six files,
-then a required field invalidating nine fixtures. The cheap version of that question is "what does this
-make red", asked once at solution, and neither return would have been needed.
+Four slices against a three-point estimate, planned at seven points. What this ticket's rework came to
+is not written here and is not this section's to write: `harness report` reads it from the journal,
+which cannot be wrong about its own records, and an Outcome that counted them would be a second answer
+going stale from the moment it was typed. ADR-0004 is the decision, and this paragraph is what it asks
+for.
+
+The mistake worth carrying forward is one a plan can avoid: a solution record that names the files a
+change is written in, and not the files the change makes fail. The formatter rewriting twenty-six files
+was one, a required field invalidating nine fixtures the other, and each sent the plan back to be
+amended. The cheap version of that question is "what does this make red", asked once at solution.
