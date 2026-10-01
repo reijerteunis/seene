@@ -19,7 +19,7 @@ already refuses that absence.
 from pathlib import Path
 
 from . import handoff, journal
-from .paths import DRAFTS
+from .paths import DRAFTS, covers
 
 # packages/ and apps/ are the code the clarify and solution stages must not
 # touch yet; harness/ joins them for the branch rule, because a harness file
@@ -127,8 +127,11 @@ def decide(root, records, branch, path, rules):
             return _allow('no-slice-plan',
                            f'No accepted slice plan yet for {match.group("ticket")}; nothing to '
                            f'guard {relative} against')
-        # Rule 4: outside the slice this session was handed.
-        if relative not in entry['files']:
+        # Rule 4: outside the slice this session was handed. `covers` is the one
+        # reader of that question, so a plan naming a directory covers what is
+        # under it here exactly as it does for the route verdict and the triage;
+        # before SEEN-140 this comparison was its own, and exact.
+        if not covers(relative, entry['files']):
             files = ', '.join(entry['files']) or 'none named'
             return _refuse('outside-slice',
                             f'{relative} is not one of the files slice {slice_["position"]} of '

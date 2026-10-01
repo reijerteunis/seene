@@ -36,6 +36,15 @@ MONEY_SLICE = dict(name='Fee expectations', points=1,
                    files=['packages/core/src/detectors.ts'],
                    red='No fee expectation is computed for an order line')
 
+# A slice that names a directory, which is what a change over every file in a
+# workspace honestly describes: SEEN-114's formatter adoption named `apps` and
+# `packages` because adopting a formatter rewrites the twenty-six files under
+# them. The route verdict has read such an entry as covering what is under it
+# since SEEN-104; SEEN-140 is this guard catching up.
+PACKAGES_SLICE = dict(name='A formatter over the packages', points=1,
+                      files=['packages', 'harness/rules.py'],
+                      red='No package is formatted')
+
 # Distinguishes "let decide() work out the branch" from "judge this branch",
 # including the detached-HEAD case, which is itself None.
 _DEFAULT = object()
@@ -138,6 +147,31 @@ class GuardCommandTest(CommandTest):
         result = run_cli(self.root, 'packages/core/src/detectors.ts')
 
         self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_a_file_inside_a_directory_the_slice_names_is_allowed_at_tdd(self):
+        """SEEN-140's RED for this reader, which answered no to a question two said yes to.
+
+        `calibration` has read a directory entry as covering what is under it
+        since SEEN-104, and the route verdict charges a finding to a slice by
+        that reading, so a plan naming `packages` covered
+        `packages/core/db/tables.ts` there while this guard refused it. The
+        second half of the test is what must hold while the first flips: a path
+        under no entry at all is still refused, with the plan's own entries
+        named, because a name a session can read is a name it can go and look up
+        in the solution record.
+        """
+        self.start()
+        self.submit('clarify', clarify_evidence())
+        self.submit('solution', solution_evidence(slices=[PACKAGES_SLICE]))
+
+        inside = run_cli(self.root, 'packages/core/db/tables.ts')
+        outside = run_cli(self.root, 'apps/web/src/status.tsx')
+
+        self.assertEqual(inside.returncode, 0, inside.stderr)
+        self.assertEqual(outside.returncode, 2)
+        self.assertIn('apps/web/src/status.tsx', outside.stderr)
+        self.assertIn('packages', outside.stderr)
+        self.assertIn('harness/rules.py', outside.stderr)
 
     def test_no_accepted_slice_plan_allows_the_edit_at_tdd(self):
         """A non-code ticket reaches tdd with no slices to plan by at all."""

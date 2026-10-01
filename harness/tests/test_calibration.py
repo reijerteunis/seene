@@ -6,9 +6,10 @@ written rather than that a number came out favourable.
 """
 
 import json
+import re
 import unittest
 
-from harness import calibration, gates, journal as journal_module, report, thresholds
+from harness import calibration, gates, journal as journal_module, paths, report, thresholds
 from harness.errors import HarnessError
 from harness.tests.helpers import PROJECT, ProjectTest
 from harness.tests.test_delivery import DeliveryWalk
@@ -645,6 +646,74 @@ class SecondReviewTest(ProjectTest):
                           returned_findings=[finding('F1', 'blocking', 'harness/skipped.py:2')],
                           findings=[finding('F1', 'high', 'harness/other.py:9')])
         self.assertEqual(len(calibration.latest_findings(records)), 2)
+
+
+class OneReaderOfTheQuestionTest(unittest.TestCase):
+    """SEEN-140: `covers` is `_covers` moved, and these are the answers it moved with.
+
+    Every caller of the comparison was inside this module, so calibration's own
+    tests would pass against a subtly different function living somewhere else.
+    What is pinned here is the answers themselves, dot directories among them,
+    which is F1 of the second review above and the one case a rewrite would
+    quietly lose.
+    """
+
+    def test_an_entry_equal_to_the_path_covers_it(self):
+        self.assertTrue(paths.covers('harness/b.py', ['harness/b.py']))
+
+    def test_an_entry_that_is_a_directory_covers_what_is_under_it(self):
+        self.assertTrue(paths.covers('packages/core/db/tables.ts', ['packages']))
+
+    def test_a_dot_directory_entry_covers_what_is_under_it(self):
+        self.assertTrue(paths.covers('.codex/agents/x.toml', ['.codex/']))
+
+    def test_a_dot_prefixed_spelling_on_either_side_is_one_path(self):
+        self.assertTrue(paths.covers('.claude/agents/x.md', ['./.claude/agents/x.md']))
+        self.assertTrue(paths.covers(paths.normalise('./.claude/agents/x.md'), ['.claude']))
+
+    def test_a_name_sharing_a_prefix_is_not_under_it(self):
+        self.assertFalse(paths.covers('packages-old/core/db/tables.ts', ['packages']))
+
+    def test_an_entry_under_the_path_does_not_cover_it(self):
+        self.assertFalse(paths.covers('packages', ['packages/core/db/tables.ts']))
+
+    def test_nothing_is_covered_and_nothing_covers(self):
+        self.assertFalse(paths.covers(None, ['packages']))
+        self.assertFalse(paths.covers('packages/core/db/tables.ts', []))
+        self.assertFalse(paths.covers('packages/core/db/tables.ts', [None, '', '  ']))
+
+    def test_an_absolute_path_is_placed_nowhere(self):
+        self.assertIsNone(paths.normalise('/packages/core/db/tables.ts'))
+        self.assertFalse(paths.covers(paths.normalise('/packages/core'), ['packages']))
+
+    def test_the_route_verdict_reads_the_very_same_function(self):
+        self.assertIs(calibration.covers, paths.covers)
+        self.assertIs(calibration.normalise, paths.normalise)
+
+
+class NoSecondReaderTest(unittest.TestCase):
+    """Criterion 1 of SEEN-140: one implementation of the comparison in harness/.
+
+    A grep rather than a call graph, because what went wrong was not a wrong call
+    but two hand-written comparisons, each reading as obviously right where it
+    stood. The modules are scanned and not the tests: a test comparing a path to
+    a list exactly is asserting an exact answer, which is what a test is for.
+    """
+
+    EXACT_MEMBERSHIP = re.compile(
+        r"""not\s+in\s+(named|planned|entry\[['"]files['"]\]|entry\.get\(['"]files['"]\))""")
+
+    def test_no_module_compares_a_path_to_a_slice_s_files_itself(self):
+        offenders = []
+        for module in sorted((PROJECT / 'harness').glob('*.py')):
+            for number, line in enumerate(module.read_text().splitlines(), start=1):
+                if self.EXACT_MEMBERSHIP.search(line):
+                    offenders.append(f'{module.name}:{number}: {line.strip()}')
+
+        self.assertEqual(offenders, [],
+                         "Whether a slice's plan covers a path is paths.covers and nothing "
+                         'else; these answer it themselves and will one day answer it '
+                         'differently')
 
 
 class GoLiveDecisionTest(ProjectTest):

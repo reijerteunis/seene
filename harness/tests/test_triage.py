@@ -212,6 +212,46 @@ class DeterministicPassTest(TriageTest):
         self.assertEqual(len(record['data']['fingerprint']), 64)
 
 
+class DirectorySliceTest(TriageTest):
+    """SEEN-140: a slice naming a directory names the files under it here too.
+
+    This is the reader SEEN-114 met third. Its slices named `apps` and `packages`
+    because adopting a formatter rewrites every file under them, and `slice_files`
+    failed in all three rounds naming about forty files as belonging to no slice,
+    while the route verdict read the same plan as covering every one of them. The
+    second test is what must hold while the first flips: a path under no entry is
+    still reported, and reported by name.
+    """
+
+    def reach_review(self, solution=None, coverage_delta=0.0):
+        return super().reach_review(solution=solution if solution is not None else
+                                    solution_evidence(
+                                        changes=['harness/thing.py: the behaviour'],
+                                        slices=[dict(position=1, name='The behaviour', points=1,
+                                                     files=['harness/thing.py',
+                                                            'harness/tests/test_thing.py',
+                                                            'harness/rules'],
+                                                     red='The behaviour is absent')]),
+                                    coverage_delta=coverage_delta)
+
+    def test_a_changed_file_inside_a_directory_the_plan_names_is_named_by_it(self):
+        self.reach_review()
+        self.write('harness/rules/fixture.py', 'def fixture():\n    return 1\n')
+        ran = {check['name']: check for check in self.triage()['data']['deterministic']}
+
+        self.assertEqual(ran['slice_files']['outcome'], 'pass', ran['slice_files']['detail'])
+
+    def test_a_path_under_no_entry_is_still_named_by_no_slice(self):
+        self.reach_review()
+        self.write('harness/rules/fixture.py', 'def fixture():\n    return 1\n')
+        self.write('harness/unplanned.py', 'def unplanned():\n    return 2\n')
+        ran = {check['name']: check for check in self.triage()['data']['deterministic']}
+
+        self.assertEqual(ran['slice_files']['outcome'], 'fail')
+        self.assertIn('harness/unplanned.py', ran['slice_files']['detail'])
+        self.assertNotIn('harness/rules/fixture.py', ran['slice_files']['detail'])
+
+
 class ChangedFilesTest(TriageTest):
     """The per-file facts pass two is given, gathered without a model."""
 

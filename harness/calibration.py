@@ -19,7 +19,7 @@ import re
 
 from . import journal, report
 from .errors import HarnessError
-from .paths import HISTORY, TICKETS
+from .paths import HISTORY, TICKETS, covers, normalise
 
 # The severities a missed finding is measured at. A low or a medium finding in a
 # file the reviewer did not read is the saving working as intended; the question
@@ -68,31 +68,6 @@ def delivered_at(records):
         if record['kind'] == 'receipt':
             return record['timestamp']
     return None
-
-
-def normalise(path):
-    """One spelling of a repository-relative path, or nothing for one that is not.
-
-    Both sides of the comparison come through here, because a finding and a
-    triage's `would_exclude` are written by different hands. The `./` prefix is
-    removed as a prefix and not as a set of characters: `str.lstrip('./')`
-    strips every leading `.` and `/`, which turned `.claude/agents/x.md` into
-    `claude/agents/x.md` and made a finding in any dot directory match nothing
-    while looking like a path that had been read. F1 of this ticket's first
-    review, on a list where four of the thirteen excluded files were dot
-    directories.
-
-    An absolute path returns nothing. It cannot be compared with anything a
-    triage records, so it is placed nowhere rather than silently placed outside.
-    """
-    if not path:
-        return None
-    path = str(path).strip()
-    while path.startswith('./'):
-        path = path[2:]
-    if not path or path.startswith('/'):
-        return None
-    return path.rstrip('/') or None
 
 
 def path_of(reference):
@@ -329,28 +304,6 @@ def latest_findings(records):
     return [finding for _, finding in latest_finding_records(records)]
 
 
-def _covers(path, files):
-    """Whether a slice's planned files contain this path, directories included.
-
-    Through `normalise`, like every other path comparison here. The first
-    version repeated the `lstrip('./')` this module's docstring was written to
-    explain, one function below it and on the other side of the same
-    comparison, where it decides the route verdict rather than the triage one: a
-    finding in a dot directory was charged to no slice, so a downgraded slice
-    that produced it read as having produced nothing, and findings are the only
-    per-slice measure the route rule has. F1 of the second review, on a
-    repository where SEEN-104 and SEEN-105 planned slices over `.claude/`,
-    `.codex/` and `.agents/`.
-    """
-    if path is None:
-        return False
-    for named in files:
-        named = normalise(named)
-        if named is not None and (path == named or path.startswith(named + '/')):
-            return True
-    return False
-
-
 def slice_rows(ticket, records, escaped, rules):
     """Each routed slice, its group, and the rework charged to it.
 
@@ -376,11 +329,11 @@ def slice_rows(ticket, records, escaped, rules):
     # found none. F1 of the fifth review, where ten blocking findings produced a
     # rate of zero against a rate of zero and a printed go-live.
     unchargeable = [finding for finding in findings
-                    if not _covers(path_of(finding.get('file')), planned)]
+                    if not covers(path_of(finding.get('file')), planned)]
     rows = []
     for entry in routed['data']['execution']:
         charged = sum(1 for finding in findings
-                      if _covers(path_of(finding.get('file')), entry.get('files') or []))
+                      if covers(path_of(finding.get('file')), entry.get('files') or []))
         # A rule gives the strongest tier, so a rule-routed slice is evidence
         # about the strongest model and belongs in that group. Only a slice Jev
         # sent below it is the thing under calibration.

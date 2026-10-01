@@ -1,0 +1,32 @@
+{
+  "sequence": 9,
+  "ticket": "SEEN-140",
+  "timestamp": "2026-10-01T12:33:11.197981+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "6973478f0bee",
+  "head": "178cd6e0818331c370c2d76c43482acaa9483c6e",
+  "prev_hash": "ba764b8bc3fd433b3e1b2b30bce8f02be324649f78a2f8a2080e3f6bf709e6a1",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_guard"
+    ],
+    "phase": "green",
+    "exit_code": 0,
+    "model": "claude-opus-5",
+    "model_declared": "opus",
+    "agent_declared": "seen-implementer",
+    "duration_ms": 4438,
+    "output": "..................\n----------------------------------------------------------------------\nRan 18 tests in 4.351s\n\nOK\n",
+    "output_sha256": "643bb7be63a83ff1cf53e0632e41839bdca07b405a8c45c3eab557e89321a0ea",
+    "output_truncated": false,
+    "before": "9fef5449c2b96a384ad6dfa0d8b1029d5b7cac558f059b49e2201899757b55c3",
+    "after": "9fef5449c2b96a384ad6dfa0d8b1029d5b7cac558f059b49e2201899757b55c3"
+  }
+}

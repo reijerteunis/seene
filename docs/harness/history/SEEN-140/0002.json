@@ -1,0 +1,26 @@
+{
+  "sequence": 2,
+  "ticket": "SEEN-140",
+  "timestamp": "2026-10-01T12:20:46.003596+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "6973478f0bee",
+  "head": "2b85da7f20648b6dd67dbf5a2dafb644b4fb318b",
+  "prev_hash": "46f8ef3ad085814374ab7c0f6f687be6da069ff41ab5612a51c47a0657240594",
+  "data": {
+    "source": "repowise",
+    "mode": "why",
+    "command": [
+      "repowise",
+      "why",
+      "harness/guard.py"
+    ],
+    "exit_code": 0,
+    "duration_ms": 652,
+    "answer": "\nAlignment none — No architectural decisions govern harness/guard.py. This file is ungoverned — it may be an outlier or simply undocumented.\n\nOrigin 1 commits over 4 days, mostly Ruud van Engelenhoven (100%)\n  500342dc 2026-09-26 SEEN-106: Enforce the harness with hooks in both assistants, generated from one source (#26)\n\nGit archaeology No architectural decisions found for harness/guard.py, but git archaeology recovered 1 direct commit(s), 0 cross-reference(s), and 11 git log result(s). Review these to understand the intent behind this code.\n  this file: 500342dc 2026-09-26 SEEN-106: Enforce the harness with hooks in both assistants, generated from one source (#26)\n  git log: 500342dc 2026-09-26 SEEN-106: Enforce the harness with hooks in both assistants, generated from one source (#26)\n  git log: 2b85da7f 2026-10-01 docs(SEEN-140): one answer to whether a slice's plan covers a path\n  git log: c43bc57b 2026-10-01 docs(SEEN-114): restore the workflow paragraphs SEEN-139 reverted\n  git log: 7e2f77fe 2026-10-01 feat(SEEN-114): the weekly report's rule loop and the doctor warning\n  git log: 4b2ecc1c 2026-10-01 SEEN-139: Hand the immutability guard forward to every migration that adds a table (#32)\n  5 of 11 git log shown; pass --full for the rest.\n\nRationale comments in the code\n  harness/guard.py:1\n    The edit guard: whether a path may be written, and why. Early enforcement of rules the stage gates already hold, so a wrong edit is refused before it is made rather than found afterwards in a review. `decide` is a pure function of the path, the branch, the journal's stage and the accepted slice's files; nothing about a hook reaches it, which is what lets a person run `harness guard <path>` and\na lifecycle hook call the same answer. Four rules and no fifth, in the order they are read: the ticket file and .harness-drafts/ are allowed at every stage; packages/ and apps/ are refused at clarify and solution; a branch that is not a ticket branch refuses an edit to packages/, apps/ or harness/; at tdd, a path outside the accepted slice's files is refused. Absence allows and says why: no \njournal for the branch's ticket, or no accepted slice plan yet. A guard that refused on absence would refuse the first edit of every ticket, this one included, and the gate that comes next already refuses that absence.\n  harness/guard.py:24\n    packages/ and apps/ are the code the clarify and solution stages must not touch yet; harness/ joins them for the branch rule, because a harness file written from the wrong branch is evidence recorded about the wrong ticket.\n  harness/guard.py:33\n    The path as the rules read it: project-relative, forward slashes. A hook payload carries an absolute path (Claude Code's tool_input.file_path does); a person typing `harness guard` types a project-relative one. Both arrive here and both are judged the same way. Literally first and then with both sides resolved, because a symlinked parent makes two strings of one file: /var is a link to \n/private/var on macOS, and a payload carrying the form the root does not have would be read as a path outside the project, match no slice file and refuse every edit that session made. Genuinely outside the project it is judged on its own text, since there is nothing to make it relative to.\nIndex is behind live HEAD — run `repowise update`.\n",
+    "answer_truncated": false
+  }
+}
