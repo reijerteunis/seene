@@ -1,0 +1,38 @@
+{
+  "sequence": 16,
+  "ticket": "SEEN-140",
+  "timestamp": "2026-10-01T13:00:29.450411+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "6973478f0bee",
+  "head": "616d30542ebc237165d8d8d418828f3b3e0512fa",
+  "prev_hash": "aa0f2442fa4b6728134b649a931feababa85b4d57ae589ac8d872bac6dee077c",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": 1,
+          "behaviour": "One function answers whether a slice's plan covers a path: normalise and covers move to harness/paths.py, calibration imports them back, and guard.py and triage.py call covers instead of comparing exactly.",
+          "failure_reason": "Three failures, one per reader. harness/tests/test_guard.py: 'AssertionError: 2 != 0 : Harness: packages/core/db/tables.ts is not one of the files slice 1 of 1 names: packages, harness/rules.py'. harness/tests/test_triage.py: 'Changed but named by no slice and no changes entry: harness/rules/fixture.py' against a plan naming harness/rules. harness/tests/test_calibration.py: \"AttributeError: module 'harness.calibration' has no attribute 'covers'\" on nine cases, and NoSecondReaderTest listing both exact comparisons by file and line, \"guard.py:131: if relative not in entry['files']:\" and 'triage.py:372: outside = sorted(... path not in named ...)'.",
+          "red": 6,
+          "green": 9
+        }
+      ],
+      "regression": 14,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "6973478f0bee",
+      "output_tokens": 560582,
+      "tool_calls": 327,
+      "unavailable": null
+    }
+  }
+}
