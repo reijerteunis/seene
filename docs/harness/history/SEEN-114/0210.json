@@ -1,0 +1,232 @@
+{
+  "sequence": 210,
+  "ticket": "SEEN-114",
+  "timestamp": "2026-10-01T17:33:45.026296+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "solution",
+  "attempt": 10,
+  "actor": "claude:implementer",
+  "session": "ad77b7a13315",
+  "head": "b19b14f7d46c0c5390e095a417226ad7f8f4ee32",
+  "prev_hash": "aa6e1863206d86470d14316628f2bad5cc9a20612400abf4ece25c758bfe62a5",
+  "data": {
+    "from_stage": "solution",
+    "to_stage": "tdd",
+    "evidence": {
+      "mode": "code",
+      "approach": "One rule set, one registry, one runner. The rules live in the four tools' own configuration files at the repository root (biome.json, sgconfig.yml with rules/ast-grep/*.yml, .dependency-cruiser.json, knip.json) plus the four compiler flags in tsconfig.base.json; `rules/registry.toml` is the one place each rule's id, tool, citation and fixture are written, and `harness rules --check` refuses a rule in a config that the registry does not carry, a registry entry with no citation, and a registry entry whose fixture does not exist, so the traceability requirement has teeth in both directions. `scripts/rules.sh` is the single definition of what running the set means, with three modes: `staged` for the pre-commit hook (Biome, ast-grep and dependency-cruiser over the staged paths), `tree` for CI, and `fixtures`, which copies each rule's fixture into a temporary tree laid out exactly like the repository and asserts the real configuration refuses it and names the rule id. The hook and CI call the same script, because SEEN-097 recorded what happens when two definitions of the same environment drift. Configs are plain JSON and not JSONC so Python can read them without a parser of its own, and the reasoning that would otherwise be a comment in each config lives in the registry beside the citation, which is where a reader looks anyway. On the harness side, `rule_candidate` becomes a required field on a finding at medium severity or above in `check_findings`, the weekly report grows a rules section fed by `calibration.latest_findings` over the window's journals, and `doctor` grows a `warnings` list that leaves `ok` true, carrying the candidate that recurred twice with no rule written. Amended at attempt 2, on the measurements in record 8: adopting a formatter rewrites every source file it is pointed at, so slices 1 and 2 name `apps` and `packages` rather than a list of manifests, and `biome.json`'s includes list is the bound on what that means. JSON is parsed and not formatted, because `turbo.json` is JSONC carrying eighty lines of reasoning about turbo's cache key and `.mcp.json`'s layout was SEEN-098 F3; a formatter that compacts those two reflows documents whose layout is the documentation. The fixture proving moves behind `harness rules --fixtures`, which `scripts/rules.sh fixtures` calls, so that the registry and the proofs read the same entries, and a compiler flag is proven by compiling its fixture twice, once with the flag the base config sets and once without it: tsc names the flag in its message for one of the four and not the others, so a fixture that fails with the flag on and passes with it off proves the flag rather than the fixture. Amended again at attempt 3, on record 36: slice 4 grows from one point to two and takes three things. A required field on a finding invalidates every fixture that carries one, so the three test files holding nine such fixtures join its list; the paragraphs SEEN-139's docs regeneration reverted in docs/harness/workflow.md are repaired there, because that is the one slice already editing the file; and its own work is the weekly report's rules section and the doctor warning. Both returns on this ticket were the same mistake in a different place, a plan naming the files a change is written in and not the files it makes fail, and the cheap version of that question is asked once at solution. Amended again at attempt 10, in one file and five tests. `harness/secrets.py` joins slice 2, which owns the ground rules and the fixtures that prove them: the twenty-third rule of the set is one of the harness's own checks, and proving it by a fixture needs the walk behind it to skip the fixture tree. The five entries added to the tests below are the tests the first review asked for, each named with the mutation its RED makes rather than with the behaviour it asserts, because a test written after the code it covers is proven by the mutation it catches and by nothing else.",
+      "changes": [
+        "tsconfig.base.json: noUncheckedIndexedAccess, exactOptionalPropertyTypes and noImplicitOverride beside the strict already there.",
+        "biome.json (new): the formatter and the linter, recommended plus the type-aware nursery rules Biome 2.5 runs on its own inference (noFloatingPromises, noMisusedPromises, useAwaitThenable, noUnsafeTypeAssertion), with rules/ and the generated trees ignored.",
+        "eslint.config.mjs: deleted. package.json at the root loses eslint, @eslint/js and typescript-eslint and gains @biomejs/biome, @ast-grep/cli, dependency-cruiser and knip; each of the seven workspace manifests swaps its `lint` script from eslint to biome and gains an `exports` map.",
+        "sgconfig.yml (new) and rules/ast-grep/*.yml (new): one file per rule, each with one id, for the domain rules no general linter knows.",
+        ".dependency-cruiser.json (new): the layering rules, each with its own name so the registry can carry it.",
+        "knip.json (new): zero unused exports on packages/core and packages/connectors.",
+        "rules/registry.toml (new): id, tool, citation, fixture and the reason per rule.",
+        "rules/fixtures/<rule-id>/ (new): a tree laid out like the repository holding exactly the violation its rule is about.",
+        ".githooks/pre-commit: runs scripts/rules.sh staged after gitleaks.",
+        ".github/workflows/ci.yml: `harness rules --check` in the harness job; scripts/rules.sh tree, scripts/rules.sh fixtures and knip in the node job.",
+        "packages/providers/src/boundary.ts and packages/providers/src/no-cloud-sdk.test.ts: deleted, because the dependency-cruiser rule that replaces them resolves every import grammar rather than searching source text, which is what their two recorded defects were about.",
+        "harness/rules.py (new): the registry reader, the config readers, the citation and fixture checks, and the recurrence count the report and doctor both read.",
+        "harness/cli.py: the `rules` command, and doctor's warnings in its output.",
+        "harness/gates.py: rule_candidate required on a finding at medium severity or above, with its shape checked.",
+        "harness/templates/review.json: rule_candidate on the finding shape the template shows.",
+        "harness/report.py: the rules section of the weekly report.",
+        "harness/doctor.py: the warnings list and the recurring-candidate warning.",
+        "harness/tests/test_rules.py (new) and harness/tests/test_gates.py, test_report.py, test_doctor.py: the behaviour above.",
+        "docs/harness/skill.md and docs/harness/workflow.md: rule_candidate as a thing a finding must carry and the rule set as a thing the hook runs, synced into the generated copies by `harness sync`.",
+        "harness/agents/seen-reviewer.md: the reviewer writes rule_candidate on every finding at medium or above.",
+        ".gitignore: the temporary tree scripts/rules.sh fixtures builds.",
+        "scripts/rules.sh (new): staged and tree, the one definition of running the rule set that the pre-commit hook and CI both call, plus fixtures, which calls `harness rules --fixtures` so the proofs and the registry read one list.",
+        "apps/ and packages/: twenty-six source files rewritten once by the formatter, and ten lint findings closed in six of them (three useImportType, two noUnusedFunctionParameters, five noImplicitAnyLet). Measured in record 8 before the plan was amended.",
+        "package.json: `pnpm.onlyBuiltDependencies` carries @ast-grep/cli, whose postinstall pnpm 10 does not run by default, and `rules` and `rules:fixtures` scripts so a session reaches the set through the pnpm entry its permissions already allow.",
+        "harness/tests/test_calibration.py, test_stage_gates.py and test_hooks.py: each medium or higher finding fixture given a rule_candidate. Nine cases across three files, which the field slice 3 made required invalidated.",
+        "docs/harness/workflow.md: the ten paragraphs and two table rows SEEN-139's docs regeneration reverted, restored from cf604d9 and merged with what that commit legitimately added.",
+        "harness/secrets.py: one line in `_files`, so the walk behind `harness lint` skips `rules/fixtures/`. Amended at attempt 10, on the triage's slice_files check. The registry gained `harness/no-live-marketplace-host` for the review finding F4, and that rule is proven the way every other rule in the set is, by a fixture its own tool must refuse: a connector test fetching a live Bol URL. `marketplace_hosts` walks every tracked file in any language, which is why the check is the harness's own and not an ast-grep rule, so without the exclusion the fixture fails the repository's own lint and the rule cannot be proven at all. The other four tools ignore that directory by scope already, and nothing executes those files because the workspace globs are `apps/*` and `packages/*`. The exclusion stays in the one function the walk lives in rather than in its three callers, because one rule restated three times is the drift SEEN-097 recorded."
+      ],
+      "migrations": [],
+      "tests_first": [
+        "The registry refuses an untraceable rule. `python3 -m unittest harness.tests.test_rules -v`. The RED must demonstrate that `harness rules --check` reports a registry entry with an empty citation, a rule enabled in biome.json or named in .dependency-cruiser.json that the registry does not carry, and a registry entry whose fixture path does not exist, and that it reports nothing on the repository's own set. Red because harness/rules.py and the command do not exist.",
+        "Every rule fires on its own fixture. `./scripts/rules.sh fixtures`. The RED must demonstrate that each fixture is accepted by the rule set as it stands, so the runner reports every rule as not firing, naming each one. Red because the configs and the fixtures do not exist.",
+        "The tree typechecks under the three new flags and the hook stays inside ten seconds. `pnpm turbo run typecheck` and a timed `./scripts/rules.sh staged` over a staged set. The RED for the flags is the fixture above (a file that typechecks today and must not once the flags are on); the timing is recorded as a measurement rather than asserted by a test, because a wall-clock assertion in CI is a flaky test and SEEN-136 makes a flaky test a defect.",
+        "The review gate refuses a finding at medium or above with no rule_candidate. `python3 -m unittest harness.tests.test_gates -v`. The RED must demonstrate that a review advance carrying a medium finding without the field is accepted today, and that the refusal names the finding id and says what the field may hold; and that a low finding without it is still accepted, because not looking for a low finding is the saving itself.",
+        "The weekly report carries the three lists and says what it cannot see. `python3 -m unittest harness.tests.test_report -v`. The RED must demonstrate that a weekly report over a window whose findings carry rule_candidate shows neither the findings a rule could have caught, nor the rules added since, nor a candidate that recurred without a rule, nor the count of findings that predate the field.",
+        "A candidate that recurred twice without a rule is a doctor warning and not a doctor problem. `python3 -m unittest harness.tests.test_doctor -v`. The RED must demonstrate that doctor reports nothing for a candidate recorded twice in two tickets with no matching registry entry, and that once it does, `ok` is still true and the Stop hook does not block.",
+        "The two callers of the set are read by tests rather than measured once. `python3 -m unittest harness.tests.test_rules.WhereTheSetRunsTest`. The RED must demonstrate that with `scripts/rules.sh` absent, the workflow at its pre-ticket version and the hook and the seven manifests at theirs, six of the seven fail: three cannot read the runner at all, and three report the missing step in the workflow, the missing call in the hook and the missing exports map. Added at attempt 10, because a hook and a workflow proven by running each once are proven for one afternoon: an edit moving knip into the staged run would leave every fixture firing and every other test green.",
+        "The registry names every tool that runs, and the harness's own check is proven by its own fixture. `python3 -m unittest harness.tests.test_rules`. The RED must demonstrate three things with the registry entry reverted and the `rules/fixtures/` exclusion removed: that a tool in `RUNNER_FOR_TOOL` with no registry entry is reported, read from the runner map rather than from a list in the test; that the rule has no fixture result at all; and that the fixture tree, read by the check it proves, makes the repository's own lint fail. Added at attempt 10 with the twenty-third rule.",
+        "The weekly report renders the rule loop when the command runs, not only when the renderer is called. `python3 -m unittest harness.tests.test_calibration.ReportTest`. The RED must demonstrate that with the `--week` branch that builds the section switched off, a report rendered from a window whose findings carry rule_candidate carries none of the three lists: no `## The rule loop`, no caught list naming a registry rule, no recurrence. Added at attempt 10, because three helpers each with a direct test left the line between the command and the renderer untested.",
+        "A return's findings owe rule_candidate exactly as an advance's do. `python3 -m unittest harness.tests.test_calibration.ReturningFindingsTest`. The RED must demonstrate that with the check wrapped in the `resolved` branch, `harness return --findings` accepts a medium finding with nothing in the field and a malformed value, while a low finding still owes nothing. Added at attempt 10: the field was asserted on one of its two call paths.",
+        "The fixture report says what it proved in its last line. `python3 -m unittest harness.tests.test_rules.SummaryTest`. The RED must demonstrate that `rules.report` carries no summary, and that a run where a rule did not fire is not summarised as one that did. Added at attempt 10, because ten kilobytes of JSON leaves every reader of a command's tail with a fragment of the last two entries."
+      ],
+      "slices": [
+        {
+          "name": "The compiler, the formatter and the registry",
+          "points": 2,
+          "files": [
+            "tsconfig.base.json",
+            "biome.json",
+            "eslint.config.mjs",
+            "package.json",
+            "pnpm-lock.yaml",
+            "apps",
+            "packages",
+            "rules/registry.toml",
+            "rules/fixtures",
+            "scripts/rules.sh",
+            "harness/rules.py",
+            "harness/cli.py",
+            "harness/tests/test_rules.py",
+            ".github/workflows/ci.yml",
+            ".gitignore"
+          ],
+          "red": "`harness rules --check` does not exist, so the test that asks it to refuse a registry entry with no citation, a Biome rule absent from the registry and a fixture path that is not there fails on the command itself. Then, with the runner written and the rules not, `scripts/rules.sh fixtures` reports each of the eight rules of this slice as not firing: the four compiler flags and the four Biome rules all accept their own fixture while tsconfig.base.json and biome.json are absent."
+        },
+        {
+          "name": "The ground rules, the fixtures and the hook",
+          "points": 2,
+          "files": [
+            "sgconfig.yml",
+            "rules/ast-grep",
+            ".dependency-cruiser.json",
+            "knip.json",
+            "rules/registry.toml",
+            "rules/fixtures",
+            "scripts/rules.sh",
+            ".githooks/pre-commit",
+            ".github/workflows/ci.yml",
+            "package.json",
+            "apps",
+            "packages",
+            "harness/rules.py",
+            "harness/tests/test_rules.py",
+            "harness/secrets.py"
+          ],
+          "red": "Every ast-grep, dependency-cruiser and knip fixture is accepted by the tree as it stands, so `./scripts/rules.sh fixtures` names each rule as not firing: the euro sign, the em and en dash, money as a non-integer, fetch inside packages/core, a credential literal in a test, node:fs inside packages/core, a marketplace write outside the policy gate, a query outside the repository layer, an app importing another app, a cloud SDK outside packages/providers, the connectors importing the agent, the network outside the generated clients, and an unused export in packages/core."
+        },
+        {
+          "name": "rule_candidate on every finding that could have been a rule",
+          "points": 1,
+          "files": [
+            "harness/gates.py",
+            "harness/templates/review.json",
+            "harness/agents/seen-reviewer.md",
+            "docs/harness/skill.md",
+            "docs/harness/workflow.md",
+            ".claude/skills/seen-harness/SKILL.md",
+            ".agents/skills/seen-harness/SKILL.md",
+            ".claude/agents/seen-reviewer.md",
+            ".codex/agents/seen-reviewer.toml",
+            "harness/tests/test_gates.py"
+          ],
+          "red": "A review advance carrying a medium finding with no rule_candidate is accepted, so the test asserting the refusal fails; and the same test asserts a low finding without the field is still accepted and a malformed value is refused, neither of which the gate does today."
+        },
+        {
+          "name": "The loop back: the weekly report and the doctor warning",
+          "points": 2,
+          "files": [
+            "harness/report.py",
+            "harness/rules.py",
+            "harness/doctor.py",
+            "harness/cli.py",
+            "harness/tests/test_report.py",
+            "harness/tests/test_doctor.py",
+            "harness/tests/test_rules.py",
+            "harness/tests/test_calibration.py",
+            "harness/tests/test_stage_gates.py",
+            "harness/tests/test_hooks.py",
+            "docs/harness/skill.md",
+            "docs/harness/workflow.md",
+            ".claude/skills/seen-harness/SKILL.md",
+            ".agents/skills/seen-harness/SKILL.md"
+          ],
+          "red": "Three reds in this slice, each failing for its own reason before anything is written. The weekly report over a window whose findings carry rule_candidate shows none of the four figures criterion 4 asks for, and doctor reports nothing for a candidate recorded twice in two tickets with no rule written, so both tests fail on the absent sections. And the nine fixtures slice 3's required field invalidated are failing now, in test_calibration.py, test_stage_gates.py and test_hooks.py, which is the red the fixture work turns green."
+        }
+      ],
+      "alternatives": [
+        "Keep ESLint beside Biome. Rejected: two linters are two authorities on style, ESLint's type-aware rules need a TypeScript program and would not fit the ten-second budget the criterion sets, and SEEN-118 already names Biome as the authority on style. Biome 2.5 was measured before this was chosen: noFloatingPromises, noMisusedPromises, useAwaitThenable and noUnsafeTypeAssertion all fire on its own inference with no tsc program, in 1.8 milliseconds on one file.",
+        "Write an ast-grep rule for every ground rule the ticket lists under ast-grep. Rejected for two of them, with the reason in each registry entry. `no live marketplace host in a test` is already `harness lint`, which reads every tracked file in any language including the Python harness and the YAML fixtures, where an ast-grep TypeScript rule would read only TypeScript; the registry carries the harness check as the rule and no duplicate is written. `no cloud SDK import outside the provider packages` goes the other way and moves to dependency-cruiser, because the thing it replaces (findCloudSdkImports, a source-text search) produced two recorded defects about exactly what a resolver does and a search cannot: SEEN-097 F1 reported the wrong line and line 0 for a multi-line import, and the search had to be taught require and dynamic import one grammar at a time. A ground rule with two rule ids would also give one finding two rule_candidate values and make the recurrence count in criterion 4 unreadable.",
+        "Restate the packages/core import rule as a dependency-cruiser allow-list to match `authorities.test.ts`. Rejected: that guard is the compiler-grade instrument and this is the ten-second one, and two allow-lists of admitted specifiers would be two lists to keep in step. The dependency-cruiser rule is a deny-list of the IO libraries the ticket names, scoped to `packages/core/src/**`, and its registry entry says plainly that it is the fast half of a rule whose complete instrument is the allow-list in `packages/core/db/repository.ts`, which admits four specifiers and reports every other grammar. A library nobody thought to deny is still caught there, in CI.",
+        "Scope the core IO rule to all of `packages/core`, as the ticket's description words it. Rejected as false against the tree: `packages/core/db/` is the schema, the migrations' tests and the repository layer, where pg and node:fs are the work rather than a leak, and the architecture's sentence about pure functions is about the reconciliation engine. The rule is scoped to `packages/core/src/**` and the registry entry says so.",
+        "Put the citation check in doctor as well as CI. Rejected: doctor runs at the end of every turn through the Stop hook, so a rule written before its registry entry would block the turn that was about to write the entry, and criterion 5 asks for CI. The only doctor addition is the warning criterion 4 asks for.",
+        "Run knip in the pre-commit hook. Rejected: a dead export is a property of the whole import graph and cannot be judged from a staged file, which is why the criteria put the other three tools in the hook and knip in CI.",
+        "Turn off the two Biome rules that need a code change, which is what the first solution record's risk note said. Withdrawn at attempt 2 and recorded in record 8: six lines in five files is a smaller price than a rule set whose first act is an exception to itself, and a rule this repository declines is not a rule.",
+        "Let Biome format JSON as well as TypeScript. Rejected: turbo.json is JSONC whose eighty lines of comment are the documentation of turbo's cache key, and .mcp.json's layout is what SEEN-098 F3 was about. JSON is parsed so the hook does not error on a staged manifest, and left alone."
+      ],
+      "risks": [
+        "An `exports` map on an app package could break Next.js's or Nest's own resolution of its package root. Mitigated by adding the map to the four library packages first, proving typecheck, test and build green, then the three apps, and backing the apps out with the reason recorded if anything breaks: nothing imports an app, which the no-app-imports-another-app rule proves, so an exports map there declares a surface that does not exist.",
+        "knip reports the three stub exports in packages/core and packages/connectors as unused, because only their own tests read them. Mitigated by configuring knip per workspace with the entry points each package actually has and by treating a genuinely unused export as the dead code the criterion says it is: `packageName` in each stub is exported for no reader and goes, and `LEDGER_CURRENCY` and `sumCents` stay only if something other than their own test reads them.",
+        "The fixture runner has to run the real configuration against a tree that is not the repository, or it proves a rewritten rule rather than the rule. Mitigated by copying each fixture into a temporary directory under the repository root, laid out with the same `packages/...` and `apps/...` paths the configs' globs are written against, so node resolution finds the workspace node_modules and every glob matches what it matches in anger.",
+        "The pre-commit hook grows from one tool to four and the ten-second budget is the criterion. Mitigated by measuring it: Biome and ast-grep are Rust and were measured in milliseconds, dependency-cruiser is Node and is the one to watch, and the hook runs over staged paths rather than the tree. If the four together exceed ten seconds the slowest moves to CI with the measurement recorded, which is a note and a narrower hook rather than a criterion quietly missed.",
+        "Deleting boundary.ts removes a check SEEN-097 delivered. Mitigated by the replacement being stricter rather than different, proven by a fixture in the same commit, and by the registry entry citing SEEN-097's criterion so the trade is readable; nothing outside its own test imports either symbol, so no caller changes.",
+        "The formatter rewrites twenty-six files in one commit, which is a diff that could bury the rules it arrives with and could conflict with an open branch. Measured and bounded rather than mitigated: 65 files at Biome's defaults, 30 with the repository's own quote style written down, 26 with JSON left alone, and the two open pull requests (SEEN-110 and SEEN-112) touch only harness Python. The formatter's rewrite is its own commit so a reader can skip it.",
+        "SEEN-110's open branch also edits harness/gates.py, which slice 3 edits. A merge conflict for whoever merges second rather than a correctness problem, named here so it is expected.",
+        "harness/guard.py compares a path to the slice's file list exactly, where harness/gates.py answers the same question with _covers and does read a directory entry. So a slice naming a directory is refused a file inside it, which is how slice 2 came to write two paths through a shell and slice 3 rightly stopped. Not mitigated here, because guard.py is in no slice of this plan: recorded in record 36 as a finding about the harness for its own ticket.",
+        "The amendment narrows a security-adjacent check: `rules/fixtures/` leaves the walk behind `harness lint`, so a live marketplace host inside that directory stops being reported. Mitigated by what the directory is and by what still reads it. Every file there is a violation by construction, which is the point of a fixture, and nothing executes them: the workspace globs are `apps/*` and `packages/*`, so no vitest project collects them and no build compiles them. The control that matters for a credential is gitleaks, which scans the whole tree on every commit and is untouched. And the narrowing is itself held by a test, `test_the_fixture_tree_is_not_read_by_the_check_it_proves`, which fails if the exclusion widens past that directory or the fixture stops being a violation. What is not mitigated and is accepted: a real test file written inside `rules/fixtures/` would go unchecked, and nothing stops somebody putting one there."
+      ],
+      "rollback": "Nothing here reaches production: no runtime code changes except the deletion of two files nothing imports, and no migration. Reverting the branch restores eslint.config.mjs, the three ESLint devDependencies, the two deleted provider files and the previous pre-commit hook; the four new configs, rules/, scripts/rules.sh and harness/rules.py are additions that go with it. The harness side is three functions and one required field, and a review record written before the revert stays valid because rule_candidate is an extra key that nothing reads once the gate stops asking for it. If only the hook is the problem, dropping the one line that calls scripts/rules.sh leaves the whole set running in CI. The attempt-10 amendment reverts with the rest and needs no separate step: the registry entry, the fixture directory, `_run_harness` and the one line in `harness/secrets.py` are additions, and removing them puts the rule set back at twenty-two rules with `harness rules --check` still green in both directions, because the check reads the registry against the configurations and neither names the other. The five tests added with them fail on a revert, which is the intended signal rather than a problem: each exists to fail when the thing it covers goes.",
+      "new_dependencies": [
+        "@biomejs/biome 2.5.15, root devDependency, MIT. Formatter and linter, Rust, no TypeScript program needed for the four type-aware rules enabled; replaces eslint, @eslint/js and typescript-eslint, which are removed in the same commit.",
+        "@ast-grep/cli 0.45.3, root devDependency, MIT. The domain rules, Rust, exit 1 on an error-level diagnostic and a JSON mode carrying the rule id, both measured before this was written.",
+        "dependency-cruiser 18.5.0, root devDependency, MIT. The layering rules, reading a resolved import graph rather than source text.",
+        "knip 6.39.0, root devDependency, ISC. Dead exports on packages/core and the connectors, CI only.",
+        "All four are dev-only and none ships in a deployable. `pnpm audit --audit-level high` already gates CI and the lockfile is frozen there, so the install is proven on the same commit the rules are."
+      ],
+      "tenant_tables": [
+        "none: this ticket touches no table, no migration and no query."
+      ],
+      "buyer_pii": "none: no buyer field is read, persisted or logged. The one fixture that holds a credential-shaped literal holds the string 'eyJhbGciOiJIUzI1NiJ9.fixture.not-a-token', which is not a credential and is what the rule it proves is about.",
+      "policy_gate_action": null,
+      "slice_points": 7,
+      "forecast": {
+        "available": false,
+        "observed_tickets": 5,
+        "required": 10
+      }
+    },
+    "decisions": [
+      {
+        "key": "solution_complete",
+        "question": "solution_complete",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.6,
+          "no": 0.4
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "key": "touches_billing_or_policy_gate",
+        "question": "touches_billing_or_policy_gate",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.11,
+          "no": 0.89
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

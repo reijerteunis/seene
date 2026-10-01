@@ -60,9 +60,9 @@ Sprint 0 delivered 63 review findings on 20 tickets (2 blocking, 18 high, 27 med
 Delivered on 1 October 2026 in four slices: the compiler and the formatter with the registry, the
 ground rules with their fixtures and the hook, `rule_candidate` on the review gate, and the loop back
 through the weekly report and `doctor`. Twenty-three rules, each with a citation a reader can open and
-a fixture the rule itself refuses. 1,555 harness tests pass (check 204), the workspace build is green
+a fixture the rule itself refuses. 1,555 harness tests pass (check 226), the workspace build is green
 (check 185) and so are the 210 tests of the six packages that need no local stack (check 186), coverage
-on `packages/core` is 100.0 with a delta of 0.0 (check 205), `doctor` reports no problems and no
+on `packages/core` is 100.0 with a delta of 0.0 (check 227), `doctor` reports no problems and no
 warnings. Every figure in this Outcome names the check it was read from, because a figure without one is
 a figure nobody can re-measure.
 
@@ -70,9 +70,9 @@ a figure nobody can re-measure.
 
 | Where | What runs | Measured |
 |---|---|---|
-| pre-commit, on the staged paths | gitleaks, then Biome, ast-grep and dependency-cruiser | 984ms over 58 staged paths, 34 files to Biome and 46 modules to dependency-cruiser, against a ten-second budget (check 201) |
-| CI, harness job | `harness rules --check` | 23 entries read in both directions in 76ms; reads files, needs no workspace (check 203) |
-| CI, monorepo job | `harness rules --fixtures`, then `turbo run lint`, then `scripts/rules.sh tree` | every rule refuses its own fixture in 4s (check 192), and 1.331s for the whole set over the tree (check 202) |
+| pre-commit, on the staged paths | gitleaks, then Biome, ast-grep and dependency-cruiser | 837ms over 58 staged paths, 34 files to Biome and 46 modules to dependency-cruiser, against a ten-second budget (check 223) |
+| CI, harness job | `harness rules --check` | 23 entries read in both directions in 75ms; reads files, needs no workspace (check 225) |
+| CI, monorepo job | `harness rules --fixtures`, then `turbo run lint`, then `scripts/rules.sh tree` | every rule refuses its own fixture in 3.4s (check 212), and 1.132s for the whole set over the tree (check 224) |
 
 `scripts/rules.sh` is the one definition of what running the set means, called by the hook and by CI,
 because SEEN-097 recorded what happens when the same environment has two definitions. knip is in CI
