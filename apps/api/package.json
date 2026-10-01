@@ -9,7 +9,7 @@
     "dev": "nest start --watch",
     "start": "node dist/apps/api/src/main.js",
     "test": "vitest run",
-    "lint": "eslint src",
+    "lint": "biome check src",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {

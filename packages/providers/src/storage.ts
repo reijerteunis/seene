@@ -2,12 +2,7 @@ import { createHash } from 'node:crypto';
 
 import { createClient } from '@supabase/supabase-js';
 
-import {
-  type Environment,
-  notUntilGoLive,
-  required,
-  selectImplementation,
-} from './selection.ts';
+import { type Environment, notUntilGoLive, required, selectImplementation } from './selection.ts';
 
 /**
  * Raw payloads and evidence. Evidence is hashed on write, so a claim can name the

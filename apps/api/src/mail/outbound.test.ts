@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
-
-import { createMailer } from './outbound';
 import { mailpit } from './mailpit';
+import { createMailer } from './outbound';
 
 /**
  * The outbound half of the local mailbox, against the real Mailpit container:

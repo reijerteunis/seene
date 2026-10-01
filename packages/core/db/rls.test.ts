@@ -20,9 +20,14 @@ import { Client } from 'pg';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import {
-  BILLING_CRITICAL_TABLES, CLIENT_BOUND_ROLES, ERASURE_REGISTRY_TABLE,
-  IMMUTABLE_IDENTIFIER_EXCEPTIONS, MutableIdentifier,
-  TABLE_RELKINDS, TENANCY_CLAUSES, TENANT_CLAIM,
+  BILLING_CRITICAL_TABLES,
+  CLIENT_BOUND_ROLES,
+  ERASURE_REGISTRY_TABLE,
+  IMMUTABLE_IDENTIFIER_EXCEPTIONS,
+  type MutableIdentifier,
+  TABLE_RELKINDS,
+  TENANCY_CLAUSES,
+  TENANT_CLAIM,
 } from './tables';
 
 // The local Supabase stack's Postgres, the address `pnpm dev:up` prints when it
@@ -99,10 +104,10 @@ async function connect(): Promise<Client> {
   } catch (cause) {
     await client.end().catch(() => undefined);
     throw new Error(
-      `No Postgres answering at ${where(DATABASE_URL)}, so this test proves nothing about tenant `
-      + 'isolation. Start the local stack with `pnpm dev:up`, apply the migrations with '
-      + '`pnpm db:reset`, or point SEEN_DATABASE_URL at another stack. The driver said: '
-      + `${(cause as Error).message}`,
+      `No Postgres answering at ${where(DATABASE_URL)}, so this test proves nothing about tenant ` +
+        'isolation. Start the local stack with `pnpm dev:up`, apply the migrations with ' +
+        '`pnpm db:reset`, or point SEEN_DATABASE_URL at another stack. The driver said: ' +
+        `${(cause as Error).message}`,
       { cause },
     );
   }
@@ -148,10 +153,7 @@ interface ClaimFixture {
  * tenant id in this suite is server-generated and never supplied, so no test can
  * collide with a tombstone and the growth can fail nothing.
  */
-async function assertNoTombstones(
-  client: Client,
-  tenants: (string | undefined)[],
-): Promise<void> {
+async function assertNoTombstones(client: Client, tenants: (string | undefined)[]): Promise<void> {
   const created = tenants.filter((id): id is string => Boolean(id));
   if (created.length === 0) return;
   const { rows } = await client.query<{ tenant_id: string }>(
@@ -160,8 +162,8 @@ async function assertNoTombstones(
   );
   expect(
     rows.map((row) => row.tenant_id),
-    'Tenants this file created are tombstoned in the erasure registry, so its fixtures erased '
-    + 'them outside a transaction and nothing can take those rows back',
+    'Tenants this file created are tombstoned in the erasure registry, so its fixtures erased ' +
+      'them outside a transaction and nothing can take those rows back',
   ).toEqual([]);
 }
 
@@ -215,10 +217,10 @@ describe('tenant isolation on orders', () => {
     const missing = await absent(client, NEEDED);
     if (missing.length > 0) {
       throw new Error(
-        'This test cannot query public.orders at all: '
-        + `${missing.join(', ')} ${missing.length === 1 ? 'does' : 'do'} not exist in the public `
-        + 'schema. The trade record migration has not been applied, so there is no policy to '
-        + 'prove anything about. Apply it with `pnpm db:reset`.',
+        'This test cannot query public.orders at all: ' +
+          `${missing.join(', ')} ${missing.length === 1 ? 'does' : 'do'} not exist in the public ` +
+          'schema. The trade record migration has not been applied, so there is no policy to ' +
+          'prove anything about. Apply it with `pnpm db:reset`.',
       );
     }
     // The fixtures are written inside a transaction that is never committed, and
@@ -323,10 +325,10 @@ describe('tenant isolation on findings and claims', () => {
     const missing = await absent(client, NEEDED_FOR_CLAIMS);
     if (missing.length > 0) {
       throw new Error(
-        'This test cannot query public.findings or public.claims at all: '
-        + `${missing.join(', ')} ${missing.length === 1 ? 'does' : 'do'} not exist in the public `
-        + 'schema. The findings, claims and agent migration has not been applied, so there is no '
-        + 'policy to prove anything about. Apply it with `pnpm db:reset`.',
+        'This test cannot query public.findings or public.claims at all: ' +
+          `${missing.join(', ')} ${missing.length === 1 ? 'does' : 'do'} not exist in the public ` +
+          'schema. The findings, claims and agent migration has not been applied, so there is no ' +
+          'policy to prove anything about. Apply it with `pnpm db:reset`.',
       );
     }
     // In a transaction that is never committed, for the reason the first describe
@@ -354,10 +356,13 @@ describe('tenant isolation on findings and claims', () => {
   });
 
   it('returns zero findings and claims for a request carrying no claim at all', async () => {
-    expect(await idsFor('findings', null), 'a request with no tenant claim can read findings')
-      .toEqual([]);
-    expect(await idsFor('claims', null), 'a request with no tenant claim can read claims')
-      .toEqual([]);
+    expect(
+      await idsFor('findings', null),
+      'a request with no tenant claim can read findings',
+    ).toEqual([]);
+    expect(await idsFor('claims', null), 'a request with no tenant claim can read claims').toEqual(
+      [],
+    );
   });
 });
 
@@ -437,8 +442,9 @@ describe('the writes a client-bound request cannot make', () => {
             outcome = `accepted: ${result.rowCount} row${result.rowCount === 1 ? '' : 's'}`;
           }
         } catch (error) {
-          outcome = `refused at statement ${index + 1} of ${statements.length}: `
-            + firstLine((error as Error).message);
+          outcome =
+            `refused at statement ${index + 1} of ${statements.length}: ` +
+            firstLine((error as Error).message);
           await client.query('rollback to savepoint attempted');
           break;
         }
@@ -459,15 +465,23 @@ describe('the writes a client-bound request cannot make', () => {
   beforeAll(async () => {
     client = await connect();
     const missing = await absent(client, [
-      'tenants', 'connections', 'orders', 'audit_events', 'settlements', 'settlement_lines',
-      'claims', 'invoices', 'statements', 'headroom_entries',
+      'tenants',
+      'connections',
+      'orders',
+      'audit_events',
+      'settlements',
+      'settlement_lines',
+      'claims',
+      'invoices',
+      'statements',
+      'headroom_entries',
     ]);
     if (missing.length > 0) {
       throw new Error(
-        'This test cannot say anything about what a client-bound request may write: '
-        + `${missing.join(', ')} ${missing.length === 1 ? 'does' : 'do'} not exist in the public `
-        + 'schema. The trade record migrations have not been applied; apply them with '
-        + '`pnpm db:reset`.',
+        'This test cannot say anything about what a client-bound request may write: ' +
+          `${missing.join(', ')} ${missing.length === 1 ? 'does' : 'do'} not exist in the public ` +
+          'schema. The trade record migrations have not been applied; apply them with ' +
+          '`pnpm db:reset`.',
       );
     }
     // In a transaction that is never committed, for the reason the first describe
@@ -525,10 +539,10 @@ describe('the writes a client-bound request cannot make', () => {
     ]);
     expect(
       attempted.outcome,
-      'a signed-in user of the tenant deleted the tenant row, and the cascade took the trade '
-      + `record with it: of the 2 audit events and 1 order the tenant had, ${attempted.audit} `
-      + `audit ${attempted.audit === 1 ? 'event' : 'events'} and ${attempted.orders} `
-      + `${attempted.orders === 1 ? 'order' : 'orders'} are left`,
+      'a signed-in user of the tenant deleted the tenant row, and the cascade took the trade ' +
+        `record with it: of the 2 audit events and 1 order the tenant had, ${attempted.audit} ` +
+        `audit ${attempted.audit === 1 ? 'event' : 'events'} and ${attempted.orders} ` +
+        `${attempted.orders === 1 ? 'order' : 'orders'} are left`,
     ).toMatch(REFUSED);
     expect(attempted.audit, "the tenant's audit events did not survive the attempt").toBe(2);
     expect(attempted.orders, "the tenant's orders did not survive the attempt").toBe(1);
@@ -564,8 +578,8 @@ describe('the writes a client-bound request cannot make', () => {
     ]);
     expect(
       attempted.outcome,
-      'the tenant wrote its own settlement line and its own credited claim, which is a billable '
-      + 'event created by a person rather than ingested',
+      'the tenant wrote its own settlement line and its own credited claim, which is a billable ' +
+        'event created by a person rather than ingested',
     ).toMatch(REFUSED);
   });
 
@@ -614,8 +628,8 @@ describe('the writes a client-bound request cannot make', () => {
     const held = rows.map((row) => `${row.role} may ${row.privilege} ${row.table_name}`);
     expect(
       held,
-      `${held.length} write privileges on the tables a billable event is built out of are held by `
-      + `a role a browser is bound to: ${held.join('; ')}`,
+      `${held.length} write privileges on the tables a billable event is built out of are held by ` +
+        `a role a browser is bound to: ${held.join('; ')}`,
     ).toEqual([]);
   });
 
@@ -625,8 +639,9 @@ describe('the writes a client-bound request cannot make', () => {
     const attempted = await attempt('authenticated', { [TENANT_CLAIM]: tenant }, [
       { sql: 'select id from public.orders', params: [] },
     ]);
-    expect(attempted.outcome, 'a signed-in user of the tenant cannot read its own orders')
-      .toBe('accepted: 1 row');
+    expect(attempted.outcome, 'a signed-in user of the tenant cannot read its own orders').toBe(
+      'accepted: 1 row',
+    );
   });
 
   it('refuses a read to a caller who never signed in', async () => {
@@ -636,8 +651,9 @@ describe('the writes a client-bound request cannot make', () => {
     const attempted = await attempt('anon', null, [
       { sql: 'select id from public.orders', params: [] },
     ]);
-    expect(attempted.outcome, 'an unauthenticated caller reached public.orders at all')
-      .toMatch(REFUSED);
+    expect(attempted.outcome, 'an unauthenticated caller reached public.orders at all').toMatch(
+      REFUSED,
+    );
   });
 });
 
@@ -684,8 +700,12 @@ describe('a parent row belonging to another tenant', () => {
   }
 
   /** One tenant with a connection of its own, written as `service_role`. */
-  async function seed(name: string, marketplace: string): Promise<{
-    tenant: string; connection: string;
+  async function seed(
+    name: string,
+    marketplace: string,
+  ): Promise<{
+    tenant: string;
+    connection: string;
   }> {
     const tenant = await client.query<{ tenant_id: string }>(
       'insert into public.tenants (name) values ($1) returning tenant_id',
@@ -723,16 +743,27 @@ describe('a parent row belonging to another tenant', () => {
   beforeAll(async () => {
     client = await connect();
     const missing = await absent(client, [
-      'tenants', 'connections', 'orders', 'order_lines', 'products', 'audit_events',
-      'agent_runs', 'agent_actions', 'approvals', 'settlements', 'settlement_lines',
-      'claims', 'invoices', 'statements',
+      'tenants',
+      'connections',
+      'orders',
+      'order_lines',
+      'products',
+      'audit_events',
+      'agent_runs',
+      'agent_actions',
+      'approvals',
+      'settlements',
+      'settlement_lines',
+      'claims',
+      'invoices',
+      'statements',
     ]);
     if (missing.length > 0) {
       throw new Error(
-        'This test cannot say anything about whose parent a row has: '
-        + `${missing.join(', ')} ${missing.length === 1 ? 'does' : 'do'} not exist in the public `
-        + 'schema. The trade record migrations have not been applied; apply them with '
-        + '`pnpm db:reset`.',
+        'This test cannot say anything about whose parent a row has: ' +
+          `${missing.join(', ')} ${missing.length === 1 ? 'does' : 'do'} not exist in the public ` +
+          'schema. The trade record migrations have not been applied; apply them with ' +
+          '`pnpm db:reset`.',
       );
     }
   });
@@ -741,7 +772,7 @@ describe('a parent row belonging to another tenant', () => {
     await client?.end();
   });
 
-  it("refuses an order whose connection belongs to another tenant", async () => {
+  it('refuses an order whose connection belongs to another tenant', async () => {
     // The reviewer's own scenario, written out: tenants A and B, a Bol connection
     // belonging to A, and an order carrying B's tenant_id and A's connection_id.
     // Two independent keys each see something they recognise; the pair of them is
@@ -749,18 +780,20 @@ describe('a parent row belonging to another tenant', () => {
     const answer = await rolledBack(async () => {
       const a = await seed('Tenant parent A', 'bol');
       const b = await seed('Tenant parent B', 'bol');
-      return said(() => client.query(
-        `insert into public.orders (tenant_id, connection_id, marketplace, external_id, placed_at)
+      return said(() =>
+        client.query(
+          `insert into public.orders (tenant_id, connection_id, marketplace, external_id, placed_at)
          values ($1, $2, 'bol', 'cross-tenant-probe', now())`,
-        [b.tenant, a.connection],
-      ));
+          [b.tenant, a.connection],
+        ),
+      );
     });
     expect(
       answer,
-      'An order carrying tenant B\'s tenant_id and tenant A\'s connection_id was '
-      + `${answer === 'accepted' ? 'accepted' : `refused with SQLSTATE ${answer}`}, where a `
-      + 'foreign key violation (23503) is what keeps one tenant\'s ingest run out of another '
-      + 'tenant\'s trade record',
+      "An order carrying tenant B's tenant_id and tenant A's connection_id was " +
+        `${answer === 'accepted' ? 'accepted' : `refused with SQLSTATE ${answer}`}, where a ` +
+        "foreign key violation (23503) is what keeps one tenant's ingest run out of another " +
+        "tenant's trade record",
     ).toBe('23503');
   });
 
@@ -775,11 +808,13 @@ describe('a parent row belonging to another tenant', () => {
          values ($1, $2, 'ebay', 'tenant-b-own-order', now())`,
         [b.tenant, b.connection],
       );
-      const accepted = await said(() => client.query(
-        `insert into public.orders (tenant_id, connection_id, marketplace, external_id, placed_at)
+      const accepted = await said(() =>
+        client.query(
+          `insert into public.orders (tenant_id, connection_id, marketplace, external_id, placed_at)
          values ($1, $2, 'bol', 'cross-tenant-probe', now())`,
-        [b.tenant, a.connection],
-      ));
+          [b.tenant, a.connection],
+        ),
+      );
       const held = await countFor('orders', b.tenant);
       await client.query('delete from public.tenants where tenant_id = $1', [a.tenant]);
       return {
@@ -789,13 +824,13 @@ describe('a parent row belonging to another tenant', () => {
         survived: await countFor('tenants', b.tenant),
       };
     });
-    expect(survived, 'tenant B did not survive tenant A\'s erasure at all').toBe(1);
+    expect(survived, "tenant B did not survive tenant A's erasure at all").toBe(1);
     expect(
       after,
-      `Tenant B had ${before} ${before === 1 ? 'order' : 'orders'} and has ${after} after tenant `
-      + `A was erased, because the cross-tenant order was ${probe === 'accepted' ? 'accepted' : `refused with SQLSTATE ${probe}`} `
-      + "and the cascade from tenant A then carried it away. One tenant's deletion on request "
-      + "destroyed part of another tenant's trade record",
+      `Tenant B had ${before} ${before === 1 ? 'order' : 'orders'} and has ${after} after tenant ` +
+        `A was erased, because the cross-tenant order was ${probe === 'accepted' ? 'accepted' : `refused with SQLSTATE ${probe}`} ` +
+        "and the cascade from tenant A then carried it away. One tenant's deletion on request " +
+        "destroyed part of another tenant's trade record",
     ).toBe(before);
   });
 
@@ -879,9 +914,20 @@ describe('a parent row belonging to another tenant', () => {
       await client.query('delete from public.tenants where tenant_id = $1', [a.tenant]);
       const remaining: string[] = [];
       for (const table of [
-        'tenants', 'connections', 'products', 'orders', 'order_lines', 'settlements',
-        'settlement_lines', 'claims', 'invoices', 'statements', 'approvals', 'agent_runs',
-        'agent_actions', 'audit_events',
+        'tenants',
+        'connections',
+        'products',
+        'orders',
+        'order_lines',
+        'settlements',
+        'settlement_lines',
+        'claims',
+        'invoices',
+        'statements',
+        'approvals',
+        'agent_runs',
+        'agent_actions',
+        'audit_events',
       ]) {
         const held = await countFor(table, a.tenant);
         if (held > 0) remaining.push(`${table}: ${held}`);
@@ -890,24 +936,37 @@ describe('a parent row belonging to another tenant', () => {
     });
     expect(
       left,
-      'The erased tenant still has rows, so deletion on request no longer empties the trade '
-      + `record: ${left.join('; ')}`,
+      'The erased tenant still has rows, so deletion on request no longer empties the trade ' +
+        `record: ${left.join('; ')}`,
     ).toEqual([]);
   });
 });
 
 /** A column a row cannot be written without: not null, no default, not generated. */
-interface Required { table: string; column: string; type: string }
+interface Required {
+  table: string;
+  column: string;
+  type: string;
+}
 
 /** A foreign key whose child columns are all required, so a parent must exist first. */
-interface Mandatory { table: string; columns: string[]; parent: string; parentColumns: string[] }
+interface Mandatory {
+  table: string;
+  columns: string[];
+  parent: string;
+  parentColumns: string[];
+}
 
 /**
  * A relation of the public schema whose rows this database's policies govern:
  * its name, the parent it is a partition of, and whether it is a partitioned
  * table with nothing under it for a row to be routed into.
  */
-interface Governed { name: string; partitionOf: string | null; partitionless: boolean }
+interface Governed {
+  name: string;
+  partitionOf: string | null;
+  partitionless: boolean;
+}
 
 /** Every such relation, read from the catalogue on each call rather than once,
  * because the probes below create one and then ask what this block would have
@@ -983,9 +1042,9 @@ function seedOrder(tables: readonly string[], mandatory: readonly Mandatory[]): 
     if (placed.has(table)) return;
     if (chain.includes(table)) {
       throw new Error(
-        'The mandatory foreign keys of the public schema form a cycle, so no order seeds them '
-        + `all: ${chain.concat(table).join(' -> ')}. A key in that cycle has to become `
-        + 'nullable before a row can be written at all.',
+        'The mandatory foreign keys of the public schema form a cycle, so no order seeds them ' +
+          `all: ${chain.concat(table).join(' -> ')}. A key in that cycle has to become ` +
+          'nullable before a row can be written at all.',
       );
     }
     for (const key of mandatory) {
@@ -1028,8 +1087,8 @@ function valueFor(type: string, label: string, tenant: string): string | number 
   if (type === 'boolean') return false;
   if (type === 'jsonb' || type === 'json') return '{}';
   throw new Error(
-    `This fixture has no value for a column of type ${type}, so it cannot seed a row and the `
-    + 'cross-tenant read below would pass against an empty table. Add the type to valueFor.',
+    `This fixture has no value for a column of type ${type}, so it cannot seed a row and the ` +
+      'cross-tenant read below would pass against an empty table. Add the type to valueFor.',
   );
 }
 
@@ -1044,8 +1103,12 @@ function valueFor(type: string, label: string, tenant: string): string | number 
  * writes one.
  */
 async function seedRow(
-  client: Client, table: string, tenant: string, label: string,
-  columns: readonly Required[], keys: readonly Mandatory[],
+  client: Client,
+  table: string,
+  tenant: string,
+  label: string,
+  columns: readonly Required[],
+  keys: readonly Mandatory[],
 ): Promise<void> {
   const row: Record<string, unknown> = { tenant_id: tenant };
   for (const key of keys.filter((entry) => entry.table === table)) {
@@ -1057,9 +1120,9 @@ async function seedRow(
     );
     if (parent.rowCount === 0) {
       throw new Error(
-        `No row in public.${key.parent} for ${label} to hang a row of public.${table} from, `
-        + 'so this fixture cannot seed the table and the cross-tenant read below would pass '
-        + 'against an empty table.',
+        `No row in public.${key.parent} for ${label} to hang a row of public.${table} from, ` +
+          'so this fixture cannot seed the table and the cross-tenant read below would pass ' +
+          'against an empty table.',
       );
     }
     key.columns.forEach((column, index) => {
@@ -1083,8 +1146,8 @@ async function seedRow(
     );
   } catch (cause) {
     throw new Error(
-      `This fixture could not seed public.${table} for ${label}, so the cross-tenant read `
-      + `below would pass against an empty table. Postgres said: ${(cause as Error).message}`,
+      `This fixture could not seed public.${table} for ${label}, so the cross-tenant read ` +
+        `below would pass against an empty table. Postgres said: ${(cause as Error).message}`,
       { cause },
     );
   }
@@ -1167,7 +1230,8 @@ describe('tenant isolation on every table in the public schema', () => {
    * is in force and the role and the claim are gone again afterwards.
    */
   async function visibleTo(
-    claims: Record<string, string> | null, owner: string,
+    claims: Record<string, string> | null,
+    owner: string,
     tables: readonly string[] = governed,
   ): Promise<Record<string, number>> {
     await client.query('savepoint probe');
@@ -1227,7 +1291,8 @@ describe('tenant isolation on every table in the public schema', () => {
    * than on a policy.
    */
   async function createPartitionedProbe(
-    clause: string, options: { withPartition: boolean },
+    clause: string,
+    options: { withPartition: boolean },
   ): Promise<void> {
     await client.query(
       `create table public.${PARTITIONED_PROBE} (
@@ -1263,14 +1328,17 @@ describe('tenant isolation on every table in the public schema', () => {
     const relations = await governedRelations(client);
     if (relations.length === 0) {
       throw new Error(
-        'There is not one table in the public schema, so a cross-tenant read proves nothing '
-        + 'about any policy. The trade record migrations have not been applied; apply them with '
-        + '`pnpm db:reset`.',
+        'There is not one table in the public schema, so a cross-tenant read proves nothing ' +
+          'about any policy. The trade record migrations have not been applied; apply them with ' +
+          '`pnpm db:reset`.',
       );
     }
     required = await requiredColumns(client);
     mandatory = await mandatoryKeys(client, required);
-    governed = seedOrder(relations.map((relation) => relation.name), mandatory);
+    governed = seedOrder(
+      relations.map((relation) => relation.name),
+      mandatory,
+    );
     partitionOf = new Map(
       relations
         .filter((relation) => relation.partitionOf !== null)
@@ -1284,9 +1352,7 @@ describe('tenant isolation on every table in the public schema', () => {
     // partition that covers its values. So a partition is read and never written to:
     // writing into one directly would mean constructing a value inside that
     // partition's own bounds, and it would be a row no application writes.
-    seeded = governed.filter(
-      (table) => !partitionOf.has(table) && !partitionless.includes(table),
-    );
+    seeded = governed.filter((table) => !partitionOf.has(table) && !partitionless.includes(table));
     // In a transaction that is never committed, for the reason the first describe
     // of this file gives: an erasure leaves a tombstone nothing can remove, and a
     // rollback does not.
@@ -1321,7 +1387,10 @@ describe('tenant isolation on every table in the public schema', () => {
     const empty: string[] = [];
     for (const table of governed) {
       if (partitionOf.has(table)) continue;
-      for (const [name, tenant] of [['A', a], ['B', b]] as const) {
+      for (const [name, tenant] of [
+        ['A', a],
+        ['B', b],
+      ] as const) {
         const { rows } = await client.query<{ total: string }>(
           `select count(*) as total from public.${table} where tenant_id = $1`,
           [tenant],
@@ -1331,15 +1400,15 @@ describe('tenant isolation on every table in the public schema', () => {
     }
     expect(
       empty,
-      `${empty.length} of the ${(governed.length - partitionOf.size) * 2} tenant-and-table pairs `
-      + 'this block writes to hold no row at all, so a policy on them could expose every tenant '
-      + `and the read below would still find nothing: ${empty.join(', ')}`,
+      `${empty.length} of the ${(governed.length - partitionOf.size) * 2} tenant-and-table pairs ` +
+        'this block writes to hold no row at all, so a policy on them could expose every tenant ' +
+        `and the read below would still find nothing: ${empty.join(', ')}`,
     ).toEqual([]);
     expect(
       partitionless,
-      `${partitionless.length} partitioned tables in the public schema have no partition under `
-      + 'them, so no row reaches them by any path and no read goes through the policy on them: '
-      + `${partitionless.join(', ')}. Give each one a partition, or drop it.`,
+      `${partitionless.length} partitioned tables in the public schema have no partition under ` +
+        'them, so no row reaches them by any path and no read goes through the policy on them: ' +
+        `${partitionless.join(', ')}. Give each one a partition, or drop it.`,
     ).toEqual([]);
   });
 
@@ -1347,9 +1416,11 @@ describe('tenant isolation on every table in the public schema', () => {
     const leaked = await rolledBack(() => visibleTo({ [TENANT_CLAIM]: a }, b));
     expect(
       Object.keys(leaked),
-      'A request carrying tenant A\'s claim read rows belonging to tenant B from '
-      + `${Object.keys(leaked).length} of the ${governed.length} tables in the public schema: `
-      + Object.entries(leaked).map(([table, total]) => `${table} (${total})`).join(', '),
+      "A request carrying tenant A's claim read rows belonging to tenant B from " +
+        `${Object.keys(leaked).length} of the ${governed.length} tables in the public schema: ` +
+        Object.entries(leaked)
+          .map(([table, total]) => `${table} (${total})`)
+          .join(', '),
     ).toEqual([]);
   });
 
@@ -1357,9 +1428,11 @@ describe('tenant isolation on every table in the public schema', () => {
     const leaked = await rolledBack(() => visibleTo({ [TENANT_CLAIM]: b }, a));
     expect(
       Object.keys(leaked),
-      'A request carrying tenant B\'s claim read rows belonging to tenant A from '
-      + `${Object.keys(leaked).length} of the ${governed.length} tables in the public schema: `
-      + Object.entries(leaked).map(([table, total]) => `${table} (${total})`).join(', '),
+      "A request carrying tenant B's claim read rows belonging to tenant A from " +
+        `${Object.keys(leaked).length} of the ${governed.length} tables in the public schema: ` +
+        Object.entries(leaked)
+          .map(([table, total]) => `${table} (${total})`)
+          .join(', '),
     ).toEqual([]);
   });
 
@@ -1369,9 +1442,11 @@ describe('tenant isolation on every table in the public schema', () => {
     const leaked = await rolledBack(() => visibleTo(null, a));
     expect(
       Object.keys(leaked),
-      'A request carrying no tenant claim read rows from '
-      + `${Object.keys(leaked).length} of the ${governed.length} tables in the public schema: `
-      + Object.entries(leaked).map(([table, total]) => `${table} (${total})`).join(', '),
+      'A request carrying no tenant claim read rows from ' +
+        `${Object.keys(leaked).length} of the ${governed.length} tables in the public schema: ` +
+        Object.entries(leaked)
+          .map(([table, total]) => `${table} (${total})`)
+          .join(', '),
     ).toEqual([]);
   });
 
@@ -1398,8 +1473,8 @@ describe('tenant isolation on every table in the public schema', () => {
     // and that the session that created it does read tenant B's rows through it.
     await rolledBack(async () => {
       await client.query(
-        'create view public.seen_buyer_book_probe as '
-        + 'select tenant_id, buyer_name, buyer_address from public.shipments',
+        'create view public.seen_buyer_book_probe as ' +
+          'select tenant_id, buyer_name, buyer_address from public.shipments',
       );
       const owner = await client.query<{ total: string }>(
         'select count(*) as total from public.seen_buyer_book_probe where tenant_id = $1',
@@ -1407,8 +1482,8 @@ describe('tenant isolation on every table in the public schema', () => {
       );
       expect(
         Number(owner.rows[0].total),
-        'The session that created the view reads none of tenant B\'s rows through it, so this '
-        + 'test would report no leak whatever the view exposed to anyone else',
+        "The session that created the view reads none of tenant B's rows through it, so this " +
+          'test would report no leak whatever the view exposed to anyone else',
       ).toBeGreaterThan(0);
 
       const leaked: string[] = [];
@@ -1439,67 +1514,68 @@ describe('tenant isolation on every table in the public schema', () => {
       }
       expect(
         leaked,
-        'A view over public.shipments, which holds buyer name and buyer address, handed another '
-        + `tenant's buyer data to ${leaked.length} of the ${CLIENT_BOUND_ROLES.length} roles a `
-        + 'browser request is bound to, while the same roles are refused the table itself: '
-        + leaked.join('; '),
+        'A view over public.shipments, which holds buyer name and buyer address, handed another ' +
+          `tenant's buyer data to ${leaked.length} of the ${CLIENT_BOUND_ROLES.length} roles a ` +
+          'browser request is bound to, while the same roles are refused the table itself: ' +
+          leaked.join('; '),
       ).toEqual([]);
     });
   });
 
-  it('reports the table a clause that never compares the tenant exposes, however it is spelled',
-    async () => {
-      // What the three assertions above are worth, measured rather than asserted.
-      // Each of these clauses was accepted by the catalogue assertion that read a
-      // policy for the word `current_tenant`, and the first of them is the review's
-      // own scenario: any signed-in user of any tenant reads every tenant's evidence,
-      // buyer name and buyer address included. A read of the table says so, and the
-      // clause it is written in makes no difference to what it says.
-      const spellings = [
-        'seen.current_tenant() is not null',
-        'tenant_id = seen.current_tenant() or true',
-        'true',
-      ];
-      const unnoticed: string[] = [];
-      for (const clause of spellings) {
-        const leaked = await rolledBack(async () => {
-          await client.query(
-            `create policy leak_spelling on public.evidence for select to authenticated
+  it('reports the table a clause that never compares the tenant exposes, however it is spelled', async () => {
+    // What the three assertions above are worth, measured rather than asserted.
+    // Each of these clauses was accepted by the catalogue assertion that read a
+    // policy for the word `current_tenant`, and the first of them is the review's
+    // own scenario: any signed-in user of any tenant reads every tenant's evidence,
+    // buyer name and buyer address included. A read of the table says so, and the
+    // clause it is written in makes no difference to what it says.
+    const spellings = [
+      'seen.current_tenant() is not null',
+      'tenant_id = seen.current_tenant() or true',
+      'true',
+    ];
+    const unnoticed: string[] = [];
+    for (const clause of spellings) {
+      const leaked = await rolledBack(async () => {
+        await client.query(
+          `create policy leak_spelling on public.evidence for select to authenticated
              using (${clause})`,
-          );
-          return visibleTo({ [TENANT_CLAIM]: a }, b);
-        });
-        if (!Object.keys(leaked).includes('evidence')) unnoticed.push(clause);
-      }
-      expect(
-        unnoticed,
-        `${unnoticed.length} of the ${spellings.length} permissive policies on public.evidence `
-        + "that expose every tenant's evidence to every other tenant were not seen by a request "
-        + `reading the table: using (${unnoticed.join('), using (')})`,
-      ).toEqual([]);
-    });
+        );
+        return visibleTo({ [TENANT_CLAIM]: a }, b);
+      });
+      if (!Object.keys(leaked).includes('evidence')) unnoticed.push(clause);
+    }
+    expect(
+      unnoticed,
+      `${unnoticed.length} of the ${spellings.length} permissive policies on public.evidence ` +
+        "that expose every tenant's evidence to every other tenant were not seen by a request " +
+        `reading the table: using (${unnoticed.join('), using (')})`,
+    ).toEqual([]);
+  });
 
-  it('seeds a partitioned table a later migration adds, and reads it back through the parent',
-    async () => {
-      // F36. A partitioned table answers to `relkind = 'p'`, and this block read
-      // the catalogue for `relkind = 'r'` alone while the catalogue half in
-      // `schema.test.ts` had been moved onto both kinds by F29. The two families
-      // disagreed across one package, and the half that disagreed was the
-      // behavioural one: a partitioned table carrying tenant_id, row-level
-      // security and a conforming policy passed every catalogue guard and was
-      // never seeded and never read through, so the probe F29's round rested on as
-      // the real answer was the one guard that did not run on the relation kind
-      // F29 was about.
-      await rolledBack(async () => {
-        await createPartitionedProbe(TENANCY_CLAUSES[0], { withPartition: true });
+  it('seeds a partitioned table a later migration adds, and reads it back through the parent', async () => {
+    // F36. A partitioned table answers to `relkind = 'p'`, and this block read
+    // the catalogue for `relkind = 'r'` alone while the catalogue half in
+    // `schema.test.ts` had been moved onto both kinds by F29. The two families
+    // disagreed across one package, and the half that disagreed was the
+    // behavioural one: a partitioned table carrying tenant_id, row-level
+    // security and a conforming policy passed every catalogue guard and was
+    // never seeded and never read through, so the probe F29's round rested on as
+    // the real answer was the one guard that did not run on the relation kind
+    // F29 was about.
+    await rolledBack(async () => {
+      await createPartitionedProbe(TENANCY_CLAUSES[0], { withPartition: true });
 
-        // The catalogue half passes it, which is what makes this a gap rather than
-        // a relation nothing guards: tenant_id is there, row-level security is on,
-        // and the policy is one of the clauses this schema allows.
-        const { rows: catalogue } = await client.query<{
-          name: string; tenancy: boolean; enabled: boolean; clause: string | null;
-        }>(
-          `select c.relname as name, c.relrowsecurity as enabled,
+      // The catalogue half passes it, which is what makes this a gap rather than
+      // a relation nothing guards: tenant_id is there, row-level security is on,
+      // and the policy is one of the clauses this schema allows.
+      const { rows: catalogue } = await client.query<{
+        name: string;
+        tenancy: boolean;
+        enabled: boolean;
+        clause: string | null;
+      }>(
+        `select c.relname as name, c.relrowsecurity as enabled,
                   exists (select 1 from pg_catalog.pg_attribute a
                            where a.attrelid = c.oid and a.attname = 'tenant_id'
                              and not a.attisdropped) as tenancy,
@@ -1510,65 +1586,69 @@ describe('tenant isolation on every table in the public schema', () => {
              join pg_catalog.pg_namespace n on n.oid = c.relnamespace
             where n.nspname = 'public' and c.relname = any($1)
             order by c.relname`,
-          [[PARTITION_PROBE, PARTITIONED_PROBE]],
+        [[PARTITION_PROBE, PARTITIONED_PROBE]],
+      );
+      const allowed = TENANCY_CLAUSES as readonly string[];
+      expect(
+        catalogue.map((relation) => [
+          relation.name,
+          relation.tenancy,
+          relation.enabled,
+          allowed.includes(relation.clause ?? ''),
+        ]),
+        'The probe relations do not satisfy the catalogue half, so a probe that skips them ' +
+          'skips nothing and this test says nothing about the two families disagreeing: ' +
+          JSON.stringify(catalogue),
+      ).toEqual([
+        [PARTITION_PROBE, true, true, true],
+        [PARTITIONED_PROBE, true, true, true],
+      ]);
+
+      const named = (await governedRelations(client)).map((relation) => relation.name);
+      expect(
+        [PARTITIONED_PROBE, PARTITION_PROBE].filter((name) => !named.includes(name)),
+        `The ${named.length} relations this block seeds and reads through leave out a ` +
+          'partitioned table the catalogue half has just passed, so its policy is never ' +
+          'exercised by a read and nothing here would notice if it exposed every tenant',
+      ).toEqual([]);
+
+      const columns = await requiredColumns(client);
+      const keys = await mandatoryKeys(client, columns);
+      await seedRow(client, PARTITIONED_PROBE, a, 'partitioned probe A', columns, keys);
+      await seedRow(client, PARTITIONED_PROBE, b, 'partitioned probe B', columns, keys);
+
+      // Written through the parent, which is the path a policy on the parent
+      // governs and the path an application takes, and routed by Postgres into
+      // the partition, which is why both hold the row and neither was written to
+      // directly.
+      const held: Record<string, number> = {};
+      for (const relation of [PARTITIONED_PROBE, PARTITION_PROBE]) {
+        const { rows } = await client.query<{ total: string }>(
+          `select count(*) as total from public.${relation} where tenant_id = $1`,
+          [b],
         );
-        const allowed = TENANCY_CLAUSES as readonly string[];
-        expect(
-          catalogue.map((relation) => [
-            relation.name, relation.tenancy, relation.enabled,
-            allowed.includes(relation.clause ?? ''),
-          ]),
-          'The probe relations do not satisfy the catalogue half, so a probe that skips them '
-          + 'skips nothing and this test says nothing about the two families disagreeing: '
-          + JSON.stringify(catalogue),
-        ).toEqual([
-          [PARTITION_PROBE, true, true, true],
-          [PARTITIONED_PROBE, true, true, true],
-        ]);
+        held[relation] = Number(rows[0].total);
+      }
+      expect(
+        held,
+        "The session that wrote the rows reads none of tenant B's back through one of the two, " +
+          'so the cross-tenant read below would report no leak whatever the policy allowed: ' +
+          JSON.stringify(held),
+      ).toEqual({ [PARTITIONED_PROBE]: 1, [PARTITION_PROBE]: 1 });
 
-        const named = (await governedRelations(client)).map((relation) => relation.name);
-        expect(
-          [PARTITIONED_PROBE, PARTITION_PROBE].filter((name) => !named.includes(name)),
-          `The ${named.length} relations this block seeds and reads through leave out a `
-          + 'partitioned table the catalogue half has just passed, so its policy is never '
-          + 'exercised by a read and nothing here would notice if it exposed every tenant',
-        ).toEqual([]);
-
-        const columns = await requiredColumns(client);
-        const keys = await mandatoryKeys(client, columns);
-        await seedRow(client, PARTITIONED_PROBE, a, 'partitioned probe A', columns, keys);
-        await seedRow(client, PARTITIONED_PROBE, b, 'partitioned probe B', columns, keys);
-
-        // Written through the parent, which is the path a policy on the parent
-        // governs and the path an application takes, and routed by Postgres into
-        // the partition, which is why both hold the row and neither was written to
-        // directly.
-        const held: Record<string, number> = {};
-        for (const relation of [PARTITIONED_PROBE, PARTITION_PROBE]) {
-          const { rows } = await client.query<{ total: string }>(
-            `select count(*) as total from public.${relation} where tenant_id = $1`,
-            [b],
-          );
-          held[relation] = Number(rows[0].total);
-        }
-        expect(
-          held,
-          "The session that wrote the rows reads none of tenant B's back through one of the two, "
-          + 'so the cross-tenant read below would report no leak whatever the policy allowed: '
-          + JSON.stringify(held),
-        ).toEqual({ [PARTITIONED_PROBE]: 1, [PARTITION_PROBE]: 1 });
-
-        const leaked = await visibleTo(
-          { [TENANT_CLAIM]: a }, b, [PARTITIONED_PROBE, PARTITION_PROBE],
-        );
-        expect(
-          Object.keys(leaked),
-          "A request carrying tenant A's claim read rows belonging to tenant B through a "
-          + `partitioned table or its partition: ${Object.entries(leaked)
-            .map(([name, total]) => `${name} (${total})`).join(', ')}`,
-        ).toEqual([]);
-      });
+      const leaked = await visibleTo({ [TENANT_CLAIM]: a }, b, [
+        PARTITIONED_PROBE,
+        PARTITION_PROBE,
+      ]);
+      expect(
+        Object.keys(leaked),
+        "A request carrying tenant A's claim read rows belonging to tenant B through a " +
+          `partitioned table or its partition: ${Object.entries(leaked)
+            .map(([name, total]) => `${name} (${total})`)
+            .join(', ')}`,
+      ).toEqual([]);
     });
+  });
 
   it('reports a partitioned table whose policy never compares the tenant', async () => {
     // What reading through the parent is worth, measured rather than asserted, in
@@ -1587,9 +1667,9 @@ describe('tenant isolation on every table in the public schema', () => {
     });
     expect(
       Object.keys(leaked),
-      "A permissive policy on a partitioned table that hands every tenant's rows to every other "
-      + `tenant was reported by ${Object.keys(leaked).length} of the two relations a request can `
-      + 'read it through, so this block would pass over the relation kind F29 was about',
+      "A permissive policy on a partitioned table that hands every tenant's rows to every other " +
+        `tenant was reported by ${Object.keys(leaked).length} of the two relations a request can ` +
+        'read it through, so this block would pass over the relation kind F29 was about',
     ).toEqual([PARTITIONED_PROBE, PARTITION_PROBE]);
   });
 
@@ -1608,8 +1688,9 @@ describe('tenant isolation on every table in the public schema', () => {
     // emptiness guard can name it instead of passing over it.
     const { classification, refusal } = await rolledBack(async () => {
       await createPartitionedProbe(TENANCY_CLAUSES[0], { withPartition: false });
-      const parent = (await governedRelations(client))
-        .find((relation) => relation.name === PARTITIONED_PROBE);
+      const parent = (await governedRelations(client)).find(
+        (relation) => relation.name === PARTITIONED_PROBE,
+      );
       const columns = await requiredColumns(client);
       const keys = await mandatoryKeys(client, columns);
       let said = 'accepted';
@@ -1625,14 +1706,14 @@ describe('tenant isolation on every table in the public schema', () => {
     });
     expect(
       classification,
-      'A partitioned table with no partition under it is not classified as one no row can be '
-      + 'written to, so the emptiness guard has nothing to name it by: '
-      + JSON.stringify(classification),
+      'A partitioned table with no partition under it is not classified as one no row can be ' +
+        'written to, so the emptiness guard has nothing to name it by: ' +
+        JSON.stringify(classification),
     ).toBe(true);
     expect(
       refusal,
-      'Postgres did not refuse the row for want of a partition, so the classification above '
-      + `rests on something the database does not say: ${refusal}`,
+      'Postgres did not refuse the row for want of a partition, so the classification above ' +
+        `rests on something the database does not say: ${refusal}`,
     ).toMatch(/no partition of relation/);
   });
 
@@ -1680,8 +1761,8 @@ describe('tenant isolation on every table in the public schema', () => {
         partitionYearAround(new Date('2026-12-31T23:59:59.999Z')),
         partitionYearAround(new Date('2027-01-01T00:00:00.000Z')),
       ],
-      'The range derived for an instant at the edge of a year is not the year that instant falls '
-      + 'in, so a seeded value near a boundary would be routed into no partition at all',
+      'The range derived for an instant at the edge of a year is not the year that instant falls ' +
+        'in, so a seeded value near a boundary would be routed into no partition at all',
     ).toEqual([
       { from: '2026-01-01T00:00:00+00', to: '2027-01-01T00:00:00+00' },
       { from: '2026-01-01T00:00:00+00', to: '2027-01-01T00:00:00+00' },
@@ -1697,7 +1778,9 @@ describe('tenant isolation on every table in the public schema', () => {
     // still runs on its own with nothing advancing a clock for it.
     vi.useFakeTimers({ toFake: ['Date'] });
     try {
-      await new Promise((resume) => { setTimeout(resume, 5); });
+      await new Promise((resume) => {
+        setTimeout(resume, 5);
+      });
       for (const clock of FOREIGN_CLOCKS) {
         vi.setSystemTime(new Date(clock));
         measured[clock] = await rolledBack(async () => {
@@ -1740,17 +1823,22 @@ describe('tenant isolation on every table in the public schema', () => {
     }
     expect(
       measured,
-      'The partitioned probe does not seed under every clock, so the three tests above pass on '
-      + 'the date they happen to be run on rather than on anything this schema does: '
-      + JSON.stringify(measured, null, 2),
-    ).toEqual(Object.fromEntries(FOREIGN_CLOCKS.map((clock) => [
-      clock, { said: 'accepted', [PARTITIONED_PROBE]: 1, [PARTITION_PROBE]: 1 },
-    ])));
+      'The partitioned probe does not seed under every clock, so the three tests above pass on ' +
+        'the date they happen to be run on rather than on anything this schema does: ' +
+        JSON.stringify(measured, null, 2),
+    ).toEqual(
+      Object.fromEntries(
+        FOREIGN_CLOCKS.map((clock) => [
+          clock,
+          { said: 'accepted', [PARTITIONED_PROBE]: 1, [PARTITION_PROBE]: 1 },
+        ]),
+      ),
+    );
     expect(
       [...new Set(stored)],
-      'The four runs wrote four different instants, so the value the fixture seeds is still a '
-      + 'reading of the clock and the range that covers it today is a range that will stop '
-      + `covering it: ${stored.join(', ')}`,
+      'The four runs wrote four different instants, so the value the fixture seeds is still a ' +
+        'reading of the clock and the range that covers it today is a range that will stop ' +
+        `covering it: ${stored.join(', ')}`,
     ).toHaveLength(1);
   });
 });
@@ -1818,9 +1906,9 @@ describe('a tenant id moved by an update of the catalogue it is not the identity
     const missing = await absent(client, ['tenants', 'marketplaces', 'connections']);
     if (missing.length > 0) {
       throw new Error(
-        'This test cannot say anything about whose rows an update of the catalogue moves: '
-        + `${missing.join(', ')} ${missing.length === 1 ? 'does' : 'do'} not exist in the public `
-        + 'schema. Apply the migrations with `pnpm db:reset`.',
+        'This test cannot say anything about whose rows an update of the catalogue moves: ' +
+          `${missing.join(', ')} ${missing.length === 1 ? 'does' : 'do'} not exist in the public ` +
+          'schema. Apply the migrations with `pnpm db:reset`.',
       );
     }
   });
@@ -1831,21 +1919,27 @@ describe('a tenant id moved by an update of the catalogue it is not the identity
 
   it("does not move another tenant's connection and its credential reference", async () => {
     const measured = await rolledBack(async () => {
-      const a = (await client.query<{ tenant_id: string }>(
-        "insert into public.tenants (name) values ('Tenant catalogue A') returning tenant_id",
-      )).rows[0].tenant_id;
-      const b = (await client.query<{ tenant_id: string }>(
-        "insert into public.tenants (name) values ('Tenant catalogue B') returning tenant_id",
-      )).rows[0].tenant_id;
+      const a = (
+        await client.query<{ tenant_id: string }>(
+          "insert into public.tenants (name) values ('Tenant catalogue A') returning tenant_id",
+        )
+      ).rows[0].tenant_id;
+      const b = (
+        await client.query<{ tenant_id: string }>(
+          "insert into public.tenants (name) values ('Tenant catalogue B') returning tenant_id",
+        )
+      ).rows[0].tenant_id;
       await client.query(
         `insert into public.connections (tenant_id, marketplace, country, status, credential_ref)
          values ($1, 'bol', 'NL', 'active', 'a-secret-name-this-test-never-resolves')`,
         [a],
       );
-      const answer = await said(() => client.query(
-        'update public.marketplaces set tenant_id = $1 where tenant_id = $2 and marketplace = $3',
-        [b, a, 'bol'],
-      ));
+      const answer = await said(() =>
+        client.query(
+          'update public.marketplaces set tenant_id = $1 where tenant_id = $2 and marketplace = $3',
+          [b, a, 'bol'],
+        ),
+      );
       const { rows } = await client.query<{ tenant_id: string }>(
         'select tenant_id from public.connections where credential_ref = $1',
         ['a-secret-name-this-test-never-resolves'],
@@ -1854,13 +1948,13 @@ describe('a tenant id moved by an update of the catalogue it is not the identity
     });
     expect(
       measured,
-      `Moving a catalogue row from one tenant to another answered ${measured.answer}, and the `
-      + `connection that holds the credential reference ${measured.connectionBelongsToTheTenantThatMadeIt ? 'stayed with' : 'left'} `
-      + 'the tenant that made it. A tenant id is an identity and not a value, which part 8 '
-      + 'settled for public.tenants; the catalogue is the one other place an update of a '
-      + "tenant_id rewrites another table's rows, and it does so through a referential action "
-      + 'that passes no policy and fires no trigger. A refusal (23001) is what keeps the '
-      + 'credential pointer of one seller account inside the tenant that owns it',
+      `Moving a catalogue row from one tenant to another answered ${measured.answer}, and the ` +
+        `connection that holds the credential reference ${measured.connectionBelongsToTheTenantThatMadeIt ? 'stayed with' : 'left'} ` +
+        'the tenant that made it. A tenant id is an identity and not a value, which part 8 ' +
+        'settled for public.tenants; the catalogue is the one other place an update of a ' +
+        "tenant_id rewrites another table's rows, and it does so through a referential action " +
+        'that passes no policy and fires no trigger. A refusal (23001) is what keeps the ' +
+        'credential pointer of one seller account inside the tenant that owns it',
     ).toEqual({ answer: '23001', connectionBelongsToTheTenantThatMadeIt: true });
   });
 });
@@ -2051,12 +2145,14 @@ describe('every identifier this schema authors, and whether an update can move o
     exempted: readonly MutableIdentifier[],
   ): { probed: AuthoredIdentifier[]; tablesWithNoTenancyMember: string[] } {
     return {
-      probed: derivation.filter((member) => !exempted.some(
-        (exception) => exception.column === `${member.relation}.${member.column}`,
-      )),
-      tablesWithNoTenancyMember: tables.filter((table) => !derivation.some(
-        (member) => member.relation === table && member.basis === 'tenancy',
-      )),
+      probed: derivation.filter(
+        (member) =>
+          !exempted.some((exception) => exception.column === `${member.relation}.${member.column}`),
+      ),
+      tablesWithNoTenancyMember: tables.filter(
+        (table) =>
+          !derivation.some((member) => member.relation === table && member.basis === 'tenancy'),
+      ),
     };
   }
 
@@ -2088,31 +2184,36 @@ describe('every identifier this schema authors, and whether an update can move o
    * around it do.
    */
   function chosenForTheExemptionProbe(
-    loopMade: readonly LoopMadeTrigger[], probed: readonly AuthoredIdentifier[],
+    loopMade: readonly LoopMadeTrigger[],
+    probed: readonly AuthoredIdentifier[],
   ): LoopMadeTrigger {
     if (loopMade.length === 0) {
       throw new Error(
-        'No trigger in schema public was created by the loop in part 9, so exempting a member '
-        + 'from it would prove nothing about what an entry in seen.mutable_identifiers() buys. '
-        + 'Either the loop created none, which the migration raises on, or its naming changed.',
+        'No trigger in schema public was created by the loop in part 9, so exempting a member ' +
+          'from it would prove nothing about what an entry in seen.mutable_identifiers() buys. ' +
+          'Either the loop created none, which the migration raises on, or its naming changed.',
       );
     }
-    const chosen = loopMade.find((row) => probed.some(
-      (member) => member.relation === row.relation && member.column === row.column
-        && member.basis === 'authored identifier',
-    ));
+    const chosen = loopMade.find((row) =>
+      probed.some(
+        (member) =>
+          member.relation === row.relation &&
+          member.column === row.column &&
+          member.basis === 'authored identifier',
+      ),
+    );
     if (chosen === undefined) {
       throw new Error(
-        'No trigger the loop in part 9 made sits on a member of the authored identifier rule, so '
-        + 'there is no column here an exemption could make mutable and nothing to measure what an '
-        + `entry in seen.mutable_identifiers() buys. The loop made ${loopMade.length} trigger`
-        + `${loopMade.length === 1 ? '' : 's'}, on `
-        + `${loopMade.map((row) => `${row.relation}.${row.column}`).join(', ')}, and the set `
-        + 'probed holds none of them as an authored identifier. Falling back to any of those is '
-        + 'falling back to a tenant_id, whose update a mandatory parent key refuses 23503 whether '
-        + 'the trigger stands or not, so the probe would report the exemption list for what this '
-        + 'fixture chose. Give it a column keyed at a catalogue that the loop guards, or say here '
-        + 'why there is no longer one.',
+        'No trigger the loop in part 9 made sits on a member of the authored identifier rule, so ' +
+          'there is no column here an exemption could make mutable and nothing to measure what an ' +
+          `entry in seen.mutable_identifiers() buys. The loop made ${loopMade.length} trigger` +
+          `${loopMade.length === 1 ? '' : 's'}, on ` +
+          `${loopMade.map((row) => `${row.relation}.${row.column}`).join(', ')}, and the set ` +
+          'probed holds none of them as an authored identifier. Falling back to any of those is ' +
+          'falling back to a tenant_id, whose update a mandatory parent key refuses 23503 whether ' +
+          'the trigger stands or not, so the probe would report the exemption list for what this ' +
+          'fixture chose. Give it a column keyed at a catalogue that the loop guards, or say here ' +
+          'why there is no longer one.',
       );
     }
     return chosen;
@@ -2175,13 +2276,15 @@ describe('every identifier this schema authors, and whether an update can move o
    */
   async function tenantSeeded(label: string, tables: readonly string[]): Promise<string> {
     const created = await client.query<{ tenant_id: string }>(
-      'insert into public.tenants (name) values ($1) returning tenant_id', [label],
+      'insert into public.tenants (name) values ($1) returning tenant_id',
+      [label],
     );
     const tenant = created.rows[0].tenant_id;
     for (const table of tables) {
       if (table === 'tenants') continue;
       const already = await client.query(
-        `select 1 from public.${table} where tenant_id = $1 limit 1`, [tenant],
+        `select 1 from public.${table} where tenant_id = $1 limit 1`,
+        [tenant],
       );
       if ((already.rowCount ?? 0) > 0) continue;
       await seedRow(client, table, tenant, label, required, mandatory);
@@ -2200,13 +2303,16 @@ describe('every identifier this schema authors, and whether an update can move o
    * measurement the same on two runs.
    */
   async function currentValueOf(
-    member: AuthoredIdentifier, tenant: string,
+    member: AuthoredIdentifier,
+    tenant: string,
   ): Promise<string | undefined> {
     if (member.basis === 'tenancy') return tenant;
-    const holders = member.relation === member.catalogue
-      ? members.filter((other) => other.catalogue === member.catalogue
-        && other.relation !== member.catalogue)
-      : [member];
+    const holders =
+      member.relation === member.catalogue
+        ? members.filter(
+            (other) => other.catalogue === member.catalogue && other.relation !== member.catalogue,
+          )
+        : [member];
     for (const holder of holders.concat(member)) {
       const { rows } = await client.query<{ value: string }>(
         `select ${holder.column} as value from public.${holder.relation}
@@ -2241,13 +2347,19 @@ describe('every identifier this schema authors, and whether an update can move o
    * a spelling the catalogue does not hold, which is the rename part 9 refuses.
    */
   async function nextValueFor(
-    member: AuthoredIdentifier, tenant: string, current: string,
+    member: AuthoredIdentifier,
+    tenant: string,
+    current: string,
   ): Promise<string> {
     if (member.basis === 'tenancy') {
       if (member.relation === 'tenants') return randomUUID();
-      const target = await tenantSeeded(`Tenant an update of ${member.relation} would move a row into`, []);
+      const target = await tenantSeeded(
+        `Tenant an update of ${member.relation} would move a row into`,
+        [],
+      );
       const held = await client.query(
-        `select 1 from public.${member.relation} where tenant_id = $1 limit 1`, [target],
+        `select 1 from public.${member.relation} where tenant_id = $1 limit 1`,
+        [target],
       );
       if ((held.rowCount ?? 0) > 0) {
         await client.query(`delete from public.${member.relation} where tenant_id = $1`, [target]);
@@ -2262,9 +2374,9 @@ describe('every identifier this schema authors, and whether an update can move o
     );
     if (rows.length === 0) {
       throw new Error(
-        `The catalogue public.${member.catalogue} holds one value for this tenant, so there is `
-        + `nothing for public.${member.relation}.${member.column} to be changed to and the probe `
-        + 'would measure the catalogue rather than the column.',
+        `The catalogue public.${member.catalogue} holds one value for this tenant, so there is ` +
+          `nothing for public.${member.relation}.${member.column} to be changed to and the probe ` +
+          'would measure the catalogue rather than the column.',
       );
     }
     return rows[0].value;
@@ -2277,11 +2389,13 @@ describe('every identifier this schema authors, and whether an update can move o
     const current = await currentValueOf(member, tenant);
     if (current === undefined) return 'no row to probe';
     const next = await nextValueFor(member, tenant, current);
-    return said(() => client.query(
-      `update public.${member.relation} set ${member.column} = $1
+    return said(() =>
+      client.query(
+        `update public.${member.relation} set ${member.column} = $1
         where tenant_id = $2 and ${member.column} is not distinct from $3`,
-      [next, tenant, current],
-    ));
+        [next, tenant, current],
+      ),
+    );
   }
 
   beforeAll(async () => {
@@ -2289,21 +2403,21 @@ describe('every identifier this schema authors, and whether an update can move o
     const relations = await governedRelations(client);
     if (relations.length === 0) {
       throw new Error(
-        'There is not one table in the public schema, so nothing here says anything about which '
-        + 'identifiers an update can move. Apply the migrations with `pnpm db:reset`.',
+        'There is not one table in the public schema, so nothing here says anything about which ' +
+          'identifiers an update can move. Apply the migrations with `pnpm db:reset`.',
       );
     }
     required = await requiredColumns(client);
     mandatory = await mandatoryKeys(client, required);
-    writable = seedOrder(relations.map((relation) => relation.name), mandatory)
-      .filter((table) => {
-        const relation = relations.find((entry) => entry.name === table);
-        return relation !== undefined && relation.partitionOf === null && !relation.partitionless;
-      });
+    writable = seedOrder(
+      relations.map((relation) => relation.name),
+      mandatory,
+    ).filter((table) => {
+      const relation = relations.find((entry) => entry.name === table);
+      return relation !== undefined && relation.partitionOf === null && !relation.partitionless;
+    });
     derived = await authoredIdentifiers(client);
-    members = derivationAsMeasured(
-      writable, derived, IMMUTABLE_IDENTIFIER_EXCEPTIONS,
-    ).probed;
+    members = derivationAsMeasured(writable, derived, IMMUTABLE_IDENTIFIER_EXCEPTIONS).probed;
   });
 
   afterAll(async () => {
@@ -2316,7 +2430,8 @@ describe('every identifier this schema authors, and whether an update can move o
       const measured: Record<string, { idle: string; trading: string }> = {};
       for (const member of members) {
         const idle = await tenantSeeded(
-          `Tenant with nothing under its ${member.relation}`, chainTo(member.relation),
+          `Tenant with nothing under its ${member.relation}`,
+          chainTo(member.relation),
         );
         measured[`${member.relation}.${member.column}`] = {
           idle: await probe(member, idle),
@@ -2326,32 +2441,39 @@ describe('every identifier this schema authors, and whether an update can move o
       return measured;
     });
     const named = (pick: (answer: { idle: string; trading: string }) => boolean): string[] =>
-      Object.entries(answers).filter(([, answer]) => pick(answer))
+      Object.entries(answers)
+        .filter(([, answer]) => pick(answer))
         .map(([column, answer]) => `${column} (idle ${answer.idle}, trading ${answer.trading})`);
     const measured = {
       moved: named((answer) => answer.idle === 'accepted' || answer.trading === 'accepted'),
       answeringTwoWays: named((answer) => answer.idle !== answer.trading),
-      unprobed: named((answer) => answer.idle === 'no row to probe'
-        || answer.trading === 'no row to probe'),
+      unprobed: named(
+        (answer) => answer.idle === 'no row to probe' || answer.trading === 'no row to probe',
+      ),
       tablesWithNoTenancyMember: derivationAsMeasured(
-        writable, derived, IMMUTABLE_IDENTIFIER_EXCEPTIONS,
+        writable,
+        derived,
+        IMMUTABLE_IDENTIFIER_EXCEPTIONS,
       ).tablesWithNoTenancyMember,
     };
     expect(
       measured,
-      'Every column this schema authors the value of has to refuse an update that changes it, '
-      + 'and has to refuse it the same way whether or not a row hangs below: a tenant id is an '
-      + 'identity and not a value, and a marketplace identifier routes the connector, the '
-      + 'credentials beside it and the rail a claim was filed on. What one update moved: '
-      + `${measured.moved.join('; ') || 'nothing'}. What answered one way on an idle row and `
-      + `another on a trading one: ${measured.answeringTwoWays.join('; ') || 'nothing'}. What no `
-      + `row was written for, so nothing was measured: ${measured.unprobed.join('; ') || 'nothing'}. `
-      + 'Tables carrying a tenant_id the derived set did not reach: '
-      + `${measured.tablesWithNoTenancyMember.join(', ') || 'none'}. The set is derived from `
-      + 'pg_catalog and the exceptions are named in IMMUTABLE_IDENTIFIER_EXCEPTIONS, which holds '
-      + `${IMMUTABLE_IDENTIFIER_EXCEPTIONS.length === 0 ? 'nothing' : IMMUTABLE_IDENTIFIER_EXCEPTIONS.map((entry) => `${entry.column}, because ${entry.reason}`).join('; ')}`,
+      'Every column this schema authors the value of has to refuse an update that changes it, ' +
+        'and has to refuse it the same way whether or not a row hangs below: a tenant id is an ' +
+        'identity and not a value, and a marketplace identifier routes the connector, the ' +
+        'credentials beside it and the rail a claim was filed on. What one update moved: ' +
+        `${measured.moved.join('; ') || 'nothing'}. What answered one way on an idle row and ` +
+        `another on a trading one: ${measured.answeringTwoWays.join('; ') || 'nothing'}. What no ` +
+        `row was written for, so nothing was measured: ${measured.unprobed.join('; ') || 'nothing'}. ` +
+        'Tables carrying a tenant_id the derived set did not reach: ' +
+        `${measured.tablesWithNoTenancyMember.join(', ') || 'none'}. The set is derived from ` +
+        'pg_catalog and the exceptions are named in IMMUTABLE_IDENTIFIER_EXCEPTIONS, which holds ' +
+        `${IMMUTABLE_IDENTIFIER_EXCEPTIONS.length === 0 ? 'nothing' : IMMUTABLE_IDENTIFIER_EXCEPTIONS.map((entry) => `${entry.column}, because ${entry.reason}`).join('; ')}`,
     ).toEqual({
-      moved: [], answeringTwoWays: [], unprobed: [], tablesWithNoTenancyMember: [],
+      moved: [],
+      answeringTwoWays: [],
+      unprobed: [],
+      tablesWithNoTenancyMember: [],
     });
   });
 
@@ -2370,8 +2492,8 @@ describe('every identifier this schema authors, and whether an update can move o
     );
     if (aTenancyMember === undefined) {
       throw new Error(
-        'No member of the derived set is a tenant_id on a writable table, so there is nothing an '
-        + 'exemption could be probed on here and nothing for the assertion above to reach.',
+        'No member of the derived set is a tenant_id on a writable table, so there is nothing an ' +
+          'exemption could be probed on here and nothing for the assertion above to reach.',
       );
     }
     const exempted = `${aTenancyMember.relation}.${aTenancyMember.column}`;
@@ -2382,26 +2504,29 @@ describe('every identifier this schema authors, and whether an update can move o
     // rather than passing because it cannot report anything at all.
     const neverReached = 'a_table_the_two_rules_never_reached';
     const withOneMissed = derivationAsMeasured(
-      [...writable, neverReached], derived, IMMUTABLE_IDENTIFIER_EXCEPTIONS,
+      [...writable, neverReached],
+      derived,
+      IMMUTABLE_IDENTIFIER_EXCEPTIONS,
     );
     const measured = {
       reportedUnderAnExemption: underAnExemption.tablesWithNoTenancyMember,
-      stillProbedUnderTheExemption: underAnExemption.probed
-        .some((member) => `${member.relation}.${member.column}` === exempted),
+      stillProbedUnderTheExemption: underAnExemption.probed.some(
+        (member) => `${member.relation}.${member.column}` === exempted,
+      ),
       reportedWhenARuleMissedATable: withOneMissed.tablesWithNoTenancyMember,
     };
     expect(
       measured,
-      `With ${exempted} named in seen.mutable_identifiers() and mirrored in `
-      + 'IMMUTABLE_IDENTIFIER_EXCEPTIONS, which is the whole of the three edits that constant '
-      + 'states the cost of an exemption to be, this file stops probing the column and goes on '
-      + 'saying that the two rules reached its table: an exemption is a decision about what may '
-      + 'move and not a failure of the rules to reach it, and a message that calls it a hole in '
-      + 'the rules sends the author to look in the wrong place (F87). What was reported under '
-      + `the exemption: ${measured.reportedUnderAnExemption.join(', ') || 'nothing'}, and the `
-      + `column is ${measured.stillProbedUnderTheExemption ? 'still probed' : 'no longer probed'}. `
-      + 'And a writable table the two rules never reached has to be reported, or this assertion '
-      + `proves nothing: it reported ${measured.reportedWhenARuleMissedATable.join(', ') || 'nothing'}`,
+      `With ${exempted} named in seen.mutable_identifiers() and mirrored in ` +
+        'IMMUTABLE_IDENTIFIER_EXCEPTIONS, which is the whole of the three edits that constant ' +
+        'states the cost of an exemption to be, this file stops probing the column and goes on ' +
+        'saying that the two rules reached its table: an exemption is a decision about what may ' +
+        'move and not a failure of the rules to reach it, and a message that calls it a hole in ' +
+        'the rules sends the author to look in the wrong place (F87). What was reported under ' +
+        `the exemption: ${measured.reportedUnderAnExemption.join(', ') || 'nothing'}, and the ` +
+        `column is ${measured.stillProbedUnderTheExemption ? 'still probed' : 'no longer probed'}. ` +
+        'And a writable table the two rules never reached has to be reported, or this assertion ' +
+        `proves nothing: it reported ${measured.reportedWhenARuleMissedATable.join(', ') || 'nothing'}`,
     ).toEqual({
       reportedUnderAnExemption: [],
       stillProbedUnderTheExemption: false,
@@ -2425,24 +2550,35 @@ describe('every identifier this schema authors, and whether an update can move o
       { relation: 'agent_actions', column: 'tenant_id', trigger: 'immutable_tenant_id' },
       { relation: 'claims', column: 'marketplace', trigger: 'immutable_marketplace' },
     ];
-    const tenancyOnly: AuthoredIdentifier[] = [{
-      relation: 'agent_actions', column: 'tenant_id', basis: 'tenancy',
-      catalogue: null, catalogueColumn: null,
-    }];
-    const bothKinds: AuthoredIdentifier[] = [...tenancyOnly, {
-      relation: 'claims', column: 'marketplace', basis: 'authored identifier',
-      catalogue: 'marketplaces', catalogueColumn: 'marketplace',
-    }];
+    const tenancyOnly: AuthoredIdentifier[] = [
+      {
+        relation: 'agent_actions',
+        column: 'tenant_id',
+        basis: 'tenancy',
+        catalogue: null,
+        catalogueColumn: null,
+      },
+    ];
+    const bothKinds: AuthoredIdentifier[] = [
+      ...tenancyOnly,
+      {
+        relation: 'claims',
+        column: 'marketplace',
+        basis: 'authored identifier',
+        catalogue: 'marketplaces',
+        catalogueColumn: 'marketplace',
+      },
+    ];
     expect(
       chosenForTheExemptionProbe(loopMade, bothKinds),
-      'Where a loop-made trigger sits on a member of the authored identifier rule, that is the '
-      + 'member the exemption probe measures, and the tenancy member beside it is not.',
+      'Where a loop-made trigger sits on a member of the authored identifier rule, that is the ' +
+        'member the exemption probe measures, and the tenancy member beside it is not.',
     ).toEqual(loopMade[1]);
     expect(
       () => chosenForTheExemptionProbe(loopMade, tenancyOnly),
-      'With no loop-made trigger on a member of the authored identifier rule, there is nothing '
-      + 'here an exemption could make mutable, and the probe has to say that rather than fall '
-      + 'back to a tenant_id and report the exemption list for what the fixture chose (F88).',
+      'With no loop-made trigger on a member of the authored identifier rule, there is nothing ' +
+        'here an exemption could make mutable, and the probe has to say that rather than fall ' +
+        'back to a tenant_id and report the exemption list for what the fixture chose (F88).',
     ).toThrowError(/authored identifier rule/);
   });
 
@@ -2462,14 +2598,17 @@ describe('every identifier this schema authors, and whether an update can move o
     );
     expect(
       honoured.map((row) => ({ column: row.column, reason: row.reason })),
-      'The list the schema honours is seen.mutable_identifiers(), read by the loop that creates '
-      + 'the triggers, and IMMUTABLE_IDENTIFIER_EXCEPTIONS is its mirror. A member exempted in '
-      + 'one and not the other is either a column this file stops probing while the trigger still '
-      + 'refuses the update, which is F85, or a column the schema lets move with nothing here '
-      + 'saying so',
-    ).toEqual(IMMUTABLE_IDENTIFIER_EXCEPTIONS.map(
-      (entry) => ({ column: entry.column, reason: entry.reason }),
-    ));
+      'The list the schema honours is seen.mutable_identifiers(), read by the loop that creates ' +
+        'the triggers, and IMMUTABLE_IDENTIFIER_EXCEPTIONS is its mirror. A member exempted in ' +
+        'one and not the other is either a column this file stops probing while the trigger still ' +
+        'refuses the update, which is F85, or a column the schema lets move with nothing here ' +
+        'saying so',
+    ).toEqual(
+      IMMUTABLE_IDENTIFIER_EXCEPTIONS.map((entry) => ({
+        column: entry.column,
+        reason: entry.reason,
+      })),
+    );
 
     // Both lists are empty, so the equality above holds over a schema that honours
     // nothing at all. What an entry buys is measured instead, which is the whole of
@@ -2480,7 +2619,9 @@ describe('every identifier this schema authors, and whether an update can move o
     // list empty again, because a loop that had stopped creating triggers altogether
     // would pass the first half of that and nothing else here would notice.
     const { rows: loopMade } = await client.query<{
-      relation: string; column: string; trigger: string;
+      relation: string;
+      column: string;
+      trigger: string;
     }>(
       `select c.relname::text as relation,
               pg_catalog.substr(t.tgname, 11) as column, t.tgname as trigger
@@ -2498,9 +2639,9 @@ describe('every identifier this schema authors, and whether an update can move o
     );
     if (member === undefined) {
       throw new Error(
-        `The loop guards public.${chosen.relation}.${chosen.column} and the set derived here does `
-        + 'not hold it, so the two rules are not the same two rules and this probe would measure '
-        + 'a column the loop and this file disagree about.',
+        `The loop guards public.${chosen.relation}.${chosen.column} and the set derived here does ` +
+          'not hold it, so the two rules are not the same two rules and this probe would measure ' +
+          'a column the loop and this file disagree about.',
       );
     }
 
@@ -2518,10 +2659,16 @@ describe('every identifier this schema authors, and whether an update can move o
     /** `seen.mutable_identifiers()` replaced by a list, inside the open transaction,
      * so the migration's own definition comes back on the rollback. */
     const exempting = async (entries: readonly string[]): Promise<void> => {
-      const values = entries.length === 0
-        ? "(null::text, null::text, null::text)"
-        : entries.map((entry) => `('${entry.split('.')[0]}', '${entry.split('.')[1]}', `
-          + "'a probe in rls.test.ts, rolled back')").join(', ');
+      const values =
+        entries.length === 0
+          ? '(null::text, null::text, null::text)'
+          : entries
+              .map(
+                (entry) =>
+                  `('${entry.split('.')[0]}', '${entry.split('.')[1]}', ` +
+                  "'a probe in rls.test.ts, rolled back')",
+              )
+              .join(', ');
       await client.query(
         `create or replace function seen.mutable_identifiers()
            returns table (relation text, column_name text, reason text)
@@ -2534,19 +2681,28 @@ describe('every identifier this schema authors, and whether an update can move o
     };
 
     await client.query('begin');
-    let entryBuys;
+    // Annotated because the value is built inside the try and read after it, and
+    // biome/noImplicitAnyLet refuses an evolving any that the compiler's
+    // noImplicitAny permits (SEEN-114).
+    let entryBuys: {
+      theColumnProbed: string;
+      refusedAsShipped: boolean;
+      theLoopStillWalkedIt: boolean;
+      putBackDespiteTheEntry: boolean;
+      acceptedWithTheEntry: boolean;
+      putBackWithTheEntryGone: boolean;
+    };
     try {
       await client.query('set local role service_role');
       const tenant = await tenantSeeded(
-        `Tenant whose ${chosen.relation} an exemption would let move`, chainTo(chosen.relation),
+        `Tenant whose ${chosen.relation} an exemption would let move`,
+        chainTo(chosen.relation),
       );
       const asShipped = await probe(member, tenant);
 
       await client.query('reset role');
       await exempting([`${chosen.relation}.${chosen.column}`]);
-      await client.query(
-        `drop trigger ${chosen.trigger} on public.${chosen.relation}`,
-      );
+      await client.query(`drop trigger ${chosen.trigger} on public.${chosen.relation}`);
       const { rows: walked } = await client.query<{ members: string[] }>(
         'select seen.guard_authored_identifiers() as members',
       );
@@ -2576,15 +2732,15 @@ describe('every identifier this schema authors, and whether an update can move o
     }
     expect(
       entryBuys,
-      `Measured on public.${chosen.relation}.${chosen.column}, which the loop guards with `
-      + `${chosen.trigger}: the update answered ${entryBuys.refusedAsShipped ? 'a refusal' : 'accepted'} `
-      + 'as the schema ships, and with the column named in seen.mutable_identifiers() and the '
-      + `trigger dropped it answered ${entryBuys.acceptedWithTheEntry ? 'accepted' : 'a refusal'}. `
-      + 'An entry in that list has to take the refusal off in production and not merely take the '
-      + 'column out of this file\'s measurement, which is F85; the loop still has to walk the '
-      + 'column, so that it is reported rather than invisible; and with the list empty again the '
-      + 'loop has to put the trigger back, because otherwise a loop that created nothing at all '
-      + 'would satisfy every line above',
+      `Measured on public.${chosen.relation}.${chosen.column}, which the loop guards with ` +
+        `${chosen.trigger}: the update answered ${entryBuys.refusedAsShipped ? 'a refusal' : 'accepted'} ` +
+        'as the schema ships, and with the column named in seen.mutable_identifiers() and the ' +
+        `trigger dropped it answered ${entryBuys.acceptedWithTheEntry ? 'accepted' : 'a refusal'}. ` +
+        'An entry in that list has to take the refusal off in production and not merely take the ' +
+        "column out of this file's measurement, which is F85; the loop still has to walk the " +
+        'column, so that it is reported rather than invisible; and with the list empty again the ' +
+        'loop has to put the trigger back, because otherwise a loop that created nothing at all ' +
+        'would satisfy every line above',
     ).toEqual({
       theColumnProbed: `${chosen.relation}.${chosen.column}`,
       refusedAsShipped: true,

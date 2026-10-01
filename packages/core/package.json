@@ -18,7 +18,7 @@
     "test": "vitest run",
     "test:unit": "vitest run --dir src",
     "test:db": "vitest run --dir db",
-    "lint": "eslint src db",
+    "lint": "biome check src db",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "devDependencies": {

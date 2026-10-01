@@ -22,14 +22,7 @@
  */
 
 /** The identifier every table in the trade record carries in its `marketplace` column. */
-export const MARKETPLACE_IDS = [
-  'amazon',
-  'bol',
-  'ebay',
-  'kaufland',
-  'otto',
-  'shopify',
-] as const;
+export const MARKETPLACE_IDS = ['amazon', 'bol', 'ebay', 'kaufland', 'otto', 'shopify'] as const;
 
 export type MarketplaceId = (typeof MARKETPLACE_IDS)[number];
 
@@ -91,7 +84,12 @@ export type RoutingMatrix = Record<MarketplaceId, Record<CapabilityKey, Capabili
 
 // Longest first, so `none found` is not read as `none` with a detail of `found`.
 const MODE_PREFIXES: readonly CapabilityMode[] = [
-  'none found', 'none', 'assisted', 'api', 'code', 'n/a',
+  'none found',
+  'none',
+  'assisted',
+  'api',
+  'code',
+  'n/a',
 ];
 
 /**
@@ -134,8 +132,9 @@ const EXCEPTIONS: Record<string, CapabilityMode> = {
  * go on being read.
  */
 const RUNS_INTO_ANOTHER_MODE = new RegExp(
-  String.raw`^(?:(?:by|via|through|as)\s+)?(?:${
-    CAPABILITY_MODES.map((mode) => mode.replace('/', '\\/')).join('|')})\b`,
+  String.raw`^(?:(?:by|via|through|as)\s+)?(?:${CAPABILITY_MODES.map((mode) =>
+    mode.replace('/', '\\/'),
+  ).join('|')})\b`,
   'i',
 );
 
@@ -161,33 +160,32 @@ export function parseCapabilityCell(cell: string): Capability {
   // the only place a cell carrying two modes is ever answered.
 
   const mode = MODE_PREFIXES.find(
-    (candidate) => lower === candidate
-      || lower.startsWith(`${candidate} `)
-      || lower.startsWith(`${candidate}(`),
+    (candidate) =>
+      lower === candidate || lower.startsWith(`${candidate} `) || lower.startsWith(`${candidate}(`),
   );
   if (mode === undefined) {
     throw new Error(
-      `The routing table cell "${text}" begins with none of the capability modes `
-      + `(${CAPABILITY_MODES.join(', ')}) and is not one of the exceptions this parser names. `
-      + 'Whoever added it has to say which mode it is in packages/core/db/marketplaces.ts, '
-      + 'because the claims rail routes on the mode and cannot route on a sentence.',
+      `The routing table cell "${text}" begins with none of the capability modes ` +
+        `(${CAPABILITY_MODES.join(', ')}) and is not one of the exceptions this parser names. ` +
+        'Whoever added it has to say which mode it is in packages/core/db/marketplaces.ts, ' +
+        'because the claims rail routes on the mode and cannot route on a sentence.',
     );
   }
 
   const rest = text.slice(mode.length).trim();
   if (RUNS_INTO_ANOTHER_MODE.test(rest)) {
     throw new Error(
-      `The routing table cell "${text}" reads as "${mode}" followed by another of the capability `
-      + `modes (${CAPABILITY_MODES.join(', ')}), and no rule says which of the two the `
-      + 'catalogue should store. Whoever wrote it has to answer it by hand in '
-      + 'packages/core/db/marketplaces.ts, because the claims rail routes on the difference '
-      + 'between assisted and none and cannot route on a sentence. SEEN-008 recorded this as '
-      + 'F58, where `none by API (assisted via inbox)` was stored as `none`, which the table\'s '
-      + 'own legend defines as out of scope for the MVP.',
+      `The routing table cell "${text}" reads as "${mode}" followed by another of the capability ` +
+        `modes (${CAPABILITY_MODES.join(', ')}), and no rule says which of the two the ` +
+        'catalogue should store. Whoever wrote it has to answer it by hand in ' +
+        'packages/core/db/marketplaces.ts, because the claims rail routes on the difference ' +
+        'between assisted and none and cannot route on a sentence. SEEN-008 recorded this as ' +
+        "F58, where `none by API (assisted via inbox)` was stored as `none`, which the table's " +
+        'own legend defines as out of scope for the MVP.',
     );
   }
   const bracketed = /^\((.*)\)$/.exec(rest);
-  return { mode, detail: rest === '' ? null : (bracketed ? bracketed[1] : rest) };
+  return { mode, detail: rest === '' ? null : bracketed ? bracketed[1] : rest };
 }
 
 /** The rows of the one markdown table whose first heading is `Capability`. */
@@ -197,7 +195,10 @@ function routingRows(markdown: string): string[][] {
   for (const line of markdown.split('\n')) {
     const trimmed = line.trim();
     if (trimmed.startsWith('|')) {
-      const cells = trimmed.split('|').slice(1, -1).map((cell) => cell.trim());
+      const cells = trimmed
+        .split('|')
+        .slice(1, -1)
+        .map((cell) => cell.trim());
       if (cells.every((cell) => /^:?-{2,}:?$/.test(cell))) continue;
       if (current === null) {
         current = [];
@@ -211,9 +212,9 @@ function routingRows(markdown: string): string[][] {
   const found = tables.filter((table) => table[0]?.[0] === 'Capability');
   if (found.length !== 1) {
     throw new Error(
-      `The document has ${found.length} tables whose first heading is "Capability", so the `
-      + 'capability routing table cannot be identified. It is the nine-by-six matrix under '
-      + '"Capability routing per marketplace".',
+      `The document has ${found.length} tables whose first heading is "Capability", so the ` +
+        'capability routing table cannot be identified. It is the nine-by-six matrix under ' +
+        '"Capability routing per marketplace".',
     );
   }
   return found[0];
@@ -240,11 +241,11 @@ export function parseRoutingTable(markdown: string): RoutingMatrix {
   const absent = expected.filter((heading) => !headings.includes(heading));
   if (unknown.length > 0 || absent.length > 0) {
     throw new Error(
-      'The routing table\'s marketplace columns are not the six the catalogue knows. '
-      + `Columns the catalogue has no identifier for: ${unknown.join(', ') || 'none'}. `
-      + `Identifiers with no column: ${absent.join(', ') || 'none'}. Reconcile `
-      + 'MARKETPLACE_COLUMNS in packages/core/db/marketplaces.ts with the document, and seed '
-      + 'the migration accordingly.',
+      "The routing table's marketplace columns are not the six the catalogue knows. " +
+        `Columns the catalogue has no identifier for: ${unknown.join(', ') || 'none'}. ` +
+        `Identifiers with no column: ${absent.join(', ') || 'none'}. Reconcile ` +
+        'MARKETPLACE_COLUMNS in packages/core/db/marketplaces.ts with the document, and seed ' +
+        'the migration accordingly.',
     );
   }
 
@@ -260,9 +261,9 @@ export function parseRoutingTable(markdown: string): RoutingMatrix {
     const key = headingToKey.get(row[0]);
     if (key === undefined) {
       throw new Error(
-        `The routing table has a capability row the catalogue does not know: "${row[0]}". `
-        + 'Add it to CAPABILITY_ROWS in packages/core/db/marketplaces.ts and seed it, or put '
-        + 'the row heading back as it was.',
+        `The routing table has a capability row the catalogue does not know: "${row[0]}". ` +
+          'Add it to CAPABILITY_ROWS in packages/core/db/marketplaces.ts and seed it, or put ' +
+          'the row heading back as it was.',
       );
     }
     seen.add(key);
@@ -274,8 +275,8 @@ export function parseRoutingTable(markdown: string): RoutingMatrix {
   const missing = CAPABILITY_ROWS.filter((row) => !seen.has(row.key)).map((row) => row.heading);
   if (missing.length > 0) {
     throw new Error(
-      `The routing table no longer has ${missing.length} of the nine capability rows: `
-      + `${missing.join('; ')}.`,
+      `The routing table no longer has ${missing.length} of the nine capability rows: ` +
+        `${missing.join('; ')}.`,
     );
   }
 

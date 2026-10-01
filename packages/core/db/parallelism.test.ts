@@ -42,10 +42,10 @@ describe('the vitest configuration this package is run with', () => {
   it('runs its test files one at a time, because they share one database', () => {
     expect(
       config.test?.fileParallelism,
-      'Vitest is left to its default, which runs the test files of this package in parallel '
-      + 'workers. They all connect to the one local Postgres, and the schema-mutating files take '
-      + 'ACCESS EXCLUSIVE locks on tables the other files are seeding, which deadlocks (40P01) '
-      + 'whenever the timing lines up. `fileParallelism: false` is what forbids that schedule',
+      'Vitest is left to its default, which runs the test files of this package in parallel ' +
+        'workers. They all connect to the one local Postgres, and the schema-mutating files take ' +
+        'ACCESS EXCLUSIVE locks on tables the other files are seeding, which deadlocks (40P01) ' +
+        'whenever the timing lines up. `fileParallelism: false` is what forbids that schedule',
     ).toBe(false);
   });
 });

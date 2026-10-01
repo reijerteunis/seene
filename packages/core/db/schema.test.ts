@@ -27,33 +27,69 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { CAPABILITY_MODES, parseCapabilityCell } from './marketplaces';
 import {
-  listRepositoryDirectory, PACKAGE_DIRECTORY, packageSources, readRepositoryFile,
-  repositoryPathExists, REPOSITORY_ROOT, SOURCE_EXTENSIONS,
-  stringArgumentsOfCallsTo, testTaskInputs,
+  listRepositoryDirectory,
+  PACKAGE_DIRECTORY,
+  packageSources,
+  REPOSITORY_ROOT,
+  readRepositoryFile,
+  repositoryPathExists,
+  SOURCE_EXTENSIONS,
+  stringArgumentsOfCallsTo,
+  testTaskInputs,
 } from './repository';
 import {
-  APPEND_ONLY_PRIVILEGES, APPEND_ONLY_TABLES, ARCHITECTURE_DOCUMENT,
-  BUYER_PII_COLUMNS, BUYER_PII_COMMENT_TERMS,
-  BUYER_PII_MARKER, CLIENT_BOUND_ROLES, COLUMN_GRANTABLE_PRIVILEGES,
-  CONSTRAINED_NOT_BUYER_PII_COLUMNS, CONSTRAINED_NOT_BUYER_PII_MARKER,
-  CROSS_TENANT_FOREIGN_KEY_EXEMPTIONS, DATA_API_CONFIG, DATA_API_ROLES, DATA_API_SCHEMAS,
-  DATA_API_SCHEMAS_SETTING, DEFAULT_ACL_OBJECT_CLASSES,
-  ERASURE_REGISTRY_COLUMNS, ERASURE_REGISTRY_MIGRATION_MARKER, ERASURE_REGISTRY_TABLE,
+  APPEND_ONLY_PRIVILEGES,
+  APPEND_ONLY_TABLES,
+  ARCHITECTURE_DOCUMENT,
+  BUYER_PII_COLUMNS,
+  BUYER_PII_COMMENT_TERMS,
+  BUYER_PII_MARKER,
+  CLIENT_BOUND_ROLES,
+  COLUMN_GRANTABLE_PRIVILEGES,
+  CONSTRAINED_NOT_BUYER_PII_COLUMNS,
+  CONSTRAINED_NOT_BUYER_PII_MARKER,
+  CROSS_TENANT_FOREIGN_KEY_EXEMPTIONS,
+  DATA_API_CONFIG,
+  DATA_API_ROLES,
+  DATA_API_SCHEMAS,
+  DATA_API_SCHEMAS_SETTING,
+  DEFAULT_ACL_OBJECT_CLASSES,
+  ERASURE_REGISTRY_COLUMNS,
+  ERASURE_REGISTRY_MIGRATION_MARKER,
+  ERASURE_REGISTRY_TABLE,
   EVIDENCE_BUCKET,
-  FORBIDDEN_PRIVILEGE_STATEMENTS, FREE_TEXT_TYPE_NAMES, FUNCTION_PRIVILEGE,
+  FORBIDDEN_PRIVILEGE_STATEMENTS,
+  FREE_TEXT_TYPE_NAMES,
+  FUNCTION_PRIVILEGE,
   GOVERNED_PRIVILEGES,
-  HASHED_REPOSITORY_DOCUMENTS, HELPER_SCHEMA, HELPER_SCHEMA_CALLABLE_ROUTINES,
+  HASHED_REPOSITORY_DOCUMENTS,
+  HELPER_SCHEMA,
+  HELPER_SCHEMA_CALLABLE_ROUTINES,
   INVOICE_JSON_COLUMNS,
-  migrationColumnReferences, MIGRATION_SET_HEADER, MIGRATIONS_DIRECTORY,
-  NON_TABLE_RELKINDS, NOT_BUYER_PII_MARKER,
-  PENDING_OBJECT_ERASURES_TABLE, PROKIND_NAMES,
-  RELATION_RULE_MIGRATION_MARKER, RELKIND_NAMES,
-  SCHEMA_OBLIGATION_MARKER, SCHEMA_OBLIGATIONS,
-  SEQUENCE_PRIVILEGES, SEQUENCE_RELKIND,
-  TABLE_PRIVILEGES, TABLE_RELKINDS, TENANCY_CLAUSES, TENANT_CLAIM,
-  TENANT_PREFIXED_PATH_COLUMNS, TICKETS_DIRECTORY,
-  TRADE_RECORD_MIGRATION_MARKER, TRADE_RECORD_TABLES,
-  VIEW_SECURITY_OPTION, VIEW_SECURITY_OPTION_TRUE, WITHDRAWN_BIRTH_CLAIMS,
+  MIGRATION_SET_HEADER,
+  MIGRATIONS_DIRECTORY,
+  migrationColumnReferences,
+  NON_TABLE_RELKINDS,
+  NOT_BUYER_PII_MARKER,
+  PENDING_OBJECT_ERASURES_TABLE,
+  PROKIND_NAMES,
+  RELATION_RULE_MIGRATION_MARKER,
+  RELKIND_NAMES,
+  SCHEMA_OBLIGATION_MARKER,
+  SCHEMA_OBLIGATIONS,
+  SEQUENCE_PRIVILEGES,
+  SEQUENCE_RELKIND,
+  TABLE_PRIVILEGES,
+  TABLE_RELKINDS,
+  TENANCY_CLAUSES,
+  TENANT_CLAIM,
+  TENANT_PREFIXED_PATH_COLUMNS,
+  TICKETS_DIRECTORY,
+  TRADE_RECORD_MIGRATION_MARKER,
+  TRADE_RECORD_TABLES,
+  VIEW_SECURITY_OPTION,
+  VIEW_SECURITY_OPTION_TRUE,
+  WITHDRAWN_BIRTH_CLAIMS,
   WITHDRAWN_SHAPE_CLAIMS,
 } from './tables';
 
@@ -85,10 +121,10 @@ async function connect(): Promise<Client> {
   } catch (cause) {
     await client.end().catch(() => undefined);
     throw new Error(
-      `No Postgres answering at ${where(DATABASE_URL)}, so this test proves nothing about the `
-      + 'schema. Start the local stack with `pnpm dev:up`, apply the migrations with '
-      + '`pnpm db:reset`, or point SEEN_DATABASE_URL at another stack. The driver said: '
-      + `${(cause as Error).message}`,
+      `No Postgres answering at ${where(DATABASE_URL)}, so this test proves nothing about the ` +
+        'schema. Start the local stack with `pnpm dev:up`, apply the migrations with ' +
+        '`pnpm db:reset`, or point SEEN_DATABASE_URL at another stack. The driver said: ' +
+        `${(cause as Error).message}`,
       { cause },
     );
   }
@@ -96,7 +132,10 @@ async function connect(): Promise<Client> {
 }
 
 /** A relation in a schema, with the single character `pg_class` names its kind by. */
-interface Relation { name: string; kind: string }
+interface Relation {
+  name: string;
+  kind: string;
+}
 
 /**
  * Every relation in the schema that this database's own policies govern, which is
@@ -176,8 +215,8 @@ function named(relation: Relation): string {
 function assertPopulated(tables: string[], what: string): void {
   if (tables.length === 0) {
     throw new Error(
-      `There are no tables to assert anything about, so "${what}" proves nothing. Apply the `
-      + 'migrations with `pnpm db:reset`, or point SEEN_DATABASE_URL at a stack that has them.',
+      `There are no tables to assert anything about, so "${what}" proves nothing. Apply the ` +
+        'migrations with `pnpm db:reset`, or point SEEN_DATABASE_URL at a stack that has them.',
     );
   }
 }
@@ -301,7 +340,8 @@ async function tenancyGapsIn(client: Client, schema: string): Promise<string[]> 
     }
     for (const policy of permissive) {
       const clauses: [string, string | null][] = [
-        ['using', policy.qual], ['with check', policy.with_check],
+        ['using', policy.qual],
+        ['with check', policy.with_check],
       ];
       const written = clauses.filter(([, clause]) => clause !== null);
       if (written.length === 0) {
@@ -311,8 +351,8 @@ async function tenancyGapsIn(client: Client, schema: string): Promise<string[]> 
       for (const [name, clause] of written) {
         if (!recognised.has(collapsed(clause ?? ''))) {
           gaps.push(
-            `${table}.${policy.policyname} (${policy.cmd}): its ${name} clause is not one of the `
-            + `tenancy expressions this schema binds a table with, it reads ${clause}`,
+            `${table}.${policy.policyname} (${policy.cmd}): its ${name} clause is not one of the ` +
+              `tenancy expressions this schema binds a table with, it reads ${clause}`,
           );
         }
       }
@@ -330,7 +370,10 @@ async function tenancyGapsIn(client: Client, schema: string): Promise<string[]> 
  * schema does. `set local role` is reverted by the rollback to the savepoint, so
  * the next line runs as the owner again without a `reset role` of its own.
  */
-interface Answer { answer: string; rows: number | null }
+interface Answer {
+  answer: string;
+  rows: number | null;
+}
 
 async function answeredAs(client: Client, role: string, sql: string): Promise<Answer> {
   await client.query('savepoint seen_privilege_probe');
@@ -369,7 +412,11 @@ async function refusedWith(client: Client, sql: string): Promise<string> {
 
 /** One privilege a role actually holds on one relation, with the columns it holds
  * it on when it does not hold it on the whole relation. */
-interface Holding extends Relation { role: string; privilege: string; columns: string | null }
+interface Holding extends Relation {
+  role: string;
+  privilege: string;
+  columns: string | null;
+}
 
 /**
  * What each of the given roles can actually do to each relation of the given
@@ -448,10 +495,7 @@ async function effectivePrivilegesIn(
               and has_column_privilege(h.oid, rel.oid, att.attnum, a.privilege)
          )
       order by rel.name, h.role, a.privilege`,
-    [
-      schema, relkinds, [...roles],
-      [...GOVERNED_PRIVILEGES], [...COLUMN_GRANTABLE_PRIVILEGES],
-    ],
+    [schema, relkinds, [...roles], [...GOVERNED_PRIVILEGES], [...COLUMN_GRANTABLE_PRIVILEGES]],
   );
   return rows;
 }
@@ -463,9 +507,7 @@ async function effectivePrivilegesIn(
  * send the next reader to the relation's access control list, where the second is
  * not written down. */
 function holdingLabel(holding: Holding): string {
-  return holding.columns === null
-    ? holding.privilege
-    : `${holding.privilege} (${holding.columns})`;
+  return holding.columns === null ? holding.privilege : `${holding.privilege} (${holding.columns})`;
 }
 
 /** The privileges each Data API role actually holds on each table, keyed by table
@@ -478,12 +520,12 @@ function holdingLabel(holding: Holding): string {
  * intends and nothing more. Reading a partition directly is checked against the
  * partition's own, and a partition is a relation of kind `'r'` and is asked here on
  * its own account. */
-async function privilegesIn(
-  client: Client,
-  schema: string,
-): Promise<Map<string, string[]>> {
+async function privilegesIn(client: Client, schema: string): Promise<Map<string, string[]>> {
   const rows = await effectivePrivilegesIn(
-    client, schema, Object.keys(TABLE_RELKINDS), DATA_API_ROLES,
+    client,
+    schema,
+    Object.keys(TABLE_RELKINDS),
+    DATA_API_ROLES,
   );
   const held = new Map<string, string[]>();
   for (const row of rows) {
@@ -510,10 +552,16 @@ async function privilegesIn(
  */
 async function clientPrivilegesOnNonTablesIn(client: Client, schema: string): Promise<string[]> {
   const rows = await effectivePrivilegesIn(
-    client, schema, Object.keys(NON_TABLE_RELKINDS), CLIENT_BOUND_ROLES,
+    client,
+    schema,
+    Object.keys(NON_TABLE_RELKINDS),
+    CLIENT_BOUND_ROLES,
   );
-  return rows.map((row) => `${named(row)}: ${row.role} holds ${row.privilege}`
-    + (row.columns === null ? '' : ` on column ${row.columns}`));
+  return rows.map(
+    (row) =>
+      `${named(row)}: ${row.role} holds ${row.privilege}` +
+      (row.columns === null ? '' : ` on column ${row.columns}`),
+  );
 }
 
 /**
@@ -539,10 +587,17 @@ async function viewsWithoutInvokerRightsIn(client: Client, schema: string): Prom
     [schema, VIEW_SECURITY_OPTION],
   );
   return rows
-    .filter((row) => !(VIEW_SECURITY_OPTION_TRUE as readonly string[])
-      .includes((row.setting ?? '').toLowerCase()))
-    .map((row) => `${named(row)}: ${VIEW_SECURITY_OPTION} is `
-      + `${row.setting === null ? 'not set at all' : row.setting}`);
+    .filter(
+      (row) =>
+        !(VIEW_SECURITY_OPTION_TRUE as readonly string[]).includes(
+          (row.setting ?? '').toLowerCase(),
+        ),
+    )
+    .map(
+      (row) =>
+        `${named(row)}: ${VIEW_SECURITY_OPTION} is ` +
+        `${row.setting === null ? 'not set at all' : row.setting}`,
+    );
 }
 
 /**
@@ -628,10 +683,15 @@ async function foreignTablesIn(client: Client, schema: string): Promise<string[]
  * reported in the message rather than assumed.
  */
 async function defaultPrivilegesForClientRolesIn(
-  client: Client, schema: string,
+  client: Client,
+  schema: string,
 ): Promise<string[]> {
   const { rows } = await client.query<{
-    grantor: string; objectClass: string; role: string; privilege: string; scope: number;
+    grantor: string;
+    objectClass: string;
+    role: string;
+    privilege: string;
+    scope: number;
   }>(
     `select d.defaclrole::regrole::text as grantor,
             d.defaclobjtype as "objectClass",
@@ -649,9 +709,12 @@ async function defaultPrivilegesForClientRolesIn(
       order by "objectClass", role, privilege`,
     [schema, [...CLIENT_BOUND_ROLES], Object.keys(DEFAULT_ACL_OBJECT_CLASSES)],
   );
-  return rows.map((row) => `${row.role} holds ${row.privilege} on every `
-    + `${DEFAULT_ACL_OBJECT_CLASSES[row.objectClass] ?? row.objectClass} ${row.grantor} `
-    + `creates in ${row.scope === 0 ? 'any schema' : schema}`);
+  return rows.map(
+    (row) =>
+      `${row.role} holds ${row.privilege} on every ` +
+      `${DEFAULT_ACL_OBJECT_CLASSES[row.objectClass] ?? row.objectClass} ${row.grantor} ` +
+      `creates in ${row.scope === 0 ? 'any schema' : schema}`,
+  );
 }
 
 /**
@@ -686,7 +749,10 @@ async function defaultPrivilegesForClientRolesIn(
  */
 async function executableRoutinesIn(client: Client, schema: string): Promise<string[]> {
   const { rows } = await client.query<{
-    signature: string; kind: string; definer: boolean; role: string;
+    signature: string;
+    kind: string;
+    definer: boolean;
+    role: string;
   }>(
     `select p.proname || '('
               || pg_catalog.pg_get_function_identity_arguments(p.oid) || ')' as signature,
@@ -702,9 +768,12 @@ async function executableRoutinesIn(client: Client, schema: string): Promise<str
       order by signature, role`,
     [schema, [...CLIENT_BOUND_ROLES], FUNCTION_PRIVILEGE],
   );
-  return rows.map((row) => `${schema}.${row.signature} is `
-    + `${PROKIND_NAMES[row.kind] ?? `a routine of kind ${row.kind}`}`
-    + `${row.definer ? ' running with its owner rights' : ''} that ${row.role} can execute`);
+  return rows.map(
+    (row) =>
+      `${schema}.${row.signature} is ` +
+      `${PROKIND_NAMES[row.kind] ?? `a routine of kind ${row.kind}`}` +
+      `${row.definer ? ' running with its owner rights' : ''} that ${row.role} can execute`,
+  );
 }
 
 /** The client-bound roles named in a routine's own access control list, and
@@ -722,7 +791,8 @@ async function executableRoutinesIn(client: Client, schema: string): Promise<str
  * now asserted as guarantees. PUBLIC is read as a grantee of its own because it
  * names no role and is the one an ACL query matching by name walks past. */
 async function routineAccessControlList(
-  client: Client, signature: string,
+  client: Client,
+  signature: string,
 ): Promise<{ clientRolesNamed: string[]; publicIsNamed: boolean }> {
   const { rows } = await client.query<{ role: string }>(
     `select case when a.grantee = 0 then 'PUBLIC' else a.grantee::regrole::text end as role
@@ -734,8 +804,9 @@ async function routineAccessControlList(
   );
   const named = rows.map((row) => row.role);
   return {
-    clientRolesNamed: named.filter((role) => (CLIENT_BOUND_ROLES as readonly string[])
-      .includes(role)),
+    clientRolesNamed: named.filter((role) =>
+      (CLIENT_BOUND_ROLES as readonly string[]).includes(role),
+    ),
     publicIsNamed: named.includes('PUBLIC'),
   };
 }
@@ -799,13 +870,20 @@ async function sequencesReachableIn(client: Client, schema: string): Promise<str
       order by name, role, privilege`,
     [schema, [...CLIENT_BOUND_ROLES], Object.keys(SEQUENCE_PRIVILEGES), SEQUENCE_RELKIND],
   );
-  return rows.map((row) => `${schema}.${row.name} lets ${row.role} `
-    + `${SEQUENCE_PRIVILEGES[row.privilege] ?? row.privilege.toLowerCase()}`);
+  return rows.map(
+    (row) =>
+      `${schema}.${row.name} lets ${row.role} ` +
+      `${SEQUENCE_PRIVILEGES[row.privilege] ?? row.privilege.toLowerCase()}`,
+  );
 }
 
 /** One column that can hold a sentence, with the classification its own comment
  * carries, or the empty string when it carries none. */
-interface FreeTextColumn { column: string; type: string; comment: string }
+interface FreeTextColumn {
+  column: string;
+  type: string;
+  comment: string;
+}
 
 /**
  * Every column in the schema that can hold a buyer's name or address, read from
@@ -847,8 +925,11 @@ async function freeTextColumnsIn(client: Client, schema: string): Promise<FreeTe
  * its type with it and a reader can see what it can hold. */
 function unclassified(columns: readonly FreeTextColumn[]): string[] {
   return columns
-    .filter((column) => !column.comment.startsWith(BUYER_PII_MARKER)
-      && !column.comment.startsWith(NOT_BUYER_PII_MARKER))
+    .filter(
+      (column) =>
+        !column.comment.startsWith(BUYER_PII_MARKER) &&
+        !column.comment.startsWith(NOT_BUYER_PII_MARKER),
+    )
     .map((column) => `${column.column} (${column.type})`);
 }
 
@@ -861,16 +942,18 @@ function declaredBuyerPii(columns: readonly FreeTextColumn[]): FreeTextColumn[] 
 function migrationFiles(): string[] {
   if (!repositoryPathExists(MIGRATIONS_DIRECTORY)) {
     throw new Error(
-      `There is no ${MIGRATIONS_DIRECTORY} directory under ${REPOSITORY_ROOT}, so a test that `
-      + 'reads the migrations proves nothing. This test resolves the repository root from its own '
-      + 'location and that assumption has broken.',
+      `There is no ${MIGRATIONS_DIRECTORY} directory under ${REPOSITORY_ROOT}, so a test that ` +
+        'reads the migrations proves nothing. This test resolves the repository root from its own ' +
+        'location and that assumption has broken.',
     );
   }
-  const files = listRepositoryDirectory(MIGRATIONS_DIRECTORY).filter((name) => name.endsWith('.sql'));
+  const files = listRepositoryDirectory(MIGRATIONS_DIRECTORY).filter((name) =>
+    name.endsWith('.sql'),
+  );
   if (files.length === 0) {
     throw new Error(
-      `There are no .sql files in ${MIGRATIONS_DIRECTORY}, so a test that reads the migrations `
-      + 'proves nothing.',
+      `There are no .sql files in ${MIGRATIONS_DIRECTORY}, so a test that reads the migrations ` +
+        'proves nothing.',
     );
   }
   return files.map((name) => `${MIGRATIONS_DIRECTORY}/${name}`);
@@ -886,10 +969,11 @@ function migrationFiles(): string[] {
  * miss the statement itself.
  */
 function statementsOf(sql: string): string[] {
-  const withoutComments = sql
-    .replace(/\/\*[\s\S]*?\*\//g, ' ')
-    .replace(/--[^\n]*/g, ' ');
-  return withoutComments.split(';').map((statement) => statement.trim()).filter(Boolean);
+  const withoutComments = sql.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/--[^\n]*/g, ' ');
+  return withoutComments
+    .split(';')
+    .map((statement) => statement.trim())
+    .filter(Boolean);
 }
 
 /** The one migration whose filename carries the given fragment, as a path relative
@@ -899,8 +983,8 @@ function migrationNamed(marker: string): string {
   const matches = migrationFiles().filter((file) => file.includes(marker));
   if (matches.length !== 1) {
     throw new Error(
-      `${matches.length} migrations in ${MIGRATIONS_DIRECTORY} carry \`${marker}\` in their `
-      + `names, and a test that replays that migration needs exactly one: ${matches.join(', ') || 'none'}`,
+      `${matches.length} migrations in ${MIGRATIONS_DIRECTORY} carry \`${marker}\` in their ` +
+        `names, and a test that replays that migration needs exactly one: ${matches.join(', ') || 'none'}`,
     );
   }
   return matches[0] as string;
@@ -937,8 +1021,8 @@ async function replayedAgainstTheSchema(client: Client, file: string): Promise<s
   const blocks = checkedBlocksOf(file);
   if (blocks.length === 0) {
     throw new Error(
-      `${file} contains no \`do\` block, so replaying it asserts nothing. Either the file no `
-      + 'longer states its rules as checks that run, or the extractor no longer finds them.',
+      `${file} contains no \`do\` block, so replaying it asserts nothing. Either the file no ` +
+        'longer states its rules as checks that run, or the extractor no longer finds them.',
     );
   }
   for (const block of blocks) {
@@ -955,7 +1039,10 @@ async function replayedAgainstTheSchema(client: Client, file: string): Promise<s
 }
 
 /** One member of the trade record v1 migration set: its path and its first line. */
-interface SetMember { file: string; firstLine: string }
+interface SetMember {
+  file: string;
+  firstLine: string;
+}
 
 /**
  * The members of the trade record v1 set whose header misstates the size of the
@@ -982,15 +1069,15 @@ function misnumberedSetHeaders(members: readonly SetMember[]): string[] {
     const [, part, total] = stated;
     if (Number(total) !== size) {
       offenders.push(
-        `${member.file}: its first line says \`part ${part} of ${total}\`, and the set has `
-        + `${size} files`,
+        `${member.file}: its first line says \`part ${part} of ${total}\`, and the set has ` +
+          `${size} files`,
       );
       return;
     }
     if (Number(part) !== index + 1) {
       offenders.push(
-        `${member.file}: its first line says \`part ${part} of ${total}\`, and it is file `
-        + `${index + 1} of the set in migration order`,
+        `${member.file}: its first line says \`part ${part} of ${total}\`, and it is file ` +
+          `${index + 1} of the set in migration order`,
       );
     }
   });
@@ -999,13 +1086,12 @@ function misnumberedSetHeaders(members: readonly SetMember[]): string[] {
 
 /** Every member of the trade record v1 set with its first line, oldest first. */
 function tradeRecordSetHeaders(): SetMember[] {
-  const members = migrationFiles()
-    .filter((file) => file.includes(TRADE_RECORD_MIGRATION_MARKER));
+  const members = migrationFiles().filter((file) => file.includes(TRADE_RECORD_MIGRATION_MARKER));
   if (members.length === 0) {
     throw new Error(
-      `No file in ${MIGRATIONS_DIRECTORY} carries \`${TRADE_RECORD_MIGRATION_MARKER}\` in its `
-      + 'name, so a test that reads the set\'s headers proves nothing. The migrations of this '
-      + 'ticket have been renamed and the marker has not followed them.',
+      `No file in ${MIGRATIONS_DIRECTORY} carries \`${TRADE_RECORD_MIGRATION_MARKER}\` in its ` +
+        "name, so a test that reads the set's headers proves nothing. The migrations of this " +
+        'ticket have been renamed and the marker has not followed them.',
     );
   }
   return members.map((file) => ({
@@ -1015,10 +1101,18 @@ function tradeRecordSetHeaders(): SetMember[] {
 }
 
 /** A size a comment gives the set, and the comment that gives it. */
-interface StatedSetSize { file: string; line: number; phrase: string; size: number }
+interface StatedSetSize {
+  file: string;
+  line: number;
+  phrase: string;
+  size: number;
+}
 
 /** One source the scanner is asked to read, as its path and its text. */
-interface ScannedSource { file: string; contents: string }
+interface ScannedSource {
+  file: string;
+  contents: string;
+}
 
 /**
  * The spelled cardinals a comment about the set is read for.
@@ -1028,8 +1122,17 @@ interface ScannedSource { file: string; contents: string }
  * it, and a set with a single part in it is not one anybody numbers.
  */
 const SPELLED_CARDINALS: Readonly<Record<string, number>> = {
-  two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9,
-  ten: 10, eleven: 11, twelve: 12,
+  two: 2,
+  three: 3,
+  four: 4,
+  five: 5,
+  six: 6,
+  seven: 7,
+  eight: 8,
+  nine: 9,
+  ten: 10,
+  eleven: 11,
+  twelve: 12,
 };
 
 /** What a sentence calls a member of this set, so that a count of them is told from
@@ -1038,8 +1141,8 @@ const MEMBER_NOUNS = 'files?|migrations?|parts?';
 
 /** A count of the set's members: a number, at most one word, then what is counted. */
 const COUNTED_MEMBERS = new RegExp(
-  String.raw`\b(\d{1,3}|${Object.keys(SPELLED_CARDINALS).join('|')})\s+`
-  + String.raw`(?:[A-Za-z0-9'’-]+\s+)?(${MEMBER_NOUNS})\b`,
+  String.raw`\b(\d{1,3}|${Object.keys(SPELLED_CARDINALS).join('|')})\s+` +
+    String.raw`(?:[A-Za-z0-9'’-]+\s+)?(${MEMBER_NOUNS})\b`,
   'gi',
 );
 
@@ -1050,8 +1153,18 @@ const COUNTED_MEMBERS = new RegExp(
  * correct and no size to state; the arithmetic below would read it as zero members.
  */
 const SPELLED_ORDINALS: Readonly<Record<string, number>> = {
-  second: 2, third: 3, fourth: 4, fifth: 5, sixth: 6, seventh: 7, eighth: 8, ninth: 9,
-  tenth: 10, eleventh: 11, twelfth: 12, thirteenth: 13,
+  second: 2,
+  third: 3,
+  fourth: 4,
+  fifth: 5,
+  sixth: 6,
+  seventh: 7,
+  eighth: 8,
+  ninth: 9,
+  tenth: 10,
+  eleventh: 11,
+  twelfth: 12,
+  thirteenth: 13,
 };
 
 /**
@@ -1070,8 +1183,8 @@ const SPELLED_ORDINALS: Readonly<Record<string, number>> = {
  * reported itself in the round it was added in.
  */
 const NEXT_MEMBER = new RegExp(
-  String.raw`\ban?\s+(\d{1,3}(?:st|nd|rd|th)|${Object.keys(SPELLED_ORDINALS).join('|')})\s+`
-  + String.raw`(?:[A-Za-z0-9'’-]+\s+)?(${MEMBER_NOUNS})\b`,
+  String.raw`\ban?\s+(\d{1,3}(?:st|nd|rd|th)|${Object.keys(SPELLED_ORDINALS).join('|')})\s+` +
+    String.raw`(?:[A-Za-z0-9'’-]+\s+)?(${MEMBER_NOUNS})\b`,
   'gi',
 );
 
@@ -1184,7 +1297,11 @@ function setSizesStatedInComments(sources: readonly ScannedSource[]): StatedSetS
 }
 
 /** One sentence a member of the set writes about which member comes last. */
-interface StatedSetOrder { file: string; line: number; phrase: string }
+interface StatedSetOrder {
+  file: string;
+  line: number;
+  phrase: string;
+}
 
 /** How a member says a part of the set is the last one. */
 const LAST_MEMBER = new RegExp(
@@ -1294,10 +1411,7 @@ function sourcesThatDocumentTheSet(): ScannedSource[] {
  * covered: a caller that hands this a list somebody has already narrowed. There
  * is one caller, and it is the six lines above.
  */
-function filesThatDocumentTheSet(
-  own: readonly string[],
-  members: readonly string[],
-): string[] {
+function filesThatDocumentTheSet(own: readonly string[], members: readonly string[]): string[] {
   return [...own, ...members, ARCHITECTURE_DOCUMENT];
 }
 
@@ -1320,7 +1434,7 @@ function filesThatDocumentTheSet(
  */
 function proseOf(contents: string): string {
   return contents
-    .replace(/\\'/g, '\'')
+    .replace(/\\'/g, "'")
     .replace(/^\s*(?:--+|\/\/+|\/\*+|\*+\/?|\*+)\s?/gm, ' ')
     .replace(/'\s*\+?\s*\n\s*\+?\s*'/g, ' ')
     .replace(/\s+/g, ' ');
@@ -1346,7 +1460,8 @@ function linesWhere(contents: string, phrase: string, span: number): number[] {
   const window = (index: number): string => proseOf(lines.slice(index, index + span).join('\n'));
   const found: number[] = [];
   for (let index = 0; index < lines.length; index += 1) {
-    if (window(index).includes(phrase) && !window(index + 1).includes(phrase)) found.push(index + 1);
+    if (window(index).includes(phrase) && !window(index + 1).includes(phrase))
+      found.push(index + 1);
   }
   return found;
 }
@@ -1366,13 +1481,19 @@ function linesWhere(contents: string, phrase: string, span: number): number[] {
  * measurement of its own is still guarded by somebody.
  */
 function withdrawnClaimsStillStanding(
-  sources: readonly ScannedSource[], objectClass?: string,
+  sources: readonly ScannedSource[],
+  objectClass?: string,
 ): string[] {
-  return claimsStillStanding(sources, WITHDRAWN_BIRTH_CLAIMS
-    .filter((claim) => objectClass === undefined || claim.objectClass === objectClass)
-    .map((claim) => ({
-      about: `a ${claim.objectClass}`, spelling: claim.spelling, instead: claim.instead,
-    })));
+  return claimsStillStanding(
+    sources,
+    WITHDRAWN_BIRTH_CLAIMS.filter(
+      (claim) => objectClass === undefined || claim.objectClass === objectClass,
+    ).map((claim) => ({
+      about: `a ${claim.objectClass}`,
+      spelling: claim.spelling,
+      instead: claim.instead,
+    })),
+  );
 }
 
 /**
@@ -1395,13 +1516,19 @@ function withdrawnClaimsStillStanding(
  * own is still guarded by somebody.
  */
 function withdrawnShapeClaimsStillStanding(
-  sources: readonly ScannedSource[], relation?: string,
+  sources: readonly ScannedSource[],
+  relation?: string,
 ): string[] {
-  return claimsStillStanding(sources, WITHDRAWN_SHAPE_CLAIMS
-    .filter((claim) => relation === undefined || claim.relation === relation)
-    .map((claim) => ({
-      about: claim.relation, spelling: claim.spelling, instead: claim.instead,
-    })));
+  return claimsStillStanding(
+    sources,
+    WITHDRAWN_SHAPE_CLAIMS.filter(
+      (claim) => relation === undefined || claim.relation === relation,
+    ).map((claim) => ({
+      about: claim.relation,
+      spelling: claim.spelling,
+      instead: claim.instead,
+    })),
+  );
 }
 
 /** One withdrawn sentence as the scan reads it: the words, what they were written
@@ -1415,7 +1542,8 @@ interface ScannedClaim {
 /** The body both of the two above are: every claim in the list that is still
  * written down in any of the sources, at the line its sentence starts on. */
 function claimsStillStanding(
-  sources: readonly ScannedSource[], claims: readonly ScannedClaim[],
+  sources: readonly ScannedSource[],
+  claims: readonly ScannedClaim[],
 ): string[] {
   const standing: string[] = [];
   for (const source of sources) {
@@ -1424,8 +1552,10 @@ function claimsStillStanding(
       const phrase = claim.spelling.join(' ');
       if (!prose.includes(phrase)) continue;
       const where = linesWhere(source.contents, phrase, claim.spelling.length + 1);
-      standing.push(`${source.file}:${where.join(', ') || 'somewhere'} still says "${phrase}" of `
-        + `${claim.about}, and ${claim.instead}`);
+      standing.push(
+        `${source.file}:${where.join(', ') || 'somewhere'} still says "${phrase}" of ` +
+          `${claim.about}, and ${claim.instead}`,
+      );
     }
   }
   return standing;
@@ -1462,17 +1592,18 @@ function blanketPrivilegeStatements(): string[] {
 function ticketFile(ticket: string): string {
   if (!repositoryPathExists(TICKETS_DIRECTORY)) {
     throw new Error(
-      `There is no ${TICKETS_DIRECTORY} directory under ${REPOSITORY_ROOT}, so a test that reads `
-      + 'a ticket as an authority proves nothing.',
+      `There is no ${TICKETS_DIRECTORY} directory under ${REPOSITORY_ROOT}, so a test that reads ` +
+        'a ticket as an authority proves nothing.',
     );
   }
-  const matches = listRepositoryDirectory(TICKETS_DIRECTORY)
-    .filter((name) => name.startsWith(`${ticket}-`) && name.endsWith('.md'));
+  const matches = listRepositoryDirectory(TICKETS_DIRECTORY).filter(
+    (name) => name.startsWith(`${ticket}-`) && name.endsWith('.md'),
+  );
   if (matches.length !== 1) {
     throw new Error(
-      `${matches.length} files in ${TICKETS_DIRECTORY} are named for ${ticket}, and this test `
-      + `needs exactly one to read: ${matches.join(', ') || 'none'}. Either the id in `
-      + 'CONSTRAINED_NOT_BUYER_PII_COLUMNS names no ticket, or a ticket has been duplicated.',
+      `${matches.length} files in ${TICKETS_DIRECTORY} are named for ${ticket}, and this test ` +
+        `needs exactly one to read: ${matches.join(', ') || 'none'}. Either the id in ` +
+        'CONSTRAINED_NOT_BUYER_PII_COLUMNS names no ticket, or a ticket has been duplicated.',
     );
   }
   return `${TICKETS_DIRECTORY}/${matches[0]}`;
@@ -1492,8 +1623,8 @@ function acceptanceCriteriaOf(file: string): string[] {
   const heading = lines.findIndex((line) => /^##\s+Acceptance criteria\s*$/i.test(line));
   if (heading === -1) {
     throw new Error(
-      `${file} has no "## Acceptance criteria" heading, so this test cannot read its definition `
-      + 'of done and proves nothing about what its author is held to.',
+      `${file} has no "## Acceptance criteria" heading, so this test cannot read its definition ` +
+        'of done and proves nothing about what its author is held to.',
     );
   }
   const criteria: string[] = [];
@@ -1504,8 +1635,8 @@ function acceptanceCriteriaOf(file: string): string[] {
   }
   if (criteria.length === 0) {
     throw new Error(
-      `${file} states no acceptance criteria under its own heading, so this test proves nothing `
-      + 'about what its author is held to.',
+      `${file} states no acceptance criteria under its own heading, so this test proves nothing ` +
+        'about what its author is held to.',
     );
   }
   return criteria;
@@ -1558,10 +1689,7 @@ function constrainedTicketFiles(): string[] {
  * their own answer at `FIXTURE_TENANT_PREFIX`: recognisable ids, and a refusal to
  * run at all against a database holding rows they did not write.
  */
-async function assertNoTombstones(
-  client: Client,
-  tenants: (string | undefined)[],
-): Promise<void> {
+async function assertNoTombstones(client: Client, tenants: (string | undefined)[]): Promise<void> {
   const created = tenants.filter((id): id is string => Boolean(id));
   if (created.length === 0) return;
   const { rows } = await client.query<{ tenant_id: string }>(
@@ -1570,8 +1698,8 @@ async function assertNoTombstones(
   );
   expect(
     rows.map((row) => row.tenant_id),
-    'Tenants this file created are tombstoned in the erasure registry, so its fixtures erased '
-    + 'them outside a transaction and nothing can take those rows back',
+    'Tenants this file created are tombstoned in the erasure registry, so its fixtures erased ' +
+      'them outside a transaction and nothing can take those rows back',
   ).toEqual([]);
 }
 
@@ -1592,21 +1720,25 @@ describe('the trade record schema', () => {
     const missing = TRADE_RECORD_TABLES.filter((table) => !present.includes(table));
     expect(
       missing,
-      `The public schema is missing ${missing.length} of the ${TRADE_RECORD_TABLES.length} `
-      + `tables the trade record names: ${missing.join(', ')}`,
+      `The public schema is missing ${missing.length} of the ${TRADE_RECORD_TABLES.length} ` +
+        `tables the trade record names: ${missing.join(', ')}`,
     ).toEqual([]);
   });
 
   it('carries tenant_id on every table in the public schema', async () => {
     const without = await tenantIdGapsIn(client, 'public');
-    expect(without, `Tables in the public schema without a tenant_id column: ${without.join(', ')}`)
-      .toEqual([]);
+    expect(
+      without,
+      `Tables in the public schema without a tenant_id column: ${without.join(', ')}`,
+    ).toEqual([]);
   });
 
   it('has row-level security enabled on every table in the public schema', async () => {
     const without = await rlsGapsIn(client, 'public');
-    expect(without, `Tables in the public schema without RLS enabled: ${without.join(', ')}`)
-      .toEqual([]);
+    expect(
+      without,
+      `Tables in the public schema without RLS enabled: ${without.join(', ')}`,
+    ).toEqual([]);
   });
 
   it('binds every table to the one tenancy expression', async () => {
@@ -1664,19 +1796,20 @@ describe('the trade record schema', () => {
     await client.query('begin');
     try {
       await client.query(
-        'create table public.seen_partitioned_probe ('
-        + 'recorded_at timestamptz not null, note text) partition by range (recorded_at)',
+        'create table public.seen_partitioned_probe (' +
+          'recorded_at timestamptz not null, note text) partition by range (recorded_at)',
       );
       await client.query(
-        'create table public.seen_partition_probe partition of public.seen_partitioned_probe '
-        + "for values from ('2026-01-01') to ('2027-01-01')",
+        'create table public.seen_partition_probe partition of public.seen_partitioned_probe ' +
+          "for values from ('2026-01-01') to ('2027-01-01')",
       );
       const probes = ['seen_partition_probe', 'seen_partitioned_probe'];
       // Each guard answers with either a bare relation name or a name followed by
       // the way it failed, so a probe counts as named by either shape.
-      const probesAmong = (entries: readonly string[]): string[] => probes.filter(
-        (probe) => entries.some((entry) => entry === probe || entry.startsWith(`${probe}:`)),
-      );
+      const probesAmong = (entries: readonly string[]): string[] =>
+        probes.filter((probe) =>
+          entries.some((entry) => entry === probe || entry.startsWith(`${probe}:`)),
+        );
       const seen = {
         listed: probesAmong(await tablesIn(client, 'public')),
         withoutTenantId: probesAmong(await tenantIdGapsIn(client, 'public')),
@@ -1685,12 +1818,12 @@ describe('the trade record schema', () => {
       };
       expect(
         seen,
-        'A partitioned table carrying neither tenant_id nor row-level security was added to the '
-        + 'public schema with one partition under it, and the guards named '
-        + `${JSON.stringify(seen)}. Each of the four owes both names: the parent because a query `
-        + "through it returns every partition's rows under the parent's own policy, and the "
-        + 'partition because a query against the partition itself is governed by the partition\'s '
-        + "policies and never by the parent's",
+        'A partitioned table carrying neither tenant_id nor row-level security was added to the ' +
+          'public schema with one partition under it, and the guards named ' +
+          `${JSON.stringify(seen)}. Each of the four owes both names: the parent because a query ` +
+          "through it returns every partition's rows under the parent's own policy, and the " +
+          "partition because a query against the partition itself is governed by the partition's " +
+          "policies and never by the parent's",
       ).toEqual({
         listed: probes,
         withoutTenantId: probes,
@@ -1716,9 +1849,9 @@ describe('the trade record schema', () => {
       const gaps = await tenancyGapsIn(client, 'public');
       expect(
         gaps.filter((gap) => gap.startsWith('evidence')),
-        'A second permissive policy on public.evidence reading `using (true)` exposes every '
-        + "tenant's evidence, and the tenancy assertion reported "
-        + `${gaps.length === 0 ? 'nothing at all' : gaps.join('; ')}`,
+        'A second permissive policy on public.evidence reading `using (true)` exposes every ' +
+          "tenant's evidence, and the tenancy assertion reported " +
+          `${gaps.length === 0 ? 'nothing at all' : gaps.join('; ')}`,
       ).not.toEqual([]);
     } finally {
       await client.query('rollback');
@@ -1736,9 +1869,9 @@ describe('the trade record schema', () => {
       const gaps = await tenancyGapsIn(client, 'public');
       expect(
         gaps.filter((gap) => gap.startsWith('evidence')),
-        'A permissive insert policy on public.evidence with `with check (true)` lets a tenant '
-        + 'write a row belonging to another tenant, and the tenancy assertion reported '
-        + `${gaps.length === 0 ? 'nothing at all' : gaps.join('; ')}`,
+        'A permissive insert policy on public.evidence with `with check (true)` lets a tenant ' +
+          'write a row belonging to another tenant, and the tenancy assertion reported ' +
+          `${gaps.length === 0 ? 'nothing at all' : gaps.join('; ')}`,
       ).not.toEqual([]);
     } finally {
       await client.query('rollback');
@@ -1785,9 +1918,10 @@ describe('the trade record schema', () => {
     }
     expect(
       accepted,
-      `${accepted.length} of the ${leaking.length} permissive policies on public.evidence that `
-      + 'expose every tenant\'s rows were reported as binding the tenant, so the assertion reads '
-      + 'the clause for a word rather than for a comparison: ' + accepted.join('; '),
+      `${accepted.length} of the ${leaking.length} permissive policies on public.evidence that ` +
+        "expose every tenant's rows were reported as binding the tenant, so the assertion reads " +
+        'the clause for a word rather than for a comparison: ' +
+        accepted.join('; '),
     ).toEqual([]);
   });
 
@@ -1815,101 +1949,103 @@ describe('the trade record schema', () => {
         const intended = [...expected[role]].sort();
         if (actual.join(',') !== intended.join(',')) {
           wrong.push(
-            `${table}: ${role} holds ${actual.join('+') || 'nothing'}, `
-            + `not ${intended.join('+') || 'nothing'}`,
+            `${table}: ${role} holds ${actual.join('+') || 'nothing'}, ` +
+              `not ${intended.join('+') || 'nothing'}`,
           );
         }
       }
     }
     expect(
       wrong,
-      `${wrong.length} table and role pairs hold privileges the trade record does not intend: `
-      + wrong.join('; '),
+      `${wrong.length} table and role pairs hold privileges the trade record does not intend: ` +
+        wrong.join('; '),
     ).toEqual([]);
   });
 
-  it('would see a select granted to PUBLIC, which names no role and gives it to every one',
-    async () => {
-      // F30. `grant ... to public` lands in the relation's own access control list
-      // as a grantee with no role behind it, so a guard reading that list for
-      // `anon`, `authenticated` and `service_role` by name walks past the one grant
-      // that hands the privilege to all three at once. The question the assertion
-      // above means to ask is what a role can do, and a relation's access control
-      // list is not that question. `has_table_privilege` is, and it is what the
-      // append-only guard on `audit_events` further down this file has asked all
-      // along: it accounts for a grant to PUBLIC, for a privilege held through
-      // membership of another role, and for the owner's own rights.
-      //
-      // What a select to PUBLIC breaks here is the privilege half of the boundary
-      // and not the row half: the tenancy policy still yields `anon` no rows,
-      // because it carries no claim. That half is the whole reason `anon` holds no
-      // select on a table it could read nothing through, and the reason is written
-      // at `TABLE_PRIVILEGES`: a table that later loses its policy must not also be
-      // readable by a caller who never signed in. The probe on a view at the end of
-      // this file is where the rows themselves cross, because no policy stands
-      // behind the privilege there at all.
-      await client.query('begin');
-      try {
-        await client.query('grant select on public.shipments to public');
-        const measured = {
-          privilegesTheGuardReportsForAnon:
-            (await privilegesIn(client, 'public')).get('shipments|anon') ?? [],
-          theDatabaseAnsweredAnon: await answeredAs(
-            client, 'anon', 'select tenant_id from public.shipments',
-          ),
-        };
-        expect(
-          measured,
-          'A select on public.shipments was granted to PUBLIC, so `anon` holds it without being '
-          + 'named anywhere, and the database answered its read '
-          + `${JSON.stringify(measured.theDatabaseAnsweredAnon)} where a role holding nothing at `
-          + 'all is refused 42501. The privilege guard has to report the select, or the one grant '
-          + 'that gives a privilege to every role at once is the one grant it cannot see',
-        ).toEqual({
-          privilegesTheGuardReportsForAnon: ['SELECT'],
-          theDatabaseAnsweredAnon: { answer: 'accepted', rows: 0 },
-        });
-      } finally {
-        await client.query('rollback');
-      }
-    });
+  it('would see a select granted to PUBLIC, which names no role and gives it to every one', async () => {
+    // F30. `grant ... to public` lands in the relation's own access control list
+    // as a grantee with no role behind it, so a guard reading that list for
+    // `anon`, `authenticated` and `service_role` by name walks past the one grant
+    // that hands the privilege to all three at once. The question the assertion
+    // above means to ask is what a role can do, and a relation's access control
+    // list is not that question. `has_table_privilege` is, and it is what the
+    // append-only guard on `audit_events` further down this file has asked all
+    // along: it accounts for a grant to PUBLIC, for a privilege held through
+    // membership of another role, and for the owner's own rights.
+    //
+    // What a select to PUBLIC breaks here is the privilege half of the boundary
+    // and not the row half: the tenancy policy still yields `anon` no rows,
+    // because it carries no claim. That half is the whole reason `anon` holds no
+    // select on a table it could read nothing through, and the reason is written
+    // at `TABLE_PRIVILEGES`: a table that later loses its policy must not also be
+    // readable by a caller who never signed in. The probe on a view at the end of
+    // this file is where the rows themselves cross, because no policy stands
+    // behind the privilege there at all.
+    await client.query('begin');
+    try {
+      await client.query('grant select on public.shipments to public');
+      const measured = {
+        privilegesTheGuardReportsForAnon:
+          (await privilegesIn(client, 'public')).get('shipments|anon') ?? [],
+        theDatabaseAnsweredAnon: await answeredAs(
+          client,
+          'anon',
+          'select tenant_id from public.shipments',
+        ),
+      };
+      expect(
+        measured,
+        'A select on public.shipments was granted to PUBLIC, so `anon` holds it without being ' +
+          'named anywhere, and the database answered its read ' +
+          `${JSON.stringify(measured.theDatabaseAnsweredAnon)} where a role holding nothing at ` +
+          'all is refused 42501. The privilege guard has to report the select, or the one grant ' +
+          'that gives a privilege to every role at once is the one grant it cannot see',
+      ).toEqual({
+        privilegesTheGuardReportsForAnon: ['SELECT'],
+        theDatabaseAnsweredAnon: { answer: 'accepted', rows: 0 },
+      });
+    } finally {
+      await client.query('rollback');
+    }
+  });
 
-  it('would see a select granted on one column, which is in no relation\'s access control list',
-    async () => {
-      // The other half of F30, and the one a relation's own access control list
-      // cannot answer even in principle: a column grant is filed in
-      // `pg_attribute.attacl` and `pg_class.relacl` is not touched by it at all. So
-      // the table reads as holding nothing for `anon` while `anon` reads a buyer's
-      // name out of it. A table-level answer does not see it either, which is why
-      // the guard has to ask `has_column_privilege` of every column of every
-      // relation as well as `has_table_privilege` of the relation.
-      await client.query('begin');
-      try {
-        await client.query('grant select (buyer_name) on public.shipments to anon');
-        const measured = {
-          privilegesTheGuardReportsForAnon:
-            (await privilegesIn(client, 'public')).get('shipments|anon') ?? [],
-          theBuyerNameColumn: await answeredAs(
-            client, 'anon', 'select buyer_name from public.shipments',
-          ),
-          everyOtherColumn: await answeredAs(client, 'anon', 'select * from public.shipments'),
-        };
-        expect(
-          measured,
-          'A select on public.shipments.buyer_name alone was granted to `anon`, and the database '
-          + `answered its read of that column ${JSON.stringify(measured.theBuyerNameColumn)} and `
-          + `its read of the rest ${JSON.stringify(measured.everyOtherColumn)}. The grant is `
-          + 'therefore real and usable and the table\'s own access control list is unchanged by '
-          + 'it, so a guard that reads that list reports a boundary that is open',
-        ).toEqual({
-          privilegesTheGuardReportsForAnon: ['SELECT (buyer_name)'],
-          theBuyerNameColumn: { answer: 'accepted', rows: 0 },
-          everyOtherColumn: { answer: '42501', rows: null },
-        });
-      } finally {
-        await client.query('rollback');
-      }
-    });
+  it("would see a select granted on one column, which is in no relation's access control list", async () => {
+    // The other half of F30, and the one a relation's own access control list
+    // cannot answer even in principle: a column grant is filed in
+    // `pg_attribute.attacl` and `pg_class.relacl` is not touched by it at all. So
+    // the table reads as holding nothing for `anon` while `anon` reads a buyer's
+    // name out of it. A table-level answer does not see it either, which is why
+    // the guard has to ask `has_column_privilege` of every column of every
+    // relation as well as `has_table_privilege` of the relation.
+    await client.query('begin');
+    try {
+      await client.query('grant select (buyer_name) on public.shipments to anon');
+      const measured = {
+        privilegesTheGuardReportsForAnon:
+          (await privilegesIn(client, 'public')).get('shipments|anon') ?? [],
+        theBuyerNameColumn: await answeredAs(
+          client,
+          'anon',
+          'select buyer_name from public.shipments',
+        ),
+        everyOtherColumn: await answeredAs(client, 'anon', 'select * from public.shipments'),
+      };
+      expect(
+        measured,
+        'A select on public.shipments.buyer_name alone was granted to `anon`, and the database ' +
+          `answered its read of that column ${JSON.stringify(measured.theBuyerNameColumn)} and ` +
+          `its read of the rest ${JSON.stringify(measured.everyOtherColumn)}. The grant is ` +
+          "therefore real and usable and the table's own access control list is unchanged by " +
+          'it, so a guard that reads that list reports a boundary that is open',
+      ).toEqual({
+        privilegesTheGuardReportsForAnon: ['SELECT (buyer_name)'],
+        theBuyerNameColumn: { answer: 'accepted', rows: 0 },
+        everyOtherColumn: { answer: '42501', rows: null },
+      });
+    } finally {
+      await client.query('rollback');
+    }
+  });
 
   it('reads the tenant from the claim the helper documents', async () => {
     // The claim name is this ticket's decision and nothing else in the repository
@@ -1926,35 +2062,34 @@ describe('the trade record schema', () => {
     expect(rows[0].definition).toContain('request.jwt.claims');
   });
 
-  it('classifies every column that can hold a buyer, so one nobody looked at cannot pass',
-    async () => {
-      // F20: the inventory below used to be read out of `attname like 'buyer%'`,
-      // so the set it searched for an unlisted column was the set of columns
-      // already named for the buyer and the guarantee it claimed was circular.
-      // Three columns hold a buyer's name and address by their own documented
-      // purpose and are spelled otherwise: `claims.claim_text` is the text a
-      // marketplace was told, which for a lost parcel is the buyer's name and
-      // address; `messages.body` and `message_threads.subject` are where a buyer
-      // types their own delivery address.
-      //
-      // So every column that can hold prose is a candidate and each has to say
-      // which it is, the same shape as the tenancy clauses: there is no third
-      // answer for a column nobody anticipated, and an author who adds one
-      // without saying meets this rather than a silent pass.
-      const columns = await freeTextColumnsIn(client, 'public');
-      assertPopulated(
-        columns.map((column) => column.column),
-        'a classification on every column of schema public that can hold a buyer\'s name',
-      );
-      const unsaid = unclassified(columns);
-      expect(
-        unsaid,
-        `${unsaid.length} of the ${columns.length} columns in schema public that can hold a `
-        + 'sentence say neither that they hold buyer data nor why a buyer\'s name and address '
-        + 'cannot reach them, so SEEN-083 cannot know which of them it has to expire: '
-        + unsaid.join(', '),
-      ).toEqual([]);
-    });
+  it('classifies every column that can hold a buyer, so one nobody looked at cannot pass', async () => {
+    // F20: the inventory below used to be read out of `attname like 'buyer%'`,
+    // so the set it searched for an unlisted column was the set of columns
+    // already named for the buyer and the guarantee it claimed was circular.
+    // Three columns hold a buyer's name and address by their own documented
+    // purpose and are spelled otherwise: `claims.claim_text` is the text a
+    // marketplace was told, which for a lost parcel is the buyer's name and
+    // address; `messages.body` and `message_threads.subject` are where a buyer
+    // types their own delivery address.
+    //
+    // So every column that can hold prose is a candidate and each has to say
+    // which it is, the same shape as the tenancy clauses: there is no third
+    // answer for a column nobody anticipated, and an author who adds one
+    // without saying meets this rather than a silent pass.
+    const columns = await freeTextColumnsIn(client, 'public');
+    assertPopulated(
+      columns.map((column) => column.column),
+      "a classification on every column of schema public that can hold a buyer's name",
+    );
+    const unsaid = unclassified(columns);
+    expect(
+      unsaid,
+      `${unsaid.length} of the ${columns.length} columns in schema public that can hold a ` +
+        "sentence say neither that they hold buyer data nor why a buyer's name and address " +
+        'cannot reach them, so SEEN-083 cannot know which of them it has to expire: ' +
+        unsaid.join(', '),
+    ).toEqual([]);
+  });
 
   it('cannot be answered by reading the column name, whatever the column is called', async () => {
     // What makes the assertion above worth running. A classification read out of
@@ -1979,9 +2114,9 @@ describe('the trade record schema', () => {
         .filter((column) => !unsaid.some((entry) => entry.startsWith(`${column} (`)));
       expect(
         missed,
-        `${missed.length} columns added to public.evidence that hold a buyer's name or address `
-        + 'under a name no list anticipated were not reported as unclassified, so the '
-        + `classification is answerable by the column's name after all: ${missed.join(', ')}`,
+        `${missed.length} columns added to public.evidence that hold a buyer's name or address ` +
+          'under a name no list anticipated were not reported as unclassified, so the ' +
+          `classification is answerable by the column's name after all: ${missed.join(', ')}`,
       ).toEqual([]);
     } finally {
       await client.query('rollback');
@@ -2003,13 +2138,13 @@ describe('the trade record schema', () => {
     );
     expect(
       missing,
-      'Columns BUYER_PII_COLUMNS lists that the schema does not declare as buyer PII in their '
-      + `own comment: ${missing.join(', ')}`,
+      'Columns BUYER_PII_COLUMNS lists that the schema does not declare as buyer PII in their ' +
+        `own comment: ${missing.join(', ')}`,
     ).toEqual([]);
     expect(
       unlisted,
-      'Columns the schema declares to hold buyer data that BUYER_PII_COLUMNS does not list, so '
-      + `SEEN-083 would not expire them: ${unlisted.join(', ')}`,
+      'Columns the schema declares to hold buyer data that BUYER_PII_COLUMNS does not list, so ' +
+        `SEEN-083 would not expire them: ${unlisted.join(', ')}`,
     ).toEqual([]);
 
     const silent = declaredBuyerPii(columns)
@@ -2017,8 +2152,8 @@ describe('the trade record schema', () => {
       .map((column) => column.column);
     expect(
       silent,
-      'Buyer PII columns whose own comment does not say they are PII expiring after 30 days: '
-      + silent.join(', '),
+      'Buyer PII columns whose own comment does not say they are PII expiring after 30 days: ' +
+        silent.join(', '),
     ).toEqual([]);
   });
 
@@ -2033,114 +2168,125 @@ describe('the trade record schema', () => {
         `comment on column public.evidence.recipient_address is
            '${BUYER_PII_MARKER}. Where the parcel was sent, as the carrier recorded it.'`,
       );
-      const found = declaredBuyerPii(await freeTextColumnsIn(client, 'public'))
-        .map((column) => column.column);
+      const found = declaredBuyerPii(await freeTextColumnsIn(client, 'public')).map(
+        (column) => column.column,
+      );
       expect(
         found.filter((column) => !(BUYER_PII_COLUMNS as readonly string[]).includes(column)),
-        'A new column declaring itself buyer PII in its own comment was not reported as absent '
-        + 'from BUYER_PII_COLUMNS, so the inventory reads the schema for a name rather than for '
-        + 'what a column says it holds',
+        'A new column declaring itself buyer PII in its own comment was not reported as absent ' +
+          'from BUYER_PII_COLUMNS, so the inventory reads the schema for a name rather than for ' +
+          'what a column says it holds',
       ).toEqual(['evidence.recipient_address']);
     } finally {
       await client.query('rollback');
     }
   });
 
-  it('says in each buyer PII column which encryption at rest it relies on, and what is owed',
-    async () => {
-      // The six columns are plain `text`. CLAUDE.md says buyer PII is encrypted at
-      // rest, and that sentence reads two ways: the volume the provider encrypts,
-      // or the column itself, so that a restore-drill `pg_dump` and a support query
-      // as service_role yield ciphertext rather than every tenant's buyer names and
-      // addresses. This schema relies on the first and implements none of the
-      // second. Nothing recorded which reading was in force, and an obligation
-      // nobody has written down is one that disappears: the comment states it and
-      // this test is what keeps the statement there.
-      const rows = declaredBuyerPii(await freeTextColumnsIn(client, 'public'));
-      assertPopulated(rows.map((row) => row.column), 'what each buyer PII column says is owed');
-      const silent: string[] = [];
-      for (const row of rows) {
-        const unsaid = BUYER_PII_COMMENT_TERMS.filter((term) => !row.comment.includes(term));
-        if (unsaid.length > 0) {
-          silent.push(`${row.column} does not say ${unsaid.map((term) => `"${term}"`).join(', ')}`);
-        }
+  it('says in each buyer PII column which encryption at rest it relies on, and what is owed', async () => {
+    // The six columns are plain `text`. CLAUDE.md says buyer PII is encrypted at
+    // rest, and that sentence reads two ways: the volume the provider encrypts,
+    // or the column itself, so that a restore-drill `pg_dump` and a support query
+    // as service_role yield ciphertext rather than every tenant's buyer names and
+    // addresses. This schema relies on the first and implements none of the
+    // second. Nothing recorded which reading was in force, and an obligation
+    // nobody has written down is one that disappears: the comment states it and
+    // this test is what keeps the statement there.
+    const rows = declaredBuyerPii(await freeTextColumnsIn(client, 'public'));
+    assertPopulated(
+      rows.map((row) => row.column),
+      'what each buyer PII column says is owed',
+    );
+    const silent: string[] = [];
+    for (const row of rows) {
+      const unsaid = BUYER_PII_COMMENT_TERMS.filter((term) => !row.comment.includes(term));
+      if (unsaid.length > 0) {
+        silent.push(`${row.column} does not say ${unsaid.map((term) => `"${term}"`).join(', ')}`);
       }
-      expect(
-        silent,
-        'Buyer PII columns whose comment does not state which encryption at rest the schema '
-        + 'relies on today and what is still owed and by whom: ' + silent.join('; '),
-      ).toEqual([]);
-    });
+    }
+    expect(
+      silent,
+      'Buyer PII columns whose comment does not state which encryption at rest the schema ' +
+        'relies on today and what is still owed and by whom: ' +
+        silent.join('; '),
+    ).toEqual([]);
+  });
 
-  it('says which ticket owes it, wherever not buyer PII is a constraint and not an observation',
-    async () => {
-      // F31: `message_threads.external_thread_id` was classified not buyer PII
-      // because "an identifier the rail assigned, not anything a buyer wrote",
-      // and on the mail rail that is false. A thread opened by a buyer is
-      // identified by the root Message-ID their own mail system generated, which
-      // carries the sending host on the right of the at sign and a local part
-      // their client chose. `messages.external_message_id` said the same thing
-      // and had it worse, because every inbound mail message carries one rather
-      // than only the thread root. The column stays not buyer PII because
-      // SEEN-062 stores a digest of the Message-ID and never the id itself, which
-      // is a constraint on a ticket nobody has written and not a fact about the
-      // schema.
-      //
-      // No test can tell a true reason from a false one, which is why F31 took
-      // five reviews to find. What this can tell is a classification that rests
-      // on somebody keeping a promise from one that rests on what the column is,
-      // and it requires the first kind to name the ticket the promise falls to.
-      // Read in both directions: a listed column whose comment states no
-      // obligation has had the promise edited away while the classification
-      // stayed, and an unlisted column that states one is a promise nobody is
-      // tracking. `audit_events.payload` and `claim_events.detail` were already
-      // written this way in part 7, so the shape is the file's own and not new
-      // machinery for two columns.
-      const columns = await freeTextColumnsIn(client, 'public');
-      const byName = new Map(columns.map((column) => [column.column, column]));
-      const owed = Object.entries(CONSTRAINED_NOT_BUYER_PII_COLUMNS)
-        .map(([column, entry]) => [column, entry.tickets] as const);
-      assertPopulated(owed.map(([column]) => column), 'the classifications that are obligations');
-      const wrong: string[] = [];
-      for (const [column, owners] of owed) {
-        const row = byName.get(column);
-        if (row === undefined) {
-          wrong.push(`${column} is not a column of schema public that can hold a sentence`);
-          continue;
-        }
-        if (!row.comment.startsWith(NOT_BUYER_PII_MARKER)) {
-          wrong.push(`${column} is no longer classified "${NOT_BUYER_PII_MARKER}"`);
-          continue;
-        }
-        if (!row.comment.includes(CONSTRAINED_NOT_BUYER_PII_MARKER)) {
-          wrong.push(
-            `${column} does not say "${CONSTRAINED_NOT_BUYER_PII_MARKER}", so it reads as a fact `
-            + 'about the column when it is a constraint on whoever writes it',
-          );
-        }
-        const unnamed = owners.filter((owner) => !row.comment.includes(owner));
-        if (unnamed.length > 0) {
-          wrong.push(`${column} names none of ${unnamed.join(', ')} as owing the constraint`);
-        }
+  it('says which ticket owes it, wherever not buyer PII is a constraint and not an observation', async () => {
+    // F31: `message_threads.external_thread_id` was classified not buyer PII
+    // because "an identifier the rail assigned, not anything a buyer wrote",
+    // and on the mail rail that is false. A thread opened by a buyer is
+    // identified by the root Message-ID their own mail system generated, which
+    // carries the sending host on the right of the at sign and a local part
+    // their client chose. `messages.external_message_id` said the same thing
+    // and had it worse, because every inbound mail message carries one rather
+    // than only the thread root. The column stays not buyer PII because
+    // SEEN-062 stores a digest of the Message-ID and never the id itself, which
+    // is a constraint on a ticket nobody has written and not a fact about the
+    // schema.
+    //
+    // No test can tell a true reason from a false one, which is why F31 took
+    // five reviews to find. What this can tell is a classification that rests
+    // on somebody keeping a promise from one that rests on what the column is,
+    // and it requires the first kind to name the ticket the promise falls to.
+    // Read in both directions: a listed column whose comment states no
+    // obligation has had the promise edited away while the classification
+    // stayed, and an unlisted column that states one is a promise nobody is
+    // tracking. `audit_events.payload` and `claim_events.detail` were already
+    // written this way in part 7, so the shape is the file's own and not new
+    // machinery for two columns.
+    const columns = await freeTextColumnsIn(client, 'public');
+    const byName = new Map(columns.map((column) => [column.column, column]));
+    const owed = Object.entries(CONSTRAINED_NOT_BUYER_PII_COLUMNS).map(
+      ([column, entry]) => [column, entry.tickets] as const,
+    );
+    assertPopulated(
+      owed.map(([column]) => column),
+      'the classifications that are obligations',
+    );
+    const wrong: string[] = [];
+    for (const [column, owners] of owed) {
+      const row = byName.get(column);
+      if (row === undefined) {
+        wrong.push(`${column} is not a column of schema public that can hold a sentence`);
+        continue;
       }
-      expect(
-        wrong,
-        'Columns whose non-PII classification depends on a later ticket writing them a certain '
-        + `way, and whose own comment does not say so or does not name that ticket: ${
-          wrong.join('; ')}`,
-      ).toEqual([]);
+      if (!row.comment.startsWith(NOT_BUYER_PII_MARKER)) {
+        wrong.push(`${column} is no longer classified "${NOT_BUYER_PII_MARKER}"`);
+        continue;
+      }
+      if (!row.comment.includes(CONSTRAINED_NOT_BUYER_PII_MARKER)) {
+        wrong.push(
+          `${column} does not say "${CONSTRAINED_NOT_BUYER_PII_MARKER}", so it reads as a fact ` +
+            'about the column when it is a constraint on whoever writes it',
+        );
+      }
+      const unnamed = owners.filter((owner) => !row.comment.includes(owner));
+      if (unnamed.length > 0) {
+        wrong.push(`${column} names none of ${unnamed.join(', ')} as owing the constraint`);
+      }
+    }
+    expect(
+      wrong,
+      'Columns whose non-PII classification depends on a later ticket writing them a certain ' +
+        `way, and whose own comment does not say so or does not name that ticket: ${wrong.join(
+          '; ',
+        )}`,
+    ).toEqual([]);
 
-      const unlisted = columns
-        .filter((column) => column.comment.startsWith(NOT_BUYER_PII_MARKER)
-          && column.comment.includes(CONSTRAINED_NOT_BUYER_PII_MARKER))
-        .map((column) => column.column)
-        .filter((column) => CONSTRAINED_NOT_BUYER_PII_COLUMNS[column] === undefined);
-      expect(
-        unlisted,
-        'Columns whose comment states an obligation on a later ticket that is tracked nowhere, so '
-        + `nothing reads the promise back when that ticket is worked: ${unlisted.join(', ')}`,
-      ).toEqual([]);
-    });
+    const unlisted = columns
+      .filter(
+        (column) =>
+          column.comment.startsWith(NOT_BUYER_PII_MARKER) &&
+          column.comment.includes(CONSTRAINED_NOT_BUYER_PII_MARKER),
+      )
+      .map((column) => column.column)
+      .filter((column) => CONSTRAINED_NOT_BUYER_PII_COLUMNS[column] === undefined);
+    expect(
+      unlisted,
+      'Columns whose comment states an obligation on a later ticket that is tracked nowhere, so ' +
+        `nothing reads the promise back when that ticket is worked: ${unlisted.join(', ')}`,
+    ).toEqual([]);
+  });
 
   it('is carried by the criteria of the ticket that owes it, and not by the comment alone', () => {
     // F34. The assertion above requires the comment to name the ticket and
@@ -2163,7 +2309,10 @@ describe('the trade record schema', () => {
     // architecture document is: otherwise the cache replays a pass over a ticket
     // the suite never read.
     const owed = Object.entries(CONSTRAINED_NOT_BUYER_PII_COLUMNS);
-    assertPopulated(owed.map(([column]) => column), 'the classifications that are obligations');
+    assertPopulated(
+      owed.map(([column]) => column),
+      'the classifications that are obligations',
+    );
     const offenders: string[] = [];
     for (const [column, entry] of owed) {
       assertPopulated([...entry.terms], `the terms ${column}'s obligation is recognised by`);
@@ -2172,19 +2321,19 @@ describe('the trade record schema', () => {
         const criteria = acceptanceCriteriaOf(file);
         if (criteria.some((criterion) => carriesEveryTerm(criterion, entry.terms))) continue;
         offenders.push(
-          `${column} is classified "${NOT_BUYER_PII_MARKER}" only for as long as ${ticket} `
-          + `writes it a certain way, and none of the ${criteria.length} acceptance criteria of `
-          + `${file} says ${entry.terms.map((term) => `"${term}"`).join(' and ')}. What that `
-          + `ticket owes: ${entry.obligation}. Put it in the criteria rather than here, because `
-          + 'the criteria are what its author is held to, and see the column\'s own comment in '
-          + 'the migration that classifies it for why. SEEN-008 recorded this as F34.',
+          `${column} is classified "${NOT_BUYER_PII_MARKER}" only for as long as ${ticket} ` +
+            `writes it a certain way, and none of the ${criteria.length} acceptance criteria of ` +
+            `${file} says ${entry.terms.map((term) => `"${term}"`).join(' and ')}. What that ` +
+            `ticket owes: ${entry.obligation}. Put it in the criteria rather than here, because ` +
+            "the criteria are what its author is held to, and see the column's own comment in " +
+            'the migration that classifies it for why. SEEN-008 recorded this as F34.',
         );
       }
     }
     expect(
       offenders,
-      'Classifications that rest on a ticket keeping a promise the ticket has never been told '
-      + `about: ${offenders.join(' ')}`,
+      'Classifications that rest on a ticket keeping a promise the ticket has never been told ' +
+        `about: ${offenders.join(' ')}`,
     ).toEqual([]);
   });
 });
@@ -2196,62 +2345,60 @@ describe('the migrations that write the schema', () => {
   // after `pnpm db:reset` is correct in each case; what is wrong is what an author
   // reading these files, or a cache reading their hash, would conclude.
 
-  it('hashes every migration into the test task, so the cache cannot replay a stale pass',
-    () => {
-      // These are the only database-dependent tests in the repository, and they sit
-      // in a turbo task whose inputs are the files of one package. A migration that
-      // adds a table with no tenant_id, or one born writable by `authenticated`,
-      // changes nothing under packages/core, so `turbo run test` reports the old
-      // pass from the cache and the tenancy, privilege and append-only guards never
-      // see the new schema at all. CI escapes it today only because it caches the
-      // pnpm store and not `.turbo`.
-      const inputs = testTaskInputs();
-      expect(inputs.length, 'turbo reported no inputs at all for @seen/core#test').toBeGreaterThan(0);
-      const migrations = migrationFiles().map((file) => file.split('/').pop() as string);
-      const hashed = migrations.filter(
-        (name) => inputs.some((input) => input.includes(MIGRATIONS_DIRECTORY) && input.endsWith(name)),
-      );
-      expect(
-        migrations.filter((name) => !hashed.includes(name)),
-        `The cache key of @seen/core#test covers ${inputs.length} files and `
-        + `${hashed.length} of ${migrations.length} migrations, so a turbo cache hit can report `
-        + 'these database tests as passed without ever running them against a changed schema. '
-        + `turbo hashes: ${inputs.join(', ')}`,
-      ).toEqual([]);
-    });
+  it('hashes every migration into the test task, so the cache cannot replay a stale pass', () => {
+    // These are the only database-dependent tests in the repository, and they sit
+    // in a turbo task whose inputs are the files of one package. A migration that
+    // adds a table with no tenant_id, or one born writable by `authenticated`,
+    // changes nothing under packages/core, so `turbo run test` reports the old
+    // pass from the cache and the tenancy, privilege and append-only guards never
+    // see the new schema at all. CI escapes it today only because it caches the
+    // pnpm store and not `.turbo`.
+    const inputs = testTaskInputs();
+    expect(inputs.length, 'turbo reported no inputs at all for @seen/core#test').toBeGreaterThan(0);
+    const migrations = migrationFiles().map((file) => file.split('/').pop() as string);
+    const hashed = migrations.filter((name) =>
+      inputs.some((input) => input.includes(MIGRATIONS_DIRECTORY) && input.endsWith(name)),
+    );
+    expect(
+      migrations.filter((name) => !hashed.includes(name)),
+      `The cache key of @seen/core#test covers ${inputs.length} files and ` +
+        `${hashed.length} of ${migrations.length} migrations, so a turbo cache hit can report ` +
+        'these database tests as passed without ever running them against a changed schema. ' +
+        `turbo hashes: ${inputs.join(', ')}`,
+    ).toEqual([]);
+  });
 
-  it('hashes the documents the suite reads as an authority, not the migrations alone',
-    () => {
-      // The same hole as the migrations, in the other direction. `marketplaces.test.ts`
-      // parses the routing table of docs/architecture.md and compares it cell by
-      // cell with the seeded catalogue, and the document is the authority in that
-      // comparison: change Amazon's ingest-orders cell from `API` to `assisted` and
-      // the seed is wrong and the test has to say so. Nothing under packages/core
-      // changes when the document does, so turbo replays the recorded pass and the
-      // comparison never runs. Measured by the second Codex review: sixteen inputs,
-      // every migration among them and no document at all.
-      //
-      // The ticket files of the constrained not-buyer-PII columns joined this list
-      // when F34 made them an authority too: the suite now reads SEEN-062's
-      // acceptance criteria to decide whether the promise its column comment rests
-      // on is carried anywhere its author will see it. Regenerating that criterion
-      // away changes nothing under packages/core, so without this the cache would
-      // report the guard as passed over a ticket that no longer carries it, which
-      // is the precise failure the guard exists to make loud.
-      const inputs = testTaskInputs();
-      expect(inputs.length, 'turbo reported no inputs at all for @seen/core#test').toBeGreaterThan(0);
-      const documents = [...HASHED_REPOSITORY_DOCUMENTS, ...constrainedTicketFiles()];
-      const unhashed = documents.filter(
-        (document) => !inputs.some((input) => input.replace(/\\/g, '/').endsWith(document)),
-      );
-      expect(
-        unhashed,
-        `The cache key of @seen/core#test covers ${inputs.length} files and none of these, which `
-        + 'this suite reads from outside its own package and compares the database against, so a '
-        + 'turbo cache hit can report the comparison as passed against a document it never read: '
-        + `${unhashed.join(', ')}. turbo hashes: ${inputs.join(', ')}`,
-      ).toEqual([]);
-    });
+  it('hashes the documents the suite reads as an authority, not the migrations alone', () => {
+    // The same hole as the migrations, in the other direction. `marketplaces.test.ts`
+    // parses the routing table of docs/architecture.md and compares it cell by
+    // cell with the seeded catalogue, and the document is the authority in that
+    // comparison: change Amazon's ingest-orders cell from `API` to `assisted` and
+    // the seed is wrong and the test has to say so. Nothing under packages/core
+    // changes when the document does, so turbo replays the recorded pass and the
+    // comparison never runs. Measured by the second Codex review: sixteen inputs,
+    // every migration among them and no document at all.
+    //
+    // The ticket files of the constrained not-buyer-PII columns joined this list
+    // when F34 made them an authority too: the suite now reads SEEN-062's
+    // acceptance criteria to decide whether the promise its column comment rests
+    // on is carried anywhere its author will see it. Regenerating that criterion
+    // away changes nothing under packages/core, so without this the cache would
+    // report the guard as passed over a ticket that no longer carries it, which
+    // is the precise failure the guard exists to make loud.
+    const inputs = testTaskInputs();
+    expect(inputs.length, 'turbo reported no inputs at all for @seen/core#test').toBeGreaterThan(0);
+    const documents = [...HASHED_REPOSITORY_DOCUMENTS, ...constrainedTicketFiles()];
+    const unhashed = documents.filter(
+      (document) => !inputs.some((input) => input.replace(/\\/g, '/').endsWith(document)),
+    );
+    expect(
+      unhashed,
+      `The cache key of @seen/core#test covers ${inputs.length} files and none of these, which ` +
+        'this suite reads from outside its own package and compares the database against, so a ' +
+        'turbo cache hit can report the comparison as passed against a document it never read: ' +
+        `${unhashed.join(', ')}. turbo hashes: ${inputs.join(', ')}`,
+    ).toEqual([]);
+  });
 
   it('counts its own set in every header, so the route to part 4 is not a wrong number', () => {
     // The round that removed the blanket tails rewrote parts 1, 2 and 3 to point at
@@ -2265,9 +2412,10 @@ describe('the migrations that write the schema', () => {
     const offenders = misnumberedSetHeaders(members);
     expect(
       offenders,
-      `${offenders.length} of the ${members.length} migrations in the trade record v1 set state `
-      + 'a size for it that the directory contradicts, so the file that decides every table\'s '
-      + 'privileges is outside the set its own parts count: ' + offenders.join('; '),
+      `${offenders.length} of the ${members.length} migrations in the trade record v1 set state ` +
+        "a size for it that the directory contradicts, so the file that decides every table's " +
+        'privileges is outside the set its own parts count: ' +
+        offenders.join('; '),
     ).toEqual([]);
   });
 
@@ -2279,24 +2427,27 @@ describe('the migrations that write the schema', () => {
     // pass, and the same five still reading `of 4` are all named. A file in the
     // directory that is not of this set, the evidence bucket today, is not counted
     // and needs no header.
-    const five = (total: number): SetMember[] => [1, 2, 3, 4, 5].map((part) => ({
-      file: `${MIGRATIONS_DIRECTORY}/2027_${TRADE_RECORD_MIGRATION_MARKER}_part${part}.sql`,
-      firstLine: `-- Trade record v1, part ${part} of ${total}: a table this ticket does not have.`,
-    }));
+    const five = (total: number): SetMember[] =>
+      [1, 2, 3, 4, 5].map((part) => ({
+        file: `${MIGRATIONS_DIRECTORY}/2027_${TRADE_RECORD_MIGRATION_MARKER}_part${part}.sql`,
+        firstLine: `-- Trade record v1, part ${part} of ${total}: a table this ticket does not have.`,
+      }));
     expect(
       misnumberedSetHeaders(five(5)),
-      'A fifth migration that states the size of the set it joined is reported as an offender, '
-      + 'so the assertion counts something other than the files it was given',
+      'A fifth migration that states the size of the set it joined is reported as an offender, ' +
+        'so the assertion counts something other than the files it was given',
     ).toEqual([]);
     expect(
       misnumberedSetHeaders(five(4)).length,
-      'Five migrations all still stating four are not all reported, so the assertion passes by '
-      + 'finding nothing rather than by reading the headers',
+      'Five migrations all still stating four are not all reported, so the assertion passes by ' +
+        'finding nothing rather than by reading the headers',
     ).toBe(5);
     // And the numbering is read as well as the count: part 3 twice and no part 2 is
     // the drift a copied header produces, and it names the file that is out of order.
-    const duplicated = five(5).map(
-      (member, index) => (index === 1 ? { ...member, firstLine: member.firstLine.replace('part 2 of 5', 'part 3 of 5') } : member),
+    const duplicated = five(5).map((member, index) =>
+      index === 1
+        ? { ...member, firstLine: member.firstLine.replace('part 2 of 5', 'part 3 of 5') }
+        : member,
     );
     expect(
       misnumberedSetHeaders(duplicated).length,
@@ -2316,17 +2467,19 @@ describe('the migrations that write the schema', () => {
     // belongs in the headers, which are read against the directory, and a comment
     // that gives the set a different one is reported here.
     const size = tradeRecordSetHeaders().length;
-    const contradicted = setSizesStatedInComments(sourcesThatDocumentTheSet())
-      .filter((stated) => stated.size !== size);
+    const contradicted = setSizesStatedInComments(sourcesThatDocumentTheSet()).filter(
+      (stated) => stated.size !== size,
+    );
     const named = contradicted.map(
-      (stated) => `${stated.file}, comment at line ${stated.line}: "${stated.phrase}", which `
-        + `gives the set ${stated.size}`,
+      (stated) =>
+        `${stated.file}, comment at line ${stated.line}: "${stated.phrase}", which ` +
+        `gives the set ${stated.size}`,
     );
     expect(
       named,
-      `The directory holds ${size} members of the set and every header counts them, and these `
-      + 'comments hand a reader a different number, which is how the last part of the set goes '
-      + `unread: ${named.join('; ')}`,
+      `The directory holds ${size} members of the set and every header counts them, and these ` +
+        'comments hand a reader a different number, which is how the last part of the set goes ' +
+        `unread: ${named.join('; ')}`,
     ).toEqual([]);
   });
 
@@ -2337,32 +2490,40 @@ describe('the migrations that write the schema', () => {
     // between it and what it counts, and a paragraph counting something other than
     // the set is left alone: part 7 says a comment restated in a pair of migrations
     // is a pair of comments that drift, and that is not a claim about this set.
-    const scanned = (prose: string) => [{ file: 'supabase/migrations/2027_x.sql', contents: prose }];
+    const scanned = (prose: string) => [
+      { file: 'supabase/migrations/2027_x.sql', contents: prose },
+    ];
     expect(
-      setSizesStatedInComments(scanned(
-        '-- Trade record v1, part 9 of 9: a part this ticket does not have.\n'
-        + '-- The set is these nine files, and the evidence bucket is not one of them.',
-      )).map((stated) => stated.size),
-      'A comment naming the set and counting its members is not read, so the assertion above '
-      + 'passes by finding nothing rather than by reading the prose',
+      setSizesStatedInComments(
+        scanned(
+          '-- Trade record v1, part 9 of 9: a part this ticket does not have.\n' +
+            '-- The set is these nine files, and the evidence bucket is not one of them.',
+        ),
+      ).map((stated) => stated.size),
+      'A comment naming the set and counting its members is not read, so the assertion above ' +
+        'passes by finding nothing rather than by reading the prose',
     ).toEqual([9]);
     expect(
-      setSizesStatedInComments(scanned(
-        '-- The trade record v1 set is the migrations whose names carry the marker, of\n'
-        + '-- which there are 12 files today.',
-      )).map((stated) => stated.size),
-      'A count written as a numeral, or broken from what it counts by the end of a line, is '
-      + 'missed, so the scanner is narrowed by how the last author happened to write it',
+      setSizesStatedInComments(
+        scanned(
+          '-- The trade record v1 set is the migrations whose names carry the marker, of\n' +
+            '-- which there are 12 files today.',
+        ),
+      ).map((stated) => stated.size),
+      'A count written as a numeral, or broken from what it counts by the end of a line, is ' +
+        'missed, so the scanner is narrowed by how the last author happened to write it',
     ).toEqual([12]);
     expect(
-      setSizesStatedInComments(scanned(
-        '-- Trade record v1, part 9 of 9: a part this ticket does not have.\n'
-        + '--\n'
-        + '-- A comment restated in two migrations is two comments that drift apart.',
-      )),
-      'A sentence counting something other than the members is read as a size of the set '
-      + 'because the preamble it sits in is headed by the name of the set, so the whole of a '
-      + 'migration\'s opening comment is answered with numbers that have nothing to do with it',
+      setSizesStatedInComments(
+        scanned(
+          '-- Trade record v1, part 9 of 9: a part this ticket does not have.\n' +
+            '--\n' +
+            '-- A comment restated in two migrations is two comments that drift apart.',
+        ),
+      ),
+      'A sentence counting something other than the members is read as a size of the set ' +
+        'because the preamble it sits in is headed by the name of the set, so the whole of a ' +
+        "migration's opening comment is answered with numbers that have nothing to do with it",
     ).toEqual([]);
     // F75. The instruction to the author of the next part states the size without
     // counting anything: part 4 said `a ninth part is added by numbering it and
@@ -2371,25 +2532,27 @@ describe('the migrations that write the schema', () => {
     // article decides it, which is why both are shown: the part that does not exist
     // yet sizes the set, and the part that does says only that it is there.
     expect(
-      setSizesStatedInComments(scanned(
-        '-- The set is the migrations whose names carry the marker, so a ninth part is\n'
-        + '-- added by numbering it and correcting the headers in front of it.',
-      )).map((stated) => stated.size),
-      'The instruction a part gives the author of the next one states the set\'s size as the '
-      + 'number it tells them to write minus one, and is not read, so the one sentence in this '
-      + 'set whose whole subject is keeping the count right is the sentence the count can rot in',
+      setSizesStatedInComments(
+        scanned(
+          '-- The set is the migrations whose names carry the marker, so a ninth part is\n' +
+            '-- added by numbering it and correcting the headers in front of it.',
+        ),
+      ).map((stated) => stated.size),
+      "The instruction a part gives the author of the next one states the set's size as the " +
+        'number it tells them to write minus one, and is not read, so the one sentence in this ' +
+        'set whose whole subject is keeping the count right is the sentence the count can rot in',
     ).toEqual([8]);
     expect(
-      setSizesStatedInComments(scanned(
-        '-- Trade record v1: the tenth part of the set drops a column part 3 created.',
-      )),
-      'A part that exists is read as a count of the set one short of its own number, so a true '
-      + 'sentence about the last member is reported as a stale count and the guard\'s report '
-      + 'stops being worth reading',
+      setSizesStatedInComments(
+        scanned('-- Trade record v1: the tenth part of the set drops a column part 3 created.'),
+      ),
+      'A part that exists is read as a count of the set one short of its own number, so a true ' +
+        "sentence about the last member is reported as a stale count and the guard's report " +
+        'stops being worth reading',
     ).toEqual([]);
   });
 
-  it('says which member of the set is last in the headers and in no member\'s prose', () => {
+  it("says which member of the set is last in the headers and in no member's prose", () => {
     // F77. Part 8 said it was the last migration of the set, and therefore the only
     // place a claim about the whole of schema `seen` could be made, in the paragraph
     // that justifies a self-check walking every routine there. Parts 9 and 10 were
@@ -2414,21 +2577,24 @@ describe('the migrations that write the schema', () => {
       .map((claim) => `${claim.file}, comment at line ${claim.line}: "${claim.phrase}"`);
     expect(
       named,
-      `The set is applied in the order of the directory and ${last} is the member that comes `
-      + 'last, and these members say in prose that a different one does. A part that believes it '
-      + 'is last writes a claim about the whole of the schema and runs before the parts that add '
-      + `to it: ${named.join('; ')}`,
+      `The set is applied in the order of the directory and ${last} is the member that comes ` +
+        'last, and these members say in prose that a different one does. A part that believes it ' +
+        'is last writes a claim about the whole of the schema and runs before the parts that add ' +
+        `to it: ${named.join('; ')}`,
     ).toEqual([]);
     // And the scanner is shown prose this repository does not contain, so the
     // assertion above cannot pass by reading nothing.
     expect(
-      lastMemberClaimedInComments([{
-        file: 'supabase/migrations/2027_x.sql',
-        contents: '-- This is the last migration of the set, so it is the only place a claim\n'
-          + '-- about the whole of a schema can be made.',
-      }]).map((claim) => claim.phrase),
-      'A member calling itself the last part of the set is not read at all, so the assertion '
-      + 'above passes by finding nothing rather than by reading the prose',
+      lastMemberClaimedInComments([
+        {
+          file: 'supabase/migrations/2027_x.sql',
+          contents:
+            '-- This is the last migration of the set, so it is the only place a claim\n' +
+            '-- about the whole of a schema can be made.',
+        },
+      ]).map((claim) => claim.phrase),
+      'A member calling itself the last part of the set is not read at all, so the assertion ' +
+        'above passes by finding nothing rather than by reading the prose',
     ).toEqual(['the last migration']);
   });
 
@@ -2455,11 +2621,11 @@ describe('the migrations that write the schema', () => {
     const carried = filesThatDocumentTheSet(probes, [member]);
     expect(
       probes.filter((file) => !carried.includes(file)),
-      'Modules at these extensions run under vitest and are read by a person, and the scan that '
-      + 'feeds the withdrawn-claim guard and the size guard would drop them, so both guards '
-      + 'report nothing about whatever such a module says. This is F49\'s defect exactly: the '
-      + 'walk behind the scan collects all eight, and a selection narrowed by how a file happens '
-      + 'to be named puts the seven that are not `.ts` back outside it',
+      'Modules at these extensions run under vitest and are read by a person, and the scan that ' +
+        'feeds the withdrawn-claim guard and the size guard would drop them, so both guards ' +
+        "report nothing about whatever such a module says. This is F49's defect exactly: the " +
+        'walk behind the scan collects all eight, and a selection narrowed by how a file happens ' +
+        'to be named puts the seven that are not `.ts` back outside it',
     ).toEqual([]);
     // And the other two authorities are carried, so the assertion above cannot be
     // satisfied by a selection that answers with its first argument and nothing
@@ -2467,8 +2633,8 @@ describe('the migrations that write the schema', () => {
     // the other file in this repository where a rule about this schema is written.
     expect(
       carried.filter((file) => !probes.includes(file)),
-      'The set\'s own migrations and the architecture document are not in the scan, so a '
-      + 'withdrawn claim or a size restated in either of them is read by nobody',
+      "The set's own migrations and the architecture document are not in the scan, so a " +
+        'withdrawn claim or a size restated in either of them is read by nobody',
     ).toEqual([member, ARCHITECTURE_DOCUMENT]);
   });
 
@@ -2515,15 +2681,18 @@ describe('the migrations that write the schema', () => {
       ...withdrawnClaimsStillStanding(unscanned),
       ...setSizesStatedInComments(unscanned)
         .filter((stated) => stated.size !== size)
-        .map((stated) => `${stated.file}:${stated.line} gives the set ${stated.size} members, `
-          + `and the directory holds ${size}`),
+        .map(
+          (stated) =>
+            `${stated.file}:${stated.line} gives the set ${stated.size} members, ` +
+            `and the directory holds ${size}`,
+        ),
     ];
     expect(
       { unscanned: unscanned.map((source) => source.file), unseen },
-      'These modules of this package run under vitest and are read by a person, and the scan '
-      + 'that feeds the withdrawn-claim guard and the size guard passed over them, so both '
-      + 'guards report nothing about whatever they say. What the guards do say when they are '
-      + `shown them: ${unseen.join('; ') || 'nothing, this time'}`,
+      'These modules of this package run under vitest and are read by a person, and the scan ' +
+        'that feeds the withdrawn-claim guard and the size guard passed over them, so both ' +
+        'guards report nothing about whatever they say. What the guards do say when they are ' +
+        `shown them: ${unseen.join('; ') || 'nothing, this time'}`,
     ).toEqual({ unscanned: [], unseen: [] });
   });
 
@@ -2538,9 +2707,9 @@ describe('the migrations that write the schema', () => {
     const found = blanketPrivilegeStatements();
     expect(
       found,
-      `${found.length} blanket privilege statements in the migrations, each of which reaches `
-      + 'every table in the schema including the ones an earlier migration narrowed: '
-      + found.join('; '),
+      `${found.length} blanket privilege statements in the migrations, each of which reaches ` +
+        'every table in the schema including the ones an earlier migration narrowed: ' +
+        found.join('; '),
     ).toEqual([]);
   });
 
@@ -2564,8 +2733,10 @@ describe('the migrations that write the schema', () => {
     const missed = hazards.filter(
       (hazard) => !FORBIDDEN_PRIVILEGE_STATEMENTS.some((rule) => rule.pattern.test(hazard)),
     );
-    expect(missed, `Blanket privilege statements the detector does not see: ${missed.join('; ')}`)
-      .toEqual([]);
+    expect(
+      missed,
+      `Blanket privilege statements the detector does not see: ${missed.join('; ')}`,
+    ).toEqual([]);
     // And what it must not flag, or part 4 could not be written at all: a grant per
     // table, a grant on the helper schema, and the quotation of the hazard in a
     // comment that explains why it is forbidden.
@@ -2577,13 +2748,15 @@ describe('the migrations that write the schema', () => {
       // privilege away and is the whole of part 6's prevention. A rule that
       // refused `alter default privileges` in both directions would have refused
       // the fix for the hazard it was written about.
-      'alter default privileges for role postgres in schema public '
-      + 'revoke all on tables from anon, authenticated',
+      'alter default privileges for role postgres in schema public ' +
+        'revoke all on tables from anon, authenticated',
       'alter default privileges in schema public revoke select on tables from anon',
     ];
-    const misread = allowed.filter((statement) => statementsOf(statement).some(
-      (cleaned) => FORBIDDEN_PRIVILEGE_STATEMENTS.some((rule) => rule.pattern.test(cleaned)),
-    ));
+    const misread = allowed.filter((statement) =>
+      statementsOf(statement).some((cleaned) =>
+        FORBIDDEN_PRIVILEGE_STATEMENTS.some((rule) => rule.pattern.test(cleaned)),
+      ),
+    );
     expect(misread, `Statements the detector wrongly flags: ${misread.join('; ')}`).toEqual([]);
   });
 });
@@ -2606,10 +2779,10 @@ describe('the append-only guarantee on audit_events', () => {
     const missing = APPEND_ONLY_TABLES.filter((table) => !present.includes(table));
     if (missing.length > 0) {
       throw new Error(
-        `This test cannot say anything about the append-only guarantee: ${missing.join(', ')} `
-        + `${missing.length === 1 ? 'does' : 'do'} not exist in the public schema. The findings, `
-        + 'claims and agent migration has not been applied, so there is nothing to refuse an '
-        + 'update to. Apply it with `pnpm db:reset`.',
+        `This test cannot say anything about the append-only guarantee: ${missing.join(', ')} ` +
+          `${missing.length === 1 ? 'does' : 'do'} not exist in the public schema. The findings, ` +
+          'claims and agent migration has not been applied, so there is nothing to refuse an ' +
+          'update to. Apply it with `pnpm db:reset`.',
       );
     }
     // The fixtures are written inside a transaction that is never committed, and
@@ -2670,8 +2843,11 @@ describe('the append-only guarantee on audit_events', () => {
 
   it('grants no update or delete privilege to any role the application uses', async () => {
     const { rows } = await client.query<{
-      role: string; may_update: boolean; may_delete: boolean;
-      may_select: boolean; may_insert: boolean;
+      role: string;
+      may_update: boolean;
+      may_delete: boolean;
+      may_select: boolean;
+      may_insert: boolean;
     }>(
       `select role,
               has_table_privilege(role, 'public.audit_events', 'update') as may_update,
@@ -2712,10 +2888,9 @@ describe('the append-only guarantee on audit_events', () => {
     // tenant is already gone, which is only ever true inside that cascade, and
     // only a role holding delete on public.tenants can open it.
     await client.query('delete from public.tenants where tenant_id = $1', [tenant]);
-    const { rows } = await client.query(
-      'select id from public.audit_events where tenant_id = $1',
-      [tenant],
-    );
+    const { rows } = await client.query('select id from public.audit_events where tenant_id = $1', [
+      tenant,
+    ]);
     expect(rows, "the erased tenant's audit events survived the erasure").toEqual([]);
   });
 });
@@ -2825,10 +3000,10 @@ describe('the exception the append-only trigger makes, asked by a request-bound 
       await client.query(`grant ${PROBE_ROLE} to current_user`);
     } catch (cause) {
       throw new Error(
-        'This test cannot say anything about the exception the append-only trigger makes: the '
-        + `connection may not create ${PROBE_ROLE}, so there is no role a request could be bound `
-        + 'to to ask with. Point SEEN_DATABASE_URL at a stack whose role may create roles. The '
-        + `database said: ${(cause as Error).message}`,
+        'This test cannot say anything about the exception the append-only trigger makes: the ' +
+          `connection may not create ${PROBE_ROLE}, so there is no role a request could be bound ` +
+          'to to ask with. Point SEEN_DATABASE_URL at a stack whose role may create roles. The ' +
+          `database said: ${(cause as Error).message}`,
         { cause },
       );
     }
@@ -2852,9 +3027,9 @@ describe('the exception the append-only trigger makes, asked by a request-bound 
     const missing = ['tenants', 'audit_events'].filter((table) => !present.includes(table));
     if (missing.length > 0) {
       throw new Error(
-        'This test cannot say anything about the one delete the append-only guarantee permits: '
-        + `${missing.join(', ')} ${missing.length === 1 ? 'does' : 'do'} not exist in the public `
-        + 'schema. Apply the trade record migrations with `pnpm db:reset`.',
+        'This test cannot say anything about the one delete the append-only guarantee permits: ' +
+          `${missing.join(', ')} ${missing.length === 1 ? 'does' : 'do'} not exist in the public ` +
+          'schema. Apply the trade record migrations with `pnpm db:reset`.',
       );
     }
   });
@@ -2868,16 +3043,15 @@ describe('the exception the append-only trigger makes, asked by a request-bound 
       const { tenant, event } = await seedWithAuditEvent('Tenant a request can reach');
       await grantTheDeleteToARequest();
       await client.query(
-        "select set_config('request.jwt.claims', json_build_object('tenant_id', $1::text)::text,"
-        + ' true)',
+        "select set_config('request.jwt.claims', json_build_object('tenant_id', $1::text)::text," +
+          ' true)',
         [tenant],
       );
       await client.query(`set local role ${PROBE_ROLE}`);
       const seenByTheCaller = await rowsFor('public.tenants', tenant);
-      const deleted = await said(() => client.query(
-        'delete from public.audit_events where id = $1',
-        [event],
-      ));
+      const deleted = await said(() =>
+        client.query('delete from public.audit_events where id = $1', [event]),
+      );
       await client.query('reset role');
       return {
         tenantRowsTheCallerCouldSee: seenByTheCaller,
@@ -2888,13 +3062,13 @@ describe('the exception the append-only trigger makes, asked by a request-bound 
     });
     expect(
       measured,
-      'A role a request can be bound to asked to delete an audit event of a tenant that is '
-      + `there, carrying that tenant's own claim, and the database answered ${measured.deleted}, `
-      + `leaving ${measured.auditEventsLeft} audit events. The caller could see `
-      + `${measured.tenantRowsTheCallerCouldSee} of the ${measured.tenantRowsThereReally} tenant `
-      + 'rows that exist, so an exception branch that reads invisibility as absence hands it the '
-      + 'audit trail it is held accountable by, one event at a time. A refusal (23001) is what '
-      + 'keeps the exception the one delete it says it is',
+      'A role a request can be bound to asked to delete an audit event of a tenant that is ' +
+        `there, carrying that tenant's own claim, and the database answered ${measured.deleted}, ` +
+        `leaving ${measured.auditEventsLeft} audit events. The caller could see ` +
+        `${measured.tenantRowsTheCallerCouldSee} of the ${measured.tenantRowsThereReally} tenant ` +
+        'rows that exist, so an exception branch that reads invisibility as absence hands it the ' +
+        'audit trail it is held accountable by, one event at a time. A refusal (23001) is what ' +
+        'keeps the exception the one delete it says it is',
     ).toEqual({
       tenantRowsTheCallerCouldSee: 0,
       tenantRowsThereReally: 1,
@@ -2915,10 +3089,9 @@ describe('the exception the append-only trigger makes, asked by a request-bound 
       const { tenant } = await seedWithAuditEvent('Tenant erased on request');
       await client.query('set local role service_role');
       const before = await rowsFor('public.audit_events', tenant);
-      const erased = await said(() => client.query(
-        'delete from public.tenants where tenant_id = $1',
-        [tenant],
-      ));
+      const erased = await said(() =>
+        client.query('delete from public.tenants where tenant_id = $1', [tenant]),
+      );
       const after = {
         tenantRowsAfter: await rowsFor('public.tenants', tenant),
         auditEventsAfter: await rowsFor('public.audit_events', tenant),
@@ -2928,12 +3101,15 @@ describe('the exception the append-only trigger makes, asked by a request-bound 
     });
     expect(
       measured,
-      'Erasing a tenant as service_role, which is what deletion on request is, answered '
-      + `${measured.erased} and left ${measured.tenantRowsAfter} tenant rows and `
-      + `${measured.auditEventsAfter} audit events behind, against ${measured.auditEventsBefore} `
-      + 'audit events before it',
+      'Erasing a tenant as service_role, which is what deletion on request is, answered ' +
+        `${measured.erased} and left ${measured.tenantRowsAfter} tenant rows and ` +
+        `${measured.auditEventsAfter} audit events behind, against ${measured.auditEventsBefore} ` +
+        'audit events before it',
     ).toEqual({
-      auditEventsBefore: 1, erased: 'accepted', tenantRowsAfter: 0, auditEventsAfter: 0,
+      auditEventsBefore: 1,
+      erased: 'accepted',
+      tenantRowsAfter: 0,
+      auditEventsAfter: 0,
     });
   });
 });
@@ -3036,10 +3212,9 @@ describe('the tenant id an erasure has consumed', () => {
       [name],
     );
     const tenant = rows[0].tenant_id;
-    const cleared = await client.query(
-      'delete from public.marketplaces where tenant_id = $1',
-      [tenant],
-    );
+    const cleared = await client.query('delete from public.marketplaces where tenant_id = $1', [
+      tenant,
+    ]);
     return { tenant, cleared: cleared.rowCount ?? 0 };
   }
 
@@ -3058,9 +3233,9 @@ describe('the tenant id an erasure has consumed', () => {
     const missing = ['tenants', 'audit_events'].filter((table) => !present.includes(table));
     if (missing.length > 0) {
       throw new Error(
-        'This test cannot say anything about what an erasure consumes: '
-        + `${missing.join(', ')} ${missing.length === 1 ? 'does' : 'do'} not exist in the public `
-        + 'schema. Apply the trade record migrations with `pnpm db:reset`.',
+        'This test cannot say anything about what an erasure consumes: ' +
+          `${missing.join(', ')} ${missing.length === 1 ? 'does' : 'do'} not exist in the public ` +
+          'schema. Apply the trade record migrations with `pnpm db:reset`.',
       );
     }
   });
@@ -3069,121 +3244,130 @@ describe('the tenant id an erasure has consumed', () => {
     await client?.end();
   });
 
-  it('is refused when it is created again, so an erasure can be told from no erasure',
-    async () => {
-      const measured = await rolledBack(async () => {
-        const tenant = await seedErasable('Tenant erased and put back');
-        await client.query('delete from public.tenants where tenant_id = $1', [tenant]);
-        const recreated = await said(() => client.query(
+  it('is refused when it is created again, so an erasure can be told from no erasure', async () => {
+    const measured = await rolledBack(async () => {
+      const tenant = await seedErasable('Tenant erased and put back');
+      await client.query('delete from public.tenants where tenant_id = $1', [tenant]);
+      const recreated = await said(() =>
+        client.query(
           "insert into public.tenants (tenant_id, name) values ($1, 'Tenant put back')",
           [tenant],
-        ));
-        return {
-          recreated,
-          tenantRowsStanding: await rowsFor('public.tenants', tenant),
-          auditEventsBehindIt: await rowsFor('public.audit_events', tenant),
-        };
-      });
-      expect(
-        measured,
-        `An erased tenant id was ${measured.recreated === 'accepted'
-          ? `inserted again, leaving ${measured.tenantRowsStanding} tenant row standing with `
-            + `${measured.auditEventsBehindIt} audit events behind it, so the erasure of that `
-            + 'tenant is indistinguishable from no erasure having happened'
-          : `refused with SQLSTATE ${measured.recreated}`}, where a refusal (23001) is what `
-        + 'keeps the id spent and the erasure legible',
-      ).toEqual({ recreated: '23001', tenantRowsStanding: 0, auditEventsBehindIt: 0 });
-    });
-
-  it('is refused when an update hands it to a living tenant, which is the same resurrection '
-    + 'one statement further on', async () => {
-    // F27: the refusal above was a `before insert` trigger and nothing else, so
-    // the id came back through an update instead. Measured as `service_role`: erase
-    // a tenant, create a fresh one, clear the rows its insert seeded, and set the
-    // fresh tenant's id to the erased one. Accepted, and the id resolved again with
-    // no audit events behind it, which is exactly what the refusal above exists to
-    // prevent. The route matters less than the rule: what an update of this column
-    // does is decided below, and both halves of F27 are asked here.
-    const measured = await rolledBack(async () => {
-      const erased = await seedErasable('Tenant erased and updated back');
-      await client.query('delete from public.tenants where tenant_id = $1', [erased]);
-      const { tenant: living, cleared } = await seedWithNoChildren('Tenant given the erased id');
-      const handedBack = await said(() => client.query(
-        'update public.tenants set tenant_id = $1 where tenant_id = $2',
-        [erased, living],
-      ));
+        ),
+      );
       return {
-        childRowsCleared: cleared,
-        handedBack,
-        rowsCarryingTheErasedId: await rowsFor('public.tenants', erased),
-        auditEventsBehindIt: await rowsFor('public.audit_events', erased),
-        theLivingTenantStands: await rowsFor('public.tenants', living),
+        recreated,
+        tenantRowsStanding: await rowsFor('public.tenants', tenant),
+        auditEventsBehindIt: await rowsFor('public.audit_events', tenant),
       };
     });
     expect(
       measured,
-      `An update setting a living tenant's id to an erased one was ${measured.handedBack}, where `
-      + 'a refusal (23001) is what keeps an erasure from being undone by an update rather than '
-      + `by an insert. It left ${measured.rowsCarryingTheErasedId} tenant rows carrying the `
-      + `erased id with ${measured.auditEventsBehindIt} audit events behind it, and the tenant `
-      + `whose id was to be overwritten stands in ${measured.theLivingTenantStands} rows. `
-      + `${measured.childRowsCleared} seeded child rows were cleared first: with any left, a `
-      + 'foreign key refuses the update with 23503 and this test passes for the wrong reason',
-    ).toEqual({
-      childRowsCleared: 6,
-      handedBack: '23001',
-      rowsCarryingTheErasedId: 0,
-      auditEventsBehindIt: 0,
-      theLivingTenantStands: 1,
-    });
+      `An erased tenant id was ${
+        measured.recreated === 'accepted'
+          ? `inserted again, leaving ${measured.tenantRowsStanding} tenant row standing with ` +
+            `${measured.auditEventsBehindIt} audit events behind it, so the erasure of that ` +
+            'tenant is indistinguishable from no erasure having happened'
+          : `refused with SQLSTATE ${measured.recreated}`
+      }, where a refusal (23001) is what keeps the id spent and the erasure legible`,
+    ).toEqual({ recreated: '23001', tenantRowsStanding: 0, auditEventsBehindIt: 0 });
   });
 
-  it('is refused whatever the new id is, because a tenant id is an identity and not a value',
+  it(
+    'is refused when an update hands it to a living tenant, which is the same resurrection ' +
+      'one statement further on',
     async () => {
-      // The narrow repair for F27 would refuse an update that lands on a tombstoned
-      // id. The rule chosen instead is that the column is never updatable at all,
-      // so this asks for a target no erasure has ever touched: twenty-eight tables
-      // carry a foreign key to public.tenants, and an update that changed a tenant
-      // id would rewrite or orphan the tenancy of every row beneath it. The rest of
-      // the row is untouched by the rule, and the rename below says so: a fix that
-      // froze the whole tenant row would break the ordinary update the schema
-      // expects, which is a worse defect than the one it closes.
+      // F27: the refusal above was a `before insert` trigger and nothing else, so
+      // the id came back through an update instead. Measured as `service_role`: erase
+      // a tenant, create a fresh one, clear the rows its insert seeded, and set the
+      // fresh tenant's id to the erased one. Accepted, and the id resolved again with
+      // no audit events behind it, which is exactly what the refusal above exists to
+      // prevent. The route matters less than the rule: what an update of this column
+      // does is decided below, and both halves of F27 are asked here.
       const measured = await rolledBack(async () => {
-        const { tenant, cleared } = await seedWithNoChildren('Tenant given a brand new id');
-        const toAnIdNobodyHasUsed = await said(() => client.query(
-          'update public.tenants set tenant_id = gen_random_uuid() where tenant_id = $1',
-          [tenant],
-        ));
-        const renamed = await said(() => client.query(
-          "update public.tenants set name = 'Tenant renamed' where tenant_id = $1",
-          [tenant],
-        ));
-        const { rows } = await client.query<{ name: string }>(
-          'select name from public.tenants where tenant_id = $1',
-          [tenant],
+        const erased = await seedErasable('Tenant erased and updated back');
+        await client.query('delete from public.tenants where tenant_id = $1', [erased]);
+        const { tenant: living, cleared } = await seedWithNoChildren('Tenant given the erased id');
+        const handedBack = await said(() =>
+          client.query('update public.tenants set tenant_id = $1 where tenant_id = $2', [
+            erased,
+            living,
+          ]),
         );
         return {
           childRowsCleared: cleared,
-          toAnIdNobodyHasUsed,
-          renamed,
-          nameAfter: rows[0]?.name,
-          itKeptItsOwnId: await rowsFor('public.tenants', tenant),
+          handedBack,
+          rowsCarryingTheErasedId: await rowsFor('public.tenants', erased),
+          auditEventsBehindIt: await rowsFor('public.audit_events', erased),
+          theLivingTenantStands: await rowsFor('public.tenants', living),
         };
       });
       expect(
         measured,
-        `Changing a tenant id to one no erasure has consumed was ${measured.toAnIdNobodyHasUsed} `
-        + `and renaming the same tenant was ${measured.renamed}, leaving the name as `
-        + `${measured.nameAfter}. The id is the identity twenty-eight foreign keys hang off, so `
-        + 'it is refused every new value (23001); the rest of the row stays ordinary',
+        `An update setting a living tenant's id to an erased one was ${measured.handedBack}, where ` +
+          'a refusal (23001) is what keeps an erasure from being undone by an update rather than ' +
+          `by an insert. It left ${measured.rowsCarryingTheErasedId} tenant rows carrying the ` +
+          `erased id with ${measured.auditEventsBehindIt} audit events behind it, and the tenant ` +
+          `whose id was to be overwritten stands in ${measured.theLivingTenantStands} rows. ` +
+          `${measured.childRowsCleared} seeded child rows were cleared first: with any left, a ` +
+          'foreign key refuses the update with 23503 and this test passes for the wrong reason',
       ).toEqual({
         childRowsCleared: 6,
-        toAnIdNobodyHasUsed: '23001',
-        renamed: 'accepted',
-        nameAfter: 'Tenant renamed',
-        itKeptItsOwnId: 1,
+        handedBack: '23001',
+        rowsCarryingTheErasedId: 0,
+        auditEventsBehindIt: 0,
+        theLivingTenantStands: 1,
       });
+    },
+  );
+
+  it('is refused whatever the new id is, because a tenant id is an identity and not a value', async () => {
+    // The narrow repair for F27 would refuse an update that lands on a tombstoned
+    // id. The rule chosen instead is that the column is never updatable at all,
+    // so this asks for a target no erasure has ever touched: twenty-eight tables
+    // carry a foreign key to public.tenants, and an update that changed a tenant
+    // id would rewrite or orphan the tenancy of every row beneath it. The rest of
+    // the row is untouched by the rule, and the rename below says so: a fix that
+    // froze the whole tenant row would break the ordinary update the schema
+    // expects, which is a worse defect than the one it closes.
+    const measured = await rolledBack(async () => {
+      const { tenant, cleared } = await seedWithNoChildren('Tenant given a brand new id');
+      const toAnIdNobodyHasUsed = await said(() =>
+        client.query(
+          'update public.tenants set tenant_id = gen_random_uuid() where tenant_id = $1',
+          [tenant],
+        ),
+      );
+      const renamed = await said(() =>
+        client.query("update public.tenants set name = 'Tenant renamed' where tenant_id = $1", [
+          tenant,
+        ]),
+      );
+      const { rows } = await client.query<{ name: string }>(
+        'select name from public.tenants where tenant_id = $1',
+        [tenant],
+      );
+      return {
+        childRowsCleared: cleared,
+        toAnIdNobodyHasUsed,
+        renamed,
+        nameAfter: rows[0]?.name,
+        itKeptItsOwnId: await rowsFor('public.tenants', tenant),
+      };
     });
+    expect(
+      measured,
+      `Changing a tenant id to one no erasure has consumed was ${measured.toAnIdNobodyHasUsed} ` +
+        `and renaming the same tenant was ${measured.renamed}, leaving the name as ` +
+        `${measured.nameAfter}. The id is the identity twenty-eight foreign keys hang off, so ` +
+        'it is refused every new value (23001); the rest of the row stays ordinary',
+    ).toEqual({
+      childRowsCleared: 6,
+      toAnIdNobodyHasUsed: '23001',
+      renamed: 'accepted',
+      nameAfter: 'Tenant renamed',
+      itKeptItsOwnId: 1,
+    });
+  });
 
   it('is still erasable, with its audit events going with it', async () => {
     // Deletion on request is a promise this schema has to keep: the PRD gives a
@@ -3194,10 +3378,9 @@ describe('the tenant id an erasure has consumed', () => {
     const measured = await rolledBack(async () => {
       const tenant = await seedErasable('Tenant erased on request');
       const before = await rowsFor('public.audit_events', tenant);
-      const erased = await said(() => client.query(
-        'delete from public.tenants where tenant_id = $1',
-        [tenant],
-      ));
+      const erased = await said(() =>
+        client.query('delete from public.tenants where tenant_id = $1', [tenant]),
+      );
       return {
         auditEventsBefore: before,
         erased,
@@ -3207,64 +3390,71 @@ describe('the tenant id an erasure has consumed', () => {
     });
     expect(
       measured,
-      'Erasing a tenant as service_role, which is what deletion on request is, answered '
-      + `${measured.erased} and left ${measured.tenantRowsAfter} tenant rows and `
-      + `${measured.auditEventsAfter} audit events behind, against ${measured.auditEventsBefore} `
-      + 'audit events before it',
+      'Erasing a tenant as service_role, which is what deletion on request is, answered ' +
+        `${measured.erased} and left ${measured.tenantRowsAfter} tenant rows and ` +
+        `${measured.auditEventsAfter} audit events behind, against ${measured.auditEventsBefore} ` +
+        'audit events before it',
     ).toEqual({
-      auditEventsBefore: 1, erased: 'accepted', tenantRowsAfter: 0, auditEventsAfter: 0,
+      auditEventsBefore: 1,
+      erased: 'accepted',
+      tenantRowsAfter: 0,
+      auditEventsAfter: 0,
     });
   });
 
-  it('is still erasable when its tombstone already stands, so deletion on request cannot fail '
-    + 'on the registry', async () => {
-    // The second half of F27, and the half that turns a reversible erasure into an
-    // unkeepable promise. seen.record_tenant_erasure inserts into a registry keyed
-    // by tenant_id, so an id that is tombstoned and comes back cannot be erased a
-    // second time: the insert violates the primary key and the delete fails with
-    // 23505. Deletion on request is owed within 30 days, and a tenant it refuses
-    // for is worse off than one whose id was reusable.
-    //
-    // The route back is deliberately outside the refusals above, as a superuser or
-    // the owner turning a trigger off is: with those refusals in place no id should
-    // come back at all, and this asks what happens if one does anyway. A promise
-    // this load-bearing should not rest on another guarantee holding.
-    const measured = await rolledBack(async () => {
-      const tenant = await seedErasable('Tenant erased, resurrected, erased again');
-      const first = await said(() => client.query(
-        'delete from public.tenants where tenant_id = $1',
-        [tenant],
-      ));
-      await client.query('reset role');
-      await client.query('alter table public.tenants disable trigger refuse_erased_tenant_id');
-      await client.query(
-        'insert into public.tenants (tenant_id, name) values ($1, $2)',
-        [tenant, 'Tenant back by a route the triggers do not cover'],
-      );
-      await client.query('alter table public.tenants enable trigger refuse_erased_tenant_id');
-      await client.query('set local role service_role');
-      const second = await said(() => client.query(
-        'delete from public.tenants where tenant_id = $1',
-        [tenant],
-      ));
-      await client.query('reset role');
-      return {
-        first,
-        second,
-        tenantRowsAfter: await rowsFor('public.tenants', tenant),
-        tombstones: await rowsFor(ERASURE_REGISTRY_TABLE, tenant),
-      };
-    });
-    expect(
-      measured,
-      `Erasing a tenant answered ${measured.first}, and erasing the same id again once it had `
-      + `come back answered ${measured.second}, leaving ${measured.tenantRowsAfter} tenant rows `
-      + `and ${measured.tombstones} tombstones. A second erasure that fails (23505) is deletion `
-      + 'on request refusing for the one tenant that has already asked once',
-    ).toEqual({
-      first: 'accepted', second: 'accepted', tenantRowsAfter: 0, tombstones: 1,
-    });
-  });
+  it(
+    'is still erasable when its tombstone already stands, so deletion on request cannot fail ' +
+      'on the registry',
+    async () => {
+      // The second half of F27, and the half that turns a reversible erasure into an
+      // unkeepable promise. seen.record_tenant_erasure inserts into a registry keyed
+      // by tenant_id, so an id that is tombstoned and comes back cannot be erased a
+      // second time: the insert violates the primary key and the delete fails with
+      // 23505. Deletion on request is owed within 30 days, and a tenant it refuses
+      // for is worse off than one whose id was reusable.
+      //
+      // The route back is deliberately outside the refusals above, as a superuser or
+      // the owner turning a trigger off is: with those refusals in place no id should
+      // come back at all, and this asks what happens if one does anyway. A promise
+      // this load-bearing should not rest on another guarantee holding.
+      const measured = await rolledBack(async () => {
+        const tenant = await seedErasable('Tenant erased, resurrected, erased again');
+        const first = await said(() =>
+          client.query('delete from public.tenants where tenant_id = $1', [tenant]),
+        );
+        await client.query('reset role');
+        await client.query('alter table public.tenants disable trigger refuse_erased_tenant_id');
+        await client.query('insert into public.tenants (tenant_id, name) values ($1, $2)', [
+          tenant,
+          'Tenant back by a route the triggers do not cover',
+        ]);
+        await client.query('alter table public.tenants enable trigger refuse_erased_tenant_id');
+        await client.query('set local role service_role');
+        const second = await said(() =>
+          client.query('delete from public.tenants where tenant_id = $1', [tenant]),
+        );
+        await client.query('reset role');
+        return {
+          first,
+          second,
+          tenantRowsAfter: await rowsFor('public.tenants', tenant),
+          tombstones: await rowsFor(ERASURE_REGISTRY_TABLE, tenant),
+        };
+      });
+      expect(
+        measured,
+        `Erasing a tenant answered ${measured.first}, and erasing the same id again once it had ` +
+          `come back answered ${measured.second}, leaving ${measured.tenantRowsAfter} tenant rows ` +
+          `and ${measured.tombstones} tombstones. A second erasure that fails (23505) is deletion ` +
+          'on request refusing for the one tenant that has already asked once',
+      ).toEqual({
+        first: 'accepted',
+        second: 'accepted',
+        tenantRowsAfter: 0,
+        tombstones: 1,
+      });
+    },
+  );
 
   it('leaves a tombstone the application cannot delete, update or read', async () => {
     // Without this the fix is defeated in one statement: delete the tombstone,
@@ -3278,60 +3468,67 @@ describe('the tenant id an erasure has consumed', () => {
       const tenant = await seedErasable('Tenant tombstoned');
       await client.query('delete from public.tenants where tenant_id = $1', [tenant]);
       const asServiceRole = {
-        deleted: await said(() => client.query(
-          `delete from ${ERASURE_REGISTRY_TABLE} where tenant_id = $1`, [tenant],
-        )),
-        updated: await said(() => client.query(
-          `update ${ERASURE_REGISTRY_TABLE} set erased_at = now() where tenant_id = $1`, [tenant],
-        )),
-        read: await said(() => client.query(
-          `select tenant_id from ${ERASURE_REGISTRY_TABLE} where tenant_id = $1`, [tenant],
-        )),
+        deleted: await said(() =>
+          client.query(`delete from ${ERASURE_REGISTRY_TABLE} where tenant_id = $1`, [tenant]),
+        ),
+        updated: await said(() =>
+          client.query(
+            `update ${ERASURE_REGISTRY_TABLE} set erased_at = now() where tenant_id = $1`,
+            [tenant],
+          ),
+        ),
+        read: await said(() =>
+          client.query(`select tenant_id from ${ERASURE_REGISTRY_TABLE} where tenant_id = $1`, [
+            tenant,
+          ]),
+        ),
       };
       await client.query('reset role');
       const asOwner = {
         tombstones: await rowsFor(ERASURE_REGISTRY_TABLE, tenant),
-        deleted: await said(() => client.query(
-          `delete from ${ERASURE_REGISTRY_TABLE} where tenant_id = $1`, [tenant],
-        )),
-        updated: await said(() => client.query(
-          `update ${ERASURE_REGISTRY_TABLE} set erased_at = now() where tenant_id = $1`, [tenant],
-        )),
+        deleted: await said(() =>
+          client.query(`delete from ${ERASURE_REGISTRY_TABLE} where tenant_id = $1`, [tenant]),
+        ),
+        updated: await said(() =>
+          client.query(
+            `update ${ERASURE_REGISTRY_TABLE} set erased_at = now() where tenant_id = $1`,
+            [tenant],
+          ),
+        ),
       };
       return { asServiceRole, asOwner };
     });
     expect(
       measured,
-      `What ${ERASURE_REGISTRY_TABLE} answered, as service_role and then as the role that owns `
-      + `it: ${JSON.stringify(measured)}. A tombstone a role can remove is a tenant id that can `
-      + 'be used again a statement later',
+      `What ${ERASURE_REGISTRY_TABLE} answered, as service_role and then as the role that owns ` +
+        `it: ${JSON.stringify(measured)}. A tombstone a role can remove is a tenant id that can ` +
+        'be used again a statement later',
     ).toEqual({
       asServiceRole: { deleted: '42501', updated: '42501', read: '42501' },
       asOwner: { tombstones: 1, deleted: '23001', updated: '23001' },
     });
   });
 
-  it('is all the tombstone says, so the registry is not a record of erased customers',
-    async () => {
-      // The registry exists to make an id unusable, and an id is all it may hold.
-      // A name, a user or an address kept here would survive the erasure that was
-      // asked for, which is the thing the tenant deleted its account to prevent,
-      // and part 7's classification does not reach schema seen to catch it.
-      const { rows } = await client.query<{ column: string }>(
-        `select a.attname as column
+  it('is all the tombstone says, so the registry is not a record of erased customers', async () => {
+    // The registry exists to make an id unusable, and an id is all it may hold.
+    // A name, a user or an address kept here would survive the erasure that was
+    // asked for, which is the thing the tenant deleted its account to prevent,
+    // and part 7's classification does not reach schema seen to catch it.
+    const { rows } = await client.query<{ column: string }>(
+      `select a.attname as column
            from pg_catalog.pg_attribute a
           where a.attrelid = to_regclass($1) and a.attnum > 0 and not a.attisdropped
           order by a.attname`,
-        [ERASURE_REGISTRY_TABLE],
-      );
-      const held = rows.map((row) => row.column);
-      assertPopulated(held, `the columns of ${ERASURE_REGISTRY_TABLE}`);
-      expect(
-        held,
-        `${ERASURE_REGISTRY_TABLE} holds ${held.join(', ')}, where a tombstone may say only that `
-        + 'an id is spent and when it was spent',
-      ).toEqual([...ERASURE_REGISTRY_COLUMNS]);
-    });
+      [ERASURE_REGISTRY_TABLE],
+    );
+    const held = rows.map((row) => row.column);
+    assertPopulated(held, `the columns of ${ERASURE_REGISTRY_TABLE}`);
+    expect(
+      held,
+      `${ERASURE_REGISTRY_TABLE} holds ${held.join(', ')}, where a tombstone may say only that ` +
+        'an id is spent and when it was spent',
+    ).toEqual([...ERASURE_REGISTRY_COLUMNS]);
+  });
 });
 
 /**
@@ -3421,15 +3618,17 @@ describe('the uniqueness part 8 asks its registry for', () => {
     );
     if (rows.length === 0) {
       throw new Error(
-        `${ERASURE_REGISTRY_TABLE} carries no unique index at all before this test plants one, `
-        + 'so what it plants would not be replacing anything and the measurement below would say '
-        + 'nothing about a registry keyed the way part 8 leaves it.',
+        `${ERASURE_REGISTRY_TABLE} carries no unique index at all before this test plants one, ` +
+          'so what it plants would not be replacing anything and the measurement below would say ' +
+          'nothing about a registry keyed the way part 8 leaves it.',
       );
     }
     for (const row of rows) {
-      await client.query(row.by_constraint
-        ? `alter table ${ERASURE_REGISTRY_TABLE} drop constraint ${row.name}`
-        : `drop index ${HELPER_SCHEMA}.${row.name}`);
+      await client.query(
+        row.by_constraint
+          ? `alter table ${ERASURE_REGISTRY_TABLE} drop constraint ${row.name}`
+          : `drop index ${HELPER_SCHEMA}.${row.name}`,
+      );
     }
   }
 
@@ -3442,28 +3641,31 @@ describe('the uniqueness part 8 asks its registry for', () => {
    * the other half of what is being measured.
    */
   async function withTheUniquenessReplacedBy(plant: string): Promise<{
-    partEightRaised: string | null; theErasure: string; theRefusal: string;
+    partEightRaised: string | null;
+    theErasure: string;
+    theRefusal: string;
   }> {
     await client.query('begin');
     try {
       await dropTheUniqueness();
       await client.query(plant);
       const partEightRaised = await replayedAgainstTheSchema(
-        client, migrationNamed(ERASURE_REGISTRY_MIGRATION_MARKER),
+        client,
+        migrationNamed(ERASURE_REGISTRY_MIGRATION_MARKER),
       );
       const { rows } = await client.query<{ tenant_id: string }>(
-        "insert into public.tenants (name) values ('Tenant erased under a replaced key') "
-        + 'returning tenant_id',
+        "insert into public.tenants (name) values ('Tenant erased under a replaced key') " +
+          'returning tenant_id',
       );
-      const theErasure = await answered(
-        'delete from public.tenants where tenant_id = $1', [rows[0].tenant_id],
-      );
-      const spent = (await client.query<{ id: string }>('select gen_random_uuid() as id')).rows[0].id;
-      await client.query(
-        `insert into ${ERASURE_REGISTRY_TABLE} (tenant_id) values ($1)`, [spent],
-      );
+      const theErasure = await answered('delete from public.tenants where tenant_id = $1', [
+        rows[0].tenant_id,
+      ]);
+      const spent = (await client.query<{ id: string }>('select gen_random_uuid() as id')).rows[0]
+        .id;
+      await client.query(`insert into ${ERASURE_REGISTRY_TABLE} (tenant_id) values ($1)`, [spent]);
       const theRefusal = await answered(
-        "insert into public.tenants (tenant_id, name) values ($1, 'Tenant put back')", [spent],
+        "insert into public.tenants (tenant_id, name) values ($1, 'Tenant put back')",
+        [spent],
       );
       return { partEightRaised, theErasure, theRefusal };
     } finally {
@@ -3475,66 +3677,69 @@ describe('the uniqueness part 8 asks its registry for', () => {
     await client.query('begin');
     try {
       const raised = await replayedAgainstTheSchema(
-        client, migrationNamed(ERASURE_REGISTRY_MIGRATION_MARKER),
+        client,
+        migrationNamed(ERASURE_REGISTRY_MIGRATION_MARKER),
       );
       expect(
         raised,
-        'Part 8 replayed against the schema its own migration set left behind raised: '
-        + `${raised}. Either the schema has drifted out of something that file claims, or its `
-        + 'block is being read out of the file wrongly, and until this passes the two tests '
-        + 'below prove nothing about a re-keyed registry',
+        'Part 8 replayed against the schema its own migration set left behind raised: ' +
+          `${raised}. Either the schema has drifted out of something that file claims, or its ` +
+          'block is being read out of the file wrongly, and until this passes the two tests ' +
+          'below prove nothing about a re-keyed registry',
       ).toBeNull();
     } finally {
       await client.query('rollback');
     }
   });
 
-  it('is not what a partial unique index over tenant_id gives it, whatever pg_index says',
-    async () => {
-      const measured = await withTheUniquenessReplacedBy(
-        `create unique index seen_partial_key_probe on ${ERASURE_REGISTRY_TABLE} (tenant_id) `
-        + "where erased_at > '2099-01-01'",
-      );
-      expect(
-        measured,
-        'With the registry keyed by a partial unique index over tenant_id, the database answered '
-        + `${JSON.stringify(measured)}. A partial index arbitrates only a statement carrying its `
-        + 'predicate, so the tombstone write in seen.record_tenant_erasure() finds no arbiter and '
-        + 'deletion on request is refused 42P10, and the insert seen.refuse_erased_tenant_id() '
-        + 'asks with finds nothing to conflict with, so a tombstoned id is created again with '
-        + 'nothing raising. Part 8 has to refuse this shape as it applies, and it passed it',
-      ).toEqual({
-        partEightRaised: expect.stringContaining('arbiter'),
-        theErasure: '42P10',
-        theRefusal: 'accepted',
-      });
-    });
-
-  it('is not what a deferrable primary key gives it either, which is the attribute after the one '
-    + 'a catalogue query would have been closed on', async () => {
-    // The shape that says why the check is a statement now rather than a longer
-    // list of columns. Closing the query on `indpred` would have caught the
-    // partial index above and not this: a deferrable primary key is unique, live,
-    // over one key column and over tenant_id, it carries no predicate, and it is
-    // valid. `indimmediate` is the column that would have caught it, and the
-    // column after that is the one nobody enumerated.
+  it('is not what a partial unique index over tenant_id gives it, whatever pg_index says', async () => {
     const measured = await withTheUniquenessReplacedBy(
-      `alter table ${ERASURE_REGISTRY_TABLE} add constraint erased_tenants_deferred_probe `
-      + 'primary key (tenant_id) deferrable initially deferred',
+      `create unique index seen_partial_key_probe on ${ERASURE_REGISTRY_TABLE} (tenant_id) ` +
+        "where erased_at > '2099-01-01'",
     );
     expect(
       measured,
-      'With the registry keyed by a deferrable primary key over tenant_id, the database answered '
-      + `${JSON.stringify(measured)}. Postgres refuses a deferrable constraint as an arbiter `
-      + '(55000), so deletion on request is refused, and it holds the conflict back until commit, '
-      + 'so the insert the refusal asks with raises nothing and a tombstoned id is created again. '
-      + 'Part 8 has to refuse this shape as it applies, and it passed it',
+      'With the registry keyed by a partial unique index over tenant_id, the database answered ' +
+        `${JSON.stringify(measured)}. A partial index arbitrates only a statement carrying its ` +
+        'predicate, so the tombstone write in seen.record_tenant_erasure() finds no arbiter and ' +
+        'deletion on request is refused 42P10, and the insert seen.refuse_erased_tenant_id() ' +
+        'asks with finds nothing to conflict with, so a tombstoned id is created again with ' +
+        'nothing raising. Part 8 has to refuse this shape as it applies, and it passed it',
     ).toEqual({
       partEightRaised: expect.stringContaining('arbiter'),
-      theErasure: '55000',
+      theErasure: '42P10',
       theRefusal: 'accepted',
     });
   });
+
+  it(
+    'is not what a deferrable primary key gives it either, which is the attribute after the one ' +
+      'a catalogue query would have been closed on',
+    async () => {
+      // The shape that says why the check is a statement now rather than a longer
+      // list of columns. Closing the query on `indpred` would have caught the
+      // partial index above and not this: a deferrable primary key is unique, live,
+      // over one key column and over tenant_id, it carries no predicate, and it is
+      // valid. `indimmediate` is the column that would have caught it, and the
+      // column after that is the one nobody enumerated.
+      const measured = await withTheUniquenessReplacedBy(
+        `alter table ${ERASURE_REGISTRY_TABLE} add constraint erased_tenants_deferred_probe ` +
+          'primary key (tenant_id) deferrable initially deferred',
+      );
+      expect(
+        measured,
+        'With the registry keyed by a deferrable primary key over tenant_id, the database answered ' +
+          `${JSON.stringify(measured)}. Postgres refuses a deferrable constraint as an arbiter ` +
+          '(55000), so deletion on request is refused, and it holds the conflict back until commit, ' +
+          'so the insert the refusal asks with raises nothing and a tombstoned id is created again. ' +
+          'Part 8 has to refuse this shape as it applies, and it passed it',
+      ).toEqual({
+        partEightRaised: expect.stringContaining('arbiter'),
+        theErasure: '55000',
+        theRefusal: 'accepted',
+      });
+    },
+  );
 });
 
 /**
@@ -3605,16 +3810,19 @@ interface ForeignRows {
 function notDisposable(counted: ForeignRows): string | undefined {
   const foreign = [
     counted.erasures > 0
-      ? `${counted.erasures} tombstones in ${ERASURE_REGISTRY_TABLE}` : undefined,
+      ? `${counted.erasures} tombstones in ${ERASURE_REGISTRY_TABLE}`
+      : undefined,
     counted.tenants > 0 ? `${counted.tenants} tenants in public.tenants` : undefined,
   ].filter((part): part is string => part !== undefined);
   if (foreign.length === 0) return undefined;
-  return `${foreign.join(' and ')} carry ids outside ${FIXTURE_TENANT_PREFIX}, so this database `
-    + 'has been traded on rather than being one `pnpm db:reset` can take back. The two blocks '
-    + 'about racing erasures commit theirs, and a committed erasure writes a tombstone part 8 '
-    + 'refuses every delete, update and truncate of, so running them here would add rows meaning '
-    + '"this tenant asked to be forgotten" for tenants who never existed, permanently. Point '
-    + 'SEEN_DATABASE_URL at a disposable stack to measure F28 and F42, and measure them there.';
+  return (
+    `${foreign.join(' and ')} carry ids outside ${FIXTURE_TENANT_PREFIX}, so this database ` +
+    'has been traded on rather than being one `pnpm db:reset` can take back. The two blocks ' +
+    'about racing erasures commit theirs, and a committed erasure writes a tombstone part 8 ' +
+    'refuses every delete, update and truncate of, so running them here would add rows meaning ' +
+    '"this tenant asked to be forgotten" for tenants who never existed, permanently. Point ' +
+    'SEEN_DATABASE_URL at a disposable stack to measure F28 and F42, and measure them there.'
+  );
 }
 
 /** The same question, asked of a database. Committed rows only, which is what the
@@ -3641,18 +3849,18 @@ describe('the database the two racing blocks below may leave a permanent tombsto
     // outside it is a tenant, and a database with tenants acquires erasures.
     expect(
       notDisposable({ erasures: 1, tenants: 0 }),
-      'A registry already holding a real erasure is written to anyway, which is the registry '
-      + 'this finding is about filling with rows nobody can tell from the ones around them',
+      'A registry already holding a real erasure is written to anyway, which is the registry ' +
+        'this finding is about filling with rows nobody can tell from the ones around them',
     ).toMatch(/1 tombstones in seen\.erased_tenants/);
     expect(
       notDisposable({ erasures: 0, tenants: 3 }),
-      'A database holding tenants is treated as disposable, so the first stack with a customer '
-      + 'on it and no erasure yet is polluted before it ever has one',
+      'A database holding tenants is treated as disposable, so the first stack with a customer ' +
+        'on it and no erasure yet is polluted before it ever has one',
     ).toMatch(/3 tenants in public\.tenants/);
     expect(
       notDisposable({ erasures: 2, tenants: 5 }),
-      'A database that is both is reported by half of what it is, so a reader repairs one and '
-      + 'meets the other',
+      'A database that is both is reported by half of what it is, so a reader repairs one and ' +
+        'meets the other',
     ).toMatch(/2 tombstones in seen\.erased_tenants and 5 tenants in public\.tenants/);
   });
 
@@ -3663,17 +3871,17 @@ describe('the database the two racing blocks below may leave a permanent tombsto
     // there would mean F28 and F42 are measured once per database.
     expect(
       notDisposable({ erasures: 0, tenants: 0 }),
-      'A database holding nothing these blocks did not write is refused, so the races are '
-      + 'measured once and never again on the same stack',
+      'A database holding nothing these blocks did not write is refused, so the races are ' +
+        'measured once and never again on the same stack',
     ).toBeUndefined();
   });
 
-  it('gives every fixture an id a reader can tell from a customer\'s', () => {
+  it("gives every fixture an id a reader can tell from a customer's", () => {
     const minted = [fixtureTenantId(), fixtureTenantId()];
     expect(
       minted.filter((id) => !id.startsWith(FIXTURE_TENANT_PREFIX)),
-      'A fixture id outside the namespace is a permanent tombstone reading as an erasure '
-      + 'somebody asked for',
+      'A fixture id outside the namespace is a permanent tombstone reading as an erasure ' +
+        'somebody asked for',
     ).toEqual([]);
     expect(
       minted.filter((id) => !/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/.test(id)),
@@ -3681,8 +3889,8 @@ describe('the database the two racing blocks below may leave a permanent tombsto
     ).toEqual([]);
     expect(
       new Set(minted).size,
-      'Two fixtures share an id, and an id a tombstone stands for can never be created again, so '
-      + 'the second run of this file measures a refusal it was not asking for',
+      'Two fixtures share an id, and an id a tombstone stands for can never be created again, so ' +
+        'the second run of this file measures a refusal it was not asking for',
     ).toBe(2);
   });
 });
@@ -3742,7 +3950,9 @@ describe('a tenant id being erased by one session while another inserts it', () 
   /** What Postgres says the second session's backend is doing, as one string. */
   async function backendState(pid: number): Promise<string> {
     const { rows } = await observer.query<{
-      state: string | null; kind: string | null; event: string | null;
+      state: string | null;
+      kind: string | null;
+      event: string | null;
     }>(
       `select state, wait_event_type as kind, wait_event as event
          from pg_catalog.pg_stat_activity where pid = $1`,
@@ -3768,12 +3978,14 @@ describe('a tenant id being erased by one session while another inserts it', () 
       const row = rows[0];
       if (row?.kind === 'Lock') return `${row.kind}/${row.event ?? '-'}`;
       last = await backendState(pid);
-      await new Promise((resume) => { setTimeout(resume, 20); });
+      await new Promise((resume) => {
+        setTimeout(resume, 20);
+      });
     }
     throw new Error(
-      `The second session never blocked within ${BLOCKED_WITHIN_MS}ms, so it did not attempt its `
-      + 'insert while the erasure was uncommitted and this test proves nothing about the race. '
-      + `Postgres reported its backend as: ${last}.`,
+      `The second session never blocked within ${BLOCKED_WITHIN_MS}ms, so it did not attempt its ` +
+        'insert while the erasure was uncommitted and this test proves nothing about the race. ' +
+        `Postgres reported its backend as: ${last}.`,
     );
   }
 
@@ -3803,8 +4015,8 @@ describe('a tenant id being erased by one session while another inserts it', () 
     const present = await tablesIn(observer, 'public');
     if (!present.includes('tenants')) {
       throw new Error(
-        'This test cannot say anything about two sessions racing over a tenant id: '
-        + 'public.tenants does not exist. Apply the trade record migrations with `pnpm db:reset`.',
+        'This test cannot say anything about two sessions racing over a tenant id: ' +
+          'public.tenants does not exist. Apply the trade record migrations with `pnpm db:reset`.',
       );
     }
     await refuseUnlessDisposable(observer);
@@ -3835,8 +4047,10 @@ describe('a tenant id being erased by one session while another inserts it', () 
       // uncommitted. The outcome is captured on the promise itself, so a refusal
       // is a value this test reads rather than an unhandled rejection.
       const attempt = inserting
-        .query('insert into public.tenants (tenant_id, name) values ($1, $2)',
-          [tenant, 'Tenant put back by the second session'])
+        .query('insert into public.tenants (tenant_id, name) values ($1, $2)', [
+          tenant,
+          'Tenant put back by the second session',
+        ])
         .then(() => 'accepted')
         .catch((error) => (error as { code?: string }).code ?? (error as Error).message);
 
@@ -3859,14 +4073,14 @@ describe('a tenant id being erased by one session while another inserts it', () 
     }
     expect(
       measured,
-      `The second session's insert of an id the first session was erasing was ${theInsert}, `
-      + `leaving ${measured.liveRowsAfterwards} tenant rows carrying that id and `
-      + `${measured.tombstones} tombstones for it. The interleaving was forced rather than `
-      + `hoped for: Postgres reported the second session waiting on ${waitedOn} while the `
-      + 'erasure was uncommitted, and the erasure committed only once it was. A refusal (23001) '
-      + 'is the only answer that keeps the id from being live and tombstoned at once; an '
-      + 'accepted insert is the existence check reading a snapshot taken before the erasure it '
-      + 'exists to see',
+      `The second session's insert of an id the first session was erasing was ${theInsert}, ` +
+        `leaving ${measured.liveRowsAfterwards} tenant rows carrying that id and ` +
+        `${measured.tombstones} tombstones for it. The interleaving was forced rather than ` +
+        `hoped for: Postgres reported the second session waiting on ${waitedOn} while the ` +
+        'erasure was uncommitted, and the erasure committed only once it was. A refusal (23001) ' +
+        'is the only answer that keeps the id from being live and tombstoned at once; an ' +
+        'accepted insert is the existence check reading a snapshot taken before the erasure it ' +
+        'exists to see',
     ).toEqual({ theInsert: '23001', liveRowsAfterwards: 0, tombstones: 1 });
   }, 40_000);
 });
@@ -3954,9 +4168,11 @@ describe('a tenant id created and erased after another session pinned its snapsh
       // xmax is what proves when.
       await pinned.query(`begin isolation level ${level}`);
       await pinned.query('set local role service_role');
-      const { rows: [snapshot] } = await pinned.query<{ xmax: string }>(
-        'select count(*) as tenants, pg_snapshot_xmax(pg_current_snapshot())::text as xmax '
-        + 'from public.tenants',
+      const {
+        rows: [snapshot],
+      } = await pinned.query<{ xmax: string }>(
+        'select count(*) as tenants, pg_snapshot_xmax(pg_current_snapshot())::text as xmax ' +
+          'from public.tenants',
       );
 
       // The id is created and committed. pg_current_xact_id assigns and reports
@@ -3964,12 +4180,14 @@ describe('a tenant id created and erased after another session pinned its snapsh
       // against.
       await spending.query('begin');
       await spending.query('set local role service_role');
-      const { rows: [creating] } = await spending.query<{ xid: string }>(
-        'select pg_current_xact_id()::text as xid',
-      );
+      const {
+        rows: [creating],
+      } = await spending.query<{ xid: string }>('select pg_current_xact_id()::text as xid');
       // Its id is this suite's rather than the column's, so that the tombstone it
       // leaves behind says what it is: F51.
-      const { rows: [created] } = await spending.query<{ tenant_id: string }>(
+      const {
+        rows: [created],
+      } = await spending.query<{ tenant_id: string }>(
         'insert into public.tenants (tenant_id, name) values ($1, $2) returning tenant_id',
         [fixtureTenantId(), `Tenant erased under an older ${level} snapshot`],
       );
@@ -3989,10 +4207,10 @@ describe('a tenant id created and erased after another session pinned its snapsh
       await spending.query('commit');
 
       try {
-        await pinned.query(
-          'insert into public.tenants (tenant_id, name) values ($1, $2)',
-          [tenant, 'Tenant put back from a snapshot older than its erasure'],
-        );
+        await pinned.query('insert into public.tenants (tenant_id, name) values ($1, $2)', [
+          tenant,
+          'Tenant put back from a snapshot older than its erasure',
+        ]);
         theInsert = 'accepted';
       } catch (error) {
         theInsert = (error as { code?: string }).code ?? (error as Error).message;
@@ -4022,8 +4240,8 @@ describe('a tenant id created and erased after another session pinned its snapsh
     const present = await tablesIn(observer, 'public');
     if (!present.includes('tenants')) {
       throw new Error(
-        'This test cannot say anything about an erasure a second session cannot see: '
-        + 'public.tenants does not exist. Apply the trade record migrations with `pnpm db:reset`.',
+        'This test cannot say anything about an erasure a second session cannot see: ' +
+          'public.tenants does not exist. Apply the trade record migrations with `pnpm db:reset`.',
       );
     }
     await refuseUnlessDisposable(observer);
@@ -4038,15 +4256,15 @@ describe('a tenant id created and erased after another session pinned its snapsh
       const measured = await raceAPinnedSnapshot(level);
       expect(
         measured,
-        `A session at ${level} whose snapshot was pinned before the id existed inserted that `
-        + `erased id and was ${measured.theInsert}, leaving ${measured.liveRowsAfterwards} `
-        + `tenant rows carrying it, ${measured.tombstones} tombstones for it and `
-        + `${measured.auditEventsBehindIt} audit events behind it. Live and tombstoned at once `
-        + 'with no audit history is the state part 8 exists to make impossible, and a refusal '
-        + '(23001) is the only answer that keeps the id spent. The ordering was forced: the '
-        + 'transaction that created the id is outside the reader\'s snapshot '
-        + `(${measured.theCreationWasOutsideTheSnapshot}), without which the run measured a `
-        + 'reader that could see the erasure all along and proves nothing',
+        `A session at ${level} whose snapshot was pinned before the id existed inserted that ` +
+          `erased id and was ${measured.theInsert}, leaving ${measured.liveRowsAfterwards} ` +
+          `tenant rows carrying it, ${measured.tombstones} tombstones for it and ` +
+          `${measured.auditEventsBehindIt} audit events behind it. Live and tombstoned at once ` +
+          'with no audit history is the state part 8 exists to make impossible, and a refusal ' +
+          '(23001) is the only answer that keeps the id spent. The ordering was forced: the ' +
+          "transaction that created the id is outside the reader's snapshot " +
+          `(${measured.theCreationWasOutsideTheSnapshot}), without which the run measured a ` +
+          'reader that could see the erasure all along and proves nothing',
       ).toEqual({
         theCreationWasOutsideTheSnapshot: true,
         theInsert: '23001',
@@ -4083,7 +4301,10 @@ describe('the foreign keys between tenant-owned tables', () => {
    * `tenant_id` across the join, named with what it is written as today. */
   async function crossTenantKeys(schema: string): Promise<string[]> {
     const { rows } = await client.query<{
-      name: string; child: string; parent: string; definition: string;
+      name: string;
+      child: string;
+      parent: string;
+      definition: string;
     }>(
       `select con.conname as name,
               src.relname as child,
@@ -4146,30 +4367,40 @@ describe('the foreign keys between tenant-owned tables', () => {
    * and the only difference between what they measure is the rule. Rolled back by
    * the caller's transaction; nothing here is left behind. */
   async function creditedClaim(): Promise<{ tenant: string; line: string; claim: string }> {
-    const tenant = (await client.query<{ tenant_id: string }>(
-      "insert into public.tenants (name) values ('Tenant with a credited claim') "
-      + 'returning tenant_id',
-    )).rows[0].tenant_id;
-    const connection = (await client.query<{ id: string }>(
-      "insert into public.connections (tenant_id, marketplace) values ($1, 'bol') returning id",
-      [tenant],
-    )).rows[0].id;
-    const settlement = (await client.query<{ id: string }>(
-      `insert into public.settlements (tenant_id, connection_id, marketplace, external_id)
+    const tenant = (
+      await client.query<{ tenant_id: string }>(
+        "insert into public.tenants (name) values ('Tenant with a credited claim') " +
+          'returning tenant_id',
+      )
+    ).rows[0].tenant_id;
+    const connection = (
+      await client.query<{ id: string }>(
+        "insert into public.connections (tenant_id, marketplace) values ($1, 'bol') returning id",
+        [tenant],
+      )
+    ).rows[0].id;
+    const settlement = (
+      await client.query<{ id: string }>(
+        `insert into public.settlements (tenant_id, connection_id, marketplace, external_id)
        values ($1, $2, 'bol', 'SETTLEMENT-CREDITED-CLAIM') returning id`,
-      [tenant, connection],
-    )).rows[0].id;
-    const line = (await client.query<{ id: string }>(
-      `insert into public.settlement_lines
+        [tenant, connection],
+      )
+    ).rows[0].id;
+    const line = (
+      await client.query<{ id: string }>(
+        `insert into public.settlement_lines
          (tenant_id, settlement_id, marketplace, external_id, line_type, amount_cents)
        values ($1, $2, 'bol', 'LINE-CREDITED-CLAIM', 'compensation', 1234) returning id`,
-      [tenant, settlement],
-    )).rows[0].id;
-    const claim = (await client.query<{ id: string }>(
-      `insert into public.claims (tenant_id, marketplace, credited_by_settlement_line_id)
+        [tenant, settlement],
+      )
+    ).rows[0].id;
+    const claim = (
+      await client.query<{ id: string }>(
+        `insert into public.claims (tenant_id, marketplace, credited_by_settlement_line_id)
        values ($1, 'bol', $2) returning id`,
-      [tenant, line],
-    )).rows[0].id;
+        [tenant, line],
+      )
+    ).rows[0].id;
     return { tenant, line, claim };
   }
 
@@ -4188,23 +4419,22 @@ describe('the foreign keys between tenant-owned tables', () => {
     }
   }
 
-  it('carries tenant_id across every key that joins one tenant-owned table to another',
-    async () => {
-      const total = await foreignKeyCount('public');
-      expect(
-        total,
-        'The public schema has no foreign keys at all, so an assertion about the tenant they '
-        + 'carry proves nothing. Apply the migrations with `pnpm db:reset`.',
-      ).toBeGreaterThan(0);
-      const offenders = await crossTenantKeys('public');
-      expect(
-        offenders,
-        `${offenders.length} of the ${total} foreign keys in the public schema reference their `
-        + 'parent by id alone, so a child row may name a parent belonging to another tenant and '
-        + "one tenant's erasure cascades into another tenant's trade record: "
-        + offenders.join('; '),
-      ).toEqual([]);
-    });
+  it('carries tenant_id across every key that joins one tenant-owned table to another', async () => {
+    const total = await foreignKeyCount('public');
+    expect(
+      total,
+      'The public schema has no foreign keys at all, so an assertion about the tenant they ' +
+        'carry proves nothing. Apply the migrations with `pnpm db:reset`.',
+    ).toBeGreaterThan(0);
+    const offenders = await crossTenantKeys('public');
+    expect(
+      offenders,
+      `${offenders.length} of the ${total} foreign keys in the public schema reference their ` +
+        'parent by id alone, so a child row may name a parent belonging to another tenant and ' +
+        "one tenant's erasure cascades into another tenant's trade record: " +
+        offenders.join('; '),
+    ).toEqual([]);
+  });
 
   it('would see a key that referenced its parent by id alone', async () => {
     // The assertion above passes when it finds nothing, and finding nothing is
@@ -4220,8 +4450,8 @@ describe('the foreign keys between tenant-owned tables', () => {
       const offenders = await crossTenantKeys('public');
       expect(
         offenders.filter((offender) => offender.includes('orders_connection_id_by_id_alone')),
-        'A foreign key from orders to connections written as `references public.connections (id)` '
-        + `was not reported, and the assertion found ${offenders.length === 0 ? 'nothing at all' : offenders.join('; ')}`,
+        'A foreign key from orders to connections written as `references public.connections (id)` ' +
+          `was not reported, and the assertion found ${offenders.length === 0 ? 'nothing at all' : offenders.join('; ')}`,
       ).not.toEqual([]);
     } finally {
       await client.query('rollback');
@@ -4249,61 +4479,63 @@ describe('the foreign keys between tenant-owned tables', () => {
     const restricting = rows.map((row) => `${row.child}.${row.name}: ${row.definition}`);
     expect(
       restricting,
-      `${restricting.length} foreign keys refuse a delete of the parent outright, so the row `
-      + 'each points at cannot be removed or re-ingested while it stands: '
-      + restricting.join('; '),
+      `${restricting.length} foreign keys refuse a delete of the parent outright, so the row ` +
+        'each points at cannot be removed or re-ingested while it stands: ' +
+        restricting.join('; '),
     ).toEqual([]);
   });
 
-  it('costs the ordinary delete of a parent row, which is the reason no key restricts',
-    async () => {
-      // What a restricting key would cost, measured rather than stated, on the same
-      // one key as the set-null measurement below, so the only difference between the
-      // two is the rule put in its place. Deleting the settlement line a claim was
-      // credited by is refused with 23503, and that is the whole of the reason: a
-      // settlement line could not be removed or re-ingested while a claim pointed at
-      // it, which ingest does on every correction the marketplace sends.
-      //
-      // A tenant's erasure is not the case that proves it, and the comment above this
-      // test used to say it was. With the restricting key in place, `delete from
-      // public.tenants` is accepted: the cascade removes the claim before the restrict
-      // can be reached. That is the order Postgres schedules two sibling cascade
-      // actions in, exactly as with the bare set-null below, and it is not a guarantee
-      // to rest a reason on either way. The exclusion of restrict stands on the
-      // ordinary parent-row delete, which reproduces every time.
-      await client.query('begin');
-      let measured;
-      try {
-        const seeded = await creditedClaim();
-        await client.query(
-          'alter table public.claims drop constraint claims_credited_by_settlement_line_id_fkey',
-        );
-        await client.query(
-          `alter table public.claims add constraint claims_credited_by_settlement_line_id_fkey
+  it('costs the ordinary delete of a parent row, which is the reason no key restricts', async () => {
+    // What a restricting key would cost, measured rather than stated, on the same
+    // one key as the set-null measurement below, so the only difference between the
+    // two is the rule put in its place. Deleting the settlement line a claim was
+    // credited by is refused with 23503, and that is the whole of the reason: a
+    // settlement line could not be removed or re-ingested while a claim pointed at
+    // it, which ingest does on every correction the marketplace sends.
+    //
+    // A tenant's erasure is not the case that proves it, and the comment above this
+    // test used to say it was. With the restricting key in place, `delete from
+    // public.tenants` is accepted: the cascade removes the claim before the restrict
+    // can be reached. That is the order Postgres schedules two sibling cascade
+    // actions in, exactly as with the bare set-null below, and it is not a guarantee
+    // to rest a reason on either way. The exclusion of restrict stands on the
+    // ordinary parent-row delete, which reproduces every time.
+    await client.query('begin');
+    // Annotated for the reason the one below it is: the value is built inside the
+    // try and read after it, and biome/noImplicitAnyLet refuses an evolving any
+    // (SEEN-114). `answered` returns the SQLSTATE or 'accepted', as a string.
+    let measured: { deletingTheParentRow: string; erasingTheTenant: string };
+    try {
+      const seeded = await creditedClaim();
+      await client.query(
+        'alter table public.claims drop constraint claims_credited_by_settlement_line_id_fkey',
+      );
+      await client.query(
+        `alter table public.claims add constraint claims_credited_by_settlement_line_id_fkey
              foreign key (tenant_id, credited_by_settlement_line_id)
              references public.settlement_lines (tenant_id, id) on delete restrict`,
-        );
-        measured = {
-          deletingTheParentRow: await answered(() => client.query(
-            'delete from public.settlement_lines where id = $1', [seeded.line],
-          )),
-          erasingTheTenant: await answered(() => client.query(
-            'delete from public.tenants where tenant_id = $1', [seeded.tenant],
-          )),
-        };
-      } finally {
-        await client.query('rollback');
-      }
-      expect(
-        measured,
-        'With `on delete restrict` in place of the key a claim is credited by, deleting the '
-        + `settlement line answered ${measured.deletingTheParentRow} and erasing the tenant `
-        + `answered ${measured.erasingTheTenant}. A restricting key is excluded because it makes `
-        + "the parent row undeletable while a child points at it, not because it blocks a "
-        + "tenant's erasure: the cascade reaches the child first, which is scheduling and not a "
-        + 'guarantee',
-      ).toEqual({ deletingTheParentRow: '23503', erasingTheTenant: 'accepted' });
-    });
+      );
+      measured = {
+        deletingTheParentRow: await answered(() =>
+          client.query('delete from public.settlement_lines where id = $1', [seeded.line]),
+        ),
+        erasingTheTenant: await answered(() =>
+          client.query('delete from public.tenants where tenant_id = $1', [seeded.tenant]),
+        ),
+      };
+    } finally {
+      await client.query('rollback');
+    }
+    expect(
+      measured,
+      'With `on delete restrict` in place of the key a claim is credited by, deleting the ' +
+        `settlement line answered ${measured.deletingTheParentRow} and erasing the tenant ` +
+        `answered ${measured.erasingTheTenant}. A restricting key is excluded because it makes ` +
+        'the parent row undeletable while a child points at it, not because it blocks a ' +
+        "tenant's erasure: the cascade reaches the child first, which is scheduling and not a " +
+        'guarantee',
+    ).toEqual({ deletingTheParentRow: '23503', erasingTheTenant: 'accepted' });
+  });
 
   it('nulls the reference and not the tenant when a set-null parent is deleted', async () => {
     // Eight of the twenty-eight rewritten keys set null, and each names the column
@@ -4333,19 +4565,27 @@ describe('the foreign keys between tenant-owned tables', () => {
     // reach it, and which of two sibling cascade actions Postgres schedules first
     // is not a guarantee to rest a reason on.
     await client.query('begin');
-    let measured;
+    let measured: {
+      shipped: {
+        deletingTheParentRow: string;
+        claimsLeft: number;
+        keepsItsTenant: boolean;
+        nullsTheReference: boolean;
+      };
+      bare: { deletingTheParentRow: string };
+    };
     try {
       const seeded = await creditedClaim();
       await client.query('savepoint as_shipped');
-      const shippedDelete = await answered(() => client.query(
-        'delete from public.settlement_lines where id = $1', [seeded.line],
-      ));
-      const { rows } = await client.query<{
-        tenant_id: string | null; credited_by_settlement_line_id: string | null;
-      }>(
-        'select tenant_id, credited_by_settlement_line_id from public.claims where id = $1',
-        [seeded.claim],
+      const shippedDelete = await answered(() =>
+        client.query('delete from public.settlement_lines where id = $1', [seeded.line]),
       );
+      const { rows } = await client.query<{
+        tenant_id: string | null;
+        credited_by_settlement_line_id: string | null;
+      }>('select tenant_id, credited_by_settlement_line_id from public.claims where id = $1', [
+        seeded.claim,
+      ]);
       await client.query('rollback to savepoint as_shipped');
 
       // The same delete with a bare `on delete set null` in the key's place, which
@@ -4358,9 +4598,9 @@ describe('the foreign keys between tenant-owned tables', () => {
            foreign key (tenant_id, credited_by_settlement_line_id)
            references public.settlement_lines (tenant_id, id) on delete set null`,
       );
-      const bareDelete = await answered(() => client.query(
-        'delete from public.settlement_lines where id = $1', [seeded.line],
-      ));
+      const bareDelete = await answered(() =>
+        client.query('delete from public.settlement_lines where id = $1', [seeded.line]),
+      );
       measured = {
         shipped: {
           deletingTheParentRow: shippedDelete,
@@ -4375,13 +4615,13 @@ describe('the foreign keys between tenant-owned tables', () => {
     }
     expect(
       measured,
-      'Deleting the settlement line a claim was credited by answered '
-      + `${measured.shipped.deletingTheParentRow} with the key as it ships and `
-      + `${measured.bare.deletingTheParentRow} with a bare set-null in its place, and the claim `
-      + `${measured.shipped.keepsItsTenant ? 'kept' : 'lost'} its tenant_id. The column-list form `
-      + 'is what keeps a not-null tenant_id out of the set: without it the parent row cannot be '
-      + 'deleted at all while a child points at it, refused 23001 by the trigger part 9 puts on '
-      + 'every tenant_id rather than 23502 by the column being not null',
+      'Deleting the settlement line a claim was credited by answered ' +
+        `${measured.shipped.deletingTheParentRow} with the key as it ships and ` +
+        `${measured.bare.deletingTheParentRow} with a bare set-null in its place, and the claim ` +
+        `${measured.shipped.keepsItsTenant ? 'kept' : 'lost'} its tenant_id. The column-list form ` +
+        'is what keeps a not-null tenant_id out of the set: without it the parent row cannot be ' +
+        'deleted at all while a child points at it, refused 23001 by the trigger part 9 puts on ' +
+        'every tenant_id rather than 23502 by the column being not null',
     ).toEqual({
       shipped: {
         deletingTheParentRow: 'accepted',
@@ -4429,62 +4669,62 @@ describe('the relations in the public schema that are not tables', () => {
     await client?.end();
   });
 
-  it('is born unreachable: no client-bound role holds a default privilege on a new object',
-    async () => {
-      // This is the prevention half and it is the one that closes the hole. With
-      // the default access control list of schema public standing, a view is
-      // readable by `anon` from the moment `create view` returns, and no statement
-      // in the migration that created it says so. The Outcome of the first review
-      // named this and left it open as "detection rather than prevention"; a view
-      // is what made detection impossible as well, because nothing looked at one.
-      //
-      // Every class `pg_default_acl` files for this schema is read, not the
-      // relations alone: F32 is that this assertion and part 6's revoke were each
-      // written about `'r'`, so the EXECUTE Supabase defaults to `anon` and
-      // `authenticated` on functions stood untouched and unseen, and F33 is the
-      // same sentence again for `'S'`, where Supabase defaults SELECT, UPDATE and
-      // USAGE to both roles on every sequence the next migration creates.
-      const held = await defaultPrivilegesForClientRolesIn(client, 'public');
-      expect(
-        held,
-        `${held.length} default privileges stand on schema public, so every table, view, `
-        + 'materialised view, sequence and function a later migration creates there is born '
-        + 'holding them, a view is not subject to row-level security unless it says '
-        + '`security_invoker = true`, a sequence holds no row for a policy to be applied to at '
-        + 'all, and a `security definer` function is subject to none of them either: '
-        + held.join('; '),
-      ).toEqual([]);
-    });
+  it('is born unreachable: no client-bound role holds a default privilege on a new object', async () => {
+    // This is the prevention half and it is the one that closes the hole. With
+    // the default access control list of schema public standing, a view is
+    // readable by `anon` from the moment `create view` returns, and no statement
+    // in the migration that created it says so. The Outcome of the first review
+    // named this and left it open as "detection rather than prevention"; a view
+    // is what made detection impossible as well, because nothing looked at one.
+    //
+    // Every class `pg_default_acl` files for this schema is read, not the
+    // relations alone: F32 is that this assertion and part 6's revoke were each
+    // written about `'r'`, so the EXECUTE Supabase defaults to `anon` and
+    // `authenticated` on functions stood untouched and unseen, and F33 is the
+    // same sentence again for `'S'`, where Supabase defaults SELECT, UPDATE and
+    // USAGE to both roles on every sequence the next migration creates.
+    const held = await defaultPrivilegesForClientRolesIn(client, 'public');
+    expect(
+      held,
+      `${held.length} default privileges stand on schema public, so every table, view, ` +
+        'materialised view, sequence and function a later migration creates there is born ' +
+        'holding them, a view is not subject to row-level security unless it says ' +
+        '`security_invoker = true`, a sequence holds no row for a policy to be applied to at ' +
+        'all, and a `security definer` function is subject to none of them either: ' +
+        held.join('; '),
+    ).toEqual([]);
+  });
 
   it('grants no client-bound role anything on a view or a materialised view', async () => {
     const held = await clientPrivilegesOnNonTablesIn(client, 'public');
     expect(
       held,
-      `${held.length} privileges on relations that are not tables are held by a role a browser `
-      + 'request is bound to, and the privilege guard on the twenty-nine tables reads none of '
-      + 'them: ' + held.join('; '),
+      `${held.length} privileges on relations that are not tables are held by a role a browser ` +
+        'request is bound to, and the privilege guard on the twenty-nine tables reads none of ' +
+        'them: ' +
+        held.join('; '),
     ).toEqual([]);
   });
 
-  it('carries no view that reads its base tables with anything but the caller\'s own rights',
-    async () => {
-      const owned = await viewsWithoutInvokerRightsIn(client, 'public');
-      expect(
-        owned,
-        `${owned.length} views in the public schema run with their owner's rights, so the `
-        + 'row-level security of the tables underneath them is not applied to the request at '
-        + 'all and every tenant\'s rows are readable through them: ' + owned.join('; '),
-      ).toEqual([]);
-    });
+  it("carries no view that reads its base tables with anything but the caller's own rights", async () => {
+    const owned = await viewsWithoutInvokerRightsIn(client, 'public');
+    expect(
+      owned,
+      `${owned.length} views in the public schema run with their owner's rights, so the ` +
+        'row-level security of the tables underneath them is not applied to the request at ' +
+        "all and every tenant's rows are readable through them: " +
+        owned.join('; '),
+    ).toEqual([]);
+  });
 
   it('carries no materialised view, because row-level security can never reach one', async () => {
     const stored = await materialisedViewsIn(client, 'public');
     expect(
       stored,
-      `${stored.length} materialised views are in the public schema. A materialised view is a `
-      + 'stored copy of the rows its owner could see when it was refreshed, so no policy is '
-      + 'ever applied to a request that reads it and no option makes one apply: '
-      + stored.join('; '),
+      `${stored.length} materialised views are in the public schema. A materialised view is a ` +
+        'stored copy of the rows its owner could see when it was refreshed, so no policy is ' +
+        'ever applied to a request that reads it and no option makes one apply: ' +
+        stored.join('; '),
     ).toEqual([]);
   });
 
@@ -4492,10 +4732,11 @@ describe('the relations in the public schema that are not tables', () => {
     const federated = await foreignTablesIn(client, 'public');
     expect(
       federated,
-      `${federated.length} foreign tables are in the public schema. A foreign table's rows are `
-      + 'on another server, so no policy of this database governs which of them a caller sees, '
-      + 'no tenant_id column on one is a claim this database can check, and part 5\'s reference '
-      + 'to public.tenants cannot be written on one at all: ' + federated.join('; '),
+      `${federated.length} foreign tables are in the public schema. A foreign table's rows are ` +
+        'on another server, so no policy of this database governs which of them a caller sees, ' +
+        "no tenant_id column on one is a claim this database can check, and part 5's reference " +
+        'to public.tenants cannot be written on one at all: ' +
+        federated.join('; '),
     ).toEqual([]);
   });
 
@@ -4522,17 +4763,17 @@ describe('the relations in the public schema that are not tables', () => {
     await client.query('begin');
     try {
       await client.query(
-        'create table public.seen_governed_partition_probe ('
-        + 'tenant_id uuid not null, recorded_at timestamptz not null) '
-        + 'partition by range (recorded_at)',
+        'create table public.seen_governed_partition_probe (' +
+          'tenant_id uuid not null, recorded_at timestamptz not null) ' +
+          'partition by range (recorded_at)',
       );
       await client.query(
         'alter table public.seen_governed_partition_probe enable row level security',
       );
       await client.query(
-        'create policy tenant_isolation on public.seen_governed_partition_probe '
-        + 'for all to authenticated using (tenant_id = seen.current_tenant()) '
-        + 'with check (tenant_id = seen.current_tenant())',
+        'create policy tenant_isolation on public.seen_governed_partition_probe ' +
+          'for all to authenticated using (tenant_id = seen.current_tenant()) ' +
+          'with check (tenant_id = seen.current_tenant())',
       );
       await client.query('grant select on public.seen_governed_partition_probe to authenticated');
       const held = await privilegesIn(client, 'public');
@@ -4540,18 +4781,19 @@ describe('the relations in the public schema that are not tables', () => {
         amongTheRelationsThatAreNotTables: (await nonTableRelationsIn(client, 'public'))
           .filter((relation) => relation.name === 'seen_governed_partition_probe')
           .map(named),
-        objectedToByTheirPrivilegeGuard: (await clientPrivilegesOnNonTablesIn(client, 'public'))
-          .filter((entry) => entry.startsWith('seen_governed_partition_probe')),
+        objectedToByTheirPrivilegeGuard: (
+          await clientPrivilegesOnNonTablesIn(client, 'public')
+        ).filter((entry) => entry.startsWith('seen_governed_partition_probe')),
         readByAuthenticatedAsATable: held.get('seen_governed_partition_probe|authenticated') ?? [],
       };
       expect(
         measured,
-        'A partitioned table carrying the tenancy policy and the select `authenticated` holds on '
-        + 'every other table was added to the public schema, and the guards answered '
-        + `${JSON.stringify(measured)}. It is a table here: the guard on the relations that are `
-        + 'not tables must not name it, must not report its select as a privilege no '
-        + 'browser-bound role may hold, and the privilege guard on the tables must be the one '
-        + 'that reads it',
+        'A partitioned table carrying the tenancy policy and the select `authenticated` holds on ' +
+          'every other table was added to the public schema, and the guards answered ' +
+          `${JSON.stringify(measured)}. It is a table here: the guard on the relations that are ` +
+          'not tables must not name it, must not report its select as a privilege no ' +
+          'browser-bound role may hold, and the privilege guard on the tables must be the one ' +
+          'that reads it',
       ).toEqual({
         amongTheRelationsThatAreNotTables: [],
         objectedToByTheirPrivilegeGuard: [],
@@ -4570,32 +4812,32 @@ describe('the relations in the public schema that are not tables', () => {
     await client.query('begin');
     try {
       await client.query(
-        'create view public.seen_view_probe as '
-        + 'select tenant_id, buyer_name, buyer_address from public.shipments',
+        'create view public.seen_view_probe as ' +
+          'select tenant_id, buyer_name, buyer_address from public.shipments',
       );
       await client.query(
-        'create materialized view public.seen_matview_probe as '
-        + 'select tenant_id, buyer_name from public.shipments',
+        'create materialized view public.seen_matview_probe as ' +
+          'select tenant_id, buyer_name from public.shipments',
       );
       const relations = (await nonTableRelationsIn(client, 'public')).map((row) => row.name);
       expect(
         relations,
-        'The relation listing does not see a view added to the public schema, so nothing below '
-        + 'it can either',
+        'The relation listing does not see a view added to the public schema, so nothing below ' +
+          'it can either',
       ).toEqual(expect.arrayContaining(['seen_matview_probe', 'seen_view_probe']));
 
       const owned = await viewsWithoutInvokerRightsIn(client, 'public');
       expect(
         owned.filter((entry) => entry.startsWith('seen_view_probe')),
-        'A view created without `security_invoker = true` was not reported, so the assertion '
-        + `passes by finding nothing: it reported ${owned.join('; ') || 'nothing at all'}`,
+        'A view created without `security_invoker = true` was not reported, so the assertion ' +
+          `passes by finding nothing: it reported ${owned.join('; ') || 'nothing at all'}`,
       ).not.toEqual([]);
 
       const stored = await materialisedViewsIn(client, 'public');
       expect(
         stored.filter((entry) => entry.startsWith('seen_matview_probe')),
-        'A materialised view in the public schema was not reported, so the assertion passes by '
-        + `finding nothing: it reported ${stored.join('; ') || 'nothing at all'}`,
+        'A materialised view in the public schema was not reported, so the assertion passes by ' +
+          `finding nothing: it reported ${stored.join('; ') || 'nothing at all'}`,
       ).not.toEqual([]);
 
       // And a privilege granted on a view is reported, whether the default access
@@ -4604,38 +4846,38 @@ describe('the relations in the public schema that are not tables', () => {
       const held = await clientPrivilegesOnNonTablesIn(client, 'public');
       expect(
         held.filter((entry) => entry.startsWith('seen_view_probe')),
-        'A select granted to `authenticated` on a view was not reported, so the privilege '
-        + `assertion on the non-table relations measures nothing: it reported ${held.join('; ') || 'nothing at all'}`,
+        'A select granted to `authenticated` on a view was not reported, so the privilege ' +
+          `assertion on the non-table relations measures nothing: it reported ${held.join('; ') || 'nothing at all'}`,
       ).not.toEqual([]);
     } finally {
       await client.query('rollback');
     }
   });
 
-  it('states its rules as checks that pass when they are replayed against this schema',
-    async () => {
-      // The mechanism the test below rests on, asserted on its own so that the two
-      // failures read differently. Part 6 states each of its rules as a `do` block
-      // that raises, and the suite runs those blocks rather than restating them,
-      // so a block the extractor mangles or a rule this schema has drifted out of
-      // would otherwise be reported as "a foreign table was accepted" when it was
-      // nothing of the kind.
-      await client.query('begin');
-      try {
-        const raised = await replayedAgainstTheSchema(
-          client, migrationNamed(RELATION_RULE_MIGRATION_MARKER),
-        );
-        expect(
-          raised,
-          'Part 6 replayed against the schema its own migration set left behind raised: '
-          + `${raised}. Either the schema has drifted out of a rule this file states, or the `
-          + 'blocks are being read out of the file wrongly, and until this passes the test '
-          + 'below proves nothing about a foreign table',
-        ).toBeNull();
-      } finally {
-        await client.query('rollback');
-      }
-    });
+  it('states its rules as checks that pass when they are replayed against this schema', async () => {
+    // The mechanism the test below rests on, asserted on its own so that the two
+    // failures read differently. Part 6 states each of its rules as a `do` block
+    // that raises, and the suite runs those blocks rather than restating them,
+    // so a block the extractor mangles or a rule this schema has drifted out of
+    // would otherwise be reported as "a foreign table was accepted" when it was
+    // nothing of the kind.
+    await client.query('begin');
+    try {
+      const raised = await replayedAgainstTheSchema(
+        client,
+        migrationNamed(RELATION_RULE_MIGRATION_MARKER),
+      );
+      expect(
+        raised,
+        'Part 6 replayed against the schema its own migration set left behind raised: ' +
+          `${raised}. Either the schema has drifted out of a rule this file states, or the ` +
+          'blocks are being read out of the file wrongly, and until this passes the test ' +
+          'below proves nothing about a foreign table',
+      ).toBeNull();
+    } finally {
+      await client.query('rollback');
+    }
+  });
 
   it('refuses a foreign table in public, as it refuses a materialised view', async () => {
     // The seventh review of SEEN-008 (F35). The finding is about a rule and not
@@ -4676,46 +4918,50 @@ describe('the relations in the public schema that are not tables', () => {
     try {
       await client.query('create extension if not exists postgres_fdw with schema extensions');
       await client.query(
-        'create server seen_warehouse_probe foreign data wrapper postgres_fdw '
-        + "options (host 'localhost', port '5432', dbname 'postgres')",
+        'create server seen_warehouse_probe foreign data wrapper postgres_fdw ' +
+          "options (host 'localhost', port '5432', dbname 'postgres')",
       );
       await client.query(
-        'create foreign table public.seen_foreign_table_probe ('
-        + 'tenant_id uuid not null, total_cents bigint not null) '
-        + "server seen_warehouse_probe options (schema_name 'reporting', table_name 'orders')",
+        'create foreign table public.seen_foreign_table_probe (' +
+          'tenant_id uuid not null, total_cents bigint not null) ' +
+          "server seen_warehouse_probe options (schema_name 'reporting', table_name 'orders')",
       );
       const { rows } = await client.query<{ table_type: string }>(
-        'select table_type from information_schema.tables '
-        + 'where table_schema = $1 and table_name = $2',
+        'select table_type from information_schema.tables ' +
+          'where table_schema = $1 and table_name = $2',
         ['public', 'seen_foreign_table_probe'],
       );
       const measured = {
         informationSchemaCallsIt: rows[0]?.table_type ?? 'nothing at all',
         enableRowLevelSecurity: await refusedWith(
-          client, 'alter table public.seen_foreign_table_probe enable row level security',
+          client,
+          'alter table public.seen_foreign_table_probe enable row level security',
         ),
         createPolicy: await refusedWith(
-          client, 'create policy tenant_isolation on public.seen_foreign_table_probe '
-          + 'for all to authenticated using (tenant_id = seen.current_tenant())',
+          client,
+          'create policy tenant_isolation on public.seen_foreign_table_probe ' +
+            'for all to authenticated using (tenant_id = seen.current_tenant())',
         ),
         referenceToTenants: await refusedWith(
-          client, 'alter table public.seen_foreign_table_probe add constraint tenant_fk '
-          + 'foreign key (tenant_id) references public.tenants (id) on delete cascade',
+          client,
+          'alter table public.seen_foreign_table_probe add constraint tenant_fk ' +
+            'foreign key (tenant_id) references public.tenants (id) on delete cascade',
         ),
         theGuardReports: await foreignTablesIn(client, 'public'),
         partSixRaised: await replayedAgainstTheSchema(
-          client, migrationNamed(RELATION_RULE_MIGRATION_MARKER),
+          client,
+          migrationNamed(RELATION_RULE_MIGRATION_MARKER),
         ),
       };
       expect(
         measured,
-        'A foreign table was created in the public schema and the database answered '
-        + `${JSON.stringify(measured)}. It cannot be enabled for row-level security, no policy `
-        + 'can be created on it, and it cannot reference public.tenants, so not one of the three '
-        + 'guarantees this schema makes about a relation in public can be made about it, and '
-        + 'information_schema still reports it there as a table. Part 6 refuses a materialised '
-        + 'view for the weaker half of that reason and has to refuse this kind by name too, in '
-        + 'the words a later author will read when their migration fails',
+        'A foreign table was created in the public schema and the database answered ' +
+          `${JSON.stringify(measured)}. It cannot be enabled for row-level security, no policy ` +
+          'can be created on it, and it cannot reference public.tenants, so not one of the three ' +
+          'guarantees this schema makes about a relation in public can be made about it, and ' +
+          'information_schema still reports it there as a table. Part 6 refuses a materialised ' +
+          'view for the weaker half of that reason and has to refuse this kind by name too, in ' +
+          'the words a later author will read when their migration fails',
       ).toEqual({
         informationSchemaCallsIt: 'FOREIGN',
         enableRowLevelSecurity: '42809',
@@ -4750,14 +4996,17 @@ describe('the relations in the public schema that are not tables', () => {
       );
       const tenantRowsThereReally = Number(counted[0].there);
       await client.query(
-        'create view public.seen_public_grant_view_probe as '
-        + 'select tenant_id, name from public.tenants',
+        'create view public.seen_public_grant_view_probe as ' +
+          'select tenant_id, name from public.tenants',
       );
       await client.query('grant select on public.seen_public_grant_view_probe to public');
-      const reported = (await clientPrivilegesOnNonTablesIn(client, 'public'))
-        .filter((entry) => entry.startsWith('seen_public_grant_view_probe'));
+      const reported = (await clientPrivilegesOnNonTablesIn(client, 'public')).filter((entry) =>
+        entry.startsWith('seen_public_grant_view_probe'),
+      );
       const read = await answeredAs(
-        client, 'anon', 'select name from public.seen_public_grant_view_probe',
+        client,
+        'anon',
+        'select name from public.seen_public_grant_view_probe',
       );
       const measured = {
         privilegesTheGuardReportsOnTheProbe: reported.length,
@@ -4766,11 +5015,11 @@ describe('the relations in the public schema that are not tables', () => {
       };
       expect(
         measured,
-        'A select on a view over public.tenants was granted to PUBLIC, and `anon` answered '
-        + `${JSON.stringify(read)}, reading ${read.rows} of the ${tenantRowsThereReally} tenant `
-        + 'rows that exist through a view that is not subject to their row-level security. The '
-        + `guard reported ${reported.join('; ') || 'nothing at all'}: it has to report the select `
-        + '`anon` and `authenticated` both hold, which is two entries, one per browser-bound role',
+        'A select on a view over public.tenants was granted to PUBLIC, and `anon` answered ' +
+          `${JSON.stringify(read)}, reading ${read.rows} of the ${tenantRowsThereReally} tenant ` +
+          'rows that exist through a view that is not subject to their row-level security. The ' +
+          `guard reported ${reported.join('; ') || 'nothing at all'}: it has to report the select ` +
+          '`anon` and `authenticated` both hold, which is two entries, one per browser-bound role',
       ).toEqual({
         privilegesTheGuardReportsOnTheProbe: 2,
         rowsAnonReadThroughIt: tenantRowsThereReally,
@@ -4781,54 +5030,56 @@ describe('the relations in the public schema that are not tables', () => {
     }
   });
 
-  it('would see a select on one column of a view, which its own access control list omits',
-    async () => {
-      // The same on the route no relation's access control list records at all. The
-      // grant names `anon` outright here, so there is no question of a grantee the
-      // guard failed to recognise: the entry is filed against the column and the
-      // view's list stays empty, and a guard reading that list reports a relation
-      // no browser-bound role can reach while `anon` reads a tenant's name out of
-      // it.
-      await client.query('begin');
-      try {
-        await client.query("insert into public.tenants (name) values ('Tenant behind a column')");
-        const { rows: counted } = await client.query<{ there: string }>(
-          'select count(*)::int as there from public.tenants',
-        );
-        const tenantRowsThereReally = Number(counted[0].there);
-        await client.query(
-          'create view public.seen_column_grant_view_probe as '
-          + 'select tenant_id, name from public.tenants',
-        );
-        await client.query('grant select (name) on public.seen_column_grant_view_probe to anon');
-        const reported = (await clientPrivilegesOnNonTablesIn(client, 'public'))
-          .filter((entry) => entry.startsWith('seen_column_grant_view_probe'));
-        const read = await answeredAs(
-          client, 'anon', 'select name from public.seen_column_grant_view_probe',
-        );
-        const measured = {
-          privilegesTheGuardReportsOnTheProbe: reported.length,
-          rowsAnonReadThroughIt: read.rows,
-          tenantRowsThereReally,
-        };
-        expect(
-          measured,
-          'A select on one column of a view over public.tenants was granted to `anon`, and it '
-          + `answered ${JSON.stringify(read)}, reading ${read.rows} of the `
-          + `${tenantRowsThereReally} tenant rows that exist. The guard reported `
-          + `${reported.join('; ') || 'nothing at all'}: a column grant is filed in `
-          + 'pg_attribute.attacl and never in pg_class.relacl, so it has to be asked for column '
-          + 'by column or it is invisible to the assertion that says a browser-bound role holds '
-          + 'nothing here',
-        ).toEqual({
-          privilegesTheGuardReportsOnTheProbe: 1,
-          rowsAnonReadThroughIt: tenantRowsThereReally,
-          tenantRowsThereReally,
-        });
-      } finally {
-        await client.query('rollback');
-      }
-    });
+  it('would see a select on one column of a view, which its own access control list omits', async () => {
+    // The same on the route no relation's access control list records at all. The
+    // grant names `anon` outright here, so there is no question of a grantee the
+    // guard failed to recognise: the entry is filed against the column and the
+    // view's list stays empty, and a guard reading that list reports a relation
+    // no browser-bound role can reach while `anon` reads a tenant's name out of
+    // it.
+    await client.query('begin');
+    try {
+      await client.query("insert into public.tenants (name) values ('Tenant behind a column')");
+      const { rows: counted } = await client.query<{ there: string }>(
+        'select count(*)::int as there from public.tenants',
+      );
+      const tenantRowsThereReally = Number(counted[0].there);
+      await client.query(
+        'create view public.seen_column_grant_view_probe as ' +
+          'select tenant_id, name from public.tenants',
+      );
+      await client.query('grant select (name) on public.seen_column_grant_view_probe to anon');
+      const reported = (await clientPrivilegesOnNonTablesIn(client, 'public')).filter((entry) =>
+        entry.startsWith('seen_column_grant_view_probe'),
+      );
+      const read = await answeredAs(
+        client,
+        'anon',
+        'select name from public.seen_column_grant_view_probe',
+      );
+      const measured = {
+        privilegesTheGuardReportsOnTheProbe: reported.length,
+        rowsAnonReadThroughIt: read.rows,
+        tenantRowsThereReally,
+      };
+      expect(
+        measured,
+        'A select on one column of a view over public.tenants was granted to `anon`, and it ' +
+          `answered ${JSON.stringify(read)}, reading ${read.rows} of the ` +
+          `${tenantRowsThereReally} tenant rows that exist. The guard reported ` +
+          `${reported.join('; ') || 'nothing at all'}: a column grant is filed in ` +
+          'pg_attribute.attacl and never in pg_class.relacl, so it has to be asked for column ' +
+          'by column or it is invisible to the assertion that says a browser-bound role holds ' +
+          'nothing here',
+      ).toEqual({
+        privilegesTheGuardReportsOnTheProbe: 1,
+        rowsAnonReadThroughIt: tenantRowsThereReally,
+        tenantRowsThereReally,
+      });
+    } finally {
+      await client.query('rollback');
+    }
+  });
 
   it('would see a default privilege a later migration granted back', async () => {
     // The same question of the prevention half. `alter default privileges` is the
@@ -4843,66 +5094,65 @@ describe('the relations in the public schema that are not tables', () => {
       const held = await defaultPrivilegesForClientRolesIn(client, 'public');
       expect(
         held.filter((entry) => entry.startsWith('anon')),
-        'A default privilege granted back to `anon` on schema public was not reported, so the '
-        + `assertion passes by finding nothing: it reported ${held.join('; ') || 'nothing at all'}`,
+        'A default privilege granted back to `anon` on schema public was not reported, so the ' +
+          `assertion passes by finding nothing: it reported ${held.join('; ') || 'nothing at all'}`,
       ).not.toEqual([]);
     } finally {
       await client.query('rollback');
     }
   });
 
-  it('would see a default privilege granted to PUBLIC, and the table born readable by it',
-    async () => {
-      // F30 reaches this assertion too, and this is the third inventory it does:
-      // the rule that a relation is born holding nothing for a browser-bound role
-      // is read out of `pg_default_acl` by grantee name, so `alter default
-      // privileges ... to public` satisfies it while the next table, view or
-      // materialised view is born readable by every role there is.
-      //
-      // `has_table_privilege` cannot be the answer here, because there is no
-      // relation yet to ask it about: a default privilege is a statement about
-      // objects that do not exist, and `pg_default_acl` is the only place it is
-      // written. What the guard can do is stop reading the grantee as a name, and
-      // PUBLIC is filed as grantee 0, which `regrole` renders as a hyphen and no
-      // role is spelled that way.
-      //
-      // The table is created inside the probe and carries no policy, which is how
-      // a table is created unless its migration says otherwise, so the row crosses
-      // rather than being held back by a tenancy the probe supplied for it.
-      await client.query('begin');
-      try {
-        await client.query(
-          'alter default privileges in schema public grant select on tables to public',
-        );
-        await client.query(
-          'create table public.seen_born_readable_probe (tenant_id uuid not null)',
-        );
-        await client.query(
-          'insert into public.seen_born_readable_probe (tenant_id) values (gen_random_uuid())',
-        );
-        const held = await defaultPrivilegesForClientRolesIn(client, 'public');
-        const measured = {
-          defaultPrivilegesTheGuardReports: held.length,
-          theDatabaseAnsweredAnon: await answeredAs(
-            client, 'anon', 'select tenant_id from public.seen_born_readable_probe',
-          ),
-        };
-        expect(
-          measured,
-          'A select on every table created in schema public was granted by default to PUBLIC, a '
-          + 'table was then created there, and `anon` answered '
-          + `${JSON.stringify(measured.theDatabaseAnsweredAnon)}, reading a row of a table it was `
-          + `never granted anything on. The guard reported ${held.join('; ') || 'nothing at all'}: `
-          + 'it has to report the one default privilege that stands, or the grant that reaches '
-          + 'every role at once is the one it cannot see',
-        ).toEqual({
-          defaultPrivilegesTheGuardReports: 1,
-          theDatabaseAnsweredAnon: { answer: 'accepted', rows: 1 },
-        });
-      } finally {
-        await client.query('rollback');
-      }
-    });
+  it('would see a default privilege granted to PUBLIC, and the table born readable by it', async () => {
+    // F30 reaches this assertion too, and this is the third inventory it does:
+    // the rule that a relation is born holding nothing for a browser-bound role
+    // is read out of `pg_default_acl` by grantee name, so `alter default
+    // privileges ... to public` satisfies it while the next table, view or
+    // materialised view is born readable by every role there is.
+    //
+    // `has_table_privilege` cannot be the answer here, because there is no
+    // relation yet to ask it about: a default privilege is a statement about
+    // objects that do not exist, and `pg_default_acl` is the only place it is
+    // written. What the guard can do is stop reading the grantee as a name, and
+    // PUBLIC is filed as grantee 0, which `regrole` renders as a hyphen and no
+    // role is spelled that way.
+    //
+    // The table is created inside the probe and carries no policy, which is how
+    // a table is created unless its migration says otherwise, so the row crosses
+    // rather than being held back by a tenancy the probe supplied for it.
+    await client.query('begin');
+    try {
+      await client.query(
+        'alter default privileges in schema public grant select on tables to public',
+      );
+      await client.query('create table public.seen_born_readable_probe (tenant_id uuid not null)');
+      await client.query(
+        'insert into public.seen_born_readable_probe (tenant_id) values (gen_random_uuid())',
+      );
+      const held = await defaultPrivilegesForClientRolesIn(client, 'public');
+      const measured = {
+        defaultPrivilegesTheGuardReports: held.length,
+        theDatabaseAnsweredAnon: await answeredAs(
+          client,
+          'anon',
+          'select tenant_id from public.seen_born_readable_probe',
+        ),
+      };
+      expect(
+        measured,
+        'A select on every table created in schema public was granted by default to PUBLIC, a ' +
+          'table was then created there, and `anon` answered ' +
+          `${JSON.stringify(measured.theDatabaseAnsweredAnon)}, reading a row of a table it was ` +
+          `never granted anything on. The guard reported ${held.join('; ') || 'nothing at all'}: ` +
+          'it has to report the one default privilege that stands, or the grant that reaches ' +
+          'every role at once is the one it cannot see',
+      ).toEqual({
+        defaultPrivilegesTheGuardReports: 1,
+        theDatabaseAnsweredAnon: { answer: 'accepted', rows: 1 },
+      });
+    } finally {
+      await client.query('rollback');
+    }
+  });
 });
 
 describe('the functions in the public schema', () => {
@@ -4955,237 +5205,245 @@ describe('the functions in the public schema', () => {
     const callable = await executableRoutinesIn(client, 'public');
     expect(
       callable,
-      `${callable.length} routines in schema public can be executed by a role a browser request `
-      + 'is bound to. Schema public is served by the Data API, so each of them is a POST '
-      + '/rpc/<name> endpoint reachable with the anon key, and a `security definer` one runs as '
-      + 'its owner, which every policy in this schema assumes a request is never bound to: '
-      + callable.join('; '),
+      `${callable.length} routines in schema public can be executed by a role a browser request ` +
+        'is bound to. Schema public is served by the Data API, so each of them is a POST ' +
+        '/rpc/<name> endpoint reachable with the anon key, and a `security definer` one runs as ' +
+        'its owner, which every policy in this schema assumes a request is never bound to: ' +
+        callable.join('; '),
     ).toEqual([]);
   });
 
-  it('would see a security definer function a later migration added, and the rows it lends anon',
-    async () => {
-      // The access and the silence in one measurement, which is what the assertion
-      // above is worth nothing without. The function is the one the reproduction
-      // used, and the two tenants are inserted here so that the count proves rows
-      // crossed a tenant boundary and not merely that a call was accepted.
-      //
-      // The grant is written here and is the point rather than setup. Until F39 the
-      // database supplied this state by itself, so the fixture said nothing and got
-      // its hazard from the default privileges every Supabase project ships with;
-      // that is exactly what made the suite refuse a working prevention, because a
-      // test that needs the unsafe default in order to demonstrate the hazard is a
-      // test that requires the unsafe default. The hazard is now created by the
-      // three words that create it in the wild: a later ticket's migration writing
-      // `grant execute` on its own RPC, which is the ordinary Supabase instruction
-      // and the one route into this schema prevention cannot close, because somebody
-      // meant it.
-      await client.query('begin');
-      try {
-        await client.query(
-          "insert into public.tenants (name) values ('Tenant A'), ('Tenant B')",
-        );
-        await client.query(
-          'create function public.seen_rpc_probe() returns setof text '
-          + 'language sql security definer as $$ select name from public.tenants $$',
-        );
-        await client.query(
-          'grant execute on function public.seen_rpc_probe() to anon, authenticated',
-        );
-        const measured = {
-          routinesTheGuardReports: (await executableRoutinesIn(client, 'public'))
-            .filter((entry) => entry.includes('seen_rpc_probe')),
-          // And what every guard that existed before this round says about the same
-          // function, which is the silence half and is not an aside: a function is
-          // in neither relation inventory, so the twenty-nine-table privilege guard
-          // and the guard on the relations that are not tables both pass over it.
-          // These two stay empty after the fix as well, because the answer was never
-          // going to come from a relation: it is `has_function_privilege` above or it
-          // is nothing.
-          whatTheRelationShapedGuardsSay: {
-            amongTheRelationsThatAreNotTables: (await nonTableRelationsIn(client, 'public'))
-              .filter((relation) => relation.name === 'seen_rpc_probe').map(named),
-            reportedByThePrivilegeGuards: [
-              ...(await clientPrivilegesOnNonTablesIn(client, 'public'))
-                .filter((entry) => entry.includes('seen_rpc_probe')),
-              ...((await privilegesIn(client, 'public')).get('seen_rpc_probe|anon') ?? []),
-            ],
-          },
-          anonReadingTheTableDirectly: await answeredAs(
-            client, 'anon', 'select name from public.tenants',
-          ),
-          anonReadingThroughTheFunction: await answeredAs(
-            client, 'anon', 'select * from public.seen_rpc_probe()',
-          ),
-        };
-        expect(
-          measured,
-          'A `security definer` function over public.tenants was created in schema public, as '
-          + 'SEEN-024 and SEEN-035 will create one, and the database answered `anon` '
-          + `${JSON.stringify(measured.anonReadingTheTableDirectly)} on the table and `
-          + `${JSON.stringify(measured.anonReadingThroughTheFunction)} through the function. Two `
-          + 'tenants exist, so that is both of them. The guard has to name the function for both '
-          + 'browser-bound roles, or the tenancy this ticket writes is undone by a function '
-          + 'nothing in the suite looks at',
-        ).toEqual({
-          routinesTheGuardReports: [
-            'public.seen_rpc_probe() is a function running with its owner rights that anon can '
-            + 'execute',
-            'public.seen_rpc_probe() is a function running with its owner rights that '
-            + 'authenticated can execute',
+  it('would see a security definer function a later migration added, and the rows it lends anon', async () => {
+    // The access and the silence in one measurement, which is what the assertion
+    // above is worth nothing without. The function is the one the reproduction
+    // used, and the two tenants are inserted here so that the count proves rows
+    // crossed a tenant boundary and not merely that a call was accepted.
+    //
+    // The grant is written here and is the point rather than setup. Until F39 the
+    // database supplied this state by itself, so the fixture said nothing and got
+    // its hazard from the default privileges every Supabase project ships with;
+    // that is exactly what made the suite refuse a working prevention, because a
+    // test that needs the unsafe default in order to demonstrate the hazard is a
+    // test that requires the unsafe default. The hazard is now created by the
+    // three words that create it in the wild: a later ticket's migration writing
+    // `grant execute` on its own RPC, which is the ordinary Supabase instruction
+    // and the one route into this schema prevention cannot close, because somebody
+    // meant it.
+    await client.query('begin');
+    try {
+      await client.query("insert into public.tenants (name) values ('Tenant A'), ('Tenant B')");
+      await client.query(
+        'create function public.seen_rpc_probe() returns setof text ' +
+          'language sql security definer as $$ select name from public.tenants $$',
+      );
+      await client.query(
+        'grant execute on function public.seen_rpc_probe() to anon, authenticated',
+      );
+      const measured = {
+        routinesTheGuardReports: (await executableRoutinesIn(client, 'public')).filter((entry) =>
+          entry.includes('seen_rpc_probe'),
+        ),
+        // And what every guard that existed before this round says about the same
+        // function, which is the silence half and is not an aside: a function is
+        // in neither relation inventory, so the twenty-nine-table privilege guard
+        // and the guard on the relations that are not tables both pass over it.
+        // These two stay empty after the fix as well, because the answer was never
+        // going to come from a relation: it is `has_function_privilege` above or it
+        // is nothing.
+        whatTheRelationShapedGuardsSay: {
+          amongTheRelationsThatAreNotTables: (await nonTableRelationsIn(client, 'public'))
+            .filter((relation) => relation.name === 'seen_rpc_probe')
+            .map(named),
+          reportedByThePrivilegeGuards: [
+            ...(await clientPrivilegesOnNonTablesIn(client, 'public')).filter((entry) =>
+              entry.includes('seen_rpc_probe'),
+            ),
+            ...((await privilegesIn(client, 'public')).get('seen_rpc_probe|anon') ?? []),
           ],
-          whatTheRelationShapedGuardsSay: {
-            amongTheRelationsThatAreNotTables: [],
-            reportedByThePrivilegeGuards: [],
-          },
-          anonReadingTheTableDirectly: { answer: '42501', rows: null },
+        },
+        anonReadingTheTableDirectly: await answeredAs(
+          client,
+          'anon',
+          'select name from public.tenants',
+        ),
+        anonReadingThroughTheFunction: await answeredAs(
+          client,
+          'anon',
+          'select * from public.seen_rpc_probe()',
+        ),
+      };
+      expect(
+        measured,
+        'A `security definer` function over public.tenants was created in schema public, as ' +
+          'SEEN-024 and SEEN-035 will create one, and the database answered `anon` ' +
+          `${JSON.stringify(measured.anonReadingTheTableDirectly)} on the table and ` +
+          `${JSON.stringify(measured.anonReadingThroughTheFunction)} through the function. Two ` +
+          'tenants exist, so that is both of them. The guard has to name the function for both ' +
+          'browser-bound roles, or the tenancy this ticket writes is undone by a function ' +
+          'nothing in the suite looks at',
+      ).toEqual({
+        routinesTheGuardReports: [
+          'public.seen_rpc_probe() is a function running with its owner rights that anon can ' +
+            'execute',
+          'public.seen_rpc_probe() is a function running with its owner rights that ' +
+            'authenticated can execute',
+        ],
+        whatTheRelationShapedGuardsSay: {
+          amongTheRelationsThatAreNotTables: [],
+          reportedByThePrivilegeGuards: [],
+        },
+        anonReadingTheTableDirectly: { answer: '42501', rows: null },
+        anonReadingThroughTheFunction: { answer: 'accepted', rows: 2 },
+      });
+    } finally {
+      await client.query('rollback');
+    }
+  });
+
+  it('is not closed by revoking from public, which is the statement this repository writes', async () => {
+    // The part that makes F32 high rather than medium. `revoke all on function ...
+    // from public` is what part 8 writes five times over its own helpers, and a
+    // reader takes it for the statement that makes a function uncallable. It is
+    // not: a grant to PUBLIC and a grant to `anon` are two grants, and the default
+    // access control list of schema public wrote the second one. Measured step by
+    // step here so the file cannot be read the other way again.
+    //
+    // The default privilege is granted back inside the probe, and that is the
+    // point rather than a convenience. Part 6 revoked it, so a function created
+    // here now is born naming neither role and `from public` would close it; this
+    // restores the half of the shipped default that names the roles, which is the
+    // half the statement under test cannot reach. What has to stay true whatever
+    // the default is, is that the two statements are not each other's shorthand.
+    // The other half of the shipped default, PostgreSQL's grant to PUBLIC, is not
+    // restored here and does not need to be: it is what `from public` reaches, and
+    // leaving it closed shows that the named grants alone keep `anon` reading.
+    await client.query('begin');
+    try {
+      await client.query("insert into public.tenants (name) values ('Tenant A'), ('Tenant B')");
+      await client.query(
+        'alter default privileges in schema public ' +
+          'grant execute on functions to anon, authenticated',
+      );
+      await client.query(
+        'create function public.seen_rpc_probe() returns setof text ' +
+          'language sql security definer as $$ select name from public.tenants $$',
+      );
+      await client.query('revoke all on function public.seen_rpc_probe() from public');
+      const afterRevokingFromPublic = {
+        rolesStillNamed: (await routineAccessControlList(client, 'public.seen_rpc_probe()'))
+          .clientRolesNamed,
+        anonReadingThroughTheFunction: await answeredAs(
+          client,
+          'anon',
+          'select * from public.seen_rpc_probe()',
+        ),
+        routinesTheGuardReports: (await executableRoutinesIn(client, 'public')).filter((entry) =>
+          entry.includes('seen_rpc_probe'),
+        ).length,
+      };
+      await client.query('revoke all on function public.seen_rpc_probe() from anon, authenticated');
+      const afterRevokingFromTheRoles = {
+        rolesStillNamed: (await routineAccessControlList(client, 'public.seen_rpc_probe()'))
+          .clientRolesNamed,
+        anonReadingThroughTheFunction: await answeredAs(
+          client,
+          'anon',
+          'select * from public.seen_rpc_probe()',
+        ),
+        routinesTheGuardReports: (await executableRoutinesIn(client, 'public')).filter((entry) =>
+          entry.includes('seen_rpc_probe'),
+        ).length,
+      };
+      expect(
+        { afterRevokingFromPublic, afterRevokingFromTheRoles },
+        'A `security definer` function over public.tenants was stripped with `revoke all on ' +
+          'function ... from public`, the statement this repository already writes, and the ' +
+          `database answered \`anon\` ${JSON.stringify(afterRevokingFromPublic.anonReadingThroughTheFunction)} ` +
+          'afterwards. Revoking from the two named roles as well is what refuses it 42501. The ' +
+          'guard has to report the function in the first state and not in the second, or it ' +
+          'agrees with the reading of `from public` that leaves both tenants readable',
+      ).toEqual({
+        afterRevokingFromPublic: {
+          rolesStillNamed: ['anon', 'authenticated'],
           anonReadingThroughTheFunction: { answer: 'accepted', rows: 2 },
-        });
-      } finally {
-        await client.query('rollback');
-      }
-    });
+          routinesTheGuardReports: 2,
+        },
+        afterRevokingFromTheRoles: {
+          rolesStillNamed: [],
+          anonReadingThroughTheFunction: { answer: '42501', rows: null },
+          routinesTheGuardReports: 0,
+        },
+      });
+    } finally {
+      await client.query('rollback');
+    }
+  });
 
-  it('is not closed by revoking from public, which is the statement this repository writes',
-    async () => {
-      // The part that makes F32 high rather than medium. `revoke all on function ...
-      // from public` is what part 8 writes five times over its own helpers, and a
-      // reader takes it for the statement that makes a function uncallable. It is
-      // not: a grant to PUBLIC and a grant to `anon` are two grants, and the default
-      // access control list of schema public wrote the second one. Measured step by
-      // step here so the file cannot be read the other way again.
-      //
-      // The default privilege is granted back inside the probe, and that is the
-      // point rather than a convenience. Part 6 revoked it, so a function created
-      // here now is born naming neither role and `from public` would close it; this
-      // restores the half of the shipped default that names the roles, which is the
-      // half the statement under test cannot reach. What has to stay true whatever
-      // the default is, is that the two statements are not each other's shorthand.
-      // The other half of the shipped default, PostgreSQL's grant to PUBLIC, is not
-      // restored here and does not need to be: it is what `from public` reaches, and
-      // leaving it closed shows that the named grants alone keep `anon` reading.
-      await client.query('begin');
-      try {
-        await client.query(
-          "insert into public.tenants (name) values ('Tenant A'), ('Tenant B')",
-        );
-        await client.query(
-          'alter default privileges in schema public '
-          + 'grant execute on functions to anon, authenticated',
-        );
-        await client.query(
-          'create function public.seen_rpc_probe() returns setof text '
-          + 'language sql security definer as $$ select name from public.tenants $$',
-        );
-        await client.query('revoke all on function public.seen_rpc_probe() from public');
-        const afterRevokingFromPublic = {
-          rolesStillNamed: (await routineAccessControlList(client, 'public.seen_rpc_probe()'))
-            .clientRolesNamed,
-          anonReadingThroughTheFunction: await answeredAs(
-            client, 'anon', 'select * from public.seen_rpc_probe()',
-          ),
-          routinesTheGuardReports: (await executableRoutinesIn(client, 'public'))
-            .filter((entry) => entry.includes('seen_rpc_probe')).length,
-        };
-        await client.query(
-          'revoke all on function public.seen_rpc_probe() from anon, authenticated',
-        );
-        const afterRevokingFromTheRoles = {
-          rolesStillNamed: (await routineAccessControlList(client, 'public.seen_rpc_probe()'))
-            .clientRolesNamed,
-          anonReadingThroughTheFunction: await answeredAs(
-            client, 'anon', 'select * from public.seen_rpc_probe()',
-          ),
-          routinesTheGuardReports: (await executableRoutinesIn(client, 'public'))
-            .filter((entry) => entry.includes('seen_rpc_probe')).length,
-        };
-        expect(
-          { afterRevokingFromPublic, afterRevokingFromTheRoles },
-          'A `security definer` function over public.tenants was stripped with `revoke all on '
-          + 'function ... from public`, the statement this repository already writes, and the '
-          + `database answered \`anon\` ${JSON.stringify(afterRevokingFromPublic.anonReadingThroughTheFunction)} `
-          + 'afterwards. Revoking from the two named roles as well is what refuses it 42501. The '
-          + 'guard has to report the function in the first state and not in the second, or it '
-          + 'agrees with the reading of `from public` that leaves both tenants readable',
-        ).toEqual({
-          afterRevokingFromPublic: {
-            rolesStillNamed: ['anon', 'authenticated'],
-            anonReadingThroughTheFunction: { answer: 'accepted', rows: 2 },
-            routinesTheGuardReports: 2,
-          },
-          afterRevokingFromTheRoles: {
-            rolesStillNamed: [],
-            anonReadingThroughTheFunction: { answer: '42501', rows: null },
-            routinesTheGuardReports: 0,
-          },
-        });
-      } finally {
-        await client.query('rollback');
-      }
-    });
-
-  it('is born callable by service_role and by no browser-bound role, PUBLIC included',
-    async () => {
-      // Prevention, whole, where five rounds of this ticket recorded that prevention
-      // was impossible. The seventh Codex review of SEEN-008 (F39) is that the
-      // impossibility was a property of the statement those rounds tried and not of
-      // PostgreSQL: `alter default privileges ... in schema public ... from public`
-      // cannot subtract the built-in grant, because the built-in grant is not filed
-      // against a schema, and `alter default privileges for role postgres revoke
-      // execute on functions from public`, with no `in schema` clause at all, is
-      // filed the same way the built-in grant is and does subtract it.
-      //
-      // Measured on PostgreSQL 17.6 on this stack in a rolled-back transaction,
-      // both forms one after the other. With the per-schema form applied on top of
-      // part 6's revoke, `pg_default_acl` for schema public read
-      // `{postgres=X/postgres,service_role=X/postgres}` and the function created
-      // next was still born `{=X/postgres,postgres=X/postgres,service_role=X/postgres}`
-      // with `has_function_privilege('anon', ...)` true, which is what notes 154 and
-      // 159 recorded and generalised too far. With the global form, `pg_default_acl`
-      // gains a row whose `defaclnamespace` is 0, and the function created next is
-      // born `{postgres=X/postgres,service_role=X/postgres}` with no PUBLIC entry at
-      // all and `anon`, `authenticated` both false.
-      //
-      // `service_role` is asserted in the same measurement rather than in one of its
-      // own, because the two halves are what makes this a fix instead of an outage:
-      // the per-schema entry on public still names `service_role`, and the global
-      // revoke takes away the built-in grant underneath it without touching it. A
-      // version of this that left `service_role` unable to call the next function in
-      // public would pass every security assertion in this file and break every RPC
-      // the product ever writes.
-      await client.query('begin');
-      try {
-        await client.query(
-          'create function public.seen_born_callable_probe() returns int '
-          + 'language sql as $$ select 1 $$',
-        );
-        const measured = {
-          ...await routineAccessControlList(client, 'public.seen_born_callable_probe()'),
-          whatTheDatabaseSaysAnonCanDo: await canExecute(
-            client, 'anon', 'public.seen_born_callable_probe()',
-          ),
-          whatTheDatabaseSaysServiceRoleCanDo: await canExecute(
-            client, 'service_role', 'public.seen_born_callable_probe()',
-          ),
-        };
-        expect(
-          measured,
-          'A function was created in schema public and its own access control list reads '
-          + `${JSON.stringify(measured)}. Neither browser-bound role may be named in it and `
-          + 'PUBLIC may not be either, because PUBLIC is the grantee `anon` reaches EXECUTE '
-          + 'through and the one the first five rounds of this ticket recorded as unreachable. '
-          + '`service_role` must still hold it, or the next function this schema gains answers '
-          + 'nothing to the role every worker and API call connects as',
-        ).toEqual({
-          clientRolesNamed: [],
-          publicIsNamed: false,
-          whatTheDatabaseSaysAnonCanDo: false,
-          whatTheDatabaseSaysServiceRoleCanDo: true,
-        });
-      } finally {
-        await client.query('rollback');
-      }
-    });
+  it('is born callable by service_role and by no browser-bound role, PUBLIC included', async () => {
+    // Prevention, whole, where five rounds of this ticket recorded that prevention
+    // was impossible. The seventh Codex review of SEEN-008 (F39) is that the
+    // impossibility was a property of the statement those rounds tried and not of
+    // PostgreSQL: `alter default privileges ... in schema public ... from public`
+    // cannot subtract the built-in grant, because the built-in grant is not filed
+    // against a schema, and `alter default privileges for role postgres revoke
+    // execute on functions from public`, with no `in schema` clause at all, is
+    // filed the same way the built-in grant is and does subtract it.
+    //
+    // Measured on PostgreSQL 17.6 on this stack in a rolled-back transaction,
+    // both forms one after the other. With the per-schema form applied on top of
+    // part 6's revoke, `pg_default_acl` for schema public read
+    // `{postgres=X/postgres,service_role=X/postgres}` and the function created
+    // next was still born `{=X/postgres,postgres=X/postgres,service_role=X/postgres}`
+    // with `has_function_privilege('anon', ...)` true, which is what notes 154 and
+    // 159 recorded and generalised too far. With the global form, `pg_default_acl`
+    // gains a row whose `defaclnamespace` is 0, and the function created next is
+    // born `{postgres=X/postgres,service_role=X/postgres}` with no PUBLIC entry at
+    // all and `anon`, `authenticated` both false.
+    //
+    // `service_role` is asserted in the same measurement rather than in one of its
+    // own, because the two halves are what makes this a fix instead of an outage:
+    // the per-schema entry on public still names `service_role`, and the global
+    // revoke takes away the built-in grant underneath it without touching it. A
+    // version of this that left `service_role` unable to call the next function in
+    // public would pass every security assertion in this file and break every RPC
+    // the product ever writes.
+    await client.query('begin');
+    try {
+      await client.query(
+        'create function public.seen_born_callable_probe() returns int ' +
+          'language sql as $$ select 1 $$',
+      );
+      const measured = {
+        ...(await routineAccessControlList(client, 'public.seen_born_callable_probe()')),
+        whatTheDatabaseSaysAnonCanDo: await canExecute(
+          client,
+          'anon',
+          'public.seen_born_callable_probe()',
+        ),
+        whatTheDatabaseSaysServiceRoleCanDo: await canExecute(
+          client,
+          'service_role',
+          'public.seen_born_callable_probe()',
+        ),
+      };
+      expect(
+        measured,
+        'A function was created in schema public and its own access control list reads ' +
+          `${JSON.stringify(measured)}. Neither browser-bound role may be named in it and ` +
+          'PUBLIC may not be either, because PUBLIC is the grantee `anon` reaches EXECUTE ' +
+          'through and the one the first five rounds of this ticket recorded as unreachable. ' +
+          '`service_role` must still hold it, or the next function this schema gains answers ' +
+          'nothing to the role every worker and API call connects as',
+      ).toEqual({
+        clientRolesNamed: [],
+        publicIsNamed: false,
+        whatTheDatabaseSaysAnonCanDo: false,
+        whatTheDatabaseSaysServiceRoleCanDo: true,
+      });
+    } finally {
+      await client.query('rollback');
+    }
+  });
 
   it('would see a default privilege on functions a later migration granted back', async () => {
     // The prevention half asked of the database rather than of part 6's file. The
@@ -5200,9 +5458,9 @@ describe('the functions in the public schema', () => {
       const held = await defaultPrivilegesForClientRolesIn(client, 'public');
       expect(
         held.filter((entry) => entry.includes('function')),
-        'A default EXECUTE granted back to `anon` on every function created in schema public was '
-        + 'not reported, so the prevention assertion covers the relations alone and the next '
-        + `function is born callable with the anon key: it reported ${held.join('; ') || 'nothing at all'}`,
+        'A default EXECUTE granted back to `anon` on every function created in schema public was ' +
+          'not reported, so the prevention assertion covers the relations alone and the next ' +
+          `function is born callable with the anon key: it reported ${held.join('; ') || 'nothing at all'}`,
       ).not.toEqual([]);
     } finally {
       await client.query('rollback');
@@ -5263,177 +5521,201 @@ describe('the sequences in the public schema', () => {
     const reachable = await sequencesReachableIn(client, 'public');
     expect(
       reachable,
-      `${reachable.length} sequences in schema public can be reached by a role a browser request `
-      + 'is bound to. A sequence holds no row, so no policy of this database is ever applied to '
-      + 'one, and what it holds instead is a number derived from every tenant\'s rows: '
-      + reachable.join('; '),
+      `${reachable.length} sequences in schema public can be reached by a role a browser request ` +
+        'is bound to. A sequence holds no row, so no policy of this database is ever applied to ' +
+        "one, and what it holds instead is a number derived from every tenant's rows: " +
+        reachable.join('; '),
     ).toEqual([]);
   });
 
-  it('is born out of reach, and here the revoke is the whole of prevention rather than a bound '
-    + 'on it', async () => {
-    // The access and the silence in one measurement, and the one assertion in this
-    // block that the revoke in part 6 has to be there for. A sequence is created as
-    // a later ticket's migration would create one, and the database is asked the
-    // three things `anon` was able to do before the fix, beside what every guard
-    // that existed before this round says about the same object.
-    //
-    // The contrast with F32 is why this assertion takes one statement where the one
-    // on functions takes two, and it is what a later reader most needs from this
-    // block. PostgreSQL grants EXECUTE to PUBLIC on every routine as a baseline, so
-    // a function needs the per-schema revoke for the named grants and a second
-    // revoke filed against no schema for the built-in one; five rounds of this
-    // ticket recorded the second as impossible and the seventh review (F39) showed
-    // it is not. PostgreSQL grants a new sequence nothing to PUBLIC, so there is no
-    // baseline underneath this revoke and one statement is the whole of it. Measured
-    // on PostgreSQL 17.6 on this stack: after the revoke the sequence is born
-    // `{postgres=rwU/postgres,service_role=rwU/postgres}` with no PUBLIC entry at
-    // all, and all three calls are refused.
-    //
-    // The identity column is created beside the sequence because it is the route a
-    // later ticket actually takes: it names no sequence and creates one.
-    await client.query('begin');
-    try {
-      await client.query('create sequence public.seen_sequence_probe');
-      await client.query(
-        'create table public.seen_identity_probe ('
-        + 'id bigint generated by default as identity primary key, tenant_id uuid not null)',
-      );
-      const measured = {
-        sequencesTheGuardReports: await sequencesReachableIn(client, 'public'),
-        // The silence half, and it is not an aside: a sequence is in neither
-        // relation inventory, so these two stay empty after the fix as well. The
-        // answer was never going to come from a relation-shaped question.
-        whatTheRelationShapedGuardsSay: {
-          amongTheRelationsThatAreNotTables: (await nonTableRelationsIn(client, 'public'))
-            .filter((relation) => relation.name.startsWith('seen_sequence_probe')).map(named),
-          reportedByThePrivilegeGuards: [
-            ...(await clientPrivilegesOnNonTablesIn(client, 'public'))
-              .filter((entry) => entry.includes('seen_sequence_probe')),
-            ...((await privilegesIn(client, 'public')).get('seen_sequence_probe|anon') ?? []),
-          ],
-        },
-        anonCallingNextval: await answeredAs(
-          client, 'anon', "select nextval('public.seen_sequence_probe')",
-        ),
-        anonReadingLastValue: await answeredAs(
-          client, 'anon', 'select last_value from public.seen_sequence_probe',
-        ),
-        anonCallingSetval: await answeredAs(
-          client, 'anon', "select setval('public.seen_sequence_probe', 1)",
-        ),
-        anonCallingNextvalOnTheIdentitySequence: await answeredAs(
-          client, 'anon', "select nextval('public.seen_identity_probe_id_seq')",
-        ),
-      };
-      expect(
-        measured,
-        'A sequence and an identity column were created in schema public, as SEEN-014\'s ingest '
-        + 'and SEEN-021\'s findings will create one, and the database answered `anon` '
-        + `${JSON.stringify(measured.anonCallingNextval)} to nextval, `
-        + `${JSON.stringify(measured.anonReadingLastValue)} to last_value, which is a count of `
-        + 'rows across every tenant, and '
-        + `${JSON.stringify(measured.anonCallingSetval)} to setval, which collides the next `
-        + 'ingest insert on the primary key until the sequence catches up. All three have to be '
-        + 'refused 42501, because unlike a function a sequence has no built-in grant to PUBLIC '
-        + 'underneath the default privilege and the revoke in part 6 is therefore the whole of '
-        + 'prevention here. The relation-shaped guards report '
-        + `${JSON.stringify(measured.whatTheRelationShapedGuardsSay)}, which is the silence: a `
-        + 'sequence is in neither relation inventory and no widening of them would ever see one',
-      ).toEqual({
-        sequencesTheGuardReports: [],
-        whatTheRelationShapedGuardsSay: {
-          amongTheRelationsThatAreNotTables: [],
-          reportedByThePrivilegeGuards: [],
-        },
-        anonCallingNextval: { answer: '42501', rows: null },
-        anonReadingLastValue: { answer: '42501', rows: null },
-        anonCallingSetval: { answer: '42501', rows: null },
-        anonCallingNextvalOnTheIdentitySequence: { answer: '42501', rows: null },
-      });
-    } finally {
-      await client.query('rollback');
-    }
-  });
+  it(
+    'is born out of reach, and here the revoke is the whole of prevention rather than a bound ' +
+      'on it',
+    async () => {
+      // The access and the silence in one measurement, and the one assertion in this
+      // block that the revoke in part 6 has to be there for. A sequence is created as
+      // a later ticket's migration would create one, and the database is asked the
+      // three things `anon` was able to do before the fix, beside what every guard
+      // that existed before this round says about the same object.
+      //
+      // The contrast with F32 is why this assertion takes one statement where the one
+      // on functions takes two, and it is what a later reader most needs from this
+      // block. PostgreSQL grants EXECUTE to PUBLIC on every routine as a baseline, so
+      // a function needs the per-schema revoke for the named grants and a second
+      // revoke filed against no schema for the built-in one; five rounds of this
+      // ticket recorded the second as impossible and the seventh review (F39) showed
+      // it is not. PostgreSQL grants a new sequence nothing to PUBLIC, so there is no
+      // baseline underneath this revoke and one statement is the whole of it. Measured
+      // on PostgreSQL 17.6 on this stack: after the revoke the sequence is born
+      // `{postgres=rwU/postgres,service_role=rwU/postgres}` with no PUBLIC entry at
+      // all, and all three calls are refused.
+      //
+      // The identity column is created beside the sequence because it is the route a
+      // later ticket actually takes: it names no sequence and creates one.
+      await client.query('begin');
+      try {
+        await client.query('create sequence public.seen_sequence_probe');
+        await client.query(
+          'create table public.seen_identity_probe (' +
+            'id bigint generated by default as identity primary key, tenant_id uuid not null)',
+        );
+        const measured = {
+          sequencesTheGuardReports: await sequencesReachableIn(client, 'public'),
+          // The silence half, and it is not an aside: a sequence is in neither
+          // relation inventory, so these two stay empty after the fix as well. The
+          // answer was never going to come from a relation-shaped question.
+          whatTheRelationShapedGuardsSay: {
+            amongTheRelationsThatAreNotTables: (await nonTableRelationsIn(client, 'public'))
+              .filter((relation) => relation.name.startsWith('seen_sequence_probe'))
+              .map(named),
+            reportedByThePrivilegeGuards: [
+              ...(await clientPrivilegesOnNonTablesIn(client, 'public')).filter((entry) =>
+                entry.includes('seen_sequence_probe'),
+              ),
+              ...((await privilegesIn(client, 'public')).get('seen_sequence_probe|anon') ?? []),
+            ],
+          },
+          anonCallingNextval: await answeredAs(
+            client,
+            'anon',
+            "select nextval('public.seen_sequence_probe')",
+          ),
+          anonReadingLastValue: await answeredAs(
+            client,
+            'anon',
+            'select last_value from public.seen_sequence_probe',
+          ),
+          anonCallingSetval: await answeredAs(
+            client,
+            'anon',
+            "select setval('public.seen_sequence_probe', 1)",
+          ),
+          anonCallingNextvalOnTheIdentitySequence: await answeredAs(
+            client,
+            'anon',
+            "select nextval('public.seen_identity_probe_id_seq')",
+          ),
+        };
+        expect(
+          measured,
+          "A sequence and an identity column were created in schema public, as SEEN-014's ingest " +
+            "and SEEN-021's findings will create one, and the database answered `anon` " +
+            `${JSON.stringify(measured.anonCallingNextval)} to nextval, ` +
+            `${JSON.stringify(measured.anonReadingLastValue)} to last_value, which is a count of ` +
+            'rows across every tenant, and ' +
+            `${JSON.stringify(measured.anonCallingSetval)} to setval, which collides the next ` +
+            'ingest insert on the primary key until the sequence catches up. All three have to be ' +
+            'refused 42501, because unlike a function a sequence has no built-in grant to PUBLIC ' +
+            'underneath the default privilege and the revoke in part 6 is therefore the whole of ' +
+            'prevention here. The relation-shaped guards report ' +
+            `${JSON.stringify(measured.whatTheRelationShapedGuardsSay)}, which is the silence: a ` +
+            'sequence is in neither relation inventory and no widening of them would ever see one',
+        ).toEqual({
+          sequencesTheGuardReports: [],
+          whatTheRelationShapedGuardsSay: {
+            amongTheRelationsThatAreNotTables: [],
+            reportedByThePrivilegeGuards: [],
+          },
+          anonCallingNextval: { answer: '42501', rows: null },
+          anonReadingLastValue: { answer: '42501', rows: null },
+          anonCallingSetval: { answer: '42501', rows: null },
+          anonCallingNextvalOnTheIdentitySequence: { answer: '42501', rows: null },
+        });
+      } finally {
+        await client.query('rollback');
+      }
+    },
+  );
 
-  it('would see a sequence a browser-bound role can reach, and the tenant-wide number it lends '
-    + 'anon', async () => {
-    // What the assertion above is worth nothing without, and it keeps measuring
-    // something after the fix because it restores the state every Supabase database
-    // ships with before it creates the sequence. Two rows are inserted through the
-    // owner so that the number `anon` reads is a fact about both tenants and not
-    // merely a number.
-    //
-    // The value is read three times on purpose, and the third reading is the finding
-    // rather than a check of the first two. `nextval` and `setval` are outside
-    // transaction control: they are not rolled back, so `anon` setting the sequence
-    // back to 1 inside a probe that ends in `rollback to savepoint` leaves it at 1
-    // afterwards. That is the shape of the damage stated exactly: a read of another
-    // tenant's row count that no policy governs, and a write whose effect no
-    // rollback undoes, from a caller who never signed in.
-    await client.query('begin');
-    try {
-      await client.query(
-        'alter default privileges in schema public '
-        + 'grant all on sequences to anon, authenticated',
-      );
-      await client.query(
-        'create table public.seen_identity_probe ('
-        + 'id bigint generated by default as identity primary key, tenant_id uuid not null)',
-      );
-      await client.query(
-        'insert into public.seen_identity_probe (tenant_id) '
-        + 'values (gen_random_uuid()), (gen_random_uuid())',
-      );
-      const lastValue = async (): Promise<string> => (await client.query<{ last: string }>(
-        'select last_value::text as last from public.seen_identity_probe_id_seq',
-      )).rows[0].last;
-      const measured = {
-        sequencesTheGuardReports: (await sequencesReachableIn(client, 'public'))
-          .filter((entry) => entry.includes('seen_identity_probe_id_seq')),
-        rowsAcrossBothTenants: await lastValue(),
-        anonReadingLastValue: await answeredAs(
-          client, 'anon', 'select last_value from public.seen_identity_probe_id_seq',
-        ),
-        anonCallingSetval: await answeredAs(
-          client, 'anon', "select setval('public.seen_identity_probe_id_seq', 1)",
-        ),
-        valueAnonLeftBehindAfterItsStatementWasRolledBack: await lastValue(),
-      };
-      expect(
-        measured,
-        'A `bigint generated by default as identity` column was added in schema public with the '
-        + 'default privileges standing, which is the state a later ticket\'s migration writes '
-        + 'without naming a sequence at all, and `anon` answered '
-        + `${JSON.stringify(measured.anonReadingLastValue)} reading its last value and `
-        + `${JSON.stringify(measured.anonCallingSetval)} setting it. The sequence stood at `
-        + `${measured.rowsAcrossBothTenants} for two tenants' rows and stands at `
-        + `${measured.valueAnonLeftBehindAfterItsStatementWasRolledBack} after anon's statement `
-        + 'was rolled back, because setval is outside transaction control. The guard has to name '
-        + 'the sequence for both browser-bound roles and all three privileges, or the one object '
-        + 'class this suite never asked about is undetectable again',
-      ).toEqual({
-        sequencesTheGuardReports: [
-          'public.seen_identity_probe_id_seq lets anon read its last value, which is a count of '
-          + 'rows across every tenant',
-          'public.seen_identity_probe_id_seq lets anon set it with setval, which collides the '
-          + 'next insert on the primary key',
-          'public.seen_identity_probe_id_seq lets anon advance it with nextval',
-          'public.seen_identity_probe_id_seq lets authenticated read its last value, which is a '
-          + 'count of rows across every tenant',
-          'public.seen_identity_probe_id_seq lets authenticated set it with setval, which '
-          + 'collides the next insert on the primary key',
-          'public.seen_identity_probe_id_seq lets authenticated advance it with nextval',
-        ],
-        rowsAcrossBothTenants: '2',
-        anonReadingLastValue: { answer: 'accepted', rows: 1 },
-        anonCallingSetval: { answer: 'accepted', rows: 1 },
-        valueAnonLeftBehindAfterItsStatementWasRolledBack: '1',
-      });
-    } finally {
-      await client.query('rollback');
-    }
-  });
+  it(
+    'would see a sequence a browser-bound role can reach, and the tenant-wide number it lends ' +
+      'anon',
+    async () => {
+      // What the assertion above is worth nothing without, and it keeps measuring
+      // something after the fix because it restores the state every Supabase database
+      // ships with before it creates the sequence. Two rows are inserted through the
+      // owner so that the number `anon` reads is a fact about both tenants and not
+      // merely a number.
+      //
+      // The value is read three times on purpose, and the third reading is the finding
+      // rather than a check of the first two. `nextval` and `setval` are outside
+      // transaction control: they are not rolled back, so `anon` setting the sequence
+      // back to 1 inside a probe that ends in `rollback to savepoint` leaves it at 1
+      // afterwards. That is the shape of the damage stated exactly: a read of another
+      // tenant's row count that no policy governs, and a write whose effect no
+      // rollback undoes, from a caller who never signed in.
+      await client.query('begin');
+      try {
+        await client.query(
+          'alter default privileges in schema public ' +
+            'grant all on sequences to anon, authenticated',
+        );
+        await client.query(
+          'create table public.seen_identity_probe (' +
+            'id bigint generated by default as identity primary key, tenant_id uuid not null)',
+        );
+        await client.query(
+          'insert into public.seen_identity_probe (tenant_id) ' +
+            'values (gen_random_uuid()), (gen_random_uuid())',
+        );
+        const lastValue = async (): Promise<string> =>
+          (
+            await client.query<{ last: string }>(
+              'select last_value::text as last from public.seen_identity_probe_id_seq',
+            )
+          ).rows[0].last;
+        const measured = {
+          sequencesTheGuardReports: (await sequencesReachableIn(client, 'public')).filter((entry) =>
+            entry.includes('seen_identity_probe_id_seq'),
+          ),
+          rowsAcrossBothTenants: await lastValue(),
+          anonReadingLastValue: await answeredAs(
+            client,
+            'anon',
+            'select last_value from public.seen_identity_probe_id_seq',
+          ),
+          anonCallingSetval: await answeredAs(
+            client,
+            'anon',
+            "select setval('public.seen_identity_probe_id_seq', 1)",
+          ),
+          valueAnonLeftBehindAfterItsStatementWasRolledBack: await lastValue(),
+        };
+        expect(
+          measured,
+          'A `bigint generated by default as identity` column was added in schema public with the ' +
+            "default privileges standing, which is the state a later ticket's migration writes " +
+            'without naming a sequence at all, and `anon` answered ' +
+            `${JSON.stringify(measured.anonReadingLastValue)} reading its last value and ` +
+            `${JSON.stringify(measured.anonCallingSetval)} setting it. The sequence stood at ` +
+            `${measured.rowsAcrossBothTenants} for two tenants' rows and stands at ` +
+            `${measured.valueAnonLeftBehindAfterItsStatementWasRolledBack} after anon's statement ` +
+            'was rolled back, because setval is outside transaction control. The guard has to name ' +
+            'the sequence for both browser-bound roles and all three privileges, or the one object ' +
+            'class this suite never asked about is undetectable again',
+        ).toEqual({
+          sequencesTheGuardReports: [
+            'public.seen_identity_probe_id_seq lets anon read its last value, which is a count of ' +
+              'rows across every tenant',
+            'public.seen_identity_probe_id_seq lets anon set it with setval, which collides the ' +
+              'next insert on the primary key',
+            'public.seen_identity_probe_id_seq lets anon advance it with nextval',
+            'public.seen_identity_probe_id_seq lets authenticated read its last value, which is a ' +
+              'count of rows across every tenant',
+            'public.seen_identity_probe_id_seq lets authenticated set it with setval, which ' +
+              'collides the next insert on the primary key',
+            'public.seen_identity_probe_id_seq lets authenticated advance it with nextval',
+          ],
+          rowsAcrossBothTenants: '2',
+          anonReadingLastValue: { answer: 'accepted', rows: 1 },
+          anonCallingSetval: { answer: 'accepted', rows: 1 },
+          valueAnonLeftBehindAfterItsStatementWasRolledBack: '1',
+        });
+      } finally {
+        await client.query('rollback');
+      }
+    },
+  );
 
   it('would see a default privilege on sequences a later migration granted back', async () => {
     // The prevention half asked of the database rather than of part 6's file, as the
@@ -5448,115 +5730,128 @@ describe('the sequences in the public schema', () => {
       const held = await defaultPrivilegesForClientRolesIn(client, 'public');
       expect(
         held.filter((entry) => entry.includes('sequence')),
-        'A default USAGE granted back to `anon` on every sequence created in schema public was '
-        + 'not reported, so the prevention assertion covers the relations and the functions '
-        + 'alone and the next identity column is born advanceable with the anon key: it '
-        + `reported ${held.join('; ') || 'nothing at all'}`,
+        'A default USAGE granted back to `anon` on every sequence created in schema public was ' +
+          'not reported, so the prevention assertion covers the relations and the functions ' +
+          'alone and the next identity column is born advanceable with the anon key: it ' +
+          `reported ${held.join('; ') || 'nothing at all'}`,
       ).not.toEqual([]);
     } finally {
       await client.query('rollback');
     }
   });
 
-  it('holds no default privilege on a type either, which is the one class this set leaves '
-    + 'reachable on purpose', async () => {
-    // The fifth letter `defaclobjtype` has, asked because four rounds of this ticket
-    // each found the quarter the round before had not looked at, and an unmentioned
-    // class is how every one of them got here.
-    //
-    // Measured on this stack: there is no `'T'` row in `pg_default_acl` for schema
-    // public from either grantor, so part 6 writes no revoke for one, and `alter
-    // default privileges ... revoke all on types` records nothing when it is run
-    // because a revoke of a grant nobody made writes nothing down. `anon` does hold
-    // USAGE on every type here through the grant PostgreSQL makes to PUBLIC on a
-    // type it creates, and the second half of this probe is what F44 corrected: that
-    // grant is within reach. The form with no `in schema` clause, the one F39
-    // established on a routine, reaches a type as well, so a domain born after it in
-    // `public` and one born after it in `seen` both arrive `{postgres=U/postgres}`
-    // with `anon` refused. The reason `'T'` carries no revoke is that one is
-    // unnecessary, not that one would fail to arrive, and the measurement is taken
-    // here rather than asserted in prose because a sentence carried forward without
-    // being run is this ticket's own recurring defect.
-    //
-    // Unnecessary twice over, and both halves are measured. USAGE on a type is not a
-    // route to a row: the probe creates a domain, shows `anon` holding USAGE on it,
-    // and shows that the table whose row type `anon` also holds USAGE on is still
-    // refused 42501, which is the whole of the distinction. PostgREST serves no type
-    // as an endpoint, which is why `config.toml` names four classes and not five.
-    // And the statement would reach nothing that is here: a table created after it
-    // is born with a null `typacl` and USAGE for PUBLIC all the same, and a row type
-    // or the array type beside it is every type these two schemas hold.
-    //
-    // Every statement here is rolled back, the global revoke included, so the stack
-    // this runs against is left as it was found.
-    await client.query('begin');
-    try {
-      await client.query("insert into public.tenants (name) values ('Tenant A')");
-      await client.query("create domain public.seen_domain_probe as text check (value <> '')");
-      const held = await defaultPrivilegesForClientRolesIn(client, 'public');
-      const bornWith = async (type: string): Promise<{ acl: string | null; anon: boolean }> => (
-        await client.query<{ acl: string | null; anon: boolean }>(
-          `select t.typacl::text as acl,
+  it(
+    'holds no default privilege on a type either, which is the one class this set leaves ' +
+      'reachable on purpose',
+    async () => {
+      // The fifth letter `defaclobjtype` has, asked because four rounds of this ticket
+      // each found the quarter the round before had not looked at, and an unmentioned
+      // class is how every one of them got here.
+      //
+      // Measured on this stack: there is no `'T'` row in `pg_default_acl` for schema
+      // public from either grantor, so part 6 writes no revoke for one, and `alter
+      // default privileges ... revoke all on types` records nothing when it is run
+      // because a revoke of a grant nobody made writes nothing down. `anon` does hold
+      // USAGE on every type here through the grant PostgreSQL makes to PUBLIC on a
+      // type it creates, and the second half of this probe is what F44 corrected: that
+      // grant is within reach. The form with no `in schema` clause, the one F39
+      // established on a routine, reaches a type as well, so a domain born after it in
+      // `public` and one born after it in `seen` both arrive `{postgres=U/postgres}`
+      // with `anon` refused. The reason `'T'` carries no revoke is that one is
+      // unnecessary, not that one would fail to arrive, and the measurement is taken
+      // here rather than asserted in prose because a sentence carried forward without
+      // being run is this ticket's own recurring defect.
+      //
+      // Unnecessary twice over, and both halves are measured. USAGE on a type is not a
+      // route to a row: the probe creates a domain, shows `anon` holding USAGE on it,
+      // and shows that the table whose row type `anon` also holds USAGE on is still
+      // refused 42501, which is the whole of the distinction. PostgREST serves no type
+      // as an endpoint, which is why `config.toml` names four classes and not five.
+      // And the statement would reach nothing that is here: a table created after it
+      // is born with a null `typacl` and USAGE for PUBLIC all the same, and a row type
+      // or the array type beside it is every type these two schemas hold.
+      //
+      // Every statement here is rolled back, the global revoke included, so the stack
+      // this runs against is left as it was found.
+      await client.query('begin');
+      try {
+        await client.query("insert into public.tenants (name) values ('Tenant A')");
+        await client.query("create domain public.seen_domain_probe as text check (value <> '')");
+        const held = await defaultPrivilegesForClientRolesIn(client, 'public');
+        const bornWith = async (type: string): Promise<{ acl: string | null; anon: boolean }> =>
+          (
+            await client.query<{ acl: string | null; anon: boolean }>(
+              `select t.typacl::text as acl,
                   has_type_privilege('anon', t.oid, 'USAGE') as anon
              from pg_catalog.pg_type t
             where t.oid = $1::regtype`,
-          [type],
-        )).rows[0];
-      const before = {
-        defaultPrivilegesOnTypesTheGuardReports: held.filter((entry) => entry.includes('type')),
-        anonHoldsUsageOnTheDomain: (await bornWith('public.seen_domain_probe')).anon,
-        anonHoldsUsageOnTheRowTypeOfATable: (await client.query<{ allowed: boolean }>(
-          "select has_type_privilege('anon', 'public.tenants', 'USAGE') as allowed",
-        )).rows[0].allowed,
-        anonReadingTheTableWhoseRowTypeItHolds: await answeredAs(
-          client, 'anon', 'select name from public.tenants',
-        ),
-      };
-      await client.query(
-        'alter default privileges for role postgres revoke usage on types from public',
-      );
-      await client.query('create domain public.seen_domain_probe_after as text');
-      await client.query('create domain seen.seen_domain_probe_after as text');
-      await client.query('create table public.seen_row_type_probe (id bigint)');
-      const measured = {
-        ...before,
-        aDomainBornAfterAStatementFiledAgainstNoSchema:
-          await bornWith('public.seen_domain_probe_after'),
-        aDomainBornAfterItInSeen: await bornWith('seen.seen_domain_probe_after'),
-        aTableRowTypeBornAfterIt: await bornWith('public.seen_row_type_probe'),
-        withdrawnClaimsAboutATypeStillStanding:
-          withdrawnClaimsStillStanding(sourcesThatDocumentTheSet(), 'type'),
-      };
-      expect(
-        measured,
-        'A domain was created in schema public and `anon` holds USAGE on it, and on the row type '
-        + 'of every table here, through PostgreSQL\'s grant to PUBLIC. A statement filed against '
-        + 'no schema does take that away from the next domain, in `public` and in `seen` alike, '
-        + 'and does not take it from a table\'s row type, so this set leaves the grant standing '
-        + 'because it is harmless and not because it could not be reached. Harmless is shown here '
-        + 'rather than asserted in prose: the database answered `anon` '
-        + `${JSON.stringify(measured.anonReadingTheTableWhoseRowTypeItHolds)} on the table whose `
-        + 'row type it holds USAGE on, because reading rows goes through the table privilege part '
-        + '4 governs. What is guarded here is that no migration files a default privilege on a '
-        + `type: the guard reported ${measured.defaultPrivilegesOnTypesTheGuardReports.join('; ') || 'nothing at all'}`
-        + '. And no file that documents this set may go on saying a type is out of reach: '
-        + `${measured.withdrawnClaimsAboutATypeStillStanding.join('; ') || 'none does'}`,
-      ).toEqual({
-        defaultPrivilegesOnTypesTheGuardReports: [],
-        anonHoldsUsageOnTheDomain: true,
-        anonHoldsUsageOnTheRowTypeOfATable: true,
-        anonReadingTheTableWhoseRowTypeItHolds: { answer: '42501', rows: null },
-        aDomainBornAfterAStatementFiledAgainstNoSchema: {
-          acl: '{postgres=U/postgres}', anon: false,
-        },
-        aDomainBornAfterItInSeen: { acl: '{postgres=U/postgres}', anon: false },
-        aTableRowTypeBornAfterIt: { acl: null, anon: true },
-        withdrawnClaimsAboutATypeStillStanding: [],
-      });
-    } finally {
-      await client.query('rollback');
-    }
-  });
+              [type],
+            )
+          ).rows[0];
+        const before = {
+          defaultPrivilegesOnTypesTheGuardReports: held.filter((entry) => entry.includes('type')),
+          anonHoldsUsageOnTheDomain: (await bornWith('public.seen_domain_probe')).anon,
+          anonHoldsUsageOnTheRowTypeOfATable: (
+            await client.query<{ allowed: boolean }>(
+              "select has_type_privilege('anon', 'public.tenants', 'USAGE') as allowed",
+            )
+          ).rows[0].allowed,
+          anonReadingTheTableWhoseRowTypeItHolds: await answeredAs(
+            client,
+            'anon',
+            'select name from public.tenants',
+          ),
+        };
+        await client.query(
+          'alter default privileges for role postgres revoke usage on types from public',
+        );
+        await client.query('create domain public.seen_domain_probe_after as text');
+        await client.query('create domain seen.seen_domain_probe_after as text');
+        await client.query('create table public.seen_row_type_probe (id bigint)');
+        const measured = {
+          ...before,
+          aDomainBornAfterAStatementFiledAgainstNoSchema: await bornWith(
+            'public.seen_domain_probe_after',
+          ),
+          aDomainBornAfterItInSeen: await bornWith('seen.seen_domain_probe_after'),
+          aTableRowTypeBornAfterIt: await bornWith('public.seen_row_type_probe'),
+          withdrawnClaimsAboutATypeStillStanding: withdrawnClaimsStillStanding(
+            sourcesThatDocumentTheSet(),
+            'type',
+          ),
+        };
+        expect(
+          measured,
+          'A domain was created in schema public and `anon` holds USAGE on it, and on the row type ' +
+            "of every table here, through PostgreSQL's grant to PUBLIC. A statement filed against " +
+            'no schema does take that away from the next domain, in `public` and in `seen` alike, ' +
+            "and does not take it from a table's row type, so this set leaves the grant standing " +
+            'because it is harmless and not because it could not be reached. Harmless is shown here ' +
+            'rather than asserted in prose: the database answered `anon` ' +
+            `${JSON.stringify(measured.anonReadingTheTableWhoseRowTypeItHolds)} on the table whose ` +
+            'row type it holds USAGE on, because reading rows goes through the table privilege part ' +
+            '4 governs. What is guarded here is that no migration files a default privilege on a ' +
+            `type: the guard reported ${measured.defaultPrivilegesOnTypesTheGuardReports.join('; ') || 'nothing at all'}` +
+            '. And no file that documents this set may go on saying a type is out of reach: ' +
+            `${measured.withdrawnClaimsAboutATypeStillStanding.join('; ') || 'none does'}`,
+        ).toEqual({
+          defaultPrivilegesOnTypesTheGuardReports: [],
+          anonHoldsUsageOnTheDomain: true,
+          anonHoldsUsageOnTheRowTypeOfATable: true,
+          anonReadingTheTableWhoseRowTypeItHolds: { answer: '42501', rows: null },
+          aDomainBornAfterAStatementFiledAgainstNoSchema: {
+            acl: '{postgres=U/postgres}',
+            anon: false,
+          },
+          aDomainBornAfterItInSeen: { acl: '{postgres=U/postgres}', anon: false },
+          aTableRowTypeBornAfterIt: { acl: null, anon: true },
+          withdrawnClaimsAboutATypeStillStanding: [],
+        });
+      } finally {
+        await client.query('rollback');
+      }
+    },
+  );
 });
 
 /**
@@ -5616,32 +5911,38 @@ describe('schema seen, which the Data API does not serve', () => {
     await client?.end();
   });
 
-  it('is not served by the Data API, which is what every rule about where an object lives '
-    + 'rests on', () => {
-    // Text about text, and it is here rather than in a comment because the sentence
-    // it guards is load-bearing four times over in this migration set and was
-    // written down nowhere a test could reach. If `seen` joins this list, the
-    // erasure registry becomes a table endpoint, every helper here becomes a
-    // `POST /rpc/<name>`, and the allow-list below stops being an acceptable rule
-    // without anything else in the suite noticing.
-    const configured = readRepositoryFile(DATA_API_CONFIG);
-    const match = DATA_API_SCHEMAS_SETTING.exec(configured);
-    expect(match, `${DATA_API_CONFIG} has no \`schemas = [...]\` line, so what the Data API `
-      + 'serves cannot be read from the file this repository configures it with').not.toBeNull();
-    const served = (match?.[1] ?? '')
-      .split(',')
-      .map((entry) => entry.trim().replace(/^["']|["']$/g, ''))
-      .filter((entry) => entry.length > 0)
-      .sort();
-    expect(
-      served,
-      `${DATA_API_CONFIG} serves ${served.join(', ')}. Schema ${HELPER_SCHEMA} being absent from `
-      + 'that list is the reason the erasure registry is not a table endpoint, the reason part 6 '
-      + 'can send a materialised view and a foreign table to a schema outside public, and the '
-      + 'reason a callable routine here is a smaller thing than a callable routine there. A '
-      + 'schema added to it is a decision to publish everything in it',
-    ).toEqual([...DATA_API_SCHEMAS]);
-  });
+  it(
+    'is not served by the Data API, which is what every rule about where an object lives ' +
+      'rests on',
+    () => {
+      // Text about text, and it is here rather than in a comment because the sentence
+      // it guards is load-bearing four times over in this migration set and was
+      // written down nowhere a test could reach. If `seen` joins this list, the
+      // erasure registry becomes a table endpoint, every helper here becomes a
+      // `POST /rpc/<name>`, and the allow-list below stops being an acceptable rule
+      // without anything else in the suite noticing.
+      const configured = readRepositoryFile(DATA_API_CONFIG);
+      const match = DATA_API_SCHEMAS_SETTING.exec(configured);
+      expect(
+        match,
+        `${DATA_API_CONFIG} has no \`schemas = [...]\` line, so what the Data API ` +
+          'serves cannot be read from the file this repository configures it with',
+      ).not.toBeNull();
+      const served = (match?.[1] ?? '')
+        .split(',')
+        .map((entry) => entry.trim().replace(/^["']|["']$/g, ''))
+        .filter((entry) => entry.length > 0)
+        .sort();
+      expect(
+        served,
+        `${DATA_API_CONFIG} serves ${served.join(', ')}. Schema ${HELPER_SCHEMA} being absent from ` +
+          'that list is the reason the erasure registry is not a table endpoint, the reason part 6 ' +
+          'can send a materialised view and a foreign table to a schema outside public, and the ' +
+          'reason a callable routine here is a smaller thing than a callable routine there. A ' +
+          'schema added to it is a decision to publish everything in it',
+      ).toEqual([...DATA_API_SCHEMAS]);
+    },
+  );
 
   it('lets a browser-bound role execute the tenancy helper and nothing else', async () => {
     // F38. The allow-list is composed rather than spelled, so that adding a role to
@@ -5651,53 +5952,59 @@ describe('schema seen, which the Data API does not serve', () => {
     // its owner rights" and stop matching, which is the condition that makes the one
     // exception an acceptable one.
     const callable = await executableRoutinesIn(client, HELPER_SCHEMA);
-    const allowed = HELPER_SCHEMA_CALLABLE_ROUTINES
-      .flatMap((signature) => CLIENT_BOUND_ROLES
-        .map((role) => `${HELPER_SCHEMA}.${signature} is a function that ${role} can execute`));
+    const allowed = HELPER_SCHEMA_CALLABLE_ROUTINES.flatMap((signature) =>
+      CLIENT_BOUND_ROLES.map(
+        (role) => `${HELPER_SCHEMA}.${signature} is a function that ${role} can execute`,
+      ),
+    );
     expect(
       callable,
-      `${callable.length} routines in schema ${HELPER_SCHEMA} can be executed by a role a browser `
-      + `request is bound to, where ${allowed.length} may be. This schema is not served by the `
-      + 'Data API, so none of them is an endpoint, but `anon` holds USAGE here and can name and '
-      + 'call any of them that carries EXECUTE to PUBLIC. Part 6 takes that grant away from every '
-      + 'routine the migration role creates after it, so one reported here was created before '
-      + 'part 6 ran, was created under another owner, or has been granted back. '
-      + `The guard reported: ${callable.join('; ')}`,
+      `${callable.length} routines in schema ${HELPER_SCHEMA} can be executed by a role a browser ` +
+        `request is bound to, where ${allowed.length} may be. This schema is not served by the ` +
+        'Data API, so none of them is an endpoint, but `anon` holds USAGE here and can name and ' +
+        'call any of them that carries EXECUTE to PUBLIC. Part 6 takes that grant away from every ' +
+        'routine the migration role creates after it, so one reported here was created before ' +
+        'part 6 ran, was created under another owner, or has been granted back. ' +
+        `The guard reported: ${callable.join('; ')}`,
     ).toEqual(allowed);
   });
 
-  it('grants the tenancy helper to the three request-bound roles by name and to PUBLIC no '
-    + 'longer', async () => {
-    // The other half of what part 1 writes, and the half a grant statement hides. The
-    // three grants beside the function read as the whole of its access control list
-    // and are not: `create function` had already given EXECUTE to PUBLIC, the grants
-    // sit beside that rather than replace it, and until part 1 revoked it the three
-    // named grants bought nothing that was not already true of every role in the
-    // database.
-    //
-    // Removing it is safe and that was established rather than assumed, because
-    // getting it wrong returns nothing from every table in the schema. Measured on
-    // this stack: thirty policies reference the helper and nothing else in the
-    // database does, no column default, no check constraint, no view definition and
-    // no other routine body; every one of those thirty policies is `to
-    // authenticated`, which holds an explicit grant; of the ten roles that lose
-    // EXECUTE with PUBLIC gone, eight hold no privilege on any of the twenty-nine
-    // tables, so they are refused 42501 before a policy is evaluated at all, and the
-    // remaining two carry BYPASSRLS, so no policy is applied to them and the helper
-    // is never called on their behalf. Then behaviourally, in a rolled-back
-    // transaction with the grant revoked: `authenticated` carrying a tenant claim
-    // still read exactly its own tenant's row out of two.
-    const { clientRolesNamed, publicIsNamed } = await routineAccessControlList(
-      client, `${HELPER_SCHEMA}.current_tenant()`,
-    );
-    expect(
-      { clientRolesNamed, publicIsNamed },
-      'The access control list of the tenancy helper has to name the roles part 1 grants it to '
-      + 'and must not name PUBLIC, because a grant to PUBLIC is the route past every guard that '
-      + `matches a grantee by name. It reads ${clientRolesNamed.join(', ') || 'no client role'}`
-      + `${publicIsNamed ? ' and PUBLIC' : ' and not PUBLIC'}`,
-    ).toEqual({ clientRolesNamed: [...CLIENT_BOUND_ROLES], publicIsNamed: false });
-  });
+  it(
+    'grants the tenancy helper to the three request-bound roles by name and to PUBLIC no ' +
+      'longer',
+    async () => {
+      // The other half of what part 1 writes, and the half a grant statement hides. The
+      // three grants beside the function read as the whole of its access control list
+      // and are not: `create function` had already given EXECUTE to PUBLIC, the grants
+      // sit beside that rather than replace it, and until part 1 revoked it the three
+      // named grants bought nothing that was not already true of every role in the
+      // database.
+      //
+      // Removing it is safe and that was established rather than assumed, because
+      // getting it wrong returns nothing from every table in the schema. Measured on
+      // this stack: thirty policies reference the helper and nothing else in the
+      // database does, no column default, no check constraint, no view definition and
+      // no other routine body; every one of those thirty policies is `to
+      // authenticated`, which holds an explicit grant; of the ten roles that lose
+      // EXECUTE with PUBLIC gone, eight hold no privilege on any of the twenty-nine
+      // tables, so they are refused 42501 before a policy is evaluated at all, and the
+      // remaining two carry BYPASSRLS, so no policy is applied to them and the helper
+      // is never called on their behalf. Then behaviourally, in a rolled-back
+      // transaction with the grant revoked: `authenticated` carrying a tenant claim
+      // still read exactly its own tenant's row out of two.
+      const { clientRolesNamed, publicIsNamed } = await routineAccessControlList(
+        client,
+        `${HELPER_SCHEMA}.current_tenant()`,
+      );
+      expect(
+        { clientRolesNamed, publicIsNamed },
+        'The access control list of the tenancy helper has to name the roles part 1 grants it to ' +
+          'and must not name PUBLIC, because a grant to PUBLIC is the route past every guard that ' +
+          `matches a grantee by name. It reads ${clientRolesNamed.join(', ') || 'no client role'}` +
+          `${publicIsNamed ? ' and PUBLIC' : ' and not PUBLIC'}`,
+      ).toEqual({ clientRolesNamed: [...CLIENT_BOUND_ROLES], publicIsNamed: false });
+    },
+  );
 
   it('holds no relation and no sequence a browser-bound role can reach', async () => {
     // seen.erased_tenants and seen.marketplace_catalogue, and whatever is put here
@@ -5715,20 +6022,25 @@ describe('schema seen, which the Data API does not serve', () => {
     // is the role the defect at F21 was measured with, and part 8's own self-check
     // already refuses it any privilege on the registry.
     const reachable = [
-      ...(await effectivePrivilegesIn(
-        client, HELPER_SCHEMA,
-        [...Object.keys(TABLE_RELKINDS), ...Object.keys(NON_TABLE_RELKINDS)],
-        DATA_API_ROLES,
-      )).map((holding) => `${HELPER_SCHEMA}.${named(holding)} lets ${holding.role} `
-        + holdingLabel(holding)),
-      ...await sequencesReachableIn(client, HELPER_SCHEMA),
+      ...(
+        await effectivePrivilegesIn(
+          client,
+          HELPER_SCHEMA,
+          [...Object.keys(TABLE_RELKINDS), ...Object.keys(NON_TABLE_RELKINDS)],
+          DATA_API_ROLES,
+        )
+      ).map(
+        (holding) =>
+          `${HELPER_SCHEMA}.${named(holding)} lets ${holding.role} ${holdingLabel(holding)}`,
+      ),
+      ...(await sequencesReachableIn(client, HELPER_SCHEMA)),
     ];
     expect(
       reachable,
-      `${reachable.length} objects in schema ${HELPER_SCHEMA} can be reached by a role the Data `
-      + 'API binds a request to. Nothing here belongs to a tenant, so nothing here can carry the '
-      + 'tenancy that would make reaching it safe, and the boundary is the privilege alone: '
-      + reachable.join('; '),
+      `${reachable.length} objects in schema ${HELPER_SCHEMA} can be reached by a role the Data ` +
+        'API binds a request to. Nothing here belongs to a tenant, so nothing here can carry the ' +
+        'tenancy that would make reaching it safe, and the boundary is the privilege alone: ' +
+        reachable.join('; '),
     ).toEqual([]);
   });
 
@@ -5752,32 +6064,36 @@ describe('schema seen, which the Data API does not serve', () => {
     // routine created before part 6 ran.
     const measured = {
       defaultPrivilegesFiledHere: await defaultPrivilegesForClientRolesIn(client, HELPER_SCHEMA),
-      rolesThatCanCreateHere: (await client.query<{ role: string }>(
-        `select r.rolname as role
+      rolesThatCanCreateHere: (
+        await client.query<{ role: string }>(
+          `select r.rolname as role
            from pg_catalog.pg_roles r
           where (r.rolname = any($1) or r.rolname = 'service_role')
             and has_schema_privilege(r.oid, $2, 'CREATE')
           order by r.rolname`,
-        [[...CLIENT_BOUND_ROLES], HELPER_SCHEMA],
-      )).rows.map((row) => row.role),
-      rolesThatCanEnterHere: (await client.query<{ role: string }>(
-        `select r.rolname as role
+          [[...CLIENT_BOUND_ROLES], HELPER_SCHEMA],
+        )
+      ).rows.map((row) => row.role),
+      rolesThatCanEnterHere: (
+        await client.query<{ role: string }>(
+          `select r.rolname as role
            from pg_catalog.pg_roles r
           where (r.rolname = any($1) or r.rolname = 'service_role')
             and has_schema_privilege(r.oid, $2, 'USAGE')
           order by r.rolname`,
-        [[...CLIENT_BOUND_ROLES], HELPER_SCHEMA],
-      )).rows.map((row) => row.role),
+          [[...CLIENT_BOUND_ROLES], HELPER_SCHEMA],
+        )
+      ).rows.map((row) => row.role),
     };
     expect(
       measured,
-      `Schema ${HELPER_SCHEMA} may file no default privilege, because an object created here has `
-      + 'to start owner-only for part 8\'s revoke on the erasure registry to mean what it says; '
-      + 'and no role a request is bound to may hold CREATE here, because a role that can put a '
-      + 'function in this schema can put one there that the allow-list was written to stop. USAGE '
-      + 'is the one thing all three do hold, deliberately and not as an oversight: the tenancy '
-      + 'helper is evaluated as the caller inside every policy, so a request that could not enter '
-      + `this schema would read every table in the trade record as empty. Measured: ${JSON.stringify(measured)}`,
+      `Schema ${HELPER_SCHEMA} may file no default privilege, because an object created here has ` +
+        "to start owner-only for part 8's revoke on the erasure registry to mean what it says; " +
+        'and no role a request is bound to may hold CREATE here, because a role that can put a ' +
+        'function in this schema can put one there that the allow-list was written to stop. USAGE ' +
+        'is the one thing all three do hold, deliberately and not as an oversight: the tenancy ' +
+        'helper is evaluated as the caller inside every policy, so a request that could not enter ' +
+        `this schema would read every table in the trade record as empty. Measured: ${JSON.stringify(measured)}`,
     ).toEqual({
       defaultPrivilegesFiledHere: [],
       rolesThatCanCreateHere: [],
@@ -5785,43 +6101,41 @@ describe('schema seen, which the Data API does not serve', () => {
     });
   });
 
-  it('is where a helper created now is born out of reach, and nothing here says it cannot be',
-    async () => {
-      // The claim part 6 and part 8 both make about this schema, measured, and the
-      // four sentences that went on denying it, read.
-      //
-      // Both halves are one test because either alone is the defect. The
-      // measurement alone is what the ninth review (F43) had to make by hand before
-      // it could see the contradiction, and it would go on passing beside prose
-      // telling the author of SEEN-014 or SEEN-021 that a helper they add here is
-      // callable by `anon` until they revoke it, which is the reasoning F39 was
-      // raised to end. The reading alone would hold this set to a sentence and not
-      // to a database, and would pass unchanged on a stack where somebody had
-      // dropped part 6's statement and made the withdrawn claim true again.
-      //
-      // The probe returns `int` and is not `security definer`, which is the whole
-      // difference between this and the test below it: that one asks what a routine
-      // carrying EXECUTE to PUBLIC can hand back, and this one asks whether a
-      // routine is born carrying it at all. Nothing is granted on it and nothing is
-      // revoked from it, because what is measured is the state it arrives in.
-      // Measured on PostgreSQL 17.6 on this stack: `{postgres=X/postgres}`, with
-      // `has_function_privilege` false for `anon`, `authenticated` and
-      // `service_role` alike, which is schema `seen` carrying no `pg_default_acl`
-      // entry of its own and so leaving part 6's global entry as the whole of what
-      // applies. The access control list is asked for as well as the three roles,
-      // because a null one is the state in which every role there is can execute
-      // and would answer this question the wrong way round.
-      //
-      // The owner is read from the catalogue rather than named, so that a stack
-      // reached through SEEN_DATABASE_URL under another role is held to the property
-      // and not to the word `postgres`.
-      await client.query('begin');
-      try {
-        const probe = `${HELPER_SCHEMA}.seen_born_out_of_reach_probe()`;
-        await client.query(
-          `create function ${probe} returns int language sql as $$ select 1 $$`,
-        );
-        const granted = (await client.query<{ grantee: string; owner: string }>(
+  it('is where a helper created now is born out of reach, and nothing here says it cannot be', async () => {
+    // The claim part 6 and part 8 both make about this schema, measured, and the
+    // four sentences that went on denying it, read.
+    //
+    // Both halves are one test because either alone is the defect. The
+    // measurement alone is what the ninth review (F43) had to make by hand before
+    // it could see the contradiction, and it would go on passing beside prose
+    // telling the author of SEEN-014 or SEEN-021 that a helper they add here is
+    // callable by `anon` until they revoke it, which is the reasoning F39 was
+    // raised to end. The reading alone would hold this set to a sentence and not
+    // to a database, and would pass unchanged on a stack where somebody had
+    // dropped part 6's statement and made the withdrawn claim true again.
+    //
+    // The probe returns `int` and is not `security definer`, which is the whole
+    // difference between this and the test below it: that one asks what a routine
+    // carrying EXECUTE to PUBLIC can hand back, and this one asks whether a
+    // routine is born carrying it at all. Nothing is granted on it and nothing is
+    // revoked from it, because what is measured is the state it arrives in.
+    // Measured on PostgreSQL 17.6 on this stack: `{postgres=X/postgres}`, with
+    // `has_function_privilege` false for `anon`, `authenticated` and
+    // `service_role` alike, which is schema `seen` carrying no `pg_default_acl`
+    // entry of its own and so leaving part 6's global entry as the whole of what
+    // applies. The access control list is asked for as well as the three roles,
+    // because a null one is the state in which every role there is can execute
+    // and would answer this question the wrong way round.
+    //
+    // The owner is read from the catalogue rather than named, so that a stack
+    // reached through SEEN_DATABASE_URL under another role is held to the property
+    // and not to the word `postgres`.
+    await client.query('begin');
+    try {
+      const probe = `${HELPER_SCHEMA}.seen_born_out_of_reach_probe()`;
+      await client.query(`create function ${probe} returns int language sql as $$ select 1 $$`);
+      const granted = (
+        await client.query<{ grantee: string; owner: string }>(
           `select case when a.grantee = 0 then 'PUBLIC' else a.grantee::regrole::text end
                     as grantee,
                   p.proowner::regrole::text as owner
@@ -5830,42 +6144,43 @@ describe('schema seen, which the Data API does not serve', () => {
             where p.oid = $1::regprocedure
             order by grantee`,
           [probe],
-        )).rows;
-        const rolesThatCanExecuteIt: string[] = [];
-        for (const role of DATA_API_ROLES) {
-          if (await canExecute(client, role, probe)) rolesThatCanExecuteIt.push(role);
-        }
-        const bornWith = {
-          accessControlListIsNull: granted.length === 0,
-          grantedToAnybodyButItsOwner: granted
-            .filter((row) => row.grantee !== row.owner)
-            .map((row) => row.grantee),
-          rolesThatCanExecuteIt,
-        };
-        const stillStanding = withdrawnClaimsStillStanding(sourcesThatDocumentTheSet());
-        expect(
-          { bornWith, stillStanding },
-          'A function was created in schema seen, granted nothing and revoked nothing, and the '
-          + `database answered ${JSON.stringify(bornWith)}. It has to arrive holding nothing for `
-          + 'anybody but its owner, because that is what part 6 and part 8 tell a later author '
-          + 'this schema does for them, and an access control list of its own has to exist at '
-          + 'all, because a null one is the state in which every role can execute. And no file '
-          + 'that documents this set may go on denying it, of a routine or of any other class '
-          + 'the denial was carried to: five rounds of this ticket wrote it down, F39 withdrew '
-          + 'it, F43 found four places it had been left and F44 four more where it had been '
-          + `said of a type. What is still standing: ${stillStanding.join('; ') || 'nothing'}`,
-        ).toEqual({
-          bornWith: {
-            accessControlListIsNull: false,
-            grantedToAnybodyButItsOwner: [],
-            rolesThatCanExecuteIt: [],
-          },
-          stillStanding: [],
-        });
-      } finally {
-        await client.query('rollback');
+        )
+      ).rows;
+      const rolesThatCanExecuteIt: string[] = [];
+      for (const role of DATA_API_ROLES) {
+        if (await canExecute(client, role, probe)) rolesThatCanExecuteIt.push(role);
       }
-    });
+      const bornWith = {
+        accessControlListIsNull: granted.length === 0,
+        grantedToAnybodyButItsOwner: granted
+          .filter((row) => row.grantee !== row.owner)
+          .map((row) => row.grantee),
+        rolesThatCanExecuteIt,
+      };
+      const stillStanding = withdrawnClaimsStillStanding(sourcesThatDocumentTheSet());
+      expect(
+        { bornWith, stillStanding },
+        'A function was created in schema seen, granted nothing and revoked nothing, and the ' +
+          `database answered ${JSON.stringify(bornWith)}. It has to arrive holding nothing for ` +
+          'anybody but its owner, because that is what part 6 and part 8 tell a later author ' +
+          'this schema does for them, and an access control list of its own has to exist at ' +
+          'all, because a null one is the state in which every role can execute. And no file ' +
+          'that documents this set may go on denying it, of a routine or of any other class ' +
+          'the denial was carried to: five rounds of this ticket wrote it down, F39 withdrew ' +
+          'it, F43 found four places it had been left and F44 four more where it had been ' +
+          `said of a type. What is still standing: ${stillStanding.join('; ') || 'nothing'}`,
+      ).toEqual({
+        bornWith: {
+          accessControlListIsNull: false,
+          grantedToAnybodyButItsOwner: [],
+          rolesThatCanExecuteIt: [],
+        },
+        stillStanding: [],
+      });
+    } finally {
+      await client.query('rollback');
+    }
+  });
 
   it('reads a withdrawn claim wherever a person would meet one, quoted or commented', () => {
     // The scanner shown prose the repository does not hold, because a guard that
@@ -5880,29 +6195,32 @@ describe('schema seen, which the Data API does not serve', () => {
     const reported = withdrawnClaimsStillStanding([
       {
         file: 'a.sql',
-        contents: '-- A function added here is callable by name, and there is\n'
-          + `-- ${inAComment.spelling.join(' ')}, so this raises instead.\n`,
+        contents:
+          '-- A function added here is callable by name, and there is\n' +
+          `-- ${inAComment.spelling.join(' ')}, so this raises instead.\n`,
       },
       {
         file: 'b.sql',
-        contents: '  raise exception \'a routine here is callable by name \'\n'
-          + `    '${inARaise.spelling.join(' ')} from public: %', offenders;\n`,
+        contents:
+          "  raise exception 'a routine here is callable by name '\n" +
+          `    '${inARaise.spelling.join(' ')} from public: %', offenders;\n`,
       },
       {
         file: 'c.ts',
-        contents: `      + 'call any of them: a routine stays callable, ${wrapped.spelling[0]} '\n`
-          + `      + '${wrapped.spelling.slice(1).join(' ')}. '\n`,
+        contents:
+          `      + 'call any of them: a routine stays callable, ${wrapped.spelling[0]} '\n` +
+          `      + '${wrapped.spelling.slice(1).join(' ')}. '\n`,
       },
     ]);
     const where = reported.map((entry) => entry.slice(0, entry.indexOf(' still says ')));
     expect(
       where,
-      'The scanner was shown one withdrawn claim in each of the three shapes F43 found one in, '
-      + 'and has to report all three at the line the sentence starts on. A scanner over comments '
-      + 'alone walks past a raise message and an assertion message, which are the two places a '
-      + 'person is told something the database contradicts; a scanner that did not join a '
-      + 'wrapped string walks past the third, which is how all four of them are written. It '
-      + `reported: ${reported.join('; ') || 'nothing'}`,
+      'The scanner was shown one withdrawn claim in each of the three shapes F43 found one in, ' +
+        'and has to report all three at the line the sentence starts on. A scanner over comments ' +
+        'alone walks past a raise message and an assertion message, which are the two places a ' +
+        'person is told something the database contradicts; a scanner that did not join a ' +
+        'wrapped string walks past the third, which is how all four of them are written. It ' +
+        `reported: ${reported.join('; ') || 'nothing'}`,
     ).toEqual(['a.sql:2', 'b.sql:2', 'c.ts:1']);
   });
 
@@ -5934,45 +6252,50 @@ describe('schema seen, which the Data API does not serve', () => {
     // writing it, which is what this measures.
     await client.query('begin');
     try {
+      await client.query("insert into public.tenants (name) values ('Tenant A'), ('Tenant B')");
       await client.query(
-        "insert into public.tenants (name) values ('Tenant A'), ('Tenant B')",
-      );
-      await client.query(
-        `create function ${HELPER_SCHEMA}.seen_helper_probe() returns setof text `
-        + 'language sql security definer as $$ select name from public.tenants $$',
+        `create function ${HELPER_SCHEMA}.seen_helper_probe() returns setof text ` +
+          'language sql security definer as $$ select name from public.tenants $$',
       );
       await client.query(
         `grant execute on function ${HELPER_SCHEMA}.seen_helper_probe() to public`,
       );
       const bornWith = {
-        routinesTheGuardReports: (await executableRoutinesIn(client, HELPER_SCHEMA))
-          .filter((entry) => entry.includes('seen_helper_probe')),
+        routinesTheGuardReports: (await executableRoutinesIn(client, HELPER_SCHEMA)).filter(
+          (entry) => entry.includes('seen_helper_probe'),
+        ),
         anonCallingIt: await answeredAs(
-          client, 'anon', `select * from ${HELPER_SCHEMA}.seen_helper_probe()`,
+          client,
+          'anon',
+          `select * from ${HELPER_SCHEMA}.seen_helper_probe()`,
         ),
       };
-      await client.query(
-        `revoke all on function ${HELPER_SCHEMA}.seen_helper_probe() from public`,
-      );
+      await client.query(`revoke all on function ${HELPER_SCHEMA}.seen_helper_probe() from public`);
       const afterTheRevoke = {
-        routinesTheGuardReports: (await executableRoutinesIn(client, HELPER_SCHEMA))
-          .filter((entry) => entry.includes('seen_helper_probe')),
+        routinesTheGuardReports: (await executableRoutinesIn(client, HELPER_SCHEMA)).filter(
+          (entry) => entry.includes('seen_helper_probe'),
+        ),
         anonCallingIt: await answeredAs(
-          client, 'anon', `select * from ${HELPER_SCHEMA}.seen_helper_probe()`,
+          client,
+          'anon',
+          `select * from ${HELPER_SCHEMA}.seen_helper_probe()`,
         ),
       };
       expect(
         { bornWith, afterTheRevoke },
-        'A `security definer` helper created in schema seen, which nobody granted anything on, '
-        + 'is callable by `anon` and hands back every tenant\'s rows, because a routine is born '
-        + 'with EXECUTE to PUBLIC and `anon` holds USAGE on this schema. That is the hazard the '
-        + 'allow-list above exists to catch and the revoke in each migration exists to close, and '
-        + `both halves are measured here: ${JSON.stringify({ bornWith, afterTheRevoke })}`,
+        'A `security definer` helper created in schema seen, which nobody granted anything on, ' +
+          "is callable by `anon` and hands back every tenant's rows, because a routine is born " +
+          'with EXECUTE to PUBLIC and `anon` holds USAGE on this schema. That is the hazard the ' +
+          'allow-list above exists to catch and the revoke in each migration exists to close, and ' +
+          `both halves are measured here: ${JSON.stringify({ bornWith, afterTheRevoke })}`,
       ).toEqual({
         bornWith: {
-          routinesTheGuardReports: CLIENT_BOUND_ROLES.map((role) => `${HELPER_SCHEMA}`
-            + `.seen_helper_probe() is a function running with its owner rights that ${role} `
-            + 'can execute'),
+          routinesTheGuardReports: CLIENT_BOUND_ROLES.map(
+            (role) =>
+              `${HELPER_SCHEMA}` +
+              `.seen_helper_probe() is a function running with its owner rights that ${role} ` +
+              'can execute',
+          ),
           anonCallingIt: { answer: 'accepted', rows: 2 },
         },
         afterTheRevoke: {
@@ -6042,19 +6365,26 @@ describe('the evidence an erasure has to reach, and the path a row may name', ()
    * measured in: a row inside tenant A's boundary, addressing tenant B's object.
    * Rolled back by the caller's transaction; nothing here is left behind. */
   async function twoTenants(): Promise<{ a: string; b: string; claim: string }> {
-    const a = (await client.query<{ tenant_id: string }>(
-      "insert into public.tenants (name) values ('Tenant A storage path') returning tenant_id",
-    )).rows[0].tenant_id;
-    const b = (await client.query<{ tenant_id: string }>(
-      "insert into public.tenants (name) values ('Tenant B storage path') returning tenant_id",
-    )).rows[0].tenant_id;
-    const claim = (await client.query<{ id: string }>(
-      "insert into public.claims (tenant_id, marketplace) values ($1, 'bol') returning id", [a],
-    )).rows[0].id;
+    const a = (
+      await client.query<{ tenant_id: string }>(
+        "insert into public.tenants (name) values ('Tenant A storage path') returning tenant_id",
+      )
+    ).rows[0].tenant_id;
+    const b = (
+      await client.query<{ tenant_id: string }>(
+        "insert into public.tenants (name) values ('Tenant B storage path') returning tenant_id",
+      )
+    ).rows[0].tenant_id;
+    const claim = (
+      await client.query<{ id: string }>(
+        "insert into public.claims (tenant_id, marketplace) values ($1, 'bol') returning id",
+        [a],
+      )
+    ).rows[0].id;
     return { a, b, claim };
   }
 
-  it('refuses an evidence row that addresses another tenant\'s stored document', async () => {
+  it("refuses an evidence row that addresses another tenant's stored document", async () => {
     // F64's own reproduction, and its contrast. The insert that crossed the
     // boundary through `claim_id` was already refused with 23503 by part 5's
     // tenant-scoped key; the one that crossed it through the path was accepted,
@@ -6066,20 +6396,24 @@ describe('the evidence an erasure has to reach, and the path a row may name', ()
     try {
       const { a, b, claim } = await twoTenants();
       const measured = {
-        acrossTheBoundary: await answered(() => client.query(
-          'insert into public.evidence (tenant_id, claim_id, storage_path) values ($1, $2, $3)',
-          [a, claim, `${b}/claims/secret/buyer-invoice.pdf`],
-        )),
-        underItsOwnPrefix: await answered(() => client.query(
-          'insert into public.evidence (tenant_id, claim_id, storage_path) values ($1, $2, $3)',
-          [a, claim, `${a}/claims/${claim}/carrier-proof.pdf`],
-        )),
+        acrossTheBoundary: await answered(() =>
+          client.query(
+            'insert into public.evidence (tenant_id, claim_id, storage_path) values ($1, $2, $3)',
+            [a, claim, `${b}/claims/secret/buyer-invoice.pdf`],
+          ),
+        ),
+        underItsOwnPrefix: await answered(() =>
+          client.query(
+            'insert into public.evidence (tenant_id, claim_id, storage_path) values ($1, $2, $3)',
+            [a, claim, `${a}/claims/${claim}/carrier-proof.pdf`],
+          ),
+        ),
       };
       expect(
         measured,
-        'An evidence row inside one tenant\'s row-level security boundary can address a stored '
-        + 'object under another tenant\'s prefix. The policy protects the row and not the thing '
-        + `the row names: ${JSON.stringify(measured)}`,
+        "An evidence row inside one tenant's row-level security boundary can address a stored " +
+          "object under another tenant's prefix. The policy protects the row and not the thing " +
+          `the row names: ${JSON.stringify(measured)}`,
       ).toEqual({ acrossTheBoundary: '23514', underItsOwnPrefix: 'accepted' });
     } finally {
       await client.query('rollback');
@@ -6096,29 +6430,37 @@ describe('the evidence an erasure has to reach, and the path a row may name', ()
     try {
       const { a, b } = await twoTenants();
       const measured = {
-        acrossTheBoundary: await answered(() => client.query(
-          `insert into public.statements (tenant_id, period_start, period_end, storage_path)
+        acrossTheBoundary: await answered(() =>
+          client.query(
+            `insert into public.statements (tenant_id, period_start, period_end, storage_path)
            values ($1, '2026-09-01', '2026-09-30', $2)`,
-          [a, `${b}/statements/2026-09.pdf`],
-        )),
-        underItsOwnPrefix: await answered(() => client.query(
-          `insert into public.statements (tenant_id, period_start, period_end, storage_path)
+            [a, `${b}/statements/2026-09.pdf`],
+          ),
+        ),
+        underItsOwnPrefix: await answered(() =>
+          client.query(
+            `insert into public.statements (tenant_id, period_start, period_end, storage_path)
            values ($1, '2026-08-01', '2026-08-31', $2)`,
-          [a, `${a}/statements/2026-08.pdf`],
-        )),
-        withNoPathAtAll: await answered(() => client.query(
-          `insert into public.statements (tenant_id, period_start, period_end)
+            [a, `${a}/statements/2026-08.pdf`],
+          ),
+        ),
+        withNoPathAtAll: await answered(() =>
+          client.query(
+            `insert into public.statements (tenant_id, period_start, period_end)
            values ($1, '2026-07-01', '2026-07-31')`,
-          [a],
-        )),
+            [a],
+          ),
+        ),
       };
       expect(
         measured,
-        'A statement addresses a stored document by free text as well, and the constraint has to '
-        + 'reach it without refusing the period that was reported and not rendered: '
-        + JSON.stringify(measured),
+        'A statement addresses a stored document by free text as well, and the constraint has to ' +
+          'reach it without refusing the period that was reported and not rendered: ' +
+          JSON.stringify(measured),
       ).toEqual({
-        acrossTheBoundary: '23514', underItsOwnPrefix: 'accepted', withNoPathAtAll: 'accepted',
+        acrossTheBoundary: '23514',
+        underItsOwnPrefix: 'accepted',
+        withNoPathAtAll: 'accepted',
       });
     } finally {
       await client.query('rollback');
@@ -6148,77 +6490,91 @@ describe('the evidence an erasure has to reach, and the path a row may name', ()
     const unconstrained = TENANT_PREFIXED_PATH_COLUMNS.filter((column) => !constrained.has(column));
     expect(
       unconstrained,
-      `${unconstrained.length} of the columns that address a stored object carry no check tying `
-      + 'the path to the row\'s own tenant_id, so the row can name an object of a tenant it does '
-      + `not belong to: ${unconstrained.join(', ')}`,
+      `${unconstrained.length} of the columns that address a stored object carry no check tying ` +
+        "the path to the row's own tenant_id, so the row can name an object of a tenant it does " +
+        `not belong to: ${unconstrained.join(', ')}`,
     ).toEqual([]);
   });
 
-  it('records the stored objects of an erased tenant, so the bytes can still be reached',
-    async () => {
-      // F63's own measurement, taken again. Before: evidence rows and objects
-      // both present. After `delete from public.tenants`: the evidence rows are
-      // gone with the cascade, the objects are still in the bucket, and before
-      // this migration nothing in the database associated them with the erased
-      // tenant any more. The worklist is what the erasure leaves in their place.
-      //
-      // The whole of it is in a transaction that is rolled back, because part 8
-      // makes a committed erasure's tombstone permanent on purpose and a test may
-      // not leave one behind.
-      await client.query('begin');
-      try {
-        const tenant = (await client.query<{ tenant_id: string }>(
-          "insert into public.tenants (name) values ('Tenant erased with objects') "
-          + 'returning tenant_id',
-        )).rows[0].tenant_id;
-        const claim = (await client.query<{ id: string }>(
+  it('records the stored objects of an erased tenant, so the bytes can still be reached', async () => {
+    // F63's own measurement, taken again. Before: evidence rows and objects
+    // both present. After `delete from public.tenants`: the evidence rows are
+    // gone with the cascade, the objects are still in the bucket, and before
+    // this migration nothing in the database associated them with the erased
+    // tenant any more. The worklist is what the erasure leaves in their place.
+    //
+    // The whole of it is in a transaction that is rolled back, because part 8
+    // makes a committed erasure's tombstone permanent on purpose and a test may
+    // not leave one behind.
+    await client.query('begin');
+    try {
+      const tenant = (
+        await client.query<{ tenant_id: string }>(
+          "insert into public.tenants (name) values ('Tenant erased with objects') " +
+            'returning tenant_id',
+        )
+      ).rows[0].tenant_id;
+      const claim = (
+        await client.query<{ id: string }>(
           "insert into public.claims (tenant_id, marketplace) values ($1, 'bol') returning id",
           [tenant],
-        )).rows[0].id;
-        const paths = [
-          `${tenant}/claims/${claim}/carrier-proof.pdf`,
-          `${tenant}/claims/${claim}/buyer-invoice.pdf`,
-        ];
-        for (const path of paths) {
-          await client.query(
-            'insert into storage.objects (bucket_id, name) values ($1, $2)',
-            [EVIDENCE_BUCKET, path],
-          );
-          await client.query(
-            'insert into public.evidence (tenant_id, claim_id, storage_path) values ($1, $2, $3)',
-            [tenant, claim, path],
-          );
-        }
-        await client.query('delete from public.tenants where tenant_id = $1', [tenant]);
+        )
+      ).rows[0].id;
+      const paths = [
+        `${tenant}/claims/${claim}/carrier-proof.pdf`,
+        `${tenant}/claims/${claim}/buyer-invoice.pdf`,
+      ];
+      for (const path of paths) {
+        await client.query('insert into storage.objects (bucket_id, name) values ($1, $2)', [
+          EVIDENCE_BUCKET,
+          path,
+        ]);
+        await client.query(
+          'insert into public.evidence (tenant_id, claim_id, storage_path) values ($1, $2, $3)',
+          [tenant, claim, path],
+        );
+      }
+      await client.query('delete from public.tenants where tenant_id = $1', [tenant]);
 
-        const evidenceRows = Number((await client.query<{ total: string }>(
-          'select count(*) as total from public.evidence where tenant_id = $1', [tenant],
-        )).rows[0].total);
-        const objectsLeft = (await client.query<{ name: string }>(
+      const evidenceRows = Number(
+        (
+          await client.query<{ total: string }>(
+            'select count(*) as total from public.evidence where tenant_id = $1',
+            [tenant],
+          )
+        ).rows[0].total,
+      );
+      const objectsLeft = (
+        await client.query<{ name: string }>(
           'select name from storage.objects where bucket_id = $1 and name like $2 order by name',
           [EVIDENCE_BUCKET, `${tenant}/%`],
-        )).rows.map((row) => row.name);
-        const worklist = (await client.query<{ object_name: string; bucket_id: string }>(
+        )
+      ).rows.map((row) => row.name);
+      const worklist = (
+        await client.query<{ object_name: string; bucket_id: string }>(
           `select bucket_id, object_name from ${PENDING_OBJECT_ERASURES_TABLE}
-            where tenant_id = $1 order by object_name`, [tenant],
-        )).rows;
+            where tenant_id = $1 order by object_name`,
+          [tenant],
+        )
+      ).rows;
 
-        expect(
-          { evidenceRows, objectsLeft, worklist },
-          'A deletion on request removed the rows that said which stored objects belonged to the '
-          + 'erased tenant and left the objects themselves in the bucket. The PRD promises '
-          + 'deletion within 30 days and SEEN-083 has to carry it out, and after this statement '
-          + `it has nothing left to join on: ${JSON.stringify({ evidenceRows, objectsLeft })}`,
-        ).toEqual({
-          evidenceRows: 0,
-          objectsLeft: [...paths].sort(),
-          worklist: [...paths].sort()
-            .map((name) => ({ bucket_id: EVIDENCE_BUCKET, object_name: name })),
-        });
-      } finally {
-        await client.query('rollback');
-      }
-    });
+      expect(
+        { evidenceRows, objectsLeft, worklist },
+        'A deletion on request removed the rows that said which stored objects belonged to the ' +
+          'erased tenant and left the objects themselves in the bucket. The PRD promises ' +
+          'deletion within 30 days and SEEN-083 has to carry it out, and after this statement ' +
+          `it has nothing left to join on: ${JSON.stringify({ evidenceRows, objectsLeft })}`,
+      ).toEqual({
+        evidenceRows: 0,
+        objectsLeft: [...paths].sort(),
+        worklist: [...paths]
+          .sort()
+          .map((name) => ({ bucket_id: EVIDENCE_BUCKET, object_name: name })),
+      });
+    } finally {
+      await client.query('rollback');
+    }
+  });
 
   it('binds the path a row may name, and neither end of the upload it cannot see', async () => {
     // F67, and it is a measurement of the constraint's reach rather than of a
@@ -6242,54 +6598,66 @@ describe('the evidence an erasure has to reach, and the path a row may name', ()
     // and SEEN-027 to, and the two guards above that go red when either is dropped.
     await client.query('begin');
     try {
-      const tenant = (await client.query<{ tenant_id: string }>(
-        "insert into public.tenants (name) values ('Tenant whose upload is not the row') "
-        + 'returning tenant_id',
-      )).rows[0].tenant_id;
-      const claim = (await client.query<{ id: string }>(
-        "insert into public.claims (tenant_id, marketplace) values ($1, 'bol') returning id",
-        [tenant],
-      )).rows[0].id;
+      const tenant = (
+        await client.query<{ tenant_id: string }>(
+          "insert into public.tenants (name) values ('Tenant whose upload is not the row') " +
+            'returning tenant_id',
+        )
+      ).rows[0].tenant_id;
+      const claim = (
+        await client.query<{ id: string }>(
+          "insert into public.claims (tenant_id, marketplace) values ($1, 'bol') returning id",
+          [tenant],
+        )
+      ).rows[0].id;
       const promised = `${tenant}/claims/${claim}/carrier-proof.pdf`;
       const unnamed = `${tenant}/claims/${claim}/uploaded-without-a-row.pdf`;
       const outside = 'shared/uploads/buyer-invoice.pdf';
       for (const name of [unnamed, outside]) {
-        await client.query(
-          'insert into storage.objects (bucket_id, name) values ($1, $2)', [EVIDENCE_BUCKET, name],
-        );
+        await client.query('insert into storage.objects (bucket_id, name) values ($1, $2)', [
+          EVIDENCE_BUCKET,
+          name,
+        ]);
       }
-      const aRowNamingNoObject = await answered(() => client.query(
-        'insert into public.evidence (tenant_id, claim_id, storage_path) values ($1, $2, $3)',
-        [tenant, claim, promised],
-      ));
+      const aRowNamingNoObject = await answered(() =>
+        client.query(
+          'insert into public.evidence (tenant_id, claim_id, storage_path) values ($1, $2, $3)',
+          [tenant, claim, promised],
+        ),
+      );
       await client.query('delete from public.tenants where tenant_id = $1', [tenant]);
-      const swept = (await client.query<{ object_name: string }>(
-        `select object_name from ${PENDING_OBJECT_ERASURES_TABLE} where tenant_id = $1
-          order by object_name`, [tenant],
-      )).rows.map((row) => row.object_name);
-      const left = (await client.query<{ name: string }>(
-        'select name from storage.objects where bucket_id = $1 and name = $2',
-        [EVIDENCE_BUCKET, outside],
-      )).rows.map((row) => row.name);
+      const swept = (
+        await client.query<{ object_name: string }>(
+          `select object_name from ${PENDING_OBJECT_ERASURES_TABLE} where tenant_id = $1
+          order by object_name`,
+          [tenant],
+        )
+      ).rows.map((row) => row.object_name);
+      const left = (
+        await client.query<{ name: string }>(
+          'select name from storage.objects where bucket_id = $1 and name = $2',
+          [EVIDENCE_BUCKET, outside],
+        )
+      ).rows.map((row) => row.name);
       const measured = {
         aRowNamingNoObject,
         sweptByTheErasure: swept,
         standingAfterTheErasure: left,
-        whoseCriteriaCloseIt: SCHEMA_OBLIGATIONS
-          .filter((entry) => entry.relation === 'public.evidence')
-          .flatMap((entry) => entry.tickets),
+        whoseCriteriaCloseIt: SCHEMA_OBLIGATIONS.filter(
+          (entry) => entry.relation === 'public.evidence',
+        ).flatMap((entry) => entry.tickets),
       };
       expect(
         measured,
-        'The check on storage_path binds the text a row holds. An evidence row naming a path no '
-        + `object stands at answered ${measured.aRowNamingNoObject}; the erasure swept `
-        + `${JSON.stringify(measured.sweptByTheErasure)}, which includes the object no row named `
-        + 'and excludes the one uploaded outside the prefix; and that one is still in the bucket '
-        + `as ${JSON.stringify(measured.standingAfterTheErasure)} with the tenant and every row `
-        + 'of it gone. That is the reach of the constraint and not a defect in it: a check '
-        + 'constraint cannot read storage.objects, so only the code that uploads can close the '
-        + 'third fact, which is what the SCHEMA_OBLIGATIONS rows for this table hold '
-        + `${measured.whoseCriteriaCloseIt.join(' and ')} to in their own acceptance criteria`,
+        'The check on storage_path binds the text a row holds. An evidence row naming a path no ' +
+          `object stands at answered ${measured.aRowNamingNoObject}; the erasure swept ` +
+          `${JSON.stringify(measured.sweptByTheErasure)}, which includes the object no row named ` +
+          'and excludes the one uploaded outside the prefix; and that one is still in the bucket ' +
+          `as ${JSON.stringify(measured.standingAfterTheErasure)} with the tenant and every row ` +
+          'of it gone. That is the reach of the constraint and not a defect in it: a check ' +
+          'constraint cannot read storage.objects, so only the code that uploads can close the ' +
+          'third fact, which is what the SCHEMA_OBLIGATIONS rows for this table hold ' +
+          `${measured.whoseCriteriaCloseIt.join(' and ')} to in their own acceptance criteria`,
       ).toEqual({
         aRowNamingNoObject: 'accepted',
         sweptByTheErasure: [unnamed],
@@ -6325,50 +6693,51 @@ describe('the evidence an erasure has to reach, and the path a row may name', ()
     const found = rows.map((row) => row.column);
     expect(
       found,
-      'public.invoices carries a json column the recovery share can be billed in, with nothing '
-      + 'tying the amount to a claim that exists, belongs to this tenant, or was credited by an '
-      + 'ingested settlement line. CLAUDE.md: a credit is billable only as an ingested settlement '
-      + `line linked to a claim, and never created directly. It carries: ${found.join(', ')}`,
+      'public.invoices carries a json column the recovery share can be billed in, with nothing ' +
+        'tying the amount to a claim that exists, belongs to this tenant, or was credited by an ' +
+        'ingested settlement line. CLAUDE.md: a credit is billable only as an ingested settlement ' +
+        `line linked to a claim, and never created directly. It carries: ${found.join(', ')}`,
     ).toEqual([...INVOICE_JSON_COLUMNS]);
   });
 
-  it('states each obligation on the relation it is about, and names the ticket it falls to',
-    async () => {
-      // The same two-sided reading as the buyer-PII classifications: a relation
-      // whose meaning depends on a later ticket has to say so in its own comment
-      // and name that ticket, so the promise is legible where the relation is,
-      // and the assertion below then checks the ticket was told.
-      assertPopulated(
-        SCHEMA_OBLIGATIONS.map((entry) => entry.relation), 'the obligations this schema states',
+  it('states each obligation on the relation it is about, and names the ticket it falls to', async () => {
+    // The same two-sided reading as the buyer-PII classifications: a relation
+    // whose meaning depends on a later ticket has to say so in its own comment
+    // and name that ticket, so the promise is legible where the relation is,
+    // and the assertion below then checks the ticket was told.
+    assertPopulated(
+      SCHEMA_OBLIGATIONS.map((entry) => entry.relation),
+      'the obligations this schema states',
+    );
+    const wrong: string[] = [];
+    for (const entry of SCHEMA_OBLIGATIONS) {
+      const { rows } = await client.query<{ comment: string | null }>(
+        "select obj_description($1::regclass, 'pg_class') as comment",
+        [entry.relation],
       );
-      const wrong: string[] = [];
-      for (const entry of SCHEMA_OBLIGATIONS) {
-        const { rows } = await client.query<{ comment: string | null }>(
-          'select obj_description($1::regclass, \'pg_class\') as comment', [entry.relation],
-        );
-        const comment = rows[0]?.comment ?? '';
-        if (comment === '') {
-          wrong.push(`${entry.relation} carries no comment at all`);
-          continue;
-        }
-        if (!comment.includes(SCHEMA_OBLIGATION_MARKER)) {
-          wrong.push(
-            `${entry.relation} does not say "${SCHEMA_OBLIGATION_MARKER}", so it reads as a `
-            + 'description of the relation when it is a constraint on whoever works the ticket '
-            + 'below',
-          );
-        }
-        const unnamed = entry.tickets.filter((ticket) => !comment.includes(ticket));
-        if (unnamed.length > 0) {
-          wrong.push(`${entry.relation} names none of ${unnamed.join(', ')} as owing it`);
-        }
+      const comment = rows[0]?.comment ?? '';
+      if (comment === '') {
+        wrong.push(`${entry.relation} carries no comment at all`);
+        continue;
       }
-      expect(
-        wrong,
-        `${wrong.length} relations whose meaning depends on a later ticket do not say so where a `
-        + `reader of the relation would meet it: ${wrong.join('; ')}`,
-      ).toEqual([]);
-    });
+      if (!comment.includes(SCHEMA_OBLIGATION_MARKER)) {
+        wrong.push(
+          `${entry.relation} does not say "${SCHEMA_OBLIGATION_MARKER}", so it reads as a ` +
+            'description of the relation when it is a constraint on whoever works the ticket ' +
+            'below',
+        );
+      }
+      const unnamed = entry.tickets.filter((ticket) => !comment.includes(ticket));
+      if (unnamed.length > 0) {
+        wrong.push(`${entry.relation} names none of ${unnamed.join(', ')} as owing it`);
+      }
+    }
+    expect(
+      wrong,
+      `${wrong.length} relations whose meaning depends on a later ticket do not say so where a ` +
+        `reader of the relation would meet it: ${wrong.join('; ')}`,
+    ).toEqual([]);
+  });
 
   it('is carried by the criteria of the ticket that owes it, and not by the comment alone', () => {
     // F34's rule, applied to a relation rather than to a column. A promise the
@@ -6381,69 +6750,78 @@ describe('the evidence an erasure has to reach, and the path a row may name', ()
     // refuses to open one that is not.
     const offenders: string[] = [];
     for (const entry of SCHEMA_OBLIGATIONS) {
-      assertPopulated([...entry.terms], `the terms ${entry.relation}'s obligation is recognised by`);
+      assertPopulated(
+        [...entry.terms],
+        `the terms ${entry.relation}'s obligation is recognised by`,
+      );
       for (const ticket of entry.tickets) {
         const file = ticketFile(ticket);
         const criteria = acceptanceCriteriaOf(file);
         if (criteria.some((criterion) => carriesEveryTerm(criterion, entry.terms))) continue;
         offenders.push(
-          `${entry.relation} means what it means only for as long as ${ticket} does its part, `
-          + `and none of the ${criteria.length} acceptance criteria of ${file} says `
-          + `${entry.terms.map((term) => `"${term}"`).join(' and ')}. What that ticket owes: `
-          + `${entry.obligation}. Put it in the criteria rather than in a comment, because the `
-          + 'criteria are what its author is held to. SEEN-008 recorded this as F63 and F66.',
+          `${entry.relation} means what it means only for as long as ${ticket} does its part, ` +
+            `and none of the ${criteria.length} acceptance criteria of ${file} says ` +
+            `${entry.terms.map((term) => `"${term}"`).join(' and ')}. What that ticket owes: ` +
+            `${entry.obligation}. Put it in the criteria rather than in a comment, because the ` +
+            'criteria are what its author is held to. SEEN-008 recorded this as F63 and F66.',
         );
       }
     }
     expect(
       offenders,
-      'Relations whose meaning rests on a ticket keeping a promise the ticket has never been told '
-      + `about: ${offenders.join(' ')}`,
+      'Relations whose meaning rests on a ticket keeping a promise the ticket has never been told ' +
+        `about: ${offenders.join(' ')}`,
     ).toEqual([]);
   });
 
-  it('routes Bol correspondence as the routing table routes it, and not as out of scope',
-    async () => {
-      // F58. The seeded cell read `{"mode": "none", "detail": "by API (assisted
-      // via inbox)"}`, and the detail is the tell: the parser's longest-prefix
-      // rule took `none` off the front of `none by API (assisted via inbox)` and
-      // kept the second half of a negation as though it were a detail. The
-      // document's own consequence sentence says Bol is the only marketplace with
-      // no messaging API, so its correspondence runs through the tenant's
-      // forwarded mailbox; the PRD ships it as Serve at FR-28 and FR-29; SEEN-062
-      // and SEEN-063 build it in Sprint 5. It is not out of scope, which is what
-      // the legend defines `none` to mean and what `marketplaces.ts` repeats.
-      //
-      // The document is right and the seed is wrong, so the seed is what moves.
-      // The repository's own cell-by-cell comparison cannot see this, because it
-      // parses the document with the parser that produced the seed and both sides
-      // share the reading.
-      const catalogue = (await client.query<{ mode: string }>(
-        "select capabilities->'buyer_messages'->>'mode' as mode from seen.marketplace_catalogue "
-        + "where marketplace = 'bol'",
-      )).rows[0]?.mode;
-      let tenants: string | undefined;
-      await client.query('begin');
-      try {
-        const tenant = (await client.query<{ tenant_id: string }>(
-          "insert into public.tenants (name) values ('Tenant reading Bol capabilities') "
-          + 'returning tenant_id',
-        )).rows[0].tenant_id;
-        tenants = (await client.query<{ mode: string }>(
-          "select capabilities->'buyer_messages'->>'mode' as mode from public.marketplaces "
-          + "where tenant_id = $1 and marketplace = 'bol'", [tenant],
-        )).rows[0]?.mode;
-      } finally {
-        await client.query('rollback');
-      }
-      expect(
-        { catalogue, tenants },
-        'Bol correspondence is seeded as a capability that is out of scope for the MVP, where '
-        + 'the routing table routes it as assisted through the forwarded inbox. A module reading '
-        + 'the mode is told the opposite of what the architecture says, and the claims and Serve '
-        + `rails route on that value: ${JSON.stringify({ catalogue, tenants })}`,
-      ).toEqual({ catalogue: 'assisted', tenants: 'assisted' });
-    });
+  it('routes Bol correspondence as the routing table routes it, and not as out of scope', async () => {
+    // F58. The seeded cell read `{"mode": "none", "detail": "by API (assisted
+    // via inbox)"}`, and the detail is the tell: the parser's longest-prefix
+    // rule took `none` off the front of `none by API (assisted via inbox)` and
+    // kept the second half of a negation as though it were a detail. The
+    // document's own consequence sentence says Bol is the only marketplace with
+    // no messaging API, so its correspondence runs through the tenant's
+    // forwarded mailbox; the PRD ships it as Serve at FR-28 and FR-29; SEEN-062
+    // and SEEN-063 build it in Sprint 5. It is not out of scope, which is what
+    // the legend defines `none` to mean and what `marketplaces.ts` repeats.
+    //
+    // The document is right and the seed is wrong, so the seed is what moves.
+    // The repository's own cell-by-cell comparison cannot see this, because it
+    // parses the document with the parser that produced the seed and both sides
+    // share the reading.
+    const catalogue = (
+      await client.query<{ mode: string }>(
+        "select capabilities->'buyer_messages'->>'mode' as mode from seen.marketplace_catalogue " +
+          "where marketplace = 'bol'",
+      )
+    ).rows[0]?.mode;
+    let tenants: string | undefined;
+    await client.query('begin');
+    try {
+      const tenant = (
+        await client.query<{ tenant_id: string }>(
+          "insert into public.tenants (name) values ('Tenant reading Bol capabilities') " +
+            'returning tenant_id',
+        )
+      ).rows[0].tenant_id;
+      tenants = (
+        await client.query<{ mode: string }>(
+          "select capabilities->'buyer_messages'->>'mode' as mode from public.marketplaces " +
+            "where tenant_id = $1 and marketplace = 'bol'",
+          [tenant],
+        )
+      ).rows[0]?.mode;
+    } finally {
+      await client.query('rollback');
+    }
+    expect(
+      { catalogue, tenants },
+      'Bol correspondence is seeded as a capability that is out of scope for the MVP, where ' +
+        'the routing table routes it as assisted through the forwarded inbox. A module reading ' +
+        'the mode is told the opposite of what the architecture says, and the claims and Serve ' +
+        `rails route on that value: ${JSON.stringify({ catalogue, tenants })}`,
+    ).toEqual({ catalogue: 'assisted', tenants: 'assisted' });
+  });
 
   it('refuses a routing cell whose mode runs into another mode rather than guessing it', () => {
     // The general shape behind F58, so the next cell written this way fails
@@ -6467,11 +6845,11 @@ describe('the evidence an erasure has to reach, and the path a row may name', ()
     };
     expect(
       measured,
-      'A routing cell carrying two of the modes '
-      + `(${CAPABILITY_MODES.join(', ')}) is read as the first of them with the rest kept as a `
-      + 'detail, so the catalogue stores a mode the cell does not state. It has to be refused, '
-      + 'unless the cell is one the parser names by hand, and an ordinary cell has to go on '
-      + `being read: ${JSON.stringify(measured)}`,
+      'A routing cell carrying two of the modes ' +
+        `(${CAPABILITY_MODES.join(', ')}) is read as the first of them with the rest kept as a ` +
+        'detail, so the catalogue stores a mode the cell does not state. It has to be refused, ' +
+        'unless the cell is one the parser names by hand, and an ordinary cell has to go on ' +
+        `being read: ${JSON.stringify(measured)}`,
     ).toEqual({
       runsOn: 'refused',
       ordinary: JSON.stringify({ mode: 'api', detail: 'Orders, Reports' }),
@@ -6523,12 +6901,12 @@ describe('the erasure registry this file ran against', () => {
     const found = rows.map((row) => row.tenant_id);
     expect(
       found,
-      `${ERASURE_REGISTRY_TABLE} holds ${found.length} tombstones outside the fixture namespace `
-      + `${FIXTURE_TENANT_PREFIX}: ${found.join(', ') || 'none'}. Either the races above wrote `
-      + 'ids nothing can tell from a customer\'s, which is a registry meaning "these tenants '
-      + 'asked to be forgotten" filling with tenants who never existed and cannot be removed, or '
-      + 'this database has erased a real tenant and the races should have refused to run in it. '
-      + 'Take a local stack back with `pnpm db:reset`',
+      `${ERASURE_REGISTRY_TABLE} holds ${found.length} tombstones outside the fixture namespace ` +
+        `${FIXTURE_TENANT_PREFIX}: ${found.join(', ') || 'none'}. Either the races above wrote ` +
+        'ids nothing can tell from a customer\'s, which is a registry meaning "these tenants ' +
+        'asked to be forgotten" filling with tenants who never existed and cannot be removed, or ' +
+        'this database has erased a real tenant and the races should have refused to run in it. ' +
+        'Take a local stack back with `pnpm db:reset`',
     ).toEqual([]);
   });
 });
@@ -6597,7 +6975,8 @@ describe('a marketplace identifier, and the line id a marketplace gave a row', (
    * string `count(*)` answers with. */
   async function countOf(table: string, where: string, values: unknown[]): Promise<number> {
     const { rows } = await client.query<{ total: string }>(
-      `select count(*) as total from public.${table} where ${where}`, values,
+      `select count(*) as total from public.${table} where ${where}`,
+      values,
     );
     return Number(rows[0].total);
   }
@@ -6606,7 +6985,8 @@ describe('a marketplace identifier, and the line id a marketplace gave a row', (
    * with the six marketplaces. */
   async function tenantNamed(name: string): Promise<string> {
     const { rows } = await client.query<{ tenant_id: string }>(
-      'insert into public.tenants (name) values ($1) returning tenant_id', [name],
+      'insert into public.tenants (name) values ($1) returning tenant_id',
+      [name],
     );
     return rows[0].tenant_id;
   }
@@ -6614,27 +6994,35 @@ describe('a marketplace identifier, and the line id a marketplace gave a row', (
   /** One marketplace's rail for this tenant, every row of it agreeing with the one
    * above it, which is the state every probe below departs from in one place. */
   async function rail(tenant: string, marketplace: string, slug: string): Promise<Rail> {
-    const connection = (await client.query<{ id: string }>(
-      `insert into public.connections (tenant_id, marketplace, country, status)
+    const connection = (
+      await client.query<{ id: string }>(
+        `insert into public.connections (tenant_id, marketplace, country, status)
        values ($1, $2, 'NL', 'active') returning id`,
-      [tenant, marketplace],
-    )).rows[0].id;
-    const order = (await client.query<{ id: string }>(
-      `insert into public.orders (tenant_id, connection_id, marketplace, external_id)
+        [tenant, marketplace],
+      )
+    ).rows[0].id;
+    const order = (
+      await client.query<{ id: string }>(
+        `insert into public.orders (tenant_id, connection_id, marketplace, external_id)
        values ($1, $2, $3, $4) returning id`,
-      [tenant, connection, marketplace, `${slug}-ORDER`],
-    )).rows[0].id;
-    const orderLine = (await client.query<{ id: string }>(
-      `insert into public.order_lines (tenant_id, order_id, external_line_id, quantity,
+        [tenant, connection, marketplace, `${slug}-ORDER`],
+      )
+    ).rows[0].id;
+    const orderLine = (
+      await client.query<{ id: string }>(
+        `insert into public.order_lines (tenant_id, order_id, external_line_id, quantity,
                                        unit_price_cents)
        values ($1, $2, $3, 1, 1999) returning id`,
-      [tenant, order, `${slug}-LINE`],
-    )).rows[0].id;
-    const settlement = (await client.query<{ id: string }>(
-      `insert into public.settlements (tenant_id, connection_id, marketplace, external_id)
+        [tenant, order, `${slug}-LINE`],
+      )
+    ).rows[0].id;
+    const settlement = (
+      await client.query<{ id: string }>(
+        `insert into public.settlements (tenant_id, connection_id, marketplace, external_id)
        values ($1, $2, $3, $4) returning id`,
-      [tenant, connection, marketplace, `${slug}-SETTLEMENT`],
-    )).rows[0].id;
+        [tenant, connection, marketplace, `${slug}-SETTLEMENT`],
+      )
+    ).rows[0].id;
     return { connection, order, orderLine, settlement };
   }
 
@@ -6659,28 +7047,32 @@ describe('a marketplace identifier, and the line id a marketplace gave a row', (
     const measured = await rolledBack(async () => {
       const tenant = await tenantNamed('Tenant spelling');
       const bol = await rail(tenant, 'bol', 'SPELL');
-      const write = (marketplace: string) => said(() => client.query(
-        `insert into public.orders (tenant_id, connection_id, marketplace, external_id)
+      const write = (marketplace: string) =>
+        said(() =>
+          client.query(
+            `insert into public.orders (tenant_id, connection_id, marketplace, external_id)
          values ($1, $2, $3, 'ORD-1')`,
-        [tenant, bol.connection, marketplace],
-      ));
+            [tenant, bol.connection, marketplace],
+          ),
+        );
       return {
         asTheCatalogueSpellsIt: await write('bol'),
         inCapitals: await write('BOL'),
         invented: await write('not-a-marketplace'),
-        rowsForOneExternalId: await countOf(
-          'orders', 'tenant_id = $1 and external_id = $2', [tenant, 'ORD-1'],
-        ),
+        rowsForOneExternalId: await countOf('orders', 'tenant_id = $1 and external_id = $2', [
+          tenant,
+          'ORD-1',
+        ]),
       };
     });
     expect(
       measured,
-      'Three orders carrying one external id and three spellings of one marketplace answered '
-      + `${measured.asTheCatalogueSpellsIt}, ${measured.inCapitals} and ${measured.invented}, and `
-      + `${measured.rowsForOneExternalId} rows stand for that id. The column comment says the `
-      + 'value is one of the six identifiers the catalogue defines, so a spelling the catalogue '
-      + 'does not hold must be refused (23503) rather than become a second copy of an order past '
-      + 'the key that exists to stop exactly that',
+      'Three orders carrying one external id and three spellings of one marketplace answered ' +
+        `${measured.asTheCatalogueSpellsIt}, ${measured.inCapitals} and ${measured.invented}, and ` +
+        `${measured.rowsForOneExternalId} rows stand for that id. The column comment says the ` +
+        'value is one of the six identifiers the catalogue defines, so a spelling the catalogue ' +
+        'does not hold must be refused (23503) rather than become a second copy of an order past ' +
+        'the key that exists to stop exactly that',
     ).toEqual({
       asTheCatalogueSpellsIt: 'accepted',
       inCapitals: '23503',
@@ -6697,18 +7089,20 @@ describe('a marketplace identifier, and the line id a marketplace gave a row', (
     const measured = await rolledBack(async () => {
       const tenant = await tenantNamed('Tenant disagreeing order');
       const bol = await rail(tenant, 'bol', 'DISAGREE');
-      return said(() => client.query(
-        `insert into public.orders (tenant_id, connection_id, marketplace, external_id)
+      return said(() =>
+        client.query(
+          `insert into public.orders (tenant_id, connection_id, marketplace, external_id)
          values ($1, $2, 'amazon', 'ORD-AMAZON-ON-BOL')`,
-        [tenant, bol.connection],
-      ));
+          [tenant, bol.connection],
+        ),
+      );
     });
     expect(
       measured,
-      `An order carrying marketplace='amazon' on a bol connection was `
-      + `${measured === 'accepted' ? 'accepted' : `refused with SQLSTATE ${measured}`}, where a `
-      + 'foreign key violation (23503) is what keeps the column every fee expectation and every '
-      + 'claim is routed by from contradicting the account the order was read from',
+      `An order carrying marketplace='amazon' on a bol connection was ` +
+        `${measured === 'accepted' ? 'accepted' : `refused with SQLSTATE ${measured}`}, where a ` +
+        'foreign key violation (23503) is what keeps the column every fee expectation and every ' +
+        'claim is routed by from contradicting the account the order was read from',
     ).toBe('23503');
   });
 
@@ -6719,11 +7113,14 @@ describe('a marketplace identifier, and the line id a marketplace gave a row', (
     const measured = await rolledBack(async () => {
       const tenant = await tenantNamed('Tenant disagreeing shipment');
       const bol = await rail(tenant, 'bol', 'SHIP');
-      const write = (marketplace: string) => said(() => client.query(
-        `insert into public.shipments (tenant_id, order_id, marketplace, external_id)
+      const write = (marketplace: string) =>
+        said(() =>
+          client.query(
+            `insert into public.shipments (tenant_id, order_id, marketplace, external_id)
          values ($1, $2, $3, 'SHIP-1')`,
-        [tenant, bol.order, marketplace],
-      ));
+            [tenant, bol.order, marketplace],
+          ),
+        );
       return {
         agreeingWithItsOrder: await write('bol'),
         disagreeingWithIt: await write('amazon'),
@@ -6732,11 +7129,11 @@ describe('a marketplace identifier, and the line id a marketplace gave a row', (
     });
     expect(
       measured,
-      'Two shipments carrying one external id and two marketplaces hung off one bol order '
-      + `answered ${measured.agreeingWithItsOrder} and ${measured.disagreeingWithIt}, leaving `
-      + `${measured.shipmentsForOneBolOrder} shipments on that order. A child whose parent `
-      + 'already names a marketplace may not disagree with it (23503), or the criterion-4 index '
-      + 'is bypassed by varying the spelling alone',
+      'Two shipments carrying one external id and two marketplaces hung off one bol order ' +
+        `answered ${measured.agreeingWithItsOrder} and ${measured.disagreeingWithIt}, leaving ` +
+        `${measured.shipmentsForOneBolOrder} shipments on that order. A child whose parent ` +
+        'already names a marketplace may not disagree with it (23503), or the criterion-4 index ' +
+        'is bypassed by varying the spelling alone',
     ).toEqual({
       agreeingWithItsOrder: 'accepted',
       disagreeingWithIt: '23503',
@@ -6751,37 +7148,45 @@ describe('a marketplace identifier, and the line id a marketplace gave a row', (
     const measured = await rolledBack(async () => {
       const tenant = await tenantNamed('Tenant crossed return');
       const bol = await rail(tenant, 'bol', 'RET');
-      const other = (await client.query<{ id: string }>(
-        `insert into public.orders (tenant_id, connection_id, marketplace, external_id)
+      const other = (
+        await client.query<{ id: string }>(
+          `insert into public.orders (tenant_id, connection_id, marketplace, external_id)
          values ($1, $2, 'bol', 'ORD-2') returning id`,
-        [tenant, bol.connection],
-      )).rows[0].id;
-      const otherLine = (await client.query<{ id: string }>(
-        `insert into public.order_lines (tenant_id, order_id, external_line_id, quantity)
+          [tenant, bol.connection],
+        )
+      ).rows[0].id;
+      const otherLine = (
+        await client.query<{ id: string }>(
+          `insert into public.order_lines (tenant_id, order_id, external_line_id, quantity)
          values ($1, $2, 'ORD-2-LINE', 1) returning id`,
-        [tenant, other],
-      )).rows[0].id;
+          [tenant, other],
+        )
+      ).rows[0].id;
       return {
-        aLineOfAnotherOrder: await said(() => client.query(
-          `insert into public.returns (tenant_id, order_id, order_line_id, marketplace,
+        aLineOfAnotherOrder: await said(() =>
+          client.query(
+            `insert into public.returns (tenant_id, order_id, order_line_id, marketplace,
                                        external_id)
            values ($1, $2, $3, 'bol', 'RET-1')`,
-          [tenant, bol.order, otherLine],
-        )),
-        aLineOfItsOwnOrder: await said(() => client.query(
-          `insert into public.returns (tenant_id, order_id, order_line_id, marketplace,
+            [tenant, bol.order, otherLine],
+          ),
+        ),
+        aLineOfItsOwnOrder: await said(() =>
+          client.query(
+            `insert into public.returns (tenant_id, order_id, order_line_id, marketplace,
                                        external_id)
            values ($1, $2, $3, 'bol', 'RET-2')`,
-          [tenant, bol.order, bol.orderLine],
-        )),
+            [tenant, bol.order, bol.orderLine],
+          ),
+        ),
       };
     });
     expect(
       measured,
-      'A return of one order whose order_line_id belongs to another order answered '
-      + `${measured.aLineOfAnotherOrder}, and a return of its own order's line answered `
-      + `${measured.aLineOfItsOwnOrder}. The tenant travels along every key and the order does `
-      + 'not, so the database stored a match SEEN-020 reads as truth',
+      'A return of one order whose order_line_id belongs to another order answered ' +
+        `${measured.aLineOfAnotherOrder}, and a return of its own order's line answered ` +
+        `${measured.aLineOfItsOwnOrder}. The tenant travels along every key and the order does ` +
+        'not, so the database stored a match SEEN-020 reads as truth',
     ).toEqual({ aLineOfAnotherOrder: '23503', aLineOfItsOwnOrder: 'accepted' });
   });
 
@@ -6791,19 +7196,21 @@ describe('a marketplace identifier, and the line id a marketplace gave a row', (
     const measured = await rolledBack(async () => {
       const tenant = await tenantNamed('Tenant disagreeing settlement line');
       const bol = await rail(tenant, 'bol', 'SETLINE');
-      return said(() => client.query(
-        `insert into public.settlement_lines
+      return said(() =>
+        client.query(
+          `insert into public.settlement_lines
            (tenant_id, settlement_id, marketplace, external_id, line_type, amount_cents)
          values ($1, $2, 'amazon', 'LINE-1', 'commission', -1250)`,
-        [tenant, bol.settlement],
-      ));
+          [tenant, bol.settlement],
+        ),
+      );
     });
     expect(
       measured,
-      `A settlement line carrying marketplace='amazon' under a bol settlement was `
-      + `${measured === 'accepted' ? 'accepted' : `refused with SQLSTATE ${measured}`}, where a `
-      + 'foreign key violation (23503) is what keeps a line from contradicting the settlement it '
-      + 'hangs under',
+      `A settlement line carrying marketplace='amazon' under a bol settlement was ` +
+        `${measured === 'accepted' ? 'accepted' : `refused with SQLSTATE ${measured}`}, where a ` +
+        'foreign key violation (23503) is what keeps a line from contradicting the settlement it ' +
+        'hangs under',
     ).toBe('23503');
   });
 
@@ -6815,15 +7222,16 @@ describe('a marketplace identifier, and the line id a marketplace gave a row', (
       const tenant = await tenantNamed('Tenant crossed match');
       const bol = await rail(tenant, 'bol', 'MATCH-BOL');
       const amazon = await rail(tenant, 'amazon', 'MATCH-AMZ');
-      const match = (settlement: string, orderLine: string, externalId: string) => said(
-        () => client.query(
-          `insert into public.settlement_lines
+      const match = (settlement: string, orderLine: string, externalId: string) =>
+        said(() =>
+          client.query(
+            `insert into public.settlement_lines
              (tenant_id, settlement_id, order_line_id, marketplace, external_id, line_type,
               amount_cents)
            values ($1, $2, $3, 'bol', $4, 'commission', -1250)`,
-          [tenant, settlement, orderLine, externalId],
-        ),
-      );
+            [tenant, settlement, orderLine, externalId],
+          ),
+        );
       return {
         toAnAmazonLine: await match(bol.settlement, amazon.orderLine, 'LINE-CROSSED'),
         toItsOwnMarketplacesLine: await match(bol.settlement, bol.orderLine, 'LINE-STRAIGHT'),
@@ -6831,11 +7239,11 @@ describe('a marketplace identifier, and the line id a marketplace gave a row', (
     });
     expect(
       measured,
-      `A bol settlement line matched to an amazon order line answered `
-      + `${measured.toAnAmazonLine}, and one matched to a bol order line answered `
-      + `${measured.toItsOwnMarketplacesLine}. SEEN-018 matches settlement lines to order lines `
-      + 'deterministically; a match the database accepts across two marketplaces is one the '
-      + 'detectors read as truth',
+      `A bol settlement line matched to an amazon order line answered ` +
+        `${measured.toAnAmazonLine}, and one matched to a bol order line answered ` +
+        `${measured.toItsOwnMarketplacesLine}. SEEN-018 matches settlement lines to order lines ` +
+        'deterministically; a match the database accepts across two marketplaces is one the ' +
+        'detectors read as truth',
     ).toEqual({ toAnAmazonLine: '23503', toItsOwnMarketplacesLine: 'accepted' });
   });
 
@@ -6846,22 +7254,26 @@ describe('a marketplace identifier, and the line id a marketplace gave a row', (
     const measured = await rolledBack(async () => {
       const tenant = await tenantNamed('Tenant claim identifier');
       return {
-        invented: await said(() => client.query(
-          `insert into public.claims (tenant_id, marketplace) values ($1, 'not-a-marketplace')`,
-          [tenant],
-        )),
-        asTheCatalogueSpellsIt: await said(() => client.query(
-          `insert into public.claims (tenant_id, marketplace) values ($1, 'kaufland')`,
-          [tenant],
-        )),
+        invented: await said(() =>
+          client.query(
+            `insert into public.claims (tenant_id, marketplace) values ($1, 'not-a-marketplace')`,
+            [tenant],
+          ),
+        ),
+        asTheCatalogueSpellsIt: await said(() =>
+          client.query(
+            `insert into public.claims (tenant_id, marketplace) values ($1, 'kaufland')`,
+            [tenant],
+          ),
+        ),
       };
     });
     expect(
       measured,
-      `A claim carrying marketplace='not-a-marketplace' answered ${measured.invented} and one `
-      + `carrying 'kaufland' answered ${measured.asTheCatalogueSpellsIt}. The column comment says `
-      + 'the value is one of the six identifiers the catalogue defines and the claims rail routes '
-      + 'on it, so a value the catalogue does not hold must be refused (23503)',
+      `A claim carrying marketplace='not-a-marketplace' answered ${measured.invented} and one ` +
+        `carrying 'kaufland' answered ${measured.asTheCatalogueSpellsIt}. The column comment says ` +
+        'the value is one of the six identifiers the catalogue defines and the claims rail routes ' +
+        'on it, so a value the catalogue does not hold must be refused (23503)',
     ).toEqual({ invented: '23503', asTheCatalogueSpellsIt: 'accepted' });
   });
 
@@ -6875,12 +7287,15 @@ describe('a marketplace identifier, and the line id a marketplace gave a row', (
     const measured = await rolledBack(async () => {
       const tenant = await tenantNamed('Tenant duplicate line');
       const bol = await rail(tenant, 'bol', 'DUP');
-      const write = () => said(() => client.query(
-        `insert into public.order_lines (tenant_id, order_id, external_line_id, quantity,
+      const write = () =>
+        said(() =>
+          client.query(
+            `insert into public.order_lines (tenant_id, order_id, external_line_id, quantity,
                                          unit_price_cents)
          values ($1, $2, 'LINE-1', 1, 1000)`,
-        [tenant, bol.order],
-      ));
+            [tenant, bol.order],
+          ),
+        );
       const first = await write();
       const second = await write();
       const { rows } = await client.query<{ total: string; cents: string | null }>(
@@ -6897,11 +7312,11 @@ describe('a marketplace identifier, and the line id a marketplace gave a row', (
     });
     expect(
       measured,
-      'Reading the same order line twice answered '
-      + `${measured.firstRead} and ${measured.secondRead}, leaving `
-      + `${measured.linesForOneLineId} rows worth ${measured.centsForOneLineId} cents for a line `
-      + 'worth 1000. Every number downstream hangs off this row: a second copy forks the fee '
-      + 'expectation, doubles the margin and gives the matcher two lines to choose between',
+      'Reading the same order line twice answered ' +
+        `${measured.firstRead} and ${measured.secondRead}, leaving ` +
+        `${measured.linesForOneLineId} rows worth ${measured.centsForOneLineId} cents for a line ` +
+        'worth 1000. Every number downstream hangs off this row: a second copy forks the fee ' +
+        'expectation, doubles the margin and gives the matcher two lines to choose between',
     ).toEqual({
       firstRead: 'accepted',
       secondRead: '23505',
@@ -6918,14 +7333,17 @@ describe('a marketplace identifier, and the line id a marketplace gave a row', (
     const measured = await rolledBack(async () => {
       const tenant = await tenantNamed('Tenant upserted line');
       const bol = await rail(tenant, 'bol', 'UPSERT');
-      const upsert = (quantity: number) => said(() => client.query(
-        `insert into public.order_lines (tenant_id, order_id, external_line_id, quantity,
+      const upsert = (quantity: number) =>
+        said(() =>
+          client.query(
+            `insert into public.order_lines (tenant_id, order_id, external_line_id, quantity,
                                          unit_price_cents)
          values ($1, $2, 'LINE-1', $3, 1000)
          on conflict (tenant_id, order_id, external_line_id)
            do update set quantity = excluded.quantity`,
-        [tenant, bol.order, quantity],
-      ));
+            [tenant, bol.order, quantity],
+          ),
+        );
       const first = await upsert(1);
       const second = await upsert(4);
       const { rows } = await client.query<{ total: string; quantity: number | null }>(
@@ -6942,11 +7360,11 @@ describe('a marketplace identifier, and the line id a marketplace gave a row', (
     });
     expect(
       measured,
-      'The upsert SEEN-014 is specified to write answered '
-      + `${measured.firstWrite} and ${measured.secondWrite}, leaving `
-      + `${measured.linesForOneLineId} rows at quantity ${measured.quantityAfterTheSecondRead}. `
-      + 'Without a unique index to arbitrate, the statement cannot be written at all (42P10) and '
-      + 'ingest has no idempotent way to correct a line',
+      'The upsert SEEN-014 is specified to write answered ' +
+        `${measured.firstWrite} and ${measured.secondWrite}, leaving ` +
+        `${measured.linesForOneLineId} rows at quantity ${measured.quantityAfterTheSecondRead}. ` +
+        'Without a unique index to arbitrate, the statement cannot be written at all (42P10) and ' +
+        'ingest has no idempotent way to correct a line',
     ).toEqual({
       firstWrite: 'accepted',
       secondWrite: 'accepted',
@@ -6955,7 +7373,7 @@ describe('a marketplace identifier, and the line id a marketplace gave a row', (
     });
   });
 
-  it('accepts the line id one marketplace gave two of a tenant\'s orders', async () => {
+  it("accepts the line id one marketplace gave two of a tenant's orders", async () => {
     // The other side of the key, so it is not wider than the thing it guards. A line
     // id is the marketplace's own and is unique within the order it was read from;
     // two orders of one tenant may carry the same one, exactly as two tenants may
@@ -6963,27 +7381,31 @@ describe('a marketplace identifier, and the line id a marketplace gave a row', (
     const measured = await rolledBack(async () => {
       const tenant = await tenantNamed('Tenant shared line id');
       const bol = await rail(tenant, 'bol', 'SHARED');
-      const other = (await client.query<{ id: string }>(
-        `insert into public.orders (tenant_id, connection_id, marketplace, external_id)
+      const other = (
+        await client.query<{ id: string }>(
+          `insert into public.orders (tenant_id, connection_id, marketplace, external_id)
          values ($1, $2, 'bol', 'ORD-OTHER') returning id`,
-        [tenant, bol.connection],
-      )).rows[0].id;
+          [tenant, bol.connection],
+        )
+      ).rows[0].id;
       await client.query(
         `insert into public.order_lines (tenant_id, order_id, external_line_id, quantity)
          values ($1, $2, 'LINE-1', 1)`,
         [tenant, bol.order],
       );
-      return said(() => client.query(
-        `insert into public.order_lines (tenant_id, order_id, external_line_id, quantity)
+      return said(() =>
+        client.query(
+          `insert into public.order_lines (tenant_id, order_id, external_line_id, quantity)
          values ($1, $2, 'LINE-1', 1)`,
-        [tenant, other],
-      ));
+          [tenant, other],
+        ),
+      );
     });
     expect(
       measured,
-      'The line id one marketplace gave two different orders of one tenant was refused with '
-      + `SQLSTATE ${measured}, so the key is scoped wider than the order a line was read from `
-      + 'and an ordinary second order cannot be ingested',
+      'The line id one marketplace gave two different orders of one tenant was refused with ' +
+        `SQLSTATE ${measured}, so the key is scoped wider than the order a line was read from ` +
+        'and an ordinary second order cannot be ingested',
     ).toBe('accepted');
   });
 
@@ -7000,33 +7422,35 @@ describe('a marketplace identifier, and the line id a marketplace gave a row', (
     const measured = await rolledBack(async () => {
       const tenant = await tenantNamed('Tenant repeated thread');
       const bol = await rail(tenant, 'bol', 'THREAD');
-      const write = (connection: string | null, externalId: string) => said(
-        () => client.query(
-          `insert into public.message_threads (tenant_id, connection_id, channel,
+      const write = (connection: string | null, externalId: string) =>
+        said(() =>
+          client.query(
+            `insert into public.message_threads (tenant_id, connection_id, channel,
                                                external_thread_id)
            values ($1, $2, $3, $4)`,
-          [tenant, connection, connection === null ? 'mail' : 'marketplace', externalId],
-        ),
-      );
+            [tenant, connection, connection === null ? 'mail' : 'marketplace', externalId],
+          ),
+        );
       return {
         firstFromTheMarketplace: await write(bol.connection, 'THREAD-1'),
         secondFromTheMarketplace: await write(bol.connection, 'THREAD-1'),
         firstFromTheMailbox: await write(null, 'THREAD-2'),
         secondFromTheMailbox: await write(null, 'THREAD-2'),
         threadsForTwoIds: await countOf(
-          'message_threads', 'tenant_id = $1 and external_thread_id = any($2)',
+          'message_threads',
+          'tenant_id = $1 and external_thread_id = any($2)',
           [tenant, ['THREAD-1', 'THREAD-2']],
         ),
       };
     });
     expect(
       measured,
-      'Reading one marketplace thread twice answered '
-      + `${measured.firstFromTheMarketplace} and ${measured.secondFromTheMarketplace}, and one `
-      + `forwarded mail thread twice answered ${measured.firstFromTheMailbox} and `
-      + `${measured.secondFromTheMailbox}, leaving ${measured.threadsForTwoIds} threads for two `
-      + 'ids. A page read twice must write the thread once on both rails, and the mail rail is '
-      + 'the one where a redelivery is ordinary rather than exceptional',
+      'Reading one marketplace thread twice answered ' +
+        `${measured.firstFromTheMarketplace} and ${measured.secondFromTheMarketplace}, and one ` +
+        `forwarded mail thread twice answered ${measured.firstFromTheMailbox} and ` +
+        `${measured.secondFromTheMailbox}, leaving ${measured.threadsForTwoIds} threads for two ` +
+        'ids. A page read twice must write the thread once on both rails, and the mail rail is ' +
+        'the one where a redelivery is ordinary rather than exceptional',
     ).toEqual({
       firstFromTheMarketplace: 'accepted',
       secondFromTheMarketplace: '23505',
@@ -7042,31 +7466,37 @@ describe('a marketplace identifier, and the line id a marketplace gave a row', (
     const measured = await rolledBack(async () => {
       const tenant = await tenantNamed('Tenant repeated message');
       const bol = await rail(tenant, 'bol', 'MSG');
-      const thread = (await client.query<{ id: string }>(
-        `insert into public.message_threads (tenant_id, connection_id, channel,
+      const thread = (
+        await client.query<{ id: string }>(
+          `insert into public.message_threads (tenant_id, connection_id, channel,
                                              external_thread_id)
          values ($1, $2, 'marketplace', 'MSG-THREAD') returning id`,
-        [tenant, bol.connection],
-      )).rows[0].id;
-      const write = () => said(() => client.query(
-        `insert into public.messages (tenant_id, thread_id, external_message_id, direction)
+          [tenant, bol.connection],
+        )
+      ).rows[0].id;
+      const write = () =>
+        said(() =>
+          client.query(
+            `insert into public.messages (tenant_id, thread_id, external_message_id, direction)
          values ($1, $2, 'MSG-1', 'inbound')`,
-        [tenant, thread],
-      ));
+            [tenant, thread],
+          ),
+        );
       return {
         firstDelivery: await write(),
         redelivery: await write(),
-        messagesForOneId: await countOf(
-          'messages', 'thread_id = $1 and external_message_id = $2', [thread, 'MSG-1'],
-        ),
+        messagesForOneId: await countOf('messages', 'thread_id = $1 and external_message_id = $2', [
+          thread,
+          'MSG-1',
+        ]),
       };
     });
     expect(
       measured,
-      `Delivering one message twice answered ${measured.firstDelivery} and `
-      + `${measured.redelivery}, leaving ${measured.messagesForOneId} rows for one message id. `
-      + 'SEEN-062 parses a forwarded mailbox, where the same message arrives again as a matter of '
-      + 'course',
+      `Delivering one message twice answered ${measured.firstDelivery} and ` +
+        `${measured.redelivery}, leaving ${measured.messagesForOneId} rows for one message id. ` +
+        'SEEN-062 parses a forwarded mailbox, where the same message arrives again as a matter of ' +
+        'course',
     ).toEqual({ firstDelivery: 'accepted', redelivery: '23505', messagesForOneId: 1 });
   });
 
@@ -7087,14 +7517,17 @@ describe('a marketplace identifier, and the line id a marketplace gave a row', (
     const measured = await rolledBack(async () => {
       const tenant = await tenantNamed('Tenant upserted thread');
       const bol = await rail(tenant, 'bol', 'UPSERTTHREAD');
-      const upsert = (connection: string | null, subject: string) => said(() => client.query(
-        `insert into public.message_threads (tenant_id, connection_id, channel,
+      const upsert = (connection: string | null, subject: string) =>
+        said(() =>
+          client.query(
+            `insert into public.message_threads (tenant_id, connection_id, channel,
                                              external_thread_id, subject)
          values ($1, $2, $3, 'THREAD-1', $4)
          on conflict (tenant_id, connection_id, external_thread_id)
            do update set subject = excluded.subject`,
-        [tenant, connection, connection === null ? 'mail' : 'marketplace', subject],
-      ));
+            [tenant, connection, connection === null ? 'mail' : 'marketplace', subject],
+          ),
+        );
       const firstFromTheMarketplace = await upsert(bol.connection, 'As first read');
       const secondFromTheMarketplace = await upsert(bol.connection, 'As corrected');
       const firstFromTheMailbox = await upsert(null, 'Mail as first read');
@@ -7114,13 +7547,13 @@ describe('a marketplace identifier, and the line id a marketplace gave a row', (
     });
     expect(
       measured,
-      'The upsert SEEN-061 and SEEN-062 are specified to write answered '
-      + `${measured.firstFromTheMarketplace} and ${measured.secondFromTheMarketplace} on the `
-      + `marketplace rail and ${measured.firstFromTheMailbox} and `
-      + `${measured.secondFromTheMailbox} on the mail rail, leaving `
-      + `${measured.threadsLeft.join('; ')}. A partial unique index arbitrates only a statement `
-      + 'that carries its predicate, so the upsert cannot be written at all (42P10) and a '
-      + 'redelivered thread has no idempotent way to be corrected',
+      'The upsert SEEN-061 and SEEN-062 are specified to write answered ' +
+        `${measured.firstFromTheMarketplace} and ${measured.secondFromTheMarketplace} on the ` +
+        `marketplace rail and ${measured.firstFromTheMailbox} and ` +
+        `${measured.secondFromTheMailbox} on the mail rail, leaving ` +
+        `${measured.threadsLeft.join('; ')}. A partial unique index arbitrates only a statement ` +
+        'that carries its predicate, so the upsert cannot be written at all (42P10) and a ' +
+        'redelivered thread has no idempotent way to be corrected',
     ).toEqual({
       firstFromTheMarketplace: 'accepted',
       secondFromTheMarketplace: 'accepted',
@@ -7143,25 +7576,29 @@ describe('a marketplace identifier, and the line id a marketplace gave a row', (
       const tenant = await tenantNamed('Tenant anonymous thread');
       const bol = await rail(tenant, 'bol', 'NOTHREADID');
       return {
-        withNoIdentifier: await said(() => client.query(
-          `insert into public.message_threads (tenant_id, connection_id, channel)
+        withNoIdentifier: await said(() =>
+          client.query(
+            `insert into public.message_threads (tenant_id, connection_id, channel)
            values ($1, $2, 'marketplace')`,
-          [tenant, bol.connection],
-        )),
-        withTheOneTheRailGaveIt: await said(() => client.query(
-          `insert into public.message_threads (tenant_id, connection_id, channel,
+            [tenant, bol.connection],
+          ),
+        ),
+        withTheOneTheRailGaveIt: await said(() =>
+          client.query(
+            `insert into public.message_threads (tenant_id, connection_id, channel,
                                                external_thread_id)
            values ($1, $2, 'marketplace', 'THREAD-NAMED')`,
-          [tenant, bol.connection],
-        )),
+            [tenant, bol.connection],
+          ),
+        ),
       };
     });
     expect(
       measured,
-      `A thread written with no external_thread_id answered ${measured.withNoIdentifier} and one `
-      + `carrying the id its rail gave it answered ${measured.withTheOneTheRailGaveIt}. A thread `
-      + 'with no identifier cannot be found again, so ingest writes it once per read, and the '
-      + 'upsert key is what refuses it (23502)',
+      `A thread written with no external_thread_id answered ${measured.withNoIdentifier} and one ` +
+        `carrying the id its rail gave it answered ${measured.withTheOneTheRailGaveIt}. A thread ` +
+        'with no identifier cannot be found again, so ingest writes it once per read, and the ' +
+        'upsert key is what refuses it (23502)',
     ).toEqual({ withNoIdentifier: '23502', withTheOneTheRailGaveIt: 'accepted' });
   });
 
@@ -7200,18 +7637,19 @@ describe('a marketplace identifier, and the line id a marketplace gave a row', (
         (row) => `${row.index}${row.partial ? ' (partial)' : ''}`,
       ),
       stillStanding: withdrawnShapeClaimsStillStanding(
-        sourcesThatDocumentTheSet(), 'public.message_threads',
+        sourcesThatDocumentTheSet(),
+        'public.message_threads',
       ),
     };
     expect(
       measured,
-      'The part that creates public.message_threads tells a reader it carries no unique index on '
-      + `the thread id, and the catalogue answers ${JSON.stringify(measured.uniqueIndexesOnTheThreadId)}. `
-      + 'A sentence denying a key the schema does carry sends the author of SEEN-061 to write the '
-      + 'index that is already there or the upsert without one, which is F70 one step over: that '
-      + 'guard compares a column name against pg_attribute and can be believed, and no guard can '
-      + 'recognise a denial in English. What is still standing: '
-      + `${measured.stillStanding.join('; ') || 'nothing'}`,
+      'The part that creates public.message_threads tells a reader it carries no unique index on ' +
+        `the thread id, and the catalogue answers ${JSON.stringify(measured.uniqueIndexesOnTheThreadId)}. ` +
+        'A sentence denying a key the schema does carry sends the author of SEEN-061 to write the ' +
+        'index that is already there or the upsert without one, which is F70 one step over: that ' +
+        'guard compares a column name against pg_attribute and can be believed, and no guard can ' +
+        'recognise a denial in English. What is still standing: ' +
+        `${measured.stillStanding.join('; ') || 'nothing'}`,
     ).toEqual({
       uniqueIndexesOnTheThreadId: [
         'message_threads_tenant_id_connection_id_external_thread_id_key',
@@ -7237,31 +7675,38 @@ describe('a marketplace identifier, and the line id a marketplace gave a row', (
       const idle = await tenantNamed('Tenant renaming an idle catalogue');
       const trading = await tenantNamed('Tenant renaming a catalogue with orders');
       await rail(trading, 'bol', 'RENAME');
-      const rename = (tenant: string) => said(() => client.query(
-        `update public.marketplaces set marketplace = 'bol-renamed'
+      const rename = (tenant: string) =>
+        said(() =>
+          client.query(
+            `update public.marketplaces set marketplace = 'bol-renamed'
           where tenant_id = $1 and marketplace = 'bol'`,
-        [tenant],
-      ));
+            [tenant],
+          ),
+        );
       return {
         withNothingUnderIt: await rename(idle),
         withAnOrderUnderIt: await rename(trading),
         stillSpelledBol: await countOf(
-          'marketplaces', "tenant_id = any($1) and marketplace = 'bol'", [[idle, trading]],
+          'marketplaces',
+          "tenant_id = any($1) and marketplace = 'bol'",
+          [[idle, trading]],
         ),
         renamedRows: await countOf(
-          'marketplaces', "tenant_id = any($1) and marketplace = 'bol-renamed'", [[idle, trading]],
+          'marketplaces',
+          "tenant_id = any($1) and marketplace = 'bol-renamed'",
+          [[idle, trading]],
         ),
       };
     });
     expect(
       measured,
-      `Renaming a catalogue identifier with nothing under it answered `
-      + `${measured.withNothingUnderIt} and one with an order under it answered `
-      + `${measured.withAnOrderUnderIt}, leaving ${measured.stillSpelledBol} rows spelled bol and `
-      + `${measured.renamedRows} renamed. The identifier is invented by this schema, seeded from `
-      + 'the routing table and keyed to by every row below a connection, so it is not renamable '
-      + 'by an update at all, and a rename that works only while the account has no data is the '
-      + 'worst of the two answers (23001)',
+      `Renaming a catalogue identifier with nothing under it answered ` +
+        `${measured.withNothingUnderIt} and one with an order under it answered ` +
+        `${measured.withAnOrderUnderIt}, leaving ${measured.stillSpelledBol} rows spelled bol and ` +
+        `${measured.renamedRows} renamed. The identifier is invented by this schema, seeded from ` +
+        'the routing table and keyed to by every row below a connection, so it is not renamable ' +
+        'by an update at all, and a rename that works only while the account has no data is the ' +
+        'worst of the two answers (23001)',
     ).toEqual({
       withNothingUnderIt: '23001',
       withAnOrderUnderIt: '23001',
@@ -7290,38 +7735,45 @@ describe('a marketplace identifier, and the line id a marketplace gave a row', (
       await client.query('set local role service_role');
       const idle = await tenantNamed('Tenant repointing an idle connection');
       const trading = await tenantNamed('Tenant repointing a trading connection');
-      const untraded = (await client.query<{ id: string }>(
-        `insert into public.connections (tenant_id, marketplace, country, status)
+      const untraded = (
+        await client.query<{ id: string }>(
+          `insert into public.connections (tenant_id, marketplace, country, status)
          values ($1, 'bol', 'NL', 'active') returning id`,
-        [idle],
-      )).rows[0].id;
+          [idle],
+        )
+      ).rows[0].id;
       const traded = await rail(trading, 'bol', 'REPOINT');
-      const repoint = (tenant: string, connection: string) => said(() => client.query(
-        `update public.connections set marketplace = 'amazon'
+      const repoint = (tenant: string, connection: string) =>
+        said(() =>
+          client.query(
+            `update public.connections set marketplace = 'amazon'
           where tenant_id = $1 and id = $2`,
-        [tenant, connection],
-      ));
+            [tenant, connection],
+          ),
+        );
       return {
         withNothingUnderIt: await repoint(idle, untraded),
         withAnOrderUnderIt: await repoint(trading, traded.connection),
-        stillOnBol: await countOf(
-          'connections', "tenant_id = any($1) and marketplace = 'bol'", [[idle, trading]],
-        ),
+        stillOnBol: await countOf('connections', "tenant_id = any($1) and marketplace = 'bol'", [
+          [idle, trading],
+        ]),
         pointedAtAmazon: await countOf(
-          'connections', "tenant_id = any($1) and marketplace = 'amazon'", [[idle, trading]],
+          'connections',
+          "tenant_id = any($1) and marketplace = 'amazon'",
+          [[idle, trading]],
         ),
       };
     });
     expect(
       measured,
-      'Repointing a connection with nothing under it answered '
-      + `${measured.withNothingUnderIt} and one carrying an order answered `
-      + `${measured.withAnOrderUnderIt}, leaving ${measured.stillOnBol} connections on bol and `
-      + `${measured.pointedAtAmazon} pointed at amazon. A connection is a seller account at one `
-      + 'marketplace and its marketplace is what routes the connector that reads it and the '
-      + 'credentials it is read with, so it is not changeable by an update any more than the '
-      + 'catalogue row above it is, and an operation the keys accept while the account is idle '
-      + 'and refuse once it has traded is the worst of the two answers (23001)',
+      'Repointing a connection with nothing under it answered ' +
+        `${measured.withNothingUnderIt} and one carrying an order answered ` +
+        `${measured.withAnOrderUnderIt}, leaving ${measured.stillOnBol} connections on bol and ` +
+        `${measured.pointedAtAmazon} pointed at amazon. A connection is a seller account at one ` +
+        'marketplace and its marketplace is what routes the connector that reads it and the ' +
+        'credentials it is read with, so it is not changeable by an update any more than the ' +
+        'catalogue row above it is, and an operation the keys accept while the account is idle ' +
+        'and refuse once it has traded is the worst of the two answers (23001)',
     ).toEqual({
       withNothingUnderIt: '23001',
       withAnOrderUnderIt: '23001',
@@ -7358,17 +7810,18 @@ describe('a marketplace identifier, and the line id a marketplace gave a row', (
     const measured = {
       cascadingOnUpdate: rows.filter((row) => row.action === 'c').map((row) => row.key),
       stillStanding: withdrawnShapeClaimsStillStanding(
-        sourcesThatDocumentTheSet(), 'public.marketplaces',
+        sourcesThatDocumentTheSet(),
+        'public.marketplaces',
       ),
     };
     expect(
       measured,
-      `${rows.length} foreign keys in this schema carry the marketplace column and `
-      + `${measured.cascadingOnUpdate.length} of them name on update cascade, so a sentence `
-      + 'saying that none of them does is false of the schema it is written in, and a person '
-      + 'meets it at the moment the trigger refuses their statement. A count in a raise message '
-      + 'is a claim that rots where nobody rereads it: what the message owes its reader is what '
-      + `the refusal means. What is still standing: ${measured.stillStanding.join('; ') || 'nothing'}`,
+      `${rows.length} foreign keys in this schema carry the marketplace column and ` +
+        `${measured.cascadingOnUpdate.length} of them name on update cascade, so a sentence ` +
+        'saying that none of them does is false of the schema it is written in, and a person ' +
+        'meets it at the moment the trigger refuses their statement. A count in a raise message ' +
+        'is a claim that rots where nobody rereads it: what the message owes its reader is what ' +
+        `the refusal means. What is still standing: ${measured.stillStanding.join('; ') || 'nothing'}`,
     ).toEqual({
       cascadingOnUpdate: ['claims_marketplace_fkey', 'connections_marketplace_fkey'],
       stillStanding: [],
@@ -7400,15 +7853,16 @@ describe('a marketplace identifier, and the line id a marketplace gave a row', (
     const measured = {
       theClauseOnTheConnectionsKey: rows.map((row) => row.action),
       stillStanding: withdrawnShapeClaimsStillStanding(
-        sourcesThatDocumentTheSet(), 'public.connections',
+        sourcesThatDocumentTheSet(),
+        'public.connections',
       ),
     };
     expect(
       measured,
-      'The cascade on the connections key is unchanged, and the sentence that said what it was '
-      + 'for is not: part 3 withdrew it, and a quotation of part 3 that still carries it sends a '
-      + 'later ticket to write the rename this schema refuses. What is still standing: '
-      + `${measured.stillStanding.join('; ') || 'nothing'}`,
+      'The cascade on the connections key is unchanged, and the sentence that said what it was ' +
+        'for is not: part 3 withdrew it, and a quotation of part 3 that still carries it sends a ' +
+        'later ticket to write the rename this schema refuses. What is still standing: ' +
+        `${measured.stillStanding.join('; ') || 'nothing'}`,
     ).toEqual({ theClauseOnTheConnectionsKey: ['c'], stillStanding: [] });
   });
 
@@ -7474,16 +7928,16 @@ describe('a marketplace identifier, and the line id a marketplace gave a row', (
     };
     expect(
       measured,
-      'The columns keyed straight at the catalogue are '
-      + `${rows.map((row) => row.column).join(', ') || 'none at all, so this query proves nothing'}`
-      + ', and a value keyed straight at the catalogue may become any of the six, because the key '
-      + 'says only that the value exists and no parent row says which one it is. So each of them '
-      + 'needs something refusing an update that changes it, and what has nothing is: '
-      + `${measured.withNothingRefusingAnUpdate.join(', ') || 'nothing'}. And no file that `
-      + 'documents this set may go on counting the places it writes an identifier: this is the '
-      + 'one scan over every withdrawn sentence about the shape of a relation, whatever relation '
-      + 'it was written about, which is what the two this round withdrew about public.claims are '
-      + `read by. What is still standing: ${measured.stillStanding.join('; ') || 'nothing'}`,
+      'The columns keyed straight at the catalogue are ' +
+        `${rows.map((row) => row.column).join(', ') || 'none at all, so this query proves nothing'}` +
+        ', and a value keyed straight at the catalogue may become any of the six, because the key ' +
+        'says only that the value exists and no parent row says which one it is. So each of them ' +
+        'needs something refusing an update that changes it, and what has nothing is: ' +
+        `${measured.withNothingRefusingAnUpdate.join(', ') || 'nothing'}. And no file that ` +
+        'documents this set may go on counting the places it writes an identifier: this is the ' +
+        'one scan over every withdrawn sentence about the shape of a relation, whatever relation ' +
+        'it was written about, which is what the two this round withdrew about public.claims are ' +
+        `read by. What is still standing: ${measured.stillStanding.join('; ') || 'nothing'}`,
     ).toEqual({
       withNothingRefusingAnUpdate: [],
       foundNoColumnAtAll: false,
@@ -7521,13 +7975,13 @@ describe('a marketplace identifier, and the line id a marketplace gave a row', (
     // expression whose callee is this name, and the string literals that call
     // passes. So the quotations written out below are quotations and the one call is
     // a call, and both attacks are measured here rather than left to a reviewer.
-    const narrowedTo = (contents: string): string[][] => stringArgumentsOfCallsTo(
-      contents, ownPath, scanner,
-    );
-    const unnarrowedIn = (contents: string): number => narrowedTo(contents)
-      .filter((literals) => literals.length === 0).length;
+    const narrowedTo = (contents: string): string[][] =>
+      stringArgumentsOfCallsTo(contents, ownPath, scanner);
+    const unnarrowedIn = (contents: string): number =>
+      narrowedTo(contents).filter((literals) => literals.length === 0).length;
     const narrowed = narrowedTo(own)
-      .filter((literals) => literals.length > 0).map((literals) => literals[0]);
+      .filter((literals) => literals.length > 0)
+      .map((literals) => literals[0]);
 
     // The two attacks, as text. The plain narrowing is the defect F79 was returned
     // for and has to take the count to zero, because that is the guard working; the
@@ -7540,9 +7994,9 @@ describe('a marketplace identifier, and the line id a marketplace gave a row', (
     const plainNarrowing = own.replace(theUnnarrowedCall, narrowedBack);
     if (plainNarrowing === own) {
       throw new Error(
-        `This file no longer spells the unnarrowed call ${theUnnarrowedCall}, so the attacks `
-        + 'below replaced nothing and measure nothing. Spell it as the file spells it, or move '
-        + 'the narrowing to wherever the unnarrowed call now is.',
+        `This file no longer spells the unnarrowed call ${theUnnarrowedCall}, so the attacks ` +
+          'below replaced nothing and measure nothing. Spell it as the file spells it, or move ' +
+          'the narrowing to wherever the unnarrowed call now is.',
       );
     }
     const withAComment = `${plainNarrowing}\n// ${theUnnarrowedCall}\n`;
@@ -7552,13 +8006,19 @@ describe('a marketplace identifier, and the line id a marketplace gave a row', (
     // The entries only the unnarrowed call can reach, and prose carrying the first of
     // them that this repository does not hold. The fabricated source is a migration
     // name no directory holds, so the scan is over text and nothing on disk.
-    const onlyTheCatchAllReads = WITHDRAWN_SHAPE_CLAIMS
-      .filter((claim) => !narrowed.includes(claim.relation));
+    const onlyTheCatchAllReads = WITHDRAWN_SHAPE_CLAIMS.filter(
+      (claim) => !narrowed.includes(claim.relation),
+    );
     const probe = onlyTheCatchAllReads[0];
-    const fabricated = probe === undefined ? [] : [{
-      file: `${MIGRATIONS_DIRECTORY}/20270101000000_${TRADE_RECORD_MIGRATION_MARKER}_probe.sql`,
-      contents: probe.spelling.map((fragment) => `-- ${fragment}`).join('\n'),
-    }];
+    const fabricated =
+      probe === undefined
+        ? []
+        : [
+            {
+              file: `${MIGRATIONS_DIRECTORY}/20270101000000_${TRADE_RECORD_MIGRATION_MARKER}_probe.sql`,
+              contents: probe.spelling.map((fragment) => `-- ${fragment}`).join('\n'),
+            },
+          ];
     const measured = {
       callsThatNarrowToNoRelation: unnarrowedIn(own),
       underThePlainNarrowing: unnarrowedIn(plainNarrowing),
@@ -7566,28 +8026,29 @@ describe('a marketplace identifier, and the line id a marketplace gave a row', (
       underTheNarrowingAndAStringLiteral: unnarrowedIn(withAStringLiteral),
       readByTheUnnarrowedCall: scan(fabricated).length,
       readByAnyNarrowedCall: narrowed.reduce(
-        (found, relation) => found + scan(fabricated, relation).length, 0,
+        (found, relation) => found + scan(fabricated, relation).length,
+        0,
       ),
     };
     expect(
       measured,
-      `${WITHDRAWN_SHAPE_CLAIMS.length} sentences are held in WITHDRAWN_SHAPE_CLAIMS and the `
-      + `callers in this file narrow to ${narrowed.join(', ') || 'no relation at all'}, so the `
-      + `entries about ${onlyTheCatchAllReads.map((claim) => claim.relation).join(', ') || 'nothing'} are read by `
-      + `the ${measured.callsThatNarrowToNoRelation} call that narrows to none and by nothing `
-      + 'else. A withdrawn claim about a relation nobody has written a measurement for is exactly '
-      + 'the one that survives, gets copied or comes back, which is why withdrawnShapeClaimsStillStanding '
-      + 'reports every claim when it is called with no relation. This is that call being shown a '
-      + `sentence the repository does not contain: the unnarrowed call reported `
-      + `${measured.readByTheUnnarrowedCall} of them and the narrowed calls reported `
-      + `${measured.readByAnyNarrowedCall}, so if the unnarrowed one is ever given a relation `
-      + 'these entries become unread and this line is what says so. And the count is of call '
-      + 'expressions in the syntax tree and not of the name in the text, because a count over '
-      + 'text is restored by a comment quoting the call it no longer has (F86): narrowing the '
-      + `call in this file's own text takes the count to ${measured.underThePlainNarrowing}, `
-      + `quoting it back in a comment leaves it at ${measured.underTheNarrowingAndAComment} and `
-      + `in a string at ${measured.underTheNarrowingAndAStringLiteral}, and all three have to be `
-      + 'zero for the narrowing to be the thing this catches',
+      `${WITHDRAWN_SHAPE_CLAIMS.length} sentences are held in WITHDRAWN_SHAPE_CLAIMS and the ` +
+        `callers in this file narrow to ${narrowed.join(', ') || 'no relation at all'}, so the ` +
+        `entries about ${onlyTheCatchAllReads.map((claim) => claim.relation).join(', ') || 'nothing'} are read by ` +
+        `the ${measured.callsThatNarrowToNoRelation} call that narrows to none and by nothing ` +
+        'else. A withdrawn claim about a relation nobody has written a measurement for is exactly ' +
+        'the one that survives, gets copied or comes back, which is why withdrawnShapeClaimsStillStanding ' +
+        'reports every claim when it is called with no relation. This is that call being shown a ' +
+        `sentence the repository does not contain: the unnarrowed call reported ` +
+        `${measured.readByTheUnnarrowedCall} of them and the narrowed calls reported ` +
+        `${measured.readByAnyNarrowedCall}, so if the unnarrowed one is ever given a relation ` +
+        'these entries become unread and this line is what says so. And the count is of call ' +
+        'expressions in the syntax tree and not of the name in the text, because a count over ' +
+        'text is restored by a comment quoting the call it no longer has (F86): narrowing the ' +
+        `call in this file's own text takes the count to ${measured.underThePlainNarrowing}, ` +
+        `quoting it back in a comment leaves it at ${measured.underTheNarrowingAndAComment} and ` +
+        `in a string at ${measured.underTheNarrowingAndAStringLiteral}, and all three have to be ` +
+        'zero for the narrowing to be the thing this catches',
     ).toEqual({
       callsThatNarrowToNoRelation: 1,
       underThePlainNarrowing: 0,
@@ -7598,10 +8059,10 @@ describe('a marketplace identifier, and the line id a marketplace gave a row', (
     });
     expect(
       onlyTheCatchAllReads.length,
-      'No entry in WITHDRAWN_SHAPE_CLAIMS is outside the relations the narrowed callers name, so '
-      + 'the probe above measured the unnarrowed call against nothing and would pass with that '
-      + 'call deleted. Either a caller was added for every relation in the list, in which case '
-      + 'the unnarrowed call is what catches the next one, or the list lost its entries',
+      'No entry in WITHDRAWN_SHAPE_CLAIMS is outside the relations the narrowed callers name, so ' +
+        'the probe above measured the unnarrowed call against nothing and would pass with that ' +
+        'call deleted. Either a caller was added for every relation in the list, in which case ' +
+        'the unnarrowed call is what catches the next one, or the list lost its entries',
     ).toBeGreaterThan(0);
   });
 });
@@ -7655,19 +8116,19 @@ describe('what a migration says about a column, and what the schema has', () => 
         const held = columns.get(reference.relation);
         if (held === undefined || held.has(reference.column)) continue;
         offenders.push(
-          `${reference.relationFile}:${reference.line} describes `
-          + `${reference.relation}.${reference.column}, which the delivered schema does not `
-          + `have: "${reference.quoted.slice(0, 140)}"`,
+          `${reference.relationFile}:${reference.line} describes ` +
+            `${reference.relation}.${reference.column}, which the delivered schema does not ` +
+            `have: "${reference.quoted.slice(0, 140)}"`,
         );
       }
     }
     expect(
       offenders,
-      `${offenders.length} sentences in the migrations describe a column the database this set `
-      + 'leaves behind does not hold, and a reader meets the sentence where the table is created '
-      + 'rather than where it was reversed: '
-      + `${offenders.join('; ')}. Either keep the column or take the sentence out, because the `
-      + 'set is forward only and a part may not point at the part that dropped it',
+      `${offenders.length} sentences in the migrations describe a column the database this set ` +
+        'leaves behind does not hold, and a reader meets the sentence where the table is created ' +
+        'rather than where it was reversed: ' +
+        `${offenders.join('; ')}. Either keep the column or take the sentence out, because the ` +
+        'set is forward only and a part may not point at the part that dropped it',
     ).toEqual([]);
   });
 
@@ -7689,20 +8150,22 @@ describe('what a migration says about a column, and what the schema has', () => 
     // the column is really gone, which is what makes the sentence false rather than
     // merely unenforced, and the words are looked for wherever a person meets them.
     const measured = {
-      columnsOfInvoicesNamedForTheShare: [...columns.get('invoices') ?? []]
-        .filter((column) => column.includes('recovery')),
+      columnsOfInvoicesNamedForTheShare: [...(columns.get('invoices') ?? [])].filter((column) =>
+        column.includes('recovery'),
+      ),
       stillStanding: withdrawnShapeClaimsStillStanding(
-        sourcesThatDocumentTheSet(), 'public.invoices',
+        sourcesThatDocumentTheSet(),
+        'public.invoices',
       ),
     };
     expect(
       measured,
-      'The part that creates public.invoices states the contract of a column the delivered '
-      + `schema does not have, where the catalogue holds ${JSON.stringify(measured.columnsOfInvoicesNamedForTheShare)}. `
-      + 'SEEN-040 opens that file to find the shape of the table, writes the recovery share into '
-      + 'the column the sentence is about and gets 42703, or believes this table carries and '
-      + 'enforces the share lines, which is the misreading F70 was returned for. What is still '
-      + `standing: ${measured.stillStanding.join('; ') || 'nothing'}`,
+      'The part that creates public.invoices states the contract of a column the delivered ' +
+        `schema does not have, where the catalogue holds ${JSON.stringify(measured.columnsOfInvoicesNamedForTheShare)}. ` +
+        'SEEN-040 opens that file to find the shape of the table, writes the recovery share into ' +
+        'the column the sentence is about and gets 42703, or believes this table carries and ' +
+        'enforces the share lines, which is the misreading F70 was returned for. What is still ' +
+        `standing: ${measured.stillStanding.join('; ') || 'nothing'}`,
     ).toEqual({ columnsOfInvoicesNamedForTheShare: [], stillStanding: [] });
   });
 
@@ -7719,21 +8182,25 @@ describe('what a migration says about a column, and what the schema has', () => 
       'create table public.invoices (',
       '  id uuid primary key default gen_random_uuid(),',
       '  -- The recovery share lines: one entry per credited claim.',
-      '  recovery_share_lines jsonb not null default \'[]\'::jsonb,',
+      "  recovery_share_lines jsonb not null default '[]'::jsonb,",
       '  unique (tenant_id, stripe_invoice_id)',
       ');',
       '',
       '-- claims.claim_text is the text a marketplace was told.',
       'comment on column public.invoices.module_lines is',
-      '  \'Not buyer PII. Which module, for which period.\';',
+      "  'Not buyer PII. Which module, for which period.';",
     ].join('\n');
     expect(
       migrationColumnReferences('fixture.sql', fixture)
         .map((reference) => `${reference.relation}.${reference.column}@${reference.line}`)
         .sort(),
-      'The scanner reads a comment above a column definition, a `table.column` pair in a '
-      + 'sentence and a stored column comment, and reads neither a path nor a statement quoted '
-      + 'inside a comment',
-    ).toEqual(['claims.claim_text@10', 'invoices.module_lines@11', 'invoices.recovery_share_lines@5']);
+      'The scanner reads a comment above a column definition, a `table.column` pair in a ' +
+        'sentence and a stored column comment, and reads neither a path nor a statement quoted ' +
+        'inside a comment',
+    ).toEqual([
+      'claims.claim_text@10',
+      'invoices.module_lines@11',
+      'invoices.recovery_share_lines@5',
+    ]);
   });
 });

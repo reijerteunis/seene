@@ -1,10 +1,6 @@
 import { randomBytes } from 'node:crypto';
 
-import {
-  type Environment,
-  notUntilGoLive,
-  selectImplementation,
-} from './selection.ts';
+import { type Environment, notUntilGoLive, selectImplementation } from './selection.ts';
 
 /**
  * Traces and per-tenant cost. Cost is first class rather than a log line because
@@ -221,12 +217,7 @@ function otlpValue(value: AttributeValue): unknown {
 }
 
 export function createTelemetryProvider(env: Environment = process.env): TelemetryProvider {
-  const name = selectImplementation(
-    env,
-    'SEEN_TELEMETRY_PROVIDER',
-    TELEMETRY_PROVIDERS,
-    'console',
-  );
+  const name = selectImplementation(env, 'SEEN_TELEMETRY_PROVIDER', TELEMETRY_PROVIDERS, 'console');
 
   switch (name) {
     case 'console':

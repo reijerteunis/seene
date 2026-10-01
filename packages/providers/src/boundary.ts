@@ -1,6 +1,5 @@
-import { readdirSync, readFileSync } from 'node:fs';
+import { type Dirent, readdirSync, readFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
-
 
 /**
  * The SDKs that may only be imported inside packages/providers. The list is
@@ -45,13 +44,11 @@ const SPECIFIER_PATTERNS = [
 ];
 
 function isCloudSdk(specifier: string): boolean {
-  return CLOUD_SDK_PREFIXES.some(
-    (prefix) => specifier === prefix || specifier.startsWith(prefix),
-  );
+  return CLOUD_SDK_PREFIXES.some((prefix) => specifier === prefix || specifier.startsWith(prefix));
 }
 
 function* sourceFiles(directory: string): Generator<string> {
-  let entries;
+  let entries: Dirent[];
   try {
     entries = readdirSync(directory, { withFileTypes: true });
   } catch {

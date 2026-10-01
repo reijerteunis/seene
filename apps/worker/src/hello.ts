@@ -1,5 +1,5 @@
-import { QueueEvents, Worker } from 'bullmq';
 import type { ConnectionOptions } from 'bullmq';
+import { QueueEvents, Worker } from 'bullmq';
 
 /**
  * The first job, and the shape every later one follows: a named queue, a typed

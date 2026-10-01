@@ -62,8 +62,9 @@ describe('the OpenTelemetry collector', () => {
   /** The collector's own count of spans it accepted, which is the only account that matters. */
   const acceptedSpans = async (): Promise<number> => {
     const text = await (await fetch(metricsUrl)).text();
-    const total = [...text.matchAll(/^otelcol_receiver_accepted_spans(?:_total)?\{[^}]*}\s+(\d+)/gm)]
-      .reduce((sum, match) => sum + Number(match[1]), 0);
+    const total = [
+      ...text.matchAll(/^otelcol_receiver_accepted_spans(?:_total)?\{[^}]*}\s+(\d+)/gm),
+    ].reduce((sum, match) => sum + Number(match[1]), 0);
 
     return total;
   };
@@ -75,7 +76,11 @@ describe('the OpenTelemetry collector', () => {
       SEEN_SERVICE_NAME: 'seen-providers-test',
     });
 
-    const result = await telemetry.span('reconcile.match', { 'seen.tenant_id': 'demo-tenant' }, async () => 42);
+    const result = await telemetry.span(
+      'reconcile.match',
+      { 'seen.tenant_id': 'demo-tenant' },
+      async () => 42,
+    );
     telemetry.cost({
       tenantId: 'demo-tenant',
       operation: 'agent.draft_claim',

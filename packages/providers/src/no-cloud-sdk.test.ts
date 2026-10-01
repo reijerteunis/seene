@@ -1,4 +1,4 @@
-import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -48,10 +48,11 @@ describe('the cloud SDK boundary', () => {
       "export const later = () => import('@google-cloud/logging');\n",
     );
 
-    expect(findCloudSdkImports(root).map((f) => f.specifier).sort()).toEqual([
-      '@aws-sdk/client-s3',
-      '@google-cloud/logging',
-    ]);
+    expect(
+      findCloudSdkImports(root)
+        .map((f) => f.specifier)
+        .sort(),
+    ).toEqual(['@aws-sdk/client-s3', '@google-cloud/logging']);
   });
 
   it('gives the line of an import broken over several lines', () => {
@@ -60,9 +61,14 @@ describe('the cloud SDK boundary', () => {
 
     writeFileSync(
       join(root, 'apps', 'api', 'src', 'wrapped.ts'),
-      ['// a comment', 'const x = 1;', 'import {', '  Storage,', "} from '@google-cloud/storage';", ''].join(
-        '\n',
-      ),
+      [
+        '// a comment',
+        'const x = 1;',
+        'import {',
+        '  Storage,',
+        "} from '@google-cloud/storage';",
+        '',
+      ].join('\n'),
     );
 
     // Line 3, where the statement starts. Searching the file for the matched text

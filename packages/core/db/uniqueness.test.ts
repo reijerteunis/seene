@@ -33,8 +33,15 @@ const LOCAL_DEFAULT = 'postgresql://postgres:postgres@127.0.0.1:54322/postgres';
 const DATABASE_URL = process.env.SEEN_DATABASE_URL ?? LOCAL_DEFAULT;
 
 /** The tables this test writes to before it can say anything about a key. */
-const NEEDED = ['tenants', 'connections', 'orders', 'shipments', 'returns', 'settlements',
-  'settlement_lines'] as const;
+const NEEDED = [
+  'tenants',
+  'connections',
+  'orders',
+  'shipments',
+  'returns',
+  'settlements',
+  'settlement_lines',
+] as const;
 
 /** Host, port and database only: a connection string carries a password, and a
  * test's own failure text is read again in a journal record and in a CI log. */
@@ -57,10 +64,10 @@ async function connect(): Promise<Client> {
   } catch (cause) {
     await client.end().catch(() => undefined);
     throw new Error(
-      `No Postgres answering at ${where(DATABASE_URL)}, so this test proves nothing about the `
-      + 'upsert key. Start the local stack with `pnpm dev:up`, apply the migrations with '
-      + '`pnpm db:reset`, or point SEEN_DATABASE_URL at another stack. The driver said: '
-      + `${(cause as Error).message}`,
+      `No Postgres answering at ${where(DATABASE_URL)}, so this test proves nothing about the ` +
+        'upsert key. Start the local stack with `pnpm dev:up`, apply the migrations with ' +
+        '`pnpm db:reset`, or point SEEN_DATABASE_URL at another stack. The driver said: ' +
+        `${(cause as Error).message}`,
       { cause },
     );
   }
@@ -98,10 +105,7 @@ interface Fixture {
  * tenant id in this suite is server-generated and never supplied, so no test can
  * collide with a tombstone and the growth can fail nothing.
  */
-async function assertNoTombstones(
-  client: Client,
-  tenants: (string | undefined)[],
-): Promise<void> {
+async function assertNoTombstones(client: Client, tenants: (string | undefined)[]): Promise<void> {
   const created = tenants.filter((id): id is string => Boolean(id));
   if (created.length === 0) return;
   const { rows } = await client.query<{ tenant_id: string }>(
@@ -110,8 +114,8 @@ async function assertNoTombstones(
   );
   expect(
     rows.map((row) => row.tenant_id),
-    'Tenants this file created are tombstoned in the erasure registry, so its fixtures erased '
-    + 'them outside a transaction and nothing can take those rows back',
+    'Tenants this file created are tombstoned in the erasure registry, so its fixtures erased ' +
+      'them outside a transaction and nothing can take those rows back',
   ).toEqual([]);
 }
 
@@ -169,9 +173,9 @@ describe('the upsert key on every externally sourced table', () => {
     const rail = fixture.rails[marketplace];
     if (rail === undefined) {
       throw new Error(
-        `This fixture has no ${marketplace} parents for a row of ${table} to hang from, so the `
-        + 'probe would measure a missing connection rather than the upsert key. Add the '
-        + 'marketplace to RAILS.',
+        `This fixture has no ${marketplace} parents for a row of ${table} to hang from, so the ` +
+          'probe would measure a missing connection rather than the upsert key. Add the ' +
+          'marketplace to RAILS.',
       );
     }
     switch (table) {
@@ -261,9 +265,9 @@ describe('the upsert key on every externally sourced table', () => {
     const missing = NEEDED.filter((table) => !present.includes(table));
     if (missing.length > 0) {
       throw new Error(
-        `This test cannot write a row at all: ${missing.join(', ')} `
-        + `${missing.length === 1 ? 'does' : 'do'} not exist in the public schema, so there is no `
-        + 'upsert key to prove anything about. Apply the migrations with `pnpm db:reset`.',
+        `This test cannot write a row at all: ${missing.join(', ')} ` +
+          `${missing.length === 1 ? 'does' : 'do'} not exist in the public schema, so there is no ` +
+          'upsert key to prove anything about. Apply the migrations with `pnpm db:reset`.',
       );
     }
     // The fixtures are written inside a transaction that is never committed, and
@@ -291,10 +295,10 @@ describe('the upsert key on every externally sourced table', () => {
       });
       expect(
         answer,
-        `A second insert of the same (tenant_id, marketplace, external_id) into ${table} was `
-        + `${answer === 'accepted' ? 'accepted' : `refused with SQLSTATE ${answer}`}, where a `
-        + 'unique violation (23505) is what makes reading the same page of a marketplace twice '
-        + 'write the row once',
+        `A second insert of the same (tenant_id, marketplace, external_id) into ${table} was ` +
+          `${answer === 'accepted' ? 'accepted' : `refused with SQLSTATE ${answer}`}, where a ` +
+          'unique violation (23505) is what makes reading the same page of a marketplace twice ' +
+          'write the row once',
       ).toBe('23505');
     });
 
@@ -305,8 +309,8 @@ describe('the upsert key on every externally sourced table', () => {
       });
       expect(
         answer,
-        `${table} refused a second tenant the external id the first tenant holds, so the key is `
-        + 'not scoped to the tenant and two brands selling on the same marketplace collide',
+        `${table} refused a second tenant the external id the first tenant holds, so the key is ` +
+          'not scoped to the tenant and two brands selling on the same marketplace collide',
       ).toBe('accepted');
     });
 
@@ -317,8 +321,8 @@ describe('the upsert key on every externally sourced table', () => {
       });
       expect(
         answer,
-        `${table} refused the same external id on a second marketplace, so the key does not carry `
-        + 'the marketplace and one marketplace\'s ids suppress another\'s',
+        `${table} refused the same external id on a second marketplace, so the key does not carry ` +
+          "the marketplace and one marketplace's ids suppress another's",
       ).toBe('accepted');
     });
   }

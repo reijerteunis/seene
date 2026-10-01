@@ -1,0 +1,30 @@
+{
+  "sequence": 14,
+  "ticket": "SEEN-114",
+  "timestamp": "2026-10-01T08:44:37.576857+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "6973478f0bee",
+  "head": "708d6c659177005a883fea8349d85d1b8fa84514",
+  "prev_hash": "cdb518ab10fe8dbeda73437f936b8faf5fbb872eb3061f0174c2fc339bc141c6",
+  "data": {
+    "command": [
+      "./scripts/rules.sh",
+      "fixtures"
+    ],
+    "phase": "green",
+    "exit_code": 0,
+    "model": "claude-opus-5",
+    "model_declared": "opus",
+    "agent_declared": null,
+    "duration_ms": 1303,
+    "output": "==> Every rule against the fixture it stands on\n{\n  \"rules\": [\n    {\n      \"id\": \"tsconfig/strict\",\n      \"tool\": \"tsconfig\",\n      \"citation\": \"docs/harness/workflow.md: Rules from findings\",\n      \"fixture\": \"rules/fixtures/tsconfig-strict\"\n    },\n    {\n      \"id\": \"tsconfig/noUncheckedIndexedAccess\",\n      \"tool\": \"tsconfig\",\n      \"citation\": \"docs/harness/workflow.md: Rules from findings\",\n      \"fixture\": \"rules/fixtures/tsconfig-nouncheckedindexedaccess\"\n    },\n    {\n      \"id\": \"tsconfig/exactOptionalPropertyTypes\",\n      \"tool\": \"tsconfig\",\n      \"citation\": \"docs/harness/workflow.md: Rules from findings\",\n      \"fixture\": \"rules/fixtures/tsconfig-exactoptionalpropertytypes\"\n    },\n    {\n      \"id\": \"tsconfig/noImplicitOverride\",\n      \"tool\": \"tsconfig\",\n      \"citation\": \"docs/harness/workflow.md: Rules from findings\",\n      \"fixture\": \"rules/fixtures/tsconfig-noimplicitoverride\"\n    },\n    {\n      \"id\": \"biome/recommended\",\n      \"tool\": \"biome\",\n      \"citation\": \"docs/harness/workflow.md: A bounded review\",\n      \"fixture\": \"rules/fixtures/biome-recommended\"\n    },\n    {\n      \"id\": \"biome/noFloatingPromises\",\n      \"tool\": \"biome\",\n      \"citation\": \"docs/harness/workflow.md: Rules from findings\",\n      \"fixture\": \"rules/fixtures/biome-nofloatingpromises\"\n    },\n    {\n      \"id\": \"biome/noMisusedPromises\",\n      \"tool\": \"biome\",\n      \"citation\": \"docs/architecture.md: Agent runtime and the policy gate\",\n      \"fixture\": \"rules/fixtures/biome-nomisusedpromises\"\n    },\n    {\n      \"id\": \"biome/useAwaitThenable\",\n      \"tool\": \"biome\",\n      \"citation\": \"docs/architecture.md: Agent runtime and the policy gate\",\n      \"fixture\": \"rules/fixtures/biome-useawaitthenable\"\n    }\n  ],\n  \"problems\": [],\n  \"fixtures\": [\n    {\n      \"id\": \"tsconfig/strict\",\n      \"tool\": \"tsconfig\",\n      \"fired\": true,\n      \"detail\": \"the fixture fails with strict on and compiles with it off: packages/core/src/violation.ts(3,31): error TS7006: Parameter 'line' implicitly has an 'any' type.\"\n    },\n    {\n      \"id\": \"tsconfig/noUncheckedIndexedAccess\",\n      \"tool\": \"tsconfig\",\n      \"fired\": true,\n      \"detail\": \"the fixture fails with noUncheckedIndexedAccess on and compiles with it off: packages/core/src/violation.ts(5,10): error TS2532: Object is possibly 'undefined'.\"\n    },\n    {\n      \"id\": \"tsconfig/exactOptionalPropertyTypes\",\n      \"tool\": \"tsconfig\",\n      \"fired\": true,\n      \"detail\": \"the fixture fails with exactOptionalPropertyTypes on and compiles with it off: packages/core/src/violation.ts(8,14): error TS2375: Type '{ externalReference: undefined; }' is not assignable to type 'SettlementLineUpsert' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties. /   Types of property 'externalReference' are incompatible. /     Type 'undefined' is not assignable to type 'string'.\"\n    },\n    {\n      \"id\": \"tsconfig/noImplicitOverride\",\n      \"tool\": \"tsconfig\",\n      \"fired\": true,\n      \"detail\": \"the fixture fails with noImplicitOverride on and compiles with it off: packages/core/src/violation.ts(10,3): error TS4114: This member must have an 'override' modifier because it overrides a member in the base class 'MarketplaceConnector'.\"\n    },\n    {\n      \"id\": \"biome/recommended\",\n      \"tool\": \"biome\",\n      \"fired\": true,\n      \"detail\": \"biome refused the fixture and named suspicious/noImplicitAnyLet\"\n    },\n    {\n      \"id\": \"biome/noFloatingPromises\",\n      \"tool\": \"biome\",\n      \"fired\": true,\n      \"detail\": \"biome refused the fixture and named noFloatingPromises\"\n    },\n    {\n      \"id\": \"biome/noMisusedPromises\",\n      \"tool\": \"biome\",\n      \"fired\": true,\n      \"detail\": \"biome refused the fixture and named noMisusedPromises\"\n    },\n    {\n      \"id\": \"biome/useAwaitThenable\",\n      \"tool\": \"biome\",\n      \"fired\": true,\n      \"detail\": \"biome refused the fixture and named useAwaitThenable\"\n    }\n  ],\n  \"unproven\": [],\n  \"ok\": true\n}\n    fixtures: ok in 1s\n",
+    "output_sha256": "b611203e2cd952d9099f7ecc8d1aab1dd272ba293f3eae2cf6e76aa9200f7dae",
+    "output_truncated": false,
+    "before": "93017c2ee4a3e7aa88690e7ea973df72464156df0dc41ba64b155263994ea9ac",
+    "after": "93017c2ee4a3e7aa88690e7ea973df72464156df0dc41ba64b155263994ea9ac"
+  }
+}

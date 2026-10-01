@@ -37,7 +37,9 @@ export function mailpit(env: Environment = process.env) {
         if (found) return found;
 
         if (Date.now() >= deadline) {
-          throw new Error(`No mail with subject '${subject}' reached Mailpit within ${timeoutMs}ms.`);
+          throw new Error(
+            `No mail with subject '${subject}' reached Mailpit within ${timeoutMs}ms.`,
+          );
         }
         await new Promise((resolve) => setTimeout(resolve, 100));
       }

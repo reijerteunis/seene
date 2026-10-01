@@ -1,0 +1,134 @@
+# The rule set in front of the model, and the one place a rule is traceable.
+#
+# SEEN-114. Sprint 0 delivered 63 review findings on 20 tickets. A finding a
+# static rule could have caught is paid for three times: the reviewer's reading,
+# the return, the second review. The rules that stop that live where each tool
+# looks for them, which is four files at the repository root plus the compiler's
+# own flags; this file is where each one says what it stands on.
+#
+# Five fields, a reader's question each:
+#
+#   id        the tool that runs it and the rule's own name, as `tool/name`
+#   tool      which of the seven tools of the set runs it
+#   citation  the finding it came from, as `SEEN-097 F1`, or the document and
+#             section that states it, as `docs/architecture.md: Services`. A
+#             ticket id on its own is not a citation: every rule was added by
+#             some ticket, so naming one says nothing a reader can open.
+#   fixture   the directory holding the violation this rule must refuse. The
+#             fixture is laid out like the repository, because a rule scoped to
+#             `packages/core/**` says nothing about a file in `rules/fixtures/`.
+#   reason    what goes wrong in Seen when the rule is not there. Not the rule
+#             restated: the defect it is about.
+#
+# And one optional sixth, `expect`: the token the tool's report must name for the
+# rule to count as fired. The rule's own name by default, which is what each of
+# these tools prints beside a diagnostic. It is overridden for the one case where
+# the rule's name is not a thing any report says: a preset names no rule of its
+# own, so what proves it is a named rule from inside the preset's set.
+#
+# `harness rules --check` reads this file against the tools' own configurations
+# in both directions, and CI runs it. A rule a configuration enables that is not
+# here fails the build, which is the mechanism: the citation is written the same
+# week as the rule. A rule here that no configuration enables fails it too,
+# because a registry that only had to be a superset of what runs could be padded.
+# `harness rules --fixtures` runs each rule against its own fixture.
+#
+# The comments in this file are the reasoning the four configurations do not
+# carry. They are plain JSON so that Python can read them without a parser of its
+# own, which means they hold no comments, and a reader looking for why a rule
+# exists looks here rather than in four places.
+
+# ---------------------------------------------------------------------------
+# The compiler. The cheapest reviewer there is: it costs nothing to run and
+# nothing to read, and it answers before the code is staged.
+#
+# A compiler flag is proven by compiling its fixture twice. tsc names the option
+# in its message for `exactOptionalPropertyTypes` and not for the other three, so
+# the fixture must fail with the flag the base configuration sets and compile
+# cleanly with that one flag turned off. A fixture that fails either way fails for
+# a reason that has nothing to do with the flag.
+# ---------------------------------------------------------------------------
+
+[[rule]]
+id = "tsconfig/strict"
+tool = "tsconfig"
+citation = "docs/harness/workflow.md: Rules from findings"
+fixture = "rules/fixtures/tsconfig-strict"
+reason = """An untyped parameter in a detector is a detector whose inputs nobody declared, and the \
+money core is where a wrong unit costs a claim. Strict is the floor the other three stand on."""
+
+[[rule]]
+id = "tsconfig/noUncheckedIndexedAccess"
+tool = "tsconfig"
+citation = "docs/harness/workflow.md: Rules from findings"
+fixture = "rules/fixtures/tsconfig-nouncheckedindexedaccess"
+reason = """A settlement file's lines are read by index, and a marketplace sends a shorter array \
+than the one before it. Without this flag `lines[0]` is typed as present and the reconciliation \
+reads undefined as a line."""
+
+[[rule]]
+id = "tsconfig/exactOptionalPropertyTypes"
+tool = "tsconfig"
+citation = "docs/harness/workflow.md: Rules from findings"
+fixture = "rules/fixtures/tsconfig-exactoptionalpropertytypes"
+reason = """An optional field set to undefined and an optional field absent are different rows in \
+an upsert: the first overwrites what the marketplace sent last time with nothing. Without this \
+flag the two are the same type."""
+
+[[rule]]
+id = "tsconfig/noImplicitOverride"
+tool = "tsconfig"
+citation = "docs/harness/workflow.md: Rules from findings"
+fixture = "rules/fixtures/tsconfig-noimplicitoverride"
+reason = """One connector per marketplace behind a shared interface, so a method that silently \
+shadows the base class is a capability routed one way and implemented another. The modifier makes \
+the intent a declaration."""
+
+# ---------------------------------------------------------------------------
+# Biome. Format and lint, in milliseconds, which is what makes it a hook rule
+# rather than a CI rule. It is also the authority on style, so a review finding
+# about style is refused (SEEN-118): a reviewer arguing about a brace is a
+# reviewer not reading the money.
+#
+# The three nursery rules below are type-aware and run on Biome's own inference
+# rather than a TypeScript program, measured at 1.8ms on one file before they were
+# chosen. They are here rather than under ast-grep, which the ticket's own wording
+# suggested, because ast-grep would have to match a call expression and guess at
+# its type.
+# ---------------------------------------------------------------------------
+
+[[rule]]
+id = "biome/recommended"
+tool = "biome"
+citation = "docs/harness/workflow.md: A bounded review"
+fixture = "rules/fixtures/biome-recommended"
+expect = "suspicious/noImplicitAnyLet"
+reason = """One decision, taken once: Biome's recommended set decides style and the obvious \
+correctness mistakes, so neither reaches a review. Three hundred entries here for rules nobody \
+chose one by one would be a registry a reader skims."""
+
+[[rule]]
+id = "biome/noFloatingPromises"
+tool = "biome"
+citation = "docs/harness/workflow.md: Rules from findings"
+fixture = "rules/fixtures/biome-nofloatingpromises"
+reason = """An unawaited write to the audit log is a side effect that happened before its event \
+was committed, which is the one ordering the architecture's append-only audit rests on. The error \
+it drops is the error nobody sees."""
+
+[[rule]]
+id = "biome/noMisusedPromises"
+tool = "biome"
+citation = "docs/architecture.md: Agent runtime and the policy gate"
+fixture = "rules/fixtures/biome-nomisusedpromises"
+reason = """A promise used as a condition is always truthy, so a gate asked `if (allowed(...))` \
+without the await decides autonomous for every action. That is the policy gate failing open."""
+
+[[rule]]
+id = "biome/useAwaitThenable"
+tool = "biome"
+citation = "docs/architecture.md: Agent runtime and the policy gate"
+fixture = "rules/fixtures/biome-useawaitthenable"
+reason = """An await on something that is not thenable is an await on the wrong call, and it reads \
+as though the asynchronous one had been made. In a tool call that files a claim, the difference is \
+whether the marketplace was reached at all."""

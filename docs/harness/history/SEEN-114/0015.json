@@ -1,0 +1,32 @@
+{
+  "sequence": 15,
+  "ticket": "SEEN-114",
+  "timestamp": "2026-10-01T08:44:40.944803+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "6973478f0bee",
+  "head": "708d6c659177005a883fea8349d85d1b8fa84514",
+  "prev_hash": "264a9c4d42a12e949dfb4635af70dfd5305441e12d0448d8f5e182467c9dd4a7",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_rules"
+    ],
+    "phase": "green",
+    "exit_code": 1,
+    "model": "claude-opus-5",
+    "model_declared": "opus",
+    "agent_declared": null,
+    "duration_ms": 3219,
+    "output": "F.......................\n======================================================================\nFAIL: test_a_fixture_directory_that_is_empty_is_reported (harness.tests.test_rules.FixtureTest.test_a_fixture_directory_that_is_empty_is_reported)\nAn empty fixture cannot refuse anything, and would pass quietly.\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_rules.py\", line 320, in test_a_fixture_directory_that_is_empty_is_reported\n    self.assertIn('empty', results[0]['detail'])\n    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 'empty' not found in \"biome.json is not in this repository, so what would run is biome's own defaults rather than this repository's rules, and nothing a default refuses proves a rule\"\n\n----------------------------------------------------------------------\nRan 24 tests in 3.128s\n\nFAILED (failures=1)\n",
+    "output_sha256": "37a837dfc6c4ba7205db976ac7730945d31c6d2cd6981b3eff25969f15c312cd",
+    "output_truncated": false,
+    "before": "93017c2ee4a3e7aa88690e7ea973df72464156df0dc41ba64b155263994ea9ac",
+    "after": "93017c2ee4a3e7aa88690e7ea973df72464156df0dc41ba64b155263994ea9ac"
+  }
+}
