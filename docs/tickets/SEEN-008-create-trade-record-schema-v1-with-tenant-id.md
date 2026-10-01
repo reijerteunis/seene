@@ -1188,6 +1188,66 @@ whose implementer said plainly that its half had gone green on its first run whi
 stands unedited, because a journal that can be corrected after a reviewer has read it is not evidence, and the
 tdd record for this round names which of its findings the cited red covers and which it does not.
 
+**The sixth review broke nothing of the schema either, and its three findings were all in the machinery, two of
+them in the guard the previous round had built.** That is the shape that ended the loop. By this point every
+round was adding a guard to catch a stale claim and the next round was finding a hole in that guard, while the
+tables themselves had survived two consecutive reviews that attacked rather than read them: tenancy measured over
+both relation families, 29 of 29 on each of three questions with the negative query empty; the cross-tenant read
+measured with a claim, with no claim and with a malformed claim; the five criterion-4 indexes measured unique and
+non-partial; the seed compared cell by cell; the new guard function forced to fail mid-way with a planted trigger
+name and found to create nothing it could not finish, its restore path returning `pg_get_triggerdef` byte for
+byte, owner-only and not `security definer`, with no state constructible in which its two lists disagree and the
+suite passes.
+
+**F86 was a real hole and it is the third time this repository has met it.** The guard written for F84 counted
+callers by searching its own source for the function name followed by an open bracket, which cannot tell a call
+from a quotation: narrowing the protected call did turn the test red, but adding one comment line quoting the
+unnarrowed call restored the count and every assertion passed again, over a re-opened F79 in which the
+`public.tenants` entry was read by nobody. That entry holds F81's own sentence, the one record 292 quoted as the
+declaration of the F78 gap, so it could have come back into the migration with 194 tests green. The answer is the
+one `repository.ts` already took at F45, when `ts.preProcessFile` could not tell a type position from a value
+position: count call expressions through a syntax-tree walk. Both attacks are now measured inside the test rather
+than left to a reviewer, the narrowing and the narrowing re-quoted in a comment and in a string literal, and the
+RED reports the count as 2 for the delivered file because the fixture's own quotation was counted, which is the
+defect demonstrating itself.
+
+**F87 was a sentence written one round earlier that claimed to state a cost in full and was false of 29 of the 32
+members it was about**, because the reach assertion was computed from the exception-filtered list, so exempting
+any `tenant_id` reported its table as one the two rules had never reached and sent the author hunting a hole in
+the derivation rather than at the assertion refusing their exemption. The reach now reads the unfiltered
+derivation, which is the answer that makes the sentence true rather than the answer that adds a fourth cost: the
+assertion exists to prove the rules reached every writable table, and an exemption removes a column from the
+probe, not from their reach. The alternative was declined on three checkable grounds, all recorded at the
+function: neither catalogue rule distinguishes the two bases, the mirrored list in `seen.mutable_identifiers()`
+is honoured by a loop that reads no basis either, and a rule that is really a refusal belongs in the refusal.
+
+**Two limits of the verification, declared at the end because the round after this one was not coming.** Neither
+is about the tables and both were measured rather than guessed. First: the suite proves that the schema refuses
+an update of a derived member and not that part 9's trigger is what refuses it. 17 of the 29 tenancy members
+carry a mandatory composite foreign key including `tenant_id` to a parent other than `public.tenants`, so for
+those 17 the update is refused 23503 by the parent key whether the loop's trigger stands or not, and dropping
+`immutable_tenant_id` from any of them leaves the suite green. Only the three authored identifiers and the twelve
+unpinned tenancy members carry evidence that the trigger is the author of the refusal. Second, and the one that
+matters for the tickets after this: `seen.guard_authored_identifiers()` is called from one place, the `do` block
+at the foot of its own migration, so its whole-set check runs at apply time and nowhere else. A later migration
+that adds a table carrying `tenant_id` gets no immutability trigger unless it calls the function, nothing hands
+that obligation forward (it is not in `SCHEMA_OBLIGATIONS`), and if the new table is of the parent-key-pinned
+shape the suite reports nothing either. One `perform seen.guard_authored_identifiers();` in each later migration,
+or an obligation entry naming it, closes it. Neither was written, because both are outside this ticket's criteria
+and outside the files its slice names, and a declaration is the honest form of that.
+
+**How this ticket ends, which is not with a receipt.** The review that read this tree six times was a Claude Code
+subagent, and `needs_two_reviewers` is true here because `full_depth_rules` carries `billing`, so the gate
+requires a reviewer the implementing tool did not provide and refuses a review naming claude in both slots. Three
+Codex rounds before these six had each died on a usage limit. Ruud's decision, taken with the position stated, is
+to merge without a receipt rather than wait on the other assistant or narrow `REVIEWED_TWICE` as its own ticket.
+So this ticket carries six reviews, twenty-two findings from F67 to F88 all resolved, 1,436 tests green and all
+five criteria measured by execution, and no delivery receipt at all; the merge is recorded in the journal as the
+decision it was, and the status stays at `review` because nothing passed the gate that would make it `done`. What
+that costs is precise and worth writing down rather than softening: the two highs of this stretch, F67's unfound
+storage objects and F78's cross-tenant credential move, were both found by a review, and the one control that
+exists to make a second pair of eyes mandatory where a missed defect costs money is the control that was waived.
+
 ## Slices
 
 The starting slice plan, one session each; the solution stage adopts or amends it (SEEN-104). A slice is at most 2 points and a ticket has at most four.
