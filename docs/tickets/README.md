@@ -46,7 +46,7 @@ Conventions: branch `claude/<id>-<slug>` (or `codex/`), commit messages `feat(<i
 | [SEEN-113](SEEN-113-let-a-tdd-record-cite-the-evidence-a-return.md) | Let a tdd record cite the evidence a return did not invalidate | E10 | 2 | Claude Code | review | SEEN-104, SEEN-112 |
 | [SEEN-114](SEEN-114-turn-every-recurring-finding-into-a-rule-the.md) | Turn every recurring finding into a rule the pre-commit hook runs in seconds | E10 | 3 | Claude Code | todo | SEEN-090, SEEN-107 |
 | [SEEN-115](SEEN-115-generate-the-marketplace-clients-from-the.md) | Generate the marketplace clients from the official OpenAPI specs and validate every fixture against them | E10 | 3 | Claude Code | todo | SEEN-009 |
-| [SEEN-116](SEEN-116-property-based-and-mutation-tests-on-the-money.md) | Property-based and mutation tests on the money core, as a gate | E10 | 3 | Claude Code | todo | SEEN-089 |
+| [SEEN-116](SEEN-116-property-based-and-mutation-tests-on-the-money.md) | Property-based and mutation tests on the money core, as a gate | E10 | 3 | Claude Code | doing | SEEN-089 |
 | [SEEN-117](SEEN-117-the-spec-session-writes-the-red-the-implementer.md) | The spec session writes the RED; the implementer cannot touch it | E10 | 2 | Claude Code | todo | SEEN-105, SEEN-106, SEEN-111 |
 | [SEEN-118](SEEN-118-a-finding-needs-a-failing-test-taste-is-not-a.md) | A finding needs a failing test, taste is not a finding, and the third round is the founder's | E10 | 2 | Claude Code | todo | SEEN-107, SEEN-113 |
 | [SEEN-119](SEEN-119-independent-slices-run-in-parallel-worktrees.md) | Independent slices run in parallel worktrees | E10 | 3 | Claude Code | todo | SEEN-111, SEEN-112 |
