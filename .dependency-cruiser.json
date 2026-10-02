@@ -1,0 +1,82 @@
+{
+  "forbidden": [
+    {
+      "name": "core-no-io",
+      "severity": "error",
+      "comment": "Why: rules/registry.toml, dependency-cruiser/core-no-io.",
+      "from": { "path": "^packages/core/src/" },
+      "to": {
+        "path": "^(node:)?(fs|net|http|https|child_process|dgram|tls|worker_threads)($|/)|(^|node_modules/)(pg|bullmq|ioredis|undici|axios|got|node-fetch)($|/)"
+      }
+    },
+    {
+      "name": "core-no-apps-or-siblings",
+      "severity": "error",
+      "comment": "Why: rules/registry.toml, dependency-cruiser/core-no-apps-or-siblings.",
+      "from": { "path": "^packages/core/" },
+      "to": { "path": "^(apps/|packages/connectors/|packages/agent/)" }
+    },
+    {
+      "name": "connectors-no-agent",
+      "severity": "error",
+      "comment": "Why: rules/registry.toml, dependency-cruiser/connectors-no-agent.",
+      "from": { "path": "^packages/connectors/" },
+      "to": { "path": "^packages/agent/" }
+    },
+    {
+      "name": "no-app-imports-another-app",
+      "severity": "error",
+      "comment": "Why: rules/registry.toml, dependency-cruiser/no-app-imports-another-app.",
+      "from": { "path": "^apps/([^/]+)/" },
+      "to": { "path": "^apps/([^/]+)/", "pathNot": "^apps/$1/" }
+    },
+    {
+      "name": "no-cloud-sdk-outside-providers",
+      "severity": "error",
+      "comment": "Why: rules/registry.toml, dependency-cruiser/no-cloud-sdk-outside-providers.",
+      "from": { "path": "^(apps|packages)/", "pathNot": "^packages/providers/" },
+      "to": {
+        "path": "(^|node_modules/)(@google-cloud/|@aws-sdk/|@azure/|googleapis($|/)|google-auth|aws-sdk($|/)|firebase-admin($|/))"
+      }
+    },
+    {
+      "name": "database-through-repository",
+      "severity": "error",
+      "comment": "Why: rules/registry.toml, dependency-cruiser/database-through-repository.",
+      "from": { "path": "^(apps|packages)/", "pathNot": "^packages/core/db/" },
+      "to": { "path": "(^|node_modules/)pg($|/)" }
+    },
+    {
+      "name": "marketplace-write-through-policy-gate",
+      "severity": "error",
+      "comment": "Why: rules/registry.toml, dependency-cruiser/marketplace-write-through-policy-gate.",
+      "from": {
+        "path": "^(apps|packages)/",
+        "pathNot": "^(packages/core/src/policy/|packages/connectors/src/writes/)"
+      },
+      "to": { "path": "^packages/connectors/src/writes/" }
+    },
+    {
+      "name": "network-only-through-generated-clients",
+      "severity": "error",
+      "comment": "Why: rules/registry.toml, dependency-cruiser/network-only-through-generated-clients.",
+      "from": {
+        "path": "^(apps|packages)/",
+        "pathNot": "^(packages/connectors/src/generated/|packages/core/src/)"
+      },
+      "to": {
+        "path": "(^|node_modules/)(undici|axios|got|node-fetch|superagent|request)($|/)|^(node:)?(http|https)$"
+      }
+    }
+  ],
+  "options": {
+    "doNotFollow": { "path": "node_modules" },
+    "exclude": { "path": "(^|/)(dist|coverage|\\.next|\\.turbo)/|^rules/fixtures/" },
+    "tsConfig": { "fileName": "tsconfig.base.json" },
+    "tsPreCompilationDeps": true,
+    "enhancedResolveOptions": {
+      "exportsFields": ["exports"],
+      "conditionNames": ["import", "require", "node", "default", "types"]
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "sequence": 13,
+  "ticket": "SEEN-114",
+  "timestamp": "2026-10-01T08:27:47.189369+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "6973478f0bee",
+  "head": "708d6c659177005a883fea8349d85d1b8fa84514",
+  "prev_hash": "65054f5e428f05912b9e671e4c90b6edccccf6e90fc97121c8f63465244ab93a",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_rules"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "model": "claude-opus-5",
+    "model_declared": "opus",
+    "agent_declared": null,
+    "duration_ms": 3241,
+    "output": "F.....................F.\n======================================================================\nFAIL: test_a_fixture_directory_that_is_empty_is_reported (harness.tests.test_rules.FixtureTest.test_a_fixture_directory_that_is_empty_is_reported)\nAn empty fixture cannot refuse anything, and would pass quietly.\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_rules.py\", line 320, in test_a_fixture_directory_that_is_empty_is_reported\n    self.assertIn('empty', results[0]['detail'])\n    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 'empty' not found in \"biome.json is not in this repository, so what would run is biome's own defaults rather than this repository's rules, and nothing a default refuses proves a rule\"\n\n======================================================================\nFAIL: test_every_rule_in_this_repository_is_traceable (harness.tests.test_rules.ThisRepositoryTest.test_every_rule_in_this_repository_is_traceable)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_rules.py\", line 333, in test_every_rule_in_this_repository_is_traceable\n    self.assertEqual(rules.problems(PROJECT), [])\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: Lists differ: ['tsconfig/noUncheckedIndexedAccess is in [1152 chars]ded'] != []\n\nFirst list contains 7 additional elements.\nFirst extra element 0:\n'tsconfig/noUncheckedIndexedAccess is in rules/registry.toml and tsconfig.base.json does not enable it. A registry that may hold rules nothing runs is a registry that can be padded'\n\nDiff is 1309 characters long. Set self.maxDiff to None to see it.\n\n----------------------------------------------------------------------\nRan 24 tests in 3.175s\n\nFAILED (failures=2)\n",
+    "output_sha256": "03866a146cdcc1ea0dd7dceb19c750e45722ef4c389b6cbce3c44c6e1f65b327",
+    "output_truncated": false,
+    "before": "835127ebb18ffb3a9618bfb8d88e7370fab434eed8bbece97d82a99f2f8aef1d",
+    "after": "835127ebb18ffb3a9618bfb8d88e7370fab434eed8bbece97d82a99f2f8aef1d"
+  }
+}

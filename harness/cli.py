@@ -230,6 +230,16 @@ def build_parser():
 
     commands.add_parser('sync', help='Generate the skill copies from docs/harness/skill.md')
     commands.add_parser('lint', help='Refuse live marketplace hosts in test code')
+    rule_set = commands.add_parser('rules',
+                                   help='The rule set in front of the model: its registry, its '
+                                        'citations and the fixture each rule is proven by')
+    rule_set.add_argument('--check', action='store_true',
+                          help='Cross-check rules/registry.toml against the tools\' own '
+                               'configurations, in both directions, and refuse a rule with no '
+                               'citation. The default when no flag is given')
+    rule_set.add_argument('--fixtures', action='store_true',
+                          help='Run each rule against the fixture it stands on and refuse one '
+                               'that does not fire. Needs the workspace installed')
     check_self = commands.add_parser('doctor',
                                      help='Check the harness files, the journals and the links')
     check_self.add_argument('--quick', action='store_true',
@@ -1017,6 +1027,7 @@ UNMEASURABLE = [
 
 def write_report(repository, args):
     from . import calibration as calibrating, report as reporting
+    from . import rules as rule_set
     require(args.week or args.sprint is not None or args.calibration,
             'Ask for --week, --sprint <n> or --calibration')
     rules = thresholds.load(repository.root)
@@ -1050,6 +1061,20 @@ def write_report(repository, args):
         year, week, _ = date.fromisoformat(when).isocalendar()
         name = f'{year}-W{week:02d}'
         title = f'Week {week} of {year}'
+    # SEEN-114's rule loop, read only for `--week`: the criterion asks for it
+    # of that report by name, and "rules added" is dated against an ISO week,
+    # which a sprint's own date range does not carry.
+    rule_loop_section = None
+    if args.sprint is None:
+        registry = rule_set.load(repository.root)
+        ticket_records = []
+        for entry in covered:
+            folder = repository.root / HISTORY / entry['ticket']
+            if folder.is_dir():
+                ticket_records.append((entry['ticket'], journal.read(folder)))
+        rule_loop_section = reporting.rule_loop(ticket_records, registry)
+        rule_loop_section['rules_added'] = reporting.rules_added_in_week(
+            registry, rule_set.arrival_dates(repository.root), when)
     budget = rules['context']
     baseline_path = repository.root / budget['baseline']
     section = None
@@ -1069,8 +1094,10 @@ def write_report(repository, args):
     # is the one a reader most needs told.
     shadow = calibrating.effective_shadow(repository.root, rules)
     payload = dict(name=name, generated_for=name, tickets=covered, totals=totals,
-                   unmeasurable=UNMEASURABLE, context=section, review_triage_shadow=shadow)
-    markdown = reporting.render(title, covered, totals, UNMEASURABLE, section, budget, shadow)
+                   unmeasurable=UNMEASURABLE, context=section, review_triage_shadow=shadow,
+                   rule_loop=rule_loop_section)
+    markdown = reporting.render(title, covered, totals, UNMEASURABLE, section, budget, shadow,
+                                rule_loop_section)
     written = reporting.write(repository.root, name, markdown, payload)
     return dict(written, tickets=len(covered), totals=totals)
 
@@ -1175,6 +1202,28 @@ def execute(args):
                 + '\nConnector tests run against recorded fixtures. If a line names a host on '
                   'purpose, mark it with ' + secrets.ALLOW_MARKER)
         return dict(ok=True, checked='test code', hosts=list(secrets.MARKETPLACE_HOSTS))
+    if args.command == 'rules':
+        from . import rules as rule_set
+        # No flag means --check, because the question a session asks about the
+        # rule set without saying which is whether it is traceable, and the
+        # fixtures need the workspace installed where the check needs nothing.
+        answer = rule_set.report(repository.root, fixtures=args.fixtures)
+        # One refusal carrying both halves rather than two in sequence. A
+        # registry problem would otherwise hide every unproven rule behind it,
+        # and the two are fixed in the same sitting: the rule and its citation
+        # are written together or neither is.
+        trouble = []
+        if answer['problems']:
+            trouble.append('The rule set is not traceable:\n  '
+                           + '\n  '.join(answer['problems']))
+        if answer.get('unproven'):
+            trouble.append('These rules did not refuse their own fixture, so nothing proves they '
+                           'run:\n  '
+                           + '\n  '.join(f'{result["id"]}: {result["detail"]}'
+                                         for result in answer.get('fixtures', [])
+                                         if not result['fired']))
+        require(not trouble, '\n'.join(trouble))
+        return answer
     if args.command == 'list':
         return list_tickets(repository)
     if args.command == 'guard':

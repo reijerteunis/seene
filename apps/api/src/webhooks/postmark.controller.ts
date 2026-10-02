@@ -1,7 +1,7 @@
 import { BadRequestException, Body, Controller, HttpCode, Inject, Post } from '@nestjs/common';
 
 import { isPostmarkInbound, toAppendInput } from '../mail/postmark';
-import { THREAD_STORE, type ThreadStore } from '../mail/threads';
+import { type AppendInput, THREAD_STORE, type ThreadStore } from '../mail/threads';
 
 /**
  * Where forwarded mail enters. In the local environment a fixture is replayed
@@ -24,7 +24,7 @@ export class PostmarkController {
       throw new BadRequestException('Not a Postmark inbound payload.');
     }
 
-    let input;
+    let input: AppendInput;
     try {
       input = toAppendInput(body);
     } catch (error) {

@@ -1,0 +1,89 @@
+# Why: rules/registry.toml, ast-grep/money-as-integer-cents.
+id: money-as-integer-cents
+language: Tsx
+severity: error
+message: Money is integer cents here. Parse to cents with integer arithmetic, and keep the currency in its own field.
+note: |
+  CLAUDE.md: amounts are in cents as integers with a currency code. This rule is
+  the half a pattern can express: decimal parsing, decimal formatting, and a
+  non-integer literal bound to a name that says it is money. The branded Cents
+  type that catches the rest is SEEN-135.
+files:
+  - "packages/core/**"
+ignores:
+  - "**/dist/**"
+  - "**/coverage/**"
+rule:
+  any:
+    - pattern: parseFloat($$$ARGS)
+    - pattern: Number.parseFloat($$$ARGS)
+    - pattern: $RECEIVER.toFixed($$$DIGITS)
+    - all:
+        - kind: variable_declarator
+        - has:
+            field: name
+            regex: '(?i)cents|amount|price|fee'
+        - has:
+            field: value
+            kind: number
+            regex: '\.'
+    # A fee schedule is written as an object literal and a tariff as a class
+    # field, which is how SEEN-016 and SEEN-071 will write them, so the same
+    # literal in those two positions is the same defect. SEEN-114 F24: the rule
+    # read only a variable declarator while its registry entry said it read a
+    # non-integer literal bound to a name that says it is money.
+    - all:
+        - kind: pair
+        - has:
+            field: key
+            regex: '(?i)cents|amount|price|fee'
+        - has:
+            field: value
+            kind: number
+            regex: '\.'
+    - all:
+        - kind: public_field_definition
+        - has:
+            field: name
+            regex: '(?i)cents|amount|price|fee'
+        - has:
+            field: value
+            kind: number
+            regex: '\.'
+    # A credit line is a negative amount, so the same literal behind a minus sign
+    # is the same defect in the same three positions. The value is a
+    # unary_expression there rather than a number, which is why it needs its own
+    # three clauses (SEEN-114 F30).
+    - all:
+        - kind: variable_declarator
+        - has:
+            field: name
+            regex: '(?i)cents|amount|price|fee'
+        - has:
+            field: value
+            kind: unary_expression
+            has:
+              kind: number
+              regex: '\.'
+    - all:
+        - kind: pair
+        - has:
+            field: key
+            regex: '(?i)cents|amount|price|fee'
+        - has:
+            field: value
+            kind: unary_expression
+            has:
+              kind: number
+              regex: '\.'
+    - all:
+        - kind: public_field_definition
+        - has:
+            field: name
+            regex: '(?i)cents|amount|price|fee'
+        - has:
+            field: value
+            kind: unary_expression
+            has:
+              kind: number
+              regex: '\.'

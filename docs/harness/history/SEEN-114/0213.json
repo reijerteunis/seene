@@ -1,0 +1,32 @@
+{
+  "sequence": 213,
+  "ticket": "SEEN-114",
+  "timestamp": "2026-10-01T17:34:14.331161+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 10,
+  "actor": "claude:implementer",
+  "session": "ad77b7a13315",
+  "head": "b19b14f7d46c0c5390e095a417226ad7f8f4ee32",
+  "prev_hash": "cd6dc63ab2876b8e2212aef57466f43587caca86101ac84e8116e73b0df5a095",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_rules"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "model": "claude-opus-5",
+    "model_declared": "opus",
+    "agent_declared": null,
+    "duration_ms": 8040,
+    "output": "...............................................F.....F..F.\n======================================================================\nFAIL: test_every_rule_in_this_repository_is_traceable (harness.tests.test_rules.ThisRepositoryTest.test_every_rule_in_this_repository_is_traceable)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_rules.py\", line 406, in test_every_rule_in_this_repository_is_traceable\n    self.assertEqual(rules.problems(PROJECT), [])\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: Lists differ: ['ast-grep/no-euro-sign is in rules/regist[2588 chars]ded'] != []\n\nFirst list contains 14 additional elements.\nFirst extra element 0:\n'ast-grep/no-euro-sign is in rules/registry.toml and sgconfig.yml does not enable it. A registry that may hold rules nothing runs is a registry that can be padded'\n\nDiff is 2850 characters long. Set self.maxDiff to None to see it.\n\n======================================================================\nFAIL: test_every_workspace_package_declares_an_exports_map (harness.tests.test_rules.WhereTheSetRunsTest.test_every_workspace_package_declares_an_exports_map)\nSo nothing reaches into another package's internals.\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_rules.py\", line 552, in test_every_workspace_package_declares_an_exports_map\n    self.assertIn('exports', manifest, f'{path} declares no exports map')\n    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 'exports' not found in {'name': '@seen/api', 'version': '0.0.0', 'private': True, 'description': 'The HTTP surface: connections, findings, claims and the approval inbox.', 'main': './dist/apps/api/src/main.js', 'scripts': {'build': 'tsc -p tsconfig.json', 'dev': 'nest start --watch', 'start': 'node dist/apps/api/src/main.js', 'test': 'vitest run', 'lint': 'biome check src', 'typecheck': 'tsc --noEmit -p tsconfig.json'}, 'dependencies': {'@nestjs/common': '^11.0.0', '@nestjs/core': '^11.0.0', '@nestjs/platform-express': '^11.0.0', '@seen/core': 'workspace:*', '@seen/providers': 'workspace:*', 'nodemailer': '^10.0.10', 'reflect-metadata': '^0.2.2', 'rxjs': '^7.8.1'}, 'devDependencies': {'@nestjs/cli': '^12.0.6', '@nestjs/testing': '^11.0.0', '@types/nodemailer': '^8.0.2', '@types/supertest': '^6.0.2', 'supertest': '^7.0.0'}} : /Users/ruudvanengelenhoven/Development/seene/apps/api/package.json declares no exports map\n\n======================================================================\nFAIL: test_the_pre_commit_hook_runs_the_set_over_the_staged_files (harness.tests.test_rules.WhereTheSetRunsTest.test_the_pre_commit_hook_runs_the_set_over_the_staged_files)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_rules.py\", line 486, in test_the_pre_commit_hook_runs_the_set_over_the_staged_files\n    self.assertIn('./scripts/rules.sh staged', self.hook())\n    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: './scripts/rules.sh staged' not found in '#!/bin/sh\\n# Catch a credential before it is in history, not after.\\n#\\n# Committed and versioned rather than living in .git, which is not in the\\n# repository: a control only one machine has is not a control. CI runs gitleaks\\n# again on the checkout, so bypassing this with --no-verify still fails.\\nset -e\\n\\nif ! command -v gitleaks >/dev/null 2>&1; then\\n  echo \"pre-commit: gitleaks is not installed, so staged changes were not scanned.\" >&2\\n  echo \"            brew install gitleaks, or commit from a machine that has it.\" >&2\\n  exit 1\\nfi\\n\\ngitleaks protect --staged --redact --no-banner\\n'\n\n----------------------------------------------------------------------\nRan 58 tests in 7.976s\n\nFAILED (failures=3)\n",
+    "output_sha256": "167a2b0666cb730b8aa3aadcbbdbe1de1044803a017781fc8d3730ee3befad52",
+    "output_truncated": false,
+    "before": "a9f99addf21d3eb1a5c462dcf65fca18b83e286dfd83f1b1e7f16a6e2d1853d5",
+    "after": "a9f99addf21d3eb1a5c462dcf65fca18b83e286dfd83f1b1e7f16a6e2d1853d5"
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "sequence": 368,
+  "ticket": "SEEN-114",
+  "timestamp": "2026-10-02T05:31:37.877968+00:00",
+  "harness_version": "2",
+  "kind": "receipt",
+  "stage": "deliver",
+  "attempt": 16,
+  "actor": "claude:implementer",
+  "session": "ad77b7a13315",
+  "head": "4a9c49890ccd95a496794dbfb51f8b8a704d8c03",
+  "prev_hash": "d956c26ac5d5bdb5d48ef352cd82f62047d890a00682993536fd8abccbe8e13f",
+  "data": {
+    "from_stage": "deliver",
+    "to_stage": "delivered",
+    "commit": "4a9c49890ccd95a496794dbfb51f8b8a704d8c03",
+    "branch": "claude/SEEN-114-rules-from-findings",
+    "remote": "origin",
+    "tree": "3e7181748fd6f5ea0e73826c0a0c5faa91d8c329fb52d773c9d9200f6fd9df77",
+    "pull_request": "https://github.com/reijerteunis/seene/pull/35",
+    "limits": [
+      "No runtime behaviour changes. Two provider modules are deleted because a dependency-cruiser rule replaces them with a resolver that reads every import grammar, and nothing else in apps/ or packages/ changes what the code does: the twenty-six reformatted TypeScript sources are Biome's output, compared before and after with whitespace normalised away by two separate reviews.",
+      "packages/core/db is still in no tsconfig project, so its nine files are compiled by nothing. Criterion 1 is amended to say so and the work has no ticket yet. Its size is measured rather than guessed: five diagnostics in the three source modules under the four flags (check 254) and 122 once the six test files join (check 277).",
+      "Six review findings are carried rather than fixed, each written into the ticket's carried-forward section with its reproduction: a citation validated to the file and not to the section; superagent and request missing from core-no-io's deny-list, where the allow-list in packages/core/db/repository.ts is the complete instrument; the em-dash and euro-sign rules reading only TypeScript under apps and packages while their citations say anywhere, with three tracked files carrying one today; the credential rule refusing any base64 JSON, because every such string begins eyJ; harness coverage taking no --model, so a coverage check declares neither a model nor an agent; and fixture_results going quiet on a registry entry whose tool has no runner.",
+      "The rule four of this ticket's own findings asked for is named and not written: harness/tdd-record-count-matches-check, a refusal at the tdd gate when a failure_reason names a test total the check it cites does not print. Four findings over five reviews were that one defect, which is what the weekly report's recurrence list exists to say out loud.",
+      "The money rule is the half a pattern can express and its registry entry now says which half: it reads a literal written with a decimal point, with or without a leading minus, in a variable declarator, an object property or a class field. It does not read exponent notation, a parameter default, or an amount arriving as a string or a variable. Those are SEEN-135's branded Cents.",
+      "@seen/providers could not be tested on the author's machine: supabase start refuses because the local stack's migration table already holds 20260924000000. Check 184 records the suite failing for that reason and check 186 the 210 tests of the six packages that need no stack. CI runs all seven, which is what the checks on this delivery attest.",
+      "The review that passes this ticket is the founder's own, recorded as human:reviewer. A Claude Code subagent inherits its parent session id, so claude:reviewer cannot satisfy the independence rule; six subagent reviews read the diff first and their twenty-eight findings are in the journal. Record 343 carries the reasoning."
+    ],
+    "evidence": {
+      "remote": "origin",
+      "pull_request": "https://github.com/reijerteunis/seene/pull/35",
+      "limits": [
+        "No runtime behaviour changes. Two provider modules are deleted because a dependency-cruiser rule replaces them with a resolver that reads every import grammar, and nothing else in apps/ or packages/ changes what the code does: the twenty-six reformatted TypeScript sources are Biome's output, compared before and after with whitespace normalised away by two separate reviews.",
+        "packages/core/db is still in no tsconfig project, so its nine files are compiled by nothing. Criterion 1 is amended to say so and the work has no ticket yet. Its size is measured rather than guessed: five diagnostics in the three source modules under the four flags (check 254) and 122 once the six test files join (check 277).",
+        "Six review findings are carried rather than fixed, each written into the ticket's carried-forward section with its reproduction: a citation validated to the file and not to the section; superagent and request missing from core-no-io's deny-list, where the allow-list in packages/core/db/repository.ts is the complete instrument; the em-dash and euro-sign rules reading only TypeScript under apps and packages while their citations say anywhere, with three tracked files carrying one today; the credential rule refusing any base64 JSON, because every such string begins eyJ; harness coverage taking no --model, so a coverage check declares neither a model nor an agent; and fixture_results going quiet on a registry entry whose tool has no runner.",
+        "The rule four of this ticket's own findings asked for is named and not written: harness/tdd-record-count-matches-check, a refusal at the tdd gate when a failure_reason names a test total the check it cites does not print. Four findings over five reviews were that one defect, which is what the weekly report's recurrence list exists to say out loud.",
+        "The money rule is the half a pattern can express and its registry entry now says which half: it reads a literal written with a decimal point, with or without a leading minus, in a variable declarator, an object property or a class field. It does not read exponent notation, a parameter default, or an amount arriving as a string or a variable. Those are SEEN-135's branded Cents.",
+        "@seen/providers could not be tested on the author's machine: supabase start refuses because the local stack's migration table already holds 20260924000000. Check 184 records the suite failing for that reason and check 186 the 210 tests of the six packages that need no stack. CI runs all seven, which is what the checks on this delivery attest.",
+        "The review that passes this ticket is the founder's own, recorded as human:reviewer. A Claude Code subagent inherits its parent session id, so claude:reviewer cannot satisfy the independence rule; six subagent reviews read the diff first and their twenty-eight findings are in the journal. Record 343 carries the reasoning."
+      ]
+    },
+    "checks": [
+      {
+        "name": "Harness tests (Python 3.12)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Knowledge graph",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Monorepo (Node 24)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Secrets and supply chain",
+        "conclusion": "success",
+        "runs": 1
+      }
+    ],
+    "coverage": {
+      "package": "@seen/core",
+      "lines": 100.0,
+      "delta": 0.0
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "sequence": 201,
+  "ticket": "SEEN-114",
+  "timestamp": "2026-10-01T17:08:13.107635+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 9,
+  "actor": "claude:implementer",
+  "session": "ad77b7a13315",
+  "head": "77c86b6163aa33e99df5cb16da0d21caf5c31583",
+  "prev_hash": "2b58c248df0d11a0b5fe80ec613ab5f98c0e6bad155d7cc5d4b3267143285151",
+  "data": {
+    "command": [
+      "env",
+      "GIT_INDEX_FILE=.harness-drafts/SEEN-114-staged-index",
+      "./scripts/rules.sh",
+      "staged"
+    ],
+    "phase": "green",
+    "exit_code": 0,
+    "model": "claude-opus-5",
+    "model_declared": "opus",
+    "agent_declared": null,
+    "duration_ms": 984,
+    "output": "==> Biome on the staged files\nChecked 34 files in 341ms. No fixes applied.\n    biome: ok in 0s\n==> ast-grep on the staged files\n    ast-grep: ok in 0s\n==> dependency-cruiser on the staged files\n\n✔ no dependency violations found (46 modules, 67 dependencies cruised)\n\n    dependency-cruiser: ok in 1s\n",
+    "output_sha256": "081a74db9001acac8bff83f1bd0044c30169ffb8764511404b575b5df63d55be",
+    "output_truncated": false,
+    "before": "975dadf624e83d6754d7046d591d0371470b9673b1c650c9feff3a2a00443060",
+    "after": "975dadf624e83d6754d7046d591d0371470b9673b1c650c9feff3a2a00443060"
+  }
+}

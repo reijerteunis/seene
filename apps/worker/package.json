@@ -4,12 +4,21 @@
   "private": true,
   "description": "Scheduled ingest, reconciliation and agent runs on BullMQ.",
   "main": "./dist/apps/worker/src/main.js",
+  "//exports": [
+    "An app is a deployable, and nothing imports it: there is no package root to",
+    "export. dependency-cruiser/no-app-imports-another-app refuses the import and this",
+    "map refuses the resolution, so the manifest is the only thing readable from",
+    "outside, which is what a tool asks a package for."
+  ],
+  "exports": {
+    "./package.json": "./package.json"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "dev": "nest start --watch",
     "start": "node dist/apps/worker/src/main.js",
     "test": "vitest run",
-    "lint": "eslint src",
+    "lint": "biome check src",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {

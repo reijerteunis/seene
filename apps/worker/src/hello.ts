@@ -1,5 +1,5 @@
-import { QueueEvents, Worker } from 'bullmq';
 import type { ConnectionOptions } from 'bullmq';
+import { QueueEvents, Worker } from 'bullmq';
 
 /**
  * The first job, and the shape every later one follows: a named queue, a typed
@@ -15,11 +15,11 @@ export const connection: ConnectionOptions = {
   port: Number(process.env.REDIS_PORT ?? 6379),
 };
 
-export interface HelloPayload {
+interface HelloPayload {
   name: string;
 }
 
-export interface HelloResult {
+interface HelloResult {
   greeted: string;
 }
 

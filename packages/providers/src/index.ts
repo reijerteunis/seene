@@ -6,14 +6,6 @@
  */
 
 export { findRepositoryRoot, loadLocalEnvironment, repositoryRoot } from './environment.ts';
-
-export {
-  type Environment,
-  ProviderConfigurationError,
-  required,
-  selectImplementation,
-} from './selection.ts';
-
 export {
   createSecretsProvider,
   environmentVariableFor,
@@ -22,22 +14,28 @@ export {
   type SecretsProvider,
   type SecretsProviderName,
 } from './secrets.ts';
+export {
+  type Environment,
+  ProviderConfigurationError,
+  required,
+  selectImplementation,
+} from './selection.ts';
 
 export {
   createStorageProvider,
-  sha256,
   STORAGE_PROVIDERS,
   type StorageProvider,
   type StorageProviderName,
   type StoredObject,
+  sha256,
   supabaseStorageProvider,
 } from './storage.ts';
 
 export {
   type Attributes,
   type AttributeValue,
-  consoleTelemetryProvider,
   type CostEntry,
+  consoleTelemetryProvider,
   createTelemetryProvider,
   otlpTelemetryProvider,
   otlpTracesPayload,

@@ -1,0 +1,32 @@
+{
+  "sequence": 24,
+  "ticket": "SEEN-114",
+  "timestamp": "2026-10-01T09:28:40.621617+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "6973478f0bee",
+  "head": "7945ec4e62cad1789d6c4d75fefe9e36a6c4266d",
+  "prev_hash": "16b9d698d800809435d120c00cb30ea19572a4bd74af2110c22084bbd1c271db",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_rules"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "model": "claude-opus-5",
+    "model_declared": "opus",
+    "agent_declared": "seen-implementer",
+    "duration_ms": 3534,
+    "output": "...F...................F.\n======================================================================\nFAIL: test_the_fixture_tree_carries_the_ast_grep_rules (harness.tests.test_rules.FixtureTest.test_the_fixture_tree_carries_the_ast_grep_rules)\nA rule proven in a tree that holds no rules is a rule nothing proved.\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_rules.py\", line 326, in test_the_fixture_tree_carries_the_ast_grep_rules\n    self.assertTrue((tree / 'rules' / 'ast-grep' / 'no-euro-sign.yml').is_file(),\n    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                    'sgconfig.yml was copied into the fixture tree without the rule '\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                    'directory it names, so ast-grep would scan the fixture with no rule')\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: False is not true : sgconfig.yml was copied into the fixture tree without the rule directory it names, so ast-grep would scan the fixture with no rule\n\n======================================================================\nFAIL: test_every_rule_in_this_repository_is_traceable (harness.tests.test_rules.ThisRepositoryTest.test_every_rule_in_this_repository_is_traceable)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_rules.py\", line 362, in test_every_rule_in_this_repository_is_traceable\n    self.assertEqual(rules.problems(PROJECT), [])\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: Lists differ: ['ast-grep/no-euro-sign is in rules/regist[2588 chars]ded'] != []\n\nFirst list contains 14 additional elements.\nFirst extra element 0:\n'ast-grep/no-euro-sign is in rules/registry.toml and sgconfig.yml does not enable it. A registry that may hold rules nothing runs is a registry that can be padded'\n\nDiff is 2850 characters long. Set self.maxDiff to None to see it.\n\n----------------------------------------------------------------------\nRan 25 tests in 3.471s\n\nFAILED (failures=2)\n",
+    "output_sha256": "f816efd8ec06d197e003c70e7a64e16df0e7b670886e23dd69fca466dafb76cb",
+    "output_truncated": false,
+    "before": "aede6cff7e91d0158623e7d28595a07410fc8d90ca5e0c60d4ef7354896ce8f8",
+    "after": "aede6cff7e91d0158623e7d28595a07410fc8d90ca5e0c60d4ef7354896ce8f8"
+  }
+}

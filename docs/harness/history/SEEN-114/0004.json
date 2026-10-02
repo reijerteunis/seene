@@ -1,0 +1,92 @@
+{
+  "sequence": 4,
+  "ticket": "SEEN-114",
+  "timestamp": "2026-10-01T07:30:27.941369+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "6973478f0bee",
+  "head": "708d6c659177005a883fea8349d85d1b8fa84514",
+  "prev_hash": "8342b07fab7dc1c54a4e7814b4c9f620412fe1c3376c35b30f124032264a61ba",
+  "data": {
+    "from_stage": "clarify",
+    "to_stage": "solution",
+    "evidence": {
+      "scope": "Put a rule set in front of the model: strict TypeScript, Biome, ast-grep, dependency-cruiser and knip, each rule traceable to the finding or the architecture section it stands on, running on staged files in the pre-commit hook in under ten seconds and on the tree in CI, with the review's findings feeding the set back through a rule_candidate field, a weekly report section and a doctor warning. Its edge: it adds no product behaviour and writes no rule for a finding that has not happened, and the branded money and id types that would catch the wrong-unit findings in the compiler are SEEN-135's, not this ticket's.",
+      "acceptance": [
+        "1. tsconfig.base.json carries strict, noUncheckedIndexedAccess, exactOptionalPropertyTypes and noImplicitOverride, and the tree typechecks. Evidence: the three flags in the committed tsconfig.base.json, and a green `pnpm turbo run typecheck` over all seven workspace packages recorded as a check. Measured before any of it was written: the tree already passes under all three flags (`tsc --noEmit -p tsconfig.json --noUncheckedIndexedAccess --exactOptionalPropertyTypes --noImplicitOverride` is clean in every package today), so this criterion is a config change plus the proof, and the flags bind what is written after them rather than repairing what is there.",
+        "2. Biome, ast-grep and dependency-cruiser run on staged files in the pre-commit hook in under ten seconds, and in CI on the tree, with each ground rule proven by a fixture that fails. Evidence: a fixture per rule under rules/fixtures/, a runner that asserts each tool exits non-zero on its own fixture and names the rule id, a recorded timing of the hook on a staged set, and the CI job that runs the set on the tree.",
+        "3. Every review finding at medium or above carries rule_candidate, and the review gate refuses a record without it. Evidence: a RED that advances a review record carrying a medium finding with no rule_candidate and is refused with the rule id and the reason named, plus the field in harness/templates/review.json.",
+        "4. harness report --week lists findings a rule could have caught, the rules added, and any candidate that recurred without a rule. Evidence: a weekly report rendered from journals whose findings carry rule_candidate, showing the three lists, and a harness test over a fabricated window.",
+        "5. knip reports zero unused exports on packages/core and the connectors, every package declares an exports map, and each rule in the set cites a finding id or an architecture section, enforced in CI. Evidence: a green knip run scoped to those two packages, an `exports` map in all seven package.json files, and `harness rules --check` refusing a rule with no citation and a tool rule absent from the registry, run in CI."
+      ],
+      "decisions": [
+        "Biome replaces ESLint rather than running beside it. The ticket asks for Biome for format and lint; two linters would be two authorities on style, double the hook's budget, and the ten-second budget is the point of the ticket. SEEN-118 already makes Biome the authority on style ('style is refused because Biome decides style'), so eslint.config.mjs and the eslint and typescript-eslint devDependencies go, and each package's lint script becomes a Biome invocation. Taken on the ticket's own wording; reversible in one commit because the configs are additive and the source is unchanged.",
+        "One rule, one owner, one citation. Where Biome and ast-grep could both express a ground rule, the rule belongs to the tool that can express it properly and the other does not restate it: a type position such as `any` and an unawaited promise are Biome's, and the domain rules no general linter knows (no euro sign, no em or en dash, no cloud SDK import outside packages/providers, no live marketplace host in test code, money as integer cents) are ast-grep's. A duplicated rule would give one finding two rule ids and make the recurrence count in criterion 4 unreadable.",
+        "The rule set lives at the repository root in `rules/`: `rules/registry.toml` as the one place a rule id, its tool, its citation and the ticket that added it are written, `rules/ast-grep/` for the ast-grep rules, and `rules/fixtures/` for the failing fixture per rule. `biome.json`, `sgconfig.yml`, `.dependency-cruiser.cjs` and `knip.json` sit at the root where each tool looks for them. The registry is the traceability requirement with teeth: `harness rules --check` reads the tool configs, refuses a rule absent from the registry and a registry entry with no citation, which is what makes 'a rule nobody can trace is a rule to delete' enforceable rather than a convention.",
+        "rule_candidate is one string in one of three shapes: a rule id already in the registry (the rule that would have caught this finding), a rule id not in the registry yet (the rule that should be written), or `none: <reason>` (no static rule can catch this). The gate requires it on medium, high and blocking and checks the shape; it does not require the id to exist, because a finding naming a rule nobody has written yet is exactly the signal the doctor warning in criterion 4 reads. A free-text reason with no shape would make the recurrence count a string-equality guess.",
+        "A finding recorded before this ticket carries no rule_candidate, and the weekly report says so rather than counting it as a finding no rule could have caught. The gate binds records written after it, as every gate in this harness does; the report's three lists carry a fourth figure, the findings in the window predating the field, so the first weeks' reports cannot read as though every old finding had been triaged against the rule set.",
+        "A candidate that recurred twice without a rule is a doctor warning and not a doctor problem. doctor gains a `warnings` list that leaves `ok` true: it runs in CI and at the end of every turn through the Stop hook, so a problem there would block every unrelated ticket until somebody wrote a rule, and the ticket asks for a warning. The signal is a nudge to the ticket that got the finding, which is the decision the ticket's description names.",
+        "knip runs on the tree in CI only, not in the pre-commit hook. A dead export is a whole-graph property and cannot be judged from a staged file, and the criterion puts knip in CI (criterion 5) while putting the other three in the hook (criterion 2), so the split is the ticket's.",
+        "Proceeding with the layering rules written against paths that do not exist yet, which only the work can settle. The policy gate module is SEEN-033's and the generated marketplace clients are SEEN-115's, so 'a marketplace write is reachable only through the policy gate module' and 'the network only through the generated clients' name directories no file is in today. The rules are written against the paths the architecture names, each proven by a fixture that fails now, and what settles whether they bind the real thing is the first connector ticket's own dependency-cruiser run: SEEN-011 is the observation. The alternative, deferring the rule until the module exists, is what this ticket was written to stop.",
+        "Proceeding with Biome's typed rules set to whatever Biome 2.5 can run without a TypeScript program, which only the install settles. The ticket says 'with the typed rules on'; Biome 2 carries a limited set of type-aware rules on its own inference rather than tsc's. The solution record names the exact rules enabled once the version is installed, and any ground rule Biome cannot carry goes to ast-grep under its own citation. The observation that settles it is the recorded Biome rule list in the registry.",
+        "Points: the plan will come to more than the ticket's three-point estimate, and the record will say so rather than fitting four tools, a registry, a gate change, a report section and a doctor warning into three points. The estimate is this ticket's own, written before any of the five tools had been chosen; it is not amended, because the forecast at the solution gate reports a plan that disagrees with it and allows it, and re-estimating a started ticket buys nothing."
+      ],
+      "open_questions": [],
+      "changes_agent_action": false,
+      "graph_impact": [
+        "repowise why harness/gates.py (record 2): no architectural decision governs the file; eleven commits over seven days, SEEN-107 to SEEN-113, all of them harness gate work. Its rationale comments are about disclosure, citation scope and the fingerprint, none of them about findings, so adding a required field to a finding touches no reasoning already written there.",
+        "repowise risk (record 3): below typical, 33rd percentile of recent commits by size and spread, no bug-fix history in the files the change touches. Read against a working tree holding only the journal, so it is the floor rather than the figure for the finished change; the spread it will actually have is four slices over the root configs, rules/, harness/ and .github/, which is wide in files and shallow in each.",
+        "The changed surface, from the files themselves rather than a graph query: harness/gates.py check_findings and FINDING_KEYS are the only readers of a finding's shape, harness/calibration.py latest_findings and latest_finding_records are the only readers of findings across a journal, and harness/kpi.py findings() reads them through calibration. So criterion 3 is one function and criterion 4 reads through two that already exist."
+      ]
+    },
+    "decisions": [
+      {
+        "key": "clarified",
+        "question": "clarified",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.88,
+          "no": 0.12
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.8,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "key": "risk",
+        "question": "risk",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "medium",
+        "probabilities": {
+          "low": 0.23,
+          "medium": 0.77,
+          "high": 0.0
+        },
+        "confidence": 0.65,
+        "score": 0.77,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

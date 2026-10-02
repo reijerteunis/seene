@@ -1,0 +1,138 @@
+{
+  "sequence": 172,
+  "ticket": "SEEN-114",
+  "timestamp": "2026-10-01T16:03:51.795462+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 8,
+  "actor": "claude:reviewer",
+  "session": "ad77b7a13315",
+  "head": "22dc1709befaf8ea9be9624270ea98d25de1c66e",
+  "prev_hash": "d007954490a3ea66fe1fe0360017f058a85114bb1ee7acd82baa938fe844b8a7",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 9,
+    "reason": "The reviewer, a subagent on opus reading the whole diff at full depth, returns the ticket on twelve findings, seven medium and five low. The rule set itself holds: all 22 entries cross-check both ways, every fixture is a genuine violation of its own rule, and the three the criterion names by hand are present. What it returns on is the account and the loop around it. Three findings are in the ticket file: F2, three Outcome figures that disagree with the records the tdd record cites, F3, an Outcome counting its own returns and sessions against ADR-0004, and F5, criterion 1's amendment deferring eleven unparsed modules to a ticket that has no id and does not exist. F4 is the registry omitting the two checks that have no configuration file, so the ground rule about live marketplace hosts in tests has no rule id for the loop to find. F1 and F6 are untested wiring: nothing proves harness report --week renders the rule loop, and rule_candidate is tested on the advance path and not on the return path. F7 is the knowledge graph, not updated for a branch that adds the whole rule set.",
+    "findings": [
+      {
+        "id": "F1",
+        "severity": "medium",
+        "file": "harness/cli.py:1064-1077",
+        "claim": "Nothing proves that `harness report --week` renders the rule loop, so the only two places that put criterion 4's three lists into the report could be deleted with the whole suite still green.",
+        "failure_scenario": "Delete the `if args.sprint is None:` block at harness/cli.py:1067-1077, or drop the eighth argument from the `reporting.render(...)` call at line 1099. `python3 -m unittest discover -s harness/tests` stays green at 1,548 tests: test_report.py's RuleLoopTest, RulesAddedInWeekTest and RenderRulesTest call report.rule_loop, report.rules_added_in_week and report.render_rules directly with hand-built arguments, and the two tests that do run the real command (test_calibration.py:494 and :504) assert only on the triage section. The weekly report then carries none of the three lists the criterion names, and the journal cannot catch it either, because `harness report --week` is run as a check nowhere on this branch. test_calibration.py:482 records this exact class of defect being found by an earlier review on the line above.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "none: an untested wiring line between a command and its renderer is what a mutation score catches, not a pattern over source text, and SEEN-116's mutation gate is scoped to the money core rather than to harness/"
+      },
+      {
+        "id": "F2",
+        "severity": "medium",
+        "file": "docs/tickets/SEEN-114-turn-every-recurring-finding-into-a-rule-the.md:63-72",
+        "claim": "Three of the Outcome's measured figures disagree with the evidence the accepted tdd record cites, and one of them appears in no record at all.",
+        "failure_scenario": "The Outcome says '1,521 harness tests pass'; the regression the tdd record cites, record 168, ran 1,548 (1,521 is records 49, 61, 73, 85 and 101, from attempts 3 to 5). It says the hook took '0.66s over 51 staged paths'; that is record 31 from attempt 2, where 16 paths reached Biome, while the budget evidence the tdd record cites is record 157, 937ms over 55 paths with 34 files through Biome and 46 modules through dependency-cruiser. It says '1.45s for the whole set over the tree'; no record on this branch carries 1.45s, the only tree run is record 135 at 1.324s, and the tdd record quotes it as 1.3s. A reader taking the Outcome as the account of what was delivered gets a hook cost understated by 42 percent on a ten-second budget and a test count that no run produced, and the ticket file is covered by the reviewed-tree fingerprint, so neither can be corrected after this gate without a return.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "harness/outcome-figure-names-its-record"
+      },
+      {
+        "id": "F3",
+        "severity": "medium",
+        "file": "docs/tickets/SEEN-114-turn-every-recurring-finding-into-a-rule-the.md:182-188",
+        "claim": "The Outcome counts and compares the ticket's own returns and sessions, which ADR-0004 forbids outright.",
+        "failure_scenario": "'Two returns to solution against a target of 0.5 per ticket' is a count of the ticket's own returns and a comparison of it against a target, and 'delivered in four sessions, one orchestrating and three implementers' counts its own sessions. ADR-0004's consequence section says an Outcome 'does not count, order, compare or characterise the ticket's own attempts, returns, review rounds or records', and its test is whether the review now beginning could make the sentence false. This review returns the ticket, so it can: the journal holds seven return records (two to solution at 9 and 37, five from review to tdd at 65, 89, 106, 123 and 155) and harness/kpi.py:517 counts rework as every return and reopen record, so the weekly report will publish seven for a ticket whose own Outcome tells a reader it cost two.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "harness/no-process-count-in-an-outcome"
+      },
+      {
+        "id": "F4",
+        "severity": "medium",
+        "file": "rules/registry.toml",
+        "claim": "The registry carries no entry for either of the two checks of the set that have no configuration file, so the ground rule 'no live marketplace host in a test' has no rule id, no citation and no fixture, against the solution record's own decision and against harness/rules.py's stated reason for admitting those tools.",
+        "failure_scenario": "harness/rules.py:44-57 says gitleaks and the harness's own checks 'are in the set because they run in the same hook, and a registry that left them out would not be a map of what runs', and record 38's alternatives settle that 'the registry carries the harness check as the rule and no duplicate is written'. All 22 entries name tsconfig, biome, ast-grep, dependency-cruiser or knip, so neither was written. Concretely: a reviewer records a medium finding that a connector test calls api.bol.com and gives it rule_candidate `harness/no-live-marketplace-host`; report.rule_loop finds no such id among registry_ids, so the finding lands in `recurred` rather than `caught`, and on its second appearance doctor warns that no rule has been written for a check that has run in CI since SEEN-090. The loop the ticket exists to build reports a rule as missing because its own map omits it.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "harness/registry-names-every-check-that-runs"
+      },
+      {
+        "id": "F5",
+        "severity": "medium",
+        "file": "docs/tickets/SEEN-114-turn-every-recurring-finding-into-a-rule-the.md:36",
+        "claim": "Criterion 1 was amended in flight to exclude eleven modules from 'every TypeScript project in the tree', and the ticket it defers them to is named nowhere and does not exist.",
+        "failure_scenario": "packages/core/tsconfig.json includes only `src/**/*`, so the eleven modules of packages/core/db, which are SEEN-008's trade-record schema, its RLS, tenancy, uniqueness and authority tests and the repository guard, are in no project and are compiled by nothing. The amendment says 'That is a ticket of its own, named in the Outcome' and the Outcome's carried-forward section says only 'Its own ticket': no id, and no file under docs/tickets covers it, so the 140-ticket index does not know about it. By the ticket's own account db/marketplaces.ts already carries two genuine exactOptionalPropertyTypes and noUncheckedIndexedAccess errors, and the next person adding a schema module there gets Biome and vitest but no compiler at all, under a ticket whose criterion reads as though the tree now typechecks.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "harness/every-source-file-in-a-tsconfig-project"
+      },
+      {
+        "id": "F6",
+        "severity": "medium",
+        "file": "harness/tests/test_gates.py:66-104",
+        "claim": "The Outcome's claim that a return's findings owe rule_candidate too has no test: all eight cases exercise the review advance, and moving the check inside the `resolved` branch leaves the suite green.",
+        "failure_scenario": "Wrap the `if finding['severity'] in RULE_CANDIDATE_SEVERITIES:` block at harness/gates.py:1813 in `if resolved:`. Every case in test_gates.py still passes, because each goes through `evaluate('review', ...)` where resolved defaults to true; test_calibration.py:943 still passes because it supplies the field anyway; test_calibration.py:950, the only return case that omits it, asserts on 'names no file' and the file check runs first. `harness return --findings` then accepts a medium finding with no rule_candidate, which is the path the Outcome singles out as the one that matters most ('a defect serious enough to return a ticket on is serious enough to ask what would have caught it'), and the rule loop loses every finding recorded by a return.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "none: a required field tested on one of its two call paths is an untested branch, which only a mutation score finds, and SEEN-116's mutation gate is scoped to the money core rather than to harness/"
+      },
+      {
+        "id": "F7",
+        "severity": "medium",
+        "file": "graphify-out/graph.json",
+        "claim": "The committed knowledge graph is not updated for a branch that adds harness/rules.py, scripts/rules.sh, 22 rules and 23 fixture files, deletes two provider modules and rewrites 26 TypeScript sources.",
+        "failure_scenario": "`git diff main...HEAD --name-only` names nothing under graphify-out, while every comparable merged harness ticket carried the update (SEEN-140 at 39d6301, SEEN-113 at 9d539fa, SEEN-111 at cf604d9, SEEN-106, SEEN-109, SEEN-108). CLAUDE.md says the graph is committed 'so a fresh clone has context before its first build' and that 'a commit that changes code carries the updated graph with it', and tells every session to ask the graph before reading files. After this merges, the first session to ask `graphify query` or `graphify affected` about the rule set gets an answer from a tree that has no harness/rules.py, no rules/registry.toml, and still has packages/providers/src/boundary.ts, which was deleted. It is worth saying that nothing could have done this automatically: .githooks holds only pre-commit, there is no post-commit hook in .githooks or .git/hooks, and core.hooksPath is .githooks, so the mechanism CLAUDE.md describes is not in this repository.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "harness/graph-is-not-behind-the-code-it-describes"
+      },
+      {
+        "id": "F8",
+        "severity": "low",
+        "claim": "No recorded check runs the TypeScript suites or the build, although the branch rewrites 26 TypeScript sources, removes nine exports and deletes a test file SEEN-097 delivered.",
+        "failure_scenario": "The only node check in the whole journal is `pnpm --filter @seen/core test` (records 50, 62, 74, 86, 102, 120, 152, 169); `pnpm turbo run test` and `pnpm turbo run build` appear nowhere. apps/api/tsconfig.json excludes `**/*.test.ts`, so check 139 never compiled the three api test files this branch edited, and apps/api's own suite never ran, so a broken import in apps/api/src/mail/outbound.test.ts would have reached CI unseen by the gate that passed the ticket. I checked the nine removed exports by hand and nothing outside their own modules reads any of them, and CI does run test and build, so this is an evidence gap rather than a defect; the exports maps the solution record said it would prove with 'typecheck, test and build green' were proven by typecheck alone.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "harness/green-covers-the-packages-the-slice-changed"
+      },
+      {
+        "id": "F9",
+        "severity": "low",
+        "claim": "A citation is validated only to the file, never to the section, so a rule can cite a section nobody wrote and `rules --check` passes it in CI.",
+        "failure_scenario": "harness/rules.py:275-290 accepts a citation if it matches the finding pattern or names any path that exists. A rule added next week citing 'docs/architecture.md: Fee expectations', a section that is not in that document, passes `rules --check` in the harness job and reads in the registry as traceable; the Outcome's 'each with a citation a reader can open' then holds for the file and not for the sentence. test_rules.py:96 fixes this behaviour deliberately, writing a docs/architecture.md that contains only '# Architecture' and asserting that a citation naming Services is clean. Today's 22 citations are all accurate, so nothing is wrong in the tree: the gap is what the check would let in.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "harness/citation-names-a-real-section"
+      },
+      {
+        "id": "F10",
+        "severity": "low",
+        "claim": "Two HTTP libraries are denied to every package except the one the ground rule is strictest about: core-no-io's list omits superagent and request, and network-only-through-generated-clients excludes packages/core/src by design.",
+        "failure_scenario": "`import superagent from 'superagent'` in packages/core/src/fees.ts. core-no-io's `to.path` lists undici, axios, got and node-fetch but not superagent or request; network-only-through-generated-clients, which does list both, has `pathNot` of `^(packages/connectors/src/generated/|packages/core/src/)`; and ast-grep/no-fetch-in-core matches only fetch(...). So the hook passes, `scripts/rules.sh tree` passes, and the money core reaches the network. The allow-list in packages/core/db/repository.ts does catch it, because packageFiles walks the whole package, which is what its registry entry promises, so the cost is that the ten-second half of a rule the registry describes as covering this import does not cover it.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "none: the two lists are data in one configuration and a rule cannot know which libraries a ten-second deny-list is meant to name"
+      },
+      {
+        "id": "F11",
+        "severity": "low",
+        "claim": "docs/harness/workflow.md still says knip runs in the pre-commit hook, which the delivered split contradicts, in the one paragraph this ticket edited.",
+        "failure_scenario": "The SEEN-114 paragraph at docs/harness/workflow.md:100 reads 'knip for dead code, all in the pre-commit hook in under ten seconds', and this ticket rewrote the second half of that sentence without touching the first. The hook runs Biome, ast-grep and dependency-cruiser only, which the Outcome, criterion 5 and the test at test_rules.py are all explicit about. A session reading the workflow document as the account of the harness assumes a dead export is refused before a commit, and finds out from CI instead.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "none: a sentence in a document disagreeing with a shell script is a comparison between prose and behaviour"
+      },
+      {
+        "id": "F12",
+        "severity": "low",
+        "claim": "The clarify record names 'the field in harness/templates/review.json' as part of criterion 3's evidence, and the template is not in the diff.",
+        "failure_scenario": "harness/templates/review.json ships \"findings\": [] and no finding shape, so there was nothing to add the field to, but nothing in the journal says so and the clarify record's evidence line stands unanswered. A session drafting a review from the template rather than from the subagent prompt sees no rule_candidate anywhere, writes a medium finding without it, and learns the field exists from the gate refusing the advance.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "none: a template with an empty list cannot carry a field, and whether a planned evidence item was dropped on purpose is a journal question"
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}

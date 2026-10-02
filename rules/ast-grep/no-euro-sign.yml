@@ -1,0 +1,27 @@
+# Why: rules/registry.toml, ast-grep/no-euro-sign.
+id: no-euro-sign
+language: Tsx
+severity: error
+message: The euro sign appears here. Amounts are integer cents with the currency code EUR beside them.
+note: |
+  CLAUDE.md: use EUR in text, never the euro sign in code comments or docs.
+  In a value, the currency belongs in its own field; in prose, write EUR.
+files:
+  - "apps/**"
+  - "packages/**"
+ignores:
+  - "**/dist/**"
+  - "**/.next/**"
+  - "**/coverage/**"
+# The four node kinds a character can sit in without being code: a comment, the
+# text of a string or template, the text between JSX tags, and a regular
+# expression. Found by measurement rather than by reading the grammar: the JSX
+# text case was the one missing from the first version of this rule, and it is
+# the case the rule is most needed for.
+rule:
+  any:
+    - kind: comment
+    - kind: string_fragment
+    - kind: jsx_text
+    - kind: regex_pattern
+  regex: '\x{20AC}'

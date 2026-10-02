@@ -1,0 +1,59 @@
+{
+  "sequence": 121,
+  "ticket": "SEEN-114",
+  "timestamp": "2026-10-01T14:51:38.431658+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 6,
+  "actor": "claude:implementer",
+  "session": "ad77b7a13315",
+  "head": "6bfc6291db82554e5940b9f2462807a769323b3c",
+  "prev_hash": "a5a7263e4b319bee110146fa851db68e8afea91d599f38a9f075e071838b1596",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": 1,
+          "behaviour": "The compiler's four checking flags, Biome in place of ESLint for format and lint with its three type-aware rules on, and rules/registry.toml with harness rules --check and --fixtures behind it.",
+          "failure_reason": "./scripts/rules.sh fixtures named seven of this slice's eight rules as not firing, in the runner's own words: 'the fixture compiles with noUncheckedIndexedAccess on, so this rule is not firing' and the same for exactOptionalPropertyTypes and noImplicitOverride, and 'biome.json is not in this repository, so what would run is biome's own defaults rather than this repository's rules, and nothing a default refuses proves a rule' for recommended, noFloatingPromises, noMisusedPromises and useAwaitThenable. The traceability check refused the same seven first: 'is in rules/registry.toml and tsconfig.base.json does not enable it'.",
+          "red": 111,
+          "green": 112
+        },
+        {
+          "position": 2,
+          "behaviour": "The ground rules no general linter knows, as five ast-grep rules and eight dependency-cruiser layering rules, knip for dead exports, the exports map per package, and the pre-commit hook that runs the set on the staged files.",
+          "failure_reason": "./scripts/rules.sh fixtures named all fourteen of this slice's rules as not firing: 'sgconfig.yml is not in this repository, so what would run is ast-grep's own defaults rather than this repository's rules' over no-euro-sign, no-em-or-en-dash, money-as-integer-cents, no-fetch-in-core and no-credential-literal-in-tests; the same sentence for .dependency-cruiser.json over core-no-io, core-no-apps-or-siblings, connectors-no-agent, no-app-imports-another-app, no-cloud-sdk-outside-providers, database-through-repository, marketplace-write-through-policy-gate and network-only-through-generated-clients; and for knip.json over no-unused-exports.",
+          "red": 113,
+          "green": 114
+        },
+        {
+          "position": 3,
+          "behaviour": "rule_candidate required on every review finding at medium severity or above, with its three shapes checked and the refusal naming an example of each.",
+          "failure_reason": "Four of harness/tests/test_gates.py's eight cases failed with 'AssertionError: HarnessError not raised': the gate accepted a review advance carrying a medium finding with no rule_candidate, accepted a malformed value, accepted 'none:' with no reason, and accepted an id naming a tool nothing runs.",
+          "red": 115,
+          "green": 116
+        },
+        {
+          "position": 4,
+          "behaviour": "The loop back: the weekly report's four figures, the doctor warning for a candidate that recurred with no rule written, and the nine fixtures slice 3's required field invalidated.",
+          "failure_reason": "Twenty-eight failures across the two pieces of this slice, 26 errors and 2 failures in 712 tests. Nineteen errored on functions that did not exist: 'AttributeError: module harness.report has no attribute rule_loop' eight times, the same for rules_added_in_week three times and render_rules twice, 'AttributeError: module harness.rules has no attribute arrival_dates' three times, and 'KeyError: warnings' from doctor.report three times. Nine were the fixtures carrying a medium or higher finding, erroring on the field slice 3 made required: four in test_calibration.py's FindingFileTest and ReturningFindingsTest, three in test_stage_gates.py, and two in test_hooks.py's SubagentStopTest, the second of which read 'AssertionError: codex:reviewer != claude:reviewer' because the first reviewer's draft was never written.",
+          "red": 117,
+          "green": 118
+        }
+      ],
+      "regression": 119,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "ad77b7a13315",
+      "output_tokens": 33901,
+      "tool_calls": 41,
+      "unavailable": null
+    }
+  }
+}

@@ -29,8 +29,16 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  INERT_EXTENSIONS, PACKAGE_DIRECTORY, packageFiles, packageSources, readingImportsOf,
-  readRepositoryFile, READER_MODULE, repositoryPathExists, SOURCE_EXTENSIONS, testTaskInputs,
+  INERT_EXTENSIONS,
+  PACKAGE_DIRECTORY,
+  packageFiles,
+  packageSources,
+  READER_MODULE,
+  readingImportsOf,
+  readRepositoryFile,
+  repositoryPathExists,
+  SOURCE_EXTENSIONS,
+  testTaskInputs,
 } from './repository';
 import { DATA_API_CONFIG, HASHED_REPOSITORY_DOCUMENTS } from './tables';
 
@@ -54,10 +62,10 @@ describe('the authorities this package reads and the cache key it runs under', (
     expect(inputs.length, 'turbo reported no inputs at all for @seen/core#test').toBeGreaterThan(0);
     expect(
       inputs.includes(DATA_API_CONFIG),
-      `The cache key of @seen/core#test covers ${inputs.length} files and not ${DATA_API_CONFIG}, `
-      + 'which this suite reads as the authority on what the Data API serves. A change confined '
-      + 'to its `schemas` line therefore leaves the task inputs untouched and a cached pass is '
-      + `replayed over it. turbo hashes: ${inputs.join(', ')}`,
+      `The cache key of @seen/core#test covers ${inputs.length} files and not ${DATA_API_CONFIG}, ` +
+        'which this suite reads as the authority on what the Data API serves. A change confined ' +
+        'to its `schemas` line therefore leaves the task inputs untouched and a cached pass is ' +
+        `replayed over it. turbo hashes: ${inputs.join(', ')}`,
     ).toBe(true);
   });
 
@@ -69,19 +77,19 @@ describe('the authorities this package reads and the cache key it runs under', (
     // anybody maintains: a read of an unhashed file is the failure.
     expect(
       repositoryPathExists(UNHASHED_AUTHORITY),
-      `${UNHASHED_AUTHORITY} is not in the repository, so a refusal to read it would prove `
-      + 'nothing about hashing. Name a file that is there and is not hashed.',
+      `${UNHASHED_AUTHORITY} is not in the repository, so a refusal to read it would prove ` +
+        'nothing about hashing. Name a file that is there and is not hashed.',
     ).toBe(true);
     expect(
       testTaskInputs().includes(UNHASHED_AUTHORITY),
-      `${UNHASHED_AUTHORITY} is in the cache key now, so being refused it would prove nothing `
-      + 'about hashing. Name a file this task has no reason to hash instead.',
+      `${UNHASHED_AUTHORITY} is in the cache key now, so being refused it would prove nothing ` +
+        'about hashing. Name a file this task has no reason to hash instead.',
     ).toBe(false);
     expect(() => readRepositoryFile(UNHASHED_AUTHORITY)).toThrow(/turbo hashes/);
     expect(
       readRepositoryFile(HASHED_REPOSITORY_DOCUMENTS[0]).length,
-      `The reader refused ${HASHED_REPOSITORY_DOCUMENTS[0]}, which the test task does hash, so it `
-      + 'refuses everything and the refusal above says nothing about hashing.',
+      `The reader refused ${HASHED_REPOSITORY_DOCUMENTS[0]}, which the test task does hash, so it ` +
+        'refuses everything and the refusal above says nothing about hashing.',
     ).toBeGreaterThan(0);
   });
 
@@ -103,9 +111,9 @@ describe('the authorities this package reads and the cache key it runs under', (
       .map((entry) => `${entry.source} imports ${entry.imported.join(' and ')}`);
     expect(
       offenders,
-      'These sources can open a file or start a process without going through the reader at '
-      + `${READER_MODULE}, so an authority read through one of them is hashed only if its author `
-      + `remembered to say so in turbo.json: ${offenders.join('; ')}`,
+      'These sources can open a file or start a process without going through the reader at ' +
+        `${READER_MODULE}, so an authority read through one of them is hashed only if its author ` +
+        `remembered to say so in turbo.json: ${offenders.join('; ')}`,
     ).toEqual([]);
   });
 });
@@ -147,9 +155,14 @@ const READING_SOURCES: [source: string, reported: string][] = [
   ["import 'fs';", 'fs'],
   ["import { helper } from '../../../scripts/helper';", '../../../scripts/helper'],
   ["import { vi } from 'vitest';\nconst fs: any = await vi.importActual('node:fs');", 'node:fs'],
-  ["import { vi } from 'vitest';\nconst cp: any = await vi.importMock('child_process');", 'child_process'],
-  ["const prd: any = import.meta.glob('../../../docs/prd/prd.md', { query: '?raw', import: 'default', eager: true });",
-    '../../../docs/prd/prd.md'],
+  [
+    "import { vi } from 'vitest';\nconst cp: any = await vi.importMock('child_process');",
+    'child_process',
+  ],
+  [
+    "const prd: any = import.meta.glob('../../../docs/prd/prd.md', { query: '?raw', import: 'default', eager: true });",
+    '../../../docs/prd/prd.md',
+  ],
 ];
 
 /** Sources that read nothing, so that the guard is not passing by objecting to
@@ -170,13 +183,13 @@ describe('the spelling a reading import is written with', () => {
     // `require` and `import()` of the same module. A module that reads an
     // authority that way is refused by nothing and hashed by nothing, which is
     // the fourth arrival of the class F40 was built to close.
-    const missed = READING_SOURCES
-      .filter(([source, reported]) => !readingImportsOf(source, SYNTHETIC_SOURCE).includes(reported))
-      .map(([source]) => source);
+    const missed = READING_SOURCES.filter(
+      ([source, reported]) => !readingImportsOf(source, SYNTHETIC_SOURCE).includes(reported),
+    ).map(([source]) => source);
     expect(
       missed,
-      'These sources reach the filesystem and the guard does not name what they reach it '
-      + `through, so a module written this way reads an authority nothing hashes: ${missed.join(' | ')}`,
+      'These sources reach the filesystem and the guard does not name what they reach it ' +
+        `through, so a module written this way reads an authority nothing hashes: ${missed.join(' | ')}`,
     ).toEqual([]);
   });
 
@@ -190,28 +203,29 @@ describe('the spelling a reading import is written with', () => {
     // computed specifier is not, because there is nothing written to report. The
     // last of those is a survival and is asserted here so that the paragraph at
     // `readingImportsOf` claiming it is a paragraph something checks.
-    const typed = "import { vi } from 'vitest';\n"
-      + "const fs = await vi.importActual<typeof import('node:fs')>('node:fs');";
+    const typed =
+      "import { vi } from 'vitest';\n" +
+      "const fs = await vi.importActual<typeof import('node:fs')>('node:fs');";
     expect(
       readingImportsOf(typed, SYNTHETIC_SOURCE),
-      'A loader call with the module named in a type position as well as in the argument is '
-      + 'reported by the pre-processor alone, so this form proves nothing about the loader and '
-      + 'has to hold whichever instrument answers.',
+      'A loader call with the module named in a type position as well as in the argument is ' +
+        'reported by the pre-processor alone, so this form proves nothing about the loader and ' +
+        'has to hold whichever instrument answers.',
     ).toContain('node:fs');
-    const insidePackage = "import { vi } from 'vitest';\n"
-      + "const tables: any = await vi.importActual('./tables');";
+    const insidePackage =
+      "import { vi } from 'vitest';\n" + "const tables: any = await vi.importActual('./tables');";
     expect(
       readingImportsOf(insidePackage, SYNTHETIC_SOURCE),
-      'A loader handed a relative specifier inside this package is judged more harshly than an '
-      + 'import written with the same specifier, so the guard has two rules and a test that '
-      + 'mocks a sibling module is an offender.',
+      'A loader handed a relative specifier inside this package is judged more harshly than an ' +
+        'import written with the same specifier, so the guard has two rules and a test that ' +
+        'mocks a sibling module is an offender.',
     ).toEqual([]);
-    const computed = "import { vi } from 'vitest';\n"
-      + 'const fs: any = await vi.importActual(specifier);';
+    const computed =
+      "import { vi } from 'vitest';\n" + 'const fs: any = await vi.importActual(specifier);';
     expect(
       readingImportsOf(computed, SYNTHETIC_SOURCE),
-      'A computed specifier is named by something, so the guard is reporting a name it did not '
-      + 'read and the paragraph that gives this as a survival is describing something else.',
+      'A computed specifier is named by something, so the guard is reporting a name it did not ' +
+        'read and the paragraph that gives this as a survival is describing something else.',
     ).toEqual([]);
   });
 
@@ -230,24 +244,30 @@ describe('the spelling a reading import is written with', () => {
     const skipped = `${PACKAGE_DIRECTORY}/node_modules`;
     expect(
       repositoryPathExists(skipped),
-      `${skipped} is not on disk, so a specifier into it would prove nothing about a directory `
-      + 'the walk skips. Name one of the four that is there.',
+      `${skipped} is not on disk, so a specifier into it would prove nothing about a directory ` +
+        'the walk skips. Name one of the four that is there.',
     ).toBe(true);
     expect(
       packageSources().filter((source) => source.startsWith(`${skipped}/`)),
-      `The walk collects files under ${skipped} after all, so a specifier into it is asked the `
-      + 'same question and this case says nothing.',
+      `The walk collects files under ${skipped} after all, so a specifier into it is asked the ` +
+        'same question and this case says nothing.',
     ).toEqual([]);
     const reported: [source: string, why: string][] = [
-      ["import { readFileSync } from '../node_modules/pg';",
-        'a relative specifier into a directory the walk skips is admitted, and nothing asks the '
-        + 'module at the other end what it imports'],
-      ["import { vi } from 'vitest';\nconst pg: any = await vi.importActual('../node_modules/pg');",
-        'the loader route into the same directory is open, so the two instruments disagree about '
-        + 'one specifier'],
-      ["import { helper } from './nowhere';",
-        'a specifier that resolves to nothing is admitted, which is how this hole was shaped: the '
-        + 'unresolvable is the case a guard has to report rather than trust'],
+      [
+        "import { readFileSync } from '../node_modules/pg';",
+        'a relative specifier into a directory the walk skips is admitted, and nothing asks the ' +
+          'module at the other end what it imports',
+      ],
+      [
+        "import { vi } from 'vitest';\nconst pg: any = await vi.importActual('../node_modules/pg');",
+        'the loader route into the same directory is open, so the two instruments disagree about ' +
+          'one specifier',
+      ],
+      [
+        "import { helper } from './nowhere';",
+        'a specifier that resolves to nothing is admitted, which is how this hole was shaped: the ' +
+          'unresolvable is the case a guard has to report rather than trust',
+      ],
     ];
     const admitted = reported
       .filter(([source]) => readingImportsOf(source, SYNTHETIC_SOURCE).length === 0)
@@ -268,8 +288,8 @@ describe('the spelling a reading import is written with', () => {
       .map(([source, named]) => `${source.replace('\n', ' ')} -> ${named.join(', ')}`);
     expect(
       objected,
-      'These specifiers name a file this scan collects, spelled as TypeScript allows them to be '
-      + `spelled, and the guard reports them, so resolution is stricter than the runtime: ${objected.join(' | ')}`,
+      'These specifiers name a file this scan collects, spelled as TypeScript allows them to be ' +
+        `spelled, and the guard reports them, so resolution is stricter than the runtime: ${objected.join(' | ')}`,
     ).toEqual([]);
   });
 
@@ -292,24 +312,34 @@ describe('the spelling a reading import is written with', () => {
     // still what answers for a loader handed a module, and both are asserted here.
     expect(
       repositoryPathExists(UNHASHED_AUTHORITY) && !testTaskInputs().includes(UNHASHED_AUTHORITY),
-      `${UNHASHED_AUTHORITY} is either absent or hashed now, so a source globbing it demonstrates `
-      + 'no hazard. Name a file that is there and is not hashed.',
+      `${UNHASHED_AUTHORITY} is either absent or hashed now, so a source globbing it demonstrates ` +
+        'no hazard. Name a file that is there and is not hashed.',
     ).toBe(true);
     const reported: [source: string, why: string][] = [
-      ["const prd: any = import.meta.glob('../../../docs/prd/prd.md', { query: '?raw', eager: true });",
-        'the glob grammar reads an authority nothing hashes and neither instrument names it'],
-      ["const docs: any = import.meta.glob(['./tables.ts', '../../../docs/prd/prd.md'], { eager: true });",
-        'a pattern in an array is invisible to a rule that reads the first argument only, and the '
-        + 'array form is what a source globbing two things is written with'],
-      ["const prd: any = import.meta.glob('/docs/prd/prd.md', { query: '?raw', eager: true });",
-        'the bundler resolves a leading slash against the repository root, so this spelling reads '
-        + 'the same file without a relative specifier anywhere in it'],
-      ["const load = import.meta.glob;\nconst prd: any = load('../../../docs/prd/prd.md', { eager: true });",
-        'the call is made under a name no list holds, which is how the sixth spelling arrives if '
-        + 'what answers here is a list of names'],
-      ["const prd: any = readAuthority('../../../docs/prd/prd.md');",
-        'any call handed the path of a repository file this scan did not collect is a read this '
-        + 'package cannot account for, whatever the callee is called'],
+      [
+        "const prd: any = import.meta.glob('../../../docs/prd/prd.md', { query: '?raw', eager: true });",
+        'the glob grammar reads an authority nothing hashes and neither instrument names it',
+      ],
+      [
+        "const docs: any = import.meta.glob(['./tables.ts', '../../../docs/prd/prd.md'], { eager: true });",
+        'a pattern in an array is invisible to a rule that reads the first argument only, and the ' +
+          'array form is what a source globbing two things is written with',
+      ],
+      [
+        "const prd: any = import.meta.glob('/docs/prd/prd.md', { query: '?raw', eager: true });",
+        'the bundler resolves a leading slash against the repository root, so this spelling reads ' +
+          'the same file without a relative specifier anywhere in it',
+      ],
+      [
+        "const load = import.meta.glob;\nconst prd: any = load('../../../docs/prd/prd.md', { eager: true });",
+        'the call is made under a name no list holds, which is how the sixth spelling arrives if ' +
+          'what answers here is a list of names',
+      ],
+      [
+        "const prd: any = readAuthority('../../../docs/prd/prd.md');",
+        'any call handed the path of a repository file this scan did not collect is a read this ' +
+          'package cannot account for, whatever the callee is called',
+      ],
     ];
     const missed = reported
       .filter(([source]) => readingImportsOf(source, SYNTHETIC_SOURCE).length === 0)
@@ -337,20 +367,21 @@ describe('the spelling a reading import is written with', () => {
       .map(([source, named]) => `${source} -> ${named.join(', ')}`);
     expect(
       objected,
-      'The guard reports a literal that names no repository file, so it objects to ordinary code '
-      + `and would be loosened by the next person to meet it: ${objected.join(' | ')}`,
+      'The guard reports a literal that names no repository file, so it objects to ordinary code ' +
+        `and would be loosened by the next person to meet it: ${objected.join(' | ')}`,
     ).toEqual([]);
   });
 
   it('names nothing in a source that imports only what this package already imports', () => {
-    const objected = SETTLED_SOURCES
-      .map((source) => [source, readingImportsOf(source, SYNTHETIC_SOURCE)] as const)
+    const objected = SETTLED_SOURCES.map(
+      (source) => [source, readingImportsOf(source, SYNTHETIC_SOURCE)] as const,
+    )
       .filter(([, reported]) => reported.length > 0)
       .map(([source, reported]) => `${source} -> ${reported.join(', ')}`);
     expect(
       objected,
-      'The guard objects to imports this package makes in every test file, so it would fail '
-      + `whatever anybody wrote and says nothing about reading: ${objected.join(' | ')}`,
+      'The guard objects to imports this package makes in every test file, so it would fail ' +
+        `whatever anybody wrote and says nothing about reading: ${objected.join(' | ')}`,
     ).toEqual([]);
   });
 });
@@ -369,14 +400,14 @@ describe('the files that scan reaches', () => {
     const files = packageFiles();
     expect(
       files.unclassified,
-      'These files are neither a source this guard scans nor inert, so nobody has said whether '
-      + `they can read an authority: ${files.unclassified.join(', ')}. Add the extension to `
-      + `SOURCE_EXTENSIONS if the runtime can load it, or to INERT_EXTENSIONS with a reason.`,
+      'These files are neither a source this guard scans nor inert, so nobody has said whether ' +
+        `they can read an authority: ${files.unclassified.join(', ')}. Add the extension to ` +
+        `SOURCE_EXTENSIONS if the runtime can load it, or to INERT_EXTENSIONS with a reason.`,
     ).toEqual([]);
     expect(
       files.sources.length,
-      'The walk found no sources at all, so the guard above scans nothing and passes for that '
-      + 'reason rather than because this package reads through one reader.',
+      'The walk found no sources at all, so the guard above scans nothing and passes for that ' +
+        'reason rather than because this package reads through one reader.',
     ).toBeGreaterThan(0);
   });
 
@@ -389,14 +420,14 @@ describe('the files that scan reaches', () => {
     const missed = runnable.filter((extension) => !SOURCE_EXTENSIONS.includes(extension));
     expect(
       missed,
-      `vitest runs a test file at ${missed.join(', ')} and this guard does not collect it, so a `
-      + 'test written at that extension is never asked what it imports.',
+      `vitest runs a test file at ${missed.join(', ')} and this guard does not collect it, so a ` +
+        'test written at that extension is never asked what it imports.',
     ).toEqual([]);
     const both = SOURCE_EXTENSIONS.filter((extension) => INERT_EXTENSIONS.includes(extension));
     expect(
       both,
-      `${both.join(', ')} is listed as both able to run code and inert, so which of the two the `
-      + 'walk does with it depends on the order of two lists.',
+      `${both.join(', ')} is listed as both able to run code and inert, so which of the two the ` +
+        'walk does with it depends on the order of two lists.',
     ).toEqual([]);
   });
 });

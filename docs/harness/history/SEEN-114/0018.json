@@ -1,0 +1,33 @@
+{
+  "sequence": 18,
+  "ticket": "SEEN-114",
+  "timestamp": "2026-10-01T08:45:47.955869+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "6973478f0bee",
+  "head": "708d6c659177005a883fea8349d85d1b8fa84514",
+  "prev_hash": "7bae29685c00d8f170f1bb1e7462d30178eb1a83336150d1594a8338de9c57d4",
+  "data": {
+    "command": [
+      "pnpm",
+      "turbo",
+      "run",
+      "lint",
+      "--force"
+    ],
+    "phase": "green",
+    "exit_code": 0,
+    "model": "claude-opus-5",
+    "model_declared": "opus",
+    "agent_declared": null,
+    "duration_ms": 1412,
+    "output": "• turbo 2.11.3\n\n   • Packages in scope: @seen/agent, @seen/api, @seen/connectors, @seen/core, @seen/providers, @seen/web, @seen/worker\n   • Running lint in 7 packages\n   • Remote caching disabled\n\n@seen/api:lint: cache bypass, force executing a39a6a90cda0766b\n@seen/connectors:lint: cache bypass, force executing 2c30003e178a4deb\n@seen/agent:lint: cache bypass, force executing 29a0d7216443de7f\n@seen/worker:lint: cache bypass, force executing d522a3d9ed6162d8\n@seen/web:lint: cache bypass, force executing 191f31f10cc063cd\n@seen/providers:lint: cache bypass, force executing ecc9c5eff814c3dd\n@seen/core:lint: cache bypass, force executing 63770a07e8b71d83\n@seen/api:lint: \n@seen/api:lint: > @seen/api@0.0.0 lint /Users/ruudvanengelenhoven/Development/seene/apps/api\n@seen/api:lint: > biome check src\n@seen/api:lint: \n@seen/core:lint: \n@seen/core:lint: > @seen/core@0.0.0 lint /Users/ruudvanengelenhoven/Development/seene/packages/core\n@seen/core:lint: > biome check src db\n@seen/core:lint: \n@seen/connectors:lint: \n@seen/connectors:lint: > @seen/connectors@0.0.0 lint /Users/ruudvanengelenhoven/Development/seene/packages/connectors\n@seen/connectors:lint: > biome check src\n@seen/connectors:lint: \n@seen/providers:lint: \n@seen/providers:lint: > @seen/providers@0.0.0 lint /Users/ruudvanengelenhoven/Development/seene/packages/providers\n@seen/providers:lint: > biome check src\n@seen/providers:lint: \n@seen/web:lint: \n@seen/web:lint: > @seen/web@0.0.0 lint /Users/ruudvanengelenhoven/Development/seene/apps/web\n@seen/web:lint: > biome check app src\n@seen/web:lint: \n@seen/agent:lint: \n@seen/agent:lint: > @seen/agent@0.0.0 lint /Users/ruudvanengelenhoven/Development/seene/packages/agent\n@seen/agent:lint: > biome check src\n@seen/agent:lint: \n@seen/worker:lint: \n@seen/worker:lint: > @seen/worker@0.0.0 lint /Users/ruudvanengelenhoven/Development/seene/apps/worker\n@seen/worker:lint: > biome check src\n@seen/worker:lint: \n@seen/connectors:lint: Checked 2 files in 834ms. No fixes applied.\n@seen/agent:lint: Checked 2 files in 833ms. No fixes applied.\n@seen/web:lint: Checked 4 files in 834ms. No fixes applied.\n@seen/worker:lint: Checked 4 files in 835ms. No fixes applied.\n@seen/providers:lint: Checked 11 files in 846ms. No fixes applied.\n@seen/api:lint: Checked 14 files in 851ms. No fixes applied.\n@seen/core:lint: Checked 11 files in 904ms. No fixes applied.\n\n Tasks:    7 successful, 7 total\nCached:    0 cached, 7 total\n  Time:    1.203s \n\n",
+    "output_sha256": "d5a4387918a300bfdc7e87cc3fe7f45c7e02b745d311d8636ade6dc34e6e8d10",
+    "output_truncated": false,
+    "before": "dbcc9dbebea954dbaba12a9af8e12bcc2affdf29ba571579a09763e9461da32c",
+    "after": "dbcc9dbebea954dbaba12a9af8e12bcc2affdf29ba571579a09763e9461da32c"
+  }
+}

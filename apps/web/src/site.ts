@@ -4,6 +4,5 @@
  */
 export const site = {
   name: 'Seen',
-  description:
-    'One reconciled record of a brand’s marketplace trade, and an agent that works it.',
+  description: 'One reconciled record of a brand’s marketplace trade, and an agent that works it.',
 } as const;

@@ -230,8 +230,56 @@ def calibration_problems(repository, rules):
     return [problem] if problem else []
 
 
+def _counted_window(root, settings):
+    """The most recent calibration-counted tickets, by the rule and nothing else.
+
+    `calibration.verdict_triage` and `verdict_routes` read the same rule to
+    pick their own window, but each filters further to a ticket that happens
+    to carry a triage or a route record, and this cannot: SEEN-114's rule
+    loop asks about findings, which every counted ticket may carry whether or
+    not it was ever routed or triaged. `calibration.py` is not a file this
+    slice's plan names, so its private `_excluded_reason` is read directly
+    rather than a public wrapper being added there for one caller.
+    """
+    from . import calibration
+    readable, _ = calibration.journals(root)
+    counted = [(ticket, records) for ticket, records in sorted(readable.items())
+              if calibration._excluded_reason(ticket, records, settings) is None]
+    counted.sort(key=lambda pair: calibration.delivered_at(pair[1]) or '')
+    size = settings['window']
+    return counted[-size:] if len(counted) >= size else counted
+
+
+def rule_recurrence_warnings(repository, rules):
+    """SEEN-114's doctor half: a rule candidate that recurred with no rule written.
+
+    A warning and never a problem. doctor runs in CI and at the end of every
+    turn through the Stop hook (`hooks._stop`, which returns `{}` once `ok`
+    is true and never reads this list), so refusing the turn here would
+    block every unrelated ticket until somebody wrote a rule for a candidate
+    this very check had already named, which is the opposite of what the
+    criterion asks for. `report` below leaves `ok` exactly as it already was.
+
+    Measured over the calibration window of counted tickets rather than any
+    one week, because doctor has no week in hand at all: a session calling
+    this at the end of an ordinary turn is not running a weekly report. The
+    calibration window is the one span this harness already holds stable
+    across tickets for exactly this kind of count.
+    """
+    if not rules.get('calibration'):
+        return []
+    from . import report as reporting
+    from . import rules as rule_set
+    window = _counted_window(repository.root, rules['calibration'])
+    loop = reporting.rule_loop(window, rule_set.load(repository.root))
+    return [f'{candidate} recurred on {len(refs)} finding(s) with no rule written yet: '
+            + ', '.join(f'{ref["ticket"]} {ref["id"]}' if ref.get('id') else ref['ticket']
+                       for ref in refs)
+            for candidate, refs in sorted(loop['recurred'].items())]
+
+
 def report(repository, rules, quick=False):
-    """Run every check and collect what is wrong.
+    """Run every check and collect what is wrong, and what is merely worth a look.
 
     `quick` is the Stop hook's set: the sections that read the journal and the
     generated copies, and neither of the two that read every tracked file,
@@ -267,4 +315,5 @@ def report(repository, rules, quick=False):
                                          for entry in secrets.marketplace_hosts(repository.root)]
         sections['links'] = link_problems(repository)
     problems = [problem for found in sections.values() for problem in found]
-    return dict(ok=not problems, checked=list(sections), problems=problems)
+    warnings = rule_recurrence_warnings(repository, rules)
+    return dict(ok=not problems, checked=list(sections), problems=problems, warnings=warnings)

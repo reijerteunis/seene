@@ -86,7 +86,7 @@
  * it still cannot see are at `repositoryFilesNamedIn`.
  */
 import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { extname, join, posix, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -140,7 +140,7 @@ export const READER_MODULE = `${PACKAGE_DIRECTORY}/db/repository.ts`;
  * package and never collected to be asked what it imports. The reason is now the
  * rule rather than a claim about it.
  */
-export const IMPORTS_THAT_CANNOT_READ: Record<string, string> = {
+const IMPORTS_THAT_CANNOT_READ: Record<string, string> = {
   // The runner, admitted because every test file here imports it and removing it
   // is not available, not because it cannot reach a file. It can: `vi` hands out
   // `importActual` and `importMock`, which take a literal specifier and return the
@@ -150,9 +150,10 @@ export const IMPORTS_THAT_CANNOT_READ: Record<string, string> = {
   // tree and judges the specifier they name by this same list. What that does not
   // cover is the loader reached under another name, and anything else the runner
   // may hand out that this list has not been taught to look for.
-  vitest: 'the test runner, imported by every test file here, whose module loaders are named '
-    + 'at readingImportsOf rather than admitted by this entry',
-  'vitest/config': 'the runner\'s configuration type, read by vitest.config.ts',
+  vitest:
+    'the test runner, imported by every test file here, whose module loaders are named ' +
+    'at readingImportsOf rather than admitted by this entry',
+  'vitest/config': "the runner's configuration type, read by vitest.config.ts",
   // The Postgres client. It reaches a socket rather than the working tree for
   // everything a test here asks of it, so a fact it brings back is a fact about
   // the database, which is what every guard here is comparing against an
@@ -161,9 +162,10 @@ export const IMPORTS_THAT_CANNOT_READ: Record<string, string> = {
   // without a password. That is a file of the machine and not of this repository,
   // so it is no route to an authority, and the entry says what it means rather
   // than claiming the stronger thing.
-  pg: 'the Postgres client, which reaches a socket for everything asked of it here; the '
-    + 'password file its own dependency can open is a file of the machine, not of this '
-    + 'repository',
+  pg:
+    'the Postgres client, which reaches a socket for everything asked of it here; the ' +
+    'password file its own dependency can open is a file of the machine, not of this ' +
+    'repository',
   // Identifiers for the two-tenant probes. It computes and does not open.
   'node:crypto': 'uuid generation, which opens nothing',
 };
@@ -188,7 +190,16 @@ export const SOURCE_EXTENSIONS = ['.cjs', '.cts', '.js', '.jsx', '.mjs', '.mts',
  * extension nobody anticipated stops the suite and is classified by a person.
  */
 export const INERT_EXTENSIONS = [
-  '.css', '.json', '.md', '.snap', '.sql', '.svg', '.toml', '.txt', '.yaml', '.yml',
+  '.css',
+  '.json',
+  '.md',
+  '.snap',
+  '.sql',
+  '.svg',
+  '.toml',
+  '.txt',
+  '.yaml',
+  '.yml',
 ];
 
 /** The answer turbo gave this process, kept so that a suite reading many
@@ -211,22 +222,22 @@ export function testTaskInputs(): string[] {
   const turbo = join(REPOSITORY_ROOT, 'node_modules', '.bin', 'turbo');
   if (!existsSync(turbo)) {
     throw new Error(
-      `No turbo binary at ${turbo}, so this suite cannot measure what the test task hashes and `
-      + 'cannot tell an authority it may read from one it may not. Install the workspace with '
-      + '`pnpm install`.',
+      `No turbo binary at ${turbo}, so this suite cannot measure what the test task hashes and ` +
+        'cannot tell an authority it may read from one it may not. Install the workspace with ' +
+        '`pnpm install`.',
     );
   }
   let output: string;
   try {
-    output = execFileSync(
-      turbo,
-      ['run', 'test', '--filter=@seen/core', '--dry=json'],
-      { cwd: REPOSITORY_ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 },
-    );
+    output = execFileSync(turbo, ['run', 'test', '--filter=@seen/core', '--dry=json'], {
+      cwd: REPOSITORY_ROOT,
+      encoding: 'utf8',
+      maxBuffer: 64 * 1024 * 1024,
+    });
   } catch (cause) {
     throw new Error(
-      'turbo could not report what the test task hashes, so nothing here can prove a file it '
-      + `reads is in the cache key. turbo said: ${(cause as Error).message}`,
+      'turbo could not report what the test task hashes, so nothing here can prove a file it ' +
+        `reads is in the cache key. turbo said: ${(cause as Error).message}`,
       { cause },
     );
   }
@@ -236,26 +247,32 @@ export function testTaskInputs(): string[] {
   const task = (plan.tasks ?? []).find((entry) => entry.taskId === '@seen/core#test');
   if (!task) {
     throw new Error(
-      'turbo reported no @seen/core#test task at all, so nothing here can prove a file it reads '
-      + `is in the cache key. It reported: ${(plan.tasks ?? []).map((entry) => entry.taskId).join(', ')}`,
+      'turbo reported no @seen/core#test task at all, so nothing here can prove a file it reads ' +
+        `is in the cache key. It reported: ${(plan.tasks ?? []).map((entry) => entry.taskId).join(', ')}`,
     );
   }
-  hashedInputs = new Set(Object.keys(task.inputs ?? {}).map(
-    (input) => relative(REPOSITORY_ROOT, join(REPOSITORY_ROOT, PACKAGE_DIRECTORY, input))
-      .replace(/\\/g, '/'),
-  ));
+  hashedInputs = new Set(
+    Object.keys(task.inputs ?? {}).map((input) =>
+      relative(REPOSITORY_ROOT, join(REPOSITORY_ROOT, PACKAGE_DIRECTORY, input)).replace(
+        /\\/g,
+        '/',
+      ),
+    ),
+  );
   return [...hashedInputs];
 }
 
 /** The reason a path may not be read, as the reader would say it. */
 function refusal(path: string, inputs: string[]): string {
-  return `${path} is read by this package as an authority and is not among the ${inputs.length} `
-    + 'inputs turbo hashes into @seen/core#test, so an edit to it would change nothing the cache '
-    + 'key covers and a recorded pass would be replayed over a version of it that no test read. '
-    + 'Name it in the test task\'s inputs in turbo.json, under $TURBO_ROOT$, and say there why it '
-    + 'is an authority. SEEN-008 met this three times before the reader refused it: the '
-    + 'architecture document (CODEX-03), the constrained tickets (F34) and the Data API '
-    + `configuration (F40). turbo hashes: ${inputs.sort().join(', ')}`;
+  return (
+    `${path} is read by this package as an authority and is not among the ${inputs.length} ` +
+    'inputs turbo hashes into @seen/core#test, so an edit to it would change nothing the cache ' +
+    'key covers and a recorded pass would be replayed over a version of it that no test read. ' +
+    "Name it in the test task's inputs in turbo.json, under $TURBO_ROOT$, and say there why it " +
+    'is an authority. SEEN-008 met this three times before the reader refused it: the ' +
+    'architecture document (CODEX-03), the constrained tickets (F34) and the Data API ' +
+    `configuration (F40). turbo hashes: ${inputs.sort().join(', ')}`
+  );
 }
 
 /**
@@ -391,7 +408,7 @@ export function packageSources(): string[] {
  * same allow-list an imported specifier meets: `./tables` is admitted whichever
  * of the three grammars asks for it, and `node:fs` is reported whichever does.
  */
-export const MODULE_LOADING_CALLS = ['glob', 'importActual', 'importMock'];
+const MODULE_LOADING_CALLS = ['glob', 'importActual', 'importMock'];
 
 /**
  * The source text parsed, once, so that the two walks below read one tree.
@@ -467,7 +484,9 @@ function loadedSpecifiers(parsed: ts.SourceFile): string[] {
  * the parser did recover, which is more than none.
  */
 export function stringArgumentsOfCallsTo(
-  contents: string, source: string, name: string,
+  contents: string,
+  source: string,
+  name: string,
 ): string[][] {
   const found: string[][] = [];
   const visit = (node: ts.Node): void => {
@@ -700,16 +719,19 @@ function repositoryFilesNamedIn(
  */
 export function readingImportsOf(contents: string, source: string): string[] {
   const parsed = parseSource(contents, source);
-  const imported = ts.preProcessFile(contents, true, true).importedFiles
-    .map((reference) => reference.fileName)
+  const imported = ts
+    .preProcessFile(contents, true, true)
+    .importedFiles.map((reference) => reference.fileName)
     .concat(loadedSpecifiers(parsed));
   // Measured once per call rather than once per specifier, and from disk rather
   // than from a cache, for the reason `packageFiles` gives: what is being asked
   // is what exists, and what exists does not change while the suite runs.
   const files = packageFiles();
   const collected = new Set([...files.sources, ...files.inert]);
-  const unvouched = imported.filter((specifier) => (specifier.startsWith('.')
-    ? !resolvedInPackage(specifier, source, collected)
-    : !(specifier in IMPORTS_THAT_CANNOT_READ)));
+  const unvouched = imported.filter((specifier) =>
+    specifier.startsWith('.')
+      ? !resolvedInPackage(specifier, source, collected)
+      : !(specifier in IMPORTS_THAT_CANNOT_READ),
+  );
   return [...new Set([...unvouched, ...repositoryFilesNamedIn(parsed, source, collected)])].sort();
 }

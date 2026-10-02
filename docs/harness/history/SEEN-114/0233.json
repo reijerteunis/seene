@@ -1,0 +1,30 @@
+{
+  "sequence": 233,
+  "ticket": "SEEN-114",
+  "timestamp": "2026-10-01T18:16:20.332649+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 11,
+  "actor": "claude:implementer",
+  "session": "ad77b7a13315",
+  "head": "9ec2eaa2e39c765dd514917493445f5ead040263",
+  "prev_hash": "3cbba665a7f21c828fd02c3ccd48b02464e6d3495599673505434daef1e32031",
+  "data": {
+    "command": [
+      "./scripts/rules.sh",
+      "fixtures"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "model": "claude-opus-5",
+    "model_declared": "opus",
+    "agent_declared": "seen-implementer",
+    "duration_ms": 2978,
+    "output": "==> Every rule against the fixture it stands on\nHarness: The rule set is not traceable:\n  tsconfig/noUncheckedIndexedAccess is in rules/registry.toml and tsconfig.base.json does not enable it. A registry that may hold rules nothing runs is a registry that can be padded\n  tsconfig/exactOptionalPropertyTypes is in rules/registry.toml and tsconfig.base.json does not enable it. A registry that may hold rules nothing runs is a registry that can be padded\n  tsconfig/noImplicitOverride is in rules/registry.toml and tsconfig.base.json does not enable it. A registry that may hold rules nothing runs is a registry that can be padded\n  biome/recommended is in rules/registry.toml and biome.json does not enable it. A registry that may hold rules nothing runs is a registry that can be padded\n  biome/noFloatingPromises is in rules/registry.toml and biome.json does not enable it. A registry that may hold rules nothing runs is a registry that can be padded\n  biome/noMisusedPromises is in rules/registry.toml and biome.json does not enable it. A registry that may hold rules nothing runs is a registry that can be padded\n  biome/useAwaitThenable is in rules/registry.toml and biome.json does not enable it. A registry that may hold rules nothing runs is a registry that can be padded\nThese rules did not refuse their own fixture, so nothing proves they run:\n  tsconfig/noUncheckedIndexedAccess: the fixture compiles with noUncheckedIndexedAccess on, so this rule is not firing: no output\n  tsconfig/exactOptionalPropertyTypes: the fixture compiles with exactOptionalPropertyTypes on, so this rule is not firing: no output\n  tsconfig/noImplicitOverride: the fixture compiles with noImplicitOverride on, so this rule is not firing: no output\n  biome/recommended: biome.json is not in this repository, so what would run is biome's own defaults rather than this repository's rules, and nothing a default refuses proves a rule\n  biome/noFloatingPromises: biome.json is not in this repository, so what would run is biome's own defaults rather than this repository's rules, and nothing a default refuses proves a rule\n  biome/noMisusedPromises: biome.json is not in this repository, so what would run is biome's own defaults rather than this repository's rules, and nothing a default refuses proves a rule\n  biome/useAwaitThenable: biome.json is not in this repository, so what would run is biome's own defaults rather than this repository's rules, and nothing a default refuses proves a rule\n    fixtures: FAILED in 3s\nThe rule set refused this change. Every rule says what it stands on in rules/registry.toml.\n",
+    "output_sha256": "1c6fea7b5ed23b7648bfa5b6344ef59fd757ae67d0742a35c72484cf23a8e864",
+    "output_truncated": false,
+    "before": "dde6c35201529d3ab0407a1e2b600a043fdbce166a4d9b8e3b72e95cbc0233de",
+    "after": "dde6c35201529d3ab0407a1e2b600a043fdbce166a4d9b8e3b72e95cbc0233de"
+  }
+}

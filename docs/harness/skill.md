@@ -272,7 +272,10 @@ baseline captured before any of them existed, with the rule for reading it writt
 
 ## What the harness will refuse
 
-A RED that did not fail. A finding at high or blocking severity that names no file. A
+A RED that did not fail. A finding at high or blocking severity that names no file. A finding
+at medium or above that carries no `rule_candidate`, or one in a shape the gate does not
+recognise: a rule id already in `rules/registry.toml`, a rule id in the same `tool/name` shape
+not in the registry yet, or `none: <reason>`. A
 check recorded under a model the route did not choose, and a slice whose RED and GREEN were both
 recorded in the orchestrating session's own context, once `[routing] shadow` is off. An agent
 declared on a check that is not one of `[agents] names`. A slice citing a check from another attempt. A solution record with no slice

@@ -1,0 +1,22 @@
+{
+  "sequence": 37,
+  "ticket": "SEEN-114",
+  "timestamp": "2026-10-01T10:24:33.811113+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "6973478f0bee",
+  "head": "e56c7f9874dde273b44785d2a1cee1d81049d04c",
+  "prev_hash": "9e02717e5720c6abde813ca2c3f477475a92f478825eea07bb152f4c67d853ab",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "solution",
+    "to_attempt": 3,
+    "reason": "Slice 3's required rule_candidate field invalidates nine test fixtures in three files no slice names, and harness guard rightly refused slice 3 the edit. Slice 4 grows to two points and takes the fixtures, the workflow.md paragraphs SEEN-139 reverted, and its own report and doctor work. Record 36 has the reasoning and the guard finding behind it.",
+    "findings": [],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}

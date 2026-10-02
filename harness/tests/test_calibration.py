@@ -66,6 +66,12 @@ def finding(identifier, severity, file=None):
                 resolution='Fixed')
     if file is not None:
         body['file'] = file
+    # SEEN-114: a medium finding or above carries rule_candidate, and this
+    # fixture is read by the gate as well as by calibration, so it carries one
+    # like a real finding would. `file` stays conditional above, because
+    # FindingFileTest's whole point is that a medium finding still needs none.
+    if severity in gates.RULE_CANDIDATE_SEVERITIES:
+        body['rule_candidate'] = 'none: a stand-in finding for a calibration test, not a real one'
     return body
 
 
@@ -499,6 +505,62 @@ class ReportTest(CommandTest):
         written = self.run_harness('report', '--week', '--date', '2026-10-05')
         markdown = (self.root / written['report']).read_text()
         self.assertIn('triage_shadow', markdown)
+
+    def deliver_in_week_41(self, **kwargs):
+        """One delivered ticket in the week the report is asked for.
+
+        Under this project's own ticket id, because `ticket_figures` walks
+        `docs/tickets/*.md` and a planted journal with no ticket file is a ticket
+        the weekly report cannot see. Day 7 of October 2026 is a Wednesday in ISO
+        week 41, which is the week `--date 2026-10-07` asks for.
+        """
+        plant(self.root, self.ticket_id, 7, **kwargs)
+        written = self.run_harness('report', '--week', '--date', '2026-10-07')
+        return ((self.root / written['report']).read_text(),
+                json.loads((self.root / written['data']).read_text()))
+
+    def test_the_weekly_report_renders_the_rule_loop(self):
+        """SEEN-114 F1: the report criterion 4 names, run as the command.
+
+        report.rule_loop, rules_added_in_week and render_rules each have their own
+        tests in test_report.py, called directly with hand-built arguments. What
+        had none was the wiring: the `--week` branch in cli.py that builds the
+        section, and the argument that hands it to the renderer. Deleting either
+        left the suite green with a weekly report carrying none of the three lists
+        the criterion asks for.
+        """
+        registry = self.root / 'rules' / 'registry.toml'
+        registry.parent.mkdir(parents=True, exist_ok=True)
+        registry.write_text(
+            '[[rule]]\nid = "ast-grep/no-euro-sign"\ntool = "ast-grep"\n'
+            'citation = "docs/harness/workflow.md: Rules from findings"\n'
+            'fixture = "rules/fixtures/ast-grep-no-euro-sign"\n'
+            'reason = "A registry of one, for this test."\n')
+        markdown, payload = self.deliver_in_week_41(
+            findings=[dict(finding('F1', 'high', 'harness/a.py:1'),
+                           rule_candidate='ast-grep/no-euro-sign')])
+        self.assertIn('## The rule loop', markdown)
+        self.assertIn('Findings a rule could have caught: 1', markdown)
+        self.assertIn('ast-grep/no-euro-sign', markdown)
+        self.assertIn('Rules added this week:', markdown)
+        self.assertEqual(len(payload['rule_loop']['caught']), 1)
+        self.assertEqual(payload['rule_loop']['caught'][0]['rule'], 'ast-grep/no-euro-sign')
+
+    def test_the_weekly_report_names_a_candidate_with_no_rule_behind_it(self):
+        """The third list, through the same command.
+
+        A candidate naming a rule nobody has written is what the doctor warning
+        reads once it has been seen twice, and what the report says out loud the
+        first time.
+        """
+        markdown, payload = self.deliver_in_week_41(
+            findings=[dict(finding('F1', 'high', 'harness/a.py:1'),
+                           rule_candidate='ast-grep/no-settlement-mutation'),
+                      dict(finding('F2', 'medium', 'harness/a.py:2'),
+                           rule_candidate='ast-grep/no-settlement-mutation')])
+        self.assertIn('Recurred without a rule', markdown)
+        self.assertIn('ast-grep/no-settlement-mutation', markdown)
+        self.assertIn('ast-grep/no-settlement-mutation', payload['rule_loop']['recurred'])
 
 
 class TriageShadowTest(TriageTest):
@@ -937,7 +999,8 @@ class ReturningFindingsTest(CommandTest):
         self.reach_tdd()
         record = self.send_back([dict(id='F1', severity='medium', claim='It breaks',
                                       failure_scenario='Like this', status='open',
-                                      resolution='')])
+                                      resolution='',
+                                      rule_candidate='none: a stand-in finding, not a real one')])
         self.assertEqual(record['data']['findings'][0]['status'], 'open')
 
     def test_a_returning_blocking_finding_still_has_to_name_its_file(self):
@@ -951,6 +1014,43 @@ class ReturningFindingsTest(CommandTest):
         record = self.run_harness('return', self.ticket_id, '--to', 'clarify',
                                   '--actor', 'claude:implementer', '--reason', 'Replanning')
         self.assertEqual(record['data']['findings'], [])
+
+    def test_a_returning_medium_finding_still_owes_a_rule_candidate(self):
+        """SEEN-114 F6: the half of the field's rule that had no test.
+
+        `check_findings` sits outside the `resolved` branch on purpose, so a
+        return's findings owe the field exactly as an advance's do: a defect
+        serious enough to send a ticket back is serious enough to ask what would
+        have caught it, and the weekly report reads a returned finding like any
+        other. Every other case for the field goes through the review advance, so
+        moving the check inside that branch left the suite green while this path
+        accepted a medium finding with nothing in the field.
+        """
+        self.reach_tdd()
+        with self.assertRaisesRegex(HarnessError, 'rule_candidate'):
+            self.send_back([dict(id='F1', severity='medium', claim='It breaks',
+                                 failure_scenario='Like this', status='open', resolution='',
+                                 file='harness/a.py:2')])
+
+    def test_a_returning_low_finding_owes_nothing(self):
+        """The other side of the same rule, on the same path.
+
+        A field required of every severity would be a field written to be
+        written, which is what the three shapes exist to avoid.
+        """
+        self.reach_tdd()
+        record = self.send_back([dict(id='F1', severity='low', claim='It is untidy',
+                                      failure_scenario='Like this', status='open',
+                                      resolution='')])
+        self.assertEqual([entry['id'] for entry in record['data']['findings']], ['F1'])
+
+    def test_a_returning_finding_with_a_malformed_candidate_is_refused(self):
+        """The shape is checked here too, not only the presence."""
+        self.reach_tdd()
+        with self.assertRaisesRegex(HarnessError, 'rule_candidate'):
+            self.send_back([dict(id='F1', severity='high', claim='It breaks',
+                                 failure_scenario='Like this', status='open', resolution='',
+                                 file='harness/a.py:2', rule_candidate='write a rule for this')])
 
 
 class ThirdReviewTest(ProjectTest):

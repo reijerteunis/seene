@@ -39,14 +39,14 @@ export function isPostmarkInbound(body: unknown): body is PostmarkInbound {
   );
 }
 
-export function header(mail: PostmarkInbound, name: string): string | null {
+function header(mail: PostmarkInbound, name: string): string | null {
   const found = mail.Headers?.find(
     (candidate) => candidate.Name.toLowerCase() === name.toLowerCase(),
   );
   return found?.Value ?? null;
 }
 
-export function marketplaceOf(address: string): string | null {
+function marketplaceOf(address: string): string | null {
   const domain = address.split('@').pop()?.toLowerCase() ?? '';
   return MARKETPLACE_DOMAINS.find(([match]) => domain.includes(match))?.[1] ?? null;
 }
@@ -56,7 +56,7 @@ export function marketplaceOf(address: string): string | null {
  * MailboxHash, so `inbox+demo-tenant@...` is tenant `demo-tenant`. A forwarded mail
  * with no hash belongs to nobody yet and is the ops queue's problem in SEEN-062.
  */
-export function tenantOf(mail: PostmarkInbound): string | null {
+function tenantOf(mail: PostmarkInbound): string | null {
   if (mail.MailboxHash) return mail.MailboxHash;
 
   const plus = /\+([^@]+)@/.exec(mail.ToFull?.[0]?.Email ?? mail.To);
@@ -68,7 +68,7 @@ export function tenantOf(mail: PostmarkInbound): string | null {
  * key here that is the counterparty's own word rather than our guess. Failing that,
  * the subject with its reply prefixes stripped: crude, and honest about being so.
  */
-export function threadKey(mail: PostmarkInbound): string {
+function threadKey(mail: PostmarkInbound): string {
   const references = header(mail, 'In-Reply-To') ?? header(mail, 'References');
   if (references) return references.split(/\s+/)[0] ?? references;
 
@@ -78,7 +78,7 @@ export function threadKey(mail: PostmarkInbound): string {
   return `subject:${normaliseSubject(mail.Subject)}`;
 }
 
-export function normaliseSubject(subject: string): string {
+function normaliseSubject(subject: string): string {
   return subject
     .replace(/^((re|fw|fwd|aw|antw)\s*(\[\d+\])?\s*:\s*)+/i, '')
     .trim()

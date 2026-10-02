@@ -1,0 +1,342 @@
+{
+  "sequence": 39,
+  "ticket": "SEEN-114",
+  "timestamp": "2026-10-01T10:24:57.416459+00:00",
+  "harness_version": "2",
+  "kind": "route",
+  "stage": "tdd",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "session": "6973478f0bee",
+  "head": "e56c7f9874dde273b44785d2a1cee1d81049d04c",
+  "prev_hash": "42905f986d7e797d64cf2a6a83335926b435cfb28f465a23f22b6f3e561c7770",
+  "data": {
+    "solution": 38,
+    "shadow": true,
+    "strongest": "opus",
+    "tiers": [
+      "haiku",
+      "sonnet",
+      "opus"
+    ],
+    "rules": [],
+    "jev": {
+      "asked": true,
+      "model": "jev-1.13.0",
+      "reason": null,
+      "answers": [
+        {
+          "key": "implementation_model#1",
+          "question": "implementation_model",
+          "type": "score",
+          "options": [
+            "haiku",
+            "sonnet",
+            "opus"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "opus",
+          "probabilities": {
+            "haiku": 0.02,
+            "sonnet": 0.05,
+            "opus": 0.93
+          },
+          "confidence": 0.87,
+          "score": 1.91,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_effort#1",
+          "question": "implementation_effort",
+          "type": "score",
+          "options": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "high",
+          "probabilities": {
+            "low": 0.01,
+            "medium": 0.06,
+            "high": 0.93
+          },
+          "confidence": 0.88,
+          "score": 1.92,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_model#2",
+          "question": "implementation_model",
+          "type": "score",
+          "options": [
+            "haiku",
+            "sonnet",
+            "opus"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "opus",
+          "probabilities": {
+            "haiku": 0.02,
+            "sonnet": 0.07,
+            "opus": 0.91
+          },
+          "confidence": 0.82,
+          "score": 1.88,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_effort#2",
+          "question": "implementation_effort",
+          "type": "score",
+          "options": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "high",
+          "probabilities": {
+            "low": 0.0,
+            "medium": 0.05,
+            "high": 0.95
+          },
+          "confidence": 0.91,
+          "score": 1.94,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_model#3",
+          "question": "implementation_model",
+          "type": "score",
+          "options": [
+            "haiku",
+            "sonnet",
+            "opus"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "sonnet",
+          "probabilities": {
+            "haiku": 0.36,
+            "sonnet": 0.5,
+            "opus": 0.14
+          },
+          "confidence": 0.24,
+          "score": 0.78,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_effort#3",
+          "question": "implementation_effort",
+          "type": "score",
+          "options": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "medium",
+          "probabilities": {
+            "low": 0.06,
+            "medium": 0.69,
+            "high": 0.25
+          },
+          "confidence": 0.53,
+          "score": 1.19,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_model#4",
+          "question": "implementation_model",
+          "type": "score",
+          "options": [
+            "haiku",
+            "sonnet",
+            "opus"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "sonnet",
+          "probabilities": {
+            "haiku": 0.07,
+            "sonnet": 0.5,
+            "opus": 0.43
+          },
+          "confidence": 0.25,
+          "score": 1.36,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_effort#4",
+          "question": "implementation_effort",
+          "type": "score",
+          "options": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "high",
+          "probabilities": {
+            "low": 0.01,
+            "medium": 0.12,
+            "high": 0.87
+          },
+          "confidence": 0.8,
+          "score": 1.87,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        }
+      ]
+    },
+    "execution": [
+      {
+        "position": 1,
+        "name": "The compiler, the formatter and the registry",
+        "points": 2,
+        "files": [
+          "tsconfig.base.json",
+          "biome.json",
+          "eslint.config.mjs",
+          "package.json",
+          "pnpm-lock.yaml",
+          "apps",
+          "packages",
+          "rules/registry.toml",
+          "rules/fixtures",
+          "scripts/rules.sh",
+          "harness/rules.py",
+          "harness/cli.py",
+          "harness/tests/test_rules.py",
+          ".github/workflows/ci.yml",
+          ".gitignore"
+        ],
+        "red": "`harness rules --check` does not exist, so the test that asks it to refuse a registry entry with no citation, a Biome rule absent from the registry and a fixture path that is not there fails on the command itself. Then, with the runner written and the rules not, `scripts/rules.sh fixtures` reports each of the eight rules of this slice as not firing: the four compiler flags and the four Biome rules all accept their own fixture while tsconfig.base.json and biome.json are absent.",
+        "model": "opus",
+        "effort": "high",
+        "source": "jev",
+        "rule": null,
+        "reason": null,
+        "model_probability": 0.93,
+        "effort_probability": 0.93,
+        "model_passed": true,
+        "model_threshold": 0.5,
+        "implementer_task": "Work slice 1 of SEEN-114: The compiler, the formatter and the registry.\n\nRun it on opus at high effort, because Jev chose it at 0.93.\nThe model is what reaches the work: in Claude Code as the per-invocation model on the seen-implementer agent, and in Codex as the model this instruction names when you spawn it. The effort is recorded, carried and reported rather than applied, on either assistant: the generated copies do not vary by slice, because a file whose content depended on the ticket in hand was wrong on a detached HEAD, after a replan and after the receipt. Neither is yours to change.\n\nPoints: 2.\nFiles: tsconfig.base.json, biome.json, eslint.config.mjs, package.json, pnpm-lock.yaml, apps, packages, rules/registry.toml, rules/fixtures, scripts/rules.sh, harness/rules.py, harness/cli.py, harness/tests/test_rules.py, .github/workflows/ci.yml, .gitignore\n\nIts RED must demonstrate: `harness rules --check` does not exist, so the test that asks it to refuse a registry entry with no citation, a Biome rule absent from the registry and a fixture path that is not there fails on the command itself. Then, with the runner written and the rules not, `scripts/rules.sh fixtures` reports each of the eight rules of this slice as not firing: the four compiler flags and the four Biome rules all accept their own fixture while tsconfig.base.json and biome.json are absent.\n\nWrite the test first and record it with:\n  python3 harness/run.py check SEEN-114 --phase red --actor <tool>:implementer --model opus -- <command>\nThen write only what turns it green and record that the same way. The `--model opus` is not optional: a subagent inherits its parent's session id, so the log records the model of the session that spawned you and not yours, and without the declaration the tdd gate compares the wrong two names. Then stop: do not start the next slice and do not advance the stage."
+      },
+      {
+        "position": 2,
+        "name": "The ground rules, the fixtures and the hook",
+        "points": 2,
+        "files": [
+          "sgconfig.yml",
+          "rules/ast-grep",
+          ".dependency-cruiser.json",
+          "knip.json",
+          "rules/registry.toml",
+          "rules/fixtures",
+          "scripts/rules.sh",
+          ".githooks/pre-commit",
+          ".github/workflows/ci.yml",
+          "package.json",
+          "apps",
+          "packages",
+          "harness/rules.py",
+          "harness/tests/test_rules.py"
+        ],
+        "red": "Every ast-grep, dependency-cruiser and knip fixture is accepted by the tree as it stands, so `./scripts/rules.sh fixtures` names each rule as not firing: the euro sign, the em and en dash, money as a non-integer, fetch inside packages/core, a credential literal in a test, node:fs inside packages/core, a marketplace write outside the policy gate, a query outside the repository layer, an app importing another app, a cloud SDK outside packages/providers, the connectors importing the agent, the network outside the generated clients, and an unused export in packages/core.",
+        "model": "opus",
+        "effort": "high",
+        "source": "jev",
+        "rule": null,
+        "reason": null,
+        "model_probability": 0.91,
+        "effort_probability": 0.95,
+        "model_passed": true,
+        "model_threshold": 0.5,
+        "implementer_task": "Work slice 2 of SEEN-114: The ground rules, the fixtures and the hook.\n\nRun it on opus at high effort, because Jev chose it at 0.91.\nThe model is what reaches the work: in Claude Code as the per-invocation model on the seen-implementer agent, and in Codex as the model this instruction names when you spawn it. The effort is recorded, carried and reported rather than applied, on either assistant: the generated copies do not vary by slice, because a file whose content depended on the ticket in hand was wrong on a detached HEAD, after a replan and after the receipt. Neither is yours to change.\n\nPoints: 2.\nFiles: sgconfig.yml, rules/ast-grep, .dependency-cruiser.json, knip.json, rules/registry.toml, rules/fixtures, scripts/rules.sh, .githooks/pre-commit, .github/workflows/ci.yml, package.json, apps, packages, harness/rules.py, harness/tests/test_rules.py\n\nIts RED must demonstrate: Every ast-grep, dependency-cruiser and knip fixture is accepted by the tree as it stands, so `./scripts/rules.sh fixtures` names each rule as not firing: the euro sign, the em and en dash, money as a non-integer, fetch inside packages/core, a credential literal in a test, node:fs inside packages/core, a marketplace write outside the policy gate, a query outside the repository layer, an app importing another app, a cloud SDK outside packages/providers, the connectors importing the agent, the network outside the generated clients, and an unused export in packages/core.\n\nWrite the test first and record it with:\n  python3 harness/run.py check SEEN-114 --phase red --actor <tool>:implementer --model opus -- <command>\nThen write only what turns it green and record that the same way. The `--model opus` is not optional: a subagent inherits its parent's session id, so the log records the model of the session that spawned you and not yours, and without the declaration the tdd gate compares the wrong two names. Then stop: do not start the next slice and do not advance the stage."
+      },
+      {
+        "position": 3,
+        "name": "rule_candidate on every finding that could have been a rule",
+        "points": 1,
+        "files": [
+          "harness/gates.py",
+          "harness/templates/review.json",
+          "harness/agents/seen-reviewer.md",
+          "docs/harness/skill.md",
+          "docs/harness/workflow.md",
+          ".claude/skills/seen-harness/SKILL.md",
+          ".agents/skills/seen-harness/SKILL.md",
+          ".claude/agents/seen-reviewer.md",
+          ".codex/agents/seen-reviewer.toml",
+          "harness/tests/test_gates.py"
+        ],
+        "red": "A review advance carrying a medium finding with no rule_candidate is accepted, so the test asserting the refusal fails; and the same test asserts a low finding without the field is still accepted and a malformed value is refused, neither of which the gate does today.",
+        "model": "sonnet",
+        "effort": "medium",
+        "source": "jev",
+        "rule": null,
+        "reason": null,
+        "model_probability": 0.5,
+        "effort_probability": 0.69,
+        "model_passed": true,
+        "model_threshold": 0.5,
+        "implementer_task": "Work slice 3 of SEEN-114: rule_candidate on every finding that could have been a rule.\n\nRun it on sonnet at medium effort, because Jev chose it at 0.5.\nThe model is what reaches the work: in Claude Code as the per-invocation model on the seen-implementer agent, and in Codex as the model this instruction names when you spawn it. The effort is recorded, carried and reported rather than applied, on either assistant: the generated copies do not vary by slice, because a file whose content depended on the ticket in hand was wrong on a detached HEAD, after a replan and after the receipt. Neither is yours to change.\n\nPoints: 1.\nFiles: harness/gates.py, harness/templates/review.json, harness/agents/seen-reviewer.md, docs/harness/skill.md, docs/harness/workflow.md, .claude/skills/seen-harness/SKILL.md, .agents/skills/seen-harness/SKILL.md, .claude/agents/seen-reviewer.md, .codex/agents/seen-reviewer.toml, harness/tests/test_gates.py\n\nIts RED must demonstrate: A review advance carrying a medium finding with no rule_candidate is accepted, so the test asserting the refusal fails; and the same test asserts a low finding without the field is still accepted and a malformed value is refused, neither of which the gate does today.\n\nWrite the test first and record it with:\n  python3 harness/run.py check SEEN-114 --phase red --actor <tool>:implementer --model sonnet -- <command>\nThen write only what turns it green and record that the same way. The `--model sonnet` is not optional: a subagent inherits its parent's session id, so the log records the model of the session that spawned you and not yours, and without the declaration the tdd gate compares the wrong two names. Then stop: do not start the next slice and do not advance the stage."
+      },
+      {
+        "position": 4,
+        "name": "The loop back: the weekly report and the doctor warning",
+        "points": 2,
+        "files": [
+          "harness/report.py",
+          "harness/rules.py",
+          "harness/doctor.py",
+          "harness/cli.py",
+          "harness/tests/test_report.py",
+          "harness/tests/test_doctor.py",
+          "harness/tests/test_rules.py",
+          "harness/tests/test_calibration.py",
+          "harness/tests/test_stage_gates.py",
+          "harness/tests/test_hooks.py",
+          "docs/harness/skill.md",
+          "docs/harness/workflow.md",
+          ".claude/skills/seen-harness/SKILL.md",
+          ".agents/skills/seen-harness/SKILL.md"
+        ],
+        "red": "Three reds in this slice, each failing for its own reason before anything is written. The weekly report over a window whose findings carry rule_candidate shows none of the four figures criterion 4 asks for, and doctor reports nothing for a candidate recorded twice in two tickets with no rule written, so both tests fail on the absent sections. And the nine fixtures slice 3's required field invalidated are failing now, in test_calibration.py, test_stage_gates.py and test_hooks.py, which is the red the fixture work turns green.",
+        "model": "sonnet",
+        "effort": "high",
+        "source": "jev",
+        "rule": null,
+        "reason": null,
+        "model_probability": 0.5,
+        "effort_probability": 0.87,
+        "model_passed": true,
+        "model_threshold": 0.5,
+        "implementer_task": "Work slice 4 of SEEN-114: The loop back: the weekly report and the doctor warning.\n\nRun it on sonnet at high effort, because Jev chose it at 0.5.\nThe model is what reaches the work: in Claude Code as the per-invocation model on the seen-implementer agent, and in Codex as the model this instruction names when you spawn it. The effort is recorded, carried and reported rather than applied, on either assistant: the generated copies do not vary by slice, because a file whose content depended on the ticket in hand was wrong on a detached HEAD, after a replan and after the receipt. Neither is yours to change.\n\nPoints: 2.\nFiles: harness/report.py, harness/rules.py, harness/doctor.py, harness/cli.py, harness/tests/test_report.py, harness/tests/test_doctor.py, harness/tests/test_rules.py, harness/tests/test_calibration.py, harness/tests/test_stage_gates.py, harness/tests/test_hooks.py, docs/harness/skill.md, docs/harness/workflow.md, .claude/skills/seen-harness/SKILL.md, .agents/skills/seen-harness/SKILL.md\n\nIts RED must demonstrate: Three reds in this slice, each failing for its own reason before anything is written. The weekly report over a window whose findings carry rule_candidate shows none of the four figures criterion 4 asks for, and doctor reports nothing for a candidate recorded twice in two tickets with no rule written, so both tests fail on the absent sections. And the nine fixtures slice 3's required field invalidated are failing now, in test_calibration.py, test_stage_gates.py and test_hooks.py, which is the red the fixture work turns green.\n\nWrite the test first and record it with:\n  python3 harness/run.py check SEEN-114 --phase red --actor <tool>:implementer --model sonnet -- <command>\nThen write only what turns it green and record that the same way. The `--model sonnet` is not optional: a subagent inherits its parent's session id, so the log records the model of the session that spawned you and not yours, and without the declaration the tdd gate compares the wrong two names. Then stop: do not start the next slice and do not advance the stage."
+      }
+    ]
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "sequence": 2,
+  "ticket": "SEEN-114",
+  "timestamp": "2026-10-01T07:25:19.777424+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "6973478f0bee",
+  "head": "708d6c659177005a883fea8349d85d1b8fa84514",
+  "prev_hash": "9104c9d17d7c4bbb82de17215b27f397900b177d35c927466a023aa29d3bc215",
+  "data": {
+    "source": "repowise",
+    "mode": "why",
+    "command": [
+      "repowise",
+      "why",
+      "harness/gates.py"
+    ],
+    "exit_code": 0,
+    "duration_ms": 617,
+    "answer": "\nAlignment none — No architectural decisions govern harness/gates.py. This file is ungoverned — it may be an outlier or simply undocumented.\n\nOrigin 11 commits over 7 days, mostly Ruud van Engelenhoven (88%)\n  9d539fa2 2026-09-28 SEEN-113: Let a tdd record cite the evidence a return did not invalidate (#29)\n  cf604d9a 2026-09-26 SEEN-111: Hold a slice to the context it was routed to, and price it before it is worked (#28)\n  dd52f317 2026-09-26 SEEN-109: Calibrate the review triage and the routes on ten tickets before either saves a token (#25)\n  fc5cb01f 2026-09-25 SEEN-108: Route each slice to a model and an effort at solution, by rule first and by Jev second (#24)\n  784c3e65 2026-09-25 SEEN-107: Let Jev settle what the review can settle before a model reads the diff (#22)\n\nGit archaeology No architectural decisions found for harness/gates.py, but git archaeology recovered 11 direct commit(s), 0 cross-reference(s), and 18 git log result(s). Review these to understand the intent behind this code.\n  this file: 9d539fa2 2026-09-28 SEEN-113: Let a tdd record cite the evidence a return did not invalidate (#29)\n  git log: 9d539fa2 2026-09-28 SEEN-113: Let a tdd record cite the evidence a return did not invalidate (#29)\n  git log: cf604d9a 2026-09-27 SEEN-111: Hold a slice to the context it was routed to, and price it before it is worked (#28)\n  git log: dd52f317 2026-09-26 SEEN-109: Calibrate the review triage and the routes on ten tickets before either saves a token (#25)\n  git log: fc5cb01f 2026-09-25 SEEN-108: Route each slice to a model and an effort at solution, by rule first and by Jev second (#24)\n  git log: 784c3e65 2026-09-25 SEEN-107: Let Jev settle what the review can settle before a model reads the diff (#22)\n  5 of 18 git log shown; pass --full for the rest.\n\nRationale comments in the code\n  harness/gates.py:19\n    How a review discloses whose context it came from. A subagent is a context boundary and not independence by itself, so it is its own word rather than a second meaning of independent: the escaped-defect figures are read per kind later, and a word covering both could not answer which kind caught what.\n  harness/gates.py:48\n    Why a citation is compared over the whole tree when nothing scopes it. The regression is the deliberate case: it covers the suite and not a slice, so it has no files to be judged over and never had. The second is the reason of last resort, for a caller that named no scope and no reason of its own.\n  harness/gates.py:115\n    Every key the template carries must be answered. A key the template ships as an empty list may stay empty; anything else must hold a real value, because an empty answer to a question the template asks is the same as not answering it.\n  harness/gates.py:185\n    The hash of such a listing, composed exactly as the repository composes it. Separate from the reading of it because the commit search asks the question of a listing it has altered by one entry, and the only honest way to compare an altered listing with a recorded fingerprint is to hash it the same way. A second hashing rule here would be a second answer waiting to disagree.\n  harness/gates.py:197\n    The fingerprint of a commit's tree, as `Repository.fingerprint` defines it. The same listing of `path:blob` over the paths the fingerprint counts, read from a commit rather than from the index and the working tree. It is a second reading of one definition, which is worth saying plainly: the repository hashes the tree in hand and cannot hash a commit, and the alternative was to check out or \nstash somebody's work to ask a question about it. `test_the_fingerprint_this_rule_reads_is_the_one_the_repository_writes` holds the two readings to each other, so a change to either is caught here rather than by a citation silently scoped off the wrong commit.\n",
+    "answer_truncated": false
+  }
+}

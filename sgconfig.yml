@@ -1,0 +1,31 @@
+# ast-grep's project configuration: where the rules are, and what language a file
+# is read as. SEEN-114, and the reasoning per rule is in rules/registry.toml.
+#
+# One rule to a file in rules/ast-grep, which `harness rules --check` enforces,
+# because nothing in the harness parses YAML and a second id in a file would be
+# read by accident or not at all.
+ruleDirs:
+  - rules/ast-grep
+
+# Every TypeScript extension is read with the tsx grammar, and every rule in the
+# set declares `language: Tsx`.
+#
+# ast-grep gives a file exactly one language, so a rule written for `TypeScript`
+# never sees a .tsx file and a rule written for `Tsx` never sees a .ts one.
+# Measured while these rules were written: an em dash in `apps/web/app/page.tsx`
+# was invisible to the rule that forbids it, which is the file the rule matters
+# most in, because customer-facing copy is where a dash arrives from. The
+# alternative was two rule files and two registry entries per ground rule, one
+# per grammar, which doubles the thing a reader has to keep in step.
+#
+# What this costs is the one construct the two grammars read differently: `<T>x`
+# as a type assertion parses as JSX under tsx. This repository writes `x as T`,
+# which is also what Biome's formatter leaves behind, so the cost is a construct
+# the tree does not contain. A file that did contain it would be reported as a
+# parse error rather than silently skipped.
+languageGlobs:
+  tsx:
+    - "*.ts"
+    - "*.tsx"
+    - "*.mts"
+    - "*.cts"

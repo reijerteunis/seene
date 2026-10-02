@@ -62,7 +62,8 @@ The review record's shape, as JSON:
     {"id": "F1", "severity": "low|medium|high|blocking", "file": "path:line",
      "claim": "What is wrong, in one sentence",
      "failure_scenario": "Concrete inputs or state, and the wrong result they produce",
-     "status": "open", "resolution": ""}
+     "status": "open", "resolution": "",
+     "rule_candidate": "ast-grep/no-euro-sign | ast-grep/no-settlement-mutation | none: <reason>"}
   ],
   "checks": [],
   "verdict": "pass|return"
@@ -77,6 +78,18 @@ by: a finding this serious in a file the narrowing would have dropped is an
 escape, and one nobody can place counts in favour of the narrowing. The review
 gate refuses it. Low and medium need no file, because neither can ever be an
 escape.
+
+A finding at medium or above also carries `rule_candidate`, SEEN-114's other
+half of the same reasoning: a finding a static rule could have caught is paid
+for three times, the reviewer's reading, the return, the second review. Give it
+one of three shapes: a rule id already in `rules/registry.toml` (the rule that
+would have caught this finding, as `tool/name`, such as `ast-grep/no-euro-sign`);
+a rule id in the same shape that is not in the registry yet (the rule that
+should be written, such as `ast-grep/no-settlement-mutation`); or `none:
+<reason>` when no static rule could ever catch it, such as a judgement call
+about wording. The id does not need to exist in the registry already; naming a
+rule nobody has written yet is the point. Low needs no rule_candidate, for the
+same reason it needs no file.
 
 Every finding carries a failure scenario. A finding without one is a preference,
 and a preference is not a finding. Order them most severe first.

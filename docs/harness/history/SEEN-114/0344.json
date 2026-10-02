@@ -1,0 +1,83 @@
+{
+  "sequence": 344,
+  "ticket": "SEEN-114",
+  "timestamp": "2026-10-01T23:02:57.917363+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 15,
+  "actor": "claude:implementer",
+  "session": "ad77b7a13315",
+  "head": "4b026d1247bc7c1ae841f90e2405b1e6deb42342",
+  "prev_hash": "3a1a307cd44352ec44729b90f84d4b0641b759ea1cf0a363df517f3d56719124",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 16,
+    "reason": "The sixth review passed and found six things, and the session is fixing all six rather than carrying them, because a passing review record must carry every finding resolved and the founder has decided that the review which closes this ticket will be his own rather than a seventh subagent. One of the six is a correction to this journal and is mine: F29, where note 324 and commit 227927e say none of core-no-io's seven IO libraries is installed and so the clause was carrying nothing, when pg is a declared dependency of packages/core and the pre-fix pattern did refuse it, which I re-measured before recording this. Six of the seven were silent, not seven. F30 is the money rule missing a negated literal, which is how a credit line is written. F31 is a census of this ticket's own journal that the next coverage run overtook. F32 is the sharpest: the CI step added for F23 reports success when its test skips, and the guard asserted only that the class name appears in the file. F33 restores an assertion the deleted boundary module carried, that the cloud SDK list names every SDK its entry claims. F34 re-records the eighth round's pair with the agent it should have declared.",
+    "findings": [
+      {
+        "id": "F29",
+        "severity": "medium",
+        "file": "docs/harness/history/SEEN-114/0341.json",
+        "claim": "The accepted tdd record's account of F22, repeated in note 324 and in commit 227927e, says none of core-no-io's seven IO libraries is installed and so the clause 'was carrying nothing', but pg is a declared dependency of packages/core and the pre-fix pattern did refuse it: six of the seven were silent, not seven.",
+        "failure_scenario": "Measured with the pre-fix configuration over a probe in packages/core/src: `import { Client } from 'pg'` is reported as `error core-no-io: packages/core/src/probe.ts -> node_modules/.pnpm/pg@8.23.0/node_modules/pg/esm/index.mjs` and depcruise exits non-zero, while `import { Queue } from 'bullmq'` prints 'no dependency violations found'. packages/core/package.json declares pg and packages/core/node_modules/pg exists, so under pnpm's layout a packages/core import resolves from the importing package and not from the repository root, which is where the record took its measurement. A reader who treats the node_modules/ half of the alternation as dead weight and simplifies the pattern to bare names stops refusing the one library of the seven this repository has installed, and both tests added that round stay green.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "harness/outcome-figure-names-its-record"
+      },
+      {
+        "id": "F30",
+        "severity": "medium",
+        "file": "rules/ast-grep/money-as-integer-cents.yml:16",
+        "claim": "The widened rule still requires a number node whose text contains a dot, in one of three positions, so a negated literal, an exponent literal and a default parameter value all pass, while its registry entry says the rule reads a non-integer numeric literal bound to a name that says it is cents, an amount, a price or a fee.",
+        "failure_scenario": "One probe under packages/core/src gives ten diagnostics for the declarator, object properties and class fields, and none at all for `const negative = { feeAmount: -0.15 }`, `const priceNeg = -19.99`, `const sci = { priceEur: 1e-2 }`, `function f(priceEur = 19.99)` or `const arrow = (feeCents = 1.5) => feeCents`: a negated literal parses as unary_expression rather than number, an exponent literal carries no dot, and a parameter default sits in none of the three kinds. SEEN-016 and SEEN-071 are where `{ feeAmountEur: -0.49 }` for a credit line or a rate written 1e-2 lands, with the hook, the tree run and CI all green while a reviewer who has read the registry entry believes the shape is covered.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "none: the gap is between a registry entry's prose and the pattern beneath it, which only a reader comparing the two can judge"
+      },
+      {
+        "id": "F31",
+        "severity": "low",
+        "file": "docs/tickets/SEEN-114-turn-every-recurring-finding-into-a-rule-the.md:196",
+        "claim": "The carried F27 paragraph says all seventeen coverage checks in this journal declare no model, and at the reviewed tree there are eighteen; the eighteenth is check 340, the coverage figure the tdd record and the Outcome both read.",
+        "failure_scenario": "Counting the records with phase coverage gives eighteen, every one with model_declared and agent_declared null. The paragraph was written in commit 227927e and check 340 was recorded thirty-four minutes later, and the sentence names no record it was counted at, so a reader who re-counts gets a figure the ticket contradicts. This is F25's class in the paragraph beside it: a census of the ticket's own journal goes stale with every record the ticket adds after the sentence is written.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "harness/outcome-figure-names-its-record"
+      },
+      {
+        "id": "F32",
+        "severity": "low",
+        "file": ".github/workflows/ci.yml:154",
+        "claim": "The new CI step reports success when the test it runs skips, and the test guarding the step asserts only that the class name appears somewhere in the workflow, so neither can tell an executed staged run from a skipped one.",
+        "failure_scenario": "`python3 -m unittest` over a class whose only test calls skipTest prints 'OK (skipped=1)' and exits 0. StagedPathWithASpaceTest skips unless node_modules/.bin/ast-grep exists. Move the step from the node job into the harness job, where it reads naturally beside the other Python steps and where no pnpm install runs: the step is green, the staged mode is unexecuted in CI again, and test_ci_executes_the_staged_run_and_does_not_only_read_it still passes because the string is still in the file. That is the state F23 described, reachable by one plausible edit.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "harness/ci-step-fails-rather-than-skips"
+      },
+      {
+        "id": "F33",
+        "severity": "low",
+        "file": ".dependency-cruiser.json:39",
+        "claim": "The deleted boundary test asserted that the cloud SDK list names every SDK the rule is about, so that adding or removing one is a deliberate edit, and nothing in the diff replaces that assertion for the dependency-cruiser rule which replaced the module.",
+        "failure_scenario": "packages/providers/src/no-cloud-sdk.test.ts carried that assertion over CLOUD_SDK_PREFIXES. After the deletion the seven names appear only in the pattern itself and in the registry entry's prose, and no harness test mentions any of them. Delete `@aws-sdk/` from the pattern: rules --check passes because the rule's name is unchanged, the fixture still fires on @google-cloud/storage, the tree run and the hook stay clean, and `import { S3Client } from '@aws-sdk/client-s3'` in apps/api is accepted, while the registry entry still says the list is the one boundary.ts carried.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "harness/deny-list-names-every-specifier-its-entry-claims"
+      },
+      {
+        "id": "F34",
+        "severity": "low",
+        "file": "docs/harness/history/SEEN-114/0322.json",
+        "claim": "Checks 322 and 323, the red and green of the eighth round, are the only cited checks in the accepted tdd record that declare no agent, so the record's first slice entry passes the context rule only because [routing] shadow is true.",
+        "failure_scenario": "Sixteen of the eighteen checks the record cites declare agent_declared seen-implementer; 322 and 323 declare null, and 340 is the carried F27. gates.py lines 1290 to 1299 refuse a null-position round when no cited check declares an agent, and the function returns earlier while routing.shadow is true. thresholds.toml sets shadow true until SEEN-109's window decides, so the day it is set false this accepted record would not pass the gate it was accepted under, which is what SEEN-138's replay of finished tickets reads back.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "none: the gate already asks this question and is silent only because the routing window is in shadow, which is a threshold and not a rule"
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}

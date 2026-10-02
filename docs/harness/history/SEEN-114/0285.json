@@ -1,0 +1,32 @@
+{
+  "sequence": 285,
+  "ticket": "SEEN-114",
+  "timestamp": "2026-10-01T20:15:27.230394+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 13,
+  "actor": "claude:implementer",
+  "session": "ad77b7a13315",
+  "head": "03958e73c5fbf504390a259263b9de180d6e7008",
+  "prev_hash": "402464f2c074ef6e4a098b4fbf51b8f1d43094db46f75891fc2e5d6beab2b91b",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_gates"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "model": "claude-opus-5",
+    "model_declared": "opus",
+    "agent_declared": "seen-implementer",
+    "duration_ms": 1347,
+    "output": ".FF.F..F\n======================================================================\nFAIL: test_a_malformed_rule_candidate_is_refused (harness.tests.test_gates.ReviewGateTest.test_a_malformed_rule_candidate_is_refused)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_gates.py\", line 79, in test_a_malformed_rule_candidate_is_refused\n    with self.assertRaisesRegex(HarnessError, 'rule_candidate'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: HarnessError not raised\n\n======================================================================\nFAIL: test_a_medium_finding_with_no_rule_candidate_is_refused (harness.tests.test_gates.ReviewGateTest.test_a_medium_finding_with_no_rule_candidate_is_refused)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_gates.py\", line 69, in test_a_medium_finding_with_no_rule_candidate_is_refused\n    with self.assertRaisesRegex(HarnessError, 'rule_candidate'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: HarnessError not raised\n\n======================================================================\nFAIL: test_a_none_shape_with_no_reason_is_refused (harness.tests.test_gates.ReviewGateTest.test_a_none_shape_with_no_reason_is_refused)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_gates.py\", line 98, in test_a_none_shape_with_no_reason_is_refused\n    with self.assertRaisesRegex(HarnessError, 'rule_candidate'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: HarnessError not raised\n\n======================================================================\nFAIL: test_an_unknown_tool_in_the_rule_id_is_refused (harness.tests.test_gates.ReviewGateTest.test_an_unknown_tool_in_the_rule_id_is_refused)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_gates.py\", line 103, in test_an_unknown_tool_in_the_rule_id_is_refused\n    with self.assertRaisesRegex(HarnessError, 'rule_candidate'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: HarnessError not raised\n\n----------------------------------------------------------------------\nRan 8 tests in 1.306s\n\nFAILED (failures=4)\n",
+    "output_sha256": "86ea5aaab5deaee3642d27b26e753ad854e6aab2f447c5feba169bee24abc0b8",
+    "output_truncated": false,
+    "before": "602e7b2dba5abee8555327ce5191c7efb50d71ebd78b8ac7c84755af38a68d96",
+    "after": "602e7b2dba5abee8555327ce5191c7efb50d71ebd78b8ac7c84755af38a68d96"
+  }
+}

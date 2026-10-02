@@ -22,7 +22,10 @@ import { Client } from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import {
-  MARKETPLACE_COLUMNS, MARKETPLACE_IDS, MarketplaceId, parseRoutingTable,
+  MARKETPLACE_COLUMNS,
+  MARKETPLACE_IDS,
+  type MarketplaceId,
+  parseRoutingTable,
 } from './marketplaces';
 import { readRepositoryFile } from './repository';
 import { ARCHITECTURE_DOCUMENT, ERASURE_REGISTRY_TABLE, TENANT_CLAIM } from './tables';
@@ -60,10 +63,10 @@ async function connect(): Promise<Client> {
   } catch (cause) {
     await client.end().catch(() => undefined);
     throw new Error(
-      `No Postgres answering at ${where(DATABASE_URL)}, so this test proves nothing about the `
-      + 'marketplaces catalogue. Start the local stack with `pnpm dev:up`, apply the migrations '
-      + 'with `pnpm db:reset`, or point SEEN_DATABASE_URL at another stack. The driver said: '
-      + `${(cause as Error).message}`,
+      `No Postgres answering at ${where(DATABASE_URL)}, so this test proves nothing about the ` +
+        'marketplaces catalogue. Start the local stack with `pnpm dev:up`, apply the migrations ' +
+        'with `pnpm db:reset`, or point SEEN_DATABASE_URL at another stack. The driver said: ' +
+        `${(cause as Error).message}`,
       { cause },
     );
   }
@@ -85,10 +88,7 @@ interface CatalogueRow {
  * tenant id in this suite is server-generated and never supplied, so no test can
  * collide with a tombstone and the growth can fail nothing.
  */
-async function assertNoTombstones(
-  client: Client,
-  tenants: (string | undefined)[],
-): Promise<void> {
+async function assertNoTombstones(client: Client, tenants: (string | undefined)[]): Promise<void> {
   const created = tenants.filter((id): id is string => Boolean(id));
   if (created.length === 0) return;
   const { rows } = await client.query<{ tenant_id: string }>(
@@ -97,8 +97,8 @@ async function assertNoTombstones(
   );
   expect(
     rows.map((row) => row.tenant_id),
-    'Tenants this file created are tombstoned in the erasure registry, so its fixtures erased '
-    + 'them outside a transaction and nothing can take those rows back',
+    'Tenants this file created are tombstoned in the erasure registry, so its fixtures erased ' +
+      'them outside a transaction and nothing can take those rows back',
   ).toEqual([]);
 }
 
@@ -113,9 +113,9 @@ describe('the static marketplaces catalogue', () => {
     );
     if (rows[0].name === null) {
       throw new Error(
-        'The static marketplaces catalogue does not exist: seen.marketplace_catalogue is not in '
-        + 'the database, so none of the six marketplaces of the routing table and none of their '
-        + 'nine capabilities have been seeded. Apply the migrations with `pnpm db:reset`.',
+        'The static marketplaces catalogue does not exist: seen.marketplace_catalogue is not in ' +
+          'the database, so none of the six marketplaces of the routing table and none of their ' +
+          'nine capabilities have been seeded. Apply the migrations with `pnpm db:reset`.',
       );
     }
     const found = await client.query<CatalogueRow>(
@@ -132,18 +132,17 @@ describe('the static marketplaces catalogue', () => {
     const present = seeded.map((row) => row.marketplace);
     expect(
       present,
-      `The catalogue holds ${present.length} of the six marketplaces the routing table names: `
-      + `${present.join(', ') || 'none at all'}`,
+      `The catalogue holds ${present.length} of the six marketplaces the routing table names: ` +
+        `${present.join(', ') || 'none at all'}`,
     ).toEqual([...MARKETPLACE_IDS]);
   });
 
   it("names each marketplace as the routing table's own column heading", () => {
     const named = Object.fromEntries(seeded.map((row) => [row.marketplace, row.name]));
-    const expected = Object.fromEntries(
-      MARKETPLACE_IDS.map((id) => [id, MARKETPLACE_COLUMNS[id]]),
+    const expected = Object.fromEntries(MARKETPLACE_IDS.map((id) => [id, MARKETPLACE_COLUMNS[id]]));
+    expect(named, 'The catalogue names a marketplace something the document does not').toEqual(
+      expected,
     );
-    expect(named, 'The catalogue names a marketplace something the document does not')
-      .toEqual(expected);
   });
 
   it('stores every capability as the routing table states it, one value per cell', () => {
@@ -153,9 +152,9 @@ describe('the static marketplaces catalogue', () => {
       const row = seeded.find((candidate) => candidate.marketplace === id);
       expect(
         row?.capabilities ?? null,
-        `The capabilities seeded for ${id} are not what the routing table in `
-        + 'docs/architecture.md states. The document is the authority: reseed the catalogue in '
-        + 'the commerce and marketplaces migration to match it.',
+        `The capabilities seeded for ${id} are not what the routing table in ` +
+          'docs/architecture.md states. The document is the authority: reseed the catalogue in ' +
+          'the commerce and marketplaces migration to match it.',
       ).toEqual(ROUTING[id as MarketplaceId]);
     }
   });
@@ -168,14 +167,15 @@ describe('the static marketplaces catalogue', () => {
     // disagree with what the database holds.
     const edited = parseRoutingTable(
       readRepositoryFile(ARCHITECTURE_DOCUMENT).replace(
-        '| API (Orders, Reports) |', '| assisted (a case by hand) |',
+        '| API (Orders, Reports) |',
+        '| assisted (a case by hand) |',
       ),
     );
     const seededAmazon = seeded.find((row) => row.marketplace === 'amazon')?.capabilities;
     expect(
       edited.amazon.ingest_orders,
-      'changing a cell of the routing table did not change what this test reads, so it is not '
-      + 'reading the document at all',
+      'changing a cell of the routing table did not change what this test reads, so it is not ' +
+        'reading the document at all',
     ).not.toEqual(seededAmazon?.ingest_orders);
     expect(edited.amazon.ingest_orders).toEqual({ mode: 'assisted', detail: 'a case by hand' });
   });
@@ -196,7 +196,8 @@ describe('the catalogue a tenant reads through its own policy', () => {
     try {
       if (claims !== null) {
         await client.query('select set_config($1, $2, true)', [
-          'request.jwt.claims', JSON.stringify(claims),
+          'request.jwt.claims',
+          JSON.stringify(claims),
         ]);
       }
       await client.query('set local role authenticated');
@@ -239,9 +240,9 @@ describe('the catalogue a tenant reads through its own policy', () => {
     const mine = await visible({ [TENANT_CLAIM]: first as string });
     expect(
       mine,
-      `A tenant reads ${mine.length} of the six marketplaces: ${mine.join(', ') || 'none at all'}. `
-      + 'A catalogue that exists and is invisible to the tenant that has to route on it is not '
-      + 'seeded.',
+      `A tenant reads ${mine.length} of the six marketplaces: ${mine.join(', ') || 'none at all'}. ` +
+        'A catalogue that exists and is invisible to the tenant that has to route on it is not ' +
+        'seeded.',
     ).toEqual([...MARKETPLACE_IDS]);
 
     const { rows } = await client.query<CatalogueRow>(
@@ -261,8 +262,8 @@ describe('the catalogue a tenant reads through its own policy', () => {
     const theirs = await visible({ [TENANT_CLAIM]: second as string });
     expect(
       theirs,
-      'The second tenant created after the seed reads a different catalogue from the first, so '
-      + 'the catalogue reaches a tenant only when a migration runs',
+      'The second tenant created after the seed reads a different catalogue from the first, so ' +
+        'the catalogue reaches a tenant only when a migration runs',
     ).toEqual([...MARKETPLACE_IDS]);
   });
 
@@ -325,22 +326,22 @@ describe('connections are bound to the catalogue', () => {
     const said = await attempt('mercadolibre');
     expect(
       said,
-      'connections.marketplace accepts a marketplace that is not in the catalogue, so a typo at '
-      + 'ingest opens a connection to a marketplace that does not exist and every row keyed to it '
-      + 'is unreachable from the catalogue the modules route on',
+      'connections.marketplace accepts a marketplace that is not in the catalogue, so a typo at ' +
+        'ingest opens a connection to a marketplace that does not exist and every row keyed to it ' +
+        'is unreachable from the catalogue the modules route on',
     ).not.toBe('accepted');
     expect(
       said,
-      `The connection was refused with SQLSTATE ${said}, where a foreign key violation (23503) `
-      + 'is what says the refusal came from the catalogue rather than from something else',
+      `The connection was refused with SQLSTATE ${said}, where a foreign key violation (23503) ` +
+        'is what says the refusal came from the catalogue rather than from something else',
     ).toBe('23503');
   });
 
   it('accepts a connection to a marketplace it does hold', async () => {
     expect(
       await attempt('bol'),
-      'the foreign key refuses a marketplace the catalogue holds, so the seed and the key '
-      + 'disagree',
+      'the foreign key refuses a marketplace the catalogue holds, so the seed and the key ' +
+        'disagree',
     ).toBe('accepted');
   });
 });

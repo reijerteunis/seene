@@ -1,0 +1,37 @@
+{
+  "sequence": 42,
+  "ticket": "SEEN-114",
+  "timestamp": "2026-10-01T10:35:22.948815+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "session": "6973478f0bee",
+  "head": "e56c7f9874dde273b44785d2a1cee1d81049d04c",
+  "prev_hash": "c3e9c42997999cdd5f7bb0d6ac5f9433d7316b1b3119d5053d495695a8ce2b77",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_calibration.FindingFileTest",
+      "harness.tests.test_calibration.ReturningFindingsTest",
+      "harness.tests.test_stage_gates.ReviewGateTest",
+      "harness.tests.test_stage_gates.SubagentReviewTest",
+      "harness.tests.test_stage_gates.TwoReviewerTest",
+      "harness.tests.test_hooks.SubagentStopTest"
+    ],
+    "phase": "green",
+    "exit_code": 0,
+    "model": "claude-opus-5",
+    "model_declared": "sonnet",
+    "agent_declared": "seen-implementer",
+    "duration_ms": 10243,
+    "output": "...................................................................\n----------------------------------------------------------------------\nRan 67 tests in 10.178s\n\nOK\n",
+    "output_sha256": "ac21b1ce0ad38a22a08fea289f8a6e79271930d2008aced2fb6ad53e8ee83235",
+    "output_truncated": false,
+    "before": "06d1b2c73f91fadc018d9915d999374b242d82b9907a88025e395f58ebbbda71",
+    "after": "06d1b2c73f91fadc018d9915d999374b242d82b9907a88025e395f58ebbbda71"
+  }
+}

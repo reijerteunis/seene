@@ -1,0 +1,22 @@
+# Why: rules/registry.toml, ast-grep/no-em-or-en-dash.
+id: no-em-or-en-dash
+language: Tsx
+severity: error
+message: An em dash or en dash appears here. Use a plain hyphen or rewrite the sentence.
+note: |
+  CLAUDE.md: no em dashes or en dashes anywhere, in code, docs or
+  customer-facing copy.
+files:
+  - "apps/**"
+  - "packages/**"
+ignores:
+  - "**/dist/**"
+  - "**/.next/**"
+  - "**/coverage/**"
+rule:
+  any:
+    - kind: comment
+    - kind: string_fragment
+    - kind: jsx_text
+    - kind: regex_pattern
+  regex: '[\x{2014}\x{2013}]'

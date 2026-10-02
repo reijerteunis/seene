@@ -5,6 +5,10 @@
   "description": "Deterministic reconciliation: matching, fee expectations and euro arithmetic as pure functions.",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./package.json": "./package.json"
+  },
   "//test": [
     "test is the whole suite and is what `turbo run test` and therefore CI runs: the pure",
     "functions under src/ and the schema, tenancy, privilege and uniqueness tests under db/.",
@@ -18,7 +22,7 @@
     "test": "vitest run",
     "test:unit": "vitest run --dir src",
     "test:db": "vitest run --dir db",
-    "lint": "eslint src db",
+    "lint": "biome check src db",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "devDependencies": {

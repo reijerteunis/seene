@@ -1,0 +1,93 @@
+{
+  "sequence": 321,
+  "ticket": "SEEN-114",
+  "timestamp": "2026-10-01T21:53:38.700471+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 14,
+  "actor": "claude:implementer",
+  "session": "ad77b7a13315",
+  "head": "e1b4a3219a2d05f7e6f6f1d0db18590639417dfb",
+  "prev_hash": "c9afe98ed19eab1f852fe3529a68a7ff943d554136fab8627234d95a995cfcee",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 15,
+    "reason": "The fifth review passed. This return is not the review's: it is the session choosing, on Ruud's decision, to fix three of the seven findings it recorded before delivering rather than carrying them. The reviewer verified the work independently, re-running the suite at 1,557 tests, the rule set at 23 of 23 fixtures and the tree clean, and judged all seven not blocking. Three are in the rules this ticket delivers, which is why they are worth a round: core-no-io matched its seven IO libraries only when installed, so the money core could import bullmq with the hook saying ok, measured both ways; the one test that executes the staged run skips in every CI job, so F21's fix was guarded in CI by two substring assertions; and money-as-integer-cents read only a variable declarator, so the object literal a fee schedule is written in passed the rule SEEN-016 will rely on. The four low findings are recorded for the carried-forward section. The verdict on the record is pass, and the findings are here because the calibration window reads what a round found whichever way the round went.",
+    "findings": [
+      {
+        "id": "F22",
+        "severity": "medium",
+        "file": ".dependency-cruiser.json:9",
+        "claim": "dependency-cruiser/core-no-io refuses the seven IO libraries it names only when they resolve under a node_modules directory, so the ten-second half of the money core's import boundary is silent on a package that is not installed yet, where all three sibling deny-lists in the same file match the bare specifier too.",
+        "failure_scenario": "Write `import { Queue } from 'bullmq'` in packages/core/src/fees.ts without adding bullmq to packages/core/package.json, stage it, commit. The dependency resolves to the bare string `bullmq`, core-no-io's second alternative requires `node_modules/bullmq/`, and the hook prints 'dependency-cruiser: ok'. Measured in a tree laid out like this repository: `import axios from 'axios'` under packages/core/src is reported when packages/core/node_modules/axios exists and is not reported at all when it does not, while in the same tree the unresolved superagent, request and node:https in packages/connectors are all reported by network-only-through-generated-clients, which writes `(^|node_modules/)`, as do database-through-repository and no-cloud-sdk-outside-providers. CI still refuses the commit, through TS2307 on the missing module and through the repository.ts allow-list, so what is lost is the instrument this ticket is about: the hook says ok, and the developer is told a module is missing rather than that the money core reaches no network.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "harness/deny-list-matches-unresolved-specifier"
+      },
+      {
+        "id": "F23",
+        "severity": "medium",
+        "file": ".github/workflows/ci.yml:26",
+        "claim": "The only test that executes scripts/rules.sh in staged mode skips in every CI job, so the fix for F21, the defect that made the hook report ok having read nothing, has no executed proof in CI and is guarded there by two substring assertions over the script's text.",
+        "failure_scenario": "harness/tests/test_rules.py:638 skips unless node_modules/.bin/ast-grep exists; the only job that runs the harness tests has no pnpm install step, and the two jobs that do install never run the harness tests. So StagedPathWithASpaceTest is skipped on every CI run and the staged mode is never executed there at all. A later edit to run_staged that keeps the asserted substrings and reintroduces splitting, for example handing Biome `$(printf '%s ' \"${code_paths[@]}\")` or adding `for path in ${code_paths[@]}` to filter the list, leaves both text tests green, leaves rules --fixtures and the tree run untouched because neither calls run_staged, and the hook returns silently to reporting ok on a staged path with a space.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "harness/test-skipped-in-every-ci-job"
+      },
+      {
+        "id": "F24",
+        "severity": "medium",
+        "file": "rules/ast-grep/money-as-integer-cents.yml:22",
+        "claim": "ast-grep/money-as-integer-cents matches a non-integer literal only in a variable_declarator, so the object properties and class fields its registry entry's wording covers, 'a non-integer numeric literal bound to a name that says it is cents, an amount, a price or a fee', pass the rule.",
+        "failure_scenario": "Measured in a tree laid out like this repository: under packages/core/src, `const priceEur = 19.99`, `const feeRate = 0.15` and `let amountX = 1.5` are each reported, while `const schedule = { feeCents: 1.5, price: 19.99 }` and `class Tariff { private price = 19.99 }` in the same file produce no diagnostic at all. SEEN-016 encodes fee schedules per marketplace and category in core and SEEN-071 models net margin from cost layers; a schedule is written as an object literal, so `export const BOL = { commissionRate: 0.15, pickFeeEur: 0.49 }` lands in packages/core with the hook, the tree run and CI all green, while a reviewer who has read the registry entry believes that shape is covered and does not look at it.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "none: the gap is between a registry entry's prose and the pattern beneath it, which only a reader comparing the two can judge"
+      },
+      {
+        "id": "F25",
+        "severity": "low",
+        "file": "docs/tickets/SEEN-114-turn-every-recurring-finding-into-a-rule-the.md:190",
+        "claim": "The carried F17 paragraph's census of what the two prose rules miss names one file in the tree, and there are two outside the journal and the generated graph: supabase/config.toml carries an em dash on lines 390 and 391.",
+        "failure_scenario": "git ls-files piped through a grep for U+2014, U+2013 and U+20AC returns .codegraph/.gitignore:1, supabase/config.toml:390 and :391, graphify-out/GRAPH_REPORT.md and sixteen journal records. The paragraph accounts for the journals in its next clause but says 'There is one in the tree today'. Somebody writing the whole-tree version the paragraph asks for sizes the exclusion list from that sentence, runs it, and finds the Supabase CLI's own generated configuration in the result.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "harness/outcome-figure-names-its-record"
+      },
+      {
+        "id": "F26",
+        "severity": "low",
+        "file": "rules/ast-grep/no-credential-literal-in-tests.yml:20",
+        "claim": "ast-grep/no-credential-literal-in-tests matches the substring eyJ in any string or template in a test file, and every base64 encoding of a JSON object begins with eyJ, so a recorded payload is refused with advice that does not apply to it.",
+        "failure_scenario": "A webhook test asserting a base64 body, say `expect(decode('eyJvcmRlcklkIjoiMSJ9')).toEqual(order)` in packages/connectors/src/bol.test.ts, is refused at the hook with 'A JWT is written as a literal here. Read the credential from the environment and skip the test when it is absent', which is wrong about the string and wrong about the remedy; the author's way out is an ast-grep ignore comment that neither the rule file nor the registry mentions, and the lesson taken is how to suppress a rule.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "none: a rule that refuses more than its own description claims is not something another static rule can see"
+      },
+      {
+        "id": "F27",
+        "severity": "low",
+        "file": "docs/harness/history/SEEN-114/0318.json",
+        "claim": "Record 318, the coverage check the tdd record's 100.0 figure is read from, declares neither a model nor an agent, because harness coverage takes no --model, so the one figure in the record that comes from a coverage check carries less disclosure than every other check in the journal.",
+        "failure_scenario": "All seventeen coverage checks in this journal carry model_declared null and agent_declared null, while the other checks carry 'opus' and, for 52 of them, 'seen-implementer'. The tdd gate's rule that a check recorded under a model the route did not choose is refused cannot bind a check that declares no model, and a reader asking which context measured the coverage has no answer. This is not this ticket's code: harness/cli.py's coverage command is untouched by the diff and the gap predates it.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "harness/coverage-check-declares-its-model"
+      },
+      {
+        "id": "F28",
+        "severity": "low",
+        "file": "harness/rules.py:581",
+        "claim": "fixture_results silently drops a registry entry whose tool has no runner, so a rule for the one tool in CONFIG_FOR_TOOL that is absent from RUNNER_FOR_TOOL, gitleaks, would pass rules --check and never be proven, against the module's own rule that an absence is never a pass.",
+        "failure_scenario": "Add a gitleaks rule with a citation and an existing fixture directory. problems() has no configuration to cross-check, because CONFIG_FOR_TOOL['gitleaks'] is None, so rules --check passes; fixture_results drops the entry because gitleaks is not in RUNNER_FOR_TOOL, so it appears in no fixture result and in no unproven list, ok stays true, and the summary reads '23 of 23 rules refused their own fixture' over a registry of twenty-four.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "none: the hole is a missing case in a dispatch table, which only shows when an entry nobody has written yet arrives"
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}

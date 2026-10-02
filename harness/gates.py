@@ -9,11 +9,13 @@ that a conclusion is correct, and it does not pretend to.
 
 import hashlib
 import json
+import re
 
 from . import checks
 from .errors import HarnessError, require
 from .paths import (ENUMERATED_KEYS, FINGERPRINT_EXCLUDED, NON_CODE_TEMPLATE,
                     TEMPLATE_FOR_STAGE, TEMPLATES)
+from .rules import CONFIG_FOR_TOOL
 
 MODES = ('code', 'non-code')
 # How a review discloses whose context it came from. A subagent is a context
@@ -30,6 +32,22 @@ FINDING_KEYS = ('id', 'severity', 'claim', 'failure_scenario', 'status', 'resolu
 # The severities SEEN-109's escape rule is written at, which is why a finding at
 # one of them has to name the file it is in.
 ESCAPING_SEVERITIES = ('high', 'blocking')
+# The severities SEEN-114's rule loop is written at: medium joins the two escape
+# severities, because a medium finding is still a finding a static rule might
+# have caught, even though it is not serious enough to be an escape. Low is left
+# alone, for the same reason `file` is left alone at low and medium: not looking
+# for a low finding is the saving itself.
+RULE_CANDIDATE_SEVERITIES = ('medium',) + ESCAPING_SEVERITIES
+# The shape of a rule id already in the registry or still to be written: the
+# tool that would run it and the rule's own name, as `rules/registry.toml`
+# writes one. Read from `rules.CONFIG_FOR_TOOL` rather than restated here,
+# because two lists of tools that can disagree is the thing the registry exists
+# to stop.
+_RULE_ID = re.compile(
+    r'^(' + '|'.join(re.escape(tool) for tool in CONFIG_FOR_TOOL) + r')/[A-Za-z0-9][\w-]*$')
+RULE_CANDIDATE_EXAMPLE = ('a rule id already in the registry, such as "ast-grep/no-euro-sign"; a '
+                          'rule id not in the registry yet, such as "ast-grep/no-settlement-'
+                          'mutation"; or "none: <reason>" when no static rule can catch it')
 # How far back the tree a check ran against is looked for. A check runs on the
 # working tree, and what puts that tree in the history is the commit that
 # carried the work it proved, which is the next commit on the branch; fifty is
@@ -1739,6 +1757,20 @@ def evaluate(stage, data, records, current, repository, thresholds):
     return gate(data, records, current, repository, thresholds)
 
 
+def _valid_rule_candidate(value):
+    """Whether a rule_candidate is one of the three shapes SEEN-114 allows.
+
+    Not whether the id already exists in the registry: a finding naming a rule
+    nobody has written yet is exactly the signal the doctor warning in slice 4
+    reads, so the shape is checked and the registry is not.
+    """
+    if not isinstance(value, str):
+        return False
+    if value.startswith('none:'):
+        return bool(value[len('none:'):].strip())
+    return bool(_RULE_ID.match(value))
+
+
 def check_findings(findings, severities, resolved=True):
     """What a finding must carry, and why a serious one must name its file.
 
@@ -1748,6 +1780,17 @@ def check_findings(findings, severities, resolved=True):
     already writes `file` as `path:line`, so the requirement asks for what is
     already there. Low and medium are left alone: neither can ever be an escape,
     because not looking for them is the saving itself.
+
+    A finding at medium or above also carries rule_candidate, SEEN-114's other
+    half of the same reasoning: a finding a static rule could have caught is
+    paid for three times, and the rule that would stop that is written the week
+    the finding appears. Checked here rather than only where `resolved` is true,
+    so a return's findings owe the field too: the ticket a return sends back is
+    exactly where the next rule is written, and a defect serious enough to
+    return on is serious enough to ask what would have caught it. A finding
+    recorded before this check existed carries no rule_candidate, and that
+    journal is never read back through this function again, so nothing already
+    written is retrofitted.
     """
     for finding in findings:
         require(isinstance(finding, dict), 'Every finding must be an object')
@@ -1767,3 +1810,7 @@ def check_findings(findings, severities, resolved=True):
                     'finding this serious is what the calibration window measures the review '
                     'triage by, and one nobody can place counts in favour of the narrowing. '
                     'Give it file, as path or path:line')
+        if finding['severity'] in RULE_CANDIDATE_SEVERITIES:
+            require(_valid_rule_candidate(finding.get('rule_candidate')),
+                    f'Finding {finding["id"]} is {finding["severity"]} and carries no valid '
+                    f'rule_candidate. Give it {RULE_CANDIDATE_EXAMPLE}')

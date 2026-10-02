@@ -1,0 +1,22 @@
+{
+  "sequence": 9,
+  "ticket": "SEEN-114",
+  "timestamp": "2026-10-01T07:53:31.883737+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "6973478f0bee",
+  "head": "708d6c659177005a883fea8349d85d1b8fa84514",
+  "prev_hash": "3d5d21503eeee942d034fead43a6af3315899614425a6decf8209b34d2fd7830",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "solution",
+    "to_attempt": 2,
+    "reason": "The plan did not anticipate what adopting a formatter does to a tree that has never had one: Biome rewrites 26 source files and finds 10 lint findings in 6 files, and slices 1 and 2 name neither the files nor the directories. The measurements are in the note above. Amending the slice plan to name apps and packages, and withdrawing the solution record's mitigation that a rule needing a code change would be turned off: turning off noImplicitAnyLet on the day the rule set arrives, to avoid six lines, would ship a rule set that does not run.",
+    "findings": [],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}

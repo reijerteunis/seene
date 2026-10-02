@@ -1,0 +1,22 @@
+{
+  "sequence": 300,
+  "ticket": "SEEN-114",
+  "timestamp": "2026-10-01T20:47:18.389161+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 13,
+  "actor": "claude:implementer",
+  "session": "ad77b7a13315",
+  "head": "c3d80c149259ea40456887acd98c5f7e6264da51",
+  "prev_hash": "1688dacf3b4beedcc83a2fc9c720d80f643e533e2bd3fe3949dae1de31847c4f",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 14,
+    "reason": "Not a defect and not a review: an ordering error in the round's own bookkeeping, caught by the triage's fingerprint check. The regression at 296 ran before the ticket file's last edit, so the latest test run attests a tree that differs from the one being reviewed by that file, and the check said so: 'The tree changed after check 296'. The tests that passed are not the tests for this tree, which is exactly what that check is for. The fix is to run the regression last, after the ticket file is final, and to cite that one. No finding, no reviewer, and nothing in the work is in question: the tree is clean at c3d80c1 and every other deterministic check passed, including slice_files over all 103 files.",
+    "findings": [],
+    "no_findings": true,
+    "unmet_criteria": []
+  }
+}

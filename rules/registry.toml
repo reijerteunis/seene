@@ -1,0 +1,361 @@
+# The rule set in front of the model, and the one place a rule is traceable.
+#
+# SEEN-114. Sprint 0 delivered 63 review findings on 20 tickets. A finding a
+# static rule could have caught is paid for three times: the reviewer's reading,
+# the return, the second review. The rules that stop that live where each tool
+# looks for them, which is four files at the repository root plus the compiler's
+# own flags; this file is where each one says what it stands on.
+#
+# Five fields, a reader's question each:
+#
+#   id        the tool that runs it and the rule's own name, as `tool/name`
+#   tool      which of the seven tools of the set runs it
+#   citation  the finding it came from, as `SEEN-097 F1`, or the document and
+#             section that states it, as `docs/architecture.md: Services`. A
+#             ticket id on its own is not a citation: every rule was added by
+#             some ticket, so naming one says nothing a reader can open.
+#   fixture   the directory holding the violation this rule must refuse. The
+#             fixture is laid out like the repository, because a rule scoped to
+#             `packages/core/**` says nothing about a file in `rules/fixtures/`.
+#   reason    what goes wrong in Seen when the rule is not there. Not the rule
+#             restated: the defect it is about.
+#
+# And one optional sixth, `expect`: the token the tool's report must name for the
+# rule to count as fired. The rule's own name by default, which is what each of
+# these tools prints beside a diagnostic. It is overridden for the one case where
+# the rule's name is not a thing any report says: a preset names no rule of its
+# own, so what proves it is a named rule from inside the preset's set.
+#
+# `harness rules --check` reads this file against the tools' own configurations
+# in both directions, and CI runs it. A rule a configuration enables that is not
+# here fails the build, which is the mechanism: the citation is written the same
+# week as the rule. A rule here that no configuration enables fails it too,
+# because a registry that only had to be a superset of what runs could be padded.
+# `harness rules --fixtures` runs each rule against its own fixture.
+#
+# The comments in this file are the reasoning the four configurations do not
+# carry. They are plain JSON so that Python can read them without a parser of its
+# own, which means they hold no comments, and a reader looking for why a rule
+# exists looks here rather than in four places.
+
+# ---------------------------------------------------------------------------
+# The compiler. The cheapest reviewer there is: it costs nothing to run and
+# nothing to read, and it answers before the code is staged.
+#
+# A compiler flag is proven by compiling its fixture twice. tsc names the option
+# in its message for `exactOptionalPropertyTypes` and not for the other three, so
+# the fixture must fail with the flag the base configuration sets and compile
+# cleanly with that one flag turned off. A fixture that fails either way fails for
+# a reason that has nothing to do with the flag.
+# ---------------------------------------------------------------------------
+
+[[rule]]
+id = "tsconfig/strict"
+tool = "tsconfig"
+citation = "docs/harness/workflow.md: Rules from findings"
+fixture = "rules/fixtures/tsconfig-strict"
+reason = """An untyped parameter in a detector is a detector whose inputs nobody declared, and the \
+money core is where a wrong unit costs a claim. Strict is the floor the other three stand on."""
+
+[[rule]]
+id = "tsconfig/noUncheckedIndexedAccess"
+tool = "tsconfig"
+citation = "docs/harness/workflow.md: Rules from findings"
+fixture = "rules/fixtures/tsconfig-nouncheckedindexedaccess"
+reason = """A settlement file's lines are read by index, and a marketplace sends a shorter array \
+than the one before it. Without this flag `lines[0]` is typed as present and the reconciliation \
+reads undefined as a line."""
+
+[[rule]]
+id = "tsconfig/exactOptionalPropertyTypes"
+tool = "tsconfig"
+citation = "docs/harness/workflow.md: Rules from findings"
+fixture = "rules/fixtures/tsconfig-exactoptionalpropertytypes"
+reason = """An optional field set to undefined and an optional field absent are different rows in \
+an upsert: the first overwrites what the marketplace sent last time with nothing. Without this \
+flag the two are the same type."""
+
+[[rule]]
+id = "tsconfig/noImplicitOverride"
+tool = "tsconfig"
+citation = "docs/harness/workflow.md: Rules from findings"
+fixture = "rules/fixtures/tsconfig-noimplicitoverride"
+reason = """One connector per marketplace behind a shared interface, so a method that silently \
+shadows the base class is a capability routed one way and implemented another. The modifier makes \
+the intent a declaration."""
+
+# ---------------------------------------------------------------------------
+# Biome. Format and lint, in milliseconds, which is what makes it a hook rule
+# rather than a CI rule. It is also the authority on style, so a review finding
+# about style is refused (SEEN-118): a reviewer arguing about a brace is a
+# reviewer not reading the money.
+#
+# The three nursery rules below are type-aware and run on Biome's own inference
+# rather than a TypeScript program, measured at 1.8ms on one file before they were
+# chosen. They are here rather than under ast-grep, which the ticket's own wording
+# suggested, because ast-grep would have to match a call expression and guess at
+# its type.
+# ---------------------------------------------------------------------------
+
+[[rule]]
+id = "biome/recommended"
+tool = "biome"
+citation = "docs/harness/workflow.md: A bounded review"
+fixture = "rules/fixtures/biome-recommended"
+expect = "suspicious/noImplicitAnyLet"
+reason = """One decision, taken once: Biome's recommended set decides style and the obvious \
+correctness mistakes, so neither reaches a review. Three hundred entries here for rules nobody \
+chose one by one would be a registry a reader skims."""
+
+[[rule]]
+id = "biome/noFloatingPromises"
+tool = "biome"
+citation = "docs/harness/workflow.md: Rules from findings"
+fixture = "rules/fixtures/biome-nofloatingpromises"
+reason = """An unawaited write to the audit log is a side effect that happened before its event \
+was committed, which is the one ordering the architecture's append-only audit rests on. The error \
+it drops is the error nobody sees."""
+
+[[rule]]
+id = "biome/noMisusedPromises"
+tool = "biome"
+citation = "docs/architecture.md: Agent runtime and the policy gate"
+fixture = "rules/fixtures/biome-nomisusedpromises"
+reason = """A promise used as a condition is always truthy, so a gate asked `if (allowed(...))` \
+without the await decides autonomous for every action. That is the policy gate failing open."""
+
+[[rule]]
+id = "biome/useAwaitThenable"
+tool = "biome"
+citation = "docs/architecture.md: Agent runtime and the policy gate"
+fixture = "rules/fixtures/biome-useawaitthenable"
+reason = """An await on something that is not thenable is an await on the wrong call, and it reads \
+as though the asynchronous one had been made. In a tool call that files a claim, the difference is \
+whether the marketplace was reached at all."""
+
+# ---------------------------------------------------------------------------
+# ast-grep. The domain rules no general linter knows, because each one is a
+# sentence from CLAUDE.md or the architecture rather than a property of the
+# language. One id per rule file, which `harness rules --check` enforces, so that
+# reading the ids is reading the directory.
+#
+# All five are written against the `Tsx` grammar and sgconfig.yml maps every
+# TypeScript extension onto it, because ast-grep gives a file one language and a
+# rule written for `TypeScript` never sees a .tsx file. Measured while these were
+# written: an em dash in `apps/web/app/page.tsx` was invisible to the rule that
+# forbids it, and customer-facing copy is exactly where a dash arrives from. The
+# cost is the one construct the two grammars disagree about, the `<T>value` type
+# assertion, which this repository writes as `value as T`.
+# ---------------------------------------------------------------------------
+
+[[rule]]
+id = "ast-grep/no-euro-sign"
+tool = "ast-grep"
+citation = "CLAUDE.md: use EUR in text, never the euro sign in code comments or docs"
+fixture = "rules/fixtures/ast-grep-no-euro-sign"
+reason = """A currency symbol in a string is a currency decided by whoever reads the string. Every \
+amount in the trade record is integer cents with a currency code beside it, and five marketplaces \
+in four countries do not all settle in one currency, so the symbol is the one spelling that cannot \
+say which."""
+
+[[rule]]
+id = "ast-grep/no-em-or-en-dash"
+tool = "ast-grep"
+citation = "CLAUDE.md: no em dashes or en dashes anywhere, in code, docs or customer-facing copy"
+fixture = "rules/fixtures/ast-grep-no-em-or-en-dash"
+reason = """A dash nobody typed is how a model's prose is recognised, and a brand deciding whether \
+to trust an agent with its money reads this product's copy. It is one of the few rules in CLAUDE.md \
+with no exception, which is what makes it mechanical rather than a matter of taste at a review."""
+
+[[rule]]
+id = "ast-grep/money-as-integer-cents"
+tool = "ast-grep"
+citation = "CLAUDE.md: amounts are in cents as integers with a currency code"
+fixture = "rules/fixtures/ast-grep-money-as-integer-cents"
+reason = """Half a cent a line over a 90 day settlement file is a reconciliation that disagrees with \
+the marketplace and a claim that cannot be evidenced. What a pattern can express is the tractable \
+half, and this rule is only that half: decimal parsing (parseFloat, Number.parseFloat) and decimal \
+formatting (toFixed) anywhere in packages/core, and a numeric literal written with a decimal point, \
+with or without a leading minus, bound by a name that says it is cents, an amount, a price or a fee \
+in one of the three positions money is written in: a variable declarator, an object property, a \
+class field. Said that precisely because SEEN-114 F24 and F30 were both the gap between this \
+sentence and the pattern under it. Three forms it does not read, each by measurement rather than by \
+assumption: a literal in exponent notation, which carries no decimal point; a parameter default, \
+which sits in none of the three positions; and an amount that arrives as a string or a variable, \
+which no pattern can follow. All three are a type rather than a pattern, and so is the rest: it is \
+SEEN-135's branded Cents."""
+
+[[rule]]
+id = "ast-grep/no-fetch-in-core"
+tool = "ast-grep"
+citation = "docs/architecture.md: Services"
+fixture = "rules/fixtures/ast-grep-no-fetch-in-core"
+reason = """fetch is a global, so no import names it and a resolver reading this module's \
+dependencies sees nothing at all. dependency-cruiser/core-no-io is the import half of the same \
+boundary and this is the half a resolver is blind to: the two ids name different violations rather \
+than one violation twice. The domain reaching a marketplace directly is arithmetic that depends on \
+whether the network was up."""
+
+[[rule]]
+id = "ast-grep/no-credential-literal-in-tests"
+tool = "ast-grep"
+citation = "SEEN-097 F2: stack.test.ts carried the local Supabase service-role JWT as a literal fallback"
+fixture = "rules/fixtures/ast-grep-no-credential-literal-in-tests"
+reason = """gitleaks did not catch it, because the key is the Supabase CLI's published demo one and \
+no scanner can tell that from a real service-role key by looking at it. The harm recorded there is \
+the habit rather than the key: the next person needing a credential in a test copies the shape. A \
+test reads its credential from the environment and skips when it is absent."""
+
+# ---------------------------------------------------------------------------
+# dependency-cruiser. The layering, which is the one class of rule that cannot be
+# read off a single file: it is a property of what a module resolves to.
+#
+# The configuration is plain JSON rather than the .cjs the tool prefers, because
+# `harness/rules.py` reads it with Python's own json to cross-check the names, and
+# a configuration that needed a JavaScript runtime to be read would be a
+# configuration the registry check could not see. So it carries no comments and
+# the reasoning is here. Every rule has a `name`, which is what a violation prints
+# and what the entry below matches.
+#
+# Two of the rules name directories no file is in yet, and that is the clarify
+# record's decision rather than an oversight: deferring a layering rule until its
+# module exists is what this ticket was written to stop. Each is proven by a
+# fixture now, and the observation that settles whether it binds the real thing is
+# the first connector ticket's own run of this tool.
+# ---------------------------------------------------------------------------
+
+[[rule]]
+id = "dependency-cruiser/core-no-io"
+tool = "dependency-cruiser"
+citation = "docs/architecture.md: Services"
+fixture = "rules/fixtures/dependency-cruiser-core-no-io"
+reason = """The reconciliation engine is pure functions with tests, which is what lets a settlement \
+file be replayed and a claim be evidenced a year later. The complete instrument for this package is \
+the allow-list in packages/core/db/repository.ts: four admitted specifiers, read from the \
+compiler's own pre-processor, after seven findings taught SEEN-008 that a deny-list has to \
+anticipate how the next import is spelled. This rule is the ten-second half of that one, and it is \
+the half that runs: packages/core's suite needs the Supabase stack up, so a laptop without it never \
+reaches the allow-list before CI does. Scoped to src because packages/core/db is the schema, the \
+migrations' tests and the repository layer, where pg and node:fs are the work."""
+
+[[rule]]
+id = "dependency-cruiser/core-no-apps-or-siblings"
+tool = "dependency-cruiser"
+citation = "docs/architecture.md: Services"
+fixture = "rules/fixtures/dependency-cruiser-core-no-apps-or-siblings"
+reason = """Dependencies point one way: an app and a connector read the domain, and the domain reads \
+neither. The day packages/core imports a connector is the day a fee expectation cannot be computed \
+without a marketplace client, and the test that proves the arithmetic needs a network."""
+
+[[rule]]
+id = "dependency-cruiser/connectors-no-agent"
+tool = "dependency-cruiser"
+citation = "docs/architecture.md: Agent runtime and the policy gate"
+fixture = "rules/fixtures/dependency-cruiser-connectors-no-agent"
+reason = """Every tool call passes the policy gate and writes its audit event before the side \
+effect. A connector that can reach the agent is a path from a marketplace's own response into a \
+model prompt that no gate decided, which is injection with the audit trail missing."""
+
+[[rule]]
+id = "dependency-cruiser/no-app-imports-another-app"
+tool = "dependency-cruiser"
+citation = "docs/architecture.md: Services"
+fixture = "rules/fixtures/dependency-cruiser-no-app-imports-another-app"
+reason = """Three deployables: the API, the worker and the web app. Code two of them share belongs \
+in a package, and reaching across makes a change to one a deployment of the other while turbo's \
+cache reports it as unaffected."""
+
+[[rule]]
+id = "dependency-cruiser/no-cloud-sdk-outside-providers"
+tool = "dependency-cruiser"
+citation = "SEEN-097 F1: a source-text search for cloud SDK imports reported the wrong line"
+fixture = "rules/fixtures/dependency-cruiser-no-cloud-sdk-outside-providers"
+reason = """Go-live (SEEN-007) is a change of environment variables rather than a change of code \
+only while every cloud SDK import is inside packages/providers. This rule replaces \
+packages/providers/src/boundary.ts and its test, which searched source text for the import \
+grammars one at a time and produced two recorded defects about exactly that: the wrong line, line \
+0 for an import broken over several lines, and require and dynamic import taught to it one at a \
+time. A resolver reads every grammar there is. The SDK list is the one boundary.ts carried: \
+@google-cloud, @aws-sdk, @azure, googleapis, google-auth, aws-sdk and firebase-admin, and a test \
+holds the list to this sentence, because boundary.ts carried that assertion and its deletion left \
+the seven names in the pattern alone (SEEN-114 F33)."""
+
+[[rule]]
+id = "dependency-cruiser/database-through-repository"
+tool = "dependency-cruiser"
+citation = "docs/harness/workflow.md: Rules from findings"
+fixture = "rules/fixtures/dependency-cruiser-database-through-repository"
+reason = """Every table carries tenant_id with row-level security, and a query written outside the \
+layer that sets the tenant is a query with no guard on it. The layer is packages/core/db, where the \
+schema, the migrations and their tests live, and what the rule says is that nothing outside it opens \
+a connection: inside it, the tenancy and privilege tests query the database as the instrument that \
+proves the guard, which is why five files there import pg today. The repository.ts in that \
+directory is SEEN-008's file-reading guard rather than a query layer, whatever the name suggests; \
+the query layer arrives with the first module that needs one, inside the same directory."""
+
+[[rule]]
+id = "dependency-cruiser/marketplace-write-through-policy-gate"
+tool = "dependency-cruiser"
+citation = "docs/architecture.md: Agent runtime and the policy gate"
+fixture = "rules/fixtures/dependency-cruiser-marketplace-write-through-policy-gate"
+reason = """A price change, a return decision or a listing edit that reached a marketplace without a \
+gate decision is a side effect nobody authorised and no audit event precedes. The paths do not \
+exist yet: the writes belong in packages/connectors/src/writes and the gate in \
+packages/core/src/policy, and both arrive with SEEN-033. The rule is written now against the paths \
+the architecture names and proven by a fixture, because a rule deferred until its module exists is \
+a rule written after the review that needed it; SEEN-011's own run of this tool is the observation \
+that settles whether it binds the real thing."""
+
+[[rule]]
+id = "dependency-cruiser/network-only-through-generated-clients"
+tool = "dependency-cruiser"
+citation = "docs/harness/workflow.md: Rules from findings"
+fixture = "rules/fixtures/dependency-cruiser-network-only-through-generated-clients"
+reason = """A client hand-typed from a marketplace's documentation disagrees with the API in ways no \
+fixture of ours catches, which is why SEEN-115 generates them from the vendored OpenAPI contracts. \
+So an HTTP library is importable only from packages/connectors/src/generated, a directory SEEN-115 \
+creates: written now against the path the architecture names, proven by a fixture, and settled by \
+SEEN-011 like the rule above. packages/core/src is left to core-no-io, so that one import gets one \
+rule id and the recurrence count in the weekly report stays readable."""
+
+# ---------------------------------------------------------------------------
+# knip. One rule: an export nothing imports is dead. It runs in CI and not in the
+# hook, because a dead export is a property of the whole import graph and cannot
+# be judged from a staged file, which is the split criterion 2 and criterion 5
+# make between the two.
+#
+# The configuration reports only the export family of knip's issue types. The
+# others (unused files, unlisted dependencies, duplicates) are each a decision
+# nobody here has taken, and a registry entry per issue type for rules this
+# repository has not chosen is the padding the check refuses.
+# ---------------------------------------------------------------------------
+
+[[rule]]
+id = "knip/no-unused-exports"
+tool = "knip"
+citation = "docs/harness/workflow.md: Rules from findings"
+fixture = "rules/fixtures/knip-no-unused-exports"
+reason = """An export nothing imports is usually a second definition of something, and in the money \
+core two definitions of one fee expectation is a wrong claim rather than untidiness. It also holds \
+the package boundary from the other side: with an exports map per package and no dead exports, the \
+only way into a package is the entry point its manifest declares."""
+
+# ---------------------------------------------------------------------------
+# The harness's own checks. Not a tool with a configuration file: the check is
+# Python in this repository and runs in the same pre-commit hook as the other
+# four, so the registry names it for the reason it names them. SEEN-114 F4: a
+# reviewer writing `harness/no-live-marketplace-host` as a finding's rule
+# candidate was getting it counted as a candidate nobody had written a rule for,
+# while the rule had been running in CI since SEEN-090.
+
+[[rule]]
+id = "harness/no-live-marketplace-host"
+tool = "harness"
+citation = "CLAUDE.md: Working a ticket, 4"
+fixture = "rules/fixtures/harness-no-live-marketplace-host"
+reason = """A connector test pointed at a live marketplace fails when the marketplace is slow, spends \
+the rate limit the pilots share, and reads a real seller account from CI. Connector tests run against \
+recorded fixtures, and the one line that would undo that is a URL somebody pasted while debugging. \
+This check reads every tracked file in any language rather than only TypeScript, which is why it is \
+the harness's own and not an ast-grep rule: the same host in a Python fixture or a shell script is \
+the same defect."""

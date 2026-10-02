@@ -1,7 +1,7 @@
 import { createTransport } from 'nodemailer';
 
 /** What every outbound mail needs. Templates and threading arrive with SEEN-063. */
-export interface OutboundMail {
+interface OutboundMail {
   to: string;
   subject: string;
   text: string;
