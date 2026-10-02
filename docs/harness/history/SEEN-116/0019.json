@@ -1,0 +1,54 @@
+{
+  "sequence": 19,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-02T20:12:49.250430+00:00",
+  "harness_version": "2",
+  "kind": "handoff",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "84d3ecfa6fc1",
+  "head": "d67462b80c9eac48509eb28d5fb03b4b6818d920",
+  "prev_hash": "fd23489477e044ec3c8bf1d7d15094c06e8a640c13908bce89f550df5b93c2bd",
+  "data": {
+    "pack": ".harness-drafts/SEEN-116-handoff.md",
+    "sha256": "35dcd1c59db5fec0eceea1ea4c8901cd0469d64f7b92a23b7cc31fc72a1b9b00",
+    "estimated_tokens": 1064,
+    "token_limit": 2000,
+    "slice": {
+      "position": 2,
+      "total": 3,
+      "done": 1,
+      "declared": false,
+      "inferred": 1,
+      "entry": {
+        "name": "Killed mutant as RED, the floor gate, kpi and report",
+        "points": 2,
+        "files": [
+          "harness/mutation.py",
+          "harness/cli.py",
+          "harness/checks.py",
+          "harness/gates.py",
+          "harness/kpi.py",
+          "harness/triage.py",
+          "harness/report.py",
+          "harness/thresholds.py",
+          "harness/thresholds.toml",
+          "harness/tests/test_mutation.py",
+          "harness/tests/test_stage_gates.py",
+          "harness/tests/test_kpi.py",
+          "harness/tests/test_report.py",
+          "harness/tests/helpers.py"
+        ],
+        "red": "A RED check at exit 0 whose record names a Killed mutant in a slice file is refused today, and an attempt whose packages/core/src slice measured a score below the floor advances today; kpi.measure carries no mutation field."
+      }
+    },
+    "auto": false,
+    "figures": {
+      "session": "84d3ecfa6fc1",
+      "output_tokens": 15704,
+      "tool_calls": 16,
+      "unavailable": null
+    }
+  }
+}
