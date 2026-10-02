@@ -47,6 +47,12 @@ priority: P1
   preserve. Holding it at 7 would need the id kept as a tiebreak, which brings back
   the dependence the ticket removes. The test pins both corrected figures and every
   other journal unchanged.
+- **2 October 2026, Ruud, after review round 3 (note 36).** The id may break a tie
+  and nothing more: where a later finding matches two findings of one record
+  equally well on what they say, the one at the same file reference with its line
+  takes it, then the one under the same id, then the earlier. The order only
+  chooses among matches the content found, so the id still never makes two
+  findings one, which is what the first amendment's sentence protects.
 
 ## Outcome
 
@@ -63,7 +69,11 @@ findings of one record each reach their own copy in a later round (F1 of the
 first review, 3 counted where the old key counted 2; RED record 22, GREEN record
 23), and a finding carried forward joins the one it matches on both texts rather
 than an earlier one matching on its claim alone (F1 of the second review, a high
-finding counted as low; RED record 29, GREEN record 30). `latest_finding_records` (and so `kpi.findings`) and
+finding counted as low; RED record 29, GREEN record 30). Between two findings of
+one record that a later one matches equally well, the one at the same line takes
+it, then the one under the same id, and journal order is the last resort (F1 of
+the third review, decided by Ruud at note 36; RED record 37, GREEN record 38). The id orders
+matches the content found and never makes one. `latest_finding_records` (and so `kpi.findings`) and
 `calibration.escapes` both group by that identity; `finding_key` is deleted.
 
 - Criterion 1: `FindingIdentityTest` holds a fixture of two review advances whose
@@ -88,7 +98,8 @@ fixed as above, F2 corrected this section's citations, and F3, the status row in
 `docs/tickets/README.md` that no slice named, is the procedure's own status mirror
 and is left as it is. The second review (returned at record 28) found the
 claim-only join, fixed as above, and the regression run before this section's
-last edit, which is why the regression now runs after it.
+last edit, which is why the regression now runs after it. The third (returned at
+record 35) found the tie between equal matches, settled as above.
 
 ## Depends on
 

@@ -281,14 +281,16 @@ def finding_identities(records):
     a reviewer listing two findings in one record has declared them two, however
     alike a stand-in's wording makes them.
 
-    The id is not read for any finding the review gate accepted. Nothing asks a
-    session to type the same identifier in every review record, and two did
-    not: SEEN-107's second review advance renamed F1, G1 and the rest to R1-1,
+    The id never makes two findings one. Nothing asks a session to type the same
+    identifier in every review record, and two did not: SEEN-107's second review advance renamed F1, G1 and the rest to R1-1,
     R2-1 and so on, rewording G1's claim as R2-1 while carrying its failure
     scenario byte for byte, and counted 45 findings against a real 26; SEEN-102's
     second review renumbered F1 to F3 as F2 to F4 and counted 7 against a real
     4. Neither text alone would do either: a key on the claim leaves G1 and R2-1
-    as two. SEEN-145.
+    as two. SEEN-145. The id is read for one thing only: where a later finding
+    matches two findings of one record equally well on what they say, the one
+    at the same line and then the one under the same id takes it, which orders
+    the matches the content found and finds none of its own.
 
     A finding with neither a claim nor a failure scenario falls back to its id
     and its file, and only then. The review gate refuses such a finding
@@ -296,7 +298,7 @@ def finding_identities(records):
     the fallback reaches only records the gate never accepted, such as a test
     fixture that names its findings and says nothing else about them.
     """
-    parent, saying, sequences = {}, {}, {}
+    parent, saying, sequences, named = {}, {}, {}, {}
 
     def root(node):
         while parent[node] != node:
@@ -320,25 +322,34 @@ def finding_identities(records):
         for position, finding in enumerate(_review_findings(record)):
             node = (record['sequence'], position)
             parent[node], sequences[node] = node, {record['sequence']}
+            named[node] = (finding.get('file'), finding.get('id'))
             path = path_of(finding.get('file'))
             said = [(field, finding.get(field)) for field in ('claim', 'failure_scenario')
                     if finding.get(field)]
             if not said and finding.get('id'):
                 said = [('id', finding['id'])]
             # Every finding that said a text stays an anchor for it. A later one
-            # is offered to every anchor it shares a text with, the ones sharing
-            # more texts first and the earlier first among equals, and joins each
-            # that is not refused, which keeps the join transitive. Keeping only
-            # the first anchor per text left the second of two alike findings in
-            # one record unreachable (F1 of SEEN-145's first review, 3 counted
-            # where there were 2); offering anchors in journal order let a
-            # claim-only match take a finding before the one that matched it on
-            # both texts (F1 of the second, a high finding counted as low).
+            # is offered to every anchor it shares a text with and joins each
+            # that is not refused, which keeps the join transitive. The order
+            # decides which of two anchors of one record takes it, since the
+            # other is then refused: the ones sharing more texts first, then
+            # among equals the one at the same file reference, line included,
+            # then the one under the same id, and journal order last. The order
+            # only chooses among anchors the content matched, so the id still
+            # never makes two findings one. Each step is a review of SEEN-145:
+            # one anchor per text left the second of two alike findings of one
+            # record unreachable (first, 3 counted where there were 2); journal
+            # order let a claim-only match take a finding that matched another
+            # on both texts (second), and broke a tie between two claim-only
+            # matches (third), each counting a high finding as low.
             shared = {}
             for field, text in said:
                 for anchor in saying.setdefault((path, field, text), []):
                     shared[anchor] = shared.get(anchor, 0) + 1
-            for anchor in sorted(shared, key=lambda anchor: (-shared[anchor], anchor)):
+            file, identifier = named[node]
+            for anchor in sorted(shared, key=lambda anchor: (
+                    -shared[anchor], named[anchor][0] != file,
+                    named[anchor][1] != identifier, anchor)):
                 join(anchor, node)
             for field, text in said:
                 saying[(path, field, text)].append(node)

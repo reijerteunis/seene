@@ -815,6 +815,33 @@ class FindingIdentityTest(unittest.TestCase):
                    review_advance(2, [dict(low)], minute=40)]
         self.assertEqual(kpi.findings(records)['by_severity'], {'high': 1, 'low': 1})
 
+    def test_a_tie_between_two_anchors_of_one_record_goes_to_the_same_line(self):
+        """F1 of SEEN-145's third review, in both orders: journal order is the last resort."""
+        high = dict(finding('F1', 'high', 'harness/a.py:1'), failure_scenario='Scenario A')
+        low = dict(finding('F2', 'low', 'harness/a.py:5'), failure_scenario='Scenario B')
+        for first, second, carried in ((high, low, low), (low, high, high)):
+            with self.subTest(carried=carried['id']):
+                records = [review_advance(1, [first, second], minute=20),
+                           review_advance(2, [dict(carried, failure_scenario='Reworded')],
+                                          minute=40)]
+                self.assertEqual(kpi.findings(records)['by_severity'], {'high': 1, 'low': 1})
+
+    def test_a_tie_with_the_line_moved_goes_to_the_same_id(self):
+        high = dict(finding('F1', 'high', 'harness/a.py:1'), failure_scenario='Scenario A')
+        low = dict(finding('F2', 'low', 'harness/a.py:5'), failure_scenario='Scenario B')
+        records = [review_advance(1, [high, low], minute=20),
+                   review_advance(2, [dict(low, file='harness/a.py:7',
+                                           failure_scenario='Reworded')], minute=40)]
+        self.assertEqual(kpi.findings(records)['by_severity'], {'high': 1, 'low': 1})
+
+    def test_a_tie_never_joins_findings_the_content_did_not_match(self):
+        """The id orders the anchors the content found; it finds none of its own."""
+        records = [review_advance(1, [finding('F1', 'high', 'harness/a.py:1')], minute=20),
+                   review_advance(2, [dict(finding('F1', 'low', 'harness/a.py:1'),
+                                           claim='Other', failure_scenario='Other')],
+                                  minute=40)]
+        self.assertEqual(len(calibration.latest_findings(records)), 2)
+
 
 class OneReaderOfTheQuestionTest(unittest.TestCase):
     """SEEN-140: `covers` is `_covers` moved, and these are the answers it moved with.

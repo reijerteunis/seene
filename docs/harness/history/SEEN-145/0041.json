@@ -1,0 +1,38 @@
+{
+  "sequence": 41,
+  "ticket": "SEEN-145",
+  "timestamp": "2026-10-02T14:23:37.473764+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 4,
+  "actor": "claude:implementer",
+  "session": "55e134c11377",
+  "head": "49a73b957e32a2e775afad7837021815b8b83659",
+  "prev_hash": "64aa9ee212747b784ebeb442786747f76d9c47bf29bf5e9fd48c0ecc070c83d4",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": 1,
+          "behaviour": "Between two anchors of one record that a later finding matches equally well on what they say, the one at the same file reference with its line takes it, then the one under the same id, then journal order; the order never creates a join. F1 of the third review, settled by Ruud at note 36.",
+          "failure_reason": "FindingIdentityTest.test_a_tie_between_two_anchors_of_one_record_goes_to_the_same_line failed in both orders, \"AssertionError: {'low': 2} != {'high': 1, 'low': 1}\" and \"{'high': 2} != {'high': 1, 'low': 1}\", and test_a_tie_with_the_line_moved_goes_to_the_same_id failed with \"{'low': 2} != {'high': 1, 'low': 1}\": a claim-only tie went to the earlier anchor. test_a_tie_never_joins_findings_the_content_did_not_match passed, as the guard it is. The earlier reds of this slice are records 11, 13, 22 and 29.",
+          "red": 37,
+          "green": 38
+        }
+      ],
+      "regression": 39,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "55e134c11377",
+      "output_tokens": 82267,
+      "tool_calls": 62,
+      "unavailable": null
+    }
+  }
+}

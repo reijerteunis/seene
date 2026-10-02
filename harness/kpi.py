@@ -466,7 +466,8 @@ def findings(records):
     A finding written in more than one round is counted once, at the record
     that last carried it. What makes two findings one is what they say and
     where, never what they are called: the same file, and the same claim or the
-    same failure scenario, joined transitively by calibration.finding_identities.
+    same failure scenario, joined transitively by calibration.finding_identities;
+    the line and the id only break a tie between two findings that matched.
     The id was part of the key until SEEN-145, and a session renaming its
     findings between rounds counted SEEN-107 at 45 against a real 26 and
     SEEN-102 at 7 against a real 4. The residue is a finding reworded in every
