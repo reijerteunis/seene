@@ -1,0 +1,73 @@
+{
+  "sequence": 77,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-02T23:35:13.105662+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 5,
+  "actor": "claude:implementer",
+  "session": "f96896c46c5e",
+  "head": "7b0a80bae3652bd1363fee258f044f1ce46ea7ab",
+  "prev_hash": "7d18ff59cc9b6c448bab16065f4e96e385083310a8fcb93da6489679e59c6cbe",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "solution",
+    "to_attempt": 6,
+    "reason": "Review of attempt 5 (subagent reviewer on opus, triage 75) returned the ticket on one medium finding. F1: a change that only edits a test of product code under packages/core/src is never held to the mutation floor, because mutation.source_files() and mutation_ci.select() both drop test files. Ruud decided F1 is fixed in this ticket (attempt 6). Four lows: F2 is the killed-mutant RED form decided at clarify record 6, noted only. F3: the report shows not applicable for a failed measurement. F4: the Outcome quotes CI run 37077429429 with no record behind it. F5: docs-only edits after regression 70, settled by the qa check on tree 2fb9729e. F1's fix needs a test-to-source mapping in mutation.py and mutation_ci.py, which is a new plan, so the return goes to solution.",
+    "findings": [
+      {
+        "id": "F1",
+        "severity": "medium",
+        "file": "harness/mutation.py:68",
+        "claim": "A change that only edits a test of product code under packages/core/src is never held to the mutation floor. source_files() drops test files, so the tdd gate asks for no measurement. mutation_ci.select() drops them too (test_only_test_files_select_nothing asserts this), so CI skips the job. Weakening the tests of money code is exactly the regression mutation testing exists to catch.",
+        "failure_scenario": "Assume src/fees/detect.ts scores 90 against the floor. A later ticket's slice names only packages/core/src/fees/detect.test.ts and deletes the boundary assertions. With nothing left under src, _require_mutation returns early and the gate advances without a measurement. CI's changed step writes any=false. The real score of detect.ts drops to 40, and no gate, CI job or kpi figure records it. Fix: map a named or changed test file to the source it tests (its sibling, or its directory) for both the gate and CI.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "none: a selection rule in harness/mutation.py and harness/mutation_ci.py that only a test of source_files and select over a test-only change can catch"
+      },
+      {
+        "id": "F2",
+        "severity": "low",
+        "file": "harness/gates.py:1041",
+        "claim": "Any Killed mutant in a file the slice names makes a valid killed-mutant RED, including one killed by a test that existed before the slice, so for an already-tested file the RED shows nothing about the new behaviour being absent.",
+        "failure_scenario": "A slice extends an already-tested packages/core/src file; a mutation run before any new test exits 0 with mutants killed by the old tests and is accepted as the slice's RED. This is the form clarify record 6 decided, so it is noted rather than returned on.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": ""
+      },
+      {
+        "id": "F3",
+        "severity": "low",
+        "file": "harness/report.py:213",
+        "claim": "_mutation() prints 'not applicable' for any measurement with a null score, including a failed run and one refused for a missing entry, and kpi.mutation() takes the latest measurement on the ticket whatever its attempt.",
+        "failure_scenario": "Attempt 2's measurement fails and is the last mutation record; attempt 3's plan names nothing under src. The sprint report shows 'not applicable' for a run the gate refused as measuring nothing.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": ""
+      },
+      {
+        "id": "F4",
+        "severity": "low",
+        "file": "docs/tickets/SEEN-116-property-based-and-mutation-tests-on-the-money.md",
+        "claim": "The Outcome lists run 37077429429 on dfbc3b9 (25 seconds) under 'Check 48 measured it', but no journal record holds that run.",
+        "failure_scenario": "A reader checking the attempt-5 figure against check 48 does not find it; nothing in the journal ties the 25 s to an output hash.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "harness/outcome-figure-names-its-record"
+      },
+      {
+        "id": "F5",
+        "severity": "low",
+        "file": "docs/harness/workflow.md:106",
+        "claim": "The fingerprint changed after regression 70 through docs-only edits (workflow.md, README row, ticket Outcome), so the tree the tests passed on is not the reviewed tree.",
+        "failure_scenario": "If any harness test read workflow.md, the reviewed tree would have no passing regression behind it. Today the change is prose only.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": ""
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}
