@@ -59,7 +59,7 @@ call; it is not a command to run by hand.
 | [CONTEXT.md](CONTEXT.md) | Glossary: the harness terms, the product terms they collide with, and the resolution of the three meanings of gate |
 | [docs/adr/](docs/adr/) | Architecture decision records: journal integrity, the delivery receipt, the SEEN-086 bootstrap exemption, why an Outcome cannot count its own review rounds |
 
-### Tickets (142, 426 build points)
+### Tickets (143, 429 build points)
 
 | Ticket | Title | Epic | Size |
 |---|---|---|---|
@@ -117,6 +117,7 @@ call; it is not a command to run by hand.
 | [SEEN-142](docs/tickets/SEEN-142-keep-the-triage-s-request-inside-what-the-api.md) | Keep the triage's request inside what the API accepts, and say so when it cannot | E10 | 2 pt |
 | [SEEN-008](docs/tickets/SEEN-008-create-trade-record-schema-v1-with-tenant-id.md) | Create trade-record schema v1 with tenant_id and RLS on every table | E0 | 5 pt |
 | [SEEN-139](docs/tickets/SEEN-139-hand-the-immutability-guard-forward-to-every.md) | Hand the immutability guard forward to every migration that adds a table | E0 | 2 pt |
+| [SEEN-143](docs/tickets/SEEN-143-compile-the-trade-record-schema-and-its-tests.md) | Compile the trade-record schema and its tests, which no compiler reads today | E0 | 3 pt |
 | [SEEN-009](docs/tickets/SEEN-009-define-connector-interface-capability-matrix.md) | Define connector interface, capability matrix and credential access | E1 | 5 pt |
 | [SEEN-010](docs/tickets/SEEN-010-add-per-marketplace-rate-limiting-with-header.md) | Add per-marketplace rate limiting with header-driven backoff | E1 | 3 pt |
 | [SEEN-011](docs/tickets/SEEN-011-build-bol-retailer-api-v10-connector-for-orders.md) | Build Bol Retailer API v10 connector for orders to commissions | E1 | 5 pt |
