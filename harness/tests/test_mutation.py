@@ -210,6 +210,14 @@ class MeasureTest(CommandTest):
         self.assertFalse(data['not_applicable'])
         self.assertIn('src/money', data['reason'])
 
+    def test_a_missing_entry_is_refused_whatever_the_other_files_scored(self):
+        data = self.measure_over([SRC, 'packages/core/src/typo.ts'],
+                                 src__fee_ts=['Killed', 'Killed'])
+        self.assertIsNone(data['score'])
+        self.assertFalse(data['not_applicable'])
+        self.assertIn('src/typo.ts', data['reason'])
+        self.assertEqual((data['killed'], data['mutants']), (2, 2))
+
     def test_every_named_file_in_the_report_with_no_mutants_is_still_not_applicable(self):
         data = self.measure_over([SRC, 'packages/core/src/money'], src__fee_ts=[],
                                  src__money__cents_ts=['CompileError'])

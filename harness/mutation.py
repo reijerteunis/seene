@@ -14,8 +14,9 @@ No mutants at all is not applicable and never a score: it is recorded with its
 count and `not_applicable`, and the gate lets it pass (Ruud's decision), but it
 is never read as a hundred. It is not applicable only when the report lists every
 file named, and a directory by at least one file under it: a name the report does
-not hold (a typo, a file the branch deleted) measured nothing, and is recorded
-as missing rather than as nothing to measure.
+not hold (a typo, a file the branch deleted) measured nothing, and is refused with
+no score, whatever the other files scored, rather than recorded as nothing to
+measure.
 
 The measurement mirrors `coverage.py` and is as fixed as it: the command is not
 something a session hands in beyond the stub a test substitutes.
@@ -181,12 +182,16 @@ def measure(root, evidence, files, floor, since):
     mutants = sum(found.values())
     absent = missing(document, files)
     data = dict(data, **found, mutants=mutants, score=score(found), missing=absent)
+    if absent:
+        # Refused whatever the other files scored: a score over the files the report
+        # does hold would let a typo or a deleted file through on their figure. The
+        # counts stay on the record for reading.
+        return dict(data, score=None,
+                    reason='the report lists no file for ' + ', '.join(absent)
+                           + ', so it measured nothing there: a typo or a file the '
+                             'branch deleted')
     if mutants:
         return data
-    if absent:
-        return dict(data, reason='the report lists no file for ' + ', '.join(absent)
-                                 + ', so it measured nothing there: a typo or a file the '
-                                   'branch deleted')
     # Ruud's decision on SEEN-116: a run that completed and found no mutants in
     # files the report does list is recorded as not applicable, with the count
     # and no score, and the gate lets it pass. Only this case: a run that failed
