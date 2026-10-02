@@ -59,7 +59,7 @@ call; it is not a command to run by hand.
 | [CONTEXT.md](CONTEXT.md) | Glossary: the harness terms, the product terms they collide with, and the resolution of the three meanings of gate |
 | [docs/adr/](docs/adr/) | Architecture decision records: journal integrity, the delivery receipt, the SEEN-086 bootstrap exemption, why an Outcome cannot count its own review rounds |
 
-### Tickets (140, 422 build points)
+### Tickets (141, 424 build points)
 
 | Ticket | Title | Epic | Size |
 |---|---|---|---|
@@ -113,6 +113,7 @@ call; it is not a command to run by hand.
 | [SEEN-137](docs/tickets/SEEN-137-one-worked-example-per-acceptance-criterion.md) | One worked example per acceptance criterion before the solution stage, so the RED is a transcription | E10 | 1 pt |
 | [SEEN-138](docs/tickets/SEEN-138-the-harness-has-its-own-regression-suite-five.md) | The harness has its own regression suite: five finished tickets replayed when its rules, hooks or prompts change | E10 | 3 pt |
 | [SEEN-140](docs/tickets/SEEN-140-one-answer-to-whether-a-slices-plan-covers-a.md) | One answer to whether a slice's plan covers a path | E10 | 1 pt |
+| [SEEN-141](docs/tickets/SEEN-141-hold-a-figure-in-a-tdd-record-to-the.md) | Hold a figure in a tdd record to the check it cites | E10 | 2 pt |
 | [SEEN-008](docs/tickets/SEEN-008-create-trade-record-schema-v1-with-tenant-id.md) | Create trade-record schema v1 with tenant_id and RLS on every table | E0 | 5 pt |
 | [SEEN-139](docs/tickets/SEEN-139-hand-the-immutability-guard-forward-to-every.md) | Hand the immutability guard forward to every migration that adds a table | E0 | 2 pt |
 | [SEEN-009](docs/tickets/SEEN-009-define-connector-interface-capability-matrix.md) | Define connector interface, capability matrix and credential access | E1 | 5 pt |
