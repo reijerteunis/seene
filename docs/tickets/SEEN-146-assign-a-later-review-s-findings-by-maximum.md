@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-145]
-status: todo
+status: doing
 priority: P2
 ---
 # SEEN-146: Match a later review's findings as a whole, so the order they are listed in never changes a count
@@ -24,7 +24,7 @@ priority: P2
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | todo |
+| Status | doing |
 | Priority | P2 (no committed journal has the shape; the figure it corrects is one a session can move by reordering a list) |
 
 ## Description
