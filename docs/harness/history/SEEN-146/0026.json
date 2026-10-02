@@ -1,0 +1,104 @@
+{
+  "sequence": 26,
+  "ticket": "SEEN-146",
+  "timestamp": "2026-10-02T17:45:14.072967+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "review",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "f31344eff933",
+  "head": "fa4cf5671f8fd0e91c7e7030a74d0fbd6721bb19",
+  "prev_hash": "f1630169a873cfbe6ac1104dc3ab0325cdf80c124543318ab4514fa966ae2b7e",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "deliver",
+    "evidence": {
+      "reviewer": "claude:reviewer",
+      "independence": "subagent",
+      "reviewer_session": "agent-a70515a2158a3a7b1",
+      "read": [
+        "docs/tickets/SEEN-146-assign-a-later-review-s-findings-by-maximum.md",
+        "docs/harness/history/SEEN-146/0010.json",
+        "docs/harness/history/SEEN-146/0011.json",
+        "docs/harness/history/SEEN-146/0019.json",
+        "docs/harness/history/SEEN-146/0020.json",
+        "docs/harness/history/SEEN-146/0024.json",
+        "harness/calibration.py",
+        "harness/kpi.py",
+        "harness/tests/test_calibration.py"
+      ],
+      "acceptance_evidence": [
+        "Criterion 1, crossing case counts 2 in every listing order: test_the_crossing_case_counts_two_in_every_listing_order runs all four orders of both records. RED record 10 (exit 1), GREEN record 11 (exit 0).",
+        "Criterion 2, count independent of order for records of up to four findings: two seeded property tests of 400 pairs each (seeds 146 and 1462). The second also asserts at least 300 pairs share an id, so it cannot quietly stop exercising the id field. Every permutation of both records is counted. Re-run locally: green.",
+        "Criterion 3, journals unchanged: FindingIdentityTest.PINNED is untouched in the diff. test_seen_145_s_own_journal_reports_what_it_reported_when_it_delivered asserts 16 findings, 0 escapes and 0 unattributable. The test file passes locally.",
+        "Criterion 4, residue sentence removed and docstring says what is maximised: the kpi.findings diff drops the crossing-tie text. Docstring tests assert 'crossing tie' is absent and that 'the number of joins', 'summed strength', 'never position', 'transitive merge' and 'SEARCH_CAP' are present. Review round 1's F1 and F2 were fixed in RED record 19 and GREEN record 20."
+      ],
+      "findings": [],
+      "checks": [
+        "Ran python3 -m pytest harness/tests/test_calibration.py: 141 passed, 50 subtests passed.",
+        "_best_joins: the in-place update and restore of the shared sequence sets is symmetric, because a set is only added to when it is disjoint from the identity's records.",
+        "_best_joins: the described() sort keys compare consistently, since identity keys are always tuples and finding keys always strings.",
+        "_best_joins: the transitive merge is covered by test_a_later_finding_matching_two_earlier_identities_merges_them.",
+        "The over-cap greedy fallback reads only strength and content, never position. Its test uses nine findings against nine, a space of 10**9 choices.",
+        "RED record 10 and RED record 19 exit non-zero. The RED for the crossing case is consistent with the greedy join's count of 3, as the ticket describes.",
+        "qa check record 25: the whole harness suite on fa4cf56 at review, attempt 2, exit 0, tree unchanged before and after"
+      ],
+      "verdict": "pass",
+      "security_checklist": [
+        "No secret in the diff: the triage at record 24 reports gitleaks passing over main..HEAD, and the pre-commit hook ran gitleaks on every commit of this branch with no leaks.",
+        "No credential, network call, subprocess or file write is added: the change is a pure function over journal records already read (harness/calibration.py, adding only the json and math standard-library imports), a docstring (harness/kpi.py), tests and the ticket file.",
+        "No product code, tenant table, buyer PII or agent action is touched; changes_agent_action is false."
+      ],
+      "tree": "3fe6039c936797b661a9ed51028d48b5113ab94a0d0e0f45d9fd0ddfd86c3024"
+    },
+    "decisions": [
+      {
+        "key": "severity",
+        "question": "severity",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high",
+          "blocking"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "blocking",
+        "probabilities": {
+          "low": 0.24,
+          "medium": 0.25,
+          "high": 0.15,
+          "blocking": 0.36
+        },
+        "confidence": 0.0,
+        "score": 1.64,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      },
+      {
+        "key": "must_fix",
+        "question": "must_fix",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.39,
+          "no": 0.61
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.7,
+        "passed": false,
+        "fallback_reason": null
+      }
+    ]
+  }
+}
