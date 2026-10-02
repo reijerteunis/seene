@@ -297,10 +297,10 @@ def finding_identities(records):
     scenario byte for byte, and counted 45 findings against a real 26; SEEN-102's
     second review renumbered F1 to F3 as F2 to F4 and counted 7 against a real
     4. Neither text alone would do either: a key on the claim leaves G1 and R2-1
-    as two. SEEN-145. The id is read for one thing only: where a later finding
-    matches two findings of one record equally well on what they say, the one
-    at the same line and then the one under the same id takes it, which orders
-    the matches the content found and finds none of its own.
+    as two. SEEN-145. The id is read for one thing only: with the same file
+    reference and its line, it is one of the last two fields of a join's
+    strength, weighed after the number of joins and the texts shared, so it
+    weighs among the matches the content found and finds none of its own.
 
     A later record's joins are chosen as a whole, never one pair at a time. An
     earlier identity and a finding of the record match when some member of the

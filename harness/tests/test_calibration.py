@@ -892,6 +892,21 @@ class FindingIdentityTest(unittest.TestCase):
         self.assertFalse('Position is the last resort' in source,
                          "the per-record comment still carries SEEN-145's crossing-tie residue")
 
+    def test_finding_identities_says_the_line_and_the_id_only_weigh_a_join(self):
+        """F1 of SEEN-146's first review: the id paragraph still told SEEN-145's greedy tie order.
+
+        Line and id are the last two fields of a join's strength, weighed after
+        the number of joins and the texts shared; neither decides who takes a
+        finding, and the id still makes no two findings one.
+        """
+        said = ' '.join(calibration.finding_identities.__doc__.split())
+        self.assertFalse('takes it' in said,
+                         "the docstring still says the line-and-id tie decides who takes it")
+        for words in ('The id never makes two findings one',
+                      'after the number of joins and the texts shared'):
+            with self.subTest(words=words):
+                self.assertTrue(words in said, f'the docstring does not say {words!r}')
+
     def test_a_tie_never_joins_findings_the_content_did_not_match(self):
         """The id orders the anchors the content found; it finds none of its own."""
         records = [review_advance(1, [finding('F1', 'high', 'harness/a.py:1')], minute=20),
@@ -951,6 +966,35 @@ class FindingIdentityTest(unittest.TestCase):
                       for other in itertools.permutations(second)}
             if len(counts) > 1:
                 moved.append((pair, sorted(counts)))
+        self.assertEqual(moved, [], f'{len(moved)} of 400 pairs count differently by order')
+
+    def test_no_pair_sharing_ids_across_records_counts_differently_for_its_order(self):
+        """F2 of SEEN-146's first review: the same-id field, which F and G prefixes never reach.
+
+        Ids are drawn from one small alphabet for both records, distinct within
+        a record, so the same id across them is common and the last field of a
+        join's strength is weighed. The seed is fixed (SEEN-136), and the count
+        of pairs that share an id is held too, so the draw cannot quietly stop
+        exercising it.
+        """
+        draws = random.Random(1462)
+
+        def draw():
+            ids = draws.sample('PQRS', draws.randint(1, 4))
+            return [self.saying(identifier, draws.choice('abc'), draws.choice('xyz'),
+                                draws.choice((1, 2)))
+                    for identifier in ids]
+
+        moved, shared = [], 0
+        for pair in range(400):
+            first, second = draw(), draw()
+            shared += bool({f['id'] for f in first} & {f['id'] for f in second})
+            counts = {self.counted(one, other)
+                      for one in itertools.permutations(first)
+                      for other in itertools.permutations(second)}
+            if len(counts) > 1:
+                moved.append((pair, sorted(counts)))
+        self.assertGreaterEqual(shared, 300, f'only {shared} of 400 pairs share an id')
         self.assertEqual(moved, [], f'{len(moved)} of 400 pairs count differently by order')
 
     def test_a_later_finding_matching_two_earlier_identities_merges_them(self):
