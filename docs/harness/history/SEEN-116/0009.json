@@ -1,0 +1,54 @@
+{
+  "sequence": 9,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-02T19:50:55.073863+00:00",
+  "harness_version": "2",
+  "kind": "handoff",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "96dfd6dc084a",
+  "head": "9657f3e2f7a56dda630bd7bfcaad0b6c230cf636",
+  "prev_hash": "fa4725619701b01d4f442a49f0ac1fbee9a66d100c6dcc0bd23d5f963bb11628",
+  "data": {
+    "pack": ".harness-drafts/SEEN-116-handoff.md",
+    "sha256": "18075855c180937e7a37a2acdf112bb1bf6bbfce3241943fc4d8f4a53d74c19b",
+    "estimated_tokens": 1089,
+    "token_limit": 2000,
+    "slice": {
+      "position": 1,
+      "total": 3,
+      "done": 0,
+      "declared": false,
+      "inferred": 0,
+      "entry": {
+        "name": "Toolchain and the seeded-bug fixture proof",
+        "points": 1,
+        "files": [
+          "packages/core/package.json",
+          "pnpm-lock.yaml",
+          "packages/core/stryker.config.mjs",
+          "packages/core/stryker.fixture.config.mjs",
+          "packages/core/vitest.config.ts",
+          "packages/core/fixtures/tolerance/detector.ts",
+          "packages/core/fixtures/tolerance/seeded.ts",
+          "packages/core/fixtures/tolerance/detector.test.ts",
+          "packages/core/fixtures/tolerance/tsconfig.json",
+          "biome.json",
+          "knip.json",
+          ".dependency-cruiser.json",
+          ".gitignore",
+          "docs/harness/workflow.md"
+        ],
+        "red": "The fixture property test fails before the fixture and fast-check exist; after, it finds a counterexample on seeded.ts and none on detector.ts, and a Stryker run with the fixture config reports the comparison-flipping mutant Killed."
+      }
+    },
+    "auto": false,
+    "figures": {
+      "session": "96dfd6dc084a",
+      "output_tokens": 76894,
+      "tool_calls": 41,
+      "unavailable": null
+    }
+  }
+}
