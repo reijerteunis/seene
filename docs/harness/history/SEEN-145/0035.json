@@ -1,0 +1,33 @@
+{
+  "sequence": 35,
+  "ticket": "SEEN-145",
+  "timestamp": "2026-10-02T14:15:29.922122+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 3,
+  "actor": "claude:reviewer",
+  "session": "55e134c11377",
+  "head": "eb28089798ff175a0c0bf8c48a0984cf9de52e1a",
+  "prev_hash": "e660e2c4e2ee27461001f1375e81595b909d5550e437e2f97e5057f9e4a44ca4",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 4,
+    "reason": "Review round 3 returns on F1 (medium): a tie between two anchors of one record matched on the claim alone is broken by journal order, so a carried finding with a reworded scenario can join the wrong one and by_severity loses a severity.",
+    "findings": [
+      {
+        "id": "F1",
+        "severity": "medium",
+        "file": "harness/calibration.py",
+        "claim": "When a later finding shares the same number of texts with two anchors from one record, finding_identities breaks the tie by journal order alone, so a carried finding whose failure scenario was reworded joins the wrong earlier finding and kpi.findings loses a severity, which the old (id, claim, file) key got right.",
+        "failure_scenario": "Record 1 holds F1 (high, harness/a.py:1, claim 'Same claim', scenario 'Scenario A') and F2 (low, harness/a.py:5, claim 'Same claim', scenario 'Scenario B'); record 2 carries F2 with failure_scenario 'Scenario B, reworded'. The copy shares only the claim with both anchors, joins F1 because F1 comes first, and the join to F2 is then refused, so kpi.findings returns by_severity {'low': 2} instead of {'high': 1, 'low': 1}. The mirror order returns {'high': 2}.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "none: an order-dependent tie in a union-find join, which only a test fixture can expose"
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}
