@@ -63,6 +63,7 @@ Conventions: branch `claude/<id>-<slug>` (or `codex/`), commit messages `feat(<i
 | [SEEN-142](SEEN-142-keep-the-triage-s-request-inside-what-the-api.md) | Keep the triage's request inside what the API accepts, and say so when it cannot | E10 | 2 | Claude Code | todo | SEEN-107, SEEN-109 |
 | [SEEN-008](SEEN-008-create-trade-record-schema-v1-with-tenant-id.md) | Create trade-record schema v1 with tenant_id and RLS on every table | E0 | 5 | Claude Code | review | SEEN-006, SEEN-092, SEEN-094 |
 | [SEEN-139](SEEN-139-hand-the-immutability-guard-forward-to-every.md) | Hand the immutability guard forward to every migration that adds a table | E0 | 2 | Claude Code | todo | SEEN-008 |
+| [SEEN-143](SEEN-143-compile-the-trade-record-schema-and-its-tests.md) | Compile the trade-record schema and its tests, which no compiler reads today | E0 | 3 | Claude Code | todo | SEEN-008, SEEN-114 |
 | [SEEN-009](SEEN-009-define-connector-interface-capability-matrix.md) | Define connector interface, capability matrix and credential access | E1 | 5 | Claude Code | todo | SEEN-006, SEEN-008 |
 | [SEEN-010](SEEN-010-add-per-marketplace-rate-limiting-with-header.md) | Add per-marketplace rate limiting with header-driven backoff | E1 | 3 | Claude Code | todo | SEEN-009 |
 | [SEEN-011](SEEN-011-build-bol-retailer-api-v10-connector-for-orders.md) | Build Bol Retailer API v10 connector for orders to commissions | E1 | 5 | Claude Code | todo | SEEN-003, SEEN-009, SEEN-010, SEEN-115 |
@@ -213,7 +214,7 @@ Conventions: branch `claude/<id>-<slug>` (or `codex/`), commit messages `feat(<i
 
 | Epic | Name | Goal | Tickets |
 |---|---|---|---|
-| E0 | Foundations and registrations | Stand up the monorepo, the EU infrastructure and the trade-record schema, and file every day-0 registration so nothing waits on a marketplace later. | SEEN-001, SEEN-002, SEEN-003, SEEN-004, SEEN-005, SEEN-006, SEEN-097, SEEN-008, SEEN-139, SEEN-007 |
+| E0 | Foundations and registrations | Stand up the monorepo, the EU infrastructure and the trade-record schema, and file every day-0 registration so nothing waits on a marketplace later. | SEEN-001, SEEN-002, SEEN-003, SEEN-004, SEEN-005, SEEN-006, SEEN-097, SEEN-008, SEEN-139, SEEN-143, SEEN-007 |
 | E1 | Connectors and ingest | Ingest orders, shipments, returns, settlements and listings from Bol, Amazon, eBay, Kaufland, Otto and Shopify into one idempotent, tenant-isolated trade record. | SEEN-009, SEEN-010, SEEN-011, SEEN-012, SEEN-013, SEEN-014, SEEN-015, SEEN-038, SEEN-044, SEEN-048, SEEN-052, SEEN-053, SEEN-054, SEEN-058, SEEN-059, SEEN-060, SEEN-073 |
 | E2 | Reconciliation, findings and audit | Match every settlement line to an order line, detect fee errors, lost shipments and return shortfalls with tested code, and deliver the audit PDF with a measured recoverable pool. | SEEN-016, SEEN-017, SEEN-018, SEEN-019, SEEN-020, SEEN-021, SEEN-022, SEEN-023, SEEN-025 |
 | E3 | Claims rail and evidence | File claims by API where a marketplace allows it and as one-click case packs where it does not, track each to a credit in an ingested settlement line, and keep hashed evidence. | SEEN-026, SEEN-027, SEEN-028, SEEN-029, SEEN-030, SEEN-031, SEEN-037, SEEN-066 |
