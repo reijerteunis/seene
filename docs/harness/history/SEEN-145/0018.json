@@ -1,0 +1,38 @@
+{
+  "sequence": 18,
+  "ticket": "SEEN-145",
+  "timestamp": "2026-10-02T10:03:33.770048+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "55e134c11377",
+  "head": "57ea4e0654c98f756c63039d3e23484d31e381db",
+  "prev_hash": "7a72165165b74d3e38c54a9857bfd2758ad83b83dda7853e241b9018420938e6",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": 1,
+          "behaviour": "A review finding's identity rests on what it says, not on its id: calibration.finding_identities joins findings across review records that name the same normalised file and carry the same claim or the same failure_scenario, transitively; latest_finding_records and escapes group by that identity, finding_key is gone, and two findings listed in one record stay two. kpi.findings' docstring says what the count rests on.",
+          "failure_reason": "FindingIdentityTest's last two cases failed against the first green: test_two_findings_saying_nothing_under_one_id_in_two_records_are_one with 'AssertionError: 2 != 1' and test_two_findings_saying_the_same_in_one_record_are_two with 'AssertionError: 1 != 2'. The earlier red of this slice is record 11, where criterion 1's fixture failed with 'AssertionError: 2 != 1', criterion 2's committed SEEN-107 journal with 'AssertionError: 45 != 26' and criterion 3's pinned table with '(45, 0, 9) != (26, 0, 9)'.",
+          "red": 13,
+          "green": 14
+        }
+      ],
+      "regression": 16,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "55e134c11377",
+      "output_tokens": 6663,
+      "tool_calls": 18,
+      "unavailable": null
+    }
+  }
+}
