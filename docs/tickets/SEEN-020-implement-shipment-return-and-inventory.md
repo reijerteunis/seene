@@ -10,7 +10,7 @@ estimate: 5
 executor: claude-code
 changes_agent_action: false
 marketplaces: [bol, amazon, ebay]
-depends_on: [SEEN-015, SEEN-018]
+depends_on: [SEEN-015, SEEN-018, SEEN-116]
 status: todo
 ---
 # SEEN-020: Implement shipment, return and inventory detectors
@@ -35,6 +35,7 @@ Add four more pure detectors to packages/core/detectors: lost shipment without c
 - [ ] Lost shipment raises only after the carrier window (Bol 30 days, Amazon 45 days, eBay 30 days) with no compensation line
 - [ ] FBA detector reads the inventory adjustment and reimbursement report names verified in SEEN-015
 - [ ] Each detector has unit tests with at least 5 true positives and 5 true negatives
+- [ ] A fast-check property, named after its invariant, shows that the lost shipment detector never raises inside the carrier window and the return shortfall detector never raises at or above the expected compensation
 
 ## Slices
 
@@ -48,6 +49,7 @@ The starting slice plan, one session each; the solution stage adopts or amends i
 
 - [SEEN-015](SEEN-015-verify-amazon-report-names-and-finances.md): Verify Amazon report names and Finances transactions version
 - [SEEN-018](SEEN-018-match-settlement-lines-to-order-lines.md): Match settlement_lines to order_lines deterministically
+- [SEEN-116](SEEN-116-property-based-and-mutation-tests-on-the-money.md): Property-based and mutation tests on the money core, as a gate
 
 ## Blocks
 

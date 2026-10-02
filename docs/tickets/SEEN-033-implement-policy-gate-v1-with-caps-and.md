@@ -10,7 +10,7 @@ estimate: 5
 executor: claude-code
 changes_agent_action: true
 marketplaces: []
-depends_on: [SEEN-032]
+depends_on: [SEEN-032, SEEN-116]
 status: todo
 ---
 # SEEN-033: Implement policy gate v1 with caps and reversibility
@@ -35,6 +35,7 @@ Implement the policy gate in packages/core/policy: it reads the tenant's policie
 - [ ] Filing the sixth claim of EUR 1,000 in one day returns refuse with reason cap_per_day
 - [ ] Any action on the never list returns refuse regardless of the policies row
 - [ ] Gate decision is written to agent_actions.decision and an audit event before the tool executes
+- [ ] A fast-check property, named after its invariant, shows that any action on the never list is refused whatever the policies row says
 
 ## Slices
 
@@ -47,6 +48,7 @@ The starting slice plan, one session each; the solution stage adopts or amends i
 ## Depends on
 
 - [SEEN-032](SEEN-032-write-append-only-audit-events-before-every.md): Write append-only audit_events before every side effect
+- [SEEN-116](SEEN-116-property-based-and-mutation-tests-on-the-money.md): Property-based and mutation tests on the money core, as a gate
 
 ## Blocks
 

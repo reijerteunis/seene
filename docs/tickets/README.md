@@ -46,7 +46,7 @@ Conventions: branch `claude/<id>-<slug>` (or `codex/`), commit messages `feat(<i
 | [SEEN-113](SEEN-113-let-a-tdd-record-cite-the-evidence-a-return.md) | Let a tdd record cite the evidence a return did not invalidate | E10 | 2 | Claude Code | review | SEEN-104, SEEN-112 |
 | [SEEN-114](SEEN-114-turn-every-recurring-finding-into-a-rule-the.md) | Turn every recurring finding into a rule the pre-commit hook runs in seconds | E10 | 3 | Claude Code | todo | SEEN-090, SEEN-107 |
 | [SEEN-115](SEEN-115-generate-the-marketplace-clients-from-the.md) | Generate the marketplace clients from the official OpenAPI specs and validate every fixture against them | E10 | 3 | Claude Code | todo | SEEN-009 |
-| [SEEN-116](SEEN-116-property-based-and-mutation-tests-on-the-money.md) | Property-based and mutation tests on the money core, as a gate | E10 | 3 | Claude Code | todo | SEEN-089, SEEN-016 |
+| [SEEN-116](SEEN-116-property-based-and-mutation-tests-on-the-money.md) | Property-based and mutation tests on the money core, as a gate | E10 | 3 | Claude Code | todo | SEEN-089 |
 | [SEEN-117](SEEN-117-the-spec-session-writes-the-red-the-implementer.md) | The spec session writes the RED; the implementer cannot touch it | E10 | 2 | Claude Code | todo | SEEN-105, SEEN-106, SEEN-111 |
 | [SEEN-118](SEEN-118-a-finding-needs-a-failing-test-taste-is-not-a.md) | A finding needs a failing test, taste is not a finding, and the third round is the founder's | E10 | 2 | Claude Code | todo | SEEN-107, SEEN-113 |
 | [SEEN-119](SEEN-119-independent-slices-run-in-parallel-worktrees.md) | Independent slices run in parallel worktrees | E10 | 3 | Claude Code | todo | SEEN-111, SEEN-112 |
@@ -81,11 +81,11 @@ Conventions: branch `claude/<id>-<slug>` (or `codex/`), commit messages `feat(<i
 | Ticket | Title | Epic | Pts | Executor | Status | Depends on |
 |---|---|---|---|---|---|---|
 | [SEEN-015](SEEN-015-verify-amazon-report-names-and-finances.md) | Verify Amazon report names and Finances transactions version | E1 | 1 | human | todo | SEEN-013 |
-| [SEEN-016](SEEN-016-encode-fee-schedules-per-marketplace-and.md) | Encode fee schedules per marketplace and category in core | E2 | 3 | Claude Code | todo | SEEN-008 |
-| [SEEN-017](SEEN-017-compute-fee-expectations-per-order-line-from.md) | Compute fee_expectations per order line from schedules and APIs | E2 | 5 | Claude Code | todo | SEEN-011, SEEN-014, SEEN-016 |
-| [SEEN-018](SEEN-018-match-settlement-lines-to-order-lines.md) | Match settlement_lines to order_lines deterministically | E2 | 5 | Claude Code | todo | SEEN-014 |
-| [SEEN-019](SEEN-019-implement-fee-detectors-as-pure-tested-functions.md) | Implement fee detectors as pure tested functions | E2 | 5 | Claude Code | todo | SEEN-017, SEEN-018 |
-| [SEEN-020](SEEN-020-implement-shipment-return-and-inventory.md) | Implement shipment, return and inventory detectors | E2 | 5 | Claude Code | todo | SEEN-015, SEEN-018 |
+| [SEEN-016](SEEN-016-encode-fee-schedules-per-marketplace-and.md) | Encode fee schedules per marketplace and category in core | E2 | 3 | Claude Code | todo | SEEN-008, SEEN-116 |
+| [SEEN-017](SEEN-017-compute-fee-expectations-per-order-line-from.md) | Compute fee_expectations per order line from schedules and APIs | E2 | 5 | Claude Code | todo | SEEN-011, SEEN-014, SEEN-016, SEEN-116 |
+| [SEEN-018](SEEN-018-match-settlement-lines-to-order-lines.md) | Match settlement_lines to order_lines deterministically | E2 | 5 | Claude Code | todo | SEEN-014, SEEN-116 |
+| [SEEN-019](SEEN-019-implement-fee-detectors-as-pure-tested-functions.md) | Implement fee detectors as pure tested functions | E2 | 5 | Claude Code | todo | SEEN-017, SEEN-018, SEEN-116 |
+| [SEEN-020](SEEN-020-implement-shipment-return-and-inventory.md) | Implement shipment, return and inventory detectors | E2 | 5 | Claude Code | todo | SEEN-015, SEEN-018, SEEN-116 |
 | [SEEN-021](SEEN-021-persist-findings-with-rule-confidence-evidence.md) | Persist findings with rule, confidence, evidence refs and deadline | E2 | 3 | Claude Code | todo | SEEN-019, SEEN-020 |
 | [SEEN-022](SEEN-022-generate-the-audit-pdf-with-scorecard-and-line.md) | Generate the audit PDF with scorecard and line annex | E2 | 5 | Claude Code | todo | SEEN-021 |
 | [SEEN-023](SEEN-023-measure-the-recoverable-pool-per-marketplace.md) | Measure the recoverable pool per marketplace | E2 | 3 | Claude Code | todo | SEEN-021 |
@@ -105,7 +105,7 @@ Conventions: branch `claude/<id>-<slug>` (or `codex/`), commit messages `feat(<i
 | [SEEN-030](SEEN-030-build-the-amazon-assisted-case-pack-with-report.md) | Build the Amazon assisted case pack with report tracking | E3 | 3 | Claude Code | todo | SEEN-027 |
 | [SEEN-031](SEEN-031-match-credits-to-claims-as-the-only-billable.md) | Match credits to claims as the only billable event | E3 | 3 | Claude Code | todo | SEEN-027 |
 | [SEEN-032](SEEN-032-write-append-only-audit-events-before-every.md) | Write append-only audit_events before every side effect | E4 | 2 | Claude Code | todo | SEEN-008 |
-| [SEEN-033](SEEN-033-implement-policy-gate-v1-with-caps-and.md) | Implement policy gate v1 with caps and reversibility | E4 | 5 | Claude Code | todo | SEEN-032 |
+| [SEEN-033](SEEN-033-implement-policy-gate-v1-with-caps-and.md) | Implement policy gate v1 with caps and reversibility | E4 | 5 | Claude Code | todo | SEEN-032, SEEN-116 |
 | [SEEN-034](SEEN-034-build-agent-runtime-v1-with-the-fixed-tool-set.md) | Build agent runtime v1 with the fixed tool set and cost accounting | E4 | 5 | Claude Code | todo | SEEN-027, SEEN-032, SEEN-033 |
 | [SEEN-035](SEEN-035-build-the-approval-inbox-with-approve-edit-and.md) | Build the approval inbox with approve, edit and reject | E4 | 5 | Claude Code | todo | SEEN-033, SEEN-034 |
 | [SEEN-036](SEEN-036-create-the-eval-set-of-30-real-findings-with.md) | Create the eval set of 30 real findings with expected drafts | E4 | 3 | Claude Code | todo | SEEN-034 |
