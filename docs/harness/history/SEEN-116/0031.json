@@ -1,0 +1,42 @@
+{
+  "sequence": 31,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-02T21:05:21.189799+00:00",
+  "harness_version": "2",
+  "kind": "handoff",
+  "stage": "tdd",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "session": "84d3ecfa6fc1",
+  "head": "6916ade6e77b8d501408165b9bbb9ea604c11418",
+  "prev_hash": "5c0efa2a46457bed4bb4262a100513d65fd0ea5cb4ce08753d2bf964b15b89be",
+  "data": {
+    "pack": ".harness-drafts/SEEN-116-handoff.md",
+    "sha256": "73105c17afe39c8c368eb310483dfe91c51d9daef767b423d38af0b9ce185257",
+    "estimated_tokens": 1003,
+    "token_limit": 2000,
+    "slice": {
+      "position": 3,
+      "total": 3,
+      "done": 2,
+      "declared": false,
+      "inferred": 2,
+      "entry": {
+        "name": "Incremental mutation in CI",
+        "points": 1,
+        "files": [
+          ".github/workflows/ci.yml",
+          "docs/tickets/SEEN-116-property-based-and-mutation-tests-on-the-money.md"
+        ],
+        "red": "No local RED for a workflow file: the job's first run on this ticket's pull request is the evidence, with a changed packages/core/src file mutated, an unchanged run skipping, and the duration under ten minutes quoted in the Outcome."
+      }
+    },
+    "auto": false,
+    "figures": {
+      "session": "84d3ecfa6fc1",
+      "output_tokens": 34306,
+      "tool_calls": 32,
+      "unavailable": null
+    }
+  }
+}
