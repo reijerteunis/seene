@@ -1,0 +1,52 @@
+{
+  "sequence": 44,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-02T21:58:37.239030+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "session": "b627f40697c5",
+  "head": "7682adc966641e1454795b4dc784dacaa7395531",
+  "prev_hash": "de5b5cbdd18e4cf41a84c99411868c1acf047dbc92c249ae32e33e41e7677f55",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": 2,
+          "behaviour": "A RED whose Stryker report names a Killed mutant in a slice file counts as a demonstrated failure, the tdd gate refuses an attempt whose slices name packages/core/src files without a mutation measurement at or above [mutation] floor = 70, a measurement with zero mutants in those files is recorded as not applicable with its count and passes, and the score reaches kpi.json and the sprint report.",
+          "failure_reason": "FAILED (errors=5): MeasureTest and MutationFloorTest.test_no_mutants_in_the_files_is_not_applicable_and_passes raised harness.errors.HarnessError: The mutation measurement at record 7 has no score: no mutants in the files named.",
+          "red": 28,
+          "green": 29
+        },
+        {
+          "position": 3,
+          "behaviour": "A pull-request-only CI mutation job computes the packages/core/src files changed against the PR base (widening to all of src when a Stryker or vitest config changes, skipping when nothing in src changed) and runs Stryker incrementally on them.",
+          "failure_reason": "AssertionError: ci.yml has no `mutation` job",
+          "red": 32,
+          "green": 34
+        },
+        {
+          "position": 1,
+          "behaviour": "fast-check and StrykerJS are dev dependencies of packages/core with a vitest-runner, typescript-checker config over src and a fixture config over packages/core/fixtures/tolerance; the fixture property finds the seeded wrong-sign tolerance bug in seeded.ts and none in detector.ts, and the fixture Stryker run kills the comparison-flipping and sign-flipping mutants; the unit vitest project excludes db/ tests and the fixture is kept out of src, exports and the authorities reader.",
+          "failure_reason": "Stryker run with stryker.fixture.config.mjs exited 0 and its report names 5 mutants Killed in packages/core/fixtures/tolerance/detector.ts (killed 5, survived 0, no coverage 0), among them EqualityOperator 'chargedCents <= expectedCents + toleranceCents' and ArithmeticOperator 'expectedCents - toleranceCents': the fixture property fails against the comparison-flipping and sign-flipping mutants.",
+          "red": 40,
+          "green": 41
+        }
+      ],
+      "regression": 42,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "b627f40697c5",
+      "output_tokens": 18610,
+      "tool_calls": 29,
+      "unavailable": null
+    }
+  }
+}
