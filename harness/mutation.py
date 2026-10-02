@@ -12,7 +12,10 @@ timed-out mutants over those plus the survivors and the uncovered. A mutant that
 did not compile, or was ignored, says nothing about the tests and is left out.
 No mutants at all is not applicable and never a score: it is recorded with its
 count and `not_applicable`, and the gate lets it pass (Ruud's decision), but it
-is never read as a hundred.
+is never read as a hundred. It is not applicable only when the report lists every
+file named, and a directory by at least one file under it: a name the report does
+not hold (a typo, a file the branch deleted) measured nothing, and is recorded
+as missing rather than as nothing to measure.
 
 The measurement mirrors `coverage.py` and is as fixed as it: the command is not
 something a session hands in beyond the stub a test substitutes.
@@ -38,10 +41,19 @@ def command(files):
 
     Stryker runs inside packages/core, so the paths it is given are relative to
     it; a path outside that package is not Stryker's to mutate and is refused.
+    An entry that is not a .ts file is a directory, and Stryker takes globs, not
+    directories, so it becomes the globs of the files under it, tests left out.
     """
     relative = [_relative(path) for path in files]
     require(relative, f'Nothing to mutate: name a file under {SOURCE_DIRECTORY}')
-    return BASE_COMMAND + ('--mutate', ','.join(relative))
+    patterns = []
+    for entry in relative:
+        if entry.endswith('.ts'):
+            patterns.append(entry)
+        else:
+            directory = entry.rstrip('/')
+            patterns += [f'{directory}/**/*.ts', f'!{directory}/**/*.test.ts']
+    return BASE_COMMAND + ('--mutate', ','.join(patterns))
 
 
 def _relative(path):
@@ -70,6 +82,13 @@ def source_files(paths):
 def covers(entries, path):
     """Whether a path is one of these entries or sits under a directory among them."""
     return any(path == entry or path.startswith(entry.rstrip('/') + '/') for entry in entries)
+
+
+def missing(report, files):
+    """The entries the report lists no file for: a file not in it, a directory with none under it."""
+    listed = _files_of(report)
+    return [entry for entry in files
+            if not any(covers([entry], path) for path in listed)]
 
 
 def read(root, relative):
@@ -150,20 +169,28 @@ def measure(root, evidence, files, floor, since):
     nobody can tie to it.
     """
     data = dict(evidence, files=list(files), floor=floor, score=None, mutants=0, reason=None,
-                not_applicable=False,
+                not_applicable=False, missing=[],
                 **dict(killed=0, timeout=0, survived=0, no_coverage=0))
     if evidence['exit_code'] != 0:
         return dict(data, reason=f'the Stryker run failed (exit {evidence["exit_code"]}), so '
                                  'no report from it can be trusted')
     if not _written_since(root, PRODUCT_REPORT, since):
         return dict(data, reason=f'the run wrote no report at {PRODUCT_REPORT}')
-    found = counts(read(root, PRODUCT_REPORT), files)
+    document = read(root, PRODUCT_REPORT)
+    found = counts(document, files)
     mutants = sum(found.values())
-    return dict(data, **found, mutants=mutants, score=score(found),
-                # Ruud's decision on SEEN-116: a run that completed and found no
-                # mutants in the files is recorded as not applicable, with the count
-                # and no score, and the gate lets it pass. Only this case: a run that
-                # failed or wrote no report has no score either and is not this.
-                not_applicable=not mutants,
-                reason=None if mutants else 'no mutants in the files named, so the score is '
-                                            'not applicable')
+    absent = missing(document, files)
+    data = dict(data, **found, mutants=mutants, score=score(found), missing=absent)
+    if mutants:
+        return data
+    if absent:
+        return dict(data, reason='the report lists no file for ' + ', '.join(absent)
+                                 + ', so it measured nothing there: a typo or a file the '
+                                   'branch deleted')
+    # Ruud's decision on SEEN-116: a run that completed and found no mutants in
+    # files the report does list is recorded as not applicable, with the count
+    # and no score, and the gate lets it pass. Only this case: a run that failed
+    # or wrote no report, or a name the report lacks, has no score either and is
+    # not this.
+    return dict(data, not_applicable=True,
+                reason='no mutants in the files named, so the score is not applicable')

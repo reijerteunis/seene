@@ -146,6 +146,17 @@ class ReadingTheReportTest(CommandTest):
         self.assertEqual(command[-2:], ('--mutate', 'src/fee.ts,src/money/cents.ts'))
         self.assertEqual(command[:4], ('pnpm', '--filter', '@seen/core', 'mutation'))
 
+    def test_a_directory_is_expanded_into_the_globs_of_the_files_under_it(self):
+        self.assertEqual(mutation.command(['packages/core/src/money']),
+                         ('pnpm', '--filter', '@seen/core', 'mutation', '--mutate',
+                          'src/money/**/*.ts,!src/money/**/*.test.ts'))
+        self.assertEqual(mutation.command(['packages/core/src/'])[-1],
+                         'src/**/*.ts,!src/**/*.test.ts')
+
+    def test_a_file_and_a_directory_are_joined_into_one_mutate_value(self):
+        self.assertEqual(mutation.command([SRC, 'packages/core/src/money'])[-1],
+                         'src/fee.ts,src/money/**/*.ts,!src/money/**/*.test.ts')
+
 
 class MeasureTest(CommandTest):
 
@@ -180,6 +191,31 @@ class MeasureTest(CommandTest):
         self.assertIsNone(data['score'])
         self.assertIn('report', data['reason'])
         self.assertFalse(data['not_applicable'])
+
+    def measure_over(self, files, **named):
+        self.write(mutation.PRODUCT_REPORT, json.dumps(report(**named)))
+        return mutation.measure(self.root, dict(phase='mutation', exit_code=0),
+                                list(files), 70, 0)
+
+    def test_a_named_file_the_report_lacks_is_a_miss_and_never_not_applicable(self):
+        data = self.measure_over(['packages/core/src/typo.ts'], src__fee_ts=['Killed'])
+        self.assertIsNone(data['score'])
+        self.assertFalse(data['not_applicable'])
+        self.assertIn('src/typo.ts', data['reason'])
+        self.assertEqual(data['missing'], ['packages/core/src/typo.ts'])
+
+    def test_a_directory_with_no_report_file_under_it_is_a_miss_too(self):
+        data = self.measure_over(['packages/core/src/money'], src__fee_ts=['Killed'])
+        self.assertIsNone(data['score'])
+        self.assertFalse(data['not_applicable'])
+        self.assertIn('src/money', data['reason'])
+
+    def test_every_named_file_in_the_report_with_no_mutants_is_still_not_applicable(self):
+        data = self.measure_over([SRC, 'packages/core/src/money'], src__fee_ts=[],
+                                 src__money__cents_ts=['CompileError'])
+        self.assertTrue(data['not_applicable'])
+        self.assertIsNone(data['score'])
+        self.assertEqual(data['missing'], [])
 
 
 class TheCommandTest(CommandTest):
