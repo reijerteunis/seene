@@ -1,0 +1,16 @@
+{
+  "sequence": 55,
+  "ticket": "SEEN-145",
+  "timestamp": "2026-10-02T15:10:15.771104+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 6,
+  "actor": "claude:implementer",
+  "session": "55e134c11377",
+  "head": "50748c04a4a9130b233d7bb72dea69bcc55c01fa",
+  "prev_hash": "76236bf3e1d5e36898358e5bc7a81257cc2704a15a7acd48098b147ebc43292d",
+  "data": {
+    "text": "# Decision after review round 5 (record 54): name the residue, split a ticket\n\nAsked in this session on 2 October 2026 and answered by Ruud: correct the wording,\nname the crossing case as a residue, deliver SEEN-145 with round 5's F1 accepted\non his authority, and open a follow-up ticket for a maximum matching per record.\n\nRound 5's F1: when a later finding's claim matches one earlier finding and its\nfailure scenario another, every pair ties on texts, line and id, the greedy join\nfalls through to position, and list order decides whether 2 or 3 findings are\ncounted. Rounds 2 to 5 each found one more edge of the greedy join; a maximum\nmatching per record closes the family instead of one more case, and does not\nbelong in a 1-point ticket on its sixth round.\n\nThe work for the next session, no new behaviour and so no new RED:\n\n- harness/calibration.py, the comment over the per-record join: say the order\n  is the last resort (note 36) and name the crossing case as the residue the\n  greedy join leaves, with the follow-up ticket's id. Same for the\n  finding_identities docstring if it claims more.\n- harness/tests/test_calibration.py: the docstring of\n  test_a_later_record_s_findings_take_their_matches_strongest_first must not say\n  the order \"decides nothing\".\n- harness/kpi.py, the findings docstring: name the crossing case beside\n  SEEN-006's R-04 as a residue.\n- The ticket's Outcome: drop \"decides nothing\", name the residue and the\n  follow-up ticket, and record round 5 (record 54) and this decision (this note).\n- A new ticket file, the next free id after SEEN-145, epic E10, at most 2 points,\n  depends on SEEN-145: replace the greedy per-record join in\n  calibration.finding_identities with a maximum assignment, so listing order\n  never changes a count, with round 5's scenario as its first criterion. Add its\n  row to docs/tickets/README.md and to the CLAUDE.md index if the index lists\n  every ticket. Run `harness guard` on each path first; a path the slice does not\n  name is a reason to check whether the guard allows it, not to work around it.\n- Then regression and coverage after every edit is final, the tdd advance citing\n  the existing RED 47 and GREEN 48 (no behaviour changed), triage, and review\n  round 6, whose reviewer is told nothing beyond the triage's task text; F1 of\n  round 5 stands accepted by this note.\n"
+  }
+}
