@@ -1,0 +1,478 @@
+{
+  "sequence": 20,
+  "ticket": "SEEN-145",
+  "timestamp": "2026-10-02T13:53:56.252258+00:00",
+  "harness_version": "2",
+  "kind": "triage",
+  "stage": "review",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "55e134c11377",
+  "head": "ef9aa19fce95a97f7f72210a5f3586eb000b220a",
+  "prev_hash": "b4f3d386faa04dd6e3c335a6b8a0b0189dd9d6f4c9aad3180a54e02e974a5d86",
+  "data": {
+    "fingerprint": "741be2419cca462ab6e7141c58dce971bbb76befaf62dc6c7a5dd858f2bbe725",
+    "code_fingerprint": "751b1214a2375205d587c9de5be9a1f966e065d40011174e8a758350070a7528",
+    "files": [
+      {
+        "path": "docs/tickets/README.md",
+        "hunks": 1,
+        "added": 1,
+        "removed": 1,
+        "package": "docs",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": false
+      },
+      {
+        "path": "docs/tickets/SEEN-145-count-a-review-finding-once-however-the.md",
+        "hunks": 3,
+        "added": 14,
+        "removed": 3,
+        "package": "docs",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/calibration.py",
+        "hunks": 3,
+        "added": 67,
+        "removed": 15,
+        "package": "harness",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/kpi.py",
+        "hunks": 1,
+        "added": 11,
+        "removed": 0,
+        "package": "harness",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/tests/test_calibration.py",
+        "hunks": 2,
+        "added": 90,
+        "removed": 1,
+        "package": "harness",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      }
+    ],
+    "criteria": [
+      "kpi.findings counts a finding once when two review advances describe it under different ids, proven with a fixture of two records whose findings differ only in their identifiers",
+      "SEEN-107's own committed journal reports its real finding total rather than forty-five, proven by a test that reads that journal from docs/harness/history/ rather than a constructed one",
+      "(as amended) Every other journal in this repository reports exactly what it reported before, except SEEN-102, which moves from seven to its real four, proven over every journal present",
+      "What the count rests on after this change is written in kpi.findings, and the weekly and sprint reports carry the corrected figure"
+    ],
+    "deterministic": [
+      {
+        "name": "coverage",
+        "outcome": "pass",
+        "detail": "@seen/core at 100.0%, +0.0 against the baseline"
+      },
+      {
+        "name": "lint",
+        "outcome": "pass",
+        "detail": "No live marketplace host in test code"
+      },
+      {
+        "name": "gitleaks",
+        "outcome": "pass",
+        "detail": "No leak in main..HEAD"
+      },
+      {
+        "name": "fingerprint",
+        "outcome": "pass",
+        "detail": "The tree is the one check 16 ran against"
+      },
+      {
+        "name": "slice_files",
+        "outcome": "fail",
+        "detail": "Changed but named by no slice and no changes entry: docs/tickets/README.md"
+      },
+      {
+        "name": "red_before_green",
+        "outcome": "pass",
+        "detail": "Every slice cites a check that exited non-zero rather than one that passed. Whether it failed for the reason the slice states is not something the harness can read"
+      },
+      {
+        "name": "tests_added",
+        "outcome": "pass",
+        "detail": "Test files changed: harness/tests/test_calibration.py. Whether the behaviour this slice adds has one of its own is not something a path can say"
+      },
+      {
+        "name": "acceptance_entries",
+        "outcome": "pass",
+        "detail": "The clarify record restates 4 checks against 4 criteria in the ticket. Which check answers which criterion is not something either list says"
+      },
+      {
+        "name": "pull_request",
+        "outcome": "unavailable",
+        "detail": "gh could not answer, so the pull request body was not read. It is checked again at merge, where the receipt hash has to be in it"
+      }
+    ],
+    "rules": [
+      "slice_files did not pass, so the reviewer reads everything: Changed but named by no slice and no changes entry: docs/tickets/README.md"
+    ],
+    "jev": {
+      "asked": true,
+      "model": "jev-1.13.0",
+      "reason": null,
+      "answers": [
+        {
+          "key": "criterion_evidenced#1",
+          "question": "criterion_evidenced",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "yes",
+          "probabilities": {
+            "yes": 0.95,
+            "no": 0.05
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.6,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "criterion_evidenced#2",
+          "question": "criterion_evidenced",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "yes",
+          "probabilities": {
+            "yes": 0.91,
+            "no": 0.09
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.6,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "criterion_evidenced#3",
+          "question": "criterion_evidenced",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "yes",
+          "probabilities": {
+            "yes": 0.77,
+            "no": 0.23
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.6,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "criterion_evidenced#4",
+          "question": "criterion_evidenced",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "yes",
+          "probabilities": {
+            "yes": 0.86,
+            "no": 0.14
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.6,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "diff_matches_solution",
+          "question": "diff_matches_solution",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "no",
+          "probabilities": {
+            "yes": 0.45,
+            "no": 0.55
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.6,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#docs/tickets/README.md",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "no",
+          "probabilities": {
+            "yes": 0.19,
+            "no": 0.81
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#docs/tickets/SEEN-145-count-a-review-finding-once-however-the.md",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "no",
+          "probabilities": {
+            "yes": 0.18,
+            "no": 0.82
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#harness/calibration.py",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "yes",
+          "probabilities": {
+            "yes": 0.73,
+            "no": 0.27
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#harness/kpi.py",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "no",
+          "probabilities": {
+            "yes": 0.28,
+            "no": 0.72
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#harness/tests/test_calibration.py",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "no",
+          "probabilities": {
+            "yes": 0.22,
+            "no": 0.78
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "review_depth",
+          "question": "review_depth",
+          "type": "score",
+          "options": [
+            "spot",
+            "full"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "spot",
+          "probabilities": {
+            "spot": 0.86,
+            "full": 0.14
+          },
+          "confidence": 0.73,
+          "score": 0.14,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        }
+      ]
+    },
+    "criteria_answers": [
+      {
+        "key": "criterion_evidenced#1",
+        "question": "criterion_evidenced",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.95,
+          "no": 0.05
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null,
+        "criterion": "kpi.findings counts a finding once when two review advances describe it under different ids, proven with a fixture of two records whose findings differ only in their identifiers"
+      },
+      {
+        "key": "criterion_evidenced#2",
+        "question": "criterion_evidenced",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.91,
+          "no": 0.09
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null,
+        "criterion": "SEEN-107's own committed journal reports its real finding total rather than forty-five, proven by a test that reads that journal from docs/harness/history/ rather than a constructed one"
+      },
+      {
+        "key": "criterion_evidenced#3",
+        "question": "criterion_evidenced",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.77,
+          "no": 0.23
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null,
+        "criterion": "(as amended) Every other journal in this repository reports exactly what it reported before, except SEEN-102, which moves from seven to its real four, proven over every journal present"
+      },
+      {
+        "key": "criterion_evidenced#4",
+        "question": "criterion_evidenced",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.86,
+          "no": 0.14
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null,
+        "criterion": "What the count rests on after this change is written in kpi.findings, and the weekly and sprint reports carry the corrected figure"
+      }
+    ],
+    "review_depth": "full",
+    "reviewer_model": "opus",
+    "model_depth": "spot",
+    "focus": [
+      "docs/tickets/README.md",
+      "docs/tickets/SEEN-145-count-a-review-finding-once-however-the.md",
+      "harness/calibration.py",
+      "harness/kpi.py",
+      "harness/tests/test_calibration.py"
+    ],
+    "shadow": true,
+    "shadow_source": "threshold",
+    "shadow_reason": "[review] triage_shadow is true in harness/thresholds.toml",
+    "would_exclude": [
+      "docs/tickets/README.md",
+      "docs/tickets/SEEN-145-count-a-review-finding-once-however-the.md",
+      "harness/kpi.py",
+      "harness/tests/test_calibration.py"
+    ],
+    "excluded_share": 0.5961,
+    "always_read": [
+      "docs/tickets/SEEN-145-count-a-review-finding-once-however-the.md",
+      "docs/harness/history/SEEN-145/"
+    ],
+    "reviewer_task": "Review SEEN-145 against its acceptance criteria and its journal.\n\nDepth: full, settled by triage record 20, in shadow mode, so the focus set is the whole diff and what the narrowing would have dropped is recorded rather than acted on\n\nRun the reviewer on opus by rule: the strongest model at full depth, one tier down at spot.\n\nRead these whatever the depth, because they are what a review is against and no focus set can hold them:\n- docs/tickets/SEEN-145-count-a-review-finding-once-however-the.md\n- docs/harness/history/SEEN-145/\n\nOf the diff, read these 5 file(s) and no others:\n- docs/tickets/README.md\n- docs/tickets/SEEN-145-count-a-review-finding-once-however-the.md\n- harness/calibration.py\n- harness/kpi.py\n- harness/tests/test_calibration.py\n\nAlready settled with no model, so do not spend a read confirming any of them: coverage, lint, gitleaks, fingerprint.\n\nPartly settled, and the rest is yours:\n- red_before_green: it passed, but it proves the cited check exited non-zero, never that it failed for the reason the slice states, which only a reader comparing the two can judge\n- tests_added: it passed, but it proves a test file is in the change, never that the behaviour the slice adds has a test of its own, which a one-line fixture edit satisfies just as well\n- acceptance_entries: it passed, but it counts the clarify record's checks against the ticket's criteria, never that each criterion has one, because neither list names the other\n\nNot settled, so they are yours:\n- slice_files (fail): Changed but named by no slice and no changes entry: docs/tickets/README.md\n- pull_request (unavailable): gh could not answer, so the pull request body was not read. It is checked again at merge, where the receipt hash has to be in it\n\nReturn the review record's shape. Its `read` list must name every file you read and must cover the focus set above, which the review gate checks."
+  }
+}

@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-091, SEEN-107, SEEN-109]
-status: doing
+status: review
 priority: P1
 ---
 # SEEN-145: Count a review finding once, however the record that carries it names it
@@ -24,7 +24,7 @@ priority: P1
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | doing |
+| Status | review |
 
 ## Description
 
@@ -32,10 +32,10 @@ priority: P1
 
 ## Acceptance criteria
 
-- [ ] kpi.findings counts a finding once when two review advances describe it under different ids, proven with a fixture of two records whose findings differ only in their identifiers
-- [ ] SEEN-107's own committed journal reports its real finding total rather than forty-five, proven by a test that reads that journal from docs/harness/history/ rather than a constructed one
-- [ ] (as amended) Every other journal in this repository reports exactly what it reported before, except SEEN-102, which moves from seven to its real four, proven over every journal present
-- [ ] What the count rests on after this change is written in kpi.findings, and the weekly and sprint reports carry the corrected figure
+- [x] kpi.findings counts a finding once when two review advances describe it under different ids, proven with a fixture of two records whose findings differ only in their identifiers
+- [x] SEEN-107's own committed journal reports its real finding total rather than forty-five, proven by a test that reads that journal from docs/harness/history/ rather than a constructed one
+- [x] (as amended) Every other journal in this repository reports exactly what it reported before, except SEEN-102, which moves from seven to its real four, proven over every journal present
+- [x] What the count rests on after this change is written in kpi.findings, and the weekly and sprint reports carry the corrected figure
 
 ## Amendments
 
@@ -47,6 +47,34 @@ priority: P1
   preserve. Holding it at 7 would need the id kept as a tiebreak, which brings back
   the dependence the ticket removes. The test pins both corrected figures and every
   other journal unchanged.
+
+## Outcome
+
+A review finding's identity now rests on what it says and where, never on its id.
+`calibration.finding_identities` joins two findings when they name the same
+normalised file and carry the same claim or the same failure scenario, and the
+join is transitive, which is what SEEN-107's G1 needs: its claim was reworded as
+R2-1 while its failure scenario was carried byte for byte. Two findings listed in
+one record are never joined, directly or through a third. The id is read only for
+a finding with neither text, which the review gate refuses and no committed
+journal holds. `latest_finding_records` (and so `kpi.findings`) and
+`calibration.escapes` both group by that identity; `finding_key` is deleted.
+
+- Criterion 1: `FindingIdentityTest` holds a fixture of two review advances whose
+  findings differ only in their ids and counts one (RED record 11, `2 != 1`).
+- Criterion 2: the test reads SEEN-107's committed journal and counts 26, where it
+  counted 45 (RED record 11, `45 != 26`).
+- Criterion 3, as amended: every journal under `docs/harness/history/` is compared
+  with a table pinned at clarify; only SEEN-107 (45 to 26) and SEEN-102 (7 to 4)
+  move. Escape and unattributable counts are unchanged in every journal (record 6).
+- Criterion 4: `kpi.findings`' docstring says what the count rests on and names
+  the residue, SEEN-006's R-04, reworded in every field and still counted twice
+  (6 where a reader says 5). The weekly report for 2026-W39 and the sprint 0
+  report were regenerated and carry the corrected figures.
+
+Delivered `kpi.json` files are not rewritten; the receipt does not hash them and
+the reports recompute from the journals (record 6). Regression: 1572 harness tests
+green (record 16); `@seen/core` coverage unchanged at 100 percent (record 17).
 
 ## Depends on
 
