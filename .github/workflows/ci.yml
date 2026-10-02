@@ -212,37 +212,25 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
       # The base comes through env, never interpolated into the script: a
-      # branch name or a title is text somebody else chose. The selection is
-      # plain shell so it can be run on a laptop with BASE and GITHUB_OUTPUT set.
-      # A change to the mutation config or the test setup changes what every
-      # mutant faces, so the stored results for unchanged files no longer
-      # describe it, and the whole of src is mutated instead.
+      # branch name or a title is text somebody else chose. The selection
+      # itself lives in harness/mutation_ci.py with its tests
+      # (harness/tests/test_mutation_ci.py), so it can be run on a laptop with
+      # BASE and GITHUB_OUTPUT set. A change to the mutation config or the test
+      # setup changes what every mutant faces, so the stored results for
+      # unchanged files no longer describe it, and the whole of src is mutated.
       - name: Which core files changed
         id: changed
         shell: bash
         env:
           BASE: ${{ github.event.pull_request.base.sha }}
         run: |
-          changed=$(git diff --name-only --diff-filter=ACMR "${BASE:?}"...HEAD)
-          if printf '%s\n' "$changed" | grep -Eq '^packages/core/(stryker\.config\.mjs|vitest\.config\.ts|package\.json)$'; then
-            files='src/**/*.ts,!src/**/*.test.ts'
-            echo "The mutation config or the test setup changed: mutating all of src."
-          else
-            files=$(printf '%s\n' "$changed" \
-              | { grep -E '^packages/core/src/.*\.ts$' || true; } \
-              | { grep -Ev '\.test\.ts$' || true; } \
-              | sed 's#^packages/core/##' \
-              | paste -sd, -)
-          fi
-          if [ -n "$files" ]; then
-            echo "any=true" >> "$GITHUB_OUTPUT"
-            echo "files=$files" >> "$GITHUB_OUTPUT"
-            echo "Mutating: $files"
-          else
-            echo "any=false" >> "$GITHUB_OUTPUT"
-            echo "No product file under packages/core/src changed."
-          fi
+          git diff --name-only --diff-filter=ACMR "${BASE:?}"...HEAD \
+            | python3 -m harness.mutation_ci
 
       # The branch's own results first, then any branch's: a new pull request
       # starts from the last run anywhere rather than from nothing, and
