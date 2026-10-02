@@ -145,5 +145,39 @@ class RenderRulesTest(unittest.TestCase):
         self.assertIn('Findings that predate rule_candidate: 0', lines)
 
 
+class MutationColumnTest(unittest.TestCase):
+    """The sprint report prints the mutation score beside coverage, SEEN-116."""
+
+    FIGURES = dict(first_pass_ci_rate=None, median_cycle_time_seconds=None,
+                   rework_per_ticket=None, points_delivered=0, findings_by_severity={})
+
+    def rendered(self, **ticket):
+        body = dict(ticket='SEEN-701', points=2, attempts=1, rework=0, findings={},
+                    coverage=dict(delta=0.5), cycle_time_seconds=None)
+        body.update(ticket)
+        return report.render('Sprint', [body], self.FIGURES, [])
+
+    def row(self, text):
+        return next(line for line in text.splitlines() if line.startswith('| SEEN-701'))
+
+    def test_the_table_names_the_column_beside_coverage(self):
+        header = next(line for line in self.rendered().splitlines() if line.startswith('| Ticket'))
+        cells = [cell.strip() for cell in header.strip('|').split('|')]
+        self.assertEqual(cells[cells.index('Coverage') + 1], 'Mutation')
+
+    def test_a_scored_ticket_shows_its_score_against_the_floor(self):
+        row = self.row(self.rendered(mutation=dict(score=82.5, floor=70, mutants=12)))
+        self.assertTrue(row.rstrip().endswith('| 82.5% of 12 |'), row)
+
+    def test_a_measurement_with_no_mutants_says_so_rather_than_a_hundred(self):
+        row = self.row(self.rendered(mutation=dict(score=None, floor=70, mutants=0,
+                                                   reason='no mutants in the files named')))
+        self.assertTrue(row.rstrip().endswith('| not applicable |'), row)
+        self.assertNotIn('100', row)
+
+    def test_a_ticket_that_measured_none_shows_a_dash(self):
+        self.assertTrue(self.row(self.rendered(mutation=None)).rstrip().endswith('| - |'))
+
+
 if __name__ == '__main__':
     unittest.main()
