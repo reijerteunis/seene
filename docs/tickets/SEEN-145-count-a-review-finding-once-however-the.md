@@ -61,8 +61,8 @@ A review finding's identity now rests on what it says and where, never on its id
 normalised file and carry the same claim or the same failure scenario, and the
 join is transitive, which is what SEEN-107's G1 needs: its claim was reworded as
 R2-1 while its failure scenario was carried byte for byte. Two findings listed in
-one record are never joined, directly or through a third. The id is read only for
-a finding with neither text, which the review gate refuses and no committed
+one record are never joined, directly or through a third. The id joins findings
+only when they carry neither text, which the review gate refuses and no committed
 journal holds. Every finding that said a text stays an anchor for it, and a later
 finding is offered to the anchors sharing more of its texts first, so two alike
 findings of one record each reach their own copy in a later round (F1 of the
@@ -72,7 +72,11 @@ than an earlier one matching on its claim alone (F1 of the second review, a high
 finding counted as low; RED record 29, GREEN record 30). Between two findings of
 one record that a later one matches equally well, the one at the same line takes
 it, then the one under the same id, and journal order is the last resort (F1 of
-the third review, decided by Ruud at note 36; RED record 37, GREEN record 38). The id orders
+the third review, decided by Ruud at note 36; RED record 37, GREEN record 38). The pairs of each later record are joined
+strongest first across the whole record, so the order a reviewer listed findings
+in decides nothing (F1 of the fourth review, where a weak match listed first took
+the anchor an exact copy needed and an escape was counted twice; decided by Ruud
+at note 44; RED record 47, GREEN record 48). The id orders
 matches the content found and never makes one. `latest_finding_records` (and so `kpi.findings`) and
 `calibration.escapes` both group by that identity; `finding_key` is deleted.
 
@@ -86,7 +90,8 @@ matches the content found and never makes one. `latest_finding_records` (and so 
 - Criterion 4: `kpi.findings`' docstring says what the count rests on and names
   the residue, SEEN-006's R-04, reworded in every field and still counted twice
   (6 where a reader says 5). The weekly report for 2026-W39 and the sprint 0
-  report were regenerated and carry the corrected figures.
+  report carry the corrected figures, and regenerating them after GREEN record 48
+  changed no byte (note 49).
 
 Delivered `kpi.json` files are not rewritten; the receipt does not hash them and
 the reports recompute from the journals (note 5). The regression and the coverage
@@ -99,7 +104,8 @@ fixed as above, F2 corrected this section's citations, and F3, the status row in
 and is left as it is. The second review (returned at record 28) found the
 claim-only join, fixed as above, and the regression run before this section's
 last edit, which is why the regression now runs after it. The third (returned at
-record 35) found the tie between equal matches, settled as above.
+record 35) found the tie between equal matches, and the fourth (record 43) the
+order inside a record and the missing report evidence, each settled as above.
 
 ## Depends on
 

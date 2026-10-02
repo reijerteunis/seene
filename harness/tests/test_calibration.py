@@ -834,6 +834,21 @@ class FindingIdentityTest(unittest.TestCase):
                                            failure_scenario='Reworded')], minute=40)]
         self.assertEqual(kpi.findings(records)['by_severity'], {'high': 1, 'low': 1})
 
+    def test_a_later_record_s_findings_take_their_matches_strongest_first(self):
+        """F1 of SEEN-145's fourth review: the order inside a record decides nothing."""
+        high = dict(finding('F1', 'high', 'harness/a.py:1'), failure_scenario='Scenario A')
+        low = dict(finding('F2', 'low', 'harness/a.py:5'), failure_scenario='Scenario B')
+        weak = dict(finding('G1', 'low', 'harness/a.py:9'), failure_scenario='Scenario C')
+        for later in ([weak, dict(high)], [dict(high), weak]):
+            with self.subTest(first=later[0]['id']):
+                records = [triage_record(1, minute=10, would_exclude=['harness/a.py']),
+                           review_advance(2, [high, low], minute=20),
+                           triage_record(3, minute=30, would_exclude=['harness/a.py']),
+                           review_advance(4, later, minute=40)]
+                copy = (4, later.index(next(f for f in later if f['id'] == 'F1')))
+                self.assertEqual(calibration.finding_identities(records)[copy], (2, 0))
+                self.assertEqual(len(calibration.escapes(records)['escapes']), 1)
+
     def test_a_tie_never_joins_findings_the_content_did_not_match(self):
         """The id orders the anchors the content found; it finds none of its own."""
         records = [review_advance(1, [finding('F1', 'high', 'harness/a.py:1')], minute=20),

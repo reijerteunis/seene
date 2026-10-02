@@ -319,6 +319,7 @@ def finding_identities(records):
         sequences[low] |= sequences.pop(high)
 
     for record in records:
+        texts = {}
         for position, finding in enumerate(_review_findings(record)):
             node = (record['sequence'], position)
             parent[node], sequences[node] = node, {record['sequence']}
@@ -328,31 +329,35 @@ def finding_identities(records):
                     if finding.get(field)]
             if not said and finding.get('id'):
                 said = [('id', finding['id'])]
-            # Every finding that said a text stays an anchor for it. A later one
-            # is offered to every anchor it shares a text with and joins each
-            # that is not refused, which keeps the join transitive. The order
-            # decides which of two anchors of one record takes it, since the
-            # other is then refused: the ones sharing more texts first, then
-            # among equals the one at the same file reference, line included,
-            # then the one under the same id, and journal order last. The order
-            # only chooses among anchors the content matched, so the id still
-            # never makes two findings one. Each step is a review of SEEN-145:
-            # one anchor per text left the second of two alike findings of one
-            # record unreachable (first, 3 counted where there were 2); journal
-            # order let a claim-only match take a finding that matched another
-            # on both texts (second), and broke a tie between two claim-only
-            # matches (third), each counting a high finding as low.
-            shared = {}
-            for field, text in said:
-                for anchor in saying.setdefault((path, field, text), []):
-                    shared[anchor] = shared.get(anchor, 0) + 1
-            file, identifier = named[node]
-            for anchor in sorted(shared, key=lambda anchor: (
-                    -shared[anchor], named[anchor][0] != file,
-                    named[anchor][1] != identifier, anchor)):
-                join(anchor, node)
-            for field, text in said:
-                saying[(path, field, text)].append(node)
+            texts[node] = [(path, field, text) for field, text in said]
+        # Every pair of a finding in this record and an earlier finding it shares
+        # a text with, joined strongest first across the whole record, so the
+        # order a reviewer listed findings in decides nothing: the pairs sharing
+        # more texts first, then among equals the one at the same file reference,
+        # line included, then the one under the same id, then the earlier anchor
+        # and the earlier position. Every pair is offered and each join that is
+        # not refused is made, which keeps the join transitive; a refusal is
+        # what lets the order decide which of two anchors of one record takes a
+        # finding. The order only ranks pairs the content found, so the id never
+        # makes two findings one. Each step is a review of SEEN-145: one anchor
+        # per text left the second of two alike findings of one record
+        # unreachable (first); journal order let a claim-only match take a
+        # finding that matched another on both texts (second) and broke a tie
+        # between two claim-only matches (third); and taking one finding at a
+        # time let a weak match listed earlier take the anchor an exact copy
+        # listed later needed (fourth).
+        shared = {}
+        for node, keys in texts.items():
+            for key in keys:
+                for anchor in saying.get(key, ()):
+                    shared[(anchor, node)] = shared.get((anchor, node), 0) + 1
+        for anchor, node in sorted(shared, key=lambda pair: (
+                -shared[pair], named[pair[0]][0] != named[pair[1]][0],
+                named[pair[0]][1] != named[pair[1]][1], pair[0], pair[1])):
+            join(anchor, node)
+        for node, keys in texts.items():
+            for key in keys:
+                saying.setdefault(key, []).append(node)
     return {node: root(node) for node in parent}
 
 
