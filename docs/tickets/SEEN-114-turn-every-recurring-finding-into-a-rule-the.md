@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-090, SEEN-107]
-status: review
+status: done
 priority: P0
 ---
 # SEEN-114: Turn every recurring finding into a rule the pre-commit hook runs in seconds
@@ -24,7 +24,7 @@ priority: P0
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | review |
+| Status | done |
 | Priority | P0 (correctness and speed programme, see docs/harness/workflow.md) |
 
 ## Description
