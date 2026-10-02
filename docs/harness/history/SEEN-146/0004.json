@@ -1,0 +1,31 @@
+{
+  "sequence": 4,
+  "ticket": "SEEN-146",
+  "timestamp": "2026-10-02T16:38:05.532983+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "4d7a1210a3ae",
+  "head": "d0c03e6bf4838a0ded6fb84863f0cd7433ee7948",
+  "prev_hash": "2ec88dced217375c3be3cfc21610c83d6a0cdaf86d8db1b527d2882402518a35",
+  "data": {
+    "source": "codegraph",
+    "mode": "impact",
+    "command": [
+      "codegraph",
+      "impact",
+      "finding_identities"
+    ],
+    "synced": true,
+    "index": {
+      "nodes": 3585,
+      "edges": 11167
+    },
+    "exit_code": 0,
+    "duration_ms": 251,
+    "answer": "\nImpact of changing \"finding_identities\" — 26 affected symbols:\n\nharness/calibration.py\n  function    finding_identities:272\n  function    escapes:131\n  function    ticket_evidence:478\n  function    latest_finding_records:369\n  function    latest_findings:385\n\nharness/tests/test_calibration.py\n  method      test_a_later_record_s_findings_take_their_matches_strongest_first:837\n  method      test_a_blocking_finding_in_an_excluded_file_is_an_escape:151\n  method      test_a_finding_in_a_file_the_triage_kept_is_not_an_escape:159\n  method      test_a_medium_finding_in_an_excluded_file_is_not_an_escape:166\n  method      test_a_high_finding_naming_no_file_is_unattributable:172\n  method      test_a_criterion_the_triage_evidenced_and_the_review_found_unmet_is_an_escape:178\n  method      test_a_criterion_the_triage_found_unevidenced_is_not_an_escape:184\n  method      test_a_criterion_the_triage_never_answered_is_unattributable:191\n  method      test_a_return_naming_no_criterion_is_unattributable:196\n  method      test_a_finding_in_a_dot_directory_the_triage_excluded_is_an_escape:205\n  method      test_a_finding_and_an_exclusion_written_with_a_leading_dot_slash_still_meet:214\n  method      test_a_finding_at_an_absolute_path_is_unattributable:219\n  method      test_the_calibration_reads_it_as_neither_an_escape_nor_unattributable:660\n  method      test_a_finding_that_returned_a_ticket_is_read_from_the_return:694\n  method      test_a_finding_carried_forward_into_the_passing_record_is_one_finding:702\n  method      test_every_journal_pinned_at_clarify_reports_its_pinned_figures:760\n  method      test_a_repeated_finding_is_charged_to_the_round_that_first_raised_it:1265\n  method      test_a_declared_empty_return_is_neither_an_escape_nor_unattributable:1320\n  method      placed:1342\n  method      test_a_triage_that_recorded_no_files_places_an_unknown_path_nowhere:1477\n\nharness/kpi.py\n  function    findings:455\n\n",
+    "answer_truncated": false
+  }
+}

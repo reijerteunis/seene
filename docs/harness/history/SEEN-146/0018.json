@@ -1,0 +1,43 @@
+{
+  "sequence": 18,
+  "ticket": "SEEN-146",
+  "timestamp": "2026-10-02T17:28:51.978006+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "f31344eff933",
+  "head": "3870ff57bc08744b748bdcec196b406ca6ac15a2",
+  "prev_hash": "3de6e4877e9ba4a0571e04348ae34ecacc2c3f19f0a4621793e027c64bfd97cc",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 2,
+    "reason": "Review round 1 passed with two low findings that Ruud chose to fix before delivery: F1, a docstring paragraph of finding_identities still states SEEN-145's line-then-id tie order as if it decided a join; F2, the property test never draws two findings sharing an id, so the same-id field is not tested for order independence",
+    "findings": [
+      {
+        "id": "F1",
+        "severity": "low",
+        "file": "harness/calibration.py:300",
+        "claim": "One paragraph of the finding_identities docstring was left as SEEN-145 wrote it. It says the finding at the same line, and then the one under the same id, takes a later finding that matches two equally well. Since this change, the number of joins and the number of shared texts are both weighed before line or id.",
+        "failure_scenario": "Take a later finding that matches identity A at the same line and identity B at another line, sharing one text with each. If giving it to B lets another finding of the same record join A, the search gives it to B. The paragraph at lines 300 to 303 says A takes it, so a reader of that paragraph alone expects the wrong join, although the paragraph at lines 305 to 325 states the true order.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": ""
+      },
+      {
+        "id": "F2",
+        "severity": "low",
+        "file": "harness/tests/test_calibration.py:938",
+        "claim": "The property test names findings F<index> in record 1 and G<index> in record 2. No drawn pair ever shares an id, so the same-id part of the strength and of the tie-break is never exercised for order independence.",
+        "failure_scenario": "Suppose a later change made the same-id field depend on position. For example, a tie between two same-id candidates broken by list index. Records drawn with shared ids would then count differently by order, but this test draws none and would stay green.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": ""
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "sequence": 15,
+  "ticket": "SEEN-146",
+  "timestamp": "2026-10-02T17:24:14.569358+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "f31344eff933",
+  "head": "df9d20a6d627dd199500d296e9e0a816d220b771",
+  "prev_hash": "699a6ba221651c28e0227ecde1a36f3ee0f1540545c4efa82e0b0f9abd926e3e",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": 1,
+          "behaviour": "A later record's findings are joined to the earlier identities by one exact choice per connected component of its matches: the most joins, then the largest summed strength under SEEN-145's ranking, then the first by what the pairs say, never position. The transitive merge is chosen by the same search, a component over SEARCH_CAP takes a greedy join ranked by strength and content, and the crossing-tie residue is gone from both docstrings.",
+          "failure_reason": "AssertionError: 3 != 2 for the crossing case listed as first=['F1', 'F2'], second=['G1', 'G2']; AssertionError: Lists differ: [(20, [3, 4]), (30, [4, 5]), (66, [3, 4]), ...] != [] for the seeded property test; and AssertionError: False is not true : the docstring does not say 'the number of joins'",
+          "red": 10,
+          "green": 11
+        }
+      ],
+      "regression": 13,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "f31344eff933",
+      "output_tokens": 11568,
+      "tool_calls": 19,
+      "unavailable": null
+    }
+  }
+}

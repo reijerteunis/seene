@@ -6,8 +6,11 @@ written rather than that a number came out favourable.
 """
 
 import ast
+import inspect
+import itertools
 import json
 import pathlib
+import random
 import re
 import tempfile
 import unittest
@@ -867,12 +870,42 @@ class FindingIdentityTest(unittest.TestCase):
         self.assertEqual(kpi.findings(records)['by_severity'], {'high': 1, 'low': 1})
 
     def test_kpi_findings_says_what_the_count_rests_on_and_what_it_leaves(self):
-        """Criterion 4, and F1 of SEEN-145's fifth review: the residues are named."""
+        """Criterion 4, and F1 of SEEN-145's fifth review: the residue that is left is named.
+
+        SEEN-146 removed the crossing tie, so its sentence goes and R-04's stays.
+        """
         said = ' '.join(kpi.findings.__doc__.split())
         for words in ('the same file, and the same claim or the same failure scenario',
-                      "SEEN-006's R-04", 'crossing tie', 'SEEN-146'):
+                      "SEEN-006's R-04"):
             with self.subTest(words=words):
                 self.assertIn(words, said)
+        self.assertFalse('crossing tie' in said, "kpi.findings still names the crossing tie")
+
+    def test_finding_identities_says_what_a_record_s_joins_maximise_and_in_what_order(self):
+        """SEEN-146, criterion 4: the order of what is maximised, the merge and the cap."""
+        said = ' '.join(calibration.finding_identities.__doc__.split())
+        for words in ('the number of joins', 'summed strength', 'never position',
+                      'transitive merge', 'SEARCH_CAP'):
+            with self.subTest(words=words):
+                self.assertTrue(words in said, f'the docstring does not say {words!r}')
+        source = ' '.join(inspect.getsource(calibration.finding_identities).split())
+        self.assertFalse('Position is the last resort' in source,
+                         "the per-record comment still carries SEEN-145's crossing-tie residue")
+
+    def test_finding_identities_says_the_line_and_the_id_only_weigh_a_join(self):
+        """F1 of SEEN-146's first review: the id paragraph still told SEEN-145's greedy tie order.
+
+        Line and id are the last two fields of a join's strength, weighed after
+        the number of joins and the texts shared; neither decides who takes a
+        finding, and the id still makes no two findings one.
+        """
+        said = ' '.join(calibration.finding_identities.__doc__.split())
+        self.assertFalse('takes it' in said,
+                         "the docstring still says the line-and-id tie decides who takes it")
+        for words in ('The id never makes two findings one',
+                      'after the number of joins and the texts shared'):
+            with self.subTest(words=words):
+                self.assertTrue(words in said, f'the docstring does not say {words!r}')
 
     def test_a_tie_never_joins_findings_the_content_did_not_match(self):
         """The id orders the anchors the content found; it finds none of its own."""
@@ -881,6 +914,117 @@ class FindingIdentityTest(unittest.TestCase):
                                            claim='Other', failure_scenario='Other')],
                                   minute=40)]
         self.assertEqual(len(calibration.latest_findings(records)), 2)
+
+    # SEEN-146: a later record's findings are placed as a whole, so the order a
+    # reviewer listed either record in moves no count.
+
+    @staticmethod
+    def saying(identifier, claim, scenario, line=1):
+        """A finding by what it says and where, which is all its identity reads."""
+        return dict(finding(identifier, 'low', f'harness/a.py:{line}'),
+                    claim=claim, failure_scenario=scenario)
+
+    @staticmethod
+    def counted(first, second, *later):
+        records = [review_advance(1, list(first), minute=20),
+                   review_advance(2, list(second), minute=40)]
+        records += [review_advance(3 + offset, list(findings), minute=50 + offset)
+                    for offset, findings in enumerate(later)]
+        return sum(kpi.findings(records)['by_severity'].values())
+
+    def test_the_crossing_case_counts_two_in_every_listing_order(self):
+        """Criterion 1: G1 matches F1 on its claim and F2 on its scenario, G2 F1 on its scenario.
+
+        Greedily, G1 listed first takes F1 on a tie and strands G2, which
+        matches nothing else: three. Placed as a whole, G1 takes F2 and G2 F1.
+        """
+        first = [self.saying('F1', 'c1', 's1'), self.saying('F2', 'c2', 's2')]
+        second = [self.saying('G1', 'c1', 's2'), self.saying('G2', 'c3', 's1')]
+        for one in itertools.permutations(first):
+            for other in itertools.permutations(second):
+                with self.subTest(first=[f['id'] for f in one], second=[f['id'] for f in other]):
+                    self.assertEqual(self.counted(one, other), 2)
+
+    def test_no_pair_of_records_counts_differently_for_the_order_it_is_listed_in(self):
+        """Criterion 2: seeded draws over a small alphabet, every permutation of both.
+
+        The seed is fixed, so the draws are the same in every run (SEEN-136).
+        Against SEEN-145's greedy join, 25 of these 400 pairs moved.
+        """
+        draws = random.Random(146)
+
+        def draw(prefix):
+            return [self.saying(f'{prefix}{index}', draws.choice('abc'), draws.choice('xyz'),
+                                draws.choice((1, 2)))
+                    for index in range(draws.randint(1, 4))]
+
+        moved = []
+        for pair in range(400):
+            first, second = draw('F'), draw('G')
+            counts = {self.counted(one, other)
+                      for one in itertools.permutations(first)
+                      for other in itertools.permutations(second)}
+            if len(counts) > 1:
+                moved.append((pair, sorted(counts)))
+        self.assertEqual(moved, [], f'{len(moved)} of 400 pairs count differently by order')
+
+    def test_no_pair_sharing_ids_across_records_counts_differently_for_its_order(self):
+        """F2 of SEEN-146's first review: the same-id field, which F and G prefixes never reach.
+
+        Ids are drawn from one small alphabet for both records, distinct within
+        a record, so the same id across them is common and the last field of a
+        join's strength is weighed. The seed is fixed (SEEN-136), and the count
+        of pairs that share an id is held too, so the draw cannot quietly stop
+        exercising it.
+        """
+        draws = random.Random(1462)
+
+        def draw():
+            ids = draws.sample('PQRS', draws.randint(1, 4))
+            return [self.saying(identifier, draws.choice('abc'), draws.choice('xyz'),
+                                draws.choice((1, 2)))
+                    for identifier in ids]
+
+        moved, shared = [], 0
+        for pair in range(400):
+            first, second = draw(), draw()
+            shared += bool({f['id'] for f in first} & {f['id'] for f in second})
+            counts = {self.counted(one, other)
+                      for one in itertools.permutations(first)
+                      for other in itertools.permutations(second)}
+            if len(counts) > 1:
+                moved.append((pair, sorted(counts)))
+        self.assertGreaterEqual(shared, 300, f'only {shared} of 400 pairs share an id')
+        self.assertEqual(moved, [], f'{len(moved)} of 400 pairs count differently by order')
+
+    def test_a_later_finding_matching_two_earlier_identities_merges_them(self):
+        """The transitive merge, chosen by the same search: F and H through G is one."""
+        self.assertEqual(self.counted([self.saying('F', 'c1', 's1')],
+                                      [self.saying('H', 'c2', 's2')],
+                                      [self.saying('G', 'c1', 's2')]), 1)
+
+    def test_a_component_over_the_cap_answers_the_same_in_every_order(self):
+        """Nine against nine all saying one thing: a search space of 10**9, never searched.
+
+        The greedy join over the cap ranks by strength and then by content, so
+        it reads no position either; the run finishing at all is the cap.
+        """
+        first = [self.saying(f'F{index}', 'c', 's') for index in range(9)]
+        second = [self.saying(f'G{index}', 'c', 's') for index in range(9)]
+        shuffles = random.Random(146)
+        for attempt in range(4):
+            one, other = list(first), list(second)
+            shuffles.shuffle(one)
+            shuffles.shuffle(other)
+            with self.subTest(attempt=attempt):
+                self.assertEqual(self.counted(one, other), 9)
+
+    def test_seen_145_s_own_journal_reports_what_it_reported_when_it_delivered(self):
+        """Criterion 3: the journal PINNED does not list, at the figures measured at clarify."""
+        records = journal_module.read(PROJECT / 'docs' / 'harness' / 'history' / 'SEEN-145')
+        found = calibration.escapes(records)
+        self.assertEqual((sum(kpi.findings(records)['by_severity'].values()),
+                          len(found['escapes']), len(found['unattributable'])), (16, 0, 0))
 
 
 class OneReaderOfTheQuestionTest(unittest.TestCase):

@@ -1,0 +1,38 @@
+{
+  "sequence": 23,
+  "ticket": "SEEN-146",
+  "timestamp": "2026-10-02T17:37:21.165465+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "f31344eff933",
+  "head": "54e2fc0d328f09ae4ecedc693cae7fdd676ed00f",
+  "prev_hash": "2b0928e6bc8b0045004ee5f64854a186c09b52dec55cb5acd0b0231514af6422",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": null,
+          "behaviour": "Review round 1's two low findings fixed: the finding_identities docstring says the line and the id are the last two fields of a join's strength, weighed after the number of joins and the texts shared (F1), and a second seeded property test draws ids from one alphabet shared by both records, requires at least 300 of its 400 pairs to share an id, and asserts no pair counts differently by order (F2).",
+          "failure_reason": "AssertionError: True is not false : the docstring still says the line-and-id tie decides who takes it",
+          "red": 19,
+          "green": 20
+        }
+      ],
+      "regression": 21,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "f31344eff933",
+      "output_tokens": 40020,
+      "tool_calls": 50,
+      "unavailable": null
+    }
+  }
+}

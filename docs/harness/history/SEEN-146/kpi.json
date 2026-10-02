@@ -1,0 +1,77 @@
+{
+  "ticket": "SEEN-146",
+  "delivered_at": "2026-10-02T17:51:08.490733+00:00",
+  "points": null,
+  "cycle_time_seconds": 4590,
+  "stage_seconds": {
+    "clarify": 237,
+    "solution": 163,
+    "tdd": 3084,
+    "review": 750,
+    "deliver": 354
+  },
+  "attempts": 2,
+  "rework": 1,
+  "red_before_green": true,
+  "coverage": {
+    "package": "@seen/core",
+    "lines": 100.0,
+    "delta": 0.0
+  },
+  "findings": {
+    "by_severity": {
+      "low": 2
+    },
+    "fixed": 2,
+    "waived": 0
+  },
+  "first_pass_ci": true,
+  "tokens": null,
+  "cost": null,
+  "escaped_defects": [],
+  "slices": {
+    "planned": 1,
+    "proven": 2
+  },
+  "sessions": 2,
+  "subagents": {
+    "briefs": 0,
+    "agents": [],
+    "review": "subagent",
+    "both": false
+  },
+  "review_triage": {
+    "record": 24,
+    "depth": "spot",
+    "model_depth": "spot",
+    "shadow": true,
+    "asked": true,
+    "rules": [],
+    "files": 4,
+    "focus": 4,
+    "excluded": 3,
+    "excluded_share": 0.559,
+    "reviewer_output_tokens": null,
+    "reviewer_tokens": null
+  },
+  "execution": [
+    {
+      "position": 1,
+      "name": "Exact per-record assignment of findings, order-independent, docstrings without the residue",
+      "points": 2,
+      "model": "opus",
+      "effort": "high",
+      "source": "jev",
+      "rule": null,
+      "ran_on": null,
+      "ran_on_tier": null,
+      "output_tokens": 1264,
+      "cost_cents": null,
+      "routed_cost_cents": 9,
+      "cost_basis": "output tokens only, at the price of the model the slice ran on: a handoff record carries the session's output tokens and tool calls and nothing about input. routed_cost_cents prices the same tokens at the model the route chose, which in shadow is a counterfactual and not a cost"
+    }
+  ],
+  "output_tokens_per_slice": null,
+  "harness_version": "2",
+  "note": null
+}
