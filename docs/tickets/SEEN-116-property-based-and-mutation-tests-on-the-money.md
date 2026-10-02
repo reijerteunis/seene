@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-089]
-status: doing
+status: review
 priority: P0
 ---
 # SEEN-116: Property-based and mutation tests on the money core, as a gate
@@ -24,7 +24,7 @@ priority: P0
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | doing |
+| Status | review |
 | Priority | P0 (correctness and speed programme, see docs/harness/workflow.md) |
 
 ## Description
@@ -33,11 +33,11 @@ A test that passes proves the code does what the test says; it does not prove th
 
 ## Acceptance criteria
 
-- [ ] fast-check is a dev dependency of packages/core, and the convention for naming the invariant a property states is written in docs/harness/workflow.md
-- [ ] StrykerJS runs on packages/core with the vitest runner and the TypeScript checker, and the mutation score is reported in kpi.json and the sprint report
-- [ ] thresholds.toml carries the mutation score floor, the tdd gate refuses to advance packages/core changes below it, and a killed mutant is accepted as RED evidence
-- [ ] CI runs incremental mutation on the changed files of a pull request in under ten minutes
-- [ ] A seeded bug in a fixture detector (wrong tolerance sign) is caught by a property and by a mutant, proven with a fixture that is not product code
+- [x] fast-check is a dev dependency of packages/core, and the convention for naming the invariant a property states is written in docs/harness/workflow.md
+- [x] StrykerJS runs on packages/core with the vitest runner and the TypeScript checker, and the mutation score is reported in kpi.json and the sprint report
+- [x] thresholds.toml carries the mutation score floor, the tdd gate refuses to advance packages/core changes below it, and a killed mutant is accepted as RED evidence
+- [x] CI runs incremental mutation on the changed files of a pull request in under ten minutes
+- [x] A seeded bug in a fixture detector (wrong tolerance sign) is caught by a property and by a mutant, proven with a fixture that is not product code
 
 ## Depends on
 
@@ -58,3 +58,54 @@ A test that passes proves the code does what the test says; it does not prove th
 - Architecture: [docs/architecture.md](../architecture.md)
 - Development plan and gates: [docs/development-plan.md](../development-plan.md)
 - Epic goal: Give every ticket one fast, evidence-recording procedure across Claude Code and Codex, with graphify for context, Jev for typed gate decisions, CI as the definition of done, security controls built into the stages, and a KPI record per ticket.
+
+## Outcome
+
+packages/core now has the machinery for property-based and mutation tests, and
+the tdd gate holds product code to a mutation floor. The properties themselves
+belong to the tickets that write each money function, as the description says.
+
+- fast-check 4 and `@fast-check/vitest` are dev dependencies of packages/core.
+  docs/harness/workflow.md states the convention: a property is written with
+  `test.prop`, so a failure prints its counterexample and replay seed, and its
+  title is `invariant: ` followed by the invariant as one sentence.
+- StrykerJS 10 runs on packages/core through `stryker.config.mjs`, with the
+  vitest runner and the TypeScript checker, over `src/` only and against the
+  database-free `unit` vitest project (clarify decision, record 6). A
+  `--phase mutation` check reads Stryker's JSON report. kpi.json carries the
+  score, or the reason there is none, and the sprint report has a Mutation
+  column.
+- thresholds.toml carries `[mutation] floor = 70`, registered in
+  `thresholds.EXPECTED`. The tdd gate refuses an attempt whose slices name a
+  file under packages/core/src unless a mutation measurement over those files
+  is at or above the floor. A measurement with no mutants in them is recorded
+  as not applicable, with its count. A RED whose Stryker report names a Killed
+  mutant in a slice file counts as a demonstrated failure. Slice 2, RED 28,
+  GREEN 29.
+- CI's `mutation` job runs on pull requests only. It diffs packages/core/src
+  against the PR base, widens to all of src when a Stryker or vitest config
+  changes, skips when nothing in src changed, and runs Stryker with
+  `--incremental --mutate`. Slice 3, RED 32, GREEN 34. Check 48 measured it on
+  pull request 44:
+  - Run 37068194534 on 7682adc, cold: 32 seconds for the job.
+  - Run 37070105397 on ca030d9, warm from the incremental cache: 29 seconds.
+
+  Both are far under ten minutes. src holds one mutable file today, so this
+  shows the step is fast on today's src, not on a much larger one.
+- A fixture detector under `packages/core/fixtures/tolerance/`, outside src,
+  the exports and the coverage figure, carries the seeded wrong-sign tolerance
+  bug in `seeded.ts`. The `invariant:` property finds it there and none in
+  `detector.ts`. The fixture Stryker run kills all 5 mutants of `detector.ts`,
+  among them the comparison-flipping and sign-flipping ones. Slice 1, RED 40,
+  GREEN 41.
+
+This ticket's own figure: its slices name nothing under packages/core/src, so
+the floor does not apply to it. It recorded no mutation check, so its kpi.json
+mutation is null and the sprint report shows a dash.
+
+The work took four attempts:
+- Two returns from tdd to solution: the slice 1 regression at record 13, and
+  the slice 2 regression at record 24.
+- One return from the review triage at record 47, for criterion 4. The CI
+  measurement only existed after the pull request ran. It is recorded in
+  attempt 4 as check 48, cited in slice 3's entry.

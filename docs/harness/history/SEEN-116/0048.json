@@ -1,0 +1,31 @@
+{
+  "sequence": 48,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-02T22:13:38.313526+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 4,
+  "actor": "claude:implementer",
+  "session": "b3e20e40e937",
+  "head": "ca030d9df2da90499fdfbff29171259d2037a3e7",
+  "prev_hash": "d94e86d7e80bc655e9d7861499bac2d57168d3082413cf31eb8d6546fec03550",
+  "data": {
+    "command": [
+      "sh",
+      "-c",
+      "set -e\n# The CI mutation job on every pull_request run of this branch: head, conclusion, duration.\n# Exits non-zero if any finished job took 600 seconds or more, or none succeeded.\ngh api 'repos/reijerteunis/seene/actions/runs?branch=claude/SEEN-116-property-and-mutation-gate&event=pull_request' --jq '.workflow_runs[].id' \\\n| while read id; do\n  gh api \"repos/reijerteunis/seene/actions/runs/$id/jobs\" --jq '.jobs[]|select(.name|startswith(\"Incremental mutation\"))|[.run_id,.head_sha[0:7],.conclusion,.started_at,.completed_at]|@tsv'\ndone | python3 -c '\nimport sys, datetime as d\np = lambda s: d.datetime.fromisoformat(s.replace(\"Z\", \"+00:00\"))\nrows = [l.split(\"\\t\") for l in sys.stdin.read().split(\"\\n\") if l]\nok = 0\nfor run, sha, concl, start, end in rows:\n    secs = (p(end) - p(start)).total_seconds()\n    print(f\"run {run} head {sha} {concl} {secs:.0f}s\")\n    assert secs < 600, f\"run {run} took {secs:.0f}s, over ten minutes\"\n    ok += concl == \"success\"\nassert ok, \"no successful mutation job on a pull_request run\"\nprint(f\"{ok} successful pull_request mutation job(s), every one under 600s\")\n'"
+    ],
+    "phase": "regression",
+    "exit_code": 0,
+    "model": "claude-opus-5-5",
+    "model_declared": null,
+    "agent_declared": null,
+    "duration_ms": 1508,
+    "output": "run 37070105397 head ca030d9 success 29s\nrun 37068194534 head 7682adc success 32s\n2 successful pull_request mutation job(s), every one under 600s\n",
+    "output_sha256": "a3cb99f0b2aa34cf7f64ac35a7755f831e2990c6b62c6e36adc7fb870c70920e",
+    "output_truncated": false,
+    "before": "9d1cfac6eb30631b55755372164c7625d71a457e0781b26af37291b84159bc00",
+    "after": "9d1cfac6eb30631b55755372164c7625d71a457e0781b26af37291b84159bc00"
+  }
+}
