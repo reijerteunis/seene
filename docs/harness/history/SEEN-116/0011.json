@@ -1,0 +1,31 @@
+{
+  "sequence": 11,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-02T20:00:44.957639+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "84d3ecfa6fc1",
+  "head": "b08209083daeaaf3e9b644515d1e98576164764f",
+  "prev_hash": "fadd53d9065aab53fa4d7927d60202087299437833ba185e843d6b7ee3d0a23e",
+  "data": {
+    "command": [
+      "sh",
+      "-c",
+      "rm -f packages/core/reports/mutation/fixture.json \\\n&& pnpm --filter @seen/core test:fixtures \\\n&& pnpm --filter @seen/core mutation:fixture \\\n&& python3 -c '\nimport json, sys\nreport = json.load(open(\"packages/core/reports/mutation/fixture.json\"))\nmutants = report[\"files\"][\"fixtures/tolerance/detector.ts\"][\"mutants\"]\nfor m in mutants:\n    print(m[\"status\"], m[\"mutatorName\"], repr(m.get(\"replacement\")))\nkilled = {(m[\"mutatorName\"], m.get(\"replacement\")) for m in mutants if m[\"status\"] == \"Killed\"}\nrequired = {\n    (\"EqualityOperator\", \"chargedCents <= expectedCents + toleranceCents\"),\n    (\"ArithmeticOperator\", \"expectedCents - toleranceCents\"),\n}\nsurvived = [m[\"id\"] for m in mutants if m[\"status\"] in (\"Survived\", \"NoCoverage\")]\nmissing = sorted(required - killed)\nprint(\"comparison-flipping and sign-flipping mutants killed:\", not missing, \"| survived:\", survived)\nsys.exit(1 if missing or survived else 0)\n'"
+    ],
+    "phase": "green",
+    "exit_code": 0,
+    "model": "claude-opus-5-5",
+    "model_declared": "opus",
+    "agent_declared": "seen-implementer",
+    "duration_ms": 5295,
+    "output": "\n> @seen/core@0.0.0 test:fixtures /Users/ruudvanengelenhoven/Development/seene/packages/core\n> vitest run --project fixtures\n\n\n RUN  v3.2.7 /Users/ruudvanengelenhoven/Development/seene/packages/core\n\n ✓ |fixtures| fixtures/tolerance/detector.test.ts (2 tests) 3ms\n\n Test Files  1 passed (1)\n      Tests  2 passed (2)\n   Start at  22:00:39\n   Duration  155ms (transform 17ms, setup 0ms, collect 49ms, tests 3ms, environment 0ms, prepare 31ms)\n\n\n> @seen/core@0.0.0 mutation:fixture /Users/ruudvanengelenhoven/Development/seene/packages/core\n> stryker run stryker.fixture.config.mjs\n\n\u001b[32m22:00:40 (74175) INFO ProjectReader\u001b[39m Found 1 of 25 file(s) to be mutated.\n\u001b[32m22:00:40 (74175) INFO Instrumenter\u001b[39m Instrumented 1 source file(s) with 6 mutant(s)\n\u001b[32m22:00:40 (74175) INFO ConcurrencyTokenProvider\u001b[39m Creating 8 checker process(es) and 7 test runner process(es).\n\u001b[32m22:00:43 (74175) INFO BroadcastReporter\u001b[39m Detected that current console does not support the \"progress\" reporter, downgrading to \"progress-append-only\" reporter\n\u001b[32m22:00:43 (74175) INFO DryRunExecutor\u001b[39m Starting initial test run (vitest test runner with \"perTest\" coverage analysis). This may take a while.\n\u001b[32m22:00:43 (74175) INFO DryRunExecutor\u001b[39m Initial test run succeeded. Ran 2 tests in 0 seconds (net 2.9126240000000507 ms, overhead 198.08737599999995 ms).\n\nAll tests/detector.test.ts\n  ✓ invariant: the overcharge detector never raises inside the tolerance and always raises outside it (with seed=116) (killed 5)\n  ✘ the same invariant finds a counterexample in the detector with the tolerance sign flipped (covered 0)\n\nRan 0.83 tests per mutant on average.\n-------------|------------------|----------|-----------|------------|----------|----------|\n             | % Mutation score |          |           |            |          |          |\nFile         |  total | covered | # killed | # timeout | # survived | # no cov | # errors |\n-------------|--------|---------|----------|-----------|------------|----------|----------|\nAll files    | 100.00 |  100.00 |        5 |         0 |          0 |        0 |        1 |\n detector.ts | 100.00 |  100.00 |        5 |         0 |          0 |        0 |        1 |\n-------------|--------|---------|----------|-----------|------------|----------|----------|\n\u001b[32m22:00:44 (74175) INFO JsonReporter\u001b[39m Your report can be found at: file:///Users/ruudvanengelenhoven/Development/seene/packages/core/reports/mutation/fixture.json\n\u001b[32m22:00:44 (74175) INFO MutationTestExecutor\u001b[39m Done in 3 seconds.\nCompileError BlockStatement '{}'\nKilled ArithmeticOperator 'expectedCents - toleranceCents'\nKilled ConditionalExpression 'true'\nKilled ConditionalExpression 'false'\nKilled EqualityOperator 'chargedCents <= expectedCents + toleranceCents'\nKilled EqualityOperator 'chargedCents >= expectedCents + toleranceCents'\ncomparison-flipping and sign-flipping mutants killed: True | survived: []\n",
+    "output_sha256": "7e5740fbedf812087b8e4c22c07d40a21ff814c51ec4babce97ffac39d010e5c",
+    "output_truncated": false,
+    "before": "72f579c31f524a1f9f0e060a410576a31161d4172d2df8d47c37fbb5ab61ff81",
+    "after": "72f579c31f524a1f9f0e060a410576a31161d4172d2df8d47c37fbb5ab61ff81"
+  }
+}

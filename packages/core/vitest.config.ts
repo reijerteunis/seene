@@ -22,5 +22,21 @@ export default defineConfig({
       include: ['src/**/*.ts'],
       exclude: ['src/**/*.test.ts'],
     },
+    // Two projects, so the fixture SEEN-116 proves its machinery on never runs
+    // with the product tests. `core` is the package: the pure functions under
+    // src/ and the database tests under db/, which every package script selects
+    // by name. `fixtures` is the seeded-bug detector under fixtures/, run only by
+    // `test:fixtures` and by stryker.fixture.config.mjs. Both inherit everything
+    // above, the one-file-at-a-time rule included.
+    projects: [
+      {
+        extends: true,
+        test: { name: 'core', include: ['src/**/*.test.ts', 'db/**/*.test.ts'] },
+      },
+      {
+        extends: true,
+        test: { name: 'fixtures', include: ['fixtures/**/*.test.ts'] },
+      },
+    ],
   },
 });

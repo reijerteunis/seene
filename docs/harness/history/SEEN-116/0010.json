@@ -1,0 +1,32 @@
+{
+  "sequence": 10,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-02T19:57:34.006044+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "84d3ecfa6fc1",
+  "head": "b08209083daeaaf3e9b644515d1e98576164764f",
+  "prev_hash": "a840733a6aa0dd655b37d342034b711a33a7e005c2f736776f3673d379b3510c",
+  "data": {
+    "command": [
+      "pnpm",
+      "--filter",
+      "@seen/core",
+      "test:fixtures"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "model": "claude-opus-5-5",
+    "model_declared": "opus",
+    "agent_declared": "seen-implementer",
+    "duration_ms": 552,
+    "output": "\n> @seen/core@0.0.0 test:fixtures /Users/ruudvanengelenhoven/Development/seene/packages/core\n> vitest run --project fixtures\n\n\n RUN  v3.2.7 /Users/ruudvanengelenhoven/Development/seene/packages/core\n\n\n⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯\n\n FAIL  |fixtures| fixtures/tolerance/detector.test.ts [ fixtures/tolerance/detector.test.ts ]\nError: Cannot find package '@fast-check/vitest' imported from '/Users/ruudvanengelenhoven/Development/seene/packages/core/fixtures/tolerance/detector.test.ts'\n ❯ fixtures/tolerance/detector.test.ts:22:1\n     20|  * stryker.fixture.config.mjs, never in `test` or `test:unit`.\n     21|  */\n     22| import { fc, test } from '@fast-check/vitest';\n       | ^\n     23| import { expect } from 'vitest';\n     24| \n\nCaused by: Error: Failed to load url @fast-check/vitest (resolved id: @fast-check/vitest) in /Users/ruudvanengelenhoven/Development/seene/packages/core/fixtures/tolerance/detector.test.ts. Does the file exist?\n ❯ loadAndTransform ../../node_modules/.pnpm/vite@7.3.6_@types+node@24.13.6/node_modules/vite/dist/node/chunks/config.js:22739:33\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯\n\n\n Test Files  1 failed (1)\n      Tests  no tests\n   Start at  21:57:33\n   Duration  117ms (transform 13ms, setup 0ms, collect 0ms, tests 0ms, environment 0ms, prepare 28ms)\n\n/Users/ruudvanengelenhoven/Development/seene/packages/core:\n ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @seen/core@0.0.0 test:fixtures: `vitest run --project fixtures`\nExit status 1\n",
+    "output_sha256": "83eac897b8b757cc6cd4e2a9501bca1a9a08c2a162ec4ff5597f1bf25250bf50",
+    "output_truncated": false,
+    "before": "85da6dbc459732ba89839f4f97f7d2d3f925e46086c4e0302a7a96a46303022f",
+    "after": "85da6dbc459732ba89839f4f97f7d2d3f925e46086c4e0302a7a96a46303022f"
+  }
+}

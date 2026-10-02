@@ -16,18 +16,30 @@
     "before it runs the tests and a developer gets from `pnpm dev:up` and `pnpm db:reset`.",
     "test:unit is the database-free path, for a machine with no stack running; test:db is the",
     "db half on its own. Neither is a substitute for test: a tenancy guard that only runs when",
-    "somebody types the filter command by hand guards nothing."
+    "somebody types the filter command by hand guards nothing.",
+    "All three run the `core` vitest project. test:fixtures runs the `fixtures` project, the",
+    "seeded-bug detector SEEN-116 proves the property and mutation machinery on; it is not",
+    "product code, so it is never part of test, test:unit or the coverage figure."
   ],
   "scripts": {
-    "test": "vitest run",
-    "test:unit": "vitest run --dir src",
-    "test:db": "vitest run --dir db",
+    "test": "vitest run --project core",
+    "test:unit": "vitest run --project core --dir src",
+    "test:db": "vitest run --project core --dir db",
+    "test:fixtures": "vitest run --project fixtures",
+    "mutation": "stryker run stryker.config.mjs",
+    "mutation:fixture": "stryker run stryker.fixture.config.mjs",
     "lint": "biome check src db",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p fixtures/tolerance/tsconfig.json"
   },
   "devDependencies": {
+    "@fast-check/vitest": "^0.3.0",
+    "@stryker-mutator/core": "^10.0.0",
+    "@stryker-mutator/typescript-checker": "^10.0.0",
+    "@stryker-mutator/vitest-runner": "^10.0.0",
     "@types/pg": "^8.11.0",
     "@vitest/coverage-v8": "^3.2.7",
-    "pg": "^8.13.0"
+    "fast-check": "^4.10.2",
+    "pg": "^8.13.0",
+    "typescript": "^5.9.3"
   }
 }
