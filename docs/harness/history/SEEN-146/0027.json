@@ -1,0 +1,65 @@
+{
+  "sequence": 27,
+  "ticket": "SEEN-146",
+  "timestamp": "2026-10-02T17:51:08.490733+00:00",
+  "harness_version": "2",
+  "kind": "receipt",
+  "stage": "deliver",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "f31344eff933",
+  "head": "fbb3fdb194f6ddb3e1b7d70e6fc8bb781d97e206",
+  "prev_hash": "9d48e9d9d16dac5ab883268dcfb85224f2825322c5067665ff0508ac6f73d1ec",
+  "data": {
+    "from_stage": "deliver",
+    "to_stage": "delivered",
+    "commit": "fbb3fdb194f6ddb3e1b7d70e6fc8bb781d97e206",
+    "branch": "claude/SEEN-146-match-findings-as-a-whole",
+    "remote": "origin",
+    "tree": "3fe6039c936797b661a9ed51028d48b5113ab94a0d0e0f45d9fd0ddfd86c3024",
+    "pull_request": "https://github.com/reijerteunis/seene/pull/42",
+    "limits": [
+      "Order independence is exact only up to SEARCH_CAP (2**16 choices per component of a record's matches). Above it the greedy fallback still reads no position, so the count does not move with order, but it is not guaranteed to place every finding the exact search would. No committed journal comes near the cap; the largest component measured at solution has 2 choices.",
+      "A finding reworded in every field between rounds is still counted twice, SEEN-006's R-04 the known case. Joining on a similarity of wording would make the figure rest on a threshold a session could tune, so that residue stays named in kpi.findings.",
+      "The property tests draw records of one to four findings over small alphabets from fixed seeds. They establish order independence for those shapes and are not a proof for records of every size.",
+      "Coverage is measured on @seen/core's vitest suite, not on harness/, so the unchanged 100 percent says nothing about this change. What covers it is the harness suite, 1589 tests at record 21."
+    ],
+    "evidence": {
+      "remote": "origin",
+      "pull_request": "https://github.com/reijerteunis/seene/pull/42",
+      "limits": [
+        "Order independence is exact only up to SEARCH_CAP (2**16 choices per component of a record's matches). Above it the greedy fallback still reads no position, so the count does not move with order, but it is not guaranteed to place every finding the exact search would. No committed journal comes near the cap; the largest component measured at solution has 2 choices.",
+        "A finding reworded in every field between rounds is still counted twice, SEEN-006's R-04 the known case. Joining on a similarity of wording would make the figure rest on a threshold a session could tune, so that residue stays named in kpi.findings.",
+        "The property tests draw records of one to four findings over small alphabets from fixed seeds. They establish order independence for those shapes and are not a proof for records of every size.",
+        "Coverage is measured on @seen/core's vitest suite, not on harness/, so the unchanged 100 percent says nothing about this change. What covers it is the harness suite, 1589 tests at record 21."
+      ]
+    },
+    "checks": [
+      {
+        "name": "Harness tests (Python 3.12)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Knowledge graph",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Monorepo (Node 24)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Secrets and supply chain",
+        "conclusion": "success",
+        "runs": 1
+      }
+    ],
+    "coverage": {
+      "package": "@seen/core",
+      "lines": 100.0,
+      "delta": 0.0
+    }
+  }
+}
