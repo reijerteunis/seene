@@ -1,0 +1,83 @@
+{
+  "sequence": 53,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-02T22:18:45.551726+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 4,
+  "actor": "claude:implementer",
+  "session": "b3e20e40e937",
+  "head": "396d066a4cc01826935ebe1f1e8148b398ee908d",
+  "prev_hash": "b30bab783189e2a5f3734ab7a4a6e4ed7bdaa92b7ee0846339e9edc273d8b55f",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "solution",
+    "to_attempt": 5,
+    "reason": "Review of attempt 4 (subagent reviewer on opus, triage 51) returned the ticket on four medium findings: F1 a slice naming a directory under packages/core/src becomes a --mutate glob that matches nothing, so it can never be measured (verified at qa 52: Stryker exits 1 and the gate refuses, so no bypass today, severity lowered from high); F2 the mutation floor is read from the attempt's latest measurement without tying it to the cited tree; F3 the gate never checks that the recorded mutation command is the fixed Stryker command; F4 slice 3's CI file selection has no in-repo test, its RED and GREEN ran a script outside the tree. Two lows: F5 the README status row is named by no changes entry, F6 slice 1's RED 40 does not demonstrate the db/ exclusion. The fixes need new files in the plan, so the return is to solution",
+    "findings": [
+      {
+        "id": "F1",
+        "severity": "medium",
+        "file": "harness/mutation.py:36",
+        "claim": "When a slice names a directory under packages/core/src, `harness mutation` passes it to Stryker as `--mutate src/<dir>`. That pattern matches no file, so the run finds zero mutants, measure() records it as not applicable, and _require_mutation lets the attempt through without ever holding it to the floor. Verified by the orchestrating session after the review: Stryker 10 with this config, given `--mutate src` or `--mutate src/nope.ts`, matches no file and then exits 1 with ConfigError \"No tests were executed\", so measure() records a failed run with no score and the gate refuses rather than passing as not applicable. The bypass does not occur today; what remains is that a slice naming a directory can never be measured, although the gate treats a directory as covering its files, and the fail-closed outcome rests on Stryker's exit code rather than on the harness. Severity lowered from high to medium on that measurement.",
+        "failure_scenario": "A later money ticket's slice names `packages/core/src/money`. The gate and the tests treat that as covering every file under it (test_stage_gates.py:341 test_a_directory_measured_covers_the_file_under_it). command() turns it into `--mutate src/money`. Stryker's FileMatcher runs minimatch on the absolute path `.../packages/core/src/money` and that matches no `.../src/money/cents.ts`. Stryker logs 'No files found for mutation', does a dry run and exits 0, and its JSON report has no files. counts() returns 0, so measure() sets not_applicable=True (mutation.py:167). The gate takes the not-applicable branch and advances a slice whose survivors were never counted. A slice that names a file that does not exist (a typo, or a file the branch deleted) gets the same pass. I reasoned this from Stryker 10's project-reader and file-matcher source and did not run it. The fix: turn a directory entry into `<dir>/**/*.ts`, and only grant not applicable when every named file appears in the report's `files`.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "none: a logic error in how plan entries become Stryker globs, which only a test of measure() over a directory entry can catch"
+      },
+      {
+        "id": "F2",
+        "severity": "medium",
+        "file": "harness/gates.py:1534",
+        "claim": "_require_mutation uses the attempt's latest mutation measurement without comparing its tree to the tree the cited GREEN and regression checks were judged on, so a score taken before a later code change still clears the floor.",
+        "failure_scenario": "A slice names packages/core/src/fee.ts. `harness mutation` records 85. The implementer then adds an untested branch to fee.ts and commits it. Green and regression are re-run and match the new tree, but mutation is not re-run. The gate advances on the stale 85, while the real score on the reviewed tree might be 50. Coverage has the same gap, but the floor is the new standard this ticket sets for code that moves money.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "harness/mutation-measurement-on-the-cited-tree"
+      },
+      {
+        "id": "F3",
+        "severity": "medium",
+        "file": "harness/cli.py:520",
+        "claim": "`harness mutation` runs any command a session puts after `--` and scores whatever report that command writes. The gate never compares the recorded command with mutation.command(files), so the docstring's claim that the measurement is fixed does not hold.",
+        "failure_scenario": "`harness mutation SEEN-0XX --actor x -- python3 -c '<write a mutation.json in which every mutant in src/fee.ts is Killed>'` exits 0 and writes a fresh report, so measure() records a score of 100. _require_mutation advances a slice that Stryker never ran on. Only a human reading the record's `command` field would notice. The argv override exists for the test stub; the gate could require the recorded command to equal the fixed one outside tests.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "harness/mutation-measurement-fixed-command"
+      },
+      {
+        "id": "F4",
+        "severity": "medium",
+        "file": ".github/workflows/ci.yml:221",
+        "claim": "Slice 3's behaviour, the CI step that picks which files to mutate, has no test in the repository. Its RED 32 and GREEN 34 ran a script under ~/.cache that is not in the tree, so the tests_added pass was earned by other slices' test files.",
+        "failure_scenario": "A later edit to the `changed` step drops the `vitest.config.ts` or `package.json` widening, or breaks the `.test.ts` exclusion. No check in harness/tests or CI fails, and a pull request that changes the test setup then reuses stale incremental results for unchanged files. Note 36 transcribes the script, but nothing ties that text to what ran: the record carries no hash of the script.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "none: whether a CI step's selection logic deserves an in-repo test is a judgement about the slice"
+      },
+      {
+        "id": "F5",
+        "severity": "low",
+        "file": "docs/tickets/README.md:49",
+        "claim": "No slice and no changes entry names the README status change (todo to review), which is why the triage's slice_files check fails.",
+        "failure_scenario": "The plan's changes list (advance 25) names the ticket file's status but not the index row. That makes slice_files refuse at triage, though the edit is the conventional status mirror and is harmless.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": ""
+      },
+      {
+        "id": "F6",
+        "severity": "low",
+        "file": "docs/harness/history/SEEN-116/0040.json",
+        "claim": "Slice 1's RED 40 is a killed-mutant run against the finished code, at the same tree as its GREEN 41. It shows the property can kill mutants of detector.ts. It never shows that the other half of slice 1's stated behaviour, the unit project excluding db/ tests, was ever absent.",
+        "failure_scenario": "If the vitest project split were reverted, RED 40 would still exit 0 with the same 5 kills. Only GREEN 41's `vitest list` grep for db/ catches the reversion. The RED is valid under criterion 3's killed-mutant form, but red_before_green on slice 1 reads as proving more than it does. The attempt-2 RED 16, the test:unit failure, is the real RED for the db/ exclusion and is no longer cited.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": ""
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}

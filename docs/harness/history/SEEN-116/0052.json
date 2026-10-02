@@ -1,0 +1,34 @@
+{
+  "sequence": 52,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-02T22:18:40.541765+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "review",
+  "attempt": 4,
+  "actor": "claude:implementer",
+  "session": "b3e20e40e937",
+  "head": "396d066a4cc01826935ebe1f1e8148b398ee908d",
+  "prev_hash": "1d52db648cf0a007d5a1e61812eefa935f7d2819a60114c220e29692f74a95a2",
+  "data": {
+    "command": [
+      "pnpm",
+      "--filter",
+      "@seen/core",
+      "mutation",
+      "--mutate",
+      "src/nope.ts"
+    ],
+    "phase": "qa",
+    "exit_code": 1,
+    "model": "claude-opus-5-5",
+    "model_declared": null,
+    "agent_declared": null,
+    "duration_ms": 3845,
+    "output": "\n> @seen/core@0.0.0 mutation /Users/ruudvanengelenhoven/Development/seene/packages/core\n> stryker run stryker.config.mjs --mutate src/nope.ts\n\n\u001b[33m00:18:37 (99440) WARN ProjectReader\u001b[39m Glob pattern \"src/nope.ts\" did not result in any files.\n\u001b[33m00:18:37 (99440) WARN ProjectReader\u001b[39m Warning: No files found for mutation with the given glob expressions. As a result, a dry-run will be performed without actually modifying anything. If you intended to mutate files, please check and adjust the configuration. Current glob pattern(s) used: \"src/nope.ts\". To enable file mutation, consider configuring the `mutate` property in your configuration file or using the --mutate option via the command line.\n\u001b[32m00:18:37 (99440) INFO Instrumenter\u001b[39m Instrumented 0 source file(s) with 0 mutant(s)\n\u001b[32m00:18:37 (99440) INFO ConcurrencyTokenProvider\u001b[39m Creating 8 checker process(es) and 7 test runner process(es).\n\u001b[32m00:18:39 (99440) INFO BroadcastReporter\u001b[39m Detected that current console does not support the \"progress\" reporter, downgrading to \"progress-append-only\" reporter\n\u001b[32m00:18:40 (99440) INFO DryRunExecutor\u001b[39m Starting initial test run (vitest test runner with \"perTest\" coverage analysis). This may take a while.\n\u001b[33m00:18:40 (99498) WARN VitestTestRunner\u001b[39m Vitest failed to find test files related to mutated files. Either disable `vitest.related` or import your source files directly from your test files. See https://stryker-mutator.io/docs/stryker-js/troubleshooting/#vitest-failed-to-find-test-files-related-to-mutated-files\n\u001b[32m00:18:40 (99440) INFO DryRunExecutor\u001b[39m No tests were found\n\u001b[91m00:18:40 (99440) ERROR Stryker\u001b[39m No tests were executed. Stryker will exit prematurely. Please check your configuration.\nfile:///Users/ruudvanengelenhoven/Development/seene/node_modules/.pnpm/@stryker-mutator+core@10.0.0_@types+node@24.13.6/node_modules/@stryker-mutator/core/dist/src/process/3-dry-run-executor.js:47\n            throw new ConfigError('No tests were executed. Stryker will exit prematurely. Please check your configuration.');\n                  ^\n\nConfigError: No tests were executed. Stryker will exit prematurely. Please check your configuration.\n    at DryRunExecutor.execute (file:///Users/ruudvanengelenhoven/Development/seene/node_modules/.pnpm/@stryker-mutator+core@10.0.0_@types+node@24.13.6/node_modules/@stryker-mutator/core/dist/src/process/3-dry-run-executor.js:47:19)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async Stryker.run (file:///Users/ruudvanengelenhoven/Development/seene/node_modules/.pnpm/@stryker-mutator+core@10.0.0_@types+node@24.13.6/node_modules/@stryker-mutator/core/dist/src/stryker.js:52:53)\n    at async Stryker.runMutationTest (file:///Users/ruudvanengelenhoven/Development/seene/node_modules/.pnpm/@stryker-mutator+core@10.0.0_@types+node@24.13.6/node_modules/@stryker-mutator/core/dist/src/stryker.js:27:20)\n    at async Command.<anonymous> (file:///Users/ruudvanengelenhoven/Development/seene/node_modules/.pnpm/@stryker-mutator+core@10.0.0_@types+node@24.13.6/node_modules/@stryker-mutator/core/dist/src/stryker-cli.js:51:13) {\n  innerError: undefined\n}\n\nNode.js v24.15.0\n/Users/ruudvanengelenhoven/Development/seene/packages/core:\n ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @seen/core@0.0.0 mutation: `stryker run stryker.config.mjs --mutate src/nope.ts`\nExit status 1\n",
+    "output_sha256": "5e4235147c790bbf82ea318241cbad9dd7a6191916f8a9039bfb3ed44aaf8bfb",
+    "output_truncated": false,
+    "before": "176d7405338df27d1f410be3b3ff6a38bb213e4ab421732e934fd392e458ddf6",
+    "after": "176d7405338df27d1f410be3b3ff6a38bb213e4ab421732e934fd392e458ddf6"
+  }
+}
