@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-145]
-status: doing
+status: review
 priority: P2
 ---
 # SEEN-146: Match a later review's findings as a whole, so the order they are listed in never changes a count
@@ -24,7 +24,7 @@ priority: P2
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | doing |
+| Status | review |
 | Priority | P2 (no committed journal has the shape; the figure it corrects is one a session can move by reordering a list) |
 
 ## Description
@@ -74,8 +74,18 @@ the largest component in any committed journal at solution had 2 choices.
   maximised and in what order, how the merge composes and what the cap does.
   The one residue left is SEEN-006's R-04, a finding reworded in every field.
 
-The regression, the whole harness suite, ran 1587 tests green at record 13, and
-coverage held at 100.0 against a baseline of 100.0 at record 14.
+The first review passed with two low findings, fixed before delivery at
+Ruud's choice (return record 18, RED record 19, GREEN record 20). F1: a
+paragraph of the `finding_identities` docstring still said the finding at the
+same line and then under the same id takes a tie, which SEEN-145's greedy pass
+did; it now says the line and the id are the last two fields of a join's
+strength, weighed after the number of joins and the texts shared. F2: the
+property test never drew two findings sharing an id, so a second one draws 400
+pairs from seed 1462 with ids sampled from one alphabet for both records, 335
+of them sharing an id across the two, and none counts differently by order.
+
+The regression is the whole harness suite, and the tdd advance cites the run
+and the coverage measurement taken on this tree.
 
 ## Depends on
 
