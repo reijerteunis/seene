@@ -1,0 +1,16 @@
+{
+  "sequence": 55,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-02T22:20:10.355958+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "solution",
+  "attempt": 5,
+  "actor": "claude:implementer",
+  "session": "b3e20e40e937",
+  "head": "58f0944955b765a97fde3a3c3e95f603ca52e1f9",
+  "prev_hash": "ae3108ebe8865eecd8cb33866138147f99c1d6c11f1a2ecff28f454e14c4829a",
+  "data": {
+    "text": "# Attempt 5 scope: F1 to F4 are fixed in this ticket\n\nRuud's decision after the return at record 53: F1, F2, F3 and F4 of the attempt 4\nreview are fixed in SEEN-116, not split into a follow-up ticket. F5 and F6 are low\nand are answered in the plan's changes list and the Outcome rather than by a slice.\n\nWhat each fix has to establish, for the solution record to plan as slices:\n\n- F1: a slice entry naming a directory under packages/core/src is measured over\n  the files under it (`<dir>/**/*.ts`, excluding tests), and not applicable is\n  granted only when every named file appears in the Stryker report's `files`.\n  A typo or a deleted file is refused, not measured as empty. qa 52 is the\n  measurement that Stryker 10 exits 1 on an empty match today.\n- F2: the gate accepts a mutation measurement only when its tree is the tree the\n  cited GREEN and regression were judged on, the same way the other checks tie\n  to a fingerprint.\n- F3: outside tests, the gate refuses a mutation record whose command is not\n  `mutation.command(files)` for the slice files.\n- F4: the CI job's file selection (changed files under packages/core/src, the\n  widening on a Stryker or vitest config or package.json, the .test.ts\n  exclusion, the skip when nothing changed) moves into a script in the tree with\n  a test of its own that CI and the harness tests run.\n\nThe 4-point plan cap applies; if the four do not fit, say so at solution rather\nthan stretching a slice.\n"
+  }
+}
