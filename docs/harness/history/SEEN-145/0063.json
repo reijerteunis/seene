@@ -1,0 +1,53 @@
+{
+  "sequence": 63,
+  "ticket": "SEEN-145",
+  "timestamp": "2026-10-02T15:21:25.669803+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 6,
+  "actor": "claude:reviewer",
+  "session": "55e134c11377",
+  "head": "f05e33475eb5dba9bcd9e8719164b4f92361a01a",
+  "prev_hash": "a30d540449c8abb58cc31a28a0d471edebfbf9056be1e9726f4ad1878077b0ee",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 7,
+    "reason": "Review round 6 returns on F1 and F2 (medium): the shared-texts ranking and the same-line tie-break can each be deleted with every FindingIdentityTest case green, and SEEN-146 trusts that suite as its regression guard.",
+    "findings": [
+      {
+        "id": "F1",
+        "severity": "medium",
+        "file": "harness/calibration.py",
+        "claim": "The 'more texts shared first' ranking from round 2 is not pinned by any test: removing -shared[pair] from the sort key leaves all 15 FindingIdentityTest cases green, because every fixture that needs it also has the same line or the same id pointing to the right anchor.",
+        "failure_scenario": "Record 1 holds F1 (high, harness/a.py:1, claim 'It breaks', scenario 'Scenario A') and F2 (low, harness/a.py:5, same claim, scenario 'Scenario B'). Record 2 carries F2 word for word but renamed R1-2 and moved to harness/a.py:6. The code returns {'high': 1, 'low': 1}; with the ranking removed it returns {'low': 2} and every test still passes.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "none: a test that does not isolate one sort criterion is what the mutation-score gate (SEEN-116) measures, not a pattern a static rule can read"
+      },
+      {
+        "id": "F2",
+        "severity": "medium",
+        "file": "harness/tests/test_calibration.py",
+        "claim": "The same-line tie-break that note 36 and the second amendment require is not pinned: removing the line comparison leaves all 15 cases green, because the line-tie test keeps line and id pointing to the same anchor.",
+        "failure_scenario": "Record 1 holds F1 (high, harness/a.py:1, claim 'It breaks', scenario 'Scenario A') and F2 (low, harness/a.py:5, same claim, scenario 'Scenario B'). Record 2 carries F1 at harness/a.py:1 renumbered as F2 with its scenario reworded. The code returns {'high': 1, 'low': 1}; with the line comparison removed it returns {'high': 2} and no test fails.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "none: a fixture where two tie-breaks agree cannot be told from one testing each, which only mutation testing exposes"
+      },
+      {
+        "id": "F3",
+        "severity": "low",
+        "file": "docs/tickets/README.md",
+        "claim": "CLAUDE.md, docs/tickets/README.md and the SEEN-146 ticket file are named by no slice and no changes entry; made on Ruud's decision at note 55.",
+        "failure_scenario": "slice_files fails for the sixth time and sends every review of this ticket to full depth.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "none: index rows the procedure and a recorded decision require"
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}
