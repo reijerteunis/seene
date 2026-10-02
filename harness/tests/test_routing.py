@@ -16,6 +16,8 @@ from pathlib import Path
 
 from harness import jev
 from harness.errors import HarnessError
+from harness.repository import Repository
+from harness.tests.helpers import mutation_data
 from harness.tests.test_decisions import noul, score
 from harness.tests.test_lifecycle import CommandTest, clarify_evidence, solution_evidence
 
@@ -874,12 +876,10 @@ class SlicePositionTest(GateTest):
         return journal.append(folder, records, kind='check', stage='tdd', attempt=1,
                               actor='claude:implementer', head=self.git('rev-parse', 'HEAD'),
                               ticket=self.ticket_id,
-                              data=dict(command=['pnpm', 'mutation'], phase='mutation',
-                                        exit_code=0, duration_ms=1, output='',
-                                        output_sha256='0' * 64, output_truncated=False,
-                                        before='a', after='b', score=score, floor=70,
-                                        files=['packages/core/src/fees.ts'], killed=8,
-                                        survived=2, mutants=10, reason=None))
+                              data=mutation_data(['packages/core/src/fees.ts'],
+                                                 Repository(self.root).fingerprint(),
+                                                 score=score, floor=70, killed=8, survived=2,
+                                                 mutants=10, reason=None))
 
     def plan(self):
         return [dict(PLAIN, name='The status line'), dict(MONEY, name='Fee expectations')]

@@ -133,6 +133,20 @@ class ProjectTest(unittest.TestCase):
         return path
 
 
+def mutation_data(files, after, **extra):
+    """The data of a mutation measurement as `harness mutation` records it.
+
+    The command is the fixed Stryker one for these files and `after` is the
+    fingerprint of the tree it ran on, which are the two things the tdd gate
+    holds a measurement to (SEEN-116). Gate tests write theirs through here so
+    they carry what a real run carries.
+    """
+    from harness import mutation
+    return dict(command=list(mutation.command(files)), phase='mutation', exit_code=0,
+                duration_ms=1, output='', output_sha256='0' * 64, output_truncated=False,
+                before=after, after=after, files=list(files), **extra)
+
+
 def add_remote(root):
     """A bare repository to push to, so delivery can be verified without a network."""
     remote = Path(tempfile.mkdtemp()) / 'origin.git'

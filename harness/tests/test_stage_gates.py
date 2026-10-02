@@ -12,7 +12,7 @@ import unittest
 from harness import gates, thresholds
 from harness.errors import HarnessError
 from harness.repository import Repository
-from harness.tests.helpers import PROJECT, ProjectTest
+from harness.tests.helpers import PROJECT, ProjectTest, mutation_data
 
 
 def check_record(sequence, phase, stage='tdd', attempt=1, exit_code=None, **extra):
@@ -252,18 +252,25 @@ class TddGateTest(GateTest):
             self.evaluate('tdd', self.code_tdd(slices=[]), records=self.journal_with_checks())
 
 
-def mutation_record(sequence, score, files=('packages/core/src/fee.ts',), attempt=1,
-                    reason=None, not_applicable=False):
-    """A mutation measurement of the files a slice names, which the tdd gate requires."""
-    return check_record(sequence, 'mutation', attempt=attempt, score=score, floor=70,
-                        files=list(files), killed=7, survived=3, mutants=10, reason=reason,
-                        not_applicable=not_applicable)
-
-
 class MutationJournal(GateTest):
     """A plan naming one file under packages/core/src, and the checks that prove it."""
 
     FEE = 'packages/core/src/fee.ts'
+
+    def mutation_record(self, sequence, score, files=('packages/core/src/fee.ts',), attempt=1,
+                        reason=None, not_applicable=False, after=None, command=None):
+        """A mutation measurement of the files a slice names, which the tdd gate requires.
+
+        Taken on the tree as it stands, with the fixed Stryker command, unless a
+        test says otherwise: those are the two things the gate holds it to.
+        """
+        data = mutation_data(files, after or self.repository.fingerprint(), score=score,
+                             floor=70, killed=7, survived=3, mutants=10, reason=reason,
+                             not_applicable=not_applicable)
+        if command is not None:
+            data['command'] = command
+        return dict(sequence=sequence, ticket='SEEN-001', kind='check', stage='tdd',
+                    attempt=attempt, actor='claude:implementer', data=data)
 
     def plan(self, *files):
         return advance_record(2, 'solution',
@@ -295,12 +302,12 @@ class MutationFloorTest(MutationJournal):
     """
 
     def test_a_score_below_the_floor_is_refused_with_both_figures(self):
-        records = self.journal(measurement=mutation_record(7, 60.0))
+        records = self.journal(measurement=self.mutation_record(7, 60.0))
         with self.assertRaisesRegex(HarnessError, '60.0.*70'):
             self.evaluate('tdd', self.tdd(), records=records)
 
     def test_a_score_at_the_floor_passes(self):
-        self.evaluate('tdd', self.tdd(), records=self.journal(measurement=mutation_record(7, 70.0)))
+        self.evaluate('tdd', self.tdd(), records=self.journal(measurement=self.mutation_record(7, 70.0)))
 
     def test_no_measurement_is_refused_and_the_command_is_named(self):
         with self.assertRaisesRegex(HarnessError, 'harness mutation'):
@@ -315,41 +322,59 @@ class MutationFloorTest(MutationJournal):
 
     def test_no_mutants_in_the_files_is_not_applicable_and_passes(self):
         """Ruud's decision: recorded with its count and no score, and let through."""
-        records = self.journal(measurement=mutation_record(
+        records = self.journal(measurement=self.mutation_record(
             7, None, reason='no mutants in the files named', not_applicable=True))
         self.evaluate('tdd', self.tdd(), records=records)
 
     def test_a_not_applicable_measurement_over_other_files_is_still_refused(self):
-        records = self.journal(measurement=mutation_record(
+        records = self.journal(measurement=self.mutation_record(
             7, None, files=('packages/core/src/vat.ts',), not_applicable=True))
         with self.assertRaisesRegex(HarnessError, 'fee.ts'):
             self.evaluate('tdd', self.tdd(), records=records)
 
     def test_a_run_that_measured_nothing_is_not_not_applicable(self):
         """No score because the run failed or wrote no report is a missing measurement."""
-        records = self.journal(measurement=mutation_record(
+        records = self.journal(measurement=self.mutation_record(
             7, None, reason='the Stryker run failed (exit 1)'))
         with self.assertRaisesRegex(HarnessError, 'measured nothing|no score'):
             self.evaluate('tdd', self.tdd(), records=records)
 
     def test_a_measurement_of_other_files_does_not_cover_this_slice(self):
-        records = self.journal(measurement=mutation_record(
+        records = self.journal(measurement=self.mutation_record(
             7, 100.0, files=('packages/core/src/vat.ts',)))
         with self.assertRaisesRegex(HarnessError, 'fee.ts'):
             self.evaluate('tdd', self.tdd(), records=records)
 
     def test_a_directory_measured_covers_the_file_under_it(self):
-        records = self.journal(measurement=mutation_record(
+        records = self.journal(measurement=self.mutation_record(
             7, 90.0, files=('packages/core/src',)))
         self.evaluate('tdd', self.tdd(), records=records)
 
     def test_only_this_attempts_measurement_counts(self):
-        records = self.journal(measurement=mutation_record(7, 99.0, attempt=2))
+        records = self.journal(measurement=self.mutation_record(7, 99.0, attempt=2))
         with self.assertRaisesRegex(HarnessError, 'harness mutation'):
             self.evaluate('tdd', self.tdd(), records=records)
 
+    def test_a_measurement_taken_before_a_later_edit_is_refused_with_both_fingerprints(self):
+        records = self.journal(measurement=self.mutation_record(7, 90.0, after='stale-tree'))
+        with self.assertRaisesRegex(
+                HarnessError, f'stale-tree.*{self.repository.fingerprint()}|'
+                              f'{self.repository.fingerprint()}.*stale-tree'):
+            self.evaluate('tdd', self.tdd(), records=records)
+
+    def test_a_measurement_whose_command_is_not_the_fixed_one_is_refused(self):
+        records = self.journal(measurement=self.mutation_record(
+            7, 100.0, command=['sh', '-c', 'exit 0']))
+        with self.assertRaisesRegex(HarnessError, 'Stryker did not take|fixed.*command'):
+            self.evaluate('tdd', self.tdd(), records=records)
+
+    def test_the_fixed_command_for_the_files_the_record_names_is_accepted(self):
+        records = self.journal(measurement=self.mutation_record(
+            7, 90.0, files=('packages/core/src',)))
+        self.evaluate('tdd', self.tdd(), records=records)
+
     def test_the_latest_measurement_is_the_one_held_to_the_floor(self):
-        records = self.journal(measurement=mutation_record(7, 40.0)) + [mutation_record(8, 80.0)]
+        records = self.journal(measurement=self.mutation_record(7, 40.0)) + [self.mutation_record(8, 80.0)]
         self.evaluate('tdd', self.tdd(), records=records)
 
 
@@ -358,7 +383,7 @@ class AKilledMutantAsRedTest(MutationJournal):
 
     def journal(self, *files, killed=None, exit_code=0):
         extra = dict(mutants_killed=killed) if killed is not None else {}
-        return super().journal(*files, measurement=mutation_record(
+        return super().journal(*files, measurement=self.mutation_record(
             7, 80.0, files=('packages/core/src',)),
                                exit_code=exit_code, **extra)
 

@@ -1193,7 +1193,7 @@ def _tdd(data, records, current, repository, thresholds):
     # Last, so a refusal about a cited check or a route, which names what a session
     # can fix in the pair, is not hidden behind the measurement the slice has not
     # taken yet: the measurement is a property of the attempt and not of one pair.
-    _require_mutation(slices, records, current, thresholds)
+    _require_mutation(slices, records, current, thresholds, repository)
     return {}
 
 
@@ -1505,7 +1505,7 @@ def plan_source_files(records):
     return mutation.source_files(_the_files_the_plan_covers(records) or ())
 
 
-def _require_mutation(slices, records, current, thresholds):
+def _require_mutation(slices, records, current, thresholds, repository):
     """A slice naming product source measures it, and the score reaches the floor.
 
     Held over the files the slices of this record name under packages/core/src
@@ -1514,7 +1514,10 @@ def _require_mutation(slices, records, current, thresholds):
     ticket. No mutants in those files is recorded as not applicable and passes,
     which is Ruud's decision and reverses the first reading; a missing
     measurement, one over other files, a run that measured nothing and a score
-    below the floor are all still refused. SEEN-116.
+    below the floor are all still refused. The measurement is also held to the
+    tree being advanced and to the fixed Stryker command, so one taken before a
+    later edit, or by any other command, is not read as a measurement of this
+    work. SEEN-116.
     """
     named = set()
     for slice_ in slices:
@@ -1537,6 +1540,7 @@ def _require_mutation(slices, records, current, thresholds):
             f'The mutation measurement at record {measurements[-1]["sequence"]} was taken over '
             f'{", ".join(latest.get("files") or ["no files"])} and does not cover '
             f'{", ".join(uncovered)}, which a slice names. Run harness mutation again')
+    _require_the_measurement_is_of_this_tree(measurements[-1], latest, repository)
     floor = thresholds['mutation']['floor']
     value = latest.get('score')
     if value is None and latest.get('not_applicable') is True:
@@ -1553,6 +1557,28 @@ def _require_mutation(slices, records, current, thresholds):
             f'Mutation score on {", ".join(named)} is {value}, below the floor of {floor}: '
             f'{latest.get("killed")} killed and {latest.get("survived")} survived. Kill the '
             'survivors with a test; the floor moves only by a reviewed change to thresholds.toml')
+
+
+def _require_the_measurement_is_of_this_tree(record, latest, repository):
+    """The tree the measurement ran on is the tree being advanced, by Stryker's command.
+
+    The regression is already held to the whole tree, so the measurement is held
+    to the same fingerprint: a score taken before a later edit says nothing about
+    the code that edit left. The command is the one `mutation.command` builds for
+    the files the record names, because a record carrying any other command (the
+    stub a test substitutes) was not taken by Stryker. SEEN-116.
+    """
+    tree = repository.fingerprint()
+    taken_on = latest.get('after')
+    require(taken_on == tree,
+            f'The mutation measurement at record {record["sequence"]} was taken on tree '
+            f'{taken_on}, and the tree being advanced is {tree}: the code changed after it. '
+            'Run harness mutation again')
+    files = latest.get('files') or ()
+    require(files and list(latest.get('command') or ()) == list(mutation.command(files)),
+            f'The mutation measurement at record {record["sequence"]} recorded the command '
+            f'{" ".join(latest.get("command") or [])}, which is not the fixed Stryker command '
+            'for the files it names, so Stryker did not take it. Run harness mutation again')
 
 
 def _non_code(data, thresholds):
