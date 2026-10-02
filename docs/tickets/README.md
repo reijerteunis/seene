@@ -62,7 +62,7 @@ Conventions: branch `claude/<id>-<slug>` (or `codex/`), commit messages `feat(<i
 | [SEEN-141](SEEN-141-hold-a-figure-in-a-tdd-record-to-the.md) | Hold a figure in a tdd record to the check it cites | E10 | 2 | Claude Code | todo | SEEN-114 |
 | [SEEN-142](SEEN-142-keep-the-triage-s-request-inside-what-the-api.md) | Keep the triage's request inside what the API accepts, and say so when it cannot | E10 | 2 | Claude Code | todo | SEEN-107, SEEN-109 |
 | [SEEN-144](SEEN-144-tell-a-path-the-branch-deleted-from-a-typo-in.md) | Tell a path the branch deleted from a typo in the plan | E10 | 2 | Claude Code | todo | SEEN-113 |
-| [SEEN-145](SEEN-145-count-a-review-finding-once-however-the.md) | Count a review finding once, however the record that carries it names it | E10 | 1 | Claude Code | todo | SEEN-091, SEEN-107, SEEN-109 |
+| [SEEN-145](SEEN-145-count-a-review-finding-once-however-the.md) | Count a review finding once, however the record that carries it names it | E10 | 1 | Claude Code | doing | SEEN-091, SEEN-107, SEEN-109 |
 | [SEEN-008](SEEN-008-create-trade-record-schema-v1-with-tenant-id.md) | Create trade-record schema v1 with tenant_id and RLS on every table | E0 | 5 | Claude Code | review | SEEN-006, SEEN-092, SEEN-094 |
 | [SEEN-139](SEEN-139-hand-the-immutability-guard-forward-to-every.md) | Hand the immutability guard forward to every migration that adds a table | E0 | 2 | Claude Code | todo | SEEN-008 |
 | [SEEN-143](SEEN-143-compile-the-trade-record-schema-and-its-tests.md) | Compile the trade-record schema and its tests, which no compiler reads today | E0 | 3 | Claude Code | todo | SEEN-008, SEEN-114 |

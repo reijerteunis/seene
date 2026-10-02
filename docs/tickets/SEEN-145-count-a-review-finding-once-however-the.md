@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-091, SEEN-107, SEEN-109]
-status: todo
+status: doing
 priority: P1
 ---
 # SEEN-145: Count a review finding once, however the record that carries it names it
@@ -24,7 +24,7 @@ priority: P1
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | todo |
+| Status | doing |
 
 ## Description
 
