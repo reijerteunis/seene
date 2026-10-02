@@ -807,6 +807,14 @@ class FindingIdentityTest(unittest.TestCase):
         records = [review_advance(1, alike, minute=20), review_advance(2, alike, minute=40)]
         self.assertEqual(len(calibration.latest_findings(records)), 2)
 
+    def test_a_finding_carried_forward_joins_the_one_it_matches_on_both_texts(self):
+        """F1 of SEEN-145's second review: a claim-only match must not take it first."""
+        high = dict(finding('F1', 'high', 'harness/a.py:1'), failure_scenario='Scenario A')
+        low = dict(finding('F2', 'low', 'harness/a.py:5'), failure_scenario='Scenario B')
+        records = [review_advance(1, [high, low], minute=20),
+                   review_advance(2, [dict(low)], minute=40)]
+        self.assertEqual(kpi.findings(records)['by_severity'], {'high': 1, 'low': 1})
+
 
 class OneReaderOfTheQuestionTest(unittest.TestCase):
     """SEEN-140: `covers` is `_covers` moved, and these are the answers it moved with.

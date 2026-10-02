@@ -57,10 +57,13 @@ join is transitive, which is what SEEN-107's G1 needs: its claim was reworded as
 R2-1 while its failure scenario was carried byte for byte. Two findings listed in
 one record are never joined, directly or through a third. The id is read only for
 a finding with neither text, which the review gate refuses and no committed
-journal holds. Every finding that said a text stays an anchor for it, so two
-alike findings of one record each reach their own copy in a later round (F1 of
-the first review, which counted 3 where the old key counted 2; RED record 22,
-GREEN record 23). `latest_finding_records` (and so `kpi.findings`) and
+journal holds. Every finding that said a text stays an anchor for it, and a later
+finding is offered to the anchors sharing more of its texts first, so two alike
+findings of one record each reach their own copy in a later round (F1 of the
+first review, 3 counted where the old key counted 2; RED record 22, GREEN record
+23), and a finding carried forward joins the one it matches on both texts rather
+than an earlier one matching on its claim alone (F1 of the second review, a high
+finding counted as low; RED record 29, GREEN record 30). `latest_finding_records` (and so `kpi.findings`) and
 `calibration.escapes` both group by that identity; `finding_key` is deleted.
 
 - Criterion 1: `FindingIdentityTest` holds a fixture of two review advances whose
@@ -76,13 +79,16 @@ GREEN record 23). `latest_finding_records` (and so `kpi.findings`) and
   report were regenerated and carry the corrected figures.
 
 Delivered `kpi.json` files are not rewritten; the receipt does not hash them and
-the reports recompute from the journals (note 5). Regression: 1573 harness tests
-green (record 24); `@seen/core` coverage unchanged at 100 percent (record 25).
+the reports recompute from the journals (note 5). The regression and the coverage
+measurement are the ones the last tdd advance cites, run after this section was
+final so that they cover the tree delivered.
 
-The first review (returned at record 21) passed with three low findings. F1 is
+The first review (returned at record 21) passed with three low findings: F1 is
 fixed as above, F2 corrected this section's citations, and F3, the status row in
 `docs/tickets/README.md` that no slice named, is the procedure's own status mirror
-and is left as it is.
+and is left as it is. The second review (returned at record 28) found the
+claim-only join, fixed as above, and the regression run before this section's
+last edit, which is why the regression now runs after it.
 
 ## Depends on
 

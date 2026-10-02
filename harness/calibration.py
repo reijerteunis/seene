@@ -306,18 +306,15 @@ def finding_identities(records):
 
     def join(one, other):
         one, other = root(one), root(other)
-        if one == other:
-            return True
         # Refused when the two sides already share a record, which is what
         # keeps two findings of one record apart through any chain of rounds.
-        if sequences[one] & sequences[other]:
-            return False
+        if one == other or sequences[one] & sequences[other]:
+            return
         # The earliest finding stands for the whole identity, so the identity
         # is the same whichever order its members are joined in.
         low, high = sorted((one, other))
         parent[high] = low
         sequences[low] |= sequences.pop(high)
-        return True
 
     for record in records:
         for position, finding in enumerate(_review_findings(record)):
@@ -328,15 +325,23 @@ def finding_identities(records):
                     if finding.get(field)]
             if not said and finding.get('id'):
                 said = [('id', finding['id'])]
-            # Every finding that said a text stays an anchor for it, and a later
-            # one joins the first anchor it may. Keeping only the first anchor
-            # left the second of two alike findings in one record unreachable
-            # once the first had taken the next round's copy: F1 of SEEN-145's
-            # first review, 3 findings counted where there were 2.
+            # Every finding that said a text stays an anchor for it. A later one
+            # is offered to every anchor it shares a text with, the ones sharing
+            # more texts first and the earlier first among equals, and joins each
+            # that is not refused, which keeps the join transitive. Keeping only
+            # the first anchor per text left the second of two alike findings in
+            # one record unreachable (F1 of SEEN-145's first review, 3 counted
+            # where there were 2); offering anchors in journal order let a
+            # claim-only match take a finding before the one that matched it on
+            # both texts (F1 of the second, a high finding counted as low).
+            shared = {}
             for field, text in said:
-                anchors = saying.setdefault((path, field, text), [])
-                any(join(anchor, node) for anchor in anchors)
-                anchors.append(node)
+                for anchor in saying.setdefault((path, field, text), []):
+                    shared[anchor] = shared.get(anchor, 0) + 1
+            for anchor in sorted(shared, key=lambda anchor: (-shared[anchor], anchor)):
+                join(anchor, node)
+            for field, text in said:
+                saying[(path, field, text)].append(node)
     return {node: root(node) for node in parent}
 
 

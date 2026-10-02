@@ -1,0 +1,38 @@
+{
+  "sequence": 33,
+  "ticket": "SEEN-145",
+  "timestamp": "2026-10-02T14:13:35.476589+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "session": "55e134c11377",
+  "head": "4b2b22547b33e5500092d614519c484630da27a4",
+  "prev_hash": "aa05efe437c2b01892328b9cfecb7d60ec677f28668a8c18ca39bf74b56f6b81",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": 1,
+          "behaviour": "A finding carried into a later round joins the earlier finding it matches on both texts before one matching on its claim alone: finding_identities offers a finding to every anchor it shares a text with, the anchors sharing more texts first and the earlier first among equals. F1 of the second review.",
+          "failure_reason": "FindingIdentityTest.test_a_finding_carried_forward_joins_the_one_it_matches_on_both_texts failed with \"AssertionError: {'low': 2} != {'high': 1, 'low': 1}\": the low finding's copy joined the high one through the shared claim, and its join to the low one on both texts was then refused. The earlier reds of this slice are records 11, 13 and 22.",
+          "red": 29,
+          "green": 30
+        }
+      ],
+      "regression": 31,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "55e134c11377",
+      "output_tokens": 55289,
+      "tool_calls": 52,
+      "unavailable": null
+    }
+  }
+}
