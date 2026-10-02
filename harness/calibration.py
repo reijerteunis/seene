@@ -296,7 +296,7 @@ def finding_identities(records):
     the fallback reaches only records the gate never accepted, such as a test
     fixture that names its findings and says nothing else about them.
     """
-    parent, first, sequences = {}, {}, {}
+    parent, saying, sequences = {}, {}, {}
 
     def root(node):
         while parent[node] != node:
@@ -306,15 +306,18 @@ def finding_identities(records):
 
     def join(one, other):
         one, other = root(one), root(other)
+        if one == other:
+            return True
         # Refused when the two sides already share a record, which is what
         # keeps two findings of one record apart through any chain of rounds.
-        if one == other or sequences[one] & sequences[other]:
-            return
+        if sequences[one] & sequences[other]:
+            return False
         # The earliest finding stands for the whole identity, so the identity
         # is the same whichever order its members are joined in.
         low, high = sorted((one, other))
         parent[high] = low
         sequences[low] |= sequences.pop(high)
+        return True
 
     for record in records:
         for position, finding in enumerate(_review_findings(record)):
@@ -325,8 +328,15 @@ def finding_identities(records):
                     if finding.get(field)]
             if not said and finding.get('id'):
                 said = [('id', finding['id'])]
+            # Every finding that said a text stays an anchor for it, and a later
+            # one joins the first anchor it may. Keeping only the first anchor
+            # left the second of two alike findings in one record unreachable
+            # once the first had taken the next round's copy: F1 of SEEN-145's
+            # first review, 3 findings counted where there were 2.
             for field, text in said:
-                join(first.setdefault((path, field, text), node), node)
+                anchors = saying.setdefault((path, field, text), [])
+                any(join(anchor, node) for anchor in anchors)
+                anchors.append(node)
     return {node: root(node) for node in parent}
 
 

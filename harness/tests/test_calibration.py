@@ -801,6 +801,12 @@ class FindingIdentityTest(unittest.TestCase):
                                       finding('F2', 'medium', 'harness/a.py:2')])]
         self.assertEqual(len(calibration.latest_findings(records)), 2)
 
+    def test_two_findings_saying_the_same_in_one_record_carried_forward_stay_two(self):
+        """F1 of SEEN-145's first review: the second of them must reach its own copy."""
+        alike = [finding('F1', 'high', 'harness/a.py:1'), finding('F2', 'medium', 'harness/a.py:2')]
+        records = [review_advance(1, alike, minute=20), review_advance(2, alike, minute=40)]
+        self.assertEqual(len(calibration.latest_findings(records)), 2)
+
 
 class OneReaderOfTheQuestionTest(unittest.TestCase):
     """SEEN-140: `covers` is `_covers` moved, and these are the answers it moved with.
