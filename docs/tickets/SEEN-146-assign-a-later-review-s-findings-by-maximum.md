@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-145]
-status: doing
+status: review
 priority: P2
 ---
 # SEEN-146: Match a later review's findings as a whole, so the order they are listed in never changes a count
@@ -24,7 +24,7 @@ priority: P2
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | doing |
+| Status | review |
 | Priority | P2 (no committed journal has the shape; the figure it corrects is one a session can move by reordering a list) |
 
 ## Description
@@ -35,10 +35,47 @@ The fix replaces the greedy pass with an assignment per record that maximises wh
 
 ## Acceptance criteria
 
-- [ ] The crossing case above counts 2 in both listing orders and with F1 and F2 swapped in record 1, proven by a test that runs every permutation of both records
-- [ ] For any two records of up to four findings each, built from a small alphabet of claims, scenarios and lines, the count does not depend on the order of the findings in either record, proven by a property test over the permutations
-- [ ] Every journal in this repository reports what it reported after SEEN-145, proven by SEEN-145's pinned table unchanged, and every case in FindingIdentityTest stays green
-- [ ] SEEN-145's residue sentence in `kpi.findings` and in `finding_identities` is removed, and the docstring says what the assignment maximises
+- [x] The crossing case above counts 2 in both listing orders and with F1 and F2 swapped in record 1, proven by a test that runs every permutation of both records
+- [x] For any two records of up to four findings each, built from a small alphabet of claims, scenarios and lines, the count does not depend on the order of the findings in either record, proven by a property test over the permutations
+- [x] Every journal in this repository reports what it reported after SEEN-145, proven by SEEN-145's pinned table unchanged, and every case in FindingIdentityTest stays green
+- [x] SEEN-145's residue sentence in `kpi.findings` and in `finding_identities` is removed, and the docstring says what the assignment maximises
+
+## Outcome
+
+A later review's findings are now joined to the earlier identities as a whole,
+never one pair at a time, so the order a reviewer lists either record in moves
+no count. `calibration.finding_identities` builds, per record, each earlier
+identity and the findings of the record it matched, at the strength of the
+strongest pair under SEEN-145's ranking (texts shared, then the same file
+reference with its line, then the same id). Over each connected component of
+those matches, `_best_joins` searches every way to give each identity at most
+one finding and takes the one with the most joins, then the largest summed
+strength field by field, then, where two still tie, the one whose pairs come
+first by what they say, each finding serialised with its keys sorted. Position
+is never read. The transitive merge is chosen by the same search: a finding may
+take more than one identity where none of them shares a record with it or with
+each other, the refusal `join` makes, rather than in a second pass after the
+matching. A component of more than `SEARCH_CAP` (2**16) choices takes a greedy
+join ranked by strength and then by content, which reads no position either;
+the largest component in any committed journal at solution had 2 choices.
+
+- The crossing case (F1 (c1, s1), F2 (c2, s2) against G1 (c1, s2), G2 (c3, s1))
+  counts 2 in all four orders of the two records, where the greedy join counted
+  3 for [G1, G2]. RED record 10, GREEN record 11.
+- A property test draws 400 pairs of records of one to four findings each from
+  a fixed seed (146) over claims a to c, scenarios x to z and two lines, and
+  counts every permutation of both: none moves. Against SEEN-145's greedy join,
+  25 of the 400 pairs moved.
+- FindingIdentityTest.PINNED is unchanged and every FindingIdentityTest case is
+  green; SEEN-145's own journal, which PINNED does not list, still reports 16
+  findings, no escapes and none unattributable, the figures measured at clarify.
+- The crossing-tie residue is gone from `kpi.findings`' docstring and from the
+  per-record comment in `finding_identities`, whose docstring now says what is
+  maximised and in what order, how the merge composes and what the cap does.
+  The one residue left is SEEN-006's R-04, a finding reworded in every field.
+
+The regression, the whole harness suite, ran 1587 tests green at record 13, and
+coverage held at 100.0 against a baseline of 100.0 at record 14.
 
 ## Depends on
 
