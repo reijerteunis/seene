@@ -1,0 +1,16 @@
+{
+  "sequence": 5,
+  "ticket": "SEEN-145",
+  "timestamp": "2026-10-02T07:54:11.177702+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "0d8ee4fdc841",
+  "head": "3742743f115e684a3eed469d9f148f8b342459a8",
+  "prev_hash": "4c560a3a138f90318e5281ceffd21aa81434e967690d80b820eca0365edda313",
+  "data": {
+    "text": "# Clarify: the two observations the first clarify attempt deferred, now made\n\n**The escape count does not move.** calibration.escapes was run over all 29 journals\ntwice, once with today's finding_key and once with the content identity substituted\nfor it (same file, and the same claim or the same failure_scenario, joined\ntransitively). Every journal's escapes and unattributable counts are identical\nunder both: SEEN-111 (1, 0), SEEN-113 (2, 0), SEEN-140 (2, 0), SEEN-107 (0, 9),\nSEEN-108 (0, 14) and the rest as before. So the key change moves the finding count\nonly, and SEEN-109's escape verdict is untouched by it on today's journals.\n\n**The receipt does not cover kpi.json.** delivery.py writes kpi.json after the\nreceipt record and calls the report the authority; repository._history_paths counts\nonly record files as journal history and says kpi.json is a cache rewritten when a\nticket delivers again. So leaving SEEN-107's and SEEN-102's delivered kpi.json as\nthey are is a choice, not a constraint: they are left, because they record what\ndelivery computed on the day, and the reports, which derive from the journals\nthrough cli.ticket_figures, carry the corrected figure.\n"
+  }
+}

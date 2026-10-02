@@ -1,0 +1,31 @@
+{
+  "sequence": 4,
+  "ticket": "SEEN-145",
+  "timestamp": "2026-10-02T07:53:02.123595+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "0d8ee4fdc841",
+  "head": "3742743f115e684a3eed469d9f148f8b342459a8",
+  "prev_hash": "c4c21fcd8f6f6787945cee11055fc3e2d5774a8cd847bae7b80c63fd05541d30",
+  "data": {
+    "source": "codegraph",
+    "mode": "impact",
+    "command": [
+      "codegraph",
+      "impact",
+      "finding_key"
+    ],
+    "synced": true,
+    "index": {
+      "nodes": 3565,
+      "edges": 11001
+    },
+    "exit_code": 0,
+    "duration_ms": 277,
+    "answer": "\nImpact of changing \"finding_key\" — 24 affected symbols:\n\nharness/calibration.py\n  function    finding_key:269\n  function    escapes:131\n  function    ticket_evidence:390\n  function    latest_finding_records:283\n  function    latest_findings:297\n\nharness/tests/test_calibration.py\n  method      test_a_blocking_finding_in_an_excluded_file_is_an_escape:151\n  method      test_a_finding_in_a_file_the_triage_kept_is_not_an_escape:159\n  method      test_a_medium_finding_in_an_excluded_file_is_not_an_escape:166\n  method      test_a_high_finding_naming_no_file_is_unattributable:172\n  method      test_a_criterion_the_triage_evidenced_and_the_review_found_unmet_is_an_escape:178\n  method      test_a_criterion_the_triage_found_unevidenced_is_not_an_escape:184\n  method      test_a_criterion_the_triage_never_answered_is_unattributable:191\n  method      test_a_return_naming_no_criterion_is_unattributable:196\n  method      test_a_finding_in_a_dot_directory_the_triage_excluded_is_an_escape:205\n  method      test_a_finding_and_an_exclusion_written_with_a_leading_dot_slash_still_meet:214\n  method      test_a_finding_at_an_absolute_path_is_unattributable:219\n  method      test_the_calibration_reads_it_as_neither_an_escape_nor_unattributable:660\n  method      test_a_finding_that_returned_a_ticket_is_read_from_the_return:694\n  method      test_a_finding_carried_forward_into_the_passing_record_is_one_finding:702\n  method      test_a_repeated_finding_is_charged_to_the_round_that_first_raised_it:1095\n  method      test_a_declared_empty_return_is_neither_an_escape_nor_unattributable:1150\n  method      placed:1172\n  method      test_a_triage_that_recorded_no_files_places_an_unknown_path_nowhere:1307\n\nharness/kpi.py\n  function    findings:455\n\n",
+    "answer_truncated": false
+  }
+}

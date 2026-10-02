@@ -34,8 +34,19 @@ priority: P1
 
 - [ ] kpi.findings counts a finding once when two review advances describe it under different ids, proven with a fixture of two records whose findings differ only in their identifiers
 - [ ] SEEN-107's own committed journal reports its real finding total rather than forty-five, proven by a test that reads that journal from docs/harness/history/ rather than a constructed one
-- [ ] Every other journal in this repository reports exactly what it reported before, proven over every journal present
+- [ ] (as amended) Every other journal in this repository reports exactly what it reported before, except SEEN-102, which moves from seven to its real four, proven over every journal present
 - [ ] What the count rests on after this change is written in kpi.findings, and the weekly and sprint reports carry the corrected figure
+
+## Amendments
+
+- **2 October 2026, Ruud: criterion 3 is amended.** Measured at clarify over all
+  29 journals, identity by content (the same file, and the same claim or the same
+  failure scenario, never the id) changes two figures: SEEN-107 from 45 to 26 and
+  SEEN-102 from 7 to 4. SEEN-102's second review renumbered F1 to F3 as F2 to F4
+  and added a new F1, so its 7 is the defect this ticket fixes and not a figure to
+  preserve. Holding it at 7 would need the id kept as a tiebreak, which brings back
+  the dependence the ticket removes. The test pins both corrected figures and every
+  other journal unchanged.
 
 ## Depends on
 
