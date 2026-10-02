@@ -332,14 +332,19 @@ def finding_identities(records):
             texts[node] = [(path, field, text) for field, text in said]
         # Every pair of a finding in this record and an earlier finding it shares
         # a text with, joined strongest first across the whole record, so the
-        # order a reviewer listed findings in decides nothing: the pairs sharing
+        # order a reviewer listed findings in decides only a tie: the pairs sharing
         # more texts first, then among equals the one at the same file reference,
         # line included, then the one under the same id, then the earlier anchor
         # and the earlier position. Every pair is offered and each join that is
         # not refused is made, which keeps the join transitive; a refusal is
         # what lets the order decide which of two anchors of one record takes a
         # finding. The order only ranks pairs the content found, so the id never
-        # makes two findings one. Each step is a review of SEEN-145: one anchor
+        # makes two findings one. Position is the last resort and not nothing:
+        # where a later finding's claim matches one anchor and its scenario
+        # another and every pair ties, the greedy pass can strand a finding a
+        # better assignment would place, and the order of a list moves the count
+        # (F1 of the fifth review, left as a residue by Ruud; SEEN-146 replaces
+        # the greedy pass with a maximum assignment). Each step is a review of SEEN-145: one anchor
         # per text left the second of two alike findings of one record
         # unreachable (first); journal order let a claim-only match take a
         # finding that matched another on both texts (second) and broke a tie

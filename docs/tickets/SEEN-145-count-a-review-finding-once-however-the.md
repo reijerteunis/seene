@@ -73,10 +73,15 @@ finding counted as low; RED record 29, GREEN record 30). Between two findings of
 one record that a later one matches equally well, the one at the same line takes
 it, then the one under the same id, and journal order is the last resort (F1 of
 the third review, decided by Ruud at note 36; RED record 37, GREEN record 38). The pairs of each later record are joined
-strongest first across the whole record, so the order a reviewer listed findings
-in decides nothing (F1 of the fourth review, where a weak match listed first took
-the anchor an exact copy needed and an escape was counted twice; decided by Ruud
-at note 44; RED record 47, GREEN record 48). The id orders
+strongest first across the whole record, so a weak match listed first no longer
+takes the anchor an exact copy needed (F1 of the fourth review, where an escape
+was counted twice; decided by Ruud at note 44; RED record 47, GREEN record 48).
+Position is still the last resort, and one case is left as a residue: a later
+finding whose claim matches one earlier finding and whose scenario matches
+another, every pair tying, where the order of a list can move the count (F1 of
+the fifth review, returned at record 54 and accepted by Ruud at note 55).
+[SEEN-146](SEEN-146-assign-a-later-review-s-findings-by-maximum.md) replaces the
+greedy join with a maximum assignment. The id orders
 matches the content found and never makes one. `latest_finding_records` (and so `kpi.findings`) and
 `calibration.escapes` both group by that identity; `finding_key` is deleted.
 
@@ -89,7 +94,7 @@ matches the content found and never makes one. `latest_finding_records` (and so 
   move. Escape and unattributable counts are unchanged in every journal (note 5).
 - Criterion 4: `kpi.findings`' docstring says what the count rests on and names
   the residue, SEEN-006's R-04, reworded in every field and still counted twice
-  (6 where a reader says 5). The weekly report for 2026-W39 and the sprint 0
+  (6 where a reader says 5), and the crossing tie above. The weekly report for 2026-W39 and the sprint 0
   report carry the corrected figures, and regenerating them after GREEN record 48
   changed no byte (note 49).
 
@@ -106,6 +111,10 @@ claim-only join, fixed as above, and the regression run before this section's
 last edit, which is why the regression now runs after it. The third (returned at
 record 35) found the tie between equal matches, and the fourth (record 43) the
 order inside a record and the missing report evidence, each settled as above.
+The fifth (record 54) found the crossing tie, named as a residue and split into
+SEEN-146 by Ruud's decision at note 55. F3 of every round, the status row in
+`docs/tickets/README.md`, is the procedure's status mirror; the same file also
+carries SEEN-146's row, and `CLAUDE.md` its index row.
 
 ## Depends on
 

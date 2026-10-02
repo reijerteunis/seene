@@ -835,7 +835,7 @@ class FindingIdentityTest(unittest.TestCase):
         self.assertEqual(kpi.findings(records)['by_severity'], {'high': 1, 'low': 1})
 
     def test_a_later_record_s_findings_take_their_matches_strongest_first(self):
-        """F1 of SEEN-145's fourth review: the order inside a record decides nothing."""
+        """F1 of SEEN-145's fourth review: a weak match listed first takes no exact copy's anchor."""
         high = dict(finding('F1', 'high', 'harness/a.py:1'), failure_scenario='Scenario A')
         low = dict(finding('F2', 'low', 'harness/a.py:5'), failure_scenario='Scenario B')
         weak = dict(finding('G1', 'low', 'harness/a.py:9'), failure_scenario='Scenario C')
@@ -848,6 +848,14 @@ class FindingIdentityTest(unittest.TestCase):
                 copy = (4, later.index(next(f for f in later if f['id'] == 'F1')))
                 self.assertEqual(calibration.finding_identities(records)[copy], (2, 0))
                 self.assertEqual(len(calibration.escapes(records)['escapes']), 1)
+
+    def test_kpi_findings_says_what_the_count_rests_on_and_what_it_leaves(self):
+        """Criterion 4, and F1 of SEEN-145's fifth review: the residues are named."""
+        said = ' '.join(kpi.findings.__doc__.split())
+        for words in ('the same file, and the same claim or the same failure scenario',
+                      "SEEN-006's R-04", 'crossing tie', 'SEEN-146'):
+            with self.subTest(words=words):
+                self.assertIn(words, said)
 
     def test_a_tie_never_joins_findings_the_content_did_not_match(self):
         """The id orders the anchors the content found; it finds none of its own."""
