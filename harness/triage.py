@@ -394,12 +394,13 @@ def _red_check(records):
                       'No accepted tdd record carries slices, which is every non-code ticket')
     if answer:
         return _entry('red_before_green', PASS,
-                      'Every slice cites a check that exited non-zero rather than one that '
-                      'passed. Whether it failed for the reason the slice states is not '
-                      'something the harness can read')
+                      'Every slice cites a check that exited non-zero, or a Stryker run '
+                      'whose report killed a mutant, rather than one that passed. Whether it '
+                      'failed for the reason the slice states is not something the harness '
+                      'can read')
     return _entry('red_before_green', FAIL,
-                  'A slice cites a RED that did not fail, so nothing proves the test could tell '
-                  'the behaviour was absent')
+                  'A slice cites a RED that did not fail, and killed no mutant either, so '
+                  'nothing proves the test could tell the behaviour was absent')
 
 
 def _tests_check(files):

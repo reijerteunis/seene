@@ -11,7 +11,7 @@ import hashlib
 import json
 import re
 
-from . import checks
+from . import checks, mutation
 from .errors import HarnessError, require
 from .paths import (ENUMERATED_KEYS, FINGERPRINT_EXCLUDED, NON_CODE_TEMPLATE,
                     TEMPLATE_FOR_STAGE, TEMPLATES)
@@ -1015,10 +1015,47 @@ def cited_check(records, number, phase, current, tree=None, repository=None,
         require(checks.demonstrates_failure(record['data']),
                 f'Check {number} is cited as a RED but did not fail: it exited '
                 f'{record["data"]["exit_code"]}')
+        if record['data']['exit_code'] == 0:
+            # Only the killed-mutant form reaches here, since a zero exit
+            # demonstrates nothing else. `demonstrates_failure` says a mutant was
+            # killed; whether it was one of this slice's is the gate's to say,
+            # because only the gate knows which files the slice names.
+            _require_the_kill_is_in_the_slice(records, record, number, declared_position)
     else:
         require(record['data']['exit_code'] == 0,
                 f'Check {number} is cited as a {phase} but exited {record["data"]["exit_code"]}')
     return record
+
+
+def _files_a_citation_is_about(records, position):
+    """The files the plan says a citation's slice covers, or the whole plan's for none.
+
+    The same reading the tree comparison makes of a cited check: the slice at the
+    position it declares, and every slice of the plan where it declares none.
+    """
+    if position is None:
+        return _the_files_the_plan_covers(records)
+    return _files_the_slice_covers(records, position)
+
+
+def _require_the_kill_is_in_the_slice(records, record, number, position):
+    """A RED at exit 0 stands only where a mutant it killed sits in the slice's files.
+
+    Stryker exits 0 whatever it killed, so a kill anywhere in the package would
+    otherwise prove any slice: the RED of an unrelated file's tests would carry
+    this one's. SEEN-116.
+    """
+    killed = record['data'].get('mutants_killed') or {}
+    named = _files_a_citation_is_about(records, position)
+    require(named,
+            f'Check {number} is cited as a RED on the strength of a Killed mutant, and the plan '
+            'in hand names no file for the slice it is cited for, so there is nothing to say the '
+            'mutant is the slice\'s. Name the files in the slice that changes them')
+    require(any(mutation.covers(named, path) for path in killed),
+            f'Check {number} exited 0 and is cited as a RED because its Stryker report killed a '
+            f'mutant, but every mutant it killed is in a file the slice does not name: killed in '
+            f'{", ".join(sorted(killed))}, the slice names {", ".join(named)}. A kill elsewhere '
+            'in the package does not show this slice\'s test can tell its behaviour is absent')
 
 
 def latest_evidence(records, stage):
@@ -1153,6 +1190,10 @@ def _tdd(data, records, current, repository, thresholds):
     # anyway.
     for position, red, green in pairs:
         _require_the_pair_is_one_round(position, red, green)
+    # Last, so a refusal about a cited check or a route, which names what a session
+    # can fix in the pair, is not hidden behind the measurement the slice has not
+    # taken yet: the measurement is a property of the attempt and not of one pair.
+    _require_mutation(slices, records, current, thresholds)
     return {}
 
 
@@ -1457,6 +1498,61 @@ def _require_coverage(records, current):
             f'Coverage on {latest.get("package")} fell by {delta}: '
             f'{latest.get("baseline")} to {latest.get("lines")}. Cover what the change added, '
             'or say in a note why the fall is right and raise the baseline deliberately')
+
+
+def plan_source_files(records):
+    """The product source under packages/core/src the accepted plan's slices name."""
+    return mutation.source_files(_the_files_the_plan_covers(records) or ())
+
+
+def _require_mutation(slices, records, current, thresholds):
+    """A slice naming product source measures it, and the score reaches the floor.
+
+    Held over the files the slices of this record name under packages/core/src
+    and not over the package: that is what the gate knows and what CI mutates.
+    A slice naming nothing there needs no measurement, which is every harness
+    ticket. No mutants in those files is recorded as not applicable and passes,
+    which is Ruud's decision and reverses the first reading; a missing
+    measurement, one over other files, a run that measured nothing and a score
+    below the floor are all still refused. SEEN-116.
+    """
+    named = set()
+    for slice_ in slices:
+        if not isinstance(slice_, dict):
+            continue
+        named.update(_files_a_citation_is_about(records, slice_.get('position')) or ())
+    named = mutation.source_files(named)
+    if not named:
+        return
+    measurements = [record for record in records
+                    if record['kind'] == 'check' and record['stage'] == 'tdd'
+                    and record['attempt'] == current['attempt']
+                    and record['data'].get('phase') == 'mutation']
+    require(measurements,
+            f'No mutation measurement for this attempt, and a slice names {", ".join(named)}: '
+            'run harness mutation <ticket> --actor <actor> before advancing')
+    latest = measurements[-1]['data']
+    uncovered = [path for path in named if not mutation.covers(latest.get('files') or (), path)]
+    require(not uncovered,
+            f'The mutation measurement at record {measurements[-1]["sequence"]} was taken over '
+            f'{", ".join(latest.get("files") or ["no files"])} and does not cover '
+            f'{", ".join(uncovered)}, which a slice names. Run harness mutation again')
+    floor = thresholds['mutation']['floor']
+    value = latest.get('score')
+    if value is None and latest.get('not_applicable') is True:
+        # Ruud's decision: a completed run that found no mutants in the files is
+        # not applicable, which is neither a score nor a failure. It is recorded
+        # with its count and passes; it is never read as a hundred.
+        return
+    require(value is not None,
+            f'The mutation measurement at record {measurements[-1]["sequence"]} has no score: '
+            f'{latest.get("reason") or "the run measured nothing"}. Only a completed run that '
+            f'found no mutants in the files is not applicable; a run that failed or wrote no '
+            f'report measured nothing, so run harness mutation again')
+    require(value >= floor,
+            f'Mutation score on {", ".join(named)} is {value}, below the floor of {floor}: '
+            f'{latest.get("killed")} killed and {latest.get("survived")} survived. Kill the '
+            'survivors with a test; the floor moves only by a reviewed change to thresholds.toml')
 
 
 def _non_code(data, thresholds):
