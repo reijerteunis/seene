@@ -1,0 +1,101 @@
+{
+  "sequence": 8,
+  "ticket": "SEEN-146",
+  "timestamp": "2026-10-02T16:41:22.558846+00:00",
+  "harness_version": "2",
+  "kind": "route",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "4d7a1210a3ae",
+  "head": "acedf01355d79e9401d67db5e722fd9cabed59d3",
+  "prev_hash": "82896ae54f3120f00e23adf7684094f87d9d89cd891a817dcf1e4f77f1717e41",
+  "data": {
+    "solution": 7,
+    "shadow": true,
+    "strongest": "opus",
+    "tiers": [
+      "haiku",
+      "sonnet",
+      "opus"
+    ],
+    "rules": [],
+    "jev": {
+      "asked": true,
+      "model": "jev-1.13.0",
+      "reason": null,
+      "answers": [
+        {
+          "key": "implementation_model#1",
+          "question": "implementation_model",
+          "type": "score",
+          "options": [
+            "haiku",
+            "sonnet",
+            "opus"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "opus",
+          "probabilities": {
+            "haiku": 0.01,
+            "sonnet": 0.19,
+            "opus": 0.8
+          },
+          "confidence": 0.68,
+          "score": 1.79,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_effort#1",
+          "question": "implementation_effort",
+          "type": "score",
+          "options": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "high",
+          "probabilities": {
+            "low": 0.0,
+            "medium": 0.01,
+            "high": 0.99
+          },
+          "confidence": 0.97,
+          "score": 1.98,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        }
+      ]
+    },
+    "execution": [
+      {
+        "position": 1,
+        "name": "Exact per-record assignment of findings, order-independent, docstrings without the residue",
+        "points": 2,
+        "files": [
+          "harness/calibration.py",
+          "harness/kpi.py",
+          "harness/tests/test_calibration.py",
+          "docs/tickets/SEEN-146-assign-a-later-review-s-findings-by-maximum.md"
+        ],
+        "red": "FindingIdentityTest fails before calibration.py changes on the crossing permutations (3 against 2 for record 2 listed [G1, G2]) and on the seeded property test (25 of 400 pairs order-dependent), while the merge, the cap, SEEN-145's figures and PINNED pass.",
+        "model": "opus",
+        "effort": "high",
+        "source": "jev",
+        "rule": null,
+        "reason": null,
+        "model_probability": 0.8,
+        "effort_probability": 0.99,
+        "model_passed": true,
+        "model_threshold": 0.5,
+        "implementer_task": "Work slice 1 of SEEN-146: Exact per-record assignment of findings, order-independent, docstrings without the residue.\n\nRun it on opus at high effort, because Jev chose it at 0.8.\nThe model is what reaches the work: in Claude Code as the per-invocation model on the seen-implementer agent, and in Codex as the model this instruction names when you spawn it. The effort is recorded, carried and reported rather than applied, on either assistant: the generated copies do not vary by slice, because a file whose content depended on the ticket in hand was wrong on a detached HEAD, after a replan and after the receipt. Neither is yours to change.\n\nPoints: 2.\nFiles: harness/calibration.py, harness/kpi.py, harness/tests/test_calibration.py, docs/tickets/SEEN-146-assign-a-later-review-s-findings-by-maximum.md\n\nIts RED must demonstrate: FindingIdentityTest fails before calibration.py changes on the crossing permutations (3 against 2 for record 2 listed [G1, G2]) and on the seeded property test (25 of 400 pairs order-dependent), while the merge, the cap, SEEN-145's figures and PINNED pass.\n\nWrite the test first and record it with:\n  python3 harness/run.py check SEEN-146 --phase red --actor <tool>:implementer --model opus -- <command>\nThen write only what turns it green and record that the same way. The `--model opus` is not optional: a subagent inherits its parent's session id, so the log records the model of the session that spawned you and not yours, and without the declaration the tdd gate compares the wrong two names. Then stop: do not start the next slice and do not advance the stage."
+      }
+    ]
+  }
+}

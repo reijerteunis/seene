@@ -1,0 +1,115 @@
+{
+  "sequence": 7,
+  "ticket": "SEEN-146",
+  "timestamp": "2026-10-02T16:41:19.337828+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "solution",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "4d7a1210a3ae",
+  "head": "acedf01355d79e9401d67db5e722fd9cabed59d3",
+  "prev_hash": "fc283df944249f59575f670d827979b8a9c3897b9f64c5e917f37a56cb2747bf",
+  "data": {
+    "from_stage": "solution",
+    "to_stage": "tdd",
+    "evidence": {
+      "mode": "code",
+      "approach": "Within each later record, `finding_identities` stops offering (anchor, finding) pairs one at a time and instead chooses the record's joins as a whole. The edges are as SEEN-145 found them: an earlier identity and a finding of this record are adjacent when some member of the identity shares a text key (normalised file, and claim or failure scenario) with the finding, and the edge carries the strongest such pair's strength under SEEN-145's ranking, (texts shared, same file reference with its line, same id). A choice gives each earlier identity at most one finding of this record and gives each finding any set of identities whose record sets are pairwise disjoint, which is the same constraint `join` already enforces, so the merge and the matching are one problem rather than two composed: a later finding taking two earlier identities that share no record is the transitive merge, chosen by the same search that places every other finding. Solved exactly per connected component of that edge graph by a depth-first search over each identity's options (one adjacent finding, or none), keeping the best by (number of joins, then summed strength field by field), and on a full tie the smallest canonical description: the sorted pairs of (identity's sorted member contents, finding's content), content being the finding serialised with sorted keys. Nothing in the choice reads a position, so identical findings are interchangeable and any others are ordered by what they say; the chosen joins are then applied with the existing union-find, the earliest node standing for the identity as today. A component whose search space, the product over its identities of (degree + 1), exceeds a fixed cap (2**16) takes a greedy join in content order instead, which is still order-independent though not guaranteed maximal; measured at solution over all 30 committed journals, the largest component space is 2, so no journal reaches the cap. Prototype measured at solution (scratchpad, not committed): every journal's identity count unchanged, the crossing case 2 in all four orders, the three-record merge 1, and over 400 record pairs drawn with seed 146 from claims {a,b,c}, scenarios {x,y,z} and lines {1,2}, 25 order-dependent under today's greedy join and 0 under the exact search. `latest_finding_records`, `escapes`, `kpi.findings` and the reports change no code.",
+      "changes": [
+        "harness/calibration.py: finding_identities builds the per-record edge map, splits it into connected components, solves each by the exact search (or the content-ordered greedy join over the cap) and applies the chosen joins; a small helper for the search. The per-record comment and the docstring lose the crossing-tie residue and say what is maximised, in what order, how the merge is part of the same choice, and what the cap does.",
+        "harness/kpi.py: the findings docstring keeps SEEN-006's R-04 residue and drops the crossing-tie sentence.",
+        "harness/tests/test_calibration.py: in FindingIdentityTest, the crossing case over every permutation of both records, the property test over seeded record pairs, the three-record merge, a component over the cap answering the same in every order, and SEEN-145's own journal at 16, 0, 0. PINNED is not edited.",
+        "docs/tickets/SEEN-146-assign-a-later-review-s-findings-by-maximum.md: Outcome, status and ticks at review, as the procedure requires."
+      ],
+      "migrations": [],
+      "tests_first": [
+        "The crossing case counts 2 in every order. `python3 -m unittest harness.tests.test_calibration.FindingIdentityTest -v`. RED: record 1 [F1 (c1, s1), F2 (c2, s2)], record 2 [G1 (c1, s2), G2 (c3, s1)], one file and line, every permutation of both records; kpi.findings sums to 3 for record 2 listed [G1, G2] where the test asserts 2 for all four (reproduced at clarify).",
+        "The count does not depend on order for two records of up to four findings. Same command. RED: 400 record pairs drawn with random.Random(146) from claims {a,b,c}, scenarios {x,y,z} and lines {1,2}, one to four findings each; for each pair the set of counts over every permutation of both records has one element. Fails today on 25 of the 400 (prototype at solution).",
+        "Guards that pass before and after: the three-record merge (F (c1, s1) in record 1, H (c2, s2) in record 2, G (c1, s2) in record 3) counts 1; a component over the cap (two records of nine identical findings, space 10**9) answers in every order the same and without a search over the space; SEEN-145's journal reports (16, 0, 0); PINNED and every existing FindingIdentityTest case unchanged and green."
+      ],
+      "slices": [
+        {
+          "name": "Exact per-record assignment of findings, order-independent, docstrings without the residue",
+          "points": 2,
+          "files": [
+            "harness/calibration.py",
+            "harness/kpi.py",
+            "harness/tests/test_calibration.py",
+            "docs/tickets/SEEN-146-assign-a-later-review-s-findings-by-maximum.md"
+          ],
+          "red": "FindingIdentityTest fails before calibration.py changes on the crossing permutations (3 against 2 for record 2 listed [G1, G2]) and on the seeded property test (25 of 400 pairs order-dependent), while the merge, the cap, SEEN-145's figures and PINNED pass."
+        }
+      ],
+      "alternatives": [
+        "A one-to-one maximum-weight matching (Hungarian, written by hand) followed by the greedy merge pass. Rejected: the merge pass is a second greedy choice with its own order dependence across three records (an identity that could merge into either of two findings, where a third identity can reach only one of them), so it moves the family of defects one record later rather than closing it, and two records cannot even show it.",
+        "Break today's ties on content instead of position and keep the greedy join. Order-independent, but the crossing case then counts 3 or 2 depending on which content sorts first, against criterion 1's 2, and it strands findings an assignment would place.",
+        "scipy.optimize.linear_sum_assignment or a hypothesis property test. Rejected at clarify: the harness is standard library only.",
+        "No cap. Rejected: a record of many identical findings makes the search space the product of (degree + 1), 10**9 for nine against nine, and kpi.findings runs inside the report and the triage; the cap keeps it bounded with a fallback that is still order-independent."
+      ],
+      "risks": [
+        "A journal's figure moves. Mitigated: PINNED and SEEN-145's own figures are asserted, and the prototype measured no movement in any of 30 journals.",
+        "The fallback over the cap is not maximal, so a pathological record could still count a finding twice. Mitigated: it is order-independent, so criterion 2's guarantee holds, no committed journal comes near it (largest space 2), and the docstring names it.",
+        "The property test is slow. Mitigated: 400 draws of at most 576 permutations each ran in about 3 seconds in the prototype with the whole journal sweep included; the draw count is a constant in the test.",
+        "The canonical tie-break on serialised content is wrong for findings whose content differs only in fields that never join (severity, status). Those findings are then ordered by those fields, which is still content and still order-independent; kpi.findings reads severity and status from the latest record only, which the choice does not change."
+      ],
+      "rollback": "Revert the commit; finding_identities returns to SEEN-145's greedy join, no record, report or kpi.json depends on the new choice, and no committed figure moves either way.",
+      "new_dependencies": [],
+      "tenant_tables": [
+        "none: the change is in the harness, which touches no table"
+      ],
+      "buyer_pii": "none",
+      "policy_gate_action": null,
+      "slice_points": 2,
+      "forecast": {
+        "available": false,
+        "observed_tickets": 6,
+        "required": 10
+      }
+    },
+    "decisions": [
+      {
+        "key": "solution_complete",
+        "question": "solution_complete",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.79,
+          "no": 0.21
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "key": "touches_billing_or_policy_gate",
+        "question": "touches_billing_or_policy_gate",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.06,
+          "no": 0.94
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

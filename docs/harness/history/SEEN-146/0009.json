@@ -1,0 +1,44 @@
+{
+  "sequence": 9,
+  "ticket": "SEEN-146",
+  "timestamp": "2026-10-02T16:41:26.470872+00:00",
+  "harness_version": "2",
+  "kind": "handoff",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "4d7a1210a3ae",
+  "head": "acedf01355d79e9401d67db5e722fd9cabed59d3",
+  "prev_hash": "325b0e6d71c999ac1def68268899bbbea155ba0786de6a9657ad6da6fa488cfc",
+  "data": {
+    "pack": ".harness-drafts/SEEN-146-handoff.md",
+    "sha256": "8bf5bc7f0a2c7e17678a535cf3e230491fe2de722a46eb0c8c030cfa2072cd1e",
+    "estimated_tokens": 985,
+    "token_limit": 2000,
+    "slice": {
+      "position": 1,
+      "total": 1,
+      "done": 0,
+      "declared": false,
+      "inferred": 0,
+      "entry": {
+        "name": "Exact per-record assignment of findings, order-independent, docstrings without the residue",
+        "points": 2,
+        "files": [
+          "harness/calibration.py",
+          "harness/kpi.py",
+          "harness/tests/test_calibration.py",
+          "docs/tickets/SEEN-146-assign-a-later-review-s-findings-by-maximum.md"
+        ],
+        "red": "FindingIdentityTest fails before calibration.py changes on the crossing permutations (3 against 2 for record 2 listed [G1, G2]) and on the seeded property test (25 of 400 pairs order-dependent), while the merge, the cap, SEEN-145's figures and PINNED pass."
+      }
+    },
+    "auto": false,
+    "figures": {
+      "session": "4d7a1210a3ae",
+      "output_tokens": 57773,
+      "tool_calls": 32,
+      "unavailable": null
+    }
+  }
+}
