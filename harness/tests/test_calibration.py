@@ -849,6 +849,23 @@ class FindingIdentityTest(unittest.TestCase):
                 self.assertEqual(calibration.finding_identities(records)[copy], (2, 0))
                 self.assertEqual(len(calibration.escapes(records)['escapes']), 1)
 
+    def test_a_match_on_both_texts_wins_where_neither_line_nor_id_agrees(self):
+        """F1 of SEEN-145's sixth review: only the texts shared can place it."""
+        high = dict(finding('F1', 'high', 'harness/a.py:1'), failure_scenario='Scenario A')
+        low = dict(finding('F2', 'low', 'harness/a.py:5'), failure_scenario='Scenario B')
+        records = [review_advance(1, [high, low], minute=20),
+                   review_advance(2, [dict(low, id='R1-2', file='harness/a.py:6')], minute=40)]
+        self.assertEqual(kpi.findings(records)['by_severity'], {'high': 1, 'low': 1})
+
+    def test_the_same_line_wins_a_tie_where_the_id_points_the_other_way(self):
+        """F2 of SEEN-145's sixth review: the SEEN-102 renumbering, line before id."""
+        high = dict(finding('F1', 'high', 'harness/a.py:1'), failure_scenario='Scenario A')
+        low = dict(finding('F2', 'low', 'harness/a.py:5'), failure_scenario='Scenario B')
+        records = [review_advance(1, [high, low], minute=20),
+                   review_advance(2, [dict(high, id='F2', failure_scenario='Reworded')],
+                                  minute=40)]
+        self.assertEqual(kpi.findings(records)['by_severity'], {'high': 1, 'low': 1})
+
     def test_kpi_findings_says_what_the_count_rests_on_and_what_it_leaves(self):
         """Criterion 4, and F1 of SEEN-145's fifth review: the residues are named."""
         said = ' '.join(kpi.findings.__doc__.split())
