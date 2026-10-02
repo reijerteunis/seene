@@ -1,0 +1,121 @@
+{
+  "sequence": 72,
+  "ticket": "SEEN-145",
+  "timestamp": "2026-10-02T16:08:27.234769+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "review",
+  "attempt": 7,
+  "actor": "claude:reviewer",
+  "session": "55e134c11377",
+  "head": "d41650950fce4ae92b02e847e7f01e74002b371c",
+  "prev_hash": "0e0ebb89d1c44e78736acfb290415cf0a5c850dea4f6752fdd07b4cfee5768b7",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "deliver",
+    "evidence": {
+      "reviewer": "claude:reviewer",
+      "independence": "subagent",
+      "reviewer_session": "SEEN-145-review-round-7-subagent",
+      "read": [
+        "docs/tickets/SEEN-145-count-a-review-finding-once-however-the.md",
+        "docs/harness/history/SEEN-145/ (records 1 to 71; full text of 2, 5, 9, 36, 44, 55, 63, 64, 66, 67, 70, 71, summaries of the rest)",
+        "CLAUDE.md",
+        "docs/tickets/README.md",
+        "docs/tickets/SEEN-146-assign-a-later-review-s-findings-by-maximum.md",
+        "harness/calibration.py",
+        "harness/kpi.py",
+        "harness/tests/test_calibration.py",
+        "docs/harness/reports/sprint-0.md (rows for SEEN-006, SEEN-102, SEEN-107 only)"
+      ],
+      "acceptance_evidence": [
+        "Criterion 1 (different ids, one finding): test_two_review_advances_naming_one_finding_differently_count_it_once, RED record 11 (2 != 1), green through record 67",
+        "Criterion 2 (SEEN-107 reports 26, read from its committed journal): test_seen_107_s_committed_journal_reports_its_real_twenty_six, RED record 11 (45 != 26), green record 67",
+        "Criterion 3 as amended (only SEEN-107 and SEEN-102 move, every journal present): the PINNED table covers all 29 journals present at clarify, and only SEEN-145's own journal has been added since; RED record 11, green record 67; escape and unattributable counts unchanged (note 5)",
+        "Criterion 4 (kpi.findings says what the count rests on; the reports carry the corrected figure): the kpi.findings docstring, pinned by test_kpi_findings_says_what_the_count_rests_on_and_what_it_leaves (RED 57, GREEN 58); the reports were regenerated with no byte changed (note 49), and sprint-0.md shows SEEN-102 at 4 and SEEN-107 at 26; the edits after record 48 touch only docstrings and tests"
+      ],
+      "findings": [
+        {
+          "id": "F1",
+          "severity": "low",
+          "file": "docs/tickets/README.md",
+          "claim": "CLAUDE.md, docs/tickets/README.md and the SEEN-146 ticket file are changed but named by no slice and no changes entry, so slice_files fails again; they hold the ticket's status row and SEEN-146's index rows, added on Ruud's decision at note 55.",
+          "failure_scenario": "slice_files fails, so the triage cannot narrow this review and sends it to full depth, as triage record 71 did; no figure is wrong.",
+          "status": "resolved",
+          "resolution": "Accepted: CLAUDE.md, docs/tickets/README.md and the SEEN-146 ticket file hold this ticket's status row and SEEN-146's index rows, written on Ruud's decision at note 55; the procedure requires the status mirror. No figure is affected.",
+          "rule_candidate": "none: low severity"
+        },
+        {
+          "id": "F2",
+          "severity": "low",
+          "file": "docs/harness/history/SEEN-145/0066.json",
+          "claim": "RED record 66 was run with both rules removed at once, so the record alone does not show that each new test fails on its own rule's removal, which is what the round-6 findings asked for.",
+          "failure_scenario": "Had one test needed both rules removed to fail, record 66 would look exactly the same; running each removal on its own in a scratch copy shows each test does fail on its own rule, so nothing is wrong today, but the journal does not prove it.",
+          "status": "resolved",
+          "resolution": "Accepted: the round-7 reviewer removed each rule on its own in a scratch copy of harness/ and each new test failed on its own rule's removal ({'low': 2} without the shared-texts ranking, {'high': 2} without the same-line comparison); record 66's failure_reason in tdd record 70 states that both rules were removed together.",
+          "rule_candidate": "none: low severity"
+        }
+      ],
+      "checks": [
+        "Ran FindingIdentityTest against a scratch copy of harness/ three times, each with one part of the sort key removed (texts shared, same line, same id); each removal failed its own dedicated fixture test",
+        "Traced the SEEN-146 example by hand through the current sort: 3 when listed [G1, G2], 2 when listed [G2, G1], as the ticket states",
+        "Searched the added lines in the diff for em dash, en dash and the euro sign: none found"
+      ],
+      "verdict": "pass",
+      "security_checklist": [
+        "No secret in the diff: gitleaks ran in the pre-commit hook on every commit of this branch and reported no leaks.",
+        "No credential, network call, subprocess or file write is added: the change is a pure function over journal records already read (harness/calibration.py), a docstring (harness/kpi.py), tests, and documentation.",
+        "No product code, tenant table, buyer PII or agent action is touched; changes_agent_action is false and the solution record answered no to billing and the policy gate."
+      ],
+      "tree": "30e62c61831f25ee02a6c7d948b7496d2566d76e75ca4df337532f8f56c6140e"
+    },
+    "decisions": [
+      {
+        "key": "severity",
+        "question": "severity",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high",
+          "blocking"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "medium",
+        "probabilities": {
+          "low": 0.29,
+          "medium": 0.67,
+          "high": 0.03,
+          "blocking": 0.01
+        },
+        "confidence": 0.66,
+        "score": 0.77,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      },
+      {
+        "key": "must_fix",
+        "question": "must_fix",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.21,
+          "no": 0.79
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.7,
+        "passed": false,
+        "fallback_reason": null
+      }
+    ]
+  }
+}
