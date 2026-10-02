@@ -1,0 +1,80 @@
+{
+  "ticket": "SEEN-145",
+  "delivered_at": "2026-10-02T16:24:14.717551+00:00",
+  "points": null,
+  "cycle_time_seconds": 32932,
+  "stage_seconds": {
+    "clarify": 2331,
+    "solution": 103,
+    "tdd": 14763,
+    "review": 14786,
+    "deliver": 947
+  },
+  "attempts": 7,
+  "rework": 6,
+  "red_before_green": true,
+  "coverage": {
+    "package": "@seen/core",
+    "lines": 100.0,
+    "delta": 0.0
+  },
+  "findings": {
+    "by_severity": {
+      "low": 10,
+      "medium": 6
+    },
+    "fixed": 16,
+    "waived": 0
+  },
+  "first_pass_ci": true,
+  "tokens": null,
+  "cost": null,
+  "escaped_defects": [],
+  "slices": {
+    "planned": 1,
+    "proven": 7
+  },
+  "sessions": 2,
+  "subagents": {
+    "briefs": 0,
+    "agents": [],
+    "review": "subagent",
+    "both": false
+  },
+  "review_triage": {
+    "record": 71,
+    "depth": "full",
+    "model_depth": "spot",
+    "shadow": true,
+    "asked": true,
+    "rules": [
+      "slice_files did not pass, so the reviewer reads everything: Changed but named by no slice and no changes entry: CLAUDE.md, docs/tickets/README.md, docs/tickets/SEEN-146-assign-a-later-review-s-findings-by-maximum.md"
+    ],
+    "files": 7,
+    "focus": 7,
+    "excluded": 6,
+    "excluded_share": 0.7446,
+    "reviewer_output_tokens": null,
+    "reviewer_tokens": null
+  },
+  "execution": [
+    {
+      "position": 1,
+      "name": "Finding identity by content, pinned on every journal, reports regenerated",
+      "points": 1,
+      "model": "opus",
+      "effort": "high",
+      "source": "jev",
+      "rule": null,
+      "ran_on": null,
+      "ran_on_tier": null,
+      "output_tokens": 7282,
+      "cost_cents": null,
+      "routed_cost_cents": 55,
+      "cost_basis": "output tokens only, at the price of the model the slice ran on: a handoff record carries the session's output tokens and tool calls and nothing about input. routed_cost_cents prices the same tokens at the model the route chose, which in shadow is a counterfactual and not a cost"
+    }
+  ],
+  "output_tokens_per_slice": null,
+  "harness_version": "2",
+  "note": null
+}

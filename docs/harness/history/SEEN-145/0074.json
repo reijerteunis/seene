@@ -1,0 +1,63 @@
+{
+  "sequence": 74,
+  "ticket": "SEEN-145",
+  "timestamp": "2026-10-02T16:24:14.717551+00:00",
+  "harness_version": "2",
+  "kind": "receipt",
+  "stage": "deliver",
+  "attempt": 7,
+  "actor": "claude:implementer",
+  "session": "55e134c11377",
+  "head": "39018b03aa8a2df9366450dc5da9954f70ea80e7",
+  "prev_hash": "5860ed943740e2c24e43b585f1da74cc2c0b7cf2cfe3baedaf6b280efbec2b01",
+  "data": {
+    "from_stage": "deliver",
+    "to_stage": "delivered",
+    "commit": "39018b03aa8a2df9366450dc5da9954f70ea80e7",
+    "branch": "claude/SEEN-145-count-finding-once",
+    "remote": "origin",
+    "tree": "30e62c61831f25ee02a6c7d948b7496d2566d76e75ca4df337532f8f56c6140e",
+    "pull_request": "https://github.com/reijerteunis/seene/pull/41",
+    "limits": [
+      "Delivered kpi.json files of earlier tickets (SEEN-107's, SEEN-102's) are not rewritten; the reports recompute from the journals (note 5).",
+      "Two residues remain in the count: a finding reworded in every field between rounds (SEEN-006's R-04, 6 where a reader says 5), and the crossing tie of review round 5, where the order of a list can move the count; SEEN-146 replaces the greedy join to close the second.",
+      "The ticket's Outcome describes review rounds 1 to 5; rounds 6 and 7 are recorded in the journal (records 63 to 72) and not in the Outcome, which was left unedited so the reviewed tree stayed the delivered one."
+    ],
+    "evidence": {
+      "remote": "origin",
+      "pull_request": "https://github.com/reijerteunis/seene/pull/41",
+      "limits": [
+        "Delivered kpi.json files of earlier tickets (SEEN-107's, SEEN-102's) are not rewritten; the reports recompute from the journals (note 5).",
+        "Two residues remain in the count: a finding reworded in every field between rounds (SEEN-006's R-04, 6 where a reader says 5), and the crossing tie of review round 5, where the order of a list can move the count; SEEN-146 replaces the greedy join to close the second.",
+        "The ticket's Outcome describes review rounds 1 to 5; rounds 6 and 7 are recorded in the journal (records 63 to 72) and not in the Outcome, which was left unedited so the reviewed tree stayed the delivered one."
+      ]
+    },
+    "checks": [
+      {
+        "name": "Harness tests (Python 3.12)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Knowledge graph",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Monorepo (Node 24)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Secrets and supply chain",
+        "conclusion": "success",
+        "runs": 1
+      }
+    ],
+    "coverage": {
+      "package": "@seen/core",
+      "lines": 100.0,
+      "delta": 0.0
+    }
+  }
+}
