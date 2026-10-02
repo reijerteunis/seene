@@ -15,6 +15,8 @@ threshold's true with a stay-shadow verdict, so an escape puts the next triage
 back in shadow with nothing edited and no race between a report and a rule.
 """
 
+import json
+import math
 import re
 
 from . import journal, report
@@ -28,6 +30,14 @@ ESCAPING_SEVERITIES = ('high', 'blocking')
 
 # The tail of a finding's reference: a line, a hunk, or a line and a column.
 LINE_REFERENCE = re.compile(r'\d+(-\d+)?')
+
+# The most choices `finding_identities` searches for one component of a record's
+# matches: the product over the component's earlier identities of the findings
+# each could take, plus one for taking none. Measured over every committed
+# journal at SEEN-146's solution the largest was 2. The cap is for a record of
+# many findings that all say one thing, nine against nine making 10**9, which
+# would stall the report and the triage that read the count.
+SEARCH_CAP = 2 ** 16
 
 
 def journals(root):
@@ -292,13 +302,43 @@ def finding_identities(records):
     at the same line and then the one under the same id takes it, which orders
     the matches the content found and finds none of its own.
 
+    A later record's joins are chosen as a whole, never one pair at a time. An
+    earlier identity and a finding of the record match when some member of the
+    identity shares a text with the finding, and the match is as strong as the
+    strongest such pair under SEEN-145's ranking: the texts shared, then the
+    same file reference with its line, then the same id. Of every way to give
+    each identity at most one finding of the record, the one taken has first
+    the number of joins largest, because each join is one finding fewer in the
+    count; then the summed strength of those joins largest, compared field by
+    field in that ranking; and then, where two choices still tie, the one whose
+    pairs come first in order of what they say, each finding serialised with
+    its keys sorted, and never position. Findings that say exactly the same are
+    interchangeable and any others are ordered by their content, so the order
+    a reviewer listed either record in moves no count. A finding may take more
+    than one identity where none of them shares a record with it or with each
+    other, which is the refusal `join` makes, and that is the transitive merge,
+    chosen by the same search as every other join rather than by a second pass
+    after it: a merge applied greedily after a matching would have moved the
+    order dependence one record later instead of closing it. SEEN-146, after
+    the crossing tie of SEEN-145's fifth review, where a later finding's claim
+    matched one earlier finding and its scenario another and the order of a
+    list moved the count between 3 and 2.
+
+    The search is exact over each connected component of what the record
+    matched. A component whose choices, the product over its identities of the
+    findings each could take plus one, number more than SEARCH_CAP takes a
+    greedy join instead, strongest first and then by content. That reads no
+    position either, so the count still does not move with the order of a list,
+    but it is not guaranteed to place every finding a search would; no
+    committed journal comes near it.
+
     A finding with neither a claim nor a failure scenario falls back to its id
     and its file, and only then. The review gate refuses such a finding
     (gates.check_findings, FINDING_KEYS) and no committed journal holds one, so
     the fallback reaches only records the gate never accepted, such as a test
     fixture that names its findings and says nothing else about them.
     """
-    parent, saying, sequences, named = {}, {}, {}, {}
+    parent, saying, sequences, named, contents = {}, {}, {}, {}, {}
 
     def root(node):
         while parent[node] != node:
@@ -317,12 +357,22 @@ def finding_identities(records):
         low, high = sorted((one, other))
         parent[high] = low
         sequences[low] |= sequences.pop(high)
+        contents[low] += contents.pop(high)
+
+    def described(side):
+        # What an identity or a finding says, which is the only order the
+        # choice puts anything in: an identity by its members' contents and
+        # the records holding them, a finding by its own content.
+        if side in options:
+            return tuple(sorted(contents[side])), tuple(sorted(sequences[side]))
+        return contents[side][0]
 
     for record in records:
         texts = {}
         for position, finding in enumerate(_review_findings(record)):
             node = (record['sequence'], position)
             parent[node], sequences[node] = node, {record['sequence']}
+            contents[node] = [json.dumps(finding, sort_keys=True)]
             named[node] = (finding.get('file'), finding.get('id'))
             path = path_of(finding.get('file'))
             said = [(field, finding.get(field)) for field in ('claim', 'failure_scenario')
@@ -331,39 +381,103 @@ def finding_identities(records):
                 said = [('id', finding['id'])]
             texts[node] = [(path, field, text) for field, text in said]
         # Every pair of a finding in this record and an earlier finding it shares
-        # a text with, joined strongest first across the whole record, so the
-        # order a reviewer listed findings in decides only a tie: the pairs sharing
-        # more texts first, then among equals the one at the same file reference,
-        # line included, then the one under the same id, then the earlier anchor
-        # and the earlier position. Every pair is offered and each join that is
-        # not refused is made, which keeps the join transitive; a refusal is
-        # what lets the order decide which of two anchors of one record takes a
-        # finding. The order only ranks pairs the content found, so the id never
-        # makes two findings one. Position is the last resort and not nothing:
-        # where a later finding's claim matches one anchor and its scenario
-        # another and every pair ties, the greedy pass can strand a finding a
-        # better assignment would place, and the order of a list moves the count
-        # (F1 of the fifth review, left as a residue by Ruud; SEEN-146 replaces
-        # the greedy pass with a maximum assignment). Each step is a review of SEEN-145: one anchor
-        # per text left the second of two alike findings of one record
-        # unreachable (first); journal order let a claim-only match take a
-        # finding that matched another on both texts (second) and broke a tie
-        # between two claim-only matches (third); and taking one finding at a
-        # time let a weak match listed earlier take the anchor an exact copy
-        # listed later needed (fourth).
+        # a text with, and how many texts it shares. Each review of SEEN-145 is
+        # still here, as what the choice maximises rather than as an order of
+        # offering pairs: one anchor per text left the second of two alike
+        # findings of one record unreachable (first); journal order let a
+        # claim-only match take a finding that matched another on both texts
+        # (second) and broke a tie between two claim-only matches (third); and
+        # taking one finding at a time let a weak match listed earlier take the
+        # anchor an exact copy listed later needed (fourth).
         shared = {}
         for node, keys in texts.items():
             for key in keys:
                 for anchor in saying.get(key, ()):
                     shared[(anchor, node)] = shared.get((anchor, node), 0) + 1
-        for anchor, node in sorted(shared, key=lambda pair: (
-                -shared[pair], named[pair[0]][0] != named[pair[1]][0],
-                named[pair[0]][1] != named[pair[1]][1], pair[0], pair[1])):
-            join(anchor, node)
+        # Each earlier identity and the findings of this record it matched,
+        # at the strength of the strongest pair between them.
+        options = {}
+        for (anchor, node), count in shared.items():
+            strength = (count, named[anchor][0] == named[node][0],
+                        named[anchor][1] == named[node][1])
+            matched = options.setdefault(root(anchor), {})
+            matched[node] = max(matched.get(node, strength), strength)
+        # Identities reaching one finding are one problem, and identities that
+        # share no finding with any of them are another, solved alone.
+        reached = {}
+        for identity, matched in options.items():
+            for node in matched:
+                reached.setdefault(node, []).append(identity)
+        placed, chosen = set(), []
+        for start in options:
+            if start in placed:
+                continue
+            component, stack = [], [start]
+            while stack:
+                identity = stack.pop()
+                if identity not in placed:
+                    placed.add(identity)
+                    component.append(identity)
+                    for node in options[identity]:
+                        stack.extend(reached[node])
+            chosen += _best_joins(component, options, sequences, described)
+        for identity, node in chosen:
+            join(identity, node)
         for node, keys in texts.items():
             for key in keys:
                 saying.setdefault(key, []).append(node)
     return {node: root(node) for node in parent}
+
+
+def _best_joins(component, options, sequences, described):
+    """The joins one record makes with one component of the identities it matched.
+
+    `options` maps each identity to the findings of the record it matched, each
+    at the strength of its strongest pair; `sequences` the records each side
+    holds; `described` what a side says, which is the only order anything here
+    is put in. An identity takes at most one finding, and a finding takes only
+    identities sharing no record with it or with each other, which is the
+    refusal `join` makes. What is maximised, and why, is finding_identities'.
+    """
+    order = sorted(component, key=described)
+    holds = {node: set(sequences[node]) for identity in order for node in options[identity]}
+    if math.prod(len(options[identity]) + 1 for identity in order) > SEARCH_CAP:
+        # Too many choices to try: the strongest pairs first and among equals
+        # the first by what the two sides say, each made unless refused.
+        taken = {}
+        for identity, node in sorted(
+                ((identity, node) for identity in order for node in options[identity]),
+                key=lambda pair: (tuple(-field for field in options[pair[0]][pair[1]]),
+                                  described(pair[0]), described(pair[1]))):
+            if identity not in taken and not holds[node] & sequences[identity]:
+                taken[identity] = node
+                holds[node] |= sequences[identity]
+        return list(taken.items())
+    taken, best = {}, None
+
+    def search(index):
+        nonlocal best
+        if index == len(order):
+            strengths = [options[identity][node] for identity, node in taken.items()]
+            score = (len(taken), tuple(sum(field) for field in zip(*strengths)))
+            said = sorted((described(identity), described(node))
+                          for identity, node in taken.items())
+            if best is None or score > best[0] or (score == best[0] and said < best[1]):
+                best = (score, said, list(taken.items()))
+            return
+        identity = order[index]
+        for node in sorted(options[identity], key=described):
+            if not holds[node] & sequences[identity]:
+                taken[identity] = node
+                holds[node] |= sequences[identity]
+                search(index + 1)
+                holds[node] -= sequences[identity]
+                del taken[identity]
+        # And the choice where this identity takes nothing from the record.
+        search(index + 1)
+
+    search(0)
+    return best[2]
 
 
 def latest_finding_records(records):

@@ -470,13 +470,10 @@ def findings(records):
     the line and the id only break a tie between two findings that matched.
     The id was part of the key until SEEN-145, and a session renaming its
     findings between rounds counted SEEN-107 at 45 against a real 26 and
-    SEEN-102 at 7 against a real 4. Two residues remain. The first is a finding
-    reworded in every field between rounds: SEEN-006's R-04 is one, and
-    SEEN-006 stays at 6 where a reader says 5, because joining on a similarity
-    of wording would make the figure rest on a threshold a session could tune. The second is a crossing
-    tie: a later finding whose claim matches one earlier finding and whose
-    scenario matches another, every pair tying, where the order of a list can
-    move the count; SEEN-146 replaces the greedy join that leaves it.
+    SEEN-102 at 7 against a real 4. One residue remains: a finding reworded in
+    every field between rounds. SEEN-006's R-04 is one, and SEEN-006 stays at 6
+    where a reader says 5, because joining on a similarity of wording would make
+    the figure rest on a threshold a session could tune.
     """
     from . import calibration
     # Where a ticket got to after each finding was written. A finding the
