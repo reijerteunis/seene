@@ -12,7 +12,7 @@ import re
 import tempfile
 import unittest
 
-from harness import calibration, gates, journal as journal_module, paths, report, thresholds
+from harness import calibration, gates, journal as journal_module, kpi, paths, report, thresholds
 from harness.errors import HarnessError
 from harness.tests.helpers import PROJECT, ProjectTest
 from harness.tests.test_delivery import DeliveryWalk
@@ -710,6 +710,95 @@ class SecondReviewTest(ProjectTest):
         records = journal(triage=['harness/skipped.py'],
                           returned_findings=[finding('F1', 'blocking', 'harness/skipped.py:2')],
                           findings=[finding('F1', 'high', 'harness/other.py:9')])
+        self.assertEqual(len(calibration.latest_findings(records)), 2)
+
+
+class FindingIdentityTest(unittest.TestCase):
+    """SEEN-145: a finding is what it says and where, never what it is called.
+
+    SEEN-107's journal carried nineteen findings as F1, G1 and so on in one
+    review advance and all twenty-six as R1-1, R2-1 and so on in the next, and
+    the id in the key counted forty-five. SEEN-102's second review renumbered
+    F1 to F3 as F2 to F4 and counted seven against a real four.
+    """
+
+    def test_two_review_advances_naming_one_finding_differently_count_it_once(self):
+        """Criterion 1: the records differ only in the identifiers."""
+        first = finding('F1', 'high', 'harness/a.py:3')
+        records = [review_advance(1, [first], minute=20),
+                   review_advance(2, [dict(first, id='R1-1')], minute=40)]
+        self.assertEqual(sum(kpi.findings(records)['by_severity'].values()), 1)
+
+    def test_a_reworded_claim_whose_failure_scenario_was_carried_is_one_finding(self):
+        """SEEN-107's G1, written again as R2-1 with its claim reworded."""
+        first = finding('G1', 'medium', 'harness/a.py:3')
+        records = [review_advance(1, [first], minute=20),
+                   review_advance(2, [dict(first, id='R2-1', claim='It breaks, reworded')],
+                                  minute=40)]
+        self.assertEqual(len(calibration.latest_findings(records)), 1)
+
+    def test_seen_107_s_committed_journal_reports_its_real_twenty_six(self):
+        """Criterion 2, read from the journal SEEN-107 delivered, not a constructed one."""
+        records = journal_module.read(PROJECT / 'docs' / 'harness' / 'history' / 'SEEN-107')
+        self.assertEqual(sum(kpi.findings(records)['by_severity'].values()), 26)
+
+    # Every journal present at SEEN-145's clarify: its finding total, and its
+    # escapes and unattributable counts, which identity by content must not move.
+    PINNED = {
+        'SEEN-006': (6, 0, 2), 'SEEN-008': (86, 0, 4), 'SEEN-087': (5, 0, 2),
+        'SEEN-088': (9, 0, 5), 'SEEN-089': (4, 0, 1), 'SEEN-090': (9, 0, 4),
+        'SEEN-091': (6, 0, 2), 'SEEN-092': (3, 0, 0), 'SEEN-093': (2, 0, 0),
+        'SEEN-094': (4, 0, 1), 'SEEN-095': (3, 0, 2), 'SEEN-096': (3, 0, 1),
+        'SEEN-097': (8, 0, 4), 'SEEN-098': (4, 0, 2), 'SEEN-099': (2, 0, 1),
+        'SEEN-100': (3, 0, 0), 'SEEN-101': (3, 0, 1), 'SEEN-102': (4, 0, 1),
+        'SEEN-103': (3, 0, 1), 'SEEN-104': (7, 0, 1), 'SEEN-105': (26, 0, 7),
+        'SEEN-106': (20, 0, 1), 'SEEN-107': (26, 0, 9), 'SEEN-108': (5, 0, 14),
+        'SEEN-109': (26, 0, 3), 'SEEN-111': (2, 1, 0), 'SEEN-113': (21, 2, 0),
+        'SEEN-114': (34, 0, 0), 'SEEN-140': (8, 2, 0),
+    }
+
+    def test_every_journal_pinned_at_clarify_reports_its_pinned_figures(self):
+        """Criterion 3, as amended: only SEEN-107 and SEEN-102 move.
+
+        The table is iterated, not whatever folders exist: a journal created
+        after SEEN-145 is not pinned here, and one of these that is reopened
+        changes its figure legitimately and fails under its own name.
+        """
+        for ticket, pinned in self.PINNED.items():
+            with self.subTest(ticket=ticket):
+                records = journal_module.read(PROJECT / 'docs' / 'harness' / 'history' / ticket)
+                found = calibration.escapes(records)
+                self.assertEqual((sum(kpi.findings(records)['by_severity'].values()),
+                                  len(found['escapes']), len(found['unattributable'])), pinned)
+
+    def test_two_findings_sharing_only_an_id_are_two(self):
+        """The id collision across rounds that SEEN-109 and SEEN-113 carry."""
+        first = finding('F1', 'high', 'harness/a.py:3')
+        records = [review_advance(1, [first], minute=20),
+                   review_advance(2, [dict(first, claim='Something else',
+                                           failure_scenario='Another way',
+                                           file='harness/b.py:9')], minute=40)]
+        self.assertEqual(len(calibration.latest_findings(records)), 2)
+
+    def test_two_findings_saying_nothing_are_not_merged(self):
+        silent = {key: value for key, value in finding('F1', 'medium', 'harness/a.py:3').items()
+                  if key not in ('claim', 'failure_scenario')}
+        records = [review_advance(1, [silent], minute=20),
+                   review_advance(2, [dict(silent, id='F2')], minute=40)]
+        self.assertEqual(len(calibration.latest_findings(records)), 2)
+
+    def test_two_findings_saying_nothing_under_one_id_in_two_records_are_one(self):
+        """Only a record the gate never accepted says nothing; the id is all it has."""
+        silent = {key: value for key, value in finding('F1', 'medium', 'harness/a.py:3').items()
+                  if key not in ('claim', 'failure_scenario')}
+        records = [review_advance(1, [silent], minute=20),
+                   review_advance(2, [dict(silent)], minute=40)]
+        self.assertEqual(len(calibration.latest_findings(records)), 1)
+
+    def test_two_findings_saying_the_same_in_one_record_are_two(self):
+        """A reviewer listing two findings in one record has declared them two."""
+        records = [review_advance(1, [finding('F1', 'high', 'harness/a.py:1'),
+                                      finding('F2', 'medium', 'harness/a.py:2')])]
         self.assertEqual(len(calibration.latest_findings(records)), 2)
 
 

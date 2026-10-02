@@ -462,6 +462,17 @@ def findings(records):
     commit. The old justification, that a returned ticket lists its findings
     again, was a convention three tickets happened to keep and no gate requires.
     F2 of SEEN-109's fifth review.
+
+    A finding written in more than one round is counted once, at the record
+    that last carried it. What makes two findings one is what they say and
+    where, never what they are called: the same file, and the same claim or the
+    same failure scenario, joined transitively by calibration.finding_identities.
+    The id was part of the key until SEEN-145, and a session renaming its
+    findings between rounds counted SEEN-107 at 45 against a real 26 and
+    SEEN-102 at 7 against a real 4. The residue is a finding reworded in every
+    field between rounds: SEEN-006's R-04 is one, and SEEN-006 stays at 6 where
+    a reader says 5, because joining on a similarity of wording would make the
+    figure rest on a threshold a session could tune.
     """
     from . import calibration
     # Where a ticket got to after each finding was written. A finding the
