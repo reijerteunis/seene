@@ -1,0 +1,22 @@
+{
+  "sequence": 13,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-02T20:09:33.647082+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "84d3ecfa6fc1",
+  "head": "e3a6cdadb591bb6bca4ab22160501147ef6a682b",
+  "prev_hash": "be8a2748d50b4ac039cf3914fb8024ec80c1977301a2952a58f0539a61c26c46",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "solution",
+    "to_attempt": 2,
+    "reason": "Slice 1 regression (record 12) failed for two causes the slice plan did not anticipate: vitest projects ignore --dir, so test:unit now also runs packages/core/db tests (and Stryker's vitest.dir may not restrict the product run to src); and db/authorities.test.ts refuses the fixture's @fast-check/vitest import because IMPORTS_THAT_CANNOT_READ in packages/core/db/repository.ts does not list it. The fix needs packages/core/db/repository.ts, which no slice names, and slice 1's files are now refused by the guard. Amend slice 1 to name repository.ts and split vitest into unit, db and fixtures projects selected by name.",
+    "findings": [],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}

@@ -154,6 +154,17 @@ const IMPORTS_THAT_CANNOT_READ: Record<string, string> = {
     'the test runner, imported by every test file here, whose module loaders are named ' +
     'at readingImportsOf rather than admitted by this entry',
   'vitest/config': "the runner's configuration type, read by vitest.config.ts",
+  // Property-based testing, SEEN-116. fast-check generates values, shrinks a
+  // failing one and replays a seed: it computes and opens nothing, and neither
+  // module imports anything that can read a file. @fast-check/vitest is vitest's
+  // own `test` and `it` with `.prop` added and `fc` re-exported, built on vitest
+  // and vitest/suite; it hands out no module loader of its own, so what it can
+  // reach is what the `vitest` entry above already admits and pays for at
+  // readingImportsOf, and a `vi` imported beside it is judged there the same way.
+  'fast-check': 'property-based value generation, shrinking and seeded replay, which opens nothing',
+  '@fast-check/vitest':
+    "vitest's test and it with .prop added and fast-check re-exported; it hands out no " +
+    'module loader beyond what the vitest entry admits',
   // The Postgres client. It reaches a socket rather than the working tree for
   // everything a test here asks of it, so a fact it brings back is a fact about
   // the database, which is what every guard here is comparing against an

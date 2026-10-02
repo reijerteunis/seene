@@ -11,9 +11,13 @@
  */
 import product from './stryker.config.mjs';
 
+// The fixtures project rather than the product's `unit`, which the import above
+// has just named: an import is evaluated first, so this assignment is the one
+// Stryker's workers inherit.
+process.env.SEEN_VITEST_PROJECT = 'fixtures';
+
 export default {
   ...product,
-  vitest: { ...product.vitest, dir: 'fixtures' },
   tsconfigFile: 'fixtures/tolerance/tsconfig.json',
   mutate: ['fixtures/tolerance/detector.ts'],
   jsonReporter: { fileName: 'reports/mutation/fixture.json' },

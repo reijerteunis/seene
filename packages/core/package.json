@@ -17,14 +17,15 @@
     "test:unit is the database-free path, for a machine with no stack running; test:db is the",
     "db half on its own. Neither is a substitute for test: a tenancy guard that only runs when",
     "somebody types the filter command by hand guards nothing.",
-    "All three run the `core` vitest project. test:fixtures runs the `fixtures` project, the",
-    "seeded-bug detector SEEN-116 proves the property and mutation machinery on; it is not",
-    "product code, so it is never part of test, test:unit or the coverage figure."
+    "Each selects vitest projects by name (unit is src/, db is db/), because vitest ignores --dir",
+    "once a config has projects. test:fixtures runs the fixtures project, the seeded-bug detector",
+    "SEEN-116 proves the property and mutation machinery on; it is not product code, so it is",
+    "never part of test, test:unit or the coverage figure."
   ],
   "scripts": {
-    "test": "vitest run --project core",
-    "test:unit": "vitest run --project core --dir src",
-    "test:db": "vitest run --project core --dir db",
+    "test": "vitest run --project unit --project db",
+    "test:unit": "vitest run --project unit",
+    "test:db": "vitest run --project db",
     "test:fixtures": "vitest run --project fixtures",
     "mutation": "stryker run stryker.config.mjs",
     "mutation:fixture": "stryker run stryker.fixture.config.mjs",

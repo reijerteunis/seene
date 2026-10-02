@@ -2,10 +2,10 @@
  * Mutation testing of the money core, SEEN-116.
  *
  * Stryker mutates the product code under src/ and runs the database-free tests
- * against every mutant: vitest's `core` project limited to src/, the test:unit
- * path. db/ is left out on purpose (SEEN-116 clarify, record 6): its tests need
- * the local Supabase stack and hold no money arithmetic, and a mutant waiting on
- * Postgres is a CI job tied to docker for nothing.
+ * against every mutant: vitest's `unit` project, the test:unit path. db/ is
+ * left out on purpose (SEEN-116 clarify, record 6): its tests need the local
+ * Supabase stack and hold no money arithmetic, and a mutant waiting on Postgres
+ * is a CI job tied to docker for nothing.
  *
  * The floor is not here. Stryker's own `thresholds.break` would make the gate a
  * number the harness cannot read, so Stryker only writes the JSON report and the
@@ -16,6 +16,12 @@
  * with the files a pull request changed; incrementalFile is where the previous
  * run's results are kept between those runs.
  */
+// The vitest project every mutant is tested by. The vitest runner passes no
+// project filter and its `dir` option is ignored once vitest.config.ts has
+// projects, so vitest.config.ts reads this and Stryker's workers inherit it:
+// `unit` is src/ and never db/, whose tests need the local Supabase stack.
+process.env.SEEN_VITEST_PROJECT = 'unit';
+
 export default {
   packageManager: 'pnpm',
   // Named rather than discovered. Stryker's default looks for @stryker-mutator/*
@@ -23,7 +29,7 @@ export default {
   // dependencies, so neither plugin is found there.
   plugins: ['@stryker-mutator/vitest-runner', '@stryker-mutator/typescript-checker'],
   testRunner: 'vitest',
-  vitest: { configFile: 'vitest.config.ts', dir: 'src' },
+  vitest: { configFile: 'vitest.config.ts' },
   checkers: ['typescript'],
   tsconfigFile: 'tsconfig.json',
   mutate: ['src/**/*.ts', '!src/**/*.test.ts'],
