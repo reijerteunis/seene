@@ -10,7 +10,7 @@ estimate: 5
 executor: claude-code
 changes_agent_action: false
 marketplaces: [bol, amazon, ebay]
-depends_on: [SEEN-017, SEEN-018]
+depends_on: [SEEN-017, SEEN-018, SEEN-116]
 status: todo
 ---
 # SEEN-019: Implement fee detectors as pure tested functions
@@ -35,6 +35,7 @@ Add packages/core/detectors with four pure functions over matched settlement lin
 - [ ] Commission overcharge raises only when the charged rate exceeds the expected rate by more than 0.1 percentage points and EUR 0.05
 - [ ] Duplicate charge detects two settlement lines with the same type, order line and amount within 90 days
 - [ ] Detectors are deterministic: the same input yields identical findings on 100 repeated runs
+- [ ] A fast-check property, named after its invariant, shows that each fee detector never raises inside its tolerance and always raises outside it
 
 ## Slices
 
@@ -48,6 +49,7 @@ The starting slice plan, one session each; the solution stage adopts or amends i
 
 - [SEEN-017](SEEN-017-compute-fee-expectations-per-order-line-from.md): Compute fee_expectations per order line from schedules and APIs
 - [SEEN-018](SEEN-018-match-settlement-lines-to-order-lines.md): Match settlement_lines to order_lines deterministically
+- [SEEN-116](SEEN-116-property-based-and-mutation-tests-on-the-money.md): Property-based and mutation tests on the money core, as a gate
 
 ## Blocks
 

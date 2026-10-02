@@ -10,7 +10,7 @@ estimate: 5
 executor: claude-code
 changes_agent_action: false
 marketplaces: [bol, amazon]
-depends_on: [SEEN-011, SEEN-014, SEEN-016]
+depends_on: [SEEN-011, SEEN-014, SEEN-016, SEEN-116]
 status: todo
 ---
 # SEEN-017: Compute fee_expectations per order line from schedules and APIs
@@ -35,6 +35,7 @@ Add a reconcile-stage worker in apps/worker that writes one fee_expectations row
 - [ ] For Bol the expected commission equals the Commissions API value for the EAN on the order date in 100% of a 50-line sample
 - [ ] Each fee_expectations row records source (commissions_api, fee_report or schedule) and the schedule version
 - [ ] Re-running the worker changes zero existing rows when inputs are unchanged
+- [ ] A fast-check property, named after its invariant, shows that the fee expectation for an order line is deterministic and never exceeds the gross line amount
 
 ## Slices
 
@@ -49,6 +50,7 @@ The starting slice plan, one session each; the solution stage adopts or amends i
 - [SEEN-011](SEEN-011-build-bol-retailer-api-v10-connector-for-orders.md): Build Bol Retailer API v10 connector for orders to commissions
 - [SEEN-014](SEEN-014-run-ingest-workers-with-idempotent-upserts-raw.md): Run ingest workers with idempotent upserts, raw archive and cadences
 - [SEEN-016](SEEN-016-encode-fee-schedules-per-marketplace-and.md): Encode fee schedules per marketplace and category in core
+- [SEEN-116](SEEN-116-property-based-and-mutation-tests-on-the-money.md): Property-based and mutation tests on the money core, as a gate
 
 ## Blocks
 

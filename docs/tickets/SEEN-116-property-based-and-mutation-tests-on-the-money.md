@@ -10,7 +10,7 @@ estimate: 3
 executor: claude-code
 changes_agent_action: false
 marketplaces: []
-depends_on: [SEEN-089, SEEN-016]
+depends_on: [SEEN-089]
 status: todo
 priority: P0
 ---
@@ -29,24 +29,28 @@ priority: P0
 
 ## Description
 
-A test that passes proves the code does what the test says; it does not prove the test says anything. The money core (detectors, matching, fee expectations, the policy gate) is pure functions, which is exactly where property-based tests and mutation testing earn their keep. fast-check properties state the invariants a reviewer otherwise checks by reading: settlement sums are conserved through matching, matching is idempotent and deterministic, a detector never raises inside the tolerance and always raises outside it, a fee expectation never exceeds the gross line, the policy gate refuses anything on the never list whatever the policies row says. StrykerJS with the vitest runner and the TypeScript checker mutates packages/core and reports the mutation score; the threshold lives in thresholds.toml (start at 70, raised with the measurement) and the tdd gate accepts a killed mutant as RED evidence. CI runs incremental mutation on the files a pull request changed. The decision that matters: on the code that moves money, the standard is not coverage but killed mutants and stated invariants, because that is the code a review cannot fully read.
+A test that passes proves the code does what the test says; it does not prove the test says anything. The money core (detectors, matching, fee expectations, the policy gate) is pure functions, which is exactly where property-based tests and mutation testing earn their keep. This ticket builds the machinery and the gate, not the properties themselves: those belong to the tickets that write each function (SEEN-016 to SEEN-020 and SEEN-033), and each of them carries a criterion for its own named invariant. Here fast-check becomes a dev dependency of packages/core with a documented convention for naming the invariant a property states, and StrykerJS with the vitest runner and the TypeScript checker mutates packages/core and reports the mutation score; the threshold lives in thresholds.toml (start at 70, raised with the measurement) and the tdd gate accepts a killed mutant as RED evidence. CI runs incremental mutation on the files a pull request changed. The mechanism is proven on a fixture detector of its own under the test fixtures, never on product code, so this ticket depends on no platform ticket and lands before the first one that moves money. The decision that matters: on the code that moves money, the standard is not coverage but killed mutants and stated invariants, because that is the code a review cannot fully read.
 
 ## Acceptance criteria
 
-- [ ] fast-check properties exist for matching, the fee detectors, the shipment and return detectors, fee expectations and the policy gate, with the invariant named in each property
+- [ ] fast-check is a dev dependency of packages/core, and the convention for naming the invariant a property states is written in docs/harness/workflow.md
 - [ ] StrykerJS runs on packages/core with the vitest runner and the TypeScript checker, and the mutation score is reported in kpi.json and the sprint report
 - [ ] thresholds.toml carries the mutation score floor, the tdd gate refuses to advance packages/core changes below it, and a killed mutant is accepted as RED evidence
 - [ ] CI runs incremental mutation on the changed files of a pull request in under ten minutes
-- [ ] A seeded bug in a detector (wrong tolerance sign) is caught by a property or a mutant, proven with a fixture
+- [ ] A seeded bug in a fixture detector (wrong tolerance sign) is caught by a property and by a mutant, proven with a fixture that is not product code
 
 ## Depends on
 
 - [SEEN-089](SEEN-089-enforce-tdd-and-ci-quality-gates-in-the-harness.md): Enforce the TDD gates in the harness
-- [SEEN-016](SEEN-016-encode-fee-schedules-per-marketplace-and.md): Encode fee schedules per marketplace and category in core
 
 ## Blocks
 
-- none
+- [SEEN-016](SEEN-016-encode-fee-schedules-per-marketplace-and.md): Encode fee schedules per marketplace and category in core
+- [SEEN-017](SEEN-017-compute-fee-expectations-per-order-line-from.md): Compute fee_expectations per order line from schedules and APIs
+- [SEEN-018](SEEN-018-match-settlement-lines-to-order-lines.md): Match settlement_lines to order_lines deterministically
+- [SEEN-019](SEEN-019-implement-fee-detectors-as-pure-tested-functions.md): Implement fee detectors as pure tested functions
+- [SEEN-020](SEEN-020-implement-shipment-return-and-inventory.md): Implement shipment, return and inventory detectors
+- [SEEN-033](SEEN-033-implement-policy-gate-v1-with-caps-and.md): Implement policy gate v1 with caps and reversibility
 
 ## Context
 

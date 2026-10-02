@@ -10,7 +10,7 @@ estimate: 5
 executor: claude-code
 changes_agent_action: false
 marketplaces: [bol, amazon, ebay]
-depends_on: [SEEN-014]
+depends_on: [SEEN-014, SEEN-116]
 status: todo
 ---
 # SEEN-018: Match settlement_lines to order_lines deterministically
@@ -35,6 +35,7 @@ Implement matchSettlementLines in packages/core/reconcile as a pure function tha
 - [ ] A settlement line never matches an order line from another tenant or another marketplace in the test suite
 - [ ] Match method (order_ref, sku_amount, manual) and confidence are stored on settlement_lines
 - [ ] Unmatched lines are listed by GET /tenants/:id/settlements/:id/unmatched with their amount
+- [ ] fast-check properties, each named after its invariant, show that the sum of settlement amounts is conserved through matching (matched plus unmatched equals the input) and that matching is idempotent and deterministic
 
 ## Slices
 
@@ -47,6 +48,7 @@ The starting slice plan, one session each; the solution stage adopts or amends i
 ## Depends on
 
 - [SEEN-014](SEEN-014-run-ingest-workers-with-idempotent-upserts-raw.md): Run ingest workers with idempotent upserts, raw archive and cadences
+- [SEEN-116](SEEN-116-property-based-and-mutation-tests-on-the-money.md): Property-based and mutation tests on the money core, as a gate
 
 ## Blocks
 

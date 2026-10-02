@@ -10,7 +10,7 @@ estimate: 3
 executor: claude-code
 changes_agent_action: false
 marketplaces: [bol, amazon, ebay]
-depends_on: [SEEN-008]
+depends_on: [SEEN-008, SEEN-116]
 status: todo
 ---
 # SEEN-016: Encode fee schedules per marketplace and category in core
@@ -35,14 +35,15 @@ Add packages/core/fees with versioned fee schedules per marketplace and category
 - [ ] expectedFees returns commission, fixed fee and ad cost with the schedule version for a given date
 - [ ] Schedules with overlapping effective dates fail validation with a clear error
 - [ ] Unit tests cover a category change on a date boundary and a price band boundary
+- [ ] A fast-check property, named after its invariant, shows that expectedFees never returns fees above the gross line amount and returns the same schedule version for the same line and date
 
 ## Depends on
 
 - [SEEN-008](SEEN-008-create-trade-record-schema-v1-with-tenant-id.md): Create trade-record schema v1 with tenant_id and RLS on every table
+- [SEEN-116](SEEN-116-property-based-and-mutation-tests-on-the-money.md): Property-based and mutation tests on the money core, as a gate
 
 ## Blocks
 
-- [SEEN-116](SEEN-116-property-based-and-mutation-tests-on-the-money.md): Property-based and mutation tests on the money core, as a gate
 - [SEEN-017](SEEN-017-compute-fee-expectations-per-order-line-from.md): Compute fee_expectations per order line from schedules and APIs
 
 ## Context
