@@ -1,0 +1,38 @@
+{
+  "sequence": 26,
+  "ticket": "SEEN-145",
+  "timestamp": "2026-10-02T14:03:21.435070+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "55e134c11377",
+  "head": "90be62ddef6fc45a811f3399825dcb501a0a1712",
+  "prev_hash": "900b5a5f1ce887dff4abd92a393f5e1352ae09a4aa18f7e1a9fc43f8c56e3776",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": 1,
+          "behaviour": "Two alike findings of one record, carried into a later round, stay two: every finding that said a text stays an anchor for it in finding_identities, and a later finding joins the first anchor whose identity shares no record with it. F1 of the first review.",
+          "failure_reason": "FindingIdentityTest.test_two_findings_saying_the_same_in_one_record_carried_forward_stay_two failed with 'AssertionError: 3 != 2': the second finding's copy in record 2 could reach only the first anchor, which already held record 2. The earlier reds of this slice are records 11 and 13.",
+          "red": 22,
+          "green": 23
+        }
+      ],
+      "regression": 24,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "55e134c11377",
+      "output_tokens": 36435,
+      "tool_calls": 40,
+      "unavailable": null
+    }
+  }
+}

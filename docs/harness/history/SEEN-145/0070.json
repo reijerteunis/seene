@@ -1,0 +1,38 @@
+{
+  "sequence": 70,
+  "ticket": "SEEN-145",
+  "timestamp": "2026-10-02T16:06:34.880604+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 7,
+  "actor": "claude:implementer",
+  "session": "55e134c11377",
+  "head": "13a6eaa8708f3f2f5c8ad6a23acdd978e96de958",
+  "prev_hash": "8c00a81cb5d50a1158dc8f42bf585412661621b96a042ce1ce20af36d22567fc",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": 1,
+          "behaviour": "Each matching rule of finding_identities is pinned by a test that fails without it: a match on both texts wins where neither line nor id agrees (the round-2 ranking), and the same line wins a tie where the id points the other way (note 36's line before id). No counting behaviour changed; F1 and F2 of the sixth review.",
+          "failure_reason": "The code already did what both tests ask, so the RED was recorded against calibration.py with the two rules taken out (the sort key's -shared[pair] and the same-line comparison replaced by 0) and the file restored byte for byte before the GREEN, as record 57 did for the docstring. test_a_match_on_both_texts_wins_where_neither_line_nor_id_agrees failed with \"AssertionError: {'low': 2} != {'high': 1, 'low': 1}\" and test_the_same_line_wins_a_tie_where_the_id_points_the_other_way with \"{'high': 2} != {'high': 1, 'low': 1}\". The earlier reds of this slice are records 11, 13, 22, 29, 37, 47 and 57.",
+          "red": 66,
+          "green": 67
+        }
+      ],
+      "regression": 68,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "55e134c11377",
+      "output_tokens": 176354,
+      "tool_calls": 104,
+      "unavailable": null
+    }
+  }
+}

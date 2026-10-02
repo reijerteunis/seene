@@ -22,9 +22,9 @@
         "by_severity": {
           "medium": 1,
           "high": 2,
-          "low": 2
+          "low": 3
         },
-        "fixed": 5,
+        "fixed": 6,
         "waived": 0
       },
       "first_pass_ci": null,
@@ -36,6 +36,20 @@
       },
       "cost": null,
       "escaped_defects": [],
+      "slices": {
+        "planned": 0,
+        "proven": 5
+      },
+      "sessions": null,
+      "subagents": {
+        "briefs": 0,
+        "agents": [],
+        "review": "self-review",
+        "both": false
+      },
+      "review_triage": null,
+      "execution": null,
+      "output_tokens_per_slice": null,
       "harness_version": "1",
       "note": null,
       "tool_calls": 47,
@@ -44,8 +58,8 @@
     },
     {
       "ticket": "SEEN-086",
-      "delivered_at": "2026-09-24T07:07:01+02:00",
-      "points": 5,
+      "delivered_at": "2026-09-24T13:34:41+02:00",
+      "points": 8,
       "cycle_time_seconds": null,
       "stage_seconds": {},
       "attempts": null,
@@ -61,6 +75,12 @@
       "tokens": null,
       "cost": null,
       "escaped_defects": [],
+      "slices": null,
+      "sessions": null,
+      "output_tokens_per_slice": null,
+      "subagents": null,
+      "review_triage": null,
+      "execution": null,
       "harness_version": null,
       "note": "Measured from the ticket file: this ticket has no journal",
       "output_tokens": null
@@ -99,6 +119,20 @@
       },
       "cost": null,
       "escaped_defects": [],
+      "slices": {
+        "planned": 0,
+        "proven": 2
+      },
+      "sessions": null,
+      "subagents": {
+        "briefs": 0,
+        "agents": [],
+        "review": "self-review",
+        "both": false
+      },
+      "review_triage": null,
+      "execution": null,
+      "output_tokens_per_slice": null,
       "harness_version": "1",
       "note": null,
       "tool_calls": 39,
@@ -141,6 +175,20 @@
       },
       "cost": null,
       "escaped_defects": [],
+      "slices": {
+        "planned": 0,
+        "proven": 3
+      },
+      "sessions": null,
+      "subagents": {
+        "briefs": 0,
+        "agents": [],
+        "review": "self-review",
+        "both": false
+      },
+      "review_triage": null,
+      "execution": null,
+      "output_tokens_per_slice": null,
       "harness_version": "1",
       "note": null,
       "tool_calls": 92,
@@ -150,7 +198,7 @@
     {
       "ticket": "SEEN-089",
       "delivered_at": "2026-09-23T19:55:17.364889+00:00",
-      "points": 5,
+      "points": 3,
       "cycle_time_seconds": 2975,
       "stage_seconds": {
         "clarify": 1627,
@@ -185,6 +233,20 @@
       },
       "cost": null,
       "escaped_defects": [],
+      "slices": {
+        "planned": 0,
+        "proven": 3
+      },
+      "sessions": null,
+      "subagents": {
+        "briefs": 0,
+        "agents": [],
+        "review": "self-review",
+        "both": false
+      },
+      "review_triage": null,
+      "execution": null,
+      "output_tokens_per_slice": null,
       "harness_version": "1",
       "note": null,
       "tool_calls": 103,
@@ -230,6 +292,20 @@
       },
       "cost": null,
       "escaped_defects": [],
+      "slices": {
+        "planned": 0,
+        "proven": 4
+      },
+      "sessions": null,
+      "subagents": {
+        "briefs": 0,
+        "agents": [],
+        "review": "self-review",
+        "both": false
+      },
+      "review_triage": null,
+      "execution": null,
+      "output_tokens_per_slice": null,
       "harness_version": "1",
       "note": null,
       "tool_calls": 86,
@@ -275,6 +351,20 @@
       },
       "cost": null,
       "escaped_defects": [],
+      "slices": {
+        "planned": 0,
+        "proven": 4
+      },
+      "sessions": null,
+      "subagents": {
+        "briefs": 0,
+        "agents": [],
+        "review": "self-review",
+        "both": false
+      },
+      "review_triage": null,
+      "execution": null,
+      "output_tokens_per_slice": null,
       "harness_version": "1",
       "note": null,
       "tool_calls": 47,
@@ -318,6 +408,20 @@
       },
       "cost": null,
       "escaped_defects": [],
+      "slices": {
+        "planned": 0,
+        "proven": 1
+      },
+      "sessions": null,
+      "subagents": {
+        "briefs": 0,
+        "agents": [],
+        "review": "self-review",
+        "both": false
+      },
+      "review_triage": null,
+      "execution": null,
+      "output_tokens_per_slice": null,
       "harness_version": "1",
       "note": null,
       "tool_calls": 19,
@@ -357,6 +461,20 @@
       },
       "cost": null,
       "escaped_defects": [],
+      "slices": {
+        "planned": 0,
+        "proven": 1
+      },
+      "sessions": null,
+      "subagents": {
+        "briefs": 0,
+        "agents": [],
+        "review": "self-review",
+        "both": false
+      },
+      "review_triage": null,
+      "execution": null,
+      "output_tokens_per_slice": null,
       "harness_version": "1",
       "note": null,
       "tool_calls": 12,
@@ -401,6 +519,20 @@
       },
       "cost": null,
       "escaped_defects": [],
+      "slices": {
+        "planned": 0,
+        "proven": 1
+      },
+      "sessions": null,
+      "subagents": {
+        "briefs": 0,
+        "agents": [],
+        "review": "self-review",
+        "both": false
+      },
+      "review_triage": null,
+      "execution": null,
+      "output_tokens_per_slice": null,
       "harness_version": "1",
       "note": null,
       "tool_calls": 22,
@@ -445,6 +577,20 @@
       },
       "cost": null,
       "escaped_defects": [],
+      "slices": {
+        "planned": 0,
+        "proven": 1
+      },
+      "sessions": null,
+      "subagents": {
+        "briefs": 0,
+        "agents": [],
+        "review": "self-review",
+        "both": false
+      },
+      "review_triage": null,
+      "execution": null,
+      "output_tokens_per_slice": null,
       "harness_version": "1",
       "note": null,
       "tool_calls": 33,
@@ -489,11 +635,84 @@
       },
       "cost": null,
       "escaped_defects": [],
+      "slices": {
+        "planned": 0,
+        "proven": 1
+      },
+      "sessions": null,
+      "subagents": {
+        "briefs": 0,
+        "agents": [],
+        "review": "self-review",
+        "both": false
+      },
+      "review_triage": null,
+      "execution": null,
+      "output_tokens_per_slice": null,
       "harness_version": "1",
       "note": null,
       "tool_calls": 172,
       "started": "2026-09-23T23:18:38.879940+00:00",
       "output_tokens": 233087
+    },
+    {
+      "ticket": "SEEN-097",
+      "delivered_at": "2026-09-24T09:03:36.434759+00:00",
+      "points": 3,
+      "cycle_time_seconds": 3950,
+      "stage_seconds": {
+        "clarify": 368,
+        "solution": 81,
+        "tdd": 1617,
+        "review": 1187,
+        "deliver": 695
+      },
+      "attempts": 3,
+      "rework": 2,
+      "red_before_green": true,
+      "coverage": {
+        "package": "@seen/core",
+        "lines": 100.0,
+        "delta": 0.0
+      },
+      "findings": {
+        "by_severity": {
+          "medium": 3,
+          "low": 1,
+          "blocking": 3,
+          "high": 1
+        },
+        "fixed": 8,
+        "waived": 0
+      },
+      "first_pass_ci": true,
+      "tokens": {
+        "input_tokens": 738,
+        "output_tokens": 342316,
+        "cache_read_input_tokens": 71819581,
+        "cache_creation_input_tokens": 477694
+      },
+      "cost": null,
+      "escaped_defects": [],
+      "slices": {
+        "planned": 0,
+        "proven": 4
+      },
+      "sessions": null,
+      "subagents": {
+        "briefs": 0,
+        "agents": [],
+        "review": "self-review",
+        "both": false
+      },
+      "review_triage": null,
+      "execution": null,
+      "output_tokens_per_slice": null,
+      "harness_version": "1",
+      "note": null,
+      "tool_calls": 217,
+      "started": "2026-09-24T07:57:45.840548+00:00",
+      "output_tokens": 342316
     },
     {
       "ticket": "SEEN-098",
@@ -532,11 +751,82 @@
       },
       "cost": null,
       "escaped_defects": [],
+      "slices": {
+        "planned": 0,
+        "proven": 2
+      },
+      "sessions": null,
+      "subagents": {
+        "briefs": 0,
+        "agents": [],
+        "review": "self-review",
+        "both": false
+      },
+      "review_triage": null,
+      "execution": null,
+      "output_tokens_per_slice": null,
       "harness_version": "1",
       "note": null,
       "tool_calls": 66,
       "started": "2026-09-24T06:00:15.192701+00:00",
       "output_tokens": 65539
+    },
+    {
+      "ticket": "SEEN-099",
+      "delivered_at": "2026-09-24T06:27:24.667755+00:00",
+      "points": 1,
+      "cycle_time_seconds": 590,
+      "stage_seconds": {
+        "clarify": 61,
+        "solution": 23,
+        "tdd": 226,
+        "review": 137,
+        "deliver": 140
+      },
+      "attempts": 1,
+      "rework": 0,
+      "red_before_green": true,
+      "coverage": {
+        "package": "@seen/core",
+        "lines": 100.0,
+        "delta": 0.0
+      },
+      "findings": {
+        "by_severity": {
+          "high": 1,
+          "low": 1
+        },
+        "fixed": 2,
+        "waived": 0
+      },
+      "first_pass_ci": true,
+      "tokens": {
+        "input_tokens": 96,
+        "output_tokens": 37862,
+        "cache_read_input_tokens": 13164664,
+        "cache_creation_input_tokens": 52885
+      },
+      "cost": null,
+      "escaped_defects": [],
+      "slices": {
+        "planned": 0,
+        "proven": 1
+      },
+      "sessions": null,
+      "subagents": {
+        "briefs": 0,
+        "agents": [],
+        "review": "self-review",
+        "both": false
+      },
+      "review_triage": null,
+      "execution": null,
+      "output_tokens_per_slice": null,
+      "harness_version": "1",
+      "note": null,
+      "tool_calls": 36,
+      "started": "2026-09-24T06:17:34.246014+00:00",
+      "output_tokens": 37862
     },
     {
       "ticket": "SEEN-100",
@@ -575,6 +865,20 @@
       },
       "cost": null,
       "escaped_defects": [],
+      "slices": {
+        "planned": 0,
+        "proven": 1
+      },
+      "sessions": null,
+      "subagents": {
+        "briefs": 0,
+        "agents": [],
+        "review": "self-review",
+        "both": false
+      },
+      "review_triage": null,
+      "execution": null,
+      "output_tokens_per_slice": null,
       "harness_version": "1",
       "note": null,
       "tool_calls": 63,
@@ -619,43 +923,1097 @@
       },
       "cost": null,
       "escaped_defects": [],
+      "slices": {
+        "planned": 0,
+        "proven": 1
+      },
+      "sessions": null,
+      "subagents": {
+        "briefs": 0,
+        "agents": [],
+        "review": "self-review",
+        "both": false
+      },
+      "review_triage": null,
+      "execution": null,
+      "output_tokens_per_slice": null,
       "harness_version": "1",
       "note": null,
       "tool_calls": 25,
       "started": "2026-09-24T05:38:24.317121+00:00",
       "output_tokens": 33999
+    },
+    {
+      "ticket": "SEEN-102",
+      "delivered_at": "2026-09-24T07:39:52.734410+00:00",
+      "points": 0,
+      "cycle_time_seconds": 3141,
+      "stage_seconds": {
+        "clarify": 1279,
+        "solution": 1230,
+        "tdd": 53,
+        "review": 247,
+        "deliver": 328
+      },
+      "attempts": 2,
+      "rework": 1,
+      "red_before_green": null,
+      "coverage": null,
+      "findings": {
+        "by_severity": {
+          "medium": 2,
+          "low": 1,
+          "high": 1
+        },
+        "fixed": 4,
+        "waived": 0
+      },
+      "first_pass_ci": true,
+      "tokens": {
+        "input_tokens": 236,
+        "output_tokens": 90744,
+        "cache_read_input_tokens": 40375997,
+        "cache_creation_input_tokens": 113718
+      },
+      "cost": null,
+      "escaped_defects": [],
+      "slices": null,
+      "sessions": null,
+      "subagents": {
+        "briefs": 0,
+        "agents": [],
+        "review": "self-review",
+        "both": false
+      },
+      "review_triage": null,
+      "execution": null,
+      "output_tokens_per_slice": null,
+      "harness_version": "1",
+      "note": null,
+      "tool_calls": 86,
+      "started": "2026-09-24T06:47:31.399695+00:00",
+      "output_tokens": 90744
+    },
+    {
+      "ticket": "SEEN-103",
+      "delivered_at": "2026-09-24T07:27:02.354901+00:00",
+      "points": 1,
+      "cycle_time_seconds": 1007,
+      "stage_seconds": {
+        "clarify": 18,
+        "solution": 38,
+        "tdd": 775,
+        "review": 31,
+        "deliver": 144
+      },
+      "attempts": 1,
+      "rework": 0,
+      "red_before_green": true,
+      "coverage": {
+        "package": "@seen/core",
+        "lines": 100.0,
+        "delta": 0.0
+      },
+      "findings": {
+        "by_severity": {
+          "high": 1,
+          "medium": 1,
+          "low": 1
+        },
+        "fixed": 3,
+        "waived": 0
+      },
+      "first_pass_ci": true,
+      "tokens": {
+        "input_tokens": 96,
+        "output_tokens": 34575,
+        "cache_read_input_tokens": 16331785,
+        "cache_creation_input_tokens": 42071
+      },
+      "cost": null,
+      "escaped_defects": [],
+      "slices": {
+        "planned": 0,
+        "proven": 1
+      },
+      "sessions": null,
+      "subagents": {
+        "briefs": 0,
+        "agents": [],
+        "review": "self-review",
+        "both": false
+      },
+      "review_triage": null,
+      "execution": null,
+      "output_tokens_per_slice": null,
+      "harness_version": "1",
+      "note": null,
+      "tool_calls": 36,
+      "started": "2026-09-24T07:10:14.454720+00:00",
+      "output_tokens": 34575
+    },
+    {
+      "ticket": "SEEN-104",
+      "delivered_at": "2026-09-24T11:25:04.456061+00:00",
+      "points": 3,
+      "cycle_time_seconds": 4142,
+      "stage_seconds": {
+        "clarify": 628,
+        "solution": 72,
+        "tdd": 2328,
+        "review": 389,
+        "deliver": 607,
+        "delivered": 116
+      },
+      "attempts": 3,
+      "rework": 2,
+      "red_before_green": true,
+      "coverage": {
+        "package": "@seen/core",
+        "lines": 100.0,
+        "delta": 0.0
+      },
+      "findings": {
+        "by_severity": {
+          "low": 4,
+          "medium": 3
+        },
+        "fixed": 7,
+        "waived": 0
+      },
+      "first_pass_ci": true,
+      "tokens": {
+        "input_tokens": 580,
+        "output_tokens": 314451,
+        "cache_read_input_tokens": 70188632,
+        "cache_creation_input_tokens": 514056
+      },
+      "cost": null,
+      "escaped_defects": [
+        "SEEN-140"
+      ],
+      "slices": {
+        "planned": 3,
+        "proven": 5
+      },
+      "sessions": 1,
+      "subagents": {
+        "briefs": 0,
+        "agents": [],
+        "review": "self-review",
+        "both": false
+      },
+      "review_triage": null,
+      "execution": null,
+      "output_tokens_per_slice": null,
+      "harness_version": "2",
+      "note": null,
+      "tool_calls": 160,
+      "started": "2026-09-24T10:16:01.932804+00:00",
+      "output_tokens": 314451
+    },
+    {
+      "ticket": "SEEN-105",
+      "delivered_at": "2026-09-24T17:56:53.112826+00:00",
+      "points": 3,
+      "cycle_time_seconds": 22795,
+      "stage_seconds": {
+        "clarify": 532,
+        "solution": 545,
+        "tdd": 7523,
+        "review": 13682,
+        "deliver": 512
+      },
+      "attempts": 5,
+      "rework": 4,
+      "red_before_green": true,
+      "coverage": {
+        "package": "@seen/core",
+        "lines": 100.0,
+        "delta": 0.0
+      },
+      "findings": {
+        "by_severity": {
+          "high": 4,
+          "medium": 12,
+          "low": 10
+        },
+        "fixed": 26,
+        "waived": 0
+      },
+      "first_pass_ci": true,
+      "tokens": {
+        "input_tokens": 658,
+        "output_tokens": 443867,
+        "cache_read_input_tokens": 82125350,
+        "cache_creation_input_tokens": 1455702
+      },
+      "cost": null,
+      "escaped_defects": [],
+      "slices": {
+        "planned": 4,
+        "proven": 8
+      },
+      "sessions": 2,
+      "subagents": {
+        "briefs": 1,
+        "agents": [
+          "seen-scout"
+        ],
+        "review": "subagent",
+        "both": true
+      },
+      "review_triage": null,
+      "execution": null,
+      "output_tokens_per_slice": null,
+      "harness_version": "2",
+      "note": null,
+      "tool_calls": 188,
+      "started": "2026-09-24T11:36:57.839797+00:00",
+      "output_tokens": 443867
+    },
+    {
+      "ticket": "SEEN-106",
+      "delivered_at": "2026-09-26T18:51:01.134059+00:00",
+      "points": 3,
+      "cycle_time_seconds": 50809,
+      "stage_seconds": {
+        "clarify": 272,
+        "solution": 757,
+        "tdd": 38840,
+        "review": 10617,
+        "deliver": 320
+      },
+      "attempts": 16,
+      "rework": 15,
+      "red_before_green": true,
+      "coverage": {
+        "package": "@seen/core",
+        "lines": 100.0,
+        "delta": 0.0
+      },
+      "findings": {
+        "by_severity": {
+          "high": 4,
+          "medium": 11,
+          "low": 5
+        },
+        "fixed": 20,
+        "waived": 0
+      },
+      "first_pass_ci": true,
+      "tokens": {
+        "input_tokens": 1108,
+        "output_tokens": 613522,
+        "cache_read_input_tokens": 188222782,
+        "cache_creation_input_tokens": 3362003
+      },
+      "cost": null,
+      "escaped_defects": [],
+      "slices": {
+        "planned": 0,
+        "proven": 5
+      },
+      "sessions": 1,
+      "subagents": {
+        "briefs": 1,
+        "agents": [
+          "seen-scout"
+        ],
+        "review": "self-review",
+        "both": false
+      },
+      "review_triage": {
+        "record": 99,
+        "depth": "spot",
+        "model_depth": "spot",
+        "shadow": true,
+        "asked": true,
+        "rules": [],
+        "files": 25,
+        "focus": 25,
+        "excluded": 19,
+        "excluded_share": 0.6186,
+        "reviewer_output_tokens": null,
+        "reviewer_tokens": null
+      },
+      "execution": null,
+      "output_tokens_per_slice": null,
+      "harness_version": "2",
+      "note": null,
+      "tool_calls": 271,
+      "started": "2026-09-26T04:44:12.047506+00:00",
+      "output_tokens": 613522
+    },
+    {
+      "ticket": "SEEN-107",
+      "delivered_at": "2026-09-24T22:50:37.650490+00:00",
+      "points": 3,
+      "cycle_time_seconds": 17037,
+      "stage_seconds": {
+        "clarify": 225,
+        "solution": 158,
+        "tdd": 9066,
+        "review": 6498,
+        "deliver": 1089
+      },
+      "attempts": 11,
+      "rework": 10,
+      "red_before_green": true,
+      "coverage": {
+        "package": "@seen/core",
+        "lines": 100.0,
+        "delta": 0.0
+      },
+      "findings": {
+        "by_severity": {
+          "high": 1,
+          "medium": 9,
+          "low": 16
+        },
+        "fixed": 26,
+        "waived": 0
+      },
+      "first_pass_ci": true,
+      "tokens": {
+        "input_tokens": 928,
+        "output_tokens": 625253,
+        "cache_read_input_tokens": 167771402,
+        "cache_creation_input_tokens": 919829
+      },
+      "cost": null,
+      "escaped_defects": [],
+      "slices": {
+        "planned": 3,
+        "proven": 13
+      },
+      "sessions": 1,
+      "subagents": {
+        "briefs": 0,
+        "agents": [],
+        "review": "self-review",
+        "both": false
+      },
+      "review_triage": {
+        "record": 98,
+        "depth": "full",
+        "model_depth": "spot",
+        "shadow": true,
+        "asked": true,
+        "rules": [
+          "slice_files did not pass, so the reviewer reads everything: Changed but named by no slice and no changes entry: harness/delivery.py, harness/doctor.py, harness/repository.py, harness/tests/helpers.py, harness/tests/test_context_budget.py, harness/tests/test_delivery.py, harness/tests/test_doctor.py, harness/tests/test_enforcement.py, harness/tests/test_question_criteria.py, harness/tests/test_reopen.py, harness/tests/test_stage_gates.py"
+        ],
+        "files": 29,
+        "focus": 29,
+        "excluded": 19,
+        "excluded_share": 0.5924,
+        "reviewer_output_tokens": null,
+        "reviewer_tokens": null
+      },
+      "execution": null,
+      "output_tokens_per_slice": null,
+      "harness_version": "2",
+      "note": null,
+      "tool_calls": 283,
+      "started": "2026-09-24T18:06:39.657824+00:00",
+      "output_tokens": 625253
+    },
+    {
+      "ticket": "SEEN-108",
+      "delivered_at": "2026-09-25T19:30:29.323386+00:00",
+      "points": 2,
+      "cycle_time_seconds": 50838,
+      "stage_seconds": {
+        "clarify": 351,
+        "solution": 78,
+        "tdd": 14505,
+        "review": 35581,
+        "deliver": 321
+      },
+      "attempts": 14,
+      "rework": 13,
+      "red_before_green": true,
+      "coverage": {
+        "package": "@seen/core",
+        "lines": 100.0,
+        "delta": 0.0
+      },
+      "findings": {
+        "by_severity": {
+          "high": 1,
+          "medium": 3,
+          "low": 1
+        },
+        "fixed": 5,
+        "waived": 0
+      },
+      "first_pass_ci": true,
+      "tokens": {
+        "input_tokens": 1652,
+        "output_tokens": 904969,
+        "cache_read_input_tokens": 398412895,
+        "cache_creation_input_tokens": 3944759
+      },
+      "cost": null,
+      "escaped_defects": [],
+      "slices": {
+        "planned": 4,
+        "proven": 17
+      },
+      "sessions": 1,
+      "subagents": {
+        "briefs": 0,
+        "agents": [],
+        "review": "self-review",
+        "both": false
+      },
+      "review_triage": {
+        "record": 147,
+        "depth": "full",
+        "model_depth": "full",
+        "shadow": true,
+        "asked": true,
+        "rules": [
+          "slice_files did not pass, so the reviewer reads everything: Changed but named by no slice and no changes entry: harness/delivery.py, harness/templates/tdd.json, harness/tests/test_decisions.py, harness/tests/test_delivery.py, harness/tests/test_doctor.py, harness/tests/test_enforcement.py, harness/tests/test_graph.py, harness/tests/test_isolation.py, harness/tests/test_journal.py, harness/tests/test_lifecycle.py, harness/tests/test_merge.py, harness/tests/test_non_code_mode.py, harness/tests/test_question_criteria.py, harness/tests/test_reopen.py, harness/tests/test_repository.py, harness/tests/test_risk.py, harness/tests/test_security.py, harness/tests/test_session_cap.py, harness/tests/test_skill.py, harness/tests/test_state_for.py, harness/tests/test_status_check.py"
+        ],
+        "files": 48,
+        "focus": 48,
+        "excluded": 0,
+        "excluded_share": 0.0,
+        "reviewer_output_tokens": null,
+        "reviewer_tokens": null
+      },
+      "execution": [
+        {
+          "position": 1,
+          "name": "The rules, the questions and the route command",
+          "points": 2,
+          "model": "opus",
+          "effort": "high",
+          "source": "jev",
+          "rule": null,
+          "ran_on": null,
+          "ran_on_tier": null,
+          "output_tokens": 68043,
+          "cost_cents": null,
+          "routed_cost_cents": 510,
+          "cost_basis": "output tokens only, at the price of the model the slice ran on: a handoff record carries the session's output tokens and tool calls and nothing about input. routed_cost_cents prices the same tokens at the model the route chose, which in shadow is a counterfactual and not a cost"
+        },
+        {
+          "position": 2,
+          "name": "The pack carries it and the tdd gate holds it",
+          "points": 2,
+          "model": "opus",
+          "effort": "high",
+          "source": "jev",
+          "rule": null,
+          "ran_on": "claude-opus-5",
+          "ran_on_tier": "opus",
+          "output_tokens": 23659,
+          "cost_cents": 177,
+          "routed_cost_cents": 177,
+          "cost_basis": "output tokens only, at the price of the model the slice ran on: a handoff record carries the session's output tokens and tool calls and nothing about input. routed_cost_cents prices the same tokens at the model the route chose, which in shadow is a counterfactual and not a cost"
+        },
+        {
+          "position": 3,
+          "name": "The implementer agent in both assistants, and the reviewer's model rule",
+          "points": 1,
+          "model": "haiku",
+          "effort": "medium",
+          "source": "jev",
+          "rule": null,
+          "ran_on": "claude-opus-5",
+          "ran_on_tier": "opus",
+          "output_tokens": 45545,
+          "cost_cents": 342,
+          "routed_cost_cents": 18,
+          "cost_basis": "output tokens only, at the price of the model the slice ran on: a handoff record carries the session's output tokens and tool calls and nothing about input. routed_cost_cents prices the same tokens at the model the route chose, which in shadow is a counterfactual and not a cost"
+        },
+        {
+          "position": 4,
+          "name": "The cost per slice in the KPI and per point by model in the report",
+          "points": 2,
+          "model": "sonnet",
+          "effort": "high",
+          "source": "jev",
+          "rule": null,
+          "ran_on": "claude-opus-5",
+          "ran_on_tier": "opus",
+          "output_tokens": null,
+          "cost_cents": null,
+          "routed_cost_cents": null,
+          "cost_basis": "output tokens only, at the price of the model the slice ran on: a handoff record carries the session's output tokens and tool calls and nothing about input. routed_cost_cents prices the same tokens at the model the route chose, which in shadow is a counterfactual and not a cost"
+        }
+      ],
+      "output_tokens_per_slice": null,
+      "harness_version": "2",
+      "note": null,
+      "tool_calls": 475,
+      "started": "2026-09-25T05:23:11.203486+00:00",
+      "output_tokens": 904969
+    },
+    {
+      "ticket": "SEEN-109",
+      "delivered_at": "2026-09-26T03:54:36.943225+00:00",
+      "points": 2,
+      "cycle_time_seconds": 28863,
+      "stage_seconds": {
+        "clarify": 214,
+        "solution": 100,
+        "tdd": 7281,
+        "review": 9140,
+        "deliver": 12125
+      },
+      "attempts": 9,
+      "rework": 8,
+      "red_before_green": true,
+      "coverage": {
+        "package": "@seen/core",
+        "lines": 100.0,
+        "delta": 0.0
+      },
+      "findings": {
+        "by_severity": {
+          "high": 2,
+          "medium": 10,
+          "low": 14
+        },
+        "fixed": 26,
+        "waived": 0
+      },
+      "first_pass_ci": true,
+      "tokens": {
+        "input_tokens": 952,
+        "output_tokens": 521907,
+        "cache_read_input_tokens": 155809124,
+        "cache_creation_input_tokens": 1855309
+      },
+      "cost": null,
+      "escaped_defects": [],
+      "slices": {
+        "planned": 2,
+        "proven": 10
+      },
+      "sessions": 1,
+      "subagents": {
+        "briefs": 0,
+        "agents": [],
+        "review": "self-review",
+        "both": false
+      },
+      "review_triage": {
+        "record": 94,
+        "depth": "full",
+        "model_depth": "full",
+        "shadow": true,
+        "asked": true,
+        "rules": [
+          "fingerprint did not pass, so the reviewer reads everything: The tree changed after check 88: it ran against 25eadba73357 and this triage reads 3a53e3fe5f8d. The tests that passed are not the tests for this tree",
+          "slice_files did not pass, so the reviewer reads everything: Changed but named by no slice and no changes entry: CLAUDE.md, harness/delivery.py, harness/doctor.py, harness/kpi.py, harness/tests/test_context_budget.py, harness/tests/test_delivery.py, harness/tests/test_triage.py"
+        ],
+        "files": 23,
+        "focus": 23,
+        "excluded": 0,
+        "excluded_share": 0.0,
+        "reviewer_output_tokens": null,
+        "reviewer_tokens": null
+      },
+      "execution": [
+        {
+          "position": 1,
+          "name": "The rule and the evidence it will be read from",
+          "points": 1,
+          "model": "opus",
+          "effort": "high",
+          "source": "jev",
+          "rule": null,
+          "ran_on": "claude-opus-5",
+          "ran_on_tier": "opus",
+          "output_tokens": 121398,
+          "cost_cents": 910,
+          "routed_cost_cents": 910,
+          "cost_basis": "output tokens only, at the price of the model the slice ran on: a handoff record carries the session's output tokens and tool calls and nothing about input. routed_cost_cents prices the same tokens at the model the route chose, which in shadow is a counterfactual and not a cost"
+        },
+        {
+          "position": 2,
+          "name": "The report and the automatic return to shadow",
+          "points": 1,
+          "model": "sonnet",
+          "effort": "high",
+          "source": "jev",
+          "rule": null,
+          "ran_on": "claude-opus-5",
+          "ran_on_tier": "opus",
+          "output_tokens": 42520,
+          "cost_cents": 319,
+          "routed_cost_cents": 64,
+          "cost_basis": "output tokens only, at the price of the model the slice ran on: a handoff record carries the session's output tokens and tool calls and nothing about input. routed_cost_cents prices the same tokens at the model the route chose, which in shadow is a counterfactual and not a cost"
+        }
+      ],
+      "output_tokens_per_slice": null,
+      "harness_version": "2",
+      "note": null,
+      "tool_calls": 313,
+      "started": "2026-09-25T19:53:33.794945+00:00",
+      "output_tokens": 521907
+    },
+    {
+      "ticket": "SEEN-111",
+      "delivered_at": "2026-09-26T22:10:45.748030+00:00",
+      "points": 3,
+      "cycle_time_seconds": 5030,
+      "stage_seconds": {
+        "clarify": 311,
+        "solution": 218,
+        "tdd": 3273,
+        "review": 933,
+        "deliver": 293
+      },
+      "attempts": 1,
+      "rework": 0,
+      "red_before_green": true,
+      "coverage": {
+        "package": "@seen/core",
+        "lines": 100.0,
+        "delta": 0.0
+      },
+      "findings": {
+        "by_severity": {
+          "blocking": 1,
+          "medium": 1
+        },
+        "fixed": 2,
+        "waived": 0
+      },
+      "first_pass_ci": true,
+      "tokens": {
+        "input_tokens": 462,
+        "output_tokens": 171316,
+        "cache_read_input_tokens": 42101080,
+        "cache_creation_input_tokens": 348009
+      },
+      "cost": null,
+      "escaped_defects": [],
+      "slices": {
+        "planned": 3,
+        "proven": 3
+      },
+      "sessions": 1,
+      "subagents": {
+        "briefs": 1,
+        "agents": [
+          "seen-scout"
+        ],
+        "review": "self-review",
+        "both": false
+      },
+      "review_triage": {
+        "record": 26,
+        "depth": "full",
+        "model_depth": "spot",
+        "shadow": true,
+        "asked": true,
+        "rules": [
+          "fingerprint did not pass, so the reviewer reads everything: The tree changed after check 22: it ran against 12e5cb41a57e and this triage reads 10f15205fee2. The tests that passed are not the tests for this tree"
+        ],
+        "files": 14,
+        "focus": 14,
+        "excluded": 10,
+        "excluded_share": 0.69,
+        "reviewer_output_tokens": null,
+        "reviewer_tokens": null
+      },
+      "execution": [
+        {
+          "position": 1,
+          "name": "The agent declaration, the gate that holds a slice to a context of its own, and the budget that tells a parent from its subagents",
+          "points": 2,
+          "model": "sonnet",
+          "effort": "high",
+          "source": "jev",
+          "rule": null,
+          "ran_on": "claude-opus-5",
+          "ran_on_tier": "opus",
+          "output_tokens": 76988,
+          "cost_cents": 577,
+          "routed_cost_cents": 115,
+          "cost_basis": "output tokens only, at the price of the model the slice ran on: a handoff record carries the session's output tokens and tool calls and nothing about input. routed_cost_cents prices the same tokens at the model the route chose, which in shadow is a counterfactual and not a cost"
+        },
+        {
+          "position": 2,
+          "name": "The predicted cost at the solution stage, read from the delivered kpi.json records, reporting and never refusing",
+          "points": 1,
+          "model": "sonnet",
+          "effort": "high",
+          "source": "jev",
+          "rule": null,
+          "ran_on": "claude-opus-5",
+          "ran_on_tier": "opus",
+          "output_tokens": 24354,
+          "cost_cents": 183,
+          "routed_cost_cents": 37,
+          "cost_basis": "output tokens only, at the price of the model the slice ran on: a handoff record carries the session's output tokens and tool calls and nothing about input. routed_cost_cents prices the same tokens at the model the route chose, which in shadow is a counterfactual and not a cost"
+        },
+        {
+          "position": 3,
+          "name": "The quiet check, and the two documents that describe all of it",
+          "points": 1,
+          "model": "sonnet",
+          "effort": "medium",
+          "source": "jev",
+          "rule": null,
+          "ran_on": "claude-opus-5",
+          "ran_on_tier": "opus",
+          "output_tokens": 31210,
+          "cost_cents": 234,
+          "routed_cost_cents": 47,
+          "cost_basis": "output tokens only, at the price of the model the slice ran on: a handoff record carries the session's output tokens and tool calls and nothing about input. routed_cost_cents prices the same tokens at the model the route chose, which in shadow is a counterfactual and not a cost"
+        }
+      ],
+      "output_tokens_per_slice": null,
+      "harness_version": "2",
+      "note": null,
+      "tool_calls": 132,
+      "started": "2026-09-26T20:46:55.006417+00:00",
+      "output_tokens": 171316
+    },
+    {
+      "ticket": "SEEN-113",
+      "delivered_at": "2026-09-28T21:30:04.887580+00:00",
+      "points": 2,
+      "cycle_time_seconds": 115520,
+      "stage_seconds": {
+        "clarify": 40,
+        "solution": 62,
+        "tdd": 55440,
+        "review": 57379,
+        "deliver": 2596
+      },
+      "attempts": 8,
+      "rework": 7,
+      "red_before_green": true,
+      "coverage": {
+        "package": "@seen/core",
+        "lines": 100.0,
+        "delta": 0.0
+      },
+      "findings": {
+        "by_severity": {
+          "high": 5,
+          "medium": 6,
+          "low": 10
+        },
+        "fixed": 21,
+        "waived": 0
+      },
+      "first_pass_ci": true,
+      "tokens": {
+        "input_tokens": 1374,
+        "output_tokens": 539120,
+        "cache_read_input_tokens": 428547813,
+        "cache_creation_input_tokens": 6496553
+      },
+      "cost": null,
+      "escaped_defects": [],
+      "slices": {
+        "planned": 2,
+        "proven": 7
+      },
+      "sessions": 1,
+      "subagents": {
+        "briefs": 0,
+        "agents": [],
+        "review": "self-review",
+        "both": false
+      },
+      "review_triage": {
+        "record": 93,
+        "depth": "full",
+        "model_depth": "full",
+        "shadow": true,
+        "asked": true,
+        "rules": [
+          "fingerprint did not pass, so the reviewer reads everything: The tree changed after check 87: it ran against 804bab59a5d4 and this triage reads d923cbf1d97e. The tests that passed are not the tests for this tree",
+          "slice_files did not pass, so the reviewer reads everything: Changed but named by no slice and no changes entry: CLAUDE.md, docs/tickets/README.md, harness/tests/test_routing.py"
+        ],
+        "files": 8,
+        "focus": 8,
+        "excluded": 0,
+        "excluded_share": 0.0,
+        "reviewer_output_tokens": null,
+        "reviewer_tokens": null
+      },
+      "execution": [
+        {
+          "position": 1,
+          "name": "The fingerprint rule in cited_check, its two refusal reasons, the ordering held across attempts, and the replan carrying forward",
+          "points": 2,
+          "model": "opus",
+          "effort": "high",
+          "source": "jev",
+          "rule": null,
+          "ran_on": "claude-opus-5",
+          "ran_on_tier": "opus",
+          "output_tokens": 558195,
+          "cost_cents": 4186,
+          "routed_cost_cents": 4186,
+          "cost_basis": "output tokens only, at the price of the model the slice ran on: a handoff record carries the session's output tokens and tool calls and nothing about input. routed_cost_cents prices the same tokens at the model the route chose, which in shadow is a counterfactual and not a cost"
+        },
+        {
+          "position": 2,
+          "name": "Scope the comparison to the cited check's own slice files, with the whole tree as the fallback",
+          "points": 1,
+          "model": "opus",
+          "effort": "high",
+          "source": "jev",
+          "rule": null,
+          "ran_on": "claude-opus-5",
+          "ran_on_tier": "opus",
+          "output_tokens": 44800,
+          "cost_cents": 336,
+          "routed_cost_cents": 336,
+          "cost_basis": "output tokens only, at the price of the model the slice ran on: a handoff record carries the session's output tokens and tool calls and nothing about input. routed_cost_cents prices the same tokens at the model the route chose, which in shadow is a counterfactual and not a cost"
+        }
+      ],
+      "output_tokens_per_slice": null,
+      "harness_version": "2",
+      "note": null,
+      "tool_calls": 338,
+      "started": "2026-09-27T13:24:44.651118+00:00",
+      "output_tokens": 539120
+    },
+    {
+      "ticket": "SEEN-114",
+      "delivered_at": "2026-10-02T05:31:37.877968+00:00",
+      "points": 3,
+      "cycle_time_seconds": 79592,
+      "stage_seconds": {
+        "clarify": 322,
+        "solution": 1050,
+        "tdd": 44658,
+        "review": 33263,
+        "deliver": 297
+      },
+      "attempts": 16,
+      "rework": 15,
+      "red_before_green": true,
+      "coverage": {
+        "package": "@seen/core",
+        "lines": 100.0,
+        "delta": 0.0
+      },
+      "findings": {
+        "by_severity": {
+          "medium": 16,
+          "low": 18
+        },
+        "fixed": 34,
+        "waived": 0
+      },
+      "first_pass_ci": true,
+      "tokens": {
+        "input_tokens": 2716,
+        "output_tokens": 1537398,
+        "cache_read_input_tokens": 564777100,
+        "cache_creation_input_tokens": 4415446
+      },
+      "cost": null,
+      "escaped_defects": [],
+      "slices": {
+        "planned": 4,
+        "proven": 81
+      },
+      "sessions": 2,
+      "subagents": {
+        "briefs": 0,
+        "agents": [],
+        "review": "independent",
+        "both": false
+      },
+      "review_triage": {
+        "record": 366,
+        "depth": "full",
+        "model_depth": "full",
+        "shadow": true,
+        "asked": false,
+        "rules": [],
+        "files": 103,
+        "focus": 103,
+        "excluded": 0,
+        "excluded_share": 0.0,
+        "reviewer_output_tokens": null,
+        "reviewer_tokens": null
+      },
+      "execution": null,
+      "output_tokens_per_slice": null,
+      "harness_version": "2",
+      "note": null,
+      "tool_calls": 742,
+      "started": "2026-10-01T07:25:05.630270+00:00",
+      "output_tokens": 1537398
+    },
+    {
+      "ticket": "SEEN-140",
+      "delivered_at": "2026-10-01T14:23:35.982761+00:00",
+      "points": 1,
+      "cycle_time_seconds": 7375,
+      "stage_seconds": {
+        "clarify": 72,
+        "solution": 68,
+        "tdd": 4925,
+        "review": 1574,
+        "deliver": 734
+      },
+      "attempts": 7,
+      "rework": 6,
+      "red_before_green": true,
+      "coverage": {
+        "package": "@seen/core",
+        "lines": 100.0,
+        "delta": 0.0
+      },
+      "findings": {
+        "by_severity": {
+          "high": 2,
+          "medium": 2,
+          "low": 4
+        },
+        "fixed": 8,
+        "waived": 0
+      },
+      "first_pass_ci": true,
+      "tokens": {
+        "input_tokens": 266,
+        "output_tokens": 141942,
+        "cache_read_input_tokens": 84653078,
+        "cache_creation_input_tokens": 184205
+      },
+      "cost": null,
+      "escaped_defects": [],
+      "slices": {
+        "planned": 1,
+        "proven": 6
+      },
+      "sessions": 1,
+      "subagents": {
+        "briefs": 0,
+        "agents": [],
+        "review": "subagent",
+        "both": false
+      },
+      "review_triage": {
+        "record": 58,
+        "depth": "spot",
+        "model_depth": "spot",
+        "shadow": true,
+        "asked": true,
+        "rules": [],
+        "files": 12,
+        "focus": 12,
+        "excluded": 11,
+        "excluded_share": 0.9175,
+        "reviewer_output_tokens": null,
+        "reviewer_tokens": null
+      },
+      "execution": [
+        {
+          "position": 1,
+          "name": "One reader for the question, called by all three",
+          "points": 1,
+          "model": "haiku",
+          "effort": "high",
+          "source": "jev",
+          "rule": null,
+          "ran_on": null,
+          "ran_on_tier": null,
+          "output_tokens": 3610,
+          "cost_cents": null,
+          "routed_cost_cents": 1,
+          "cost_basis": "output tokens only, at the price of the model the slice ran on: a handoff record carries the session's output tokens and tool calls and nothing about input. routed_cost_cents prices the same tokens at the model the route chose, which in shadow is a counterfactual and not a cost"
+        }
+      ],
+      "output_tokens_per_slice": null,
+      "harness_version": "2",
+      "note": null,
+      "tool_calls": 82,
+      "started": "2026-10-01T12:20:40.672856+00:00",
+      "output_tokens": 141942
     }
   ],
   "totals": {
-    "tickets": 15,
-    "points_delivered": 37,
-    "median_cycle_time_seconds": 1215.5,
-    "rework_per_ticket": 0.79,
+    "tickets": 29,
+    "points_delivered": 68,
+    "median_cycle_time_seconds": 3058.0,
+    "rework_per_ticket": 3.36,
     "first_pass_ci_rate": 1.0,
     "first_pass_ci_unknown": 8,
     "findings_by_severity": {
-      "medium": 27,
-      "high": 18,
-      "low": 16,
-      "blocking": 2
+      "medium": 106,
+      "high": 41,
+      "low": 103,
+      "blocking": 6
     },
-    "points_planned": 81
+    "points_planned": 154
   },
   "unmeasurable": [
     "Eval pass rate for policy-gate action tickets: the eval set is SEEN-036 and no such ticket has been worked, so a figure here would be invented",
     "Escaped defects: counted from tickets whose frontmatter names an earlier one, and none has been written yet",
-    "Cost in euros: the session logs carry tokens, and a price per token is stale the day it is written, so only tokens are reported"
+    "Cost in euros beyond output tokens: a handoff record carries the session's output tokens and tool calls and nothing about input, so the cost per slice in [routing.prices] covers the output side and says so, with the date the prices were read printed beside it"
   ],
   "context": {
-    "tickets": 0,
+    "tickets": 13,
+    "tickets_with_agents": 0,
+    "tickets_named_with_agents": [],
+    "output_tokens_per_point_with_agents": null,
     "minimum": 5,
-    "output_tokens_per_point": null,
-    "tool_calls_per_point": null,
+    "output_tokens_per_point": 207616.6,
+    "output_tokens_per_slice": 38686.3,
+    "tool_calls_per_point": 109.1,
     "baseline_output_tokens_per_point": 40581.5,
     "baseline_tool_calls_per_point": 18.5,
     "baseline_points": 27,
-    "conclusion": null,
-    "not_measurable": "The context budget comparison: 0 of 5 qualifying tickets have delivered, so the figures are reported and nothing is concluded from them",
-    "overlaps": []
-  }
+    "conclusion": "Remove one, graphify first: 207616.6 output tokens per point against a baseline of 40581.5. codegraph and repowise can partly answer its questions. The call is the founder's.",
+    "not_measurable": null,
+    "overlaps": [],
+    "cost_by_model": {
+      "unknown": {
+        "slices": 2,
+        "points": 3,
+        "priced_points": 0,
+        "cost_cents": null,
+        "output_tokens": 71653,
+        "cost_per_point": null
+      },
+      "opus": {
+        "slices": 10,
+        "points": 14,
+        "priced_points": 12,
+        "cost_cents": 7264,
+        "output_tokens": 968669,
+        "cost_per_point": 605.33
+      }
+    },
+    "prices": {
+      "currency": "EUR",
+      "priced_on": "2026-09-25",
+      "haiku": {
+        "input": 80,
+        "output": 400
+      },
+      "sonnet": {
+        "input": 300,
+        "output": 1500
+      },
+      "opus": {
+        "input": 1500,
+        "output": 7500
+      }
+    }
+  },
+  "review_triage_shadow": {
+    "shadow": true,
+    "source": "threshold",
+    "reason": "[review] triage_shadow is true in harness/thresholds.toml"
+  },
+  "rule_loop": null
 }

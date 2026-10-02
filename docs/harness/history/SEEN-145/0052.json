@@ -1,0 +1,38 @@
+{
+  "sequence": 52,
+  "ticket": "SEEN-145",
+  "timestamp": "2026-10-02T14:47:29.186599+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 5,
+  "actor": "claude:implementer",
+  "session": "55e134c11377",
+  "head": "6fb0bb05fa7ed8ea17ccdb2ab9361bbe87dc09e9",
+  "prev_hash": "0b6820a3e2a64ca604aac39eb351366e27ffd02eae16af62fe0fc25667c6ac96",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": 1,
+          "behaviour": "The findings of each later record take their matches strongest first across the whole record, so the order a reviewer listed them in decides nothing: every (anchor, finding) pair the content found is ranked by texts shared, then same file reference with its line, then same id, then anchor and position, and joined in that order. F1 of the fourth review, decided by Ruud at note 44.",
+          "failure_reason": "FindingIdentityTest.test_a_later_record_s_findings_take_their_matches_strongest_first failed with 'AssertionError: Tuples differ: (2, 1) != (2, 0)' when G1 was listed before the copy of F1: G1 took F1 by journal order and the copy was pushed into F2's identity. Record 46 was a RED on the same test with a wrong expectation ({'high': 1, 'low': 2}, where the identity rule makes G1 and F2 one finding), corrected to assert the identity directly before record 47. The earlier reds of this slice are records 11, 13, 22, 29 and 37.",
+          "red": 47,
+          "green": 48
+        }
+      ],
+      "regression": 50,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "55e134c11377",
+      "output_tokens": 114581,
+      "tool_calls": 79,
+      "unavailable": null
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "sequence": 12,
+  "ticket": "SEEN-145",
+  "timestamp": "2026-10-02T08:06:32.354144+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "0d8ee4fdc841",
+  "head": "d958e11946361a67318ed7df0dcc6f5ebb3b7ebf",
+  "prev_hash": "2fbaf048bd9273235fd1309248e86d0b1eeca54a6a5c4d55616c131075389c03",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_calibration.FindingIdentityTest",
+      "-v"
+    ],
+    "phase": "green",
+    "exit_code": 0,
+    "model": "claude-opus-5-5",
+    "model_declared": "opus",
+    "agent_declared": "seen-implementer",
+    "duration_ms": 380,
+    "output": "test_a_reworded_claim_whose_failure_scenario_was_carried_is_one_finding (harness.tests.test_calibration.FindingIdentityTest.test_a_reworded_claim_whose_failure_scenario_was_carried_is_one_finding)\nSEEN-107's G1, written again as R2-1 with its claim reworded. ... ok\ntest_every_journal_pinned_at_clarify_reports_its_pinned_figures (harness.tests.test_calibration.FindingIdentityTest.test_every_journal_pinned_at_clarify_reports_its_pinned_figures)\nCriterion 3, as amended: only SEEN-107 and SEEN-102 move. ... ok\ntest_seen_107_s_committed_journal_reports_its_real_twenty_six (harness.tests.test_calibration.FindingIdentityTest.test_seen_107_s_committed_journal_reports_its_real_twenty_six)\nCriterion 2, read from the journal SEEN-107 delivered, not a constructed one. ... ok\ntest_two_findings_saying_nothing_are_not_merged (harness.tests.test_calibration.FindingIdentityTest.test_two_findings_saying_nothing_are_not_merged) ... ok\ntest_two_findings_sharing_only_an_id_are_two (harness.tests.test_calibration.FindingIdentityTest.test_two_findings_sharing_only_an_id_are_two)\nThe id collision across rounds that SEEN-109 and SEEN-113 carry. ... ok\ntest_two_review_advances_naming_one_finding_differently_count_it_once (harness.tests.test_calibration.FindingIdentityTest.test_two_review_advances_naming_one_finding_differently_count_it_once)\nCriterion 1: the records differ only in the identifiers. ... ok\n\n----------------------------------------------------------------------\nRan 6 tests in 0.253s\n\nOK\n",
+    "output_sha256": "afcacc4d3537b40d38485bafedd6f9d437c422d9ebda9ca05fc07b3b94bcd65b",
+    "output_truncated": false,
+    "before": "e07f4e2568edf6ff9f542fb1055290c5d6e230b3d404b6976a0fa957642d08d7",
+    "after": "e07f4e2568edf6ff9f542fb1055290c5d6e230b3d404b6976a0fa957642d08d7"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "sequence": 2,
+  "ticket": "SEEN-145",
+  "timestamp": "2026-10-02T07:52:55.431292+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "0d8ee4fdc841",
+  "head": "3742743f115e684a3eed469d9f148f8b342459a8",
+  "prev_hash": "4072bdcdf1320796232e2ec17275e9dc499236dbad250c1b98606cbe9406c5c5",
+  "data": {
+    "text": "# Clarify measurement: what a finding's identity can rest on\n\nMeasured over all 29 journals under docs/harness/history/ with the current key\n(id, claim, file) against the candidates.\n\n**Accepted advance only (shape 1) is ruled out by the journals.** SEEN-008, SEEN-106\nand SEEN-114 end on a review advance carrying no findings while their returns carry\n86, 20 and 34; SEEN-088's three review advances carry disjoint findings (5, 3, 1).\nCounting only the final advance would move all four, against criterion 3.\n\n**Identity by content (shape 2).** Two findings are the same finding when they name\nthe same file and carry the same claim or the same failure scenario, joined\ntransitively; the id is not read. Results against today:\n\n- SEEN-107: 45 to 26. Claim and file alone give 27: G1 of record 68 was reworded as\n  R2-1 of record 100 (\"The F1 fix\" became \"The reply-missing-a-key fix\") while its\n  failure_scenario stayed byte-identical. Claim or scenario joins it.\n- SEEN-102: 7 to 4. Record 15 renumbered record 9's F1 to F3 as F2 to F4 and added\n  a new F1; claims carried over unchanged. The same defect.\n- Every other journal: unchanged.\n\nKnown residue, not fixed by either shape: SEEN-006 R-04 was reworded under the same\nid with no field carried byte-identical, so it stays at 6 where a reader would say 5.\n\n**Decision, Ruud, 2 October 2026:** criterion 3 is amended to name SEEN-102 moving\nfrom 7 to its real 4 (recorded in the ticket's Amendments section).\n"
+  }
+}

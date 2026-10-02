@@ -1,0 +1,53 @@
+{
+  "sequence": 43,
+  "ticket": "SEEN-145",
+  "timestamp": "2026-10-02T14:26:00.452474+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 4,
+  "actor": "claude:reviewer",
+  "session": "55e134c11377",
+  "head": "1dc1f34a373d46f07417e9639e3f58d3690dfd98",
+  "prev_hash": "d68f4332e05b9765e3fb17d4c6421333f28520dd31ca850a91e6e12476aecee0",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 5,
+    "reason": "Review round 4 returns on F1 (medium): findings of a later record take their matches greedily in list order, so an earlier weak match can take the anchor a later exact copy needed and escapes counts a high finding twice. F2: the reports are regenerated and the run recorded. F3 accepted again.",
+    "findings": [
+      {
+        "id": "F1",
+        "severity": "medium",
+        "file": "harness/calibration.py",
+        "claim": "finding_identities still matches greedily, one finding of a later record at a time in list order, so a claim-only match listed earlier in that record takes an anchor that a byte-for-byte copy listed later needed, and the copy is pushed into another finding's identity, which makes calibration.escapes count one high finding twice depending only on the order of the findings in the later record.",
+        "failure_scenario": "Triage 1 excludes harness/a.py; review advance 2 holds F1 (high, harness/a.py:1, claim 'Same claim', scenario 'Scenario A') and F2 (low, harness/a.py:5, claim 'Same claim', scenario 'Scenario B'); triage 3 excludes harness/a.py; review advance 4 holds G1 (low, harness/a.py:9, claim 'Same claim', scenario 'Scenario C') followed by an exact copy of F1. G1 takes F1 by journal order, F1's copy joins F2 on the claim, and calibration.escapes returns F1 at record 2 and again at record 4; with G1 listed second it returns one.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "none: an order-dependent greedy assignment inside a union-find join, which only a test fixture can expose"
+      },
+      {
+        "id": "F2",
+        "severity": "low",
+        "file": "docs/tickets/SEEN-145-count-a-review-finding-once-however-the.md",
+        "claim": "The report half of criterion 4 is backed only by the Outcome: no journal record runs harness report, and the reports were regenerated before the round 1 to 3 changes.",
+        "failure_scenario": "If the identity function changed a reported figure after the reports were regenerated, the committed reports would carry the earlier figure and no record would show it.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "none: evidence the procedure should record, not a pattern a rule reads"
+      },
+      {
+        "id": "F3",
+        "severity": "low",
+        "file": "docs/tickets/README.md",
+        "claim": "The status-row edit is still named by no slice and no changes entry, so slice_files fails for the fourth time; accepted as the procedure's status mirror.",
+        "failure_scenario": "Every review of this ticket goes to full depth because of a one-line status mirror the procedure requires.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "none: the status mirror is required by the procedure"
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}

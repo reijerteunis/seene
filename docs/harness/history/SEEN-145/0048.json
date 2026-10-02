@@ -1,0 +1,33 @@
+{
+  "sequence": 48,
+  "ticket": "SEEN-145",
+  "timestamp": "2026-10-02T14:39:22.939671+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 5,
+  "actor": "claude:implementer",
+  "session": "55e134c11377",
+  "head": "6fb0bb05fa7ed8ea17ccdb2ab9361bbe87dc09e9",
+  "prev_hash": "18829a55e3b0433dc1fc7b7986a733d0bf1745d0e52ea429914e48df18d7c30e",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_calibration.FindingIdentityTest",
+      "-v"
+    ],
+    "phase": "green",
+    "exit_code": 0,
+    "model": "claude-opus-5-5",
+    "model_declared": null,
+    "agent_declared": null,
+    "duration_ms": 181,
+    "output": "test_a_finding_carried_forward_joins_the_one_it_matches_on_both_texts (harness.tests.test_calibration.FindingIdentityTest.test_a_finding_carried_forward_joins_the_one_it_matches_on_both_texts)\nF1 of SEEN-145's second review: a claim-only match must not take it first. ... ok\ntest_a_later_record_s_findings_take_their_matches_strongest_first (harness.tests.test_calibration.FindingIdentityTest.test_a_later_record_s_findings_take_their_matches_strongest_first)\nF1 of SEEN-145's fourth review: the order inside a record decides nothing. ... ok\ntest_a_reworded_claim_whose_failure_scenario_was_carried_is_one_finding (harness.tests.test_calibration.FindingIdentityTest.test_a_reworded_claim_whose_failure_scenario_was_carried_is_one_finding)\nSEEN-107's G1, written again as R2-1 with its claim reworded. ... ok\ntest_a_tie_between_two_anchors_of_one_record_goes_to_the_same_line (harness.tests.test_calibration.FindingIdentityTest.test_a_tie_between_two_anchors_of_one_record_goes_to_the_same_line)\nF1 of SEEN-145's third review, in both orders: journal order is the last resort. ... ok\ntest_a_tie_never_joins_findings_the_content_did_not_match (harness.tests.test_calibration.FindingIdentityTest.test_a_tie_never_joins_findings_the_content_did_not_match)\nThe id orders the anchors the content found; it finds none of its own. ... ok\ntest_a_tie_with_the_line_moved_goes_to_the_same_id (harness.tests.test_calibration.FindingIdentityTest.test_a_tie_with_the_line_moved_goes_to_the_same_id) ... ok\ntest_every_journal_pinned_at_clarify_reports_its_pinned_figures (harness.tests.test_calibration.FindingIdentityTest.test_every_journal_pinned_at_clarify_reports_its_pinned_figures)\nCriterion 3, as amended: only SEEN-107 and SEEN-102 move. ... ok\ntest_seen_107_s_committed_journal_reports_its_real_twenty_six (harness.tests.test_calibration.FindingIdentityTest.test_seen_107_s_committed_journal_reports_its_real_twenty_six)\nCriterion 2, read from the journal SEEN-107 delivered, not a constructed one. ... ok\ntest_two_findings_saying_nothing_are_not_merged (harness.tests.test_calibration.FindingIdentityTest.test_two_findings_saying_nothing_are_not_merged) ... ok\ntest_two_findings_saying_nothing_under_one_id_in_two_records_are_one (harness.tests.test_calibration.FindingIdentityTest.test_two_findings_saying_nothing_under_one_id_in_two_records_are_one)\nOnly a record the gate never accepted says nothing; the id is all it has. ... ok\ntest_two_findings_saying_the_same_in_one_record_are_two (harness.tests.test_calibration.FindingIdentityTest.test_two_findings_saying_the_same_in_one_record_are_two)\nA reviewer listing two findings in one record has declared them two. ... ok\ntest_two_findings_saying_the_same_in_one_record_carried_forward_stay_two (harness.tests.test_calibration.FindingIdentityTest.test_two_findings_saying_the_same_in_one_record_carried_forward_stay_two)\nF1 of SEEN-145's first review: the second of them must reach its own copy. ... ok\ntest_two_findings_sharing_only_an_id_are_two (harness.tests.test_calibration.FindingIdentityTest.test_two_findings_sharing_only_an_id_are_two)\nThe id collision across rounds that SEEN-109 and SEEN-113 carry. ... ok\ntest_two_review_advances_naming_one_finding_differently_count_it_once (harness.tests.test_calibration.FindingIdentityTest.test_two_review_advances_naming_one_finding_differently_count_it_once)\nCriterion 1: the records differ only in the identifiers. ... ok\n\n----------------------------------------------------------------------\nRan 14 tests in 0.093s\n\nOK\n",
+    "output_sha256": "72af0b8255c8196c62f6312e2b7b69e920510f286decd97a1d462b799c8a6b3e",
+    "output_truncated": false,
+    "before": "d6d6964d2bc22e5183dcbcacafbea472180fa038d8ca4362d26cb4efd8b11076",
+    "after": "d6d6964d2bc22e5183dcbcacafbea472180fa038d8ca4362d26cb4efd8b11076"
+  }
+}

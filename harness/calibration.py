@@ -140,6 +140,7 @@ def escapes(records):
     escape would be a silent pass in favour of the narrowing being measured.
     """
     found, unplaced, seen = [], [], set()
+    identities = finding_identities(records)
     for record in records:
         data = record['data']
         if data.get('from_stage') == 'review' and _review_findings(record):
@@ -160,8 +161,10 @@ def escapes(records):
                 # The earliest round that carried it, not the latest: a finding
                 # repeated in the record that finally passes was found when it
                 # was first written down, and it is that round's triage that
-                # would or would not have dropped the file it is in.
-                key = finding_key(finding, record, position)
+                # would or would not have dropped the file it is in. Which
+                # findings are one is `finding_identities`' answer, so by what
+                # a finding says and never by what a round called it.
+                key = identities[(record['sequence'], position)]
                 if key in seen:
                     continue
                 seen.add(key)
@@ -266,31 +269,116 @@ def _review_findings(record):
     return []
 
 
-def finding_key(finding, record, position):
-    """What makes two review findings the same finding.
+def finding_identities(records):
+    """Which review findings are the same finding, by what they say and where.
 
-    The id, the claim and the file, rather than the id alone. A finding carried
-    forward into the round that passes keeps all three and is one finding, which
-    is the rule kpi.findings already applies to the counts; two different
-    findings that happen to be F1 of two rounds differ in at least one of them
-    and are two, which keying by id alone would have silently merged now that a
-    returning round is read as well as the one that passed.
+    A map from (record sequence, position) to an identity, for every finding
+    `_review_findings` reads, in journal order. Two findings are one when they
+    name the same file and carry the same claim or the same failure scenario,
+    and the join is transitive: a finding whose claim was reworded in one round
+    and whose scenario was reworded in the next is still one finding. Two
+    findings in the same record are never joined, directly or through a third:
+    a reviewer listing two findings in one record has declared them two, however
+    alike a stand-in's wording makes them.
+
+    The id never makes two findings one. Nothing asks a session to type the same
+    identifier in every review record, and two did not: SEEN-107's second review advance renamed F1, G1 and the rest to R1-1,
+    R2-1 and so on, rewording G1's claim as R2-1 while carrying its failure
+    scenario byte for byte, and counted 45 findings against a real 26; SEEN-102's
+    second review renumbered F1 to F3 as F2 to F4 and counted 7 against a real
+    4. Neither text alone would do either: a key on the claim leaves G1 and R2-1
+    as two. SEEN-145. The id is read for one thing only: where a later finding
+    matches two findings of one record equally well on what they say, the one
+    at the same line and then the one under the same id takes it, which orders
+    the matches the content found and finds none of its own.
+
+    A finding with neither a claim nor a failure scenario falls back to its id
+    and its file, and only then. The review gate refuses such a finding
+    (gates.check_findings, FINDING_KEYS) and no committed journal holds one, so
+    the fallback reaches only records the gate never accepted, such as a test
+    fixture that names its findings and says nothing else about them.
     """
-    return (finding.get('id') or f'{record["sequence"]}-{position}',
-            finding.get('claim'), path_of(finding.get('file')))
+    parent, saying, sequences, named = {}, {}, {}, {}
+
+    def root(node):
+        while parent[node] != node:
+            parent[node] = parent[parent[node]]
+            node = parent[node]
+        return node
+
+    def join(one, other):
+        one, other = root(one), root(other)
+        # Refused when the two sides already share a record, which is what
+        # keeps two findings of one record apart through any chain of rounds.
+        if one == other or sequences[one] & sequences[other]:
+            return
+        # The earliest finding stands for the whole identity, so the identity
+        # is the same whichever order its members are joined in.
+        low, high = sorted((one, other))
+        parent[high] = low
+        sequences[low] |= sequences.pop(high)
+
+    for record in records:
+        texts = {}
+        for position, finding in enumerate(_review_findings(record)):
+            node = (record['sequence'], position)
+            parent[node], sequences[node] = node, {record['sequence']}
+            named[node] = (finding.get('file'), finding.get('id'))
+            path = path_of(finding.get('file'))
+            said = [(field, finding.get(field)) for field in ('claim', 'failure_scenario')
+                    if finding.get(field)]
+            if not said and finding.get('id'):
+                said = [('id', finding['id'])]
+            texts[node] = [(path, field, text) for field, text in said]
+        # Every pair of a finding in this record and an earlier finding it shares
+        # a text with, joined strongest first across the whole record, so the
+        # order a reviewer listed findings in decides only a tie: the pairs sharing
+        # more texts first, then among equals the one at the same file reference,
+        # line included, then the one under the same id, then the earlier anchor
+        # and the earlier position. Every pair is offered and each join that is
+        # not refused is made, which keeps the join transitive; a refusal is
+        # what lets the order decide which of two anchors of one record takes a
+        # finding. The order only ranks pairs the content found, so the id never
+        # makes two findings one. Position is the last resort and not nothing:
+        # where a later finding's claim matches one anchor and its scenario
+        # another and every pair ties, the greedy pass can strand a finding a
+        # better assignment would place, and the order of a list moves the count
+        # (F1 of the fifth review, left as a residue by Ruud; SEEN-146 replaces
+        # the greedy pass with a maximum assignment). Each step is a review of SEEN-145: one anchor
+        # per text left the second of two alike findings of one record
+        # unreachable (first); journal order let a claim-only match take a
+        # finding that matched another on both texts (second) and broke a tie
+        # between two claim-only matches (third); and taking one finding at a
+        # time let a weak match listed earlier take the anchor an exact copy
+        # listed later needed (fourth).
+        shared = {}
+        for node, keys in texts.items():
+            for key in keys:
+                for anchor in saying.get(key, ()):
+                    shared[(anchor, node)] = shared.get((anchor, node), 0) + 1
+        for anchor, node in sorted(shared, key=lambda pair: (
+                -shared[pair], named[pair[0]][0] != named[pair[1]][0],
+                named[pair[0]][1] != named[pair[1]][1], pair[0], pair[1])):
+            join(anchor, node)
+        for node, keys in texts.items():
+            for key in keys:
+                saying.setdefault(key, []).append(node)
+    return {node: root(node) for node in parent}
 
 
 def latest_finding_records(records):
     """Every deduplicated finding, with the record that last carried it.
 
-    The record matters because a finding on a return is open by definition and
+    Deduplicated by `finding_identities`, so by content and never by id. The
+    record matters because a finding on a return is open by definition and
     one on an advance is resolved by the gate's own rule, so where it was
     written is what says whether it was ever fixed. F1 of the sixth review.
     """
+    identities = finding_identities(records)
     latest = {}
     for record in records:
         for position, finding in enumerate(_review_findings(record)):
-            latest[finding_key(finding, record, position)] = (record, finding)
+            latest[identities[(record['sequence'], position)]] = (record, finding)
     return list(latest.values())
 
 

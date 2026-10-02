@@ -1,0 +1,16 @@
+{
+  "sequence": 49,
+  "ticket": "SEEN-145",
+  "timestamp": "2026-10-02T14:40:46.906563+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 5,
+  "actor": "claude:implementer",
+  "session": "55e134c11377",
+  "head": "6fb0bb05fa7ed8ea17ccdb2ab9361bbe87dc09e9",
+  "prev_hash": "c9bc63886a25cd5099defebdf02caecbeeddaa7caf5728eb7a14c72080057b8d",
+  "data": {
+    "text": "# Criterion 4: the reports regenerated against the code after GREEN record 48\n\nF2 of the fourth review: no record showed the reports regenerated after the\nidentity changes of rounds 1 to 4. After GREEN record 48, on the working tree that\nGREEN ran against, these were run:\n\n    python3 harness/run.py report --week --date 2026-09-24   (exit 0)\n    python3 harness/run.py report --sprint 0                  (exit 0)\n\n`git status` afterwards showed no change to docs/harness/reports/: the regenerated\n2026-W39.md, 2026-W39.json, sprint-0.md and sprint-0.json are byte-identical to\nthe ones committed in 53d79ca. sprint-0.md line 24 reads SEEN-102 at\n\"4 (4 closed, 0 open)\" and line 29 SEEN-107 at \"26 (26 closed, 0 open)\". The\nrounds 1 to 4 changes move no reported figure, as the pinned table (criterion 3)\nalready said of the journals the reports read.\n\nA note and not a check, because `harness check` takes a phase of the tdd gate and\nregenerating a report is none of them.\n"
+  }
+}

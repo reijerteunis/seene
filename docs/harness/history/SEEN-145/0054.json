@@ -1,0 +1,43 @@
+{
+  "sequence": 54,
+  "ticket": "SEEN-145",
+  "timestamp": "2026-10-02T14:49:36.726266+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 5,
+  "actor": "claude:reviewer",
+  "session": "55e134c11377",
+  "head": "50748c04a4a9130b233d7bb72dea69bcc55c01fa",
+  "prev_hash": "241202525376418908960674e141742879ae309459809d42a37cdea6a11ef651",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 6,
+    "reason": "Review round 5 returns on F1 (medium): the greedy per-record join still lets position decide the count when a later finding's claim matches one anchor and its scenario another and every pair ties, and the code, the Outcome and the test say the order decides nothing.",
+    "findings": [
+      {
+        "id": "F1",
+        "severity": "medium",
+        "file": "harness/calibration.py",
+        "claim": "The pairs of a later record are still joined greedily, and when every pair ties the position of a finding in either record decides the count, while the comment, the Outcome and the test docstring say the order a reviewer lists findings in decides nothing.",
+        "failure_scenario": "Record 1 holds F1 (claim c1, scenario s1, high) and F2 (claim c2, scenario s2, low), both at harness/a.py:1. Record 2 holds G1 (claim c1, scenario s2, high) and G2 (claim c3, scenario s1, low) at the same line. All three pairs tie; listed as [G1, G2] kpi.findings returns 3 findings, listed as [G2, G1] it returns 2, the maximum assignment.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "none: an order-dependent greedy assignment inside a union-find join, which only a test fixture can expose"
+      },
+      {
+        "id": "F2",
+        "severity": "low",
+        "file": "docs/tickets/README.md",
+        "claim": "The status-row edit is named by no slice and no changes entry, so slice_files fails for the fifth time; accepted as the procedure's status mirror.",
+        "failure_scenario": "Every review of this ticket goes to full depth because of a one-line status mirror the procedure requires.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "none: the status mirror is required by the procedure"
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}

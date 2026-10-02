@@ -1,0 +1,16 @@
+{
+  "sequence": 7,
+  "ticket": "SEEN-145",
+  "timestamp": "2026-10-02T07:54:22.979001+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "solution",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "0d8ee4fdc841",
+  "head": "3742743f115e684a3eed469d9f148f8b342459a8",
+  "prev_hash": "e0f38542febe8e9f5b80efc98de30881a3715539f0e0f460d4fb438a606fa7b6",
+  "data": {
+    "text": "# Correction to the clarify advance (record 6)\n\nThe clarify advance cites \"record 6\" in its fourth and fifth decisions and its third acceptance check for the escape-count measurement and the kpi.json check. Those observations are note 5; record 6 is the advance itself. The citation was written before the note was appended and its sequence guessed. Nothing else in the record depends on it.\n"
+  }
+}

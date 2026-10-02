@@ -1,0 +1,16 @@
+{
+  "sequence": 44,
+  "ticket": "SEEN-145",
+  "timestamp": "2026-10-02T14:38:12.425962+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 5,
+  "actor": "claude:implementer",
+  "session": "55e134c11377",
+  "head": "1dc1f34a373d46f07417e9639e3f58d3690dfd98",
+  "prev_hash": "663dc79d0b829ddb84121c63a0a6f06ec4635355debbd394c4f000d24780c62f",
+  "data": {
+    "text": "# Decision after review round 4 (record 43): assign per record, best pairs first\n\nAsked in this session on 2 October 2026 and answered by Ruud: assign per record,\nstrongest pairs first.\n\nRound 4's F1: findings of a later record take their anchors one at a time in list\norder, so a weak match listed earlier takes the anchor an exact copy listed later\nneeded, and calibration.escapes counts a high finding twice depending only on the\norder inside the record. Rounds 2 to 4 each found one more case of that greed.\n\nThe work for the next session, one RED then one GREEN on slice 1:\n\n- Within each record, build every (finding of this record, earlier anchor) pair\n  the content matched, rank them by texts shared (more first), then same file\n  reference with its line, then same id, then journal order of the anchor, then\n  position of the finding in the record, and join the strongest pairs first. A\n  pair is skipped when the join is refused (the two identities share a record).\n  Then register the record's findings as anchors. The id still orders only pairs\n  the content found and never creates one (note 36).\n- RED: round 4's scenario in both orders inside record 4 (G1 before and after the\n  copy of F1), asserting calibration.escapes returns one escape for F1, plus the\n  same arrangement asserting kpi.findings' by_severity. The existing\n  FindingIdentityTest cases must stay green.\n- F2: rerun `python3 harness/run.py report --week --date 2026-09-24` and\n  `--sprint 0` through `harness check` so the regeneration is a record, and cite\n  it in the Outcome for criterion 4.\n- F3: the README status row, accepted as the procedure's status mirror in every\n  round; nothing to do.\n- Finish the Outcome and the docstrings before the regression, so the regression\n  covers the reviewed tree (round 2's F2).\n"
+  }
+}

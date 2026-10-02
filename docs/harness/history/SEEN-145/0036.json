@@ -1,0 +1,16 @@
+{
+  "sequence": 36,
+  "ticket": "SEEN-145",
+  "timestamp": "2026-10-02T14:16:18.960426+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 4,
+  "actor": "claude:implementer",
+  "session": "55e134c11377",
+  "head": "49a73b957e32a2e775afad7837021815b8b83659",
+  "prev_hash": "91a7b21184bbf2a9001d72180951a356ee66bb28ccf9d771d5044891dafdebc8",
+  "data": {
+    "text": "# Decision after review round 3 (record 35): how a tie between equal anchors is broken\n\nAsked in this session on 2 October 2026 and answered by Ruud: tie-break by line, then id.\n\nA later finding is offered first to the earlier findings it shares more texts with\n(record 30). Among anchors sharing the same number of texts, the one whose raw\n`file` reference, line included, equals the finding's comes first, then the one\nwith the same id, then journal order. The ordering only chooses among anchors the\ncontent already matched; it never creates a join, so the id still never makes two\nfindings one, which is what the amendment's sentence on the id protects. The\namendment is given a sentence saying so.\n\nConsidered and not taken: accepting the tie as a named residue beside SEEN-006's\nR-04 (it loses a severity, which the old key got right), and the line alone\nwithout the id (a finding that moved lines between rounds still ties).\n"
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "sequence": 21,
+  "ticket": "SEEN-145",
+  "timestamp": "2026-10-02T13:56:25.212985+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 1,
+  "actor": "claude:reviewer",
+  "session": "55e134c11377",
+  "head": "90be62ddef6fc45a811f3399825dcb501a0a1712",
+  "prev_hash": "7722c87eb307ac41e23077623840aebdaf394597ae5fe2a301c20172b86f5694",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 2,
+    "reason": "Review round 1 passed with three low findings; F1 is a regression this ticket introduced (two same-worded findings of one record, carried into a later round, count 3 against the old key's 2), so it is fixed before delivery rather than shipped. F2 is corrected in the Outcome. F3 is accepted as the procedure's own status mirror.",
+    "findings": [
+      {
+        "id": "F1",
+        "severity": "low",
+        "file": "harness/calibration.py",
+        "claim": "finding_identities keeps only the first node for each (path, field, text) key, so when one record holds two findings with the same file, claim and failure scenario, the copy of the second finding in a later round cannot reach it and is counted as a third finding.",
+        "failure_scenario": "Record 1 holds F1 at harness/a.py:1 and F2 at harness/a.py:2, both with claim 'It breaks' and scenario 'It breaks like this'. Record 2 carries both unchanged. latest_findings returns 3 where the real count is 2; the old (id, claim, file) key returned 2. No committed journal has this shape.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "none: an algorithmic edge case in a union-find anchor, which only a test can catch"
+      },
+      {
+        "id": "F2",
+        "severity": "low",
+        "file": "docs/tickets/SEEN-145-count-a-review-finding-once-however-the.md",
+        "claim": "The Outcome cites record 6 for the unchanged escape counts and for the decision not to rewrite kpi.json; those observations are in note 5, as note 7 already corrected for the clarify advance.",
+        "failure_scenario": "A reader following '(record 6)' to check that escape counts did not move finds the clarify advance rather than the measurement.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "none: a citation in prose, which no static rule reads"
+      },
+      {
+        "id": "F3",
+        "severity": "low",
+        "file": "docs/tickets/README.md",
+        "claim": "The ticket index row moved from todo to review, but no slice and no changes entry names docs/tickets/README.md, which is why slice_files failed.",
+        "failure_scenario": "The deterministic triage fails slice_files and sends the review to full depth for a status mirror the procedure itself requires.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "none: the status mirror is required by the procedure; the plan should have named it"
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}

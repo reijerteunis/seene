@@ -1,0 +1,16 @@
+{
+  "sequence": 64,
+  "ticket": "SEEN-145",
+  "timestamp": "2026-10-02T15:21:25.742070+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 7,
+  "actor": "claude:implementer",
+  "session": "55e134c11377",
+  "head": "f05e33475eb5dba9bcd9e8719164b4f92361a01a",
+  "prev_hash": "f24260c0f14fbf8be20e5684a3ad5f0fca5025673ad62c821aa9614d2771b470",
+  "data": {
+    "text": "# Plan after review round 6 (record 63): pin the two unpinned rules\n\nRound 6 found no wrong count. It found two rules of finding_identities that no test\npins: deleting `-shared[pair]` from the sort key, or the same-line comparison,\nleaves every FindingIdentityTest case green. SEEN-146 names this suite as its\nregression guard, so both are worth closing here, and both are tests only.\n\nThe work for the next session:\n\n- Two tests in FindingIdentityTest, one per scenario in record 63's F1 and F2,\n  each asserting kpi.findings' by_severity is {'high': 1, 'low': 1}:\n  F1: F2 carried word for word, renamed R1-2, moved to harness/a.py:6 (only the\n  shared-texts ranking places it); F2: F1 carried at harness/a.py:1 renumbered\n  F2 with its scenario reworded (only the line comparison places it, the id\n  points the other way).\n- The code already does what the tests ask, so a RED exists only against the\n  rule removed. Record it that way and say so in failure_reason, as record 57\n  did for the docstring: set aside the ranking term and the line comparison in\n  calibration.py, run `harness check --phase red`, restore the file byte for\n  byte, run `--phase green`. Both tests must fail in the RED, each on its own\n  mutation removed (one RED run with both removed is enough if each test fails).\n- No Outcome change is required by the findings; if the Outcome is touched,\n  touch it before the regression.\n- Regression, coverage, tdd advance, triage, review round 7 with only the\n  triage's task text.\n- F3: the index rows for SEEN-146 are there on Ruud's decision at note 55.\n\nThis is the seventh round on a 1-point ticket. If round 7 returns on anything\nthat is not a wrong count in a committed journal, the next step is Ruud's: ask\nbefore another round.\n"
+  }
+}

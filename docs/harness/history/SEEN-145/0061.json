@@ -1,0 +1,38 @@
+{
+  "sequence": 61,
+  "ticket": "SEEN-145",
+  "timestamp": "2026-10-02T15:18:46.015203+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 6,
+  "actor": "claude:implementer",
+  "session": "55e134c11377",
+  "head": "4150ac6c58db561050569f8a237241ad840083ac",
+  "prev_hash": "c3c86255fd1e82b8c37d550cd78fc94fb898aabb87b2f0e6115e4a68f52cc4a6",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": 1,
+          "behaviour": "kpi.findings says what the count rests on and names both residues it leaves: SEEN-006's R-04, and the crossing tie of the fifth review that SEEN-146 replaces the greedy join to close. The code comment, the round-4 test docstring and the Outcome no longer claim the order of a list decides nothing. No counting behaviour changed; criterion 4, and F1 of the fifth review as decided by Ruud at note 55.",
+          "failure_reason": "FindingIdentityTest.test_kpi_findings_says_what_the_count_rests_on_and_what_it_leaves failed on two subtests, \"AssertionError: 'crossing tie' not found in ...\" and \"'SEEN-146' not found in ...\", against kpi.py as committed at 4150ac6 (the docstring edit was set aside for the RED and restored for the GREEN). The earlier reds of this slice are records 11, 13, 22, 29, 37 and 47.",
+          "red": 57,
+          "green": 58
+        }
+      ],
+      "regression": 59,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "55e134c11377",
+      "output_tokens": 157280,
+      "tool_calls": 99,
+      "unavailable": null
+    }
+  }
+}

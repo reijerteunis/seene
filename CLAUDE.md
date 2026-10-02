@@ -59,7 +59,7 @@ call; it is not a command to run by hand.
 | [CONTEXT.md](CONTEXT.md) | Glossary: the harness terms, the product terms they collide with, and the resolution of the three meanings of gate |
 | [docs/adr/](docs/adr/) | Architecture decision records: journal integrity, the delivery receipt, the SEEN-086 bootstrap exemption, why an Outcome cannot count its own review rounds |
 
-### Tickets (145, 432 build points)
+### Tickets (146, 434 build points)
 
 | Ticket | Title | Epic | Size |
 |---|---|---|---|
@@ -117,6 +117,7 @@ call; it is not a command to run by hand.
 | [SEEN-142](docs/tickets/SEEN-142-keep-the-triage-s-request-inside-what-the-api.md) | Keep the triage's request inside what the API accepts, and say so when it cannot | E10 | 2 pt |
 | [SEEN-144](docs/tickets/SEEN-144-tell-a-path-the-branch-deleted-from-a-typo-in.md) | Tell a path the branch deleted from a typo in the plan | E10 | 2 pt |
 | [SEEN-145](docs/tickets/SEEN-145-count-a-review-finding-once-however-the.md) | Count a review finding once, however the record that carries it names it | E10 | 1 pt |
+| [SEEN-146](docs/tickets/SEEN-146-assign-a-later-review-s-findings-by-maximum.md) | Match a later review's findings as a whole, so the order they are listed in never changes a count | E10 | 2 pt |
 | [SEEN-008](docs/tickets/SEEN-008-create-trade-record-schema-v1-with-tenant-id.md) | Create trade-record schema v1 with tenant_id and RLS on every table | E0 | 5 pt |
 | [SEEN-139](docs/tickets/SEEN-139-hand-the-immutability-guard-forward-to-every.md) | Hand the immutability guard forward to every migration that adds a table | E0 | 2 pt |
 | [SEEN-143](docs/tickets/SEEN-143-compile-the-trade-record-schema-and-its-tests.md) | Compile the trade-record schema and its tests, which no compiler reads today | E0 | 3 pt |

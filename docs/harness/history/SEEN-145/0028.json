@@ -1,0 +1,53 @@
+{
+  "sequence": 28,
+  "ticket": "SEEN-145",
+  "timestamp": "2026-10-02T14:05:59.716114+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 2,
+  "actor": "claude:reviewer",
+  "session": "55e134c11377",
+  "head": "4b2b22547b33e5500092d614519c484630da27a4",
+  "prev_hash": "281f1a897856003930053a14337e4365d4b31521c933ac2231b8b6db0f67c7ae",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 3,
+    "reason": "Review round 2 returns on F1 (medium): a later finding joins the first claim-only match before a match on both texts, so by_severity can drop a high finding. F2: the regression is rerun after the Outcome is final. F3 accepted again as the status mirror.",
+    "findings": [
+      {
+        "id": "F1",
+        "severity": "medium",
+        "file": "harness/calibration.py",
+        "claim": "finding_identities joins a later finding to the first earlier finding that matches on claim, before trying the one that matches on both claim and failure scenario, so a carried-forward finding can be counted under the wrong identity and kpi.findings' by_severity drops a finding's severity.",
+        "failure_scenario": "Record 1 holds F1 (high, harness/a.py:1, claim 'Same claim', scenario 'Scenario A') and F2 (low, harness/a.py:5, claim 'Same claim', scenario 'Scenario B'); record 2 carries F2 word for word. F2's copy joins F1 through the claim, the scenario join to F2 is then refused because both identities hold record 1, and kpi.findings returns by_severity {'low': 2} instead of {'high': 1, 'low': 1}. The old (id, claim, file) key returned the right figure for this input.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "none: an order-dependent choice in a union-find join that only a test fixture can expose"
+      },
+      {
+        "id": "F2",
+        "severity": "low",
+        "file": "docs/tickets/SEEN-145-count-a-review-finding-once-however-the.md",
+        "claim": "The tree changed after regression record 24, most likely only the Outcome edit that cites records 24 and 25, so no full regression run is recorded against the reviewed tree.",
+        "failure_scenario": "If anything besides the ticket file changed between record 24 and triage 27, the 1573-test green no longer covers the tree that will be delivered.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "none: an ordering of the procedure, which the triage's fingerprint check already reports"
+      },
+      {
+        "id": "F3",
+        "severity": "low",
+        "file": "docs/tickets/README.md",
+        "claim": "The status-row edit is named by no slice or changes entry, so slice_files fails again; this repeats round 1's F3, which was accepted as the procedure's status mirror.",
+        "failure_scenario": "The deterministic triage keeps sending this ticket to full depth because of a status-mirror line the procedure requires.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "none: the status mirror is required by the procedure"
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}
