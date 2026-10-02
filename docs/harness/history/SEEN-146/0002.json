@@ -1,0 +1,25 @@
+{
+  "sequence": 2,
+  "ticket": "SEEN-146",
+  "timestamp": "2026-10-02T16:37:19.869645+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "4d7a1210a3ae",
+  "head": "d0c03e6bf4838a0ded6fb84863f0cd7433ee7948",
+  "prev_hash": "3d8fc99e2aadf213d8033cc330962d0c6fa70c961e5c9164fe453cd250f469d2",
+  "data": {
+    "source": "repowise",
+    "mode": "risk",
+    "command": [
+      "repowise",
+      "risk"
+    ],
+    "exit_code": 0,
+    "duration_ms": 2021,
+    "answer": "Sampling up to 200 recent commits…\n\nBenchmarked review priority: Below typical · 25th percentile of recent commits by size and spread\n  Smaller or more focused than a typical commit in this repo.\n\nChange risk for HEAD: no bug-fix history in the files it touches\n  docs(SEEN-146): start the ticket, status doing\n  +20 / -2 lines · 2 files · 2 dirs · 1 subsystems · entropy 0.68 · author exp 163\n  Diff-size score: 5.1/10 — how big and spread out the change is, not where it lands. Corpus-anchored to a single commit.\n  Diff shape (each driver vs. the model's baseline commit)  \n┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━┓\n┃ Driver                                ┃    Value ┃  Push ┃\n┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━┩\n│ more lines added than baseline        │       20 │ +0.48 │\n│ more experienced author than baseline │      163 │ -0.06 │\n│ more scattered than baseline          │ 0.684038 │ +0.03 │\n│ fewer lines deleted than baseline     │        2 │ -0.01 │\n└───────────────────────────────────────┴──────────┴───────┘\n",
+    "answer_truncated": false
+  }
+}
