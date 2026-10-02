@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-089]
-status: doing
+status: review
 priority: P0
 ---
 # SEEN-116: Property-based and mutation tests on the money core, as a gate
@@ -24,7 +24,7 @@ priority: P0
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | doing |
+| Status | review |
 | Priority | P0 (correctness and speed programme, see docs/harness/workflow.md) |
 
 ## Description
@@ -33,11 +33,11 @@ A test that passes proves the code does what the test says; it does not prove th
 
 ## Acceptance criteria
 
-- [ ] fast-check is a dev dependency of packages/core, and the convention for naming the invariant a property states is written in docs/harness/workflow.md
-- [ ] StrykerJS runs on packages/core with the vitest runner and the TypeScript checker, and the mutation score is reported in kpi.json and the sprint report
-- [ ] thresholds.toml carries the mutation score floor, the tdd gate refuses to advance packages/core changes below it, and a killed mutant is accepted as RED evidence
-- [ ] CI runs incremental mutation on the changed files of a pull request in under ten minutes
-- [ ] A seeded bug in a fixture detector (wrong tolerance sign) is caught by a property and by a mutant, proven with a fixture that is not product code
+- [x] fast-check is a dev dependency of packages/core, and the convention for naming the invariant a property states is written in docs/harness/workflow.md
+- [x] StrykerJS runs on packages/core with the vitest runner and the TypeScript checker, and the mutation score is reported in kpi.json and the sprint report
+- [x] thresholds.toml carries the mutation score floor, the tdd gate refuses to advance packages/core changes below it, and a killed mutant is accepted as RED evidence
+- [x] CI runs incremental mutation on the changed files of a pull request in under ten minutes
+- [x] A seeded bug in a fixture detector (wrong tolerance sign) is caught by a property and by a mutant, proven with a fixture that is not product code
 
 ## Depends on
 
@@ -89,6 +89,9 @@ belong to the tickets that write each money function, as the description says.
   pull request 44:
   - Run 37068194534 on 7682adc, cold: 32 seconds for the job.
   - Run 37070105397 on ca030d9, warm from the incremental cache: 29 seconds.
+  - Run 37077429429 on dfbc3b9, the selection in `harness/mutation_ci.py`
+    (attempt 5): 25 seconds. It widened to all of src, because package.json
+    is in the diff.
 
   Both are far under ten minutes. src holds one mutable file today, so this
   shows the step is fast on today's src, not on a much larger one.
@@ -103,9 +106,31 @@ This ticket's own figure: its slices name nothing under packages/core/src, so
 the floor does not apply to it. It recorded no mutation check, so its kpi.json
 mutation is null and the sprint report shows a dash.
 
-The work took four attempts:
+Attempt 5 fixed four medium findings of the attempt 4 review (return 53,
+scope in note 55):
+- F1: a slice entry naming a directory under packages/core/src is mutated as
+  `<dir>/**/*.ts,!<dir>/**/*.test.ts`. A measurement whose report lists none of
+  a named file, or no file under a named directory, has no score and is
+  refused, rather than recorded as not applicable. Slice 1, RED 59 and 61,
+  GREEN 60 and 62.
+- F2 and F3: the tdd gate reads a mutation measurement only when its `after`
+  fingerprint is the tree being advanced and its command is
+  `mutation.command(files)`. A stale score or one written by another command
+  is refused. Slice 2, RED 65, GREEN 66.
+- F4: CI's file selection is `harness/mutation_ci.py`, with a test per rule in
+  `harness/tests/test_mutation_ci.py`, which CI's harness job runs. The
+  `changed` step pipes the PR diff into it. Slice 3, RED 68, GREEN 69.
+  Regression 70.
+- F5: the README status row now mirrors the ticket status, and attempt 5's
+  plan names it.
+- F6: slice 1's RED 40 shows killed mutants, not the db/ exclusion. The RED
+  for that exclusion is check 16 of attempt 2: `test:unit` ran
+  `db/authorities.test.ts` before the unit project left db/ out.
+
+The work took five attempts:
 - Two returns from tdd to solution: the slice 1 regression at record 13, and
   the slice 2 regression at record 24.
 - One return from the review triage at record 47, for criterion 4. The CI
   measurement only existed after the pull request ran. It is recorded in
   attempt 4 as check 48, cited in slice 3's entry.
+- One return from review to solution at record 53, for F1 to F4 above.
