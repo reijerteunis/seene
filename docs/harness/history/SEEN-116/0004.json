@@ -1,0 +1,18 @@
+{
+  "sequence": 4,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-02T19:48:27.706649+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "96dfd6dc084a",
+  "head": "6b13f2671278622b42541f6dc4d7ff8e1e5cc6ee",
+  "prev_hash": "ed040df3c97f3ba5e83f9803f2a6f0389380ec7e10c528e5bf4a106242aaa201",
+  "data": {
+    "text": "# Scout brief: what Stryker, fast-check and the mutation figure plug into\n\n**Not answered or not checked:** harness/coverage.py (DEFAULT_COMMAND, baseline storage), report.py around line 220, delivery.py (where kpi.json is written; delivery._latest_coverage line 108 is a likely second consumer), pnpm-workspace.yaml, tsconfig.base.json, .gitignore. Graph tools not used; files read directly. No step in ci.yml knows the PR's changed files: no git diff, no github.event.pull_request, no fetch-depth 0 in the node job.\n\n**packages/core**\n- package.json:21-27 scripts: test (vitest run), test:unit (--dir src), test:db (--dir db), lint (biome check src db), typecheck. devDependencies (28-32): @types/pg, @vitest/coverage-v8, pg. Root pins vitest ^3.0.0 and typescript (package.json:32). No Stryker, no fast-check.\n- vitest.config.ts:17 fileParallelism false (asserted by db/parallelism.test.ts); 18-24 coverage v8, json-summary, include src/**/*.ts.\n- tsconfig.json extends ../../tsconfig.base.json and includes only src/**/*, so db/ is not type-checked.\n- Tests: src/index.test.ts plus six db/ files (authorities, marketplaces, parallelism, rls, schema, uniqueness). db tests need local Supabase Postgres with migrations; test:unit is database-free. Stryker should run against src/ only, mirroring test:unit.\n\n**Root, turbo, Node**\n- .nvmrc 24.15.0, engines >=24, pnpm 10.31.0. Root test is turbo run test (package.json:16).\n- turbo.json:18-103 test inputs: $TURBO_DEFAULT$ plus migrations, supabase/config.toml, docs/architecture.md, named ticket files; a stryker config or fixtures dir in the package is covered by $TURBO_DEFAULT$. packages/core/db/repository.ts refuses to read paths outside what turbo hashes.\n\n**CI (.github/workflows/ci.yml)**\n- harness job (line 12) runs unittest, doctor, rules --check. node job (line 89) \"Monorepo (Node 24)\": Node from .nvmrc, cache pnpm (111-114), no .turbo cache (turbo.json:29), docker compose and Supabase (131-139), fixtures, lint, rules.sh tree, typecheck, turbo run test (175), build. A mutation step can reuse that job's stack; a separate job needs no Supabase if it runs only src/.\n\n**Harness KPI**\n- kpi.py:516 measure builds the record, fields 531-554, coverage=coverage(records) at 540. kpi.py:446-452 coverage() returns the latest check with phase coverage as {package, lines, delta}. The no-journal branch (519-527) hardcodes coverage=None; a mutation field goes in both.\n- cli.py:968 ticket_figures calls kpi.measure (994) and adds tokens, tool calls, escaped_defects. report.py:220-221 reads ticket['coverage']['delta'].\n\n**Tool configs**\n- knip.json:4 ignores rules/fixtures/**. biome.json:9-21 includes packages/**, excludes coverage and rules/fixtures; would lint .stryker-tmp and reports. .dependency-cruiser.json:74 excludes dist, coverage, .next, .turbo, rules/fixtures/, not .stryker-tmp. knip may flag new devDependencies as unused (not checked).\n",
+    "agent": "seen-scout",
+    "words": 365
+  }
+}

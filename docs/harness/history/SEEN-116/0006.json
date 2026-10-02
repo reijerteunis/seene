@@ -1,0 +1,92 @@
+{
+  "sequence": 6,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-02T19:49:17.306618+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "96dfd6dc084a",
+  "head": "6b13f2671278622b42541f6dc4d7ff8e1e5cc6ee",
+  "prev_hash": "205357d7f82a49a9544180cf17d2adb59a5f9fbe342c1aebd7861aa6cb53a992",
+  "data": {
+    "from_stage": "clarify",
+    "to_stage": "solution",
+    "evidence": {
+      "scope": "Give packages/core the machinery and the gate for property-based and mutation testing: fast-check as a dev dependency with a written convention for naming the invariant a property states, StrykerJS (vitest runner, TypeScript checker) over packages/core/src, the mutation score in kpi.json and the sprint report, a [mutation] floor in harness/thresholds.toml that the tdd gate applies to slices touching packages/core/src, a killed mutant accepted as RED evidence, and incremental mutation of a pull request's changed files in CI; proven on a seeded-bug fixture detector outside src. Its edge: it writes no property about product code (those are criteria of SEEN-016 to SEEN-020 and SEEN-033 since #43), adds no product function, and does not mutate packages/core/db, whose tests need the Supabase stack.",
+      "acceptance": [
+        "1. fast-check is a dev dependency of packages/core and the convention for naming an invariant is written in docs/harness/workflow.md. Evidence: packages/core/package.json and pnpm-lock.yaml in the diff, the workflow.md paragraph stating the convention (a property's title begins `invariant: ` followed by the invariant in a sentence), and the fixture's own property written to it.",
+        "2. StrykerJS runs on packages/core with the vitest runner and the TypeScript checker, and the score reaches kpi.json and the sprint report. Evidence: a stryker config in packages/core naming testRunner vitest and checkers [typescript], a recorded check running it to exit 0 with a JSON report; a RED/GREEN pair in harness/tests/test_kpi.py for a `mutation` field in kpi.measure (both the journal and the no-journal branch, kpi.py:519-554), and one in the report tests for a mutation column beside coverage (report.py:220).",
+        "3. thresholds.toml carries [mutation] floor = 70 (registered in thresholds.EXPECTED), the tdd gate refuses to advance an attempt whose slices name a file under packages/core/src without a mutation measurement at or above the floor, and a killed mutant is accepted as RED evidence. Evidence: RED/GREEN pairs in harness/tests (test_stage_gates or test_tdd) for a below-floor refusal, an at-floor pass, a slice touching only harness/ that needs no measurement, and a RED check whose exit code is 0 but whose Stryker report names a Killed mutant in a file the slice names being accepted by checks and cited_check (checks.py:29, gates.py:883), with a Survived-only report refused.",
+        "4. CI runs incremental mutation on a pull request's changed files in under ten minutes. Evidence: a CI step that computes the changed files under packages/core/src against the PR base (fetch-depth enough to reach it), runs Stryker with --incremental and --mutate on them with the incremental file cached between runs, and skips cleanly when none changed; the step's measured duration on this ticket's own pull request, quoted in the Outcome.",
+        "5. A seeded bug in a fixture detector (wrong tolerance sign) is caught by a property and by a mutant, proven with a fixture that is not product code. Evidence: a fixture detector under packages/core/fixtures/ (not src, not exported, excluded from the package build), its correct form and a committed seeded-bug variant; a test proving the `invariant: ` property fails on the seeded variant (fc.check reports a counterexample) and passes on the correct one; and a Stryker run over the fixture whose report shows the sign-flipping mutant Killed by that property."
+      ],
+      "decisions": [
+        "Stryker mutates packages/core/src only, with vitest restricted to the database-free tests (the test:unit path). The db/ tests need the local Supabase stack (scout record 4), which would make every mutant wait on Postgres and tie the CI step to the docker job; db/ holds schema tests, not money arithmetic. The fixture is mutated by a second, fixture-only Stryker config so it never enters the product score. Decided here on the scout's evidence.",
+        "The floor applies to the files the attempt's slices name under packages/core/src, not to the whole package: that is what the gate already knows (slice files, gates.py:29 and 372-381, scout record 3) and what CI mutates incrementally, so the harness and CI measure the same thing. A measurement that finds zero mutants in those files is recorded as not applicable with the count, never as a score of 100, so an empty file cannot pass a floor it never faced.",
+        "A killed mutant counts as RED when the check's Stryker JSON report names at least one mutant with status Killed in a file the slice names; the exit code of a Stryker run is 0 whether mutants are killed or not, so demonstrates_failure (checks.py:29) gains a second form rather than a relaxed exit-code rule. kpi.red_before_green (kpi.py:61) repeats the exit-code test and must read the same function, so the two cannot drift. Solution names the record field.",
+        "The floor starts at 70, as the ticket says, and is raised with the measurement by a thresholds.toml diff a human reviews; this ticket does not raise it.",
+        "Under ten minutes is unknowable before the step exists: proceed, and settle it by the measured duration of the CI step on this ticket's own pull request, quoted in the Outcome. If it is over, incremental scope is narrowed at solution of a follow-up rather than the criterion relaxed.",
+        "The invariant naming convention is a title prefix, `invariant: <the invariant as a sentence>`, using @fast-check/vitest's test.prop so a failing property prints its counterexample and seed in the vitest output; SEEN-136's hermetic-test rule already expects fast-check seeds (workflow.md:112). An ast-grep rule enforcing the prefix is not in this ticket's criteria and is left to SEEN-114's rule loop if a review finds a property without one.",
+        "biome.json, knip.json and .dependency-cruiser.json are amended to ignore .stryker-tmp and the Stryker reports directory, and to treat packages/core/fixtures as fixtures (scout record 4: biome and dependency-cruiser would otherwise read them, and knip may call the new devDependencies unused).",
+        "KPI this harness ticket moves (CLAUDE.md rule 9; SEEN-123 is still todo, so the statement is made here by hand): review findings at medium or above per point on the money-core tickets SEEN-016 to SEEN-020 and SEEN-033, against the Sprint 0 figure of 63 findings and 0.79 returns per ticket (development-plan.md), plus the mutation score itself, which is new and starts as a measurement rather than a comparison.",
+        "repowise risk (record 2) scored the start commit, which carried only the ticket status; it is recorded as no evidence about this change, which has no diff yet."
+      ],
+      "open_questions": [],
+      "changes_agent_action": false,
+      "graph_impact": [
+        "codegraph impact demonstrates_failure (record 5): checks.demonstrates_failure, gates.cited_check and gates._tdd. Not shown by the graph but found by the scout (record 3): kpi.red_before_green (kpi.py:61) repeats the exit-code test without calling it, so a second RED form must reach it too.",
+        "Readers of the coverage measurement the mutation figure sits beside (scout records 3 and 4): gates._require_coverage (gates.py:1441-1459), kpi.coverage (kpi.py:446) in both branches of kpi.measure, delivery._latest_coverage (delivery.py:108), cli.ticket_figures (cli.py:968) and report.py:220.",
+        "thresholds.load fails on any section missing from thresholds.EXPECTED (thresholds.py:10-36), so [mutation] must be registered there and every test fixture that builds a thresholds file gains it.",
+        "CI: the node job (ci.yml:89) has no changed-files step and no fetch-depth; the mutation step needs only Node, not the Supabase stack, because it runs the database-free tests."
+      ]
+    },
+    "decisions": [
+      {
+        "key": "clarified",
+        "question": "clarified",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.87,
+          "no": 0.13
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.8,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "key": "risk",
+        "question": "risk",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "low",
+        "probabilities": {
+          "low": 0.5,
+          "medium": 0.49,
+          "high": 0.01
+        },
+        "confidence": 0.24,
+        "score": 0.51,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

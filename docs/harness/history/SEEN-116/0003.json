@@ -1,0 +1,18 @@
+{
+  "sequence": 3,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-02T19:47:57.609404+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "96dfd6dc084a",
+  "head": "6b13f2671278622b42541f6dc4d7ff8e1e5cc6ee",
+  "prev_hash": "9cb16d9b0ad377c37e34a30d1f2db516f210da86aecfe26a2639c35c8f3cd0cc",
+  "data": {
+    "text": "# Scout brief: how the tdd gate decides RED, GREEN, regression and coverage\n\n**What I could not answer**\n- Coverage has no floor in harness/thresholds.toml: no [coverage] section; line 9 only comments that it is a later ticket. Coverage is a baseline-delta rule instead.\n- Did not read the full slice-to-files path beyond gates.py:349-381, nor docs/harness/workflow.md:104.\n\n**How the checks record**\n- `harness check --phase red|green|regression` is cli.py:654 check; checks.PHASES_FOR_STAGE (checks.py:20) allows red, green, regression, coverage at tdd.\n- checks.run (checks.py:40-100) returns command, phase, exit_code, model, model_declared, agent_declared, duration_ms, output, output_sha256, output_truncated, before, after (repository fingerprints). Exit 124 is timeout, 127 could not start.\n- check journals every run as kind check (cli.py:680), then refuses a RED that did not fail (cli.py:686-689): checks.demonstrates_failure is 0 < exit_code < 124 (checks.py:29-37). A killed-mutant RED plugs in here, and in the citation check at gates.py:1014-1017. kpi.py:61 repeats the exit-code test in red_before_green.\n- `harness coverage` (cli.py:487) runs the fixed coverage.DEFAULT_COMMAND (coverage.py:19) with phase coverage; coverage.compare (coverage.py:49) adds package, lines, baseline, delta. Baseline in COVERAGE_BASELINE, written only at delivery (coverage.py:58).\n\n**How the tdd gate validates**\n- _tdd at gates.py:1086 requires a coverage measurement for the current attempt (_require_coverage, gates.py:1102 and 1441-1459), failing when delta < 0. A mutation-floor check would sit beside it.\n- cited_check (gates.py:1012-1021): phase must match; RED must satisfy demonstrates_failure; green and regression need exit_code 0.\n- Ordering gates.py:1143: previous_green < red.seq < green.seq <= regression.seq.\n- Tree fingerprint (gates.py:1111) refuses a check against stale content.\n\n**Which files a change touches**\n- From the files each slice names (SLICE_KEYS includes files, gates.py:29), read from the route or the solution record (gates.py:372-381). gates.py:352-356: git diff --name-only <commit> -- <files> plus untracked from git status.\n- No base_commit diff classifying packages/core against harness. The only package gating is GATED_PACKAGE = '@seen/core' in coverage.py:14.\n\n**Thresholds**\n- thresholds.load (thresholds.py:25-36) reads TOML and checks each section and key in EXPECTED (thresholds.py:~10-22); a missing one is fatal. A [mutation] floor needs an EXPECTED entry. [checks] (thresholds.toml:26) is a neighbour.\n\n**Mentions of mutation, stryker, fast-check**\n- None in harness/ for Stryker or fast-check. \"mutation\" only in ast-grep/no-settlement-mutation and gates.py:50. workflow.md:112 has fast-check seeds under SEEN-136.\n\n**Not checked:** workflow.md:104, doctor.py's use of THRESHOLDS, any test pinning EXPECTED.\n",
+    "agent": "seen-scout",
+    "words": 368
+  }
+}

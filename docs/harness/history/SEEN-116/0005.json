@@ -1,0 +1,31 @@
+{
+  "sequence": 5,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-02T19:48:40.041566+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "96dfd6dc084a",
+  "head": "6b13f2671278622b42541f6dc4d7ff8e1e5cc6ee",
+  "prev_hash": "c3d37b1cba556889feb1907689a945040fb23e5416c4e4265428b2bbefd6931c",
+  "data": {
+    "source": "codegraph",
+    "mode": "impact",
+    "command": [
+      "codegraph",
+      "impact",
+      "demonstrates_failure"
+    ],
+    "synced": true,
+    "index": {
+      "nodes": 3606,
+      "edges": 11229
+    },
+    "exit_code": 0,
+    "duration_ms": 251,
+    "answer": "\nImpact of changing \"demonstrates_failure\" — 3 affected symbols:\n\nharness/checks.py\n  function    demonstrates_failure:29\n\nharness/gates.py\n  function    cited_check:883\n  function    _tdd:1086\n\n",
+    "answer_truncated": false
+  }
+}
