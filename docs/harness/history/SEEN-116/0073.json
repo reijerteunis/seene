@@ -1,0 +1,59 @@
+{
+  "sequence": 73,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-02T23:22:49.264833+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 5,
+  "actor": "claude:implementer",
+  "session": "225c9415371d",
+  "head": "d88f21f28dc0f460c96222cf6d2b40ce07e035ea",
+  "prev_hash": "7afcedc57c180bdcec534c6ef47519ce1bf53dc69fb41315ce436ad34ef5e663",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": 1,
+          "behaviour": "A slice entry naming a directory under packages/core/src is mutated over the files under it (`<dir>/**/*.ts,!<dir>/**/*.test.ts`), and measure() grants not applicable only when every named file is in the report and every named directory has a report file under it (F1).",
+          "failure_reason": "AssertionError: Tuples differ: ('pnp[35 chars]tion', '--mutate', 'src/money') != ('pnp[35 chars]tion', '--mutate', 'src/money/**/*.ts,!src/money/**/*.test.ts'); test_a_named_file_the_report_lacks_is_a_miss_and_never_not_applicable: AssertionError: True is not false; KeyError: 'missing'. FAILED (failures=4, errors=1)",
+          "red": 59,
+          "green": 60
+        },
+        {
+          "position": 1,
+          "behaviour": "A measurement that misses a named entry is refused with no score, whatever the other named files scored (the second round of F1).",
+          "failure_reason": "test_a_missing_entry_is_refused_whatever_the_other_files_scored: AssertionError: 100.0 is not None. FAILED (failures=1)",
+          "red": 61,
+          "green": 62
+        },
+        {
+          "position": 2,
+          "behaviour": "The tdd gate holds the mutation measurement to the tree being advanced and to the fixed Stryker command, mutation.command(files) (F2 and F3).",
+          "failure_reason": "test_a_measurement_taken_before_a_later_edit_is_refused_with_both_fingerprints ... FAIL and test_a_measurement_whose_command_is_not_the_fixed_one_is_refused ... FAIL: the gate advanced on a stale measurement and on a substituted command.",
+          "red": 65,
+          "green": 66
+        },
+        {
+          "position": 3,
+          "behaviour": "CI's mutation file selection is harness/mutation_ci.py, select() and main(), with one test per rule, and the ci.yml step pipes the PR diff into it (F4).",
+          "failure_reason": "ImportError: cannot import name 'mutation_ci' from 'harness'. FAILED (errors=1)",
+          "red": 68,
+          "green": 69
+        }
+      ],
+      "regression": 70,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "225c9415371d",
+      "output_tokens": 19152,
+      "tool_calls": 29,
+      "unavailable": null
+    }
+  }
+}
