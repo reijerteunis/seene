@@ -185,6 +185,90 @@ jobs:
           docker compose logs --tail 50 || true
           docker compose down || true
 
+  # Mutation testing of the money core on a pull request's changed files only
+  # (SEEN-116). The whole of packages/core takes longer than a reviewer waits;
+  # the incremental file makes a run on an unchanged file free, so a pull
+  # request pays for what it touched. A push has no base to diff against, and
+  # the harness measures the floor locally, so this job is for pull requests.
+  # Node only: Stryker's config restricts mutants to the database-free unit
+  # project, so there is no Supabase and no docker here.
+  mutation:
+    name: Incremental mutation (packages/core)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The diff against the base needs the base commit in the clone.
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      # The base comes through env, never interpolated into the script: a
+      # branch name or a title is text somebody else chose. The selection is
+      # plain shell so it can be run on a laptop with BASE and GITHUB_OUTPUT set.
+      # A change to the mutation config or the test setup changes what every
+      # mutant faces, so the stored results for unchanged files no longer
+      # describe it, and the whole of src is mutated instead.
+      - name: Which core files changed
+        id: changed
+        shell: bash
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          changed=$(git diff --name-only --diff-filter=ACMR "${BASE:?}"...HEAD)
+          if printf '%s\n' "$changed" | grep -Eq '^packages/core/(stryker\.config\.mjs|vitest\.config\.ts|package\.json)$'; then
+            files='src/**/*.ts,!src/**/*.test.ts'
+            echo "The mutation config or the test setup changed: mutating all of src."
+          else
+            files=$(printf '%s\n' "$changed" \
+              | { grep -E '^packages/core/src/.*\.ts$' || true; } \
+              | { grep -Ev '\.test\.ts$' || true; } \
+              | sed 's#^packages/core/##' \
+              | paste -sd, -)
+          fi
+          if [ -n "$files" ]; then
+            echo "any=true" >> "$GITHUB_OUTPUT"
+            echo "files=$files" >> "$GITHUB_OUTPUT"
+            echo "Mutating: $files"
+          else
+            echo "any=false" >> "$GITHUB_OUTPUT"
+            echo "No product file under packages/core/src changed."
+          fi
+
+      # The branch's own results first, then any branch's: a new pull request
+      # starts from the last run anywhere rather than from nothing, and
+      # Stryker discards the entries whose source or tests changed.
+      - name: Restore the incremental results
+        if: steps.changed.outputs.any == 'true'
+        uses: actions/cache@v4
+        with:
+          path: packages/core/reports/stryker-incremental.json
+          key: stryker-incremental-${{ github.head_ref }}-${{ github.sha }}
+          restore-keys: |
+            stryker-incremental-${{ github.head_ref }}-
+            stryker-incremental-
+
+      # Ten minutes is the criterion, enforced and not only measured.
+      - name: Mutate the changed files
+        if: steps.changed.outputs.any == 'true'
+        timeout-minutes: 10
+        env:
+          FILES: ${{ steps.changed.outputs.files }}
+        run: pnpm --filter @seen/core exec stryker run stryker.config.mjs --incremental --mutate "$FILES"
+
+      - name: Nothing to mutate
+        if: steps.changed.outputs.any != 'true'
+        run: echo "Nothing under packages/core/src changed, so there is nothing to mutate."
+
   graph:
     name: Knowledge graph
     runs-on: ubuntu-latest
