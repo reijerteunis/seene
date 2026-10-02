@@ -1,0 +1,62 @@
+{
+  "ticket": "SEEN-114",
+  "delivered_at": "2026-10-02T05:31:37.877968+00:00",
+  "points": null,
+  "cycle_time_seconds": 79592,
+  "stage_seconds": {
+    "clarify": 322,
+    "solution": 1050,
+    "tdd": 44658,
+    "review": 33263,
+    "deliver": 297
+  },
+  "attempts": 16,
+  "rework": 15,
+  "red_before_green": true,
+  "coverage": {
+    "package": "@seen/core",
+    "lines": 100.0,
+    "delta": 0.0
+  },
+  "findings": {
+    "by_severity": {
+      "medium": 16,
+      "low": 18
+    },
+    "fixed": 34,
+    "waived": 0
+  },
+  "first_pass_ci": true,
+  "tokens": null,
+  "cost": null,
+  "escaped_defects": [],
+  "slices": {
+    "planned": 4,
+    "proven": 81
+  },
+  "sessions": 2,
+  "subagents": {
+    "briefs": 0,
+    "agents": [],
+    "review": "independent",
+    "both": false
+  },
+  "review_triage": {
+    "record": 366,
+    "depth": "full",
+    "model_depth": "full",
+    "shadow": true,
+    "asked": false,
+    "rules": [],
+    "files": 103,
+    "focus": 103,
+    "excluded": 0,
+    "excluded_share": 0.0,
+    "reviewer_output_tokens": null,
+    "reviewer_tokens": null
+  },
+  "execution": null,
+  "output_tokens_per_slice": null,
+  "harness_version": "2",
+  "note": null
+}
