@@ -375,6 +375,13 @@ class GuardNamesADirectory(SliceGuardTest):
     does not match. The fix may not become a prefix hole, which is why the second
     half of the first test is here beside the first: a slice that names files
     still authorises only those files.
+
+    Whether a one-word entry such as `harness` names a directory is not asked
+    here. This class had a test refusing it, written against the guard's own
+    reader; SEEN-140 then made paths.covers the one reader of whether a plan
+    covers a path, for the guard, the route verdict and the triage alike, and
+    left whether a plan may name a directory at all to the founder. A second
+    answer in the guard is what SEEN-140 removed, so the test went with it.
     """
 
     def test_a_directory_entry_authorises_inside_it_and_a_file_entry_does_not(self):
@@ -400,17 +407,6 @@ class GuardNamesADirectory(SliceGuardTest):
         decision = self.guard('supabase/migrations/20260927000004_trade_record.sql')
 
         self.assertTrue(decision['allowed'], decision['reason'])
-
-    def test_a_top_level_name_does_not_authorise_the_tree_under_it(self):
-        """The hole this fix must not open. `harness` is a directory on disk in
-        every project this harness runs in, and a one-word slice entry that
-        authorised every file under it would widen every plan in the repository.
-        """
-        self.plan(self.slice_('harness'))
-
-        for path in ('harness/guard.py', 'harness/coverage.py'):
-            with self.subTest(path=path):
-                self.assertFalse(self.guard(path)['allowed'])
 
     def test_a_partial_segment_is_not_inside_the_directory(self):
         """`supabase/migrations` must not authorise `supabase/migrations-old/x.sql`."""

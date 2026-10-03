@@ -385,9 +385,13 @@ def _second_return(records):
     """The second return since the plan in hand was accepted, or nothing.
 
     Counted from the solution advance rather than from the attempt, for the
-    reason handoff.plan_accepted_at gives: returns are what a plan collects, and
-    a replan that passes the solution gate again starts its own count. Two of
-    them under one plan is where a correction has become thrashing.
+    reason handoff.plan_accepted_at gives: returns are what a plan collects. A
+    replan that changes the slices starts its own count; one that passes the
+    solution gate again with the same slices does not, because since SEEN-113 the
+    count starts at the first acceptance of the plan that still stands, so the
+    returns before and after that re-acceptance are added together. Two of them
+    under one plan is where a correction has become thrashing, and a return to
+    solution that changed nothing is not a reason to forget the first.
     """
     returns = [record for record in records
                if record['kind'] == 'return'

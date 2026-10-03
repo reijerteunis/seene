@@ -41,7 +41,8 @@ class GuardRefusal(HarnessError):
 DEFAULT_ROOT = Path(__file__).resolve().parents[1]
 TICKET_COMMANDS = ('start', 'status', 'history', 'draft', 'note', 'check', 'advance',
                    'return', 'graph', 'decide', 'coverage', 'mutation', 'handoff', 'budget',
-                   'reopen', 'discard', 'verify-delivery', 'verify-merge', 'review', 'run', 'authorise')
+                   'reopen', 'discard', 'verify-delivery', 'verify-merge', 'review', 'run',
+                   'authorise')
 # handoff writes a record, so it is bound to the ticket's own branch like every
 # other writing command. status --brief is not here and neither is budget: a
 # command a session runs to see where it stands must not make the journal longer

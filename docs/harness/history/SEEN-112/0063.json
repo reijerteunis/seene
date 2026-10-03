@@ -1,0 +1,16 @@
+{
+  "sequence": 63,
+  "ticket": "SEEN-112",
+  "timestamp": "2026-10-03T18:14:23.591098+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 6,
+  "actor": "claude:implementer",
+  "session": "5cd7e218d9c6",
+  "head": "ebd1d96e95b47e51c6a899b64bcafbe55c179381",
+  "prev_hash": "dadfd20f9d807950dd15a4a1be9eb11392c986455ad10681a0deb21cceea6778",
+  "data": {
+    "text": "# The second rebase onto main, and the guard's two readers of one question\n\nRED is record 58 and GREEN is record 60; record 59 is a GREEN that ran a test file that does not exist\n(exit 4), left in the journal as it happened. The branch was 19 commits behind main, SEEN-008 to\nSEEN-146.\n\n**Two textual conflicts, both in lists.** `TICKET_COMMANDS` and `WRITING_COMMANDS` in `harness/cli.py`\ngained `mutation` on main (SEEN-116) and `run` and `authorise` here; the resolution is the union.\n\n**One real conflict, in the edit guard.** SEEN-112's commit c66960a gave `harness/guard.py` its own\nreader of whether a slice's file list authorises a path, `_authorises` with `_names_a_directory`,\nwhich refused a one-word entry such as `harness` as a directory. SEEN-140, merged to main since, made\n`paths.covers` the one reader of that question for the guard, the route verdict and the triage, and\nleft whether a plan may name a directory at all to the founder. Keeping both would put back the\ndisagreement SEEN-140 removed, so the guard now asks `covers` and the private reader is gone. What\nSEEN-112's fix was actually for survives intact: once every slice is done, rework is held to the union\nof the plan's files and refused outside it as `outside-plan`, rather than read as an absent plan.\n\nThe RED is the one test that encoded the difference,\n`GuardNamesADirectory.test_a_top_level_name_does_not_authorise_the_tree_under_it`, failing against\n`covers` as the rebase left it. It was removed rather than satisfied, and the class docstring says\nwhy: satisfying it means a second answer in the guard or a change to `covers` that also moves the\nroute verdict and the triage, and either is the founder's question SEEN-140 left open, not this\nticket's. So the guard is now more permissive than c66960a made it in one case: a slice entry naming\na top-level directory authorises the tree under it, exactly as it does for the route and the triage.\n\n**And the drift record 57 reported is closed.** `_second_return`'s docstring in `harness/loop.py` said a\nreplan that passes the solution gate again starts its own count. Since SEEN-113 that holds only for a\nreplan that changes the slices; one that re-accepts the same slices keeps counting, so returns before\nand after it add up. The docstring now says that. No behaviour changed.\n"
+  }
+}
