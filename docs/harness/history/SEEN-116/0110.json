@@ -1,0 +1,45 @@
+{
+  "sequence": 110,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-03T05:52:57.772361+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 7,
+  "actor": "claude:implementer",
+  "session": "21f0db056ef9",
+  "head": "86187e580a57718c80e3b12a2d2c43b1fe07e78b",
+  "prev_hash": "11526afdd443dbc1b0e39abe6096889a9107dc40aa7d404c3ebf75cadcfef98c",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": 1,
+          "behaviour": "A test under packages/core/src is measured over the source it tests, its sibling or else its directory, through one function, mutation.under_test, that the gate's source_files and CI's mutation_ci.select both call; a slice naming only a test is refused without a mutation measurement, and CI mutates a changed test's source instead of skipping (F1 of the attempt 5 review).",
+          "failure_reason": "AttributeError: module 'harness.mutation' has no attribute 'under_test'; TypeError: source_files() takes 1 positional argument but 2 were given; TypeError: select() takes 1 positional argument but 2 were given; test_a_slice_naming_only_a_test_is_refused_without_a_measurement: AssertionError: HarnessError not raised; test_main_selects_the_source_of_a_changed_test_by_asking_the_file_system: AssertionError: 'any=false\\n' != 'any=true\\nfiles=src/fee.ts\\n'. FAILED (failures=3, errors=30)",
+          "red": 102,
+          "green": 103
+        },
+        {
+          "position": 2,
+          "behaviour": "The sprint report says not applicable only for a measurement recorded as not applicable and 'not measured: <reason>' for a run that measured nothing, and kpi.mutation reads only the ticket's last attempt, so an earlier attempt's failed run is not carried forward (F3 of the attempt 5 review).",
+          "failure_reason": "test_an_earlier_attempts_measurement_is_not_carried_when_the_last_attempt_took_none: AssertionError: {'score': None, 'floor': 70, 'mutants': 0, ..., 'not_applicable': False} is not None; test_a_failed_run_is_not_measured_and_says_why_rather_than_not_applicable: AssertionError: False is not true : | SEEN-701 | ... | not applicable |",
+          "red": 104,
+          "green": 105
+        }
+      ],
+      "regression": 109,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "21f0db056ef9",
+      "output_tokens": 5408,
+      "tool_calls": 15,
+      "unavailable": null
+    }
+  }
+}

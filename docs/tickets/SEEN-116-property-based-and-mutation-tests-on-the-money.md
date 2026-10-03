@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-089]
-status: doing
+status: review
 priority: P0
 ---
 # SEEN-116: Property-based and mutation tests on the money core, as a gate
@@ -33,11 +33,11 @@ A test that passes proves the code does what the test says; it does not prove th
 
 ## Acceptance criteria
 
-- [ ] fast-check is a dev dependency of packages/core, and the convention for naming the invariant a property states is written in docs/harness/workflow.md
-- [ ] StrykerJS runs on packages/core with the vitest runner and the TypeScript checker, and the mutation score is reported in kpi.json and the sprint report
-- [ ] thresholds.toml carries the mutation score floor, the tdd gate refuses to advance packages/core changes below it, and a killed mutant is accepted as RED evidence
-- [ ] CI runs incremental mutation on the changed files of a pull request in under ten minutes
-- [ ] A seeded bug in a fixture detector (wrong tolerance sign) is caught by a property and by a mutant, proven with a fixture that is not product code
+- [x] fast-check is a dev dependency of packages/core, and the convention for naming the invariant a property states is written in docs/harness/workflow.md
+- [x] StrykerJS runs on packages/core with the vitest runner and the TypeScript checker, and the mutation score is reported in kpi.json and the sprint report
+- [x] thresholds.toml carries the mutation score floor, the tdd gate refuses to advance packages/core changes below it, and a killed mutant is accepted as RED evidence
+- [x] CI runs incremental mutation on the changed files of a pull request in under ten minutes
+- [x] A seeded bug in a fixture detector (wrong tolerance sign) is caught by a property and by a mutant, proven with a fixture that is not product code
 
 ## Depends on
 
@@ -132,11 +132,15 @@ scope in note 78):
   held to no floor. `mutation.under_test` now maps such a test to its sibling
   source, or to its directory when it has none. The gate's `source_files` and
   CI's `mutation_ci.select` both call it, so the two cannot disagree. Slice 1,
-  RED 82, GREEN 87, regression 88.
+  RED 102, GREEN 103.
 - F3 (low): the sprint report says `not applicable` only for a measurement
   recorded as not applicable, and `not measured: <reason>` for a run that
   failed. kpi.json reads only the ticket's last attempt, so an earlier
-  attempt's failed run is not carried forward. Slice 2, RED 98, GREEN 99.
+  attempt's failed run is not carried forward. Slice 2, RED 104, GREEN 105.
+- Both slices were first proven in attempt 6 (RED 82 and GREEN 87) and in
+  attempt 7 before the replay (RED 98 and GREEN 99). A tdd record can cite only
+  its own attempt's checks, so attempt 7 replayed both slices from the pre-slice
+  code, with no source change (note 107). Regression 109.
 - F4 (low): this Outcome quotes only figures a journal record holds. The CI
   run that no record held is dropped.
 - F2 and F5 needed nothing: F2 is the RED form decided at clarify record 6,
