@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-089]
-status: review
+status: done
 priority: P0
 ---
 # SEEN-116: Property-based and mutation tests on the money core, as a gate
@@ -24,7 +24,7 @@ priority: P0
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | review |
+| Status | done |
 | Priority | P0 (correctness and speed programme, see docs/harness/workflow.md) |
 
 ## Description
