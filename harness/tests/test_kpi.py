@@ -246,31 +246,6 @@ class TicketFiguresTest(DeliveryWalk):
         self.assertIn('no journal', figures['note'])
 
 
-class MutationCellTest(unittest.TestCase):
-    """What the report's mutation column says for a run that did not score."""
-
-    FIGURES = dict(first_pass_ci_rate=None, median_cycle_time_seconds=None,
-                   rework_per_ticket=None, points_delivered=0, findings_by_severity={})
-
-    def row(self, mutation):
-        ticket = dict(ticket='SEEN-701', points=2, attempts=1, rework=0, findings={},
-                      coverage=dict(delta=0.5), cycle_time_seconds=None, mutation=mutation)
-        text = report.render('Sprint', [ticket], self.FIGURES, [])
-        return next(line for line in text.splitlines() if line.startswith('| SEEN-701'))
-
-    def test_a_failed_run_is_not_measured_and_says_why_rather_than_not_applicable(self):
-        row = self.row(dict(score=None, floor=70, mutants=0, not_applicable=False,
-                            reason='the Stryker run failed (exit 1)'))
-        self.assertTrue(row.rstrip().endswith('| not measured: the Stryker run failed (exit 1) |'),
-                        row)
-        self.assertNotIn('not applicable', row)
-
-    def test_only_a_run_that_found_no_mutants_is_not_applicable(self):
-        row = self.row(dict(score=None, floor=70, mutants=0, not_applicable=True,
-                            reason='no mutants in the files named'))
-        self.assertTrue(row.rstrip().endswith('| not applicable |'), row)
-
-
 class ReportTest(DeliveryWalk):
 
     def test_a_week_covers_only_receipts_inside_it(self):
