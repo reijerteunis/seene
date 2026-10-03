@@ -1,0 +1,16 @@
+{
+  "sequence": 130,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-03T06:23:51.807324+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "solution",
+  "attempt": 9,
+  "actor": "claude:reviewer",
+  "session": "37a4a5a1fe86",
+  "head": "8f0acebae481a256ef01871bf56d273a9369687a",
+  "prev_hash": "4d84977ec46a94e23721ce51d5a458995910d1337702dff490cc06fc645407cc",
+  "data": {
+    "text": "# Attempt 9 scope: F1 and F2 are fixed in this ticket\n\nRuud's decision after the return from the attempt 8 review (triage 127, return 128):\nboth findings are fixed here.\n\nF1 (medium): gates._require_the_kill_is_in_the_slice compares the killed mutants\nagainst the slice's raw file names, while _require_mutation maps a test to its\nsource through mutation.source_files first. A slice that names only\npackages/core/src/fee.test.ts, which is what the floor refusal's \"Kill the\nsurvivors with a test\" leads to, has its killed-mutant RED in fee.ts refused.\nThe fix: map the slice's names through mutation.source_files before comparing,\nwith a test beside AKilledMutantAsRedTest in harness/tests/test_stage_gates.py over\na test-only slice as the RED.\n\nF2 (low): mutation_ci.CONFIG_FILES widens to all of src for stryker.config.mjs,\nvitest.config.ts and package.json but not for packages/core/tsconfig.json, which\nthe TypeScript checker reads. The fix: add it, with a test in\nharness/tests/test_mutation_ci.py as the RED.\n\nFiles: harness/gates.py, harness/tests/test_stage_gates.py, harness/mutation_ci.py,\nharness/tests/test_mutation_ci.py, and the ticket file for the Outcome. At most\n1 point; one slice or two.\n\nNot this ticket, harness follow-ups: the triage fingerprint counts the ticket file\nand README while the review gate leaves the ticket file out (check 122's tree\nrebuilt exactly, only status, ticks and Outcome changed), and slice_files reads\nonly the current attempt's plan, so every file an earlier accepted plan named is\nflagged. Triage record 126 is an accidental duplicate of 127.\n"
+  }
+}

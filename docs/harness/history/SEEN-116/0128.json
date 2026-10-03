@@ -1,0 +1,43 @@
+{
+  "sequence": 128,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-03T06:23:31.581209+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 8,
+  "actor": "claude:reviewer",
+  "session": "37a4a5a1fe86",
+  "head": "8f0acebae481a256ef01871bf56d273a9369687a",
+  "prev_hash": "db9b798c0d14187a23f8bec9307ef92140045a4a2a4ed53f8f152d25c5face81",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "solution",
+    "to_attempt": 9,
+    "reason": "Review of attempt 8 (subagent reviewer on opus, triage 127; 126 is an identical duplicate written by accident a moment earlier) passed every criterion and confirmed attempt 7's F1 closed and earlier rounds' findings still closed, but found one medium. F1: _require_the_kill_is_in_the_slice compares killed mutants against the slice's raw names while _require_mutation maps a test to its source first, so a killed-mutant RED is refused for a test-only slice, the very slice the floor refusal tells the author to write. F2 (low): mutation_ci.CONFIG_FILES omits packages/core/tsconfig.json, which the TypeScript checker reads. Ruud decided both are fixed in this ticket (attempt 9). The triage's fingerprint and slice_files failures were judged benign artefacts (only status, ticks and Outcome changed after check 122; every flagged file is named by an earlier accepted plan) and go to harness follow-ups, not this ticket. F1 changes harness/gates.py and F2 harness/mutation_ci.py, which is a new plan, so the return goes to solution.",
+    "findings": [
+      {
+        "id": "F1",
+        "severity": "medium",
+        "file": "harness/gates.py:1043",
+        "claim": "_require_the_kill_is_in_the_slice compares the killed mutants against the slice's raw file names, but _require_mutation maps a test to its source first; so a RED whose kill is in fee.ts is refused for a slice that names only fee.test.ts.",
+        "failure_scenario": "SEEN-019's tdd gate refuses fee.ts at 65 with 'Kill the survivors with a test'. The next attempt has one slice naming packages/core/src/fee.test.ts; its RED is a Stryker run, exit 0, mutants_killed {packages/core/src/fee.ts: ['3']}. gates.evaluate refuses: 'every mutant it killed is in a file the slice does not name: killed in packages/core/src/fee.ts, the slice names packages/core/src/fee.test.ts'. The same slice's floor check measures fee.ts. Reproduced by the reviewer with a subclass of AKilledMutantAsRedTest outside the repository.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "none: a mapping mismatch between two gate functions that only a unit test of the killed-mutant citation over a test-only slice can catch"
+      },
+      {
+        "id": "F2",
+        "severity": "low",
+        "file": "harness/mutation_ci.py:27",
+        "claim": "CONFIG_FILES widens to all of src for stryker.config.mjs, vitest.config.ts and package.json, but not for packages/core/tsconfig.json, which the TypeScript checker reads.",
+        "failure_scenario": "A PR tightens tsconfig.json so a mutant that used to compile becomes a CompileError, or the reverse. CI selects nothing in src, or only the changed files, and Stryker reuses the stored incremental results for unchanged files, which were taken under the old compiler settings.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": ""
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}
