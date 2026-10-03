@@ -1,5 +1,5 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "include": ["exports", "types", "nsExports", "nsTypes"],
-  "ignore": ["rules/fixtures/**"]
+  "ignore": ["rules/fixtures/**", "**/.stryker-tmp/**", "packages/core/reports/**"]
 }

@@ -1,0 +1,16 @@
+{
+  "sequence": 78,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-02T23:35:24.564367+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "solution",
+  "attempt": 6,
+  "actor": "claude:implementer",
+  "session": "f96896c46c5e",
+  "head": "7b0a80bae3652bd1363fee258f044f1ce46ea7ab",
+  "prev_hash": "2def1221c796f26f292ce420ae2ab9b378969791e4d59051c99b541c60d386c8",
+  "data": {
+    "text": "# Attempt 6 scope: F1 is fixed in this ticket\n\nRuud's decision after the return from the attempt 5 review: F1 (a test-only\nchange under packages/core/src is never mutated) is fixed in SEEN-116, not\nsplit into a follow-up. Criterion 3 says packages/core changes, and a change\nthat only weakens the tests of a source file is one.\n\nWhat the fix has to establish, for the solution record to plan as one slice:\n\n- A slice entry naming a test file under packages/core/src (`<x>.test.ts`)\n  is measured over the source it tests: its sibling `<x>.ts` when that\n  exists, otherwise the test's directory. mutation.source_files() and the\n  gate's _require_mutation both apply that mapping, so a slice that names only\n  a test still needs a measurement at or above the floor.\n- mutation_ci.select() applies the same mapping to changed test files, so\n  CI mutates the source a changed test covers instead of skipping the job.\n  test_only_test_files_select_nothing is replaced by the mapping test.\n- One mapping function, shared by both, so the gate and CI cannot disagree.\n\nThe lows ride along without a slice: F3 (the report says not applicable only\nwhen not_applicable is true, and a failed run says so) if it fits the cap,\notherwise it is named in the Outcome; F4 (record the attempt 5 CI run as a\ncheck, or drop the figure from the Outcome); F2 and F5 need nothing.\n"
+  }
+}

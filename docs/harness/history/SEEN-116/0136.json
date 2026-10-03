@@ -1,0 +1,33 @@
+{
+  "sequence": 136,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-03T06:26:41.408762+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 9,
+  "actor": "claude:implementer",
+  "session": "87d19570f4d9",
+  "head": "0876a241fddb5227a608f2dd0369e78d59e20d9d",
+  "prev_hash": "c4804b0b65adff03c8f3afba7bdf3f6b220c9970eb259f4c3140edf2b98ffd75",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_stage_gates.AKilledMutantAsRedTest",
+      "harness.tests.test_mutation_ci"
+    ],
+    "phase": "green",
+    "exit_code": 0,
+    "model": "claude-opus-5-5",
+    "model_declared": "sonnet",
+    "agent_declared": "seen-implementer",
+    "duration_ms": 1291,
+    "output": "\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\n----------------------------------------------------------------------\nRan 26 tests in 1.215s\n\n\u001b[32mOK\u001b[0m\n",
+    "output_sha256": "79daad2a431a94a9929edb50fb3134b95785af0c9d9be4b5093a9d70b16bdc62",
+    "output_truncated": false,
+    "before": "2d48e123e352b2382e0f36cf3901c810edc1c1186a3bfec7c9e4cd9f016bd200",
+    "after": "2d48e123e352b2382e0f36cf3901c810edc1c1186a3bfec7c9e4cd9f016bd200"
+  }
+}

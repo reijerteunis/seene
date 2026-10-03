@@ -1,0 +1,30 @@
+{
+  "sequence": 34,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-02T21:09:56.135538+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "session": "6387edc6f0c4",
+  "head": "2c46d995382d2a3f4d9a340fed843c191fc00ebe",
+  "prev_hash": "55b9a9391634f3840099c9dda69c2ee263255c8b73215a2e93670ba0bbe837ba",
+  "data": {
+    "command": [
+      "python3",
+      "/Users/ruudvanengelenhoven/.cache/seen116/prove_changed.py"
+    ],
+    "phase": "green",
+    "exit_code": 0,
+    "model": "claude-opus-5-5",
+    "model_declared": "sonnet",
+    "agent_declared": "seen-implementer",
+    "duration_ms": 291,
+    "output": "The mutation config or the test setup changed: mutating all of src.\nMutating: src/**/*.ts,!src/**/*.test.ts\nNo product file under packages/core/src changed.\nMutating: src/a.ts,src/n/new.ts\nNo product file under packages/core/src changed.\nThe mutation config or the test setup changed: mutating all of src.\nMutating: src/**/*.ts,!src/**/*.test.ts\nALL PROVED\n",
+    "output_sha256": "3a67d3fa28839542b79fbbeacdd8268c9e7c214c2cc2300c70e8fa96e3ff8b45",
+    "output_truncated": false,
+    "before": "9d1cfac6eb30631b55755372164c7625d71a457e0781b26af37291b84159bc00",
+    "after": "9d1cfac6eb30631b55755372164c7625d71a457e0781b26af37291b84159bc00"
+  }
+}

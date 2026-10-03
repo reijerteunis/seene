@@ -1,0 +1,45 @@
+{
+  "sequence": 63,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-02T22:25:37.324174+00:00",
+  "harness_version": "2",
+  "kind": "handoff",
+  "stage": "tdd",
+  "attempt": 5,
+  "actor": "claude:implementer",
+  "session": "c647a584f980",
+  "head": "448838e019c710475386ccfe467a080f6d5c6aca",
+  "prev_hash": "444589a2ed6859cbbb2035c894d1fde807c29a7100ce37cbb18a8dea36166842",
+  "data": {
+    "pack": ".harness-drafts/SEEN-116-handoff.md",
+    "sha256": "96802f453fdeda6224a22921845a9b9a8e9bbafa50fcac53b7518be82fa28c66",
+    "estimated_tokens": 1006,
+    "token_limit": 2000,
+    "slice": {
+      "position": 3,
+      "total": 3,
+      "done": 2,
+      "declared": false,
+      "inferred": 2,
+      "entry": {
+        "name": "CI's mutation file selection is a tested module",
+        "points": 1,
+        "files": [
+          "harness/mutation_ci.py",
+          "harness/tests/test_mutation_ci.py",
+          ".github/workflows/ci.yml",
+          "docs/tickets/SEEN-116-property-based-and-mutation-tests-on-the-money.md",
+          "docs/tickets/README.md"
+        ],
+        "red": "harness.mutation_ci does not exist, so the tests of the selection rules fail on import; the selection lives only in inline shell no test runs."
+      }
+    },
+    "auto": false,
+    "figures": {
+      "session": "c647a584f980",
+      "output_tokens": 34075,
+      "tool_calls": 31,
+      "unavailable": null
+    }
+  }
+}

@@ -203,6 +203,24 @@ def render_cost(by_model, prices):
     return lines
 
 
+def _mutation(measured):
+    """The mutation score a ticket reached, or why there is none.
+
+    A dash for a ticket that measured nothing, which is every harness ticket, and
+    "not applicable" only for a measurement that found no mutants, because a figure
+    of 100 there would say the tests caught everything when nothing was asked of
+    them. A run that failed or was refused has no score either and says "not
+    measured" with its reason, which is not the same claim.
+    """
+    if not measured:
+        return '-'
+    if measured.get('score') is None:
+        if measured.get('not_applicable'):
+            return 'not applicable'
+        return f'not measured: {measured.get("reason") or "no reason recorded"}'
+    return f'{measured["score"]}% of {measured.get("mutants")}'
+
+
 def render(title, tickets, figures, unmeasurable, context_section=None, context_rules=None,
            shadow=None, rule_loop_section=None):
     """A report anyone can read without opening a journal.
@@ -212,8 +230,8 @@ def render(title, tickets, figures, unmeasurable, context_section=None, context_
     """
     lines = [f'# {title}', '']
     lines += ['## What delivered', '',
-              '| Ticket | Points | Cycle time | Attempts | Rework | Findings | Coverage |',
-              '|---|---|---|---|---|---|---|']
+              '| Ticket | Points | Cycle time | Attempts | Rework | Findings | Coverage | Mutation |',
+              '|---|---|---|---|---|---|---|---|']
     for ticket in tickets:
         findings = ticket.get('findings') or {}
         total = sum((findings.get('by_severity') or {}).values())
@@ -224,7 +242,8 @@ def render(title, tickets, figures, unmeasurable, context_section=None, context_
             f'| {_duration(ticket.get("cycle_time_seconds"))} '
             f'| {ticket.get("attempts") or "-"} | {ticket.get("rework") if ticket.get("rework") is not None else "-"} '
             f'| {total} ({findings.get("fixed", 0)} closed, {findings.get("waived", 0)} open) '
-            f'| {"+" if isinstance(delta, (int, float)) and delta > 0 else ""}{delta if delta is not None else "-"} |')
+            f'| {"+" if isinstance(delta, (int, float)) and delta > 0 else ""}{delta if delta is not None else "-"} '
+            f'| {_mutation(ticket.get("mutation"))} |')
     rate = figures['first_pass_ci_rate']
     first_pass = 'not measurable yet' if rate is None else f'{round(rate * 100)}%'
     rework = figures['rework_per_ticket']

@@ -48,6 +48,15 @@ triage_shadow = true
 # file the reviewer reads. SEEN-109 calibrates it against what a full review found.
 focus_probability = 0.5
 
+# The mutation score a slice naming product source must reach, SEEN-116. It is
+# held over the files the attempt's slices name under packages/core/src and
+# nowhere else: the share of the mutants that mattered (killed and timed out,
+# over those plus the survivors and the uncovered) which the tests caught. Seventy
+# to start, as the ticket says; it is raised with the measurement by a diff in
+# this file that a person reviews, never by the gate.
+[mutation]
+floor = 70
+
 [non_code]
 change_types = ["documentation", "research", "verification", "policy"]
 

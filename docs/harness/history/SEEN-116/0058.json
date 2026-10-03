@@ -1,0 +1,237 @@
+{
+  "sequence": 58,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-02T22:23:59.052049+00:00",
+  "harness_version": "2",
+  "kind": "route",
+  "stage": "tdd",
+  "attempt": 5,
+  "actor": "claude:implementer",
+  "session": "c647a584f980",
+  "head": "6999a0f53a53413f4a774aab7a09502177a33514",
+  "prev_hash": "33358060f1d6c196239aef15919f98184c1434a502039bd223cdae2cdbe3e302",
+  "data": {
+    "solution": 57,
+    "shadow": true,
+    "strongest": "opus",
+    "tiers": [
+      "haiku",
+      "sonnet",
+      "opus"
+    ],
+    "rules": [],
+    "jev": {
+      "asked": true,
+      "model": "jev-1.13.0",
+      "reason": null,
+      "answers": [
+        {
+          "key": "implementation_model#1",
+          "question": "implementation_model",
+          "type": "score",
+          "options": [
+            "haiku",
+            "sonnet",
+            "opus"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "sonnet",
+          "probabilities": {
+            "haiku": 0.13,
+            "sonnet": 0.8,
+            "opus": 0.07
+          },
+          "confidence": 0.7,
+          "score": 0.94,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_effort#1",
+          "question": "implementation_effort",
+          "type": "score",
+          "options": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "high",
+          "probabilities": {
+            "low": 0.02,
+            "medium": 0.38,
+            "high": 0.6
+          },
+          "confidence": 0.38,
+          "score": 1.59,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_model#2",
+          "question": "implementation_model",
+          "type": "score",
+          "options": [
+            "haiku",
+            "sonnet",
+            "opus"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "sonnet",
+          "probabilities": {
+            "haiku": 0.42,
+            "sonnet": 0.57,
+            "opus": 0.01
+          },
+          "confidence": 0.35,
+          "score": 0.59,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_effort#2",
+          "question": "implementation_effort",
+          "type": "score",
+          "options": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "medium",
+          "probabilities": {
+            "low": 0.04,
+            "medium": 0.67,
+            "high": 0.29
+          },
+          "confidence": 0.49,
+          "score": 1.25,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_model#3",
+          "question": "implementation_model",
+          "type": "score",
+          "options": [
+            "haiku",
+            "sonnet",
+            "opus"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "sonnet",
+          "probabilities": {
+            "haiku": 0.07,
+            "sonnet": 0.81,
+            "opus": 0.12
+          },
+          "confidence": 0.72,
+          "score": 1.04,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_effort#3",
+          "question": "implementation_effort",
+          "type": "score",
+          "options": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "high",
+          "probabilities": {
+            "low": 0.03,
+            "medium": 0.37,
+            "high": 0.6
+          },
+          "confidence": 0.35,
+          "score": 1.57,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        }
+      ]
+    },
+    "execution": [
+      {
+        "position": 1,
+        "name": "A directory or a missing file is measured, never passed",
+        "points": 1,
+        "files": [
+          "harness/mutation.py",
+          "harness/tests/test_mutation.py"
+        ],
+        "red": "command() given a directory under packages/core/src returns a --mutate value that matches no file, and measure() records a report that lists none of the named files as not applicable.",
+        "model": "sonnet",
+        "effort": "high",
+        "source": "jev",
+        "rule": null,
+        "reason": null,
+        "model_probability": 0.8,
+        "effort_probability": 0.6,
+        "model_passed": true,
+        "model_threshold": 0.5,
+        "implementer_task": "Work slice 1 of SEEN-116: A directory or a missing file is measured, never passed.\n\nRun it on sonnet at high effort, because Jev chose it at 0.8.\nThe model is what reaches the work: in Claude Code as the per-invocation model on the seen-implementer agent, and in Codex as the model this instruction names when you spawn it. The effort is recorded, carried and reported rather than applied, on either assistant: the generated copies do not vary by slice, because a file whose content depended on the ticket in hand was wrong on a detached HEAD, after a replan and after the receipt. Neither is yours to change.\n\nPoints: 1.\nFiles: harness/mutation.py, harness/tests/test_mutation.py\n\nIts RED must demonstrate: command() given a directory under packages/core/src returns a --mutate value that matches no file, and measure() records a report that lists none of the named files as not applicable.\n\nWrite the test first and record it with:\n  python3 harness/run.py check SEEN-116 --phase red --actor <tool>:implementer --model sonnet -- <command>\nThen write only what turns it green and record that the same way. The `--model sonnet` is not optional: a subagent inherits its parent's session id, so the log records the model of the session that spawned you and not yours, and without the declaration the tdd gate compares the wrong two names. Then stop: do not start the next slice and do not advance the stage."
+      },
+      {
+        "position": 2,
+        "name": "The floor reads a Stryker measurement of the advanced tree",
+        "points": 1,
+        "files": [
+          "harness/gates.py",
+          "harness/tests/test_stage_gates.py",
+          "harness/tests/helpers.py",
+          "harness/tests/test_routing.py",
+          "docs/harness/workflow.md"
+        ],
+        "red": "The tdd gate advances an attempt on a mutation record taken before a later edit to the tree, and on one whose recorded command is not mutation.command(files).",
+        "model": "sonnet",
+        "effort": "medium",
+        "source": "jev",
+        "rule": null,
+        "reason": null,
+        "model_probability": 0.57,
+        "effort_probability": 0.67,
+        "model_passed": true,
+        "model_threshold": 0.5,
+        "implementer_task": "Work slice 2 of SEEN-116: The floor reads a Stryker measurement of the advanced tree.\n\nRun it on sonnet at medium effort, because Jev chose it at 0.57.\nThe model is what reaches the work: in Claude Code as the per-invocation model on the seen-implementer agent, and in Codex as the model this instruction names when you spawn it. The effort is recorded, carried and reported rather than applied, on either assistant: the generated copies do not vary by slice, because a file whose content depended on the ticket in hand was wrong on a detached HEAD, after a replan and after the receipt. Neither is yours to change.\n\nPoints: 1.\nFiles: harness/gates.py, harness/tests/test_stage_gates.py, harness/tests/helpers.py, harness/tests/test_routing.py, docs/harness/workflow.md\n\nIts RED must demonstrate: The tdd gate advances an attempt on a mutation record taken before a later edit to the tree, and on one whose recorded command is not mutation.command(files).\n\nWrite the test first and record it with:\n  python3 harness/run.py check SEEN-116 --phase red --actor <tool>:implementer --model sonnet -- <command>\nThen write only what turns it green and record that the same way. The `--model sonnet` is not optional: a subagent inherits its parent's session id, so the log records the model of the session that spawned you and not yours, and without the declaration the tdd gate compares the wrong two names. Then stop: do not start the next slice and do not advance the stage."
+      },
+      {
+        "position": 3,
+        "name": "CI's mutation file selection is a tested module",
+        "points": 1,
+        "files": [
+          "harness/mutation_ci.py",
+          "harness/tests/test_mutation_ci.py",
+          ".github/workflows/ci.yml",
+          "docs/tickets/SEEN-116-property-based-and-mutation-tests-on-the-money.md",
+          "docs/tickets/README.md"
+        ],
+        "red": "harness.mutation_ci does not exist, so the tests of the selection rules fail on import; the selection lives only in inline shell no test runs.",
+        "model": "sonnet",
+        "effort": "high",
+        "source": "jev",
+        "rule": null,
+        "reason": null,
+        "model_probability": 0.81,
+        "effort_probability": 0.6,
+        "model_passed": true,
+        "model_threshold": 0.5,
+        "implementer_task": "Work slice 3 of SEEN-116: CI's mutation file selection is a tested module.\n\nRun it on sonnet at high effort, because Jev chose it at 0.81.\nThe model is what reaches the work: in Claude Code as the per-invocation model on the seen-implementer agent, and in Codex as the model this instruction names when you spawn it. The effort is recorded, carried and reported rather than applied, on either assistant: the generated copies do not vary by slice, because a file whose content depended on the ticket in hand was wrong on a detached HEAD, after a replan and after the receipt. Neither is yours to change.\n\nPoints: 1.\nFiles: harness/mutation_ci.py, harness/tests/test_mutation_ci.py, .github/workflows/ci.yml, docs/tickets/SEEN-116-property-based-and-mutation-tests-on-the-money.md, docs/tickets/README.md\n\nIts RED must demonstrate: harness.mutation_ci does not exist, so the tests of the selection rules fail on import; the selection lives only in inline shell no test runs.\n\nWrite the test first and record it with:\n  python3 harness/run.py check SEEN-116 --phase red --actor <tool>:implementer --model sonnet -- <command>\nThen write only what turns it green and record that the same way. The `--model sonnet` is not optional: a subagent inherits its parent's session id, so the log records the model of the session that spawned you and not yours, and without the declaration the tdd gate compares the wrong two names. Then stop: do not start the next slice and do not advance the stage."
+      }
+    ]
+  }
+}

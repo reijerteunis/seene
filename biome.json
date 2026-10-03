@@ -17,6 +17,8 @@
       "!**/.turbo",
       "!**/coverage",
       "!**/node_modules",
+      "!**/.stryker-tmp",
+      "!packages/core/reports",
       "!rules/fixtures"
     ]
   },

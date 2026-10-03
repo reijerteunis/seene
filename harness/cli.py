@@ -15,10 +15,11 @@ import re
 import shutil
 import subprocess
 import sys
+import time
 
 from . import (checks, cost as cost_module, coverage as coverage_module, doctor, gates,
                context, graph as graph_module, handoff as handoff_module, jev, journal, kpi,
-               report as report_module, risk, sessions, thresholds)
+               mutation as mutation_module, report as report_module, risk, sessions, thresholds)
 from .errors import HarnessError, require
 from .paths import (DRAFTS, HANDOFF_PACK, HISTORY, KINDS, LOCK, NON_CODE_TEMPLATE, STAGES,
                     TEMPLATES, TEMPLATE_FOR_STAGE, TICKETS, WORKING_STAGES)
@@ -39,14 +40,14 @@ class GuardRefusal(HarnessError):
 
 DEFAULT_ROOT = Path(__file__).resolve().parents[1]
 TICKET_COMMANDS = ('start', 'status', 'history', 'draft', 'note', 'check', 'advance',
-                   'return', 'graph', 'decide', 'coverage', 'handoff', 'budget', 'reopen',
-                   'discard', 'verify-delivery', 'verify-merge', 'review')
+                   'return', 'graph', 'decide', 'coverage', 'mutation', 'handoff', 'budget',
+                   'reopen', 'discard', 'verify-delivery', 'verify-merge', 'review')
 # handoff writes a record, so it is bound to the ticket's own branch like every
 # other writing command. status --brief is not here and neither is budget: a
 # command a session runs to see where it stands must not make the journal longer
 # every time it is run.
 WRITING_COMMANDS = ('start', 'note', 'check', 'advance', 'return', 'graph', 'decide', 'coverage',
-                    'handoff', 'reopen', 'review', 'route',
+                    'mutation', 'handoff', 'reopen', 'review', 'route',
                     'verify-delivery')
 BRANCH = re.compile(r'^(claude|codex)/(?P<ticket>[A-Z]+-\d+)-')
 
@@ -152,6 +153,11 @@ def build_parser():
     measure.add_argument('--actor', required=True)
     measure.add_argument('--timeout', type=int, help='Seconds before the command is stopped')
 
+    mutate = ticket_command('mutation', 'Mutate the product source the plan names under packages/core/src '
+                                        'and record the score against the floor')
+    mutate.add_argument('--actor', required=True)
+    mutate.add_argument('--timeout', type=int, help='Seconds before the command is stopped')
+
     decide = ticket_command('decide', 'Ask Jev a typed question on the record and keep the answer')
     decide.add_argument('--question', required=True, help=', '.join(sorted(jev.QUESTIONS)))
     decide.add_argument('--answer', help='The human answer, when there is no credential')
@@ -252,8 +258,8 @@ def build_parser():
 def parse(argv):
     parser = build_parser()
     known, extra = parser.parse_known_args(argv)
-    if known.command in ('check', 'coverage'):
-        require(extra and extra[0] == '--' or known.command == 'coverage',
+    if known.command in ('check', 'coverage', 'mutation'):
+        require(extra and extra[0] == '--' or known.command in ('coverage', 'mutation'),
                 'Put the check command after --')
         known.argv = extra[1:] if extra else []
     else:
@@ -497,6 +503,31 @@ def coverage(repository, folder, records, args, current, rules):
                           data=coverage_module.compare(repository.root, evidence))
 
 
+def mutation(repository, folder, records, args, current, rules):
+    """Mutate the product source the plan names and record the score against the floor.
+
+    The files are the accepted plan's slices' entries under packages/core/src,
+    which is what the tdd gate holds the floor over. A plan naming none has
+    nothing to measure, so the command refuses rather than recording a score over
+    nothing.
+    """
+    require(current['stage'] == 'tdd', 'Mutation is measured at the tdd stage')
+    files = gates.plan_source_files(records, repository.root)
+    require(files,
+            f'The accepted plan names no file under {mutation_module.SOURCE_DIRECTORY}, so there '
+            'is nothing to mutate and no floor to hold')
+    limits = rules['checks']
+    command = list(getattr(args, 'argv', None) or mutation_module.command(files))
+    started = time.time()
+    evidence = checks.run(repository, command, 'mutation',
+                          args.timeout or limits['default_timeout_seconds'],
+                          limits['output_limit_bytes'])
+    return journal.append(folder, records, kind='check', stage='tdd', attempt=current['attempt'],
+                          actor=args.actor, head=repository.head(), ticket=args.ticket,
+                          data=mutation_module.measure(repository.root, evidence, files,
+                                                       rules['mutation']['floor'], started))
+
+
 def decide(repository, folder, records, args, current, rules):
     """Ask one typed question about this ticket and keep the answer."""
     answer = jev.ask(repository.root, rules, args.question,
@@ -675,8 +706,18 @@ def check(repository, folder, records, args, current, rules):
                 f'{agent_declared!r} is not one of the agents this repository generates: '
                 f'{", ".join(roster)}. A declared agent is a name from [agents] names, which '
                 'is what a check can honestly claim and nothing more')
+    started = time.time()
     evidence = checks.run(repository, args.argv, phase, timeout, limits['output_limit_bytes'],
                           declared=declared, agent=agent_declared)
+    # What a Stryker run killed, read from the report it wrote, because its exit
+    # code is 0 either way and `demonstrates_failure` has nothing else to read.
+    # Every check is asked, so the command line decides nothing: a check that
+    # wrote no report since it began carries nothing, and a report older than the
+    # run is not its evidence.
+    if phase == 'red':
+        killed = mutation_module.killed_since(repository.root, started)
+        if killed:
+            evidence['mutants_killed'] = killed
     record = journal.append(folder, records, kind='check', stage=stage, attempt=current['attempt'],
                             actor=args.actor, head=repository.head(), ticket=args.ticket,
                             data=evidence)
@@ -1268,7 +1309,7 @@ def execute(args):
         require(current['stage'] in WORKING_STAGES,
                 f'{args.ticket} is {current["stage"]}; open a follow-up ticket for further work')
         handlers = dict(note=note, check=check, advance=advance, graph=graph, decide=decide,
-                        coverage=coverage, handoff=handoff, review=review, route=route_slices)
+                        coverage=coverage, mutation=mutation, handoff=handoff, review=review, route=route_slices)
         handlers['return'] = go_back
         return handlers[args.command](repository, folder, records, args, current, rules)
     finally:

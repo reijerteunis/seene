@@ -1,0 +1,210 @@
+{
+  "sequence": 15,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-02T20:10:01.434871+00:00",
+  "harness_version": "2",
+  "kind": "route",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "84d3ecfa6fc1",
+  "head": "e3a6cdadb591bb6bca4ab22160501147ef6a682b",
+  "prev_hash": "d0d0899cccd5dfe3ec8d34b26ca11c8a57c86b167d6105cfcdba5f8976d960ec",
+  "data": {
+    "solution": 14,
+    "shadow": true,
+    "strongest": "opus",
+    "tiers": [
+      "haiku",
+      "sonnet",
+      "opus"
+    ],
+    "rules": [],
+    "jev": {
+      "asked": true,
+      "model": "jev-1.13.0",
+      "reason": null,
+      "answers": [
+        {
+          "key": "implementation_model#2",
+          "question": "implementation_model",
+          "type": "score",
+          "options": [
+            "haiku",
+            "sonnet",
+            "opus"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "sonnet",
+          "probabilities": {
+            "haiku": 0.09,
+            "sonnet": 0.76,
+            "opus": 0.15
+          },
+          "confidence": 0.64,
+          "score": 1.05,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_effort#2",
+          "question": "implementation_effort",
+          "type": "score",
+          "options": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "high",
+          "probabilities": {
+            "low": 0.0,
+            "medium": 0.08,
+            "high": 0.92
+          },
+          "confidence": 0.87,
+          "score": 1.92,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_model#3",
+          "question": "implementation_model",
+          "type": "score",
+          "options": [
+            "haiku",
+            "sonnet",
+            "opus"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "sonnet",
+          "probabilities": {
+            "haiku": 0.15,
+            "sonnet": 0.55,
+            "opus": 0.3
+          },
+          "confidence": 0.33,
+          "score": 1.16,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_effort#3",
+          "question": "implementation_effort",
+          "type": "score",
+          "options": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "medium",
+          "probabilities": {
+            "low": 0.05,
+            "medium": 0.48,
+            "high": 0.47
+          },
+          "confidence": 0.22,
+          "score": 1.41,
+          "threshold": 0.5,
+          "passed": false,
+          "fallback_reason": null
+        }
+      ]
+    },
+    "execution": [
+      {
+        "position": 1,
+        "name": "Toolchain and the seeded-bug fixture proof",
+        "points": 1,
+        "files": [
+          "packages/core/package.json",
+          "pnpm-lock.yaml",
+          "packages/core/stryker.config.mjs",
+          "packages/core/stryker.fixture.config.mjs",
+          "packages/core/vitest.config.ts",
+          "packages/core/fixtures/tolerance/detector.ts",
+          "packages/core/fixtures/tolerance/seeded.ts",
+          "packages/core/fixtures/tolerance/detector.test.ts",
+          "packages/core/fixtures/tolerance/tsconfig.json",
+          "biome.json",
+          "knip.json",
+          ".dependency-cruiser.json",
+          ".gitignore",
+          "docs/harness/workflow.md",
+          "packages/core/db/repository.ts"
+        ],
+        "red": "`pnpm --filter @seen/core test:unit` fails on the tree e3a6cda left: it runs db/ tests because projects ignore --dir, and db/authorities.test.ts refuses the fixture's @fast-check/vitest import. After: test:unit runs only src tests and passes, the fixture property finds a counterexample on seeded.ts and none on detector.ts, and a Stryker run with the fixture config reports the comparison-flipping mutant Killed.",
+        "model": "opus",
+        "effort": "high",
+        "source": "rule",
+        "rule": "money",
+        "reason": "packages/core/package.json is money arithmetic in packages/core, which the ground rules say is deterministic and tested, so this slice is routed by rule",
+        "model_probability": null,
+        "effort_probability": null,
+        "model_passed": null,
+        "model_threshold": null,
+        "implementer_task": "Work slice 1 of SEEN-116: Toolchain and the seeded-bug fixture proof.\n\nRun it on opus at high effort, because a rule sent it there (money): packages/core/package.json is money arithmetic in packages/core, which the ground rules say is deterministic and tested, so this slice is routed by rule.\nThe model is what reaches the work: in Claude Code as the per-invocation model on the seen-implementer agent, and in Codex as the model this instruction names when you spawn it. The effort is recorded, carried and reported rather than applied, on either assistant: the generated copies do not vary by slice, because a file whose content depended on the ticket in hand was wrong on a detached HEAD, after a replan and after the receipt. Neither is yours to change.\n\nPoints: 1.\nFiles: packages/core/package.json, pnpm-lock.yaml, packages/core/stryker.config.mjs, packages/core/stryker.fixture.config.mjs, packages/core/vitest.config.ts, packages/core/fixtures/tolerance/detector.ts, packages/core/fixtures/tolerance/seeded.ts, packages/core/fixtures/tolerance/detector.test.ts, packages/core/fixtures/tolerance/tsconfig.json, biome.json, knip.json, .dependency-cruiser.json, .gitignore, docs/harness/workflow.md, packages/core/db/repository.ts\n\nIts RED must demonstrate: `pnpm --filter @seen/core test:unit` fails on the tree e3a6cda left: it runs db/ tests because projects ignore --dir, and db/authorities.test.ts refuses the fixture's @fast-check/vitest import. After: test:unit runs only src tests and passes, the fixture property finds a counterexample on seeded.ts and none on detector.ts, and a Stryker run with the fixture config reports the comparison-flipping mutant Killed.\n\nWrite the test first and record it with:\n  python3 harness/run.py check SEEN-116 --phase red --actor <tool>:implementer --model opus -- <command>\nThen write only what turns it green and record that the same way. The `--model opus` is not optional: a subagent inherits its parent's session id, so the log records the model of the session that spawned you and not yours, and without the declaration the tdd gate compares the wrong two names. Then stop: do not start the next slice and do not advance the stage."
+      },
+      {
+        "position": 2,
+        "name": "Killed mutant as RED, the floor gate, kpi and report",
+        "points": 2,
+        "files": [
+          "harness/mutation.py",
+          "harness/cli.py",
+          "harness/checks.py",
+          "harness/gates.py",
+          "harness/kpi.py",
+          "harness/triage.py",
+          "harness/report.py",
+          "harness/thresholds.py",
+          "harness/thresholds.toml",
+          "harness/tests/test_mutation.py",
+          "harness/tests/test_stage_gates.py",
+          "harness/tests/test_kpi.py",
+          "harness/tests/test_report.py",
+          "harness/tests/helpers.py"
+        ],
+        "red": "A RED check at exit 0 whose record names a Killed mutant in a slice file is refused today, and an attempt whose packages/core/src slice measured a score below the floor advances today; kpi.measure carries no mutation field.",
+        "model": "sonnet",
+        "effort": "high",
+        "source": "jev",
+        "rule": null,
+        "reason": null,
+        "model_probability": 0.76,
+        "effort_probability": 0.92,
+        "model_passed": true,
+        "model_threshold": 0.5,
+        "implementer_task": "Work slice 2 of SEEN-116: Killed mutant as RED, the floor gate, kpi and report.\n\nRun it on sonnet at high effort, because Jev chose it at 0.76.\nThe model is what reaches the work: in Claude Code as the per-invocation model on the seen-implementer agent, and in Codex as the model this instruction names when you spawn it. The effort is recorded, carried and reported rather than applied, on either assistant: the generated copies do not vary by slice, because a file whose content depended on the ticket in hand was wrong on a detached HEAD, after a replan and after the receipt. Neither is yours to change.\n\nPoints: 2.\nFiles: harness/mutation.py, harness/cli.py, harness/checks.py, harness/gates.py, harness/kpi.py, harness/triage.py, harness/report.py, harness/thresholds.py, harness/thresholds.toml, harness/tests/test_mutation.py, harness/tests/test_stage_gates.py, harness/tests/test_kpi.py, harness/tests/test_report.py, harness/tests/helpers.py\n\nIts RED must demonstrate: A RED check at exit 0 whose record names a Killed mutant in a slice file is refused today, and an attempt whose packages/core/src slice measured a score below the floor advances today; kpi.measure carries no mutation field.\n\nWrite the test first and record it with:\n  python3 harness/run.py check SEEN-116 --phase red --actor <tool>:implementer --model sonnet -- <command>\nThen write only what turns it green and record that the same way. The `--model sonnet` is not optional: a subagent inherits its parent's session id, so the log records the model of the session that spawned you and not yours, and without the declaration the tdd gate compares the wrong two names. Then stop: do not start the next slice and do not advance the stage."
+      },
+      {
+        "position": 3,
+        "name": "Incremental mutation in CI",
+        "points": 1,
+        "files": [
+          ".github/workflows/ci.yml",
+          "docs/tickets/SEEN-116-property-based-and-mutation-tests-on-the-money.md"
+        ],
+        "red": "No local RED for a workflow file: the job's first run on this ticket's pull request is the evidence, with a changed packages/core/src file mutated, an unchanged run skipping, and the duration under ten minutes quoted in the Outcome.",
+        "model": "sonnet",
+        "effort": "medium",
+        "source": "jev",
+        "rule": null,
+        "reason": null,
+        "model_probability": 0.55,
+        "effort_probability": 0.48,
+        "model_passed": true,
+        "model_threshold": 0.5,
+        "implementer_task": "Work slice 3 of SEEN-116: Incremental mutation in CI.\n\nRun it on sonnet at medium effort, because Jev chose it at 0.55.\nThe model is what reaches the work: in Claude Code as the per-invocation model on the seen-implementer agent, and in Codex as the model this instruction names when you spawn it. The effort is recorded, carried and reported rather than applied, on either assistant: the generated copies do not vary by slice, because a file whose content depended on the ticket in hand was wrong on a detached HEAD, after a replan and after the receipt. Neither is yours to change.\n\nPoints: 1.\nFiles: .github/workflows/ci.yml, docs/tickets/SEEN-116-property-based-and-mutation-tests-on-the-money.md\n\nIts RED must demonstrate: No local RED for a workflow file: the job's first run on this ticket's pull request is the evidence, with a changed packages/core/src file mutated, an unchanged run skipping, and the duration under ten minutes quoted in the Outcome.\n\nWrite the test first and record it with:\n  python3 harness/run.py check SEEN-116 --phase red --actor <tool>:implementer --model sonnet -- <command>\nThen write only what turns it green and record that the same way. The `--model sonnet` is not optional: a subagent inherits its parent's session id, so the log records the model of the session that spawned you and not yours, and without the declaration the tdd gate compares the wrong two names. Then stop: do not start the next slice and do not advance the stage."
+      }
+    ]
+  }
+}

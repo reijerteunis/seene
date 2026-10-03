@@ -1,0 +1,31 @@
+{
+  "sequence": 12,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-02T20:01:00.634501+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "84d3ecfa6fc1",
+  "head": "b08209083daeaaf3e9b644515d1e98576164764f",
+  "prev_hash": "64c499e0651f1e9b1082d6ab135a4a1891067669b391342d08580d0860e0a2ce",
+  "data": {
+    "command": [
+      "sh",
+      "-c",
+      "pnpm --filter @seen/core test:unit && pnpm --filter @seen/core typecheck && pnpm --filter @seen/core test:fixtures && pnpm --filter @seen/core exec vitest run --project core db/parallelism.test.ts && ./scripts/rules.sh tree && python3 harness/run.py rules --check"
+    ],
+    "phase": "regression",
+    "exit_code": 1,
+    "model": "claude-opus-5-5",
+    "model_declared": "opus",
+    "agent_declared": "seen-implementer",
+    "duration_ms": 3500,
+    "output": "\n> @seen/core@0.0.0 test:unit /Users/ruudvanengelenhoven/Development/seene/packages/core\n> vitest run --project core --dir src\n\n\n RUN  v3.2.7 /Users/ruudvanengelenhoven/Development/seene/packages/core\n\n• turbo 2.11.3\n ✓ |core| db/schema.test.ts (125 tests) 869ms\n ✓ |core| db/rls.test.ts (33 tests) 673ms\n• turbo 2.11.3\n ❯ |core| db/authorities.test.ts (10 tests | 1 failed) 154ms\n   ✓ the authorities this package reads and the cache key it runs under > hashes the Data API configuration, which four rules in this schema rest on 63ms\n   ✓ the authorities this package reads and the cache key it runs under > refuses to read a repository file the test task does not hash 0ms\n   × the authorities this package reads and the cache key it runs under > leaves this package no way to read an authority around that reader 80ms\n     → These sources can open a file or start a process without going through the reader at packages/core/db/repository.ts, so an authority read through one of them is hashed only if its author remembered to say so in turbo.json: packages/core/fixtures/tolerance/detector.test.ts imports @fast-check/vitest: expected [ Array(1) ] to deeply equal []\n   ✓ the spelling a reading import is written with > names the module a source reads through, however the import is written 3ms\n   ✓ the spelling a reading import is written with > judges a specifier the runner is handed by the list that judges an import 1ms\n   ✓ the spelling a reading import is written with > admits a relative specifier only when it resolves to a file this scan collects 2ms\n   ✓ the spelling a reading import is written with > names a repository file a call is handed, under whatever name the call is made 2ms\n   ✓ the spelling a reading import is written with > names nothing in a source that imports only what this package already imports 1ms\n   ✓ the files that scan reaches > classifies every file of this package as one that runs code or one that cannot 0ms\n   ✓ the files that scan reaches > covers every extension vitest runs a test file at 0ms\n• turbo 2.11.3\n ✓ |core| db/marketplaces.test.ts (9 tests) 46ms\n ✓ |core| db/uniqueness.test.ts (15 tests) 56ms\n ✓ |core| src/index.test.ts (3 tests) 1ms\n ✓ |core| db/parallelism.test.ts (1 test) 1ms\n\n⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯\n\n FAIL  |core| db/authorities.test.ts > the authorities this package reads and the cache key it runs under > leaves this package no way to read an authority around that reader\nAssertionError: These sources can open a file or start a process without going through the reader at packages/core/db/repository.ts, so an authority read through one of them is hashed only if its author remembered to say so in turbo.json: packages/core/fixtures/tolerance/detector.test.ts imports @fast-check/vitest: expected [ Array(1) ] to deeply equal []\n\n\u001b[32m- Expected\u001b[39m\n\u001b[31m+ Received\u001b[39m\n\n\u001b[32m- []\u001b[39m\n\u001b[31m+ [\u001b[39m\n\u001b[31m+   \"packages/core/fixtures/tolerance/detector.test.ts imports @fast-check/vitest\",\u001b[39m\n\u001b[31m+ ]\u001b[39m\n\n ❯ db/authorities.test.ts:117:7\n    115|         `${READER_MODULE}, so an authority read through one of them is…\n    116|         `remembered to say so in turbo.json: ${offenders.join('; ')}`,\n    117|     ).toEqual([]);\n       |       ^\n    118|   });\n    119| });\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯\n\n\n Test Files  1 failed | 6 passed (7)\n      Tests  1 failed | 195 passed (196)\n   Start at  22:00:57\n   Duration  3.09s (transform 113ms, setup 0ms, collect 634ms, tests 1.80s, environment 0ms, prepare 159ms)\n\n/Users/ruudvanengelenhoven/Development/seene/packages/core:\n ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @seen/core@0.0.0 test:unit: `vitest run --project core --dir src`\nExit status 1\n",
+    "output_sha256": "d670c23741121ae799586abe1efcf028b259a4b452c3b32c07da49525b8e239b",
+    "output_truncated": false,
+    "before": "72f579c31f524a1f9f0e060a410576a31161d4172d2df8d47c37fbb5ab61ff81",
+    "after": "72f579c31f524a1f9f0e060a410576a31161d4172d2df8d47c37fbb5ab61ff81"
+  }
+}

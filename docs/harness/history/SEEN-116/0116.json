@@ -1,0 +1,16 @@
+{
+  "sequence": 116,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-03T06:02:08.771911+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "solution",
+  "attempt": 8,
+  "actor": "claude:reviewer",
+  "session": "2c422b138a5f",
+  "head": "c5d13f285a853671ea48768b062eda8ab30fc4e6",
+  "prev_hash": "c25743481a8d67c1ead740331dd2572f5f9ff86880d6270835e99c1841d2629f",
+  "data": {
+    "text": "# Attempt 8 scope: F1 is fixed in this ticket\n\nRuud's decision after the return from the attempt 7 review (triage 114, return 115):\nF1 (medium) is fixed here. mutation.source_files keeps any path under\npackages/core/src whatever its extension, and patterns() treats every non-.ts\nentry as a directory, so a slice naming a .json under src can never be measured\nand the tdd gate refuses it on every rerun; mutation_ci.select ignores the same\npath, so the gate and CI disagree.\n\nThe fix, one slice of at most 1 point: source_files keeps only .ts files and\nextensionless directories under packages/core/src, the same rule select applies,\nwith a SourceFilesTest case over a .json path (alone, and beside a .ts file) as the\nRED. Files: harness/mutation.py, harness/tests/test_mutation.py, and the ticket file\nfor the Outcome. mutation_ci.py changes only if the shared rule is factored into one\nplace.\n\nF3 (CI does not run test:fixtures) is noted only, Ruud's decision. F2 is noted.\nF4 (the ticket's summary table says Status doing) is fixed with the attempt 8\nOutcome, before review.\n"
+  }
+}

@@ -16,6 +16,7 @@ EXPECTED = {
     'checks': ('phases', 'default_timeout_seconds', 'maximum_timeout_seconds',
                'output_limit_bytes'),
     'review': ('severities',),
+    'mutation': ('floor',),
     'non_code': ('change_types',),
     'calibration': ('window', 'counted_from', 'excluded', 'excluded_reason', 'escape',
                     'triage_rule', 'route_rule', 'went_live'),

@@ -12,7 +12,7 @@ import unittest
 from harness import gates, thresholds
 from harness.errors import HarnessError
 from harness.repository import Repository
-from harness.tests.helpers import PROJECT, ProjectTest
+from harness.tests.helpers import PROJECT, ProjectTest, mutation_data
 
 
 def check_record(sequence, phase, stage='tdd', attempt=1, exit_code=None, **extra):
@@ -250,6 +250,182 @@ class TddGateTest(GateTest):
     def test_code_mode_needs_at_least_one_slice(self):
         with self.assertRaisesRegex(HarnessError, 'slices'):
             self.evaluate('tdd', self.code_tdd(slices=[]), records=self.journal_with_checks())
+
+
+class MutationJournal(GateTest):
+    """A plan naming one file under packages/core/src, and the checks that prove it."""
+
+    FEE = 'packages/core/src/fee.ts'
+
+    def mutation_record(self, sequence, score, files=('packages/core/src/fee.ts',), attempt=1,
+                        reason=None, not_applicable=False, after=None, command=None):
+        """A mutation measurement of the files a slice names, which the tdd gate requires.
+
+        Taken on the tree as it stands, with the fixed Stryker command, unless a
+        test says otherwise: those are the two things the gate holds it to.
+        """
+        data = mutation_data(files, after or self.repository.fingerprint(), score=score,
+                             floor=70, killed=7, survived=3, mutants=10, reason=reason,
+                             not_applicable=not_applicable)
+        if command is not None:
+            data['command'] = command
+        return dict(sequence=sequence, ticket='SEEN-001', kind='check', stage='tdd',
+                    attempt=attempt, actor='claude:implementer', data=data)
+
+    def plan(self, *files):
+        return advance_record(2, 'solution',
+                              dict(mode='code', slices=[dict(name='One', points=1,
+                                                             files=list(files), red='r')]),
+                              to_stage='tdd')
+
+    def journal(self, *files, measurement=None, **red):
+        records = self.records + [self.plan(*(files or (self.FEE,))),
+                                  check_record(3, 'red', **red),
+                                  check_record(4, 'green'), check_record(5, 'regression'),
+                                  coverage_record(6)]
+        return records + ([measurement] if measurement else [])
+
+    def tdd(self):
+        return self.template('tdd',
+                             slices=[dict(position=1, behaviour='Detects a fee overcharge',
+                                          failure_reason='expected 250, received 0',
+                                          red=3, green=4)], regression=5)
+
+
+class MutationFloorTest(MutationJournal):
+    """The floor on the files a slice names under packages/core/src, SEEN-116.
+
+    Only the product source is held to it: a slice that names nothing there has
+    nothing to mutate, and a measurement that found no mutants is not applicable
+    and passes, by Ruud's decision, while a missing, uncovering or sub-floor one
+    is refused.
+    """
+
+    def test_a_score_below_the_floor_is_refused_with_both_figures(self):
+        records = self.journal(measurement=self.mutation_record(7, 60.0))
+        with self.assertRaisesRegex(HarnessError, '60.0.*70'):
+            self.evaluate('tdd', self.tdd(), records=records)
+
+    def test_a_score_at_the_floor_passes(self):
+        self.evaluate('tdd', self.tdd(), records=self.journal(measurement=self.mutation_record(7, 70.0)))
+
+    def test_no_measurement_is_refused_and_the_command_is_named(self):
+        with self.assertRaisesRegex(HarnessError, 'harness mutation'):
+            self.evaluate('tdd', self.tdd(), records=self.journal())
+
+    def test_a_slice_naming_a_parent_of_src_with_no_measurement_is_refused(self):
+        """The guard lets packages/core edit src, so the floor holds it to a measurement."""
+        with self.assertRaisesRegex(HarnessError, 'harness mutation'):
+            self.evaluate('tdd', self.tdd(), records=self.journal('packages/core'))
+
+    def test_a_slice_naming_only_harness_files_needs_no_measurement(self):
+        self.evaluate('tdd', self.tdd(), records=self.journal('harness/gates.py'))
+
+    def test_a_slice_naming_a_fixture_or_the_db_needs_none_either(self):
+        self.evaluate('tdd', self.tdd(), records=self.journal(
+            'packages/core/fixtures/tolerance/detector.ts', 'packages/core/db/repository.ts'))
+
+    def test_no_mutants_in_the_files_is_not_applicable_and_passes(self):
+        """Ruud's decision: recorded with its count and no score, and let through."""
+        records = self.journal(measurement=self.mutation_record(
+            7, None, reason='no mutants in the files named', not_applicable=True))
+        self.evaluate('tdd', self.tdd(), records=records)
+
+    def test_a_not_applicable_measurement_over_other_files_is_still_refused(self):
+        records = self.journal(measurement=self.mutation_record(
+            7, None, files=('packages/core/src/vat.ts',), not_applicable=True))
+        with self.assertRaisesRegex(HarnessError, 'fee.ts'):
+            self.evaluate('tdd', self.tdd(), records=records)
+
+    def test_a_run_that_measured_nothing_is_not_not_applicable(self):
+        """No score because the run failed or wrote no report is a missing measurement."""
+        records = self.journal(measurement=self.mutation_record(
+            7, None, reason='the Stryker run failed (exit 1)'))
+        with self.assertRaisesRegex(HarnessError, 'measured nothing|no score'):
+            self.evaluate('tdd', self.tdd(), records=records)
+
+    def test_a_measurement_of_other_files_does_not_cover_this_slice(self):
+        records = self.journal(measurement=self.mutation_record(
+            7, 100.0, files=('packages/core/src/vat.ts',)))
+        with self.assertRaisesRegex(HarnessError, 'fee.ts'):
+            self.evaluate('tdd', self.tdd(), records=records)
+
+    def test_a_directory_measured_covers_the_file_under_it(self):
+        records = self.journal(measurement=self.mutation_record(
+            7, 90.0, files=('packages/core/src',)))
+        self.evaluate('tdd', self.tdd(), records=records)
+
+    def test_only_this_attempts_measurement_counts(self):
+        records = self.journal(measurement=self.mutation_record(7, 99.0, attempt=2))
+        with self.assertRaisesRegex(HarnessError, 'harness mutation'):
+            self.evaluate('tdd', self.tdd(), records=records)
+
+    def test_a_measurement_taken_before_a_later_edit_is_refused_with_both_fingerprints(self):
+        records = self.journal(measurement=self.mutation_record(7, 90.0, after='stale-tree'))
+        with self.assertRaisesRegex(
+                HarnessError, f'stale-tree.*{self.repository.fingerprint()}|'
+                              f'{self.repository.fingerprint()}.*stale-tree'):
+            self.evaluate('tdd', self.tdd(), records=records)
+
+    def test_a_measurement_whose_command_is_not_the_fixed_one_is_refused(self):
+        records = self.journal(measurement=self.mutation_record(
+            7, 100.0, command=['sh', '-c', 'exit 0']))
+        with self.assertRaisesRegex(HarnessError, 'Stryker did not take|fixed.*command'):
+            self.evaluate('tdd', self.tdd(), records=records)
+
+    def test_the_fixed_command_for_the_files_the_record_names_is_accepted(self):
+        records = self.journal(measurement=self.mutation_record(
+            7, 90.0, files=('packages/core/src',)))
+        self.evaluate('tdd', self.tdd(), records=records)
+
+    def test_the_latest_measurement_is_the_one_held_to_the_floor(self):
+        records = self.journal(measurement=self.mutation_record(7, 40.0)) + [self.mutation_record(8, 80.0)]
+        self.evaluate('tdd', self.tdd(), records=records)
+
+
+class AKilledMutantAsRedTest(MutationJournal):
+    """A RED at exit 0 is accepted when its Stryker report killed a mutant in the slice."""
+
+    def journal(self, *files, killed=None, exit_code=0):
+        extra = dict(mutants_killed=killed) if killed is not None else {}
+        return super().journal(*files, measurement=self.mutation_record(
+            7, 80.0, files=('packages/core/src',)),
+                               exit_code=exit_code, **extra)
+
+    def test_a_kill_in_a_file_the_slice_names_is_a_red(self):
+        self.evaluate('tdd', self.tdd(), records=self.journal(killed={self.FEE: ['3']}))
+
+    def test_a_kill_in_a_file_a_slice_names_with_a_dot_slash_prefix_is_a_red(self):
+        self.evaluate('tdd', self.tdd(), records=self.journal('./' + self.FEE,
+                                                              killed={self.FEE: ['3']}))
+
+    def test_a_kill_under_a_directory_the_slice_names_is_a_red(self):
+        self.evaluate('tdd', self.tdd(), records=self.journal('packages/core/src',
+                                                              killed={self.FEE: ['3']}))
+
+    def test_a_kill_in_the_source_of_the_test_a_slice_names_is_a_red(self):
+        source = self.root / self.FEE
+        source.parent.mkdir(parents=True, exist_ok=True)
+        source.write_text('export const fee = 1;\n')
+        records = self.journal('packages/core/src/fee.test.ts', killed={self.FEE: ['3']})
+        self.evaluate('tdd', self.tdd(), records=records)
+
+    def test_a_report_of_survivors_is_not(self):
+        with self.assertRaisesRegex(HarnessError, 'did not fail'):
+            self.evaluate('tdd', self.tdd(), records=self.journal(killed={}))
+
+    def test_a_check_with_no_report_at_all_is_not(self):
+        with self.assertRaisesRegex(HarnessError, 'did not fail'):
+            self.evaluate('tdd', self.tdd(), records=self.journal())
+
+    def test_a_kill_in_a_file_the_slice_does_not_name_is_refused_by_name(self):
+        with self.assertRaisesRegex(HarnessError, 'packages/core/src/vat.ts'):
+            self.evaluate('tdd', self.tdd(),
+                          records=self.journal(killed={'packages/core/src/vat.ts': ['1']}))
+
+    def test_a_real_failure_is_still_a_red_wherever_the_report_points(self):
+        self.evaluate('tdd', self.tdd(), records=self.journal(
+            exit_code=1, killed={'packages/core/src/vat.ts': ['1']}))
 
 
 class NonCodeGateTest(GateTest):

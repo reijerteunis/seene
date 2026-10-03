@@ -1,0 +1,105 @@
+{
+  "sequence": 147,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-03T11:53:18.895024+00:00",
+  "harness_version": "2",
+  "kind": "route",
+  "stage": "tdd",
+  "attempt": 10,
+  "actor": "claude:implementer",
+  "session": "5a22552d6789",
+  "head": "64ab858a75b65f99d8ec913bb3b09fa820550c65",
+  "prev_hash": "1f451690d325b9ed4c2e322f37780a88783fa8754854cc8a0b4f33bfdb892cb4",
+  "data": {
+    "solution": 146,
+    "shadow": true,
+    "strongest": "opus",
+    "tiers": [
+      "haiku",
+      "sonnet",
+      "opus"
+    ],
+    "rules": [],
+    "jev": {
+      "asked": true,
+      "model": "jev-1.13.0",
+      "reason": null,
+      "answers": [
+        {
+          "key": "implementation_model#1",
+          "question": "implementation_model",
+          "type": "score",
+          "options": [
+            "haiku",
+            "sonnet",
+            "opus"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "sonnet",
+          "probabilities": {
+            "haiku": 0.23,
+            "sonnet": 0.58,
+            "opus": 0.19
+          },
+          "confidence": 0.36,
+          "score": 0.96,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_effort#1",
+          "question": "implementation_effort",
+          "type": "score",
+          "options": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "high",
+          "probabilities": {
+            "low": 0.01,
+            "medium": 0.1,
+            "high": 0.89
+          },
+          "confidence": 0.83,
+          "score": 1.89,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        }
+      ]
+    },
+    "execution": [
+      {
+        "position": 1,
+        "name": "One reading of a plan entry for the floor, the kill check and CI",
+        "points": 2,
+        "files": [
+          "harness/mutation.py",
+          "harness/gates.py",
+          "harness/mutation_ci.py",
+          "harness/tests/test_mutation.py",
+          "harness/tests/test_stage_gates.py",
+          "harness/tests/test_mutation_ci.py",
+          "harness/tests/test_calibration.py",
+          "docs/tickets/SEEN-116-property-based-and-mutation-tests-on-the-money.md"
+        ],
+        "red": "Five tests fail together before any code changes. source_files returns [] for packages/core and for ./packages/core/src/fee.ts. The tdd gate advances a slice naming packages/core with no measurement. The kill check refuses a kill in fee.ts for a slice naming ./packages/core/src/fee.ts. NoSecondReaderTest finds covers defined in harness/mutation.py. select(['tsconfig.base.json']) returns None.",
+        "model": "sonnet",
+        "effort": "high",
+        "source": "jev",
+        "rule": null,
+        "reason": null,
+        "model_probability": 0.58,
+        "effort_probability": 0.89,
+        "model_passed": true,
+        "model_threshold": 0.5,
+        "implementer_task": "Work slice 1 of SEEN-116: One reading of a plan entry for the floor, the kill check and CI.\n\nRun it on sonnet at high effort, because Jev chose it at 0.58.\nThe model is what reaches the work: in Claude Code as the per-invocation model on the seen-implementer agent, and in Codex as the model this instruction names when you spawn it. The effort is recorded, carried and reported rather than applied, on either assistant: the generated copies do not vary by slice, because a file whose content depended on the ticket in hand was wrong on a detached HEAD, after a replan and after the receipt. Neither is yours to change.\n\nPoints: 2.\nFiles: harness/mutation.py, harness/gates.py, harness/mutation_ci.py, harness/tests/test_mutation.py, harness/tests/test_stage_gates.py, harness/tests/test_mutation_ci.py, harness/tests/test_calibration.py, docs/tickets/SEEN-116-property-based-and-mutation-tests-on-the-money.md\n\nIts RED must demonstrate: Five tests fail together before any code changes. source_files returns [] for packages/core and for ./packages/core/src/fee.ts. The tdd gate advances a slice naming packages/core with no measurement. The kill check refuses a kill in fee.ts for a slice naming ./packages/core/src/fee.ts. NoSecondReaderTest finds covers defined in harness/mutation.py. select(['tsconfig.base.json']) returns None.\n\nWrite the test first and record it with:\n  python3 harness/run.py check SEEN-116 --phase red --actor <tool>:implementer --model sonnet -- <command>\nThen write only what turns it green and record that the same way. The `--model sonnet` is not optional: a subagent inherits its parent's session id, so the log records the model of the session that spawned you and not yours, and without the declaration the tdd gate compares the wrong two names. Then stop: do not start the next slice and do not advance the stage."
+      }
+    ]
+  }
+}

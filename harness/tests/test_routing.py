@@ -16,6 +16,8 @@ from pathlib import Path
 
 from harness import jev
 from harness.errors import HarnessError
+from harness.repository import Repository
+from harness.tests.helpers import mutation_data
 from harness.tests.test_decisions import noul, score
 from harness.tests.test_lifecycle import CommandTest, clarify_evidence, solution_evidence
 
@@ -861,6 +863,24 @@ class SlicePositionTest(GateTest):
     older record that cannot is not refused on a mapping it never had.
     """
 
+    def record_mutation(self, score=80.0):
+        """The measurement the tdd gate asks of a slice naming packages/core/src, SEEN-116.
+
+        Written beside the coverage record, which is where the gate reads it
+        from. The plan's money slice names fees.ts, so this is what lets the
+        advance these tests expect reach the route comparison they are about.
+        """
+        from harness import journal
+        folder = self.root / 'docs' / 'harness' / 'history' / self.ticket_id
+        records = journal.read(folder)
+        return journal.append(folder, records, kind='check', stage='tdd', attempt=1,
+                              actor='claude:implementer', head=self.git('rev-parse', 'HEAD'),
+                              ticket=self.ticket_id,
+                              data=mutation_data(['packages/core/src/fees.ts'],
+                                                 Repository(self.root).fingerprint(),
+                                                 score=score, floor=70, killed=8, survived=2,
+                                                 mutants=10, reason=None))
+
     def plan(self):
         return [dict(PLAIN, name='The status line'), dict(MONEY, name='Fee expectations')]
 
@@ -870,6 +890,7 @@ class SlicePositionTest(GateTest):
         green = self.declared_check('green', model=model, declared=declared)
         regression = self.declared_check('regression', model=model, declared=declared)
         self.record_coverage()
+        self.record_mutation()
         return dict(mode='code', regression=regression['sequence'], coverage_delta=0.0,
                     slices=[dict(position=position,
                                  behaviour='The reworked behaviour',
@@ -1190,6 +1211,7 @@ class RuleTrippedByTheWorkTest(SlicePositionTest):
         green = self.declared_check('green', model='claude-opus-5', declared=declared)
         regression = self.declared_check('regression', model='claude-opus-5', declared=declared)
         self.record_coverage()
+        self.record_mutation()
         return dict(mode='code', regression=regression['sequence'], coverage_delta=0.0,
                     slices=[dict(position=position, behaviour='The behaviour',
                                  failure_reason='AssertionError: it was absent',

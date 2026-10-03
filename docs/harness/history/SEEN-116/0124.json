@@ -1,0 +1,38 @@
+{
+  "sequence": 124,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-03T06:14:11.117866+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 8,
+  "actor": "claude:implementer",
+  "session": "0af00b7dc5f2",
+  "head": "4a417fcd54037470eeac7dddc418f58e549d9fd2",
+  "prev_hash": "3762aca7c1d04c84d603d2b95aba8c17afe34aa9ace42aec35d3430b8355d8ea",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": 1,
+          "behaviour": "A data file under packages/core/src (a .json schedule) is not product source: mutation.source_files keeps only .ts files and extensionless directories, applied after a test is mapped to its source, so the gate no longer demands a measurement of a file Stryker can never mutate and agrees with mutation_ci.select (F1 of the attempt 7 review).",
+          "failure_reason": "test_a_data_file_under_src_is_not_product_source: AssertionError: Lists differ: ['packages/core/src/fees/schedules.json'] != []; test_a_data_file_beside_a_source_file_is_left_out_of_the_entries: AssertionError: Lists differ: ['packages/core/src/fees/fee.ts', 'packages/core/src/fees/schedules.json'] != ['packages/core/src/fees/fee.ts']; test_a_measurement_over_the_source_alone_lets_the_slice_through: HarnessError: The mutation measurement at record 7 was taken over packages/core/src/fees/fee.ts and does not cover packages/core/src/fees/schedules.json, which a slice names. FAILED (failures=2, errors=1)",
+          "red": 120,
+          "green": 121
+        }
+      ],
+      "regression": 122,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "0af00b7dc5f2",
+      "output_tokens": 15725,
+      "tool_calls": 26,
+      "unavailable": null
+    }
+  }
+}

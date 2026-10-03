@@ -188,6 +188,57 @@ class TicketFiguresTest(DeliveryWalk):
         coverage = self.measure()['coverage']
         self.assertEqual((coverage['lines'], coverage['delta']), (91.0, 1.0))
 
+    def test_a_slice_citing_a_red_that_killed_a_mutant_at_exit_zero_holds(self):
+        """Stryker exits 0 either way, so the kill is what makes it a red, here as at the gate."""
+        records = journal_with_a_return()
+        records[7]['data'].update(exit_code=0, mutants_killed={'packages/core/src/fee.ts': ['3']})
+        self.assertTrue(kpi.measure(records, 'SEEN-001', points=3)['red_before_green'])
+
+    def test_a_red_that_passed_with_no_kill_still_fails_the_measure(self):
+        records = journal_with_a_return()
+        records[7]['data'].update(exit_code=0, mutants_killed={})
+        self.assertFalse(kpi.measure(records, 'SEEN-001', points=3)['red_before_green'])
+
+    def test_mutation_comes_from_the_latest_measurement_of_the_ticket(self):
+        records = journal_with_a_return()
+        records.insert(10, record(99, 'check', 'tdd', attempt=2, minute=34, phase='mutation',
+                                  exit_code=0, command=['m'], score=40.0, floor=70, killed=4,
+                                  survived=6, mutants=10, files=['packages/core/src/fee.ts']))
+        records.insert(11, record(100, 'check', 'tdd', attempt=2, minute=35, phase='mutation',
+                                  exit_code=0, command=['m'], score=80.0, floor=70, killed=8,
+                                  survived=2, mutants=10, files=['packages/core/src/fee.ts']))
+        mutation = self.measure(records)['mutation']
+        self.assertEqual((mutation['score'], mutation['floor'], mutation['mutants']),
+                         (80.0, 70, 10))
+        self.assertEqual(mutation['files'], ['packages/core/src/fee.ts'])
+
+    def test_a_measurement_that_found_no_mutants_reports_no_score_and_says_why(self):
+        records = journal_with_a_return()
+        records.insert(10, record(99, 'check', 'tdd', attempt=2, minute=34, phase='mutation',
+                                  exit_code=0, command=['m'], score=None, floor=70, mutants=0,
+                                  reason='no mutants', files=['packages/core/src/fee.ts']))
+        mutation = self.measure(records)['mutation']
+        self.assertIsNone(mutation['score'])
+        self.assertEqual(mutation['reason'], 'no mutants')
+
+    def test_an_earlier_attempts_measurement_is_not_carried_when_the_last_attempt_took_none(self):
+        """A failed attempt-2 run is not attempt 3's figure when attempt 3's plan names no source."""
+        records = journal_with_a_return()
+        self.assertEqual(records[-1]['attempt'], 2)
+        records.insert(3, record(98, 'check', 'tdd', attempt=1, minute=9, phase='mutation',
+                                 exit_code=1, command=['m'], score=None, floor=70, mutants=0,
+                                 reason='the Stryker run failed (exit 1)', not_applicable=False,
+                                 files=['packages/core/src/fee.ts']))
+        self.assertIsNone(self.measure(records)['mutation'])
+
+    def test_a_ticket_that_measured_no_mutation_reports_null_not_zero(self):
+        self.assertIsNone(self.measure()['mutation'])
+
+    def test_the_ticket_with_no_journal_carries_the_field_too(self):
+        figures = kpi.measure([], 'SEEN-086', points=8, delivered_at='2026-09-23T12:00:00+00:00')
+        self.assertIn('mutation', figures)
+        self.assertIsNone(figures['mutation'])
+
     def test_a_ticket_with_no_journal_is_measurable_and_honest_about_it(self):
         figures = kpi.measure([], 'SEEN-086', points=8, delivered_at='2026-09-23T12:00:00+00:00')
         self.assertEqual(figures['points'], 8)

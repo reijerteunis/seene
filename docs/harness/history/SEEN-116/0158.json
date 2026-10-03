@@ -1,0 +1,74 @@
+{
+  "sequence": 158,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-03T12:31:32.156910+00:00",
+  "harness_version": "2",
+  "kind": "receipt",
+  "stage": "deliver",
+  "attempt": 10,
+  "actor": "claude:implementer",
+  "session": "874342bc959a",
+  "head": "ef967f6b2dd1f6de037188d11c8c8573220d4638",
+  "prev_hash": "f8a2bc84f641bee8b2853cf23847a1ff903ee5cb79add9bf455243e337d8f501",
+  "data": {
+    "from_stage": "deliver",
+    "to_stage": "delivered",
+    "commit": "ef967f6b2dd1f6de037188d11c8c8573220d4638",
+    "branch": "claude/SEEN-116-property-and-mutation-gate",
+    "remote": "origin",
+    "tree": "a630404d76f13381b6a0480eea4e52522e9ff7343a5f51ea13fca287638ff96e",
+    "pull_request": "https://github.com/reijerteunis/seene/pull/44",
+    "limits": [
+      "The floor applies only to the files a ticket's slices name under packages/core/src, not to the whole package, so code a slice does not name is held to no mutation score until a later ticket names it.",
+      "This ticket writes no money property and no product code under packages/core/src; its own mutation figure is null and the sprint report shows a dash. The properties belong to the tickets that write each money function (SEEN-016 to SEEN-020, SEEN-033).",
+      "The under-ten-minutes figure is check 48 of attempt 4 (32 seconds cold, 29 seconds warm) on a src holding one mutable file; it shows the step is fast on today's src, not on a much larger one, and no record re-measures the selection changes of attempts 5 to 10 in CI.",
+      "CI does not run test:fixtures, so the seeded-bug fixture of criterion 5 is proven by RED 40 and GREEN 41 and the qa check (record 156), not on every pull request.",
+      "The floor starts at 70 and is raised only by a human-reviewed thresholds.toml diff; this ticket does not raise it.",
+      "Coverage is measured on @seen/core's vitest suite, not on harness/, so the unchanged 100 percent says nothing about the harness change. What covers it is the harness suite, 1702 tests at regression 151 and again at qa 156."
+    ],
+    "evidence": {
+      "remote": "origin",
+      "pull_request": "https://github.com/reijerteunis/seene/pull/44",
+      "limits": [
+        "The floor applies only to the files a ticket's slices name under packages/core/src, not to the whole package, so code a slice does not name is held to no mutation score until a later ticket names it.",
+        "This ticket writes no money property and no product code under packages/core/src; its own mutation figure is null and the sprint report shows a dash. The properties belong to the tickets that write each money function (SEEN-016 to SEEN-020, SEEN-033).",
+        "The under-ten-minutes figure is check 48 of attempt 4 (32 seconds cold, 29 seconds warm) on a src holding one mutable file; it shows the step is fast on today's src, not on a much larger one, and no record re-measures the selection changes of attempts 5 to 10 in CI.",
+        "CI does not run test:fixtures, so the seeded-bug fixture of criterion 5 is proven by RED 40 and GREEN 41 and the qa check (record 156), not on every pull request.",
+        "The floor starts at 70 and is raised only by a human-reviewed thresholds.toml diff; this ticket does not raise it.",
+        "Coverage is measured on @seen/core's vitest suite, not on harness/, so the unchanged 100 percent says nothing about the harness change. What covers it is the harness suite, 1702 tests at regression 151 and again at qa 156."
+      ]
+    },
+    "checks": [
+      {
+        "name": "Harness tests (Python 3.12)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Incremental mutation (packages/core)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Knowledge graph",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Monorepo (Node 24)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Secrets and supply chain",
+        "conclusion": "success",
+        "runs": 1
+      }
+    ],
+    "coverage": {
+      "package": "@seen/core",
+      "lines": 100.0,
+      "delta": 0.0
+    }
+  }
+}

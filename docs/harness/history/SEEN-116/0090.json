@@ -1,0 +1,16 @@
+{
+  "sequence": 90,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-03T00:02:01.758726+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 6,
+  "actor": "claude:implementer",
+  "session": "b9546b1614db",
+  "head": "75cea82876c99d6efde310d7e865740507e83094",
+  "prev_hash": "134df90f630ee49f259de8f63159748459309b17e14b29933166644e7558192e",
+  "data": {
+    "text": "# Attempt 6: slice 1 done, slice 2 not started\n\nSlice 1 (a test-only change is measured over the source it tests) is done:\nRED 82, GREEN 87, regression 88, commit 75cea82, worked by seen-implementer on\nsonnet. GREENs 83 and 85 were taken before two fixes changed the tree and are\nsuperseded by 87; regressions 84 and 86 failed and led to those fixes.\n\nThe handoff pack written at record 88 says \"2 of 2 slices done\". That is the\npack's inference counting the three GREENs after one RED, not the work: slice 2\n(report and kpi say not measured for a run that measured nothing; the Outcome\nquotes only recorded figures, F3 and F4) has no RED yet. The next session works\nslice 2 on sonnet at medium effort, as routed, citing a RED recorded after 87.\n\nDepartures in slice 1, for the review: source_files treats a sibling named in\nthe same path list as present even before it exists on disk (a plan naming\nfees.ts and fees.test.ts maps the test to fees.ts, not the directory); the gate\ntests for a test-only slice live in harness/tests/test_mutation.py, subclassing\ntest_stage_gates.MutationJournal, because test_stage_gates.py is not a slice file.\n"
+  }
+}

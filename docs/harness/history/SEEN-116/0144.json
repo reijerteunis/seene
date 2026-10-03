@@ -1,0 +1,53 @@
+{
+  "sequence": 144,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-03T07:14:42.880569+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 9,
+  "actor": "claude:reviewer",
+  "session": "1a46716b32c7",
+  "head": "e6b9c5b0539c0ef58011a06dac3fcc2df72e540c",
+  "prev_hash": "18cc574a0c8e70b6354338356869753bf587bc8a11ba8b1e7b5f90a5110994bf",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "solution",
+    "to_attempt": 10,
+    "reason": "Review of attempt 9 (subagent reviewer on opus, triage 143) confirmed attempt 8's F1 closed and its F2 closed for packages/core/tsconfig.json, and found criteria 1, 2, 4 and 5 met and 3 partly met because of one medium. F1: mutation.source_files keeps only entries starting with packages/core/src, so a slice naming a parent directory or a ./-prefixed path passes the tdd gate with no mutation measurement, while paths.covers lets that slice edit src. F2 (low): the kill check decides coverage with mutation.covers on un-normalised names, a second reader of the SEEN-140 question. F3 (low): mutation_ci.CONFIG_FILES omits tsconfig.base.json, which packages/core/tsconfig.json extends. Ruud decided all three are fixed in this ticket (attempt 10). The triage's fingerprint and slice_files failures were judged benign by the reviewer (only the ticket file, README and journal records changed after check 139; every flagged file is named by an earlier accepted plan). F1 and F2 change harness/mutation.py and harness/gates.py and F3 harness/mutation_ci.py, which is a new plan, so the return goes to solution.",
+    "findings": [
+      {
+        "id": "F1",
+        "severity": "medium",
+        "file": "harness/mutation.py:121",
+        "claim": "source_files keeps only entries that begin with packages/core/src, so a slice naming a parent directory (packages/core, packages) or a ./-prefixed path is held to no mutation floor, while the edit guard (paths.covers, which normalises and accepts parent directories) lets that slice edit any file under packages/core/src.",
+        "failure_scenario": "SEEN-019's plan has a slice with files ['packages/core', 'harness/x.py']. The guard allows edits to packages/core/src/fee.ts because paths.covers('packages/core/src/fee.ts', ['packages/core']) is True. At tdd, _require_mutation computes mutation.source_files(['packages/core', ...]) == [] and returns, so the attempt advances with no mutation measurement at all. A slice naming './packages/core/src/fee.ts' gets the same: source_files returns []. Reproduced by the reviewer and again in the session before this return.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "none: a disagreement in meaning between two harness Python functions about which plan entries reach packages/core/src; none of the registry's tools reads the harness's path semantics, and only a unit test of the gate over a parent-directory slice can catch it"
+      },
+      {
+        "id": "F2",
+        "severity": "low",
+        "file": "harness/gates.py:1059",
+        "claim": "The kill check decides plan coverage with mutation.covers on un-normalised plan names, a second reader of the question SEEN-140 assigns to paths.covers alone; attempt 9 avoided the NoSecondReaderTest finding by rewriting a comparison, but the call itself is a reader that test cannot see.",
+        "failure_scenario": "A slice naming './packages/core/src/fee.ts' cites a Stryker RED killing a mutant in packages/core/src/fee.ts; mutation.covers(['./packages/core/src/fee.ts'], 'packages/core/src/fee.ts') is False and source_files maps nothing, so the gate refuses a RED that paths.covers would place in the slice.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": ""
+      },
+      {
+        "id": "F3",
+        "severity": "low",
+        "file": "harness/mutation_ci.py:27",
+        "claim": "CONFIG_FILES now includes packages/core/tsconfig.json but not tsconfig.base.json, which that file extends and the TypeScript checker therefore also reads, so attempt 8's F2 is closed for one of the two files it describes.",
+        "failure_scenario": "A pull request enables a stricter compiler flag in tsconfig.base.json and changes packages/core/src/fee.ts. mutation_ci.select returns only src/fee.ts, and the incremental cache keeps results for the other src files taken under the old compiler settings.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": ""
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "sequence": 64,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-02T22:25:45.330144+00:00",
+  "harness_version": "2",
+  "kind": "handoff",
+  "stage": "tdd",
+  "attempt": 5,
+  "actor": "claude:implementer",
+  "session": "c647a584f980",
+  "head": "448838e019c710475386ccfe467a080f6d5c6aca",
+  "prev_hash": "33a763c939f5ae8af4468866199d720c759079d6c9691ddf6053bcb1ee4d5132",
+  "data": {
+    "pack": ".harness-drafts/SEEN-116-handoff.md",
+    "sha256": "cc6b92c8fe911bd556313aac9a14ece2bd5d235d96b602652b09c67592a51909",
+    "estimated_tokens": 1002,
+    "token_limit": 2000,
+    "slice": {
+      "position": 2,
+      "total": 3,
+      "done": 1,
+      "declared": true,
+      "inferred": 2,
+      "entry": {
+        "name": "The floor reads a Stryker measurement of the advanced tree",
+        "points": 1,
+        "files": [
+          "harness/gates.py",
+          "harness/tests/test_stage_gates.py",
+          "harness/tests/helpers.py",
+          "harness/tests/test_routing.py",
+          "docs/harness/workflow.md"
+        ],
+        "red": "The tdd gate advances an attempt on a mutation record taken before a later edit to the tree, and on one whose recorded command is not mutation.command(files)."
+      }
+    },
+    "auto": false,
+    "figures": {
+      "session": "c647a584f980",
+      "output_tokens": 35251,
+      "tool_calls": 33,
+      "unavailable": null
+    }
+  }
+}

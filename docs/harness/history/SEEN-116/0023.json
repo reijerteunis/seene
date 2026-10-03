@@ -1,0 +1,36 @@
+{
+  "sequence": 23,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-02T20:49:10.932512+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "84d3ecfa6fc1",
+  "head": "d6a3fecff99b8426a12ea95e48073587b1a65d93",
+  "prev_hash": "852cb7941409d672730257fddc2b2dee747777b72758fb6c181e8e80993f3a1f",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_mutation",
+      "harness.tests.test_stage_gates",
+      "harness.tests.test_kpi",
+      "harness.tests.test_report",
+      "harness.tests.test_agents"
+    ],
+    "phase": "green",
+    "exit_code": 0,
+    "model": "claude-opus-5-5",
+    "model_declared": "sonnet",
+    "agent_declared": "seen-implementer",
+    "duration_ms": 93140,
+    "output": "................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................\n----------------------------------------------------------------------\nRan 576 tests in 93.059s\n\nOK\n",
+    "output_sha256": "cf35cae7795ad49ec27051a3e14e56f26071992f8bbba79d8f658905546feced",
+    "output_truncated": false,
+    "before": "d1962b7dbe25177218bbc3fd75f1b702d4cf7ecbb8154554b9187cd62542d5b2",
+    "after": "d1962b7dbe25177218bbc3fd75f1b702d4cf7ecbb8154554b9187cd62542d5b2"
+  }
+}

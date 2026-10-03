@@ -1,0 +1,183 @@
+{
+  "sequence": 25,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-02T20:51:16.654785+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "solution",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "session": "84d3ecfa6fc1",
+  "head": "d6a3fecff99b8426a12ea95e48073587b1a65d93",
+  "prev_hash": "3f6dbe0019aa4d6f7fa7d59307f665653f73d61bf0a702f56b33bc40a4af1d60",
+  "data": {
+    "from_stage": "solution",
+    "to_stage": "tdd",
+    "evidence": {
+      "mode": "code",
+      "approach": "Attempt 3, after the return at record 24. Slice 1 is done in attempt 2 (records 16 to 18, commit d67462b) and is not reworked: its files are unchanged since. Slice 2 is amended on two counts. First, its regression (record 22) failed in harness/tests/test_routing.py, whose RuleTrippedByTheWorkTest and SlicePositionTest fixtures advance a plan naming packages/core/src/fees.ts and now meet the mutation gate: those fixtures gain a mutation record (score at or above the floor, files covering fees.ts) beside the coverage record they already write, so test_routing.py joins slice 2. Second, Ruud settled the zero-mutant case: a measurement that finds no mutants in the slice's packages/core/src files is recorded as not applicable with its count, never as a score of 100, and the gate lets it pass, so a types-only file or a barrel can advance without claiming a score; a measurement below the floor, a missing measurement or one that does not cover the slice's files is still refused. Slice 2 is reworked from the uncommitted tree its attempt-2 run left. The approach of attempt 1 (record 7) stands; slice 1 is amended because its regression (record 12) failed for two causes the plan did not anticipate. First, vitest projects ignore --dir, so `vitest run --project core --dir src` ran packages/core/db as well: vitest.config.ts is split into three named projects, unit (src), db and fixtures, and every script and the Stryker product config select by project name (test = unit plus db, test:unit = unit, test:db = db, test:fixtures = fixtures), so neither test:unit nor a mutant run waits on Postgres. Second, db/authorities.test.ts refuses any import outside IMPORTS_THAT_CANNOT_READ in packages/core/db/repository.ts, and the fixture imports @fast-check/vitest (and fast-check): both are added to that allow-list with the reason that they are test-only property libraries that cannot read the database. Slice 1 is reworked in this attempt from the tree commit e3a6cda left. Three slices on the decisions clarify took (record 6). Slice 1 is the toolchain: fast-check and @fast-check/vitest, @stryker-mutator/core, vitest-runner and typescript-checker as devDependencies of @seen/core; packages/core/stryker.config.mjs mutating src/**/*.ts (tests excluded) with the vitest runner restricted to src and the typescript checker; packages/core/stryker.fixture.config.mjs mutating only the fixture; the fixture detector under packages/core/fixtures/tolerance/ in a correct and a seeded-bug form with an `invariant: ` property, and the convention written in workflow.md. Slice 2 is the harness: a new harness/mutation.py beside coverage.py, holding the fixed Stryker command, the reader of Stryker's JSON report (mutation-testing-report-schema, packages/core/reports/mutation/mutation.json) and the score over a set of files (killed plus timeout over killed, timeout, survived and no-coverage, with zero mutants reported as not applicable, never as 100). `harness mutation <ticket>` mirrors `harness coverage`: it mutates the packages/core/src files the accepted slices name and records a check with phase `mutation` carrying score, counts, files and floor. checks.demonstrates_failure gains a second form: a RED whose record carries `mutants_killed` (read from the report after a Stryker run, attached by cli.check) demonstrates failure even at exit 0; cited_check additionally requires one of those mutants to sit in a file the slice names. kpi.red_before_green and triage._red_check read demonstrates_failure instead of repeating the exit-code test. gates._tdd gains _require_mutation beside _require_coverage, applied only when a slice names a file under packages/core/src. kpi.measure carries `mutation` in both branches and report.py prints it beside coverage. Slice 3 is CI: a `mutation` job on Node only (no Supabase, since only the database-free tests run) that fetches the PR base, lists changed files under packages/core/src, restores the Stryker incremental file from the actions cache, runs Stryker with --incremental and --mutate on them, and exits clean when none changed. Why this shape: it puts the mutation measurement where the coverage one already is, so the gate, kpi and report each gain one sibling rather than a new mechanism, and the score is computed by the harness from the report rather than trusted from Stryker's exit code.",
+      "changes": [
+        "packages/core/package.json, pnpm-lock.yaml: devDependencies fast-check, @fast-check/vitest, @stryker-mutator/core, @stryker-mutator/vitest-runner, @stryker-mutator/typescript-checker; scripts mutation and mutation:fixture.",
+        "packages/core/stryker.config.mjs, packages/core/stryker.fixture.config.mjs: the two Stryker configs, JSON reporter to reports/mutation/, incrementalFile under reports/.",
+        "packages/core/fixtures/tolerance/detector.ts, seeded.ts, detector.test.ts, tsconfig.json: the fixture detector, its seeded-bug variant and the property test.",
+        "biome.json, knip.json, .dependency-cruiser.json, .gitignore: ignore .stryker-tmp and reports, treat packages/core/fixtures as fixtures.",
+        "docs/harness/workflow.md: the invariant naming convention and the mutation gate, in the SEEN-116 paragraph.",
+        "harness/mutation.py (new): command, report reader, score over files.",
+        "harness/cli.py: `mutation` subcommand; check attaches mutants_killed to a RED after a Stryker run; ticket_figures passes mutation through.",
+        "harness/checks.py: demonstrates_failure accepts a record carrying killed mutants.",
+        "harness/gates.py: cited_check requires a killed mutant in a slice file for that form; _require_mutation beside _require_coverage in _tdd.",
+        "harness/kpi.py: red_before_green reads checks.demonstrates_failure; mutation() and the field in both branches of measure.",
+        "harness/triage.py: _red_check wording covers a killed mutant.",
+        "harness/report.py: mutation beside coverage per ticket.",
+        "harness/thresholds.py, harness/thresholds.toml: [mutation] floor = 70, registered in EXPECTED.",
+        "harness/tests/test_mutation.py (new), harness/tests/test_stage_gates.py, harness/tests/test_kpi.py, harness/tests/test_report.py, harness/tests/helpers.py: the tests.",
+        ".github/workflows/ci.yml: the mutation job.",
+        "docs/tickets/SEEN-116-property-based-and-mutation-tests-on-the-money.md: Outcome, status and ticks at review.",
+        "packages/core/vitest.config.ts: three named projects, unit (src), db and fixtures, so selection is by project name rather than --dir, which projects ignore.",
+        "packages/core/db/repository.ts: IMPORTS_THAT_CANNOT_READ lists @fast-check/vitest and fast-check, each with its reason, so db/authorities.test.ts accepts the fixture's imports.",
+        "harness/tests/test_routing.py: the RuleTrippedByTheWorkTest and SlicePositionTest fixtures write a mutation record beside their coverage record, so the plans naming packages/core/src/fees.ts meet the floor."
+      ],
+      "migrations": [],
+      "tests_first": [
+        "test:unit runs no db test and authorities accepts the fixture. `pnpm --filter @seen/core test:unit`. RED: on e3a6cda it runs db/authorities.test.ts, which fails with `packages/core/fixtures/tolerance/detector.test.ts imports @fast-check/vitest`.",
+        "The seeded tolerance bug is caught by the property. `pnpm --filter @seen/core test:fixtures`. RED: detector.test.ts asserts that fc.check of the `invariant: never raises inside the tolerance and always raises outside it` property finds a counterexample against seeded.ts and none against detector.ts; it fails because neither the fixture nor fast-check exists yet.",
+        "A Stryker report with a Killed mutant in a slice file is RED evidence at exit 0. `python3 -m unittest harness.tests.test_mutation -v`. RED: a check record with exit_code 0 and mutants_killed naming a slice file is refused by demonstrates_failure today.",
+        "The tdd gate refuses a packages/core/src slice below the floor. Same module plus `harness.tests.test_stage_gates`. RED: an attempt whose slice names packages/core/src/x.ts with a mutation check at score 60 against floor 70 advances today.",
+        "kpi.json and the sprint report carry the mutation figure. `python3 -m unittest harness.tests.test_kpi harness.tests.test_report -v`. RED: kpi.measure over records holding a mutation check returns no `mutation` key.",
+        "CI mutates only the changed files and skips when none changed. Evidence is the job run on this ticket's pull request, its duration quoted in the Outcome; no local RED is possible for a workflow file, which is stated rather than faked."
+      ],
+      "slices": [
+        {
+          "name": "Toolchain and the seeded-bug fixture proof",
+          "points": 1,
+          "files": [
+            "packages/core/package.json",
+            "pnpm-lock.yaml",
+            "packages/core/stryker.config.mjs",
+            "packages/core/stryker.fixture.config.mjs",
+            "packages/core/vitest.config.ts",
+            "packages/core/fixtures/tolerance/detector.ts",
+            "packages/core/fixtures/tolerance/seeded.ts",
+            "packages/core/fixtures/tolerance/detector.test.ts",
+            "packages/core/fixtures/tolerance/tsconfig.json",
+            "biome.json",
+            "knip.json",
+            ".dependency-cruiser.json",
+            ".gitignore",
+            "docs/harness/workflow.md",
+            "packages/core/db/repository.ts"
+          ],
+          "red": "`pnpm --filter @seen/core test:unit` fails on the tree e3a6cda left: it runs db/ tests because projects ignore --dir, and db/authorities.test.ts refuses the fixture's @fast-check/vitest import. After: test:unit runs only src tests and passes, the fixture property finds a counterexample on seeded.ts and none on detector.ts, and a Stryker run with the fixture config reports the comparison-flipping mutant Killed."
+        },
+        {
+          "name": "Killed mutant as RED, the floor gate, kpi and report",
+          "points": 2,
+          "files": [
+            "harness/mutation.py",
+            "harness/cli.py",
+            "harness/checks.py",
+            "harness/gates.py",
+            "harness/kpi.py",
+            "harness/triage.py",
+            "harness/report.py",
+            "harness/thresholds.py",
+            "harness/thresholds.toml",
+            "harness/tests/test_mutation.py",
+            "harness/tests/test_stage_gates.py",
+            "harness/tests/test_kpi.py",
+            "harness/tests/test_report.py",
+            "harness/tests/helpers.py",
+            "harness/tests/test_routing.py"
+          ],
+          "red": "A RED check at exit 0 whose record names a Killed mutant in a slice file is refused today, an attempt whose packages/core/src slice measured a score below the floor advances today, a measurement with zero mutants is not recorded as not applicable, and kpi.measure carries no mutation field."
+        },
+        {
+          "name": "Incremental mutation in CI",
+          "points": 1,
+          "files": [
+            ".github/workflows/ci.yml",
+            "docs/tickets/SEEN-116-property-based-and-mutation-tests-on-the-money.md"
+          ],
+          "red": "No local RED for a workflow file: the job's first run on this ticket's pull request is the evidence, with a changed packages/core/src file mutated, an unchanged run skipping, and the duration under ten minutes quoted in the Outcome."
+        }
+      ],
+      "alternatives": [
+        "Trust Stryker's --thresholds.break exit code as the floor: rejected, because the floor would then be a number in a Stryker config the gate cannot read, and the gate needs the score per file set, which only the JSON report gives.",
+        "Mutate the whole of packages/core including db/: rejected at clarify (record 6), the db tests need Supabase and hold no money arithmetic.",
+        "Put the fixture detector under harness/ as a Python fixture: rejected, the proof has to be Stryker and fast-check on TypeScript, the toolchain the money core will use.",
+        "A separate `harness check --phase mutation-red`: rejected, a new phase would need its own place in the RED/GREEN ordering at gates.py:1143; a RED of a second form keeps the ordering untouched."
+      ],
+      "risks": [
+        "Stryker's vitest runner against vitest 3 and fileParallelism false (vitest.config.ts:17): mitigated by restricting Stryker to src tests and measuring in slice 1 before any harness code depends on it.",
+        "The CI job exceeds ten minutes: measured on this PR; incremental mode plus mutating only changed files keeps it to the files a ticket touches.",
+        "knip calling the new devDependencies unused: the Stryker plugins are referenced from the config, which knip reads; any remaining entry is declared in knip.json, not suppressed globally.",
+        "Every harness test that builds a thresholds file breaks once [mutation] is in EXPECTED: helpers.py is in slice 2's files for that reason.",
+        "A db test importing a src module was pulled into Stryker's related-file run under the single core project: the product config now names the unit project, and slice 1's regression shows test:unit lists no file under db/.",
+        "packages/core/src holds only index.ts today, so the product score may find few or no mutants: by Ruud's decision at the return (record 24) zero mutants is not applicable and passes, recorded with the count and never as 100, so the gate neither fails nor claims a score on nothing; the fixture carries the real proof."
+      ],
+      "rollback": "Revert the merge commit. Nothing persists outside the repository: no table, no secret, no deployed service. The thresholds section and the gate leave together, and a journal recorded under the gate stays readable because the mutation check is an ordinary check record.",
+      "new_dependencies": [
+        "fast-check (devDependency of @seen/core, property-based testing, MIT)",
+        "@fast-check/vitest (devDependency, test.prop for vitest, MIT)",
+        "@stryker-mutator/core (devDependency, mutation testing, Apache-2.0)",
+        "@stryker-mutator/vitest-runner (devDependency, Apache-2.0)",
+        "@stryker-mutator/typescript-checker (devDependency, Apache-2.0)"
+      ],
+      "tenant_tables": [
+        "none"
+      ],
+      "buyer_pii": "none",
+      "policy_gate_action": null,
+      "slice_points": 4,
+      "forecast": {
+        "available": false,
+        "observed_tickets": 7,
+        "required": 10
+      }
+    },
+    "decisions": [
+      {
+        "key": "solution_complete",
+        "question": "solution_complete",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.76,
+          "no": 0.24
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "key": "touches_billing_or_policy_gate",
+        "question": "touches_billing_or_policy_gate",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.1,
+          "no": 0.9
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

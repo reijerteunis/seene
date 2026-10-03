@@ -1,0 +1,22 @@
+{
+  "sequence": 47,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-02T22:09:37.571248+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "session": "b3e20e40e937",
+  "head": "ca030d9df2da90499fdfbff29171259d2037a3e7",
+  "prev_hash": "03373a0924680f8e96a9213b763b7654e71e3e00cc9cf8baa5b7f9588de6f883",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 4,
+    "reason": "The triage could see no evidence for: CI runs incremental mutation on the changed files of a pull request in under ten minutes. A criterion with nothing behind it is answered at the tdd stage, by writing the test or the check that proves it, rather than by a reviewer reading a diff that does not contain it",
+    "unmet_criteria": [
+      4
+    ]
+  }
+}

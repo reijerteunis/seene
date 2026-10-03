@@ -1,0 +1,138 @@
+{
+  "sequence": 157,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-03T12:25:18.888504+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "review",
+  "attempt": 10,
+  "actor": "claude:implementer",
+  "session": "874342bc959a",
+  "head": "1aef6613b41ab8328b8ac3aa35451daeb153438b",
+  "prev_hash": "3a9f8ecf55e4b6f8fcabd3a2ba2034d11c32627303b520264a264b7983560b1e",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "deliver",
+    "evidence": {
+      "reviewer": "claude:reviewer",
+      "independence": "subagent",
+      "reviewer_session": "agent-a504f441d782182a7",
+      "read": [
+        "docs/tickets/SEEN-116-property-based-and-mutation-tests-on-the-money.md",
+        "docs/harness/history/SEEN-116/ (read in full: 6, 28, 29, 32, 34, 40, 41, 48, 144 to 155; solution advance records 7, 14, 25, 57, 80, 96, 118, 132, 146 scanned for slice files)",
+        ".dependency-cruiser.json",
+        ".github/workflows/ci.yml",
+        ".gitignore",
+        "biome.json",
+        "docs/harness/workflow.md",
+        "docs/tickets/README.md",
+        "harness/checks.py",
+        "harness/cli.py",
+        "harness/gates.py",
+        "harness/kpi.py",
+        "harness/mutation.py",
+        "harness/mutation_ci.py",
+        "harness/paths.py",
+        "harness/report.py",
+        "harness/tests/helpers.py",
+        "harness/tests/test_calibration.py",
+        "harness/tests/test_kpi.py",
+        "harness/tests/test_mutation.py",
+        "harness/tests/test_mutation_ci.py",
+        "harness/tests/test_report.py",
+        "harness/tests/test_routing.py",
+        "harness/tests/test_stage_gates.py",
+        "harness/thresholds.py",
+        "harness/thresholds.toml",
+        "harness/triage.py",
+        "knip.json",
+        "packages/core/db/repository.ts",
+        "packages/core/fixtures/tolerance/detector.test.ts",
+        "packages/core/fixtures/tolerance/detector.ts",
+        "packages/core/fixtures/tolerance/seeded.ts",
+        "packages/core/fixtures/tolerance/tsconfig.json",
+        "packages/core/package.json",
+        "packages/core/stryker.config.mjs",
+        "packages/core/stryker.fixture.config.mjs",
+        "packages/core/tsconfig.json",
+        "packages/core/vitest.config.ts",
+        "pnpm-lock.yaml"
+      ],
+      "acceptance_evidence": [
+        "1. fast-check is a dev dependency of packages/core, and the invariant naming convention is written in docs/harness/workflow.md: packages/core/package.json and pnpm-lock.yaml add fast-check 4 and @fast-check/vitest 0.3.0; the workflow.md paragraph states the `invariant: ` title through test.prop; slice 1 of attempt 1, RED 40, GREEN 41. Met.",
+        "2. StrykerJS runs on packages/core with the vitest runner and the TypeScript checker, and the score reaches kpi.json and the sprint report: stryker.config.mjs names testRunner vitest and checkers typescript; kpi.mutation and the report's Mutation column, RED 28, GREEN 29; attempt 7 RED 104, GREEN 105. Met.",
+        "3. thresholds.toml carries the floor, the tdd gate refuses below it, and a killed mutant is accepted as RED: [mutation] floor = 70 registered in thresholds.EXPECTED; gates._require_mutation and the kill check; RED 28, GREEN 29; attempt 5 RED 59, 61 and 65, GREEN 60, 62 and 66; attempt 8 RED 120, GREEN 121; attempt 9 RED 135, GREEN 138; attempt 10 RED 149, GREEN 150, regression 151, which close F1 and F2 of return 144 (a slice naming a parent of src or a ./-prefixed path is held to the floor, and the kill check reads plan entries through paths.covers). Met.",
+        "4. CI runs incremental mutation on a pull request's changed files in under ten minutes: ci.yml's mutation job with the selection in harness/mutation_ci.py; slice 3 RED 32, GREEN 34; measured at check 48 (32 seconds cold, 29 seconds warm); selection tests RED 68, GREEN 69; tsconfig.base.json widening (F3 of return 144) RED 149, GREEN 150. Met.",
+        "5. A seeded wrong-sign tolerance bug in a fixture detector is caught by a property and by a mutant, on a fixture that is not product code: packages/core/fixtures/tolerance/detector.ts, seeded.ts and detector.test.ts; RED 40 kills all 5 mutants of detector.ts, GREEN 41. Met."
+      ],
+      "findings": [],
+      "checks": [
+        "F1 of return 144 closed: mutation.source_files reads each entry through paths.normalise and maps an ancestor of packages/core/src to all of src. Probed against paths.covers with packages, packages/core, ' packages/core ', ./packages/core/src/fee.ts, a trailing slash, '.', './', packages/core-extra, packages/cor, PACKAGES/core and a '..' path: the floor and the edit guard agree on every entry, and the '..' path fails closed through mutation.missing.",
+        "F2 of return 144 closed: mutation.covers is deleted with no caller left in code; its four former callers call paths.covers(path, entries). NoSecondReaderTest.test_only_paths_defines_a_function_named_covers guards against a new one.",
+        "F3 of return 144 closed: tsconfig.base.json joins mutation_ci.CONFIG_FILES; it exists at the root and packages/core/tsconfig.json extends it.",
+        "CI and the gate still agree: both read mutation.source_files, and CI receives only file paths from git diff, so the ancestor mapping never fires there.",
+        "fingerprint (fail in triage 155): git diff 76b42f2..HEAD touches only the ticket file, docs/tickets/README.md and journal records 151 to 155 (commits dfd40da, 09920ce, a54f376, 1aef661). No code or test input changed after regression 151. Harmless.",
+        "slice_files (fail in triage 155): every one of the 28 flagged files is named by an earlier accepted plan (solution records 7, 14, 25, 57, 80, 96). Harmless, as in the attempt 9 review.",
+        "red_before_green: RED 149 failed for the reasons slice 1 states (6 failures and 1 error; the sixth failure is the trailing-slash case inside the same fix); GREEN 150 passed 59 tests.",
+        "tests_added: each attempt 10 behaviour has its own test, which failed at RED 149 and passes at GREEN 150.",
+        "The reviewer re-ran the attempt 10 test classes with test_mutation and test_mutation_ci: 106 tests OK.",
+        "Ground rules: no euro sign, em dash or en dash in the added lines of the diff; changes_agent_action is false and no billing, table or credential path is touched."
+      ],
+      "security_checklist": [
+        "No secret, credential or token in the diff; gitleaks passed in triage 155.",
+        "No live marketplace call from a test; the lint check passed in triage 155.",
+        "No billing, policy gate or agent action path is touched, so no second reviewer is required."
+      ],
+      "verdict": "pass",
+      "tree": "a630404d76f13381b6a0480eea4e52522e9ff7343a5f51ea13fca287638ff96e"
+    },
+    "decisions": [
+      {
+        "key": "severity",
+        "question": "severity",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high",
+          "blocking"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "low",
+        "probabilities": {
+          "low": 0.79,
+          "medium": 0.16,
+          "high": 0.01,
+          "blocking": 0.04
+        },
+        "confidence": 0.69,
+        "score": 0.31,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      },
+      {
+        "key": "must_fix",
+        "question": "must_fix",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.21,
+          "no": 0.79
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.7,
+        "passed": false,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

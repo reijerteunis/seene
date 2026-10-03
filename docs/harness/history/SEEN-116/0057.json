@@ -1,0 +1,147 @@
+{
+  "sequence": 57,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-02T22:23:56.610602+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "solution",
+  "attempt": 5,
+  "actor": "claude:implementer",
+  "session": "c647a584f980",
+  "head": "6999a0f53a53413f4a774aab7a09502177a33514",
+  "prev_hash": "98efb2d1b7e050bcee6d1327372504036240b2e1b492433085e7464a1f40075b",
+  "data": {
+    "from_stage": "solution",
+    "to_stage": "tdd",
+    "evidence": {
+      "mode": "code",
+      "approach": "Attempt 5, after the review return at record 53. Ruud decided (note 55) that F1 to F4 are fixed in this ticket; F5 and F6 are low and are answered in this changes list and the Outcome. The slices of attempts 1 to 4 stand and are not reworked: their evidence (RED 40, GREEN 41; RED 28, GREEN 29; RED 32, GREEN 34; CI check 48) is in the journal and this plan does not re-cite them. This plan is the three fixes, 3 points, as three slices. Slice 1 (F1): harness/mutation.py turns a slice entry that names a directory under packages/core/src into the Stryker globs `<dir>/**/*.ts` and `!<dir>/**/*.test.ts` in command(), so a directory is measured over the files under it rather than passed as a pattern that matches nothing; and measure() grants not_applicable only when every file entry named appears in the report's `files` and every directory entry has at least one report file under it. A named file the report does not list (a typo, a file the branch deleted) is recorded with no score and a reason naming it, so the gate refuses it as a run that measured nothing rather than letting it through as not applicable; the fail-closed outcome no longer rests on Stryker's exit code (qa 52). Slice 2 (F2 and F3, both in gates._require_mutation, so one slice): the measurement the gate reads must have been taken on the tree the gate is advancing, read as the record's `after` fingerprint equal to repository.fingerprint(), the tree the regression is already held to; a measurement from before a later edit is refused with both fingerprints named. And the recorded `command` must equal list(mutation.command(files)) for the files the record names; a record whose command is anything else (the `--` override the CLI keeps for its own tests' stub) is refused as a measurement Stryker did not take, so the docstring's claim that the measurement is fixed becomes something the gate holds rather than something a session promises. Gate tests write their mutation records through helpers.py with the fixed command and the current fingerprint. Slice 3 (F4): the CI job's file selection moves out of inline shell into harness/mutation_ci.py, a pure select(changed_paths) returning the Stryker --mutate value or None, plus a main() that reads `git diff --name-only` output on stdin and writes `any` and `files` to GITHUB_OUTPUT; ci.yml's `changed` step calls it with python3. The rules are the ones the shell carried: product .ts under packages/core/src, .test.ts excluded, all of src (`src/**/*.ts,!src/**/*.test.ts`) when stryker.config.mjs, vitest.config.ts or package.json of packages/core changed, None when nothing qualifies. harness/tests/test_mutation_ci.py tests each rule and runs in CI's harness job, which already runs `unittest discover -s harness/tests`. Why this shape: each fix lands where the defect is (the glob in mutation.py, the trust in the gate, the logic in a tested module), and none adds a mechanism the gate does not already have: the tree comparison is the one the regression uses and the command comparison reuses mutation.command().",
+      "changes": [
+        "harness/mutation.py: command() expands a directory entry into `<dir>/**/*.ts` and `!<dir>/**/*.test.ts`; measure() grants not_applicable only when every named file is in the report's files and every named directory has a report file under it, and names what is missing otherwise.",
+        "harness/tests/test_mutation.py: tests for the directory glob, the missing file, the deleted file and the directory with no files.",
+        "harness/gates.py: _require_mutation refuses a measurement whose `after` fingerprint is not the tree being advanced, and one whose command is not mutation.command(files).",
+        "harness/tests/test_stage_gates.py: tests for the stale measurement and the substituted command, and the existing mutation fixtures carry the fixed command and the current fingerprint.",
+        "harness/tests/helpers.py: the mutation record helper writes the fixed command and the tree's fingerprint.",
+        "harness/tests/test_routing.py: the fixtures' mutation records carry the fixed command and the current fingerprint, if the helper does not already cover them.",
+        "harness/mutation_ci.py (new): select(changed_paths) and main(), the CI file selection.",
+        "harness/tests/test_mutation_ci.py (new): one test per selection rule, and main() writing GITHUB_OUTPUT.",
+        ".github/workflows/ci.yml: the mutation job's `changed` step calls python3 -m harness.mutation_ci, with setup-python like the other jobs.",
+        "docs/harness/workflow.md: the SEEN-116 paragraph says a directory entry is measured over its files and the measurement is held to the tree and the fixed command.",
+        "docs/tickets/SEEN-116-property-based-and-mutation-tests-on-the-money.md: Outcome amended for attempt 5 (F1 to F4, and F6: RED 16 of attempt 2 is the RED that showed the db/ exclusion absent), status and ticks at review.",
+        "docs/tickets/README.md: the SEEN-116 status row mirrors the ticket's status (F5)."
+      ],
+      "migrations": [],
+      "tests_first": [
+        "A directory entry is mutated over its files. `python3 -m unittest harness.tests.test_mutation -v`. RED: command(['packages/core/src/money']) returns `--mutate src/money` today, and the test expects `src/money/**/*.ts,!src/money/**/*.test.ts`.",
+        "A named file the report does not list is not not-applicable. Same module. RED: measure() over a fresh report with no `src/typo.ts` entry, files ['packages/core/src/typo.ts'], returns not_applicable True today; the test expects no score, not_applicable False and a reason naming src/typo.ts.",
+        "A measurement on an older tree is refused. `python3 -m unittest harness.tests.test_stage_gates -v`. RED: an attempt whose mutation record's `after` differs from the tree at advance, score 85 over the slice's file, advances today.",
+        "A measurement whose command is not the fixed Stryker command is refused. Same module. RED: a mutation record with command ['python3', '-c', '...'] and score 100 over the slice's file advances today.",
+        "The CI selection is tested in the tree. `python3 -m unittest harness.tests.test_mutation_ci -v`. RED: the module harness.mutation_ci does not exist, so the import fails; the tests assert the src filter, the .test.ts exclusion, the widening on each of the three config files and None on an unrelated change."
+      ],
+      "slices": [
+        {
+          "name": "A directory or a missing file is measured, never passed",
+          "points": 1,
+          "files": [
+            "harness/mutation.py",
+            "harness/tests/test_mutation.py"
+          ],
+          "red": "command() given a directory under packages/core/src returns a --mutate value that matches no file, and measure() records a report that lists none of the named files as not applicable."
+        },
+        {
+          "name": "The floor reads a Stryker measurement of the advanced tree",
+          "points": 1,
+          "files": [
+            "harness/gates.py",
+            "harness/tests/test_stage_gates.py",
+            "harness/tests/helpers.py",
+            "harness/tests/test_routing.py",
+            "docs/harness/workflow.md"
+          ],
+          "red": "The tdd gate advances an attempt on a mutation record taken before a later edit to the tree, and on one whose recorded command is not mutation.command(files)."
+        },
+        {
+          "name": "CI's mutation file selection is a tested module",
+          "points": 1,
+          "files": [
+            "harness/mutation_ci.py",
+            "harness/tests/test_mutation_ci.py",
+            ".github/workflows/ci.yml",
+            "docs/tickets/SEEN-116-property-based-and-mutation-tests-on-the-money.md",
+            "docs/tickets/README.md"
+          ],
+          "red": "harness.mutation_ci does not exist, so the tests of the selection rules fail on import; the selection lives only in inline shell no test runs."
+        }
+      ],
+      "alternatives": [
+        "Refuse a directory entry under packages/core/src at the solution gate instead of expanding it: rejected, because the gate and covers() already treat a directory as covering its files and a money ticket may reasonably name a module directory.",
+        "Drop the CLI's `--` override altogether for F3 and substitute Stryker in tests by patching: rejected, because the gate refusing the recorded command closes the hole whatever ran, and the CLI tests that record a stub run stay as they are.",
+        "Tie the measurement to the cited GREEN's fingerprint instead of the current tree: rejected, because a regression after the GREEN may legitimately follow refactoring; the regression is already held to the current tree and the floor should be held to the same one.",
+        "Keep the CI selection in shell and test it with bats: rejected, a new test runner in CI for one step, when the harness tests already run there."
+      ],
+      "risks": [
+        "Stryker may leave a file with zero mutants (a types-only file) out of the report's `files`; then such a file is refused rather than passed as not applicable. Decision: proceed fail-closed, and the slice 1 GREEN states what the current report shows for src/index.ts; if a later ticket meets the case it is a finding there, not a silent pass here.",
+        "Stryker's own mutate globs with `!` exclusions inside a comma-joined --mutate value: the CI step already uses `src/**/*.ts,!src/**/*.test.ts` (run 37068194534), so the form is measured.",
+        "The fingerprint comparison breaks gate fixtures that write a mutation record without `after`: helpers.py and test_routing.py are in slice 2's files for that reason.",
+        "Stryker writing reports changes the fingerprint and so could refuse every honest measurement: reports and .stryker-tmp are gitignored (slice 1 of attempt 3); this ticket's slices name no file under packages/core/src, so no real `harness mutation` runs here; the gate tests write before and after fingerprints explicitly, and slice 2's GREEN quotes the .gitignore lines that keep reports out of the fingerprint."
+      ],
+      "rollback": "Revert the merge commit. Nothing persists outside the repository: no table, no secret, no deployed service. The gate goes back to trusting the latest measurement, which is the attempt-4 behaviour.",
+      "new_dependencies": [],
+      "tenant_tables": [
+        "none"
+      ],
+      "buyer_pii": "none",
+      "policy_gate_action": null,
+      "slice_points": 3,
+      "forecast": {
+        "available": false,
+        "observed_tickets": 7,
+        "required": 10
+      }
+    },
+    "decisions": [
+      {
+        "key": "solution_complete",
+        "question": "solution_complete",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.77,
+          "no": 0.23
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "key": "touches_billing_or_policy_gate",
+        "question": "touches_billing_or_policy_gate",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.07,
+          "no": 0.93
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

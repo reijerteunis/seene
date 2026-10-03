@@ -1,0 +1,134 @@
+{
+  "sequence": 80,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-02T23:36:58.263848+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "solution",
+  "attempt": 6,
+  "actor": "claude:implementer",
+  "session": "b9546b1614db",
+  "head": "cfa0750d407091581c6e1947047a061146445a42",
+  "prev_hash": "470bb9b2ed6a26eed41ade50d85db490226314b664839aa92c610e7e51f46553",
+  "data": {
+    "from_stage": "solution",
+    "to_stage": "tdd",
+    "evidence": {
+      "mode": "code",
+      "approach": "F1 from the attempt 5 review: a test-only change under packages/core/src is held to no floor, because mutation.source_files() and mutation_ci.select() both drop test files. One mapping function in harness/mutation.py, under_test(path, exists), answers which source a test file covers: for packages/core/src/<x>.test.ts or <x>.spec.ts its sibling <x>.ts when that file exists, otherwise the test's own directory (which mutation.command already expands into the globs of the files under it, tests left out). exists is a predicate over repository paths, so the function stays pure and testable. source_files(paths, exists) applies it, so a slice naming only a test still yields a source entry, and both callers that already use source_files (gates.plan_source_files, which the mutation command reads, and gates._require_mutation, which holds the floor) pass a predicate over the repository root. mutation_ci.select() stops filtering tests itself and calls mutation.source_files with a predicate over the checkout (CI runs it from the repository root), then turns the entries into the --mutate value through a new mutation.patterns(entries), which command() also uses, so the gate, the mutation command and CI cannot disagree on either the mapping or the globs. The config-change rule (all of src) is unchanged. The lows ride along in slice 2: F3, report._mutation says not applicable only when not_applicable is true and otherwise 'not measured: <reason>', and kpi.mutation reads only the measurements of the ticket's last attempt that took any, so a failed attempt-2 run is not carried as attempt 3's figure; F4, the Outcome drops the CI run figure no record holds and quotes only what a journal record carries. F2 and F5 need nothing (F2 is the clarify record 6 decision, F5 is settled by the qa check).",
+      "changes": [
+        "harness/mutation.py: under_test(path, exists) maps a test under packages/core/src to its sibling source or its directory; source_files(paths, exists) applies it instead of dropping tests; patterns(entries) holds the file and directory to glob expansion that command() and CI share.",
+        "harness/mutation_ci.py: select(changed_paths, exists) delegates to mutation.source_files and mutation.patterns; main() passes a predicate over the working directory; the module docstring states the mapping.",
+        "harness/gates.py: plan_source_files(records, root) and _require_mutation pass a predicate over the repository root to mutation.source_files.",
+        "harness/cli.py: the mutation command passes the repository root to gates.plan_source_files.",
+        "harness/tests/test_mutation.py: SourceFilesTest gains the sibling and the directory mappings; the gate tests gain a slice naming only a test that is refused without a measurement.",
+        "harness/tests/test_mutation_ci.py: test_only_test_files_select_nothing is replaced by the test that a changed test selects its sibling, and its directory when it has none.",
+        "harness/report.py and harness/kpi.py: F3, a null score reads not applicable only when not_applicable is true, and the kpi reads the last attempt that measured.",
+        "harness/tests/test_kpi.py: F3's tests.",
+        "docs/tickets/SEEN-116-property-based-and-mutation-tests-on-the-money.md: F4, the Outcome quotes only figures a record holds, and attempt 6 is described.",
+        "docs/harness/workflow.md: one sentence that a test-only change is measured over the source it tests."
+      ],
+      "migrations": [],
+      "tests_first": [
+        "python3 -m unittest harness.tests.test_mutation: source_files(['packages/core/src/fees/detect.test.ts'], exists) returns ['packages/core/src/fees/detect.ts'] when that file exists and ['packages/core/src/fees'] when it does not; a tdd gate whose slice names only packages/core/src/x.test.ts is refused with 'No mutation measurement'. RED: today source_files returns [] and the gate advances.",
+        "python3 -m unittest harness.tests.test_mutation_ci: select(['packages/core/src/fee.test.ts'], exists) returns 'src/fee.ts' when the sibling exists and the directory globs when it does not. RED: today it returns None.",
+        "python3 -m unittest harness.tests.test_kpi: a measurement with a null score and not_applicable false renders as not measured with its reason, never not applicable; kpi.mutation over an attempt-2 failed run and an attempt-3 plan with no measurement is None. RED: today it renders not applicable and returns the attempt-2 figure."
+      ],
+      "slices": [
+        {
+          "name": "A test-only change is measured over the source it tests, in the gate and in CI",
+          "points": 2,
+          "files": [
+            "harness/mutation.py",
+            "harness/mutation_ci.py",
+            "harness/gates.py",
+            "harness/cli.py",
+            "harness/tests/test_mutation.py",
+            "harness/tests/test_mutation_ci.py",
+            "docs/harness/workflow.md"
+          ],
+          "red": "source_files over a slice naming only packages/core/src/fees/detect.test.ts returns nothing, so the gate advances with no measurement; select over a changed test returns None, so CI skips the job."
+        },
+        {
+          "name": "The report and the kpi say not measured for a run that measured nothing, and the Outcome quotes only recorded figures",
+          "points": 1,
+          "files": [
+            "harness/report.py",
+            "harness/kpi.py",
+            "harness/tests/test_kpi.py",
+            "docs/tickets/SEEN-116-property-based-and-mutation-tests-on-the-money.md"
+          ],
+          "red": "A failed measurement (null score, not_applicable false) renders as not applicable, and kpi.mutation returns an earlier attempt's measurement when the last attempt took none."
+        }
+      ],
+      "alternatives": [
+        "Map a test to its directory always: rejected, it mutates every file beside a sibling-tested source and costs CI time for files the test does not touch; the sibling is the repository's convention and the directory is only the fallback.",
+        "Read the test's imports to find what it covers: rejected, it needs a TypeScript resolver in Python for a gain the sibling convention already gives; Stryker's own per-test coverage then decides which mutants the test kills.",
+        "Leave the mapping in each caller: rejected, the review's point is that the gate and CI must not disagree, so there is one function.",
+        "Split F1 into a follow-up ticket: rejected by Ruud's decision at record 78."
+      ],
+      "risks": [
+        "A test file that tests a source elsewhere (not its sibling, not its directory) is measured over the wrong files and its weakening still escapes: mitigated by the convention, and the directory fallback widens rather than narrows what is measured.",
+        "Mutating a whole directory for a test with no sibling makes the CI step slower: the ten-minute criterion is re-measured on this pull request's CI run, and the directory fallback is rare under the sibling convention.",
+        "exists checks the working tree, so a test whose sibling the branch deleted maps to the directory: that is the intended reading, the source no longer exists to be measured."
+      ],
+      "rollback": "Revert the commits of attempt 6; the mapping only adds entries to what the gate and CI measure, so reverting returns to attempt 5's behaviour with no data to migrate.",
+      "new_dependencies": [],
+      "tenant_tables": [
+        "none"
+      ],
+      "buyer_pii": "none",
+      "policy_gate_action": null,
+      "slice_points": 3,
+      "forecast": {
+        "available": false,
+        "observed_tickets": 7,
+        "required": 10
+      }
+    },
+    "decisions": [
+      {
+        "key": "solution_complete",
+        "question": "solution_complete",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.76,
+          "no": 0.24
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "key": "touches_billing_or_policy_gate",
+        "question": "touches_billing_or_policy_gate",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.08,
+          "no": 0.92
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

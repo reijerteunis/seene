@@ -1,0 +1,22 @@
+{
+  "sequence": 24,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-02T20:51:11.489803+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "84d3ecfa6fc1",
+  "head": "d6a3fecff99b8426a12ea95e48073587b1a65d93",
+  "prev_hash": "f908b760bc460eaed97850731103def4cf312aa1e2940d43787b2a226ebddbf7",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "solution",
+    "to_attempt": 3,
+    "reason": "Slice 2 regression (record 22) failed: five tests in harness/tests/test_routing.py (RuleTrippedByTheWorkTest, SlicePositionTest) advance a tdd record whose fixture plan names packages/core/src/fees.ts, and the new mutation gate correctly refuses them for want of a mutation measurement. Their fixtures need a mutation record beside the coverage record they already write, and no slice names test_routing.py, so the guard refuses the edit. Also settled by Ruud: a measurement with zero mutants in the slice's src files is not applicable and passes the floor, recorded with its count and never as 100.",
+    "findings": [],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}

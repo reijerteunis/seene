@@ -1,0 +1,14 @@
+{
+  "//": [
+    "The fixture SEEN-116 proves its machinery on, typechecked on its own because the",
+    "package tsconfig reads src/ only. @fast-check/vitest publishes its types through the",
+    "exports map, which the base config's node resolution cannot read, so this resolves",
+    "the way vitest does. stryker.fixture.config.mjs hands it to the TypeScript checker."
+  ],
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "module": "preserve",
+    "moduleResolution": "bundler"
+  },
+  "include": ["./**/*"]
+}

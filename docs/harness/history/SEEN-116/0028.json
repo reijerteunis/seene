@@ -1,0 +1,37 @@
+{
+  "sequence": 28,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-02T20:55:28.614965+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "session": "84d3ecfa6fc1",
+  "head": "d6a3fecff99b8426a12ea95e48073587b1a65d93",
+  "prev_hash": "0f834ccc99c42f4af6e02d735a6938ad6d1d3b1fee4585ebcde2750c3161cf7e",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_mutation",
+      "harness.tests.test_stage_gates",
+      "harness.tests.test_kpi",
+      "harness.tests.test_report",
+      "harness.tests.test_routing",
+      "harness.tests.test_agents"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "model": "claude-opus-5-5",
+    "model_declared": "sonnet",
+    "agent_declared": "seen-implementer",
+    "duration_ms": 140628,
+    "output": "....EEEE.............................................................................................................................................................E...........................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................\n======================================================================\nERROR: test_a_report_from_before_the_run_measures_nothing (harness.tests.test_mutation.MeasureTest.test_a_report_from_before_the_run_measures_nothing)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_mutation.py\", line 182, in test_a_report_from_before_the_run_measures_nothing\n    self.assertFalse(data['not_applicable'])\n                     ~~~~^^^^^^^^^^^^^^^^^^\nKeyError: 'not_applicable'\n\n======================================================================\nERROR: test_a_run_that_failed_measures_nothing_whatever_report_is_lying_about (harness.tests.test_mutation.MeasureTest.test_a_run_that_failed_measures_nothing_whatever_report_is_lying_about)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_mutation.py\", line 176, in test_a_run_that_failed_measures_nothing_whatever_report_is_lying_about\n    self.assertFalse(data['not_applicable'])\n                     ~~~~^^^^^^^^^^^^^^^^^^\nKeyError: 'not_applicable'\n\n======================================================================\nERROR: test_no_mutants_in_the_files_is_recorded_as_such_and_never_as_a_score (harness.tests.test_mutation.MeasureTest.test_no_mutants_in_the_files_is_recorded_as_such_and_never_as_a_score)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_mutation.py\", line 170, in test_no_mutants_in_the_files_is_recorded_as_such_and_never_as_a_score\n    self.assertTrue(data['not_applicable'])\n                    ~~~~^^^^^^^^^^^^^^^^^^\nKeyError: 'not_applicable'\n\n======================================================================\nERROR: test_the_record_carries_the_score_the_counts_the_files_and_the_floor (harness.tests.test_mutation.MeasureTest.test_the_record_carries_the_score_the_counts_the_files_and_the_floor)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_mutation.py\", line 163, in test_the_record_carries_the_score_the_counts_the_files_and_the_floor\n    self.assertFalse(data['not_applicable'])\n                     ~~~~^^^^^^^^^^^^^^^^^^\nKeyError: 'not_applicable'\n\n======================================================================\nERROR: test_no_mutants_in_the_files_is_not_applicable_and_passes (harness.tests.test_stage_gates.MutationFloorTest.test_no_mutants_in_the_files_is_not_applicable_and_passes)\nRuud's decision: recorded with its count and no score, and let through.\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_stage_gates.py\", line 320, in test_no_mutants_in_the_files_is_not_applicable_and_passes\n    self.evaluate('tdd', self.tdd(), records=records)\n    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_stage_gates.py\", line 76, in evaluate\n    return gates.evaluate(stage, data, records or self.records, current,\n           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                          self.repository, self.thresholds)\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/gates.py\", line 1848, in evaluate\n    return gate(data, records, current, repository, thresholds)\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/gates.py\", line 1196, in _tdd\n    _require_mutation(slices, records, current, thresholds)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/gates.py\", line 1542, in _require_mutation\n    require(value is not None,\n    ~~~~~~~^^^^^^^^^^^^^^^^^^^\n            f'The mutation measurement at record {measurements[-1][\"sequence\"]} has no score: '\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n            f'{latest.get(\"reason\") or \"the run measured nothing\"}. Only a completed run that '\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n            f'found no mutants in the files is not applicable; a run that failed or wrote no '\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n            f'report measured nothing, so run harness mutation again')\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/ruudvanengelenhoven/Development/seene/harness/errors.py\", line 11, in require\n    raise HarnessError(message)\nharness.errors.HarnessError: The mutation measurement at record 7 has no score: no mutants in the files named. Only a completed run that found no mutants in the files is not applicable; a run that failed or wrote no report measured nothing, so run harness mutation again\n\n----------------------------------------------------------------------\nRan 705 tests in 140.531s\n\nFAILED (errors=5)\n",
+    "output_sha256": "7b09563c2b1f09164c71a54c7562dfaa6f8dd0a849bfc152590a7e286da0200f",
+    "output_truncated": false,
+    "before": "8251aeba8030b915d2d96cccbbd8fc69bb0556bc40791d5e9d54fd7a59f741c9",
+    "after": "8251aeba8030b915d2d96cccbbd8fc69bb0556bc40791d5e9d54fd7a59f741c9"
+  }
+}

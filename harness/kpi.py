@@ -6,6 +6,8 @@ kept beside the thing it came from is a number that can disagree with it.
 
 from datetime import datetime
 
+from . import checks
+
 TRANSITIONS = ('advance', 'return', 'reopen', 'receipt')
 
 
@@ -58,7 +60,9 @@ def red_before_green(records):
         return None
     for entry in slices:
         red = _check(records, entry.get('red'))
-        if red is None or not 0 < red['data'].get('exit_code', 0) < 124:
+        # The one definition, so a RED the gate accepts is a RED this reads as one:
+        # a Stryker run that exited 0 over a Killed mutant is the second form.
+        if red is None or not checks.demonstrates_failure(red['data']):
             return False
     return True
 
@@ -452,6 +456,33 @@ def coverage(records):
     return None
 
 
+def mutation(records):
+    """The latest mutation measurement of the ticket's last attempt, or None where it took none.
+
+    An earlier attempt's measurement is not carried forward: a failed run from
+    attempt 2 is not attempt 3's figure when attempt 3's plan names nothing under
+    packages/core/src, and a figure the last attempt did not take says nothing
+    about the tree it delivered.
+
+    Null rather than zero, like coverage: a ticket delivered before SEEN-116, or
+    one whose slices name nothing under packages/core/src, measured no mutation,
+    and a figure of zero would say the tests caught nothing. A measurement that
+    found no mutants is carried with a null score and the reason, never as 100.
+    """
+    attempt = records[-1]['attempt'] if records else None
+    for record in reversed(records):
+        if record['attempt'] != attempt:
+            break
+        if record['kind'] == 'check' and record['data'].get('phase') == 'mutation':
+            data = record['data']
+            return dict(score=data.get('score'), floor=data.get('floor'),
+                        mutants=data.get('mutants'), killed=data.get('killed'),
+                        survived=data.get('survived'), files=data.get('files'),
+                        reason=data.get('reason'),
+                        not_applicable=data.get('not_applicable'))
+    return None
+
+
 def findings(records):
     """Review findings by severity, and how many were fixed rather than waived.
 
@@ -519,7 +550,7 @@ def measure(records, ticket, points=None, delivered_at=None, tokens=None, cost=N
     if not records:
         return dict(ticket=ticket, delivered_at=delivered_at, points=points,
                     cycle_time_seconds=None, stage_seconds={}, attempts=None, rework=None,
-                    red_before_green=None, coverage=None,
+                    red_before_green=None, coverage=None, mutation=None,
                     findings=dict(by_severity={}, fixed=0, waived=0),
                     first_pass_ci=None, tokens=tokens, cost=cost, escaped_defects=[],
                     slices=None, sessions=None, output_tokens_per_slice=None,
@@ -538,6 +569,7 @@ def measure(records, ticket, points=None, delivered_at=None, tokens=None, cost=N
                 rework=rework,
                 red_before_green=red_before_green(records),
                 coverage=coverage(records),
+                mutation=mutation(records),
                 findings=findings(records),
                 first_pass_ci=first_pass_ci(records),
                 tokens=tokens,

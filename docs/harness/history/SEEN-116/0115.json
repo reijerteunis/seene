@@ -1,0 +1,63 @@
+{
+  "sequence": 115,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-03T06:02:02.459757+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 7,
+  "actor": "claude:reviewer",
+  "session": "2c422b138a5f",
+  "head": "c5d13f285a853671ea48768b062eda8ab30fc4e6",
+  "prev_hash": "f10ce84840fd33a28de3034a9fc4fa9594e33e6ba541a9f11e3550df2f0bb42e",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "solution",
+    "to_attempt": 8,
+    "reason": "Review of attempt 7 (subagent reviewer on opus, triage 114) passed every criterion but found one medium. F1: mutation.source_files keeps any path under packages/core/src whatever its extension, so a slice naming a non-.ts file (a .json schedule) can never be measured and the tdd gate refuses it forever, while mutation_ci.select ignores the same path. Ruud decided F1 is fixed in this ticket (attempt 8): source_files keeps only .ts files and extensionless directories, as select does, with a SourceFilesTest case over a .json path. Lows: F2 (attempt 3's cited RED 28 shows only the not_applicable failure) noted; F3 (CI does not run test:fixtures) noted only, Ruud's decision; F4 (the ticket's status row says doing) is fixed with the attempt 8 Outcome. F1 changes selection in harness/mutation.py, which is a new plan, so the return goes to solution.",
+    "findings": [
+      {
+        "id": "F1",
+        "severity": "medium",
+        "file": "harness/mutation.py:108",
+        "claim": "source_files keeps any path under packages/core/src whatever its extension, and patterns treats every non-.ts entry as a directory. A slice naming a data file such as a .json under src can therefore never be measured, and the gate refuses it forever. CI's select ignores the same path, so the gate and CI disagree, which the Outcome and the module docstrings say cannot happen.",
+        "failure_scenario": "SEEN-016 keeps a fee schedule as packages/core/src/fees/schedules.json and names it in a slice beside fee.ts. source_files returns [fee.ts, schedules.json]; command builds --mutate 'src/fees/fee.ts,src/fees/schedules.json/**/*.ts,!src/fees/schedules.json/**/*.test.ts'; the report holds no file under schedules.json, so missing() returns it and measure() records no score with the reason 'a typo or a file the branch deleted'. _require_mutation refuses on every rerun, so the tdd stage cannot advance. For the same input, mutation_ci.select returns 'src/fees/fee.ts', and for the json alone it returns None.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": "none: a selection rule in harness/mutation.py that only a unit test of source_files over a non-.ts path under src can catch"
+      },
+      {
+        "id": "F2",
+        "severity": "low",
+        "file": "docs/harness/history/SEEN-116/0028.json",
+        "claim": "Slice 2's cited RED in attempt 3 (check 28) fails only on the missing not_applicable key. The killed-mutant RED, the floor refusal and the kpi mutation field were already built when it ran, so three of the four failures the slice predicted (record 25) are shown only by the uncited RED 20 of attempt 2.",
+        "failure_scenario": "Someone checks criterion 3 against the cited RED 28. Its output is five KeyError: 'not_applicable' errors, and nothing in it shows that the gate tests could tell the floor refusal or the killed-mutant RED were absent. That is shown only by attempt 2's check 20, which no accepted tdd record cites.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": ""
+      },
+      {
+        "id": "F3",
+        "severity": "low",
+        "file": ".github/workflows/ci.yml:175",
+        "claim": "Nothing in CI runs test:fixtures. The seeded-bug proof (the property fails on seeded.ts and passes on detector.ts) was last run at check 41 and is not part of attempt 7's regression 109, so it can stop holding without anyone noticing.",
+        "failure_scenario": "A later bump of @fast-check/vitest or vitest stops test.prop honouring the seed option, or the fixtures project selection changes, and the seeded-bug test stops failing on seeded.ts. pnpm turbo run test runs only the unit and db projects, so CI stays green and the proof is quietly gone.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": ""
+      },
+      {
+        "id": "F4",
+        "severity": "low",
+        "file": "docs/tickets/SEEN-116-property-based-and-mutation-tests-on-the-money.md:27",
+        "claim": "The ticket's summary table still says 'Status | doing' while the frontmatter and the README row say review.",
+        "failure_scenario": "A reader of the rendered ticket sees doing, and the frontmatter that the harness and the README read says review.",
+        "status": "open",
+        "resolution": "",
+        "rule_candidate": ""
+      }
+    ],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}

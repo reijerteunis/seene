@@ -1,0 +1,39 @@
+{
+  "sequence": 72,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-02T23:22:45.808965+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 5,
+  "actor": "claude:implementer",
+  "session": "225c9415371d",
+  "head": "d88f21f28dc0f460c96222cf6d2b40ce07e035ea",
+  "prev_hash": "a32f4dec7e0381a73bd3f1d157b3c531ac386ee1074a208ea5e21f63a4cff3ca",
+  "data": {
+    "command": [
+      "pnpm",
+      "--filter",
+      "@seen/core",
+      "test",
+      "--",
+      "--coverage.enabled",
+      "--coverage.reporter=json-summary"
+    ],
+    "phase": "coverage",
+    "exit_code": 0,
+    "model": "claude-opus-5-5",
+    "model_declared": null,
+    "agent_declared": null,
+    "duration_ms": 3507,
+    "output": "\n> @seen/core@0.0.0 test /Users/ruudvanengelenhoven/Development/seene/packages/core\n> vitest run --project unit --project db -- --coverage.enabled --coverage.reporter=json-summary\n\n\n\u001b[1m\u001b[46m RUN \u001b[49m\u001b[22m \u001b[36mv3.2.7 \u001b[39m\u001b[90m/Users/ruudvanengelenhoven/Development/seene/packages/core\u001b[39m\n\n• turbo 2.11.3\n \u001b[32m✓\u001b[39m \u001b[30m\u001b[45m db \u001b[49m\u001b[39m db/schema.test.ts \u001b[2m(\u001b[22m\u001b[2m125 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 855\u001b[2mms\u001b[22m\u001b[39m\n• turbo 2.11.3\n \u001b[32m✓\u001b[39m \u001b[30m\u001b[45m db \u001b[49m\u001b[39m db/authorities.test.ts \u001b[2m(\u001b[22m\u001b[2m10 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 150\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m \u001b[30m\u001b[45m db \u001b[49m\u001b[39m db/rls.test.ts \u001b[2m(\u001b[22m\u001b[2m33 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 611\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m \u001b[30m\u001b[45m db \u001b[49m\u001b[39m db/uniqueness.test.ts \u001b[2m(\u001b[22m\u001b[2m15 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 48\u001b[2mms\u001b[22m\u001b[39m\n• turbo 2.11.3\n \u001b[32m✓\u001b[39m \u001b[30m\u001b[45m db \u001b[49m\u001b[39m db/marketplaces.test.ts \u001b[2m(\u001b[22m\u001b[2m9 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 44\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m \u001b[30m\u001b[42m unit \u001b[49m\u001b[39m src/index.test.ts \u001b[2m(\u001b[22m\u001b[2m3 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 1\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m \u001b[30m\u001b[45m db \u001b[49m\u001b[39m db/parallelism.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 1\u001b[2mms\u001b[22m\u001b[39m\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m7 passed\u001b[39m\u001b[22m\u001b[90m (7)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m196 passed\u001b[39m\u001b[22m\u001b[90m (196)\u001b[39m\n\u001b[2m   Start at \u001b[22m 01:22:42\n\u001b[2m   Duration \u001b[22m 3.02s\u001b[2m (transform 123ms, setup 0ms, collect 636ms, tests 1.71s, environment 0ms, prepare 168ms)\u001b[22m\n\n",
+    "output_sha256": "51380b9f2444f4a42c46fd0df47337facc850aa1c97e55d89e873c25bd40cdc7",
+    "output_truncated": false,
+    "before": "3dd9d7c19b0a3b169f4f721b2508325fa0c8fcd33654cb5d36789807e669dbc2",
+    "after": "3dd9d7c19b0a3b169f4f721b2508325fa0c8fcd33654cb5d36789807e669dbc2",
+    "package": "@seen/core",
+    "lines": 100.0,
+    "baseline": 100.0,
+    "delta": 0.0
+  }
+}

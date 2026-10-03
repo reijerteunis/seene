@@ -1,0 +1,114 @@
+{
+  "sequence": 132,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-03T06:25:12.884065+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "solution",
+  "attempt": 9,
+  "actor": "claude:implementer",
+  "session": "87d19570f4d9",
+  "head": "30738aa0b7cd07bb4ae4d164bb83dab1b5a8f5d0",
+  "prev_hash": "b23f782ec4cc32f87c98012b79a09e8e48b6aca58ddee6df85e152ac62a69c6d",
+  "data": {
+    "from_stage": "solution",
+    "to_stage": "tdd",
+    "evidence": {
+      "mode": "code",
+      "approach": "Attempt 9 fixes F1 and F2 from the attempt 8 review (return 128, scope note 130), Ruud's decision. Attempts 6 to 8's slices stand as delivered; this attempt adds one slice. F1: gates._require_the_kill_is_in_the_slice compares the killed mutants against the slice's names as written, while _require_mutation maps a test to its source through mutation.source_files first. The fix gives the kill check the same reading: the names it compares against are the slice's own names together with mutation.source_files of them, with existence answered against the repository root exactly as plan_source_files and _require_mutation do. The caller (the red branch of the citation check, gates.py:1023) already holds `repository` and passes it through. Keeping the raw names in the union means every slice the check accepted before is still accepted; the mapping only adds the source a named test stands for, so a slice naming packages/core/src/fee.test.ts accepts a kill in packages/core/src/fee.ts, which is the slice the floor refusal tells the author to write. F2: mutation_ci.CONFIG_FILES gains packages/core/tsconfig.json, which the TypeScript checker reads, so a change to it widens CI to all of src like the other three configuration files, rather than reusing incremental results taken under the old compiler settings.",
+      "changes": [
+        "harness/gates.py: _require_the_kill_is_in_the_slice takes the repository and compares the killed mutants against the slice's names together with mutation.source_files of them (a test stands for its source); its caller passes `repository`; the refusal text names the mapped files.",
+        "harness/tests/test_stage_gates.py: beside AKilledMutantAsRedTest, a test whose slice names only packages/core/src/fee.test.ts and whose RED is a Stryker run at exit 0 killing a mutant in packages/core/src/fee.ts, which the gate accepts; the existing test that a kill outside the slice is refused stays.",
+        "harness/mutation_ci.py: CONFIG_FILES includes packages/core/tsconfig.json; the module docstring's list of configuration files follows.",
+        "harness/tests/test_mutation_ci.py: SelectTest gains a case that a change to packages/core/tsconfig.json selects all of src.",
+        "docs/tickets/SEEN-116-property-based-and-mutation-tests-on-the-money.md: the attempt 9 Outcome, status review and the criteria ticked before the review gate."
+      ],
+      "migrations": [],
+      "tests_first": [
+        "python3 -m unittest harness.tests.test_stage_gates.AKilledMutantAsRedTest: a slice naming only packages/core/src/fee.test.ts, its RED a check at exit 0 with mutants_killed {packages/core/src/fee.ts: ['3']}, advances out of tdd. RED: today gates.evaluate refuses with 'every mutant it killed is in a file the slice does not name: killed in packages/core/src/fee.ts, the slice names packages/core/src/fee.test.ts'.",
+        "python3 -m unittest harness.tests.test_mutation_ci.SelectTest: select(['packages/core/tsconfig.json'], exists) returns ALL_OF_SRC. RED: today it returns None, since tsconfig.json is not in CONFIG_FILES and is not a .ts file."
+      ],
+      "slices": [
+        {
+          "name": "The kill check maps a test to its source, and tsconfig.json widens CI",
+          "points": 1,
+          "files": [
+            "harness/gates.py",
+            "harness/tests/test_stage_gates.py",
+            "harness/mutation_ci.py",
+            "harness/tests/test_mutation_ci.py",
+            "docs/tickets/SEEN-116-property-based-and-mutation-tests-on-the-money.md"
+          ],
+          "red": "A killed-mutant RED in packages/core/src/fee.ts is refused for a slice that names only packages/core/src/fee.test.ts, and select over a changed packages/core/tsconfig.json returns None instead of all of src."
+        }
+      ],
+      "alternatives": [
+        "Replace the slice's names with mutation.source_files of them instead of taking the union: rejected, source_files drops everything outside packages/core/src and every non-.ts file, so a slice that names a directory or a file outside src would change behaviour for no reason this finding gives; the union only widens.",
+        "Have the floor refusal tell the author to name the source file as well as the test: rejected, it moves the mismatch to the author's plan rather than removing it, and the two gate functions would still read a slice differently.",
+        "Widen CI on any change to a file under packages/core that is not under src: rejected, it would mutate everything for a README edit; the configuration files the run reads are a short, known list.",
+        "Defer F1 and F2 to a follow-up ticket: rejected by Ruud's decision at record 130."
+      ],
+      "risks": [
+        "The kill check now accepts a kill in the source a named test stands for, which is wider than before: it is exactly the file _require_mutation already measures for that slice, so the RED and the floor now agree on one file; a test with no sibling source maps to nothing new and is judged as before.",
+        "Existence is read from the working tree, so a source file deleted in the slice would not be mapped: source_files counts a sibling the same list names as there, and a slice that deletes source has no mutant in it to kill."
+      ],
+      "rollback": "Revert the attempt 9 commit; the kill check returns to the raw names, which only re-adds the refusal F1 describes, and CI stops widening on tsconfig.json, with no data to migrate.",
+      "new_dependencies": [],
+      "tenant_tables": [
+        "none"
+      ],
+      "buyer_pii": "none",
+      "policy_gate_action": null,
+      "slice_points": 1,
+      "forecast": {
+        "available": false,
+        "observed_tickets": 7,
+        "required": 10
+      }
+    },
+    "decisions": [
+      {
+        "key": "solution_complete",
+        "question": "solution_complete",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.8,
+          "no": 0.2
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "key": "touches_billing_or_policy_gate",
+        "question": "touches_billing_or_policy_gate",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.09,
+          "no": 0.91
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

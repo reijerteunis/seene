@@ -1,0 +1,16 @@
+{
+  "sequence": 107,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-03T05:44:07.652300+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 7,
+  "actor": "claude:implementer",
+  "session": "f821a436574f",
+  "head": "e0f20ea9ebdf4f9f7936182ed8516048cf28b4cd",
+  "prev_hash": "9193eaa9f71ddcf63df330afbad8b0528fcd534a925280fc109e5942b115e71d",
+  "data": {
+    "text": "# Attempt 7: both slices have their own RED and GREEN, the regression is next\n\nThe return at record 95 amended slice 2 to name harness/tests/test_report.py\n(solution 96, route 97). The first tdd advance of attempt 7 was refused: GREEN 87\nfrom attempt 6 could not be cited, because no accepted tdd record says which slice\nit proved, so the tree was compared whole. Both slices were replayed in attempt 7\nby restoring the pre-slice code for their non-test files, recording the RED, and\nrestoring the committed code for the GREEN. No source changed:\n\n- Slice 1 (sonnet, seen-implementer): RED 102 (failures=3, errors=30), GREEN 103.\n- Slice 2 (haiku, seen-implementer): RED 104 (the two F3 failures), GREEN 105.\n\nRegression 100 and coverage 101 came before 102, so they no longer satisfy\ngreen <= regression. Next session: run the regression (python3 -m unittest\ndiscover -s harness/tests, about 390 s), set \"regression\" in\n.harness-drafts/SEEN-116-tdd.json to its record number (the slices there already\ncite 102/103 and 104/105), record coverage again if the gate asks for it, then\nadvance tdd. Before the review triage: set status: review and tick the criteria\nin the ticket file (the Outcome for attempts 6 and 7 is already written, commit\n4740e2a).\n"
+  }
+}

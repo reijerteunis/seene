@@ -33,8 +33,20 @@ def demonstrates_failure(evidence):
     command that could not start say nothing about the behaviour under test:
     they are facts about the runner. Only a real non-zero exit from a command
     that ran is a RED.
+
+    One other form, from SEEN-116: a Stryker run exits 0 whether it killed every
+    mutant or none, so the exit code cannot be its verdict. A run that exited 0
+    and whose report names a Killed mutant (`mutants_killed`, attached by the
+    check command from that report) demonstrates failure, because a mutant that
+    a test killed is a test that failed against the changed code. Which file the
+    mutant sat in is the gate's question, since only it knows what the slice
+    names. A timeout or a failure to start is still nothing, report or not.
     """
-    return 0 < evidence['exit_code'] < TIMEOUT_EXIT
+    code = evidence.get('exit_code', 0)
+    if code == 0:
+        killed = evidence.get('mutants_killed')
+        return isinstance(killed, dict) and any(killed.values())
+    return 0 < code < TIMEOUT_EXIT
 
 
 def run(repository, command, phase, timeout, limit, declared=None, agent=None):
