@@ -24,6 +24,7 @@ something a session hands in beyond the stub a test substitutes.
 
 import json
 
+from . import paths as plan_paths
 from .errors import require
 
 PACKAGE_DIRECTORY = 'packages/core/'
@@ -112,27 +113,38 @@ def source_files(paths, exists):
     sibling the same list names counts as there, whether or not it is on disk yet.
     A data file under src is not product source and is not measured: the filter
     runs on the entry after a test is mapped to its source.
+
+    An entry is read as the edit guard reads it (`paths.normalise`): the `./`
+    prefix and a trailing slash go, an absolute or empty entry is dropped. An
+    entry that is an ancestor of packages/core/src (`packages`, `packages/core`)
+    stands for all of src, because the guard lets that slice edit all of it and
+    the floor covers what a slice may change. SEEN-116, F1 of the ninth review.
     """
-    listed = {path for path in paths if isinstance(path, str)}
+    listed = set(_normalised(paths))
 
     def there(path):
         return path in listed or exists(path)
 
-    mapped = {under_test(path, there) for path in listed
-              if (path == SOURCE_DIRECTORY or path.startswith(SOURCE_DIRECTORY + '/'))}
+    mapped = set()
+    for path in listed:
+        if path == SOURCE_DIRECTORY or path.startswith(SOURCE_DIRECTORY + '/'):
+            mapped.add(under_test(path, there))
+        elif SOURCE_DIRECTORY.startswith(path + '/'):
+            mapped.add(SOURCE_DIRECTORY)
     return sorted(path for path in mapped if _mutable(path))
 
 
-def covers(entries, path):
-    """Whether a path is one of these entries or sits under a directory among them."""
-    return any(path == entry or path.startswith(entry.rstrip('/') + '/') for entry in entries)
+def _normalised(entries):
+    """The plan entries that are paths, each in the one spelling the guard reads."""
+    found = (plan_paths.normalise(entry) for entry in entries if isinstance(entry, str))
+    return [entry for entry in found if entry is not None]
 
 
 def missing(report, files):
     """The entries the report lists no file for: a file not in it, a directory with none under it."""
     listed = _files_of(report)
     return [entry for entry in files
-            if not any(covers([entry], path) for path in listed)]
+            if not any(plan_paths.covers(path, [entry]) for path in listed)]
 
 
 def read(root, relative):
@@ -157,7 +169,7 @@ def counts(report, files):
     names = dict(Killed='killed', Timeout='timeout', Survived='survived',
                  NoCoverage='no_coverage')
     for path, mutants in _files_of(report).items():
-        if not covers(files, path):
+        if not plan_paths.covers(path, files):
             continue
         for mutant in mutants:
             if mutant.get('status') in names:

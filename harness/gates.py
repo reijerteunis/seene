@@ -11,7 +11,7 @@ import hashlib
 import json
 import re
 
-from . import checks, mutation
+from . import checks, mutation, paths
 from .errors import HarnessError, require
 from .paths import (ENUMERATED_KEYS, FINGERPRINT_EXCLUDED, NON_CODE_TEMPLATE,
                     TEMPLATE_FOR_STAGE, TEMPLATES)
@@ -1056,7 +1056,7 @@ def _require_the_kill_is_in_the_slice(records, record, number, position, reposit
     mapped = mutation.source_files(
         named, lambda path: repository is not None and (repository.root / path).is_file())
     counted = [*named, *mapped]
-    require(any(mutation.covers(counted, path) for path in killed),
+    require(any(paths.covers(path, counted) for path in killed),
             f'Check {number} exited 0 and is cited as a RED because its Stryker report killed a '
             f'mutant, but every mutant it killed is in a file the slice does not name: killed in '
             f'{", ".join(sorted(killed))}, the slice names {", ".join(named)} (source it stands for: '
@@ -1546,7 +1546,7 @@ def _require_mutation(slices, records, current, thresholds, repository):
             f'No mutation measurement for this attempt, and a slice names {", ".join(named)}: '
             'run harness mutation <ticket> --actor <actor> before advancing')
     latest = measurements[-1]['data']
-    uncovered = [path for path in named if not mutation.covers(latest.get('files') or (), path)]
+    uncovered = [path for path in named if not paths.covers(path, latest.get('files') or ())]
     require(not uncovered,
             f'The mutation measurement at record {measurements[-1]["sequence"]} was taken over '
             f'{", ".join(latest.get("files") or ["no files"])} and does not cover '

@@ -9,7 +9,8 @@ package prefix stripped, in the order given. A changed test file is selected as
 the source it tests, its sibling when that exists and otherwise the globs of its
 directory, by the same mapping the tdd gate uses (`mutation.source_files` and
 `mutation.patterns`), so a test-only change is measured and not skipped. A change to the
-mutation config, the test setup or the package's tsconfig changes what every mutant faces, so the stored
+mutation config, the test setup, the package's tsconfig or the root tsconfig.base.json it extends
+changes what every mutant faces, so the stored
 results for unchanged files no longer describe it, and all of src is selected
 instead. Anything else, including paths outside packages/core/src, is ignored.
 
@@ -25,7 +26,8 @@ from .mutation import patterns, source_files
 
 PACKAGE_DIRECTORY = 'packages/core/'
 CONFIG_FILES = tuple(PACKAGE_DIRECTORY + name
-                     for name in ('stryker.config.mjs', 'vitest.config.ts', 'package.json', 'tsconfig.json'))
+                     for name in ('stryker.config.mjs', 'vitest.config.ts', 'package.json', 'tsconfig.json')) + (
+    'tsconfig.base.json',)
 ALL_OF_SRC = 'src/**/*.ts,!src/**/*.test.ts'
 
 
