@@ -89,12 +89,11 @@ belong to the tickets that write each money function, as the description says.
   pull request 44:
   - Run 37068194534 on 7682adc, cold: 32 seconds for the job.
   - Run 37070105397 on ca030d9, warm from the incremental cache: 29 seconds.
-  - Run 37077429429 on dfbc3b9, the selection in `harness/mutation_ci.py`
-    (attempt 5): 25 seconds. It widened to all of src, because package.json
-    is in the diff.
 
   Both are far under ten minutes. src holds one mutable file today, so this
-  shows the step is fast on today's src, not on a much larger one.
+  shows the step is fast on today's src, not on a much larger one. No record
+  measures the selection of attempts 5 to 7 in CI, so no figure for it is
+  quoted here.
 - A fixture detector under `packages/core/fixtures/tolerance/`, outside src,
   the exports and the coverage figure, carries the seeded wrong-sign tolerance
   bug in `seeded.ts`. The `invariant:` property finds it there and none in
@@ -127,10 +126,30 @@ scope in note 55):
   for that exclusion is check 16 of attempt 2: `test:unit` ran
   `db/authorities.test.ts` before the unit project left db/ out.
 
-The work took five attempts:
-- Two returns from tdd to solution: the slice 1 regression at record 13, and
-  the slice 2 regression at record 24.
+Attempts 6 and 7 fixed the findings of the attempt 5 review (return 77,
+scope in note 78):
+- F1 (medium): a change that only edits a test under packages/core/src was
+  held to no floor. `mutation.under_test` now maps such a test to its sibling
+  source, or to its directory when it has none. The gate's `source_files` and
+  CI's `mutation_ci.select` both call it, so the two cannot disagree. Slice 1,
+  RED 82, GREEN 87, regression 88.
+- F3 (low): the sprint report says `not applicable` only for a measurement
+  recorded as not applicable, and `not measured: <reason>` for a run that
+  failed. kpi.json reads only the ticket's last attempt, so an earlier
+  attempt's failed run is not carried forward. Slice 2, RED 98, GREEN 99.
+- F4 (low): this Outcome quotes only figures a journal record holds. The CI
+  run that no record held is dropped.
+- F2 and F5 needed nothing: F2 is the RED form decided at clarify record 6,
+  and the qa check settled F5.
+
+The work took seven attempts:
+- Three returns from tdd to solution:
+  - the slice 1 regression at record 13;
+  - the slice 2 regression at record 24;
+  - record 95, because slice 2's fix needed an existing fixture in
+    `harness/tests/test_report.py` that no slice named.
 - One return from the review triage at record 47, for criterion 4. The CI
   measurement only existed after the pull request ran. It is recorded in
   attempt 4 as check 48, cited in slice 3's entry.
-- One return from review to solution at record 53, for F1 to F4 above.
+- Two returns from review to solution: record 53, for attempt 4's F1 to F4
+  above, and record 77, for attempt 5's F1.
