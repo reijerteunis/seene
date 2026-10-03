@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-089]
-status: doing
+status: review
 priority: P0
 ---
 # SEEN-116: Property-based and mutation tests on the money core, as a gate
@@ -24,7 +24,7 @@ priority: P0
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | doing |
+| Status | review |
 | Priority | P0 (correctness and speed programme, see docs/harness/workflow.md) |
 
 ## Description
@@ -33,11 +33,11 @@ A test that passes proves the code does what the test says; it does not prove th
 
 ## Acceptance criteria
 
-- [ ] fast-check is a dev dependency of packages/core, and the convention for naming the invariant a property states is written in docs/harness/workflow.md
-- [ ] StrykerJS runs on packages/core with the vitest runner and the TypeScript checker, and the mutation score is reported in kpi.json and the sprint report
-- [ ] thresholds.toml carries the mutation score floor, the tdd gate refuses to advance packages/core changes below it, and a killed mutant is accepted as RED evidence
-- [ ] CI runs incremental mutation on the changed files of a pull request in under ten minutes
-- [ ] A seeded bug in a fixture detector (wrong tolerance sign) is caught by a property and by a mutant, proven with a fixture that is not product code
+- [x] fast-check is a dev dependency of packages/core, and the convention for naming the invariant a property states is written in docs/harness/workflow.md
+- [x] StrykerJS runs on packages/core with the vitest runner and the TypeScript checker, and the mutation score is reported in kpi.json and the sprint report
+- [x] thresholds.toml carries the mutation score floor, the tdd gate refuses to advance packages/core changes below it, and a killed mutant is accepted as RED evidence
+- [x] CI runs incremental mutation on the changed files of a pull request in under ten minutes
+- [x] A seeded bug in a fixture detector (wrong tolerance sign) is caught by a property and by a mutant, proven with a fixture that is not product code
 
 ## Depends on
 
@@ -174,7 +174,25 @@ note 130):
   ticket file and the README while the review gate leaves the ticket file out,
   and `slice_files` reads only the current attempt's plan.
 
-The work took nine attempts:
+Attempt 10 fixed F1 to F3 of the attempt 9 review (return 144, Ruud's
+decision to fix all three here):
+- F1 (medium): `mutation.source_files` kept only entries that began with
+  packages/core/src, so a slice naming `packages/core`, `packages` or
+  `./packages/core/src/fee.ts` was held to no floor while the edit guard let it
+  edit src. It now reads each entry through `paths.normalise`, drops a
+  trailing slash, and maps a parent of packages/core/src to all of src, so the
+  tdd gate refuses such a slice with no measurement.
+- F2 (low): `mutation.covers` is deleted. The kill check, the uncovered list
+  in the floor and `mutation.py` call `paths.covers`, the one reader SEEN-140
+  names, so a kill in `fee.ts` counts for a slice naming
+  `./packages/core/src/fee.ts`. `NoSecondReaderTest` now also finds any
+  second function named `covers`.
+- F3 (low): `tsconfig.base.json` at the repository root joins
+  `mutation_ci.CONFIG_FILES`, because `packages/core/tsconfig.json` extends it.
+- One slice, run on sonnet as the route decided (record 147): RED 149, GREEN
+  150. Regression 151, coverage 152.
+
+The work took ten attempts:
 - Three returns from tdd to solution:
   - the slice 1 regression at record 13;
   - the slice 2 regression at record 24;
@@ -183,6 +201,7 @@ The work took nine attempts:
 - One return from the review triage at record 47, for criterion 4. The CI
   measurement only existed after the pull request ran. It is recorded in
   attempt 4 as check 48, cited in slice 3's entry.
-- Four returns from review to solution: record 53, for attempt 4's F1 to F4
+- Five returns from review to solution: record 53, for attempt 4's F1 to F4
   above, record 77, for attempt 5's F1, record 115, for attempt 7's F1,
-    and record 128, for attempt 8's F1 and F2.
+  record 128, for attempt 8's F1 and F2, and record 144, for attempt 9's F1
+  to F3.

@@ -1,0 +1,38 @@
+{
+  "sequence": 153,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-03T12:10:16.574298+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 10,
+  "actor": "claude:implementer",
+  "session": "874342bc959a",
+  "head": "dfd40da6b9b0945437dd48c626d1885dac432d3c",
+  "prev_hash": "0ca61a81d936d7c8fe92d6ebc970946baa08c582bd0c05285875cc41748d06a3",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": 1,
+          "behaviour": "The floor, the kill check and CI read a plan entry the one way paths reads it: mutation.source_files normalises each entry through paths.normalise, so ./packages/core/src/fee.ts stands for packages/core/src/fee.ts and a trailing slash is dropped, and a parent of packages/core/src (packages, packages/core) stands for all of src, so the tdd gate refuses a slice naming packages/core with no measurement (F1 of the attempt 9 review); the second reader mutation.covers is deleted and mutation.py and gates.py call paths.covers, so a kill in fee.ts counts for a slice naming ./packages/core/src/fee.ts (F2); and a change to the root tsconfig.base.json makes mutation_ci.select choose all of src (F3).",
+          "failure_reason": "test_a_parent_directory_of_src_stands_for_all_of_src: AssertionError: Lists differ: [] != ['packages/core/src']; test_a_dot_slash_prefixed_entry_is_read_as_the_guard_reads_it: AssertionError: Lists differ: [] != ['packages/core/src/fee.ts']; test_a_slice_naming_a_parent_of_src_with_no_measurement_is_refused: AssertionError: HarnessError not raised; test_a_kill_in_a_file_a_slice_names_with_a_dot_slash_prefix_is_a_red: HarnessError: Check 3 exited 0 and is cited as a RED because its Stryker report killed a mutant, but every mutant it killed is in a file the slice does not name: killed in packages/core/src/fee.ts, the slice names ./packages/core/src/fee.ts; test_only_paths_defines_a_function_named_covers: AssertionError: Lists differ: ['mutation.py:126'] != []; test_a_changed_root_tsconfig_selects_all_of_src: AssertionError: None != 'src/**/*.ts,!src/**/*.test.ts'",
+          "red": 149,
+          "green": 150
+        }
+      ],
+      "regression": 151,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "874342bc959a",
+      "output_tokens": 15115,
+      "tool_calls": 19,
+      "unavailable": null
+    }
+  }
+}
