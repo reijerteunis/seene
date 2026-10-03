@@ -1,0 +1,38 @@
+{
+  "sequence": 141,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-03T06:42:30.856675+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 9,
+  "actor": "claude:implementer",
+  "session": "87d19570f4d9",
+  "head": "7336b27c7ab7db8c5fc191c35b70af87d752b2f4",
+  "prev_hash": "4ea2b511d6ac835526e22ade4eb129cc956d67f75832923c9a915de648b87c57",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": 1,
+          "behaviour": "The kill check reads a slice as the floor does: a killed mutant counts when it sits in a file the slice names or in the source mutation.source_files maps a named test to, so a slice naming only packages/core/src/fee.test.ts accepts a killed-mutant RED in fee.ts (F1 of the attempt 8 review); and a change to packages/core/tsconfig.json makes mutation_ci.select choose all of src, as the other configuration files do (F2).",
+          "failure_reason": "test_a_kill_in_the_source_of_the_test_a_slice_names_is_a_red: HarnessError: Check 3 exited 0 and is cited as a RED because its Stryker report killed a mutant, but every mutant it killed is in a file the slice does not name: killed in packages/core/src/fee.ts, the slice names packages/core/src/fee.test.ts; test_a_changed_tsconfig_selects_all_of_src: AssertionError: None != 'src/**/*.ts,!src/**/*.test.ts'",
+          "red": 135,
+          "green": 138
+        }
+      ],
+      "regression": 139,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "87d19570f4d9",
+      "output_tokens": 30169,
+      "tool_calls": 37,
+      "unavailable": null
+    }
+  }
+}

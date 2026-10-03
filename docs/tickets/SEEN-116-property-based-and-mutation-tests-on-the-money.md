@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-089]
-status: doing
+status: review
 priority: P0
 ---
 # SEEN-116: Property-based and mutation tests on the money core, as a gate
@@ -24,7 +24,7 @@ priority: P0
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | doing |
+| Status | review |
 | Priority | P0 (correctness and speed programme, see docs/harness/workflow.md) |
 
 ## Description
@@ -33,11 +33,11 @@ A test that passes proves the code does what the test says; it does not prove th
 
 ## Acceptance criteria
 
-- [ ] fast-check is a dev dependency of packages/core, and the convention for naming the invariant a property states is written in docs/harness/workflow.md
-- [ ] StrykerJS runs on packages/core with the vitest runner and the TypeScript checker, and the mutation score is reported in kpi.json and the sprint report
-- [ ] thresholds.toml carries the mutation score floor, the tdd gate refuses to advance packages/core changes below it, and a killed mutant is accepted as RED evidence
-- [ ] CI runs incremental mutation on the changed files of a pull request in under ten minutes
-- [ ] A seeded bug in a fixture detector (wrong tolerance sign) is caught by a property and by a mutant, proven with a fixture that is not product code
+- [x] fast-check is a dev dependency of packages/core, and the convention for naming the invariant a property states is written in docs/harness/workflow.md
+- [x] StrykerJS runs on packages/core with the vitest runner and the TypeScript checker, and the mutation score is reported in kpi.json and the sprint report
+- [x] thresholds.toml carries the mutation score floor, the tdd gate refuses to advance packages/core changes below it, and a killed mutant is accepted as RED evidence
+- [x] CI runs incremental mutation on the changed files of a pull request in under ten minutes
+- [x] A seeded bug in a fixture detector (wrong tolerance sign) is caught by a property and by a mutant, proven with a fixture that is not product code
 
 ## Depends on
 
@@ -157,7 +157,24 @@ Attempt 8 fixed F1 of the attempt 7 review (return 115, scope in note 116):
 - F2 and F3 (low) are noted only, Ruud's decision: F2 is the attempt 3 RED's
   shape, and F3 (CI does not run `test:fixtures`) is left as it is.
 
-The work took eight attempts:
+Attempt 9 fixed F1 and F2 of the attempt 8 review (return 128, scope in
+note 130):
+- F1 (medium): the kill check compared the killed mutants with the slice's
+  names as written, while the floor maps a test to its source first. A slice
+  naming only `fee.test.ts` had its killed-mutant RED in `fee.ts` refused,
+  and that is the slice the floor refusal tells the author to write. The kill
+  check now counts the slice's names together with `mutation.source_files` of
+  them, so the RED and the floor read a slice the same way.
+- F2 (low): `packages/core/tsconfig.json` joins the configuration files whose
+  change makes CI mutate all of src, because the TypeScript checker reads it.
+- One slice, RED 135, GREEN 138. Regression 137 failed on the SEEN-140 rule
+  test, which flagged a membership test against the slice's names in the
+  first fix; GREEN 136 is superseded by 138. Regression 139.
+- Not this ticket, harness follow-ups: the triage fingerprint counts the
+  ticket file and the README while the review gate leaves the ticket file out,
+  and `slice_files` reads only the current attempt's plan.
+
+The work took nine attempts:
 - Three returns from tdd to solution:
   - the slice 1 regression at record 13;
   - the slice 2 regression at record 24;
@@ -166,5 +183,6 @@ The work took eight attempts:
 - One return from the review triage at record 47, for criterion 4. The CI
   measurement only existed after the pull request ran. It is recorded in
   attempt 4 as check 48, cited in slice 3's entry.
-- Three returns from review to solution: record 53, for attempt 4's F1 to F4
-  above, record 77, for attempt 5's F1, and record 115, for attempt 7's F1.
+- Four returns from review to solution: record 53, for attempt 4's F1 to F4
+  above, record 77, for attempt 5's F1, record 115, for attempt 7's F1,
+    and record 128, for attempt 8's F1 and F2.
