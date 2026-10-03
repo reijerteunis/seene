@@ -457,14 +457,22 @@ def coverage(records):
 
 
 def mutation(records):
-    """The latest mutation measurement on the ticket, or None where none was taken.
+    """The latest mutation measurement of the ticket's last attempt, or None where it took none.
+
+    An earlier attempt's measurement is not carried forward: a failed run from
+    attempt 2 is not attempt 3's figure when attempt 3's plan names nothing under
+    packages/core/src, and a figure the last attempt did not take says nothing
+    about the tree it delivered.
 
     Null rather than zero, like coverage: a ticket delivered before SEEN-116, or
     one whose slices name nothing under packages/core/src, measured no mutation,
     and a figure of zero would say the tests caught nothing. A measurement that
     found no mutants is carried with a null score and the reason, never as 100.
     """
+    attempt = records[-1]['attempt'] if records else None
     for record in reversed(records):
+        if record['attempt'] != attempt:
+            break
         if record['kind'] == 'check' and record['data'].get('phase') == 'mutation':
             data = record['data']
             return dict(score=data.get('score'), floor=data.get('floor'),

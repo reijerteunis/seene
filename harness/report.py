@@ -207,13 +207,17 @@ def _mutation(measured):
     """The mutation score a ticket reached, or why there is none.
 
     A dash for a ticket that measured nothing, which is every harness ticket, and
-    "not applicable" for a measurement that found no mutants, because a figure of
-    100 there would say the tests caught everything when nothing was asked of them.
+    "not applicable" only for a measurement that found no mutants, because a figure
+    of 100 there would say the tests caught everything when nothing was asked of
+    them. A run that failed or was refused has no score either and says "not
+    measured" with its reason, which is not the same claim.
     """
     if not measured:
         return '-'
     if measured.get('score') is None:
-        return 'not applicable'
+        if measured.get('not_applicable'):
+            return 'not applicable'
+        return f'not measured: {measured.get("reason") or "no reason recorded"}'
     return f'{measured["score"]}% of {measured.get("mutants")}'
 
 
