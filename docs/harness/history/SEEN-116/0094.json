@@ -1,0 +1,32 @@
+{
+  "sequence": 94,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-03T05:29:23.068985+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 6,
+  "actor": "claude:implementer",
+  "session": "f821a436574f",
+  "head": "87a3b1a16e6af4124273036fe00425a1aea23373",
+  "prev_hash": "402dd9fbabbb3de3802471334b7f1a70c3f7a5de75a936679a33c1de2f977f7d",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_report"
+    ],
+    "phase": "green",
+    "exit_code": 1,
+    "model": "claude-opus-5-5",
+    "model_declared": "sonnet",
+    "agent_declared": "seen-implementer",
+    "duration_ms": 40,
+    "output": "\u001b[31mF\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\n======================================================================\n\u001b[31mFAIL\u001b[0m\u001b[1;31m: test_a_measurement_with_no_mutants_says_so_rather_than_a_hundred (harness.tests.test_report.MutationColumnTest.test_a_measurement_with_no_mutants_says_so_rather_than_a_hundred)\u001b[0m\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \u001b[35m\"/Users/ruudvanengelenhoven/Development/seene/harness/tests/test_report.py\"\u001b[0m, line \u001b[35m175\u001b[0m, in \u001b[35mtest_a_measurement_with_no_mutants_says_so_rather_than_a_hundred\u001b[0m\n    \u001b[31mself.assertTrue\u001b[0m\u001b[1;31m(row.rstrip().endswith('| not applicable |'), row)\u001b[0m\n    \u001b[31m~~~~~~~~~~~~~~~\u001b[0m\u001b[1;31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\u001b[0m\n\u001b[1;35mAssertionError\u001b[0m: \u001b[35mFalse is not true : | SEEN-701 | 2 | not measured | 1 | 0 | 0 (0 closed, 0 open) | +0.5 | not measured: no mutants in the files named |\u001b[0m\n\n----------------------------------------------------------------------\nRan 17 tests in 0.005s\n\n\u001b[1;31mFAILED\u001b[0m (\u001b[1;31mfailures=1\u001b[0m)\n",
+    "output_sha256": "8e6ab2216f95480574dbdabd2e5d6c887e3227b53e32df2b56a6c9377bd1e72e",
+    "output_truncated": false,
+    "before": "c0e94dc8f203192dfb02030e76c4f5c02e0917cfbb619127f9aa4bc767e818ce",
+    "after": "c0e94dc8f203192dfb02030e76c4f5c02e0917cfbb619127f9aa4bc767e818ce"
+  }
+}

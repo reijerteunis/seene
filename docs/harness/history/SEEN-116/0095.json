@@ -1,0 +1,22 @@
+{
+  "sequence": 95,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-03T05:30:35.448858+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "tdd",
+  "attempt": 6,
+  "actor": "claude:implementer",
+  "session": "f821a436574f",
+  "head": "17055774932d86e076da187b5162643a3280eb11",
+  "prev_hash": "749619b724c591d9d580fa4eff5e5892152329bc35ce9eaba5c4008c97f27c9b",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "solution",
+    "to_attempt": 7,
+    "reason": "Slice 2 (commit 1705577, RED 92, GREEN 93) makes report._mutation say not applicable only when not_applicable is true. harness/tests/test_report.py MutationColumnTest.test_a_measurement_with_no_mutants_says_so_rather_than_a_hundred now fails (record 94): its fixture is a no-mutants measurement without not_applicable=True, a shape no real record has (mutation.py:229 always sets it). The fix is one fixture line in test_report.py, which no slice names, so the triage's slice_files check would refuse it. Ruud decided to amend the plan rather than drop the report half of F3: slice 2 gains harness/tests/test_report.py, and its report tests (MutationCellTest, placed in test_kpi.py because test_report.py was not a slice file) move there beside MutationColumnTest. Slice 1 (RED 82, GREEN 87, regression 88) is unaffected.",
+    "findings": [],
+    "no_findings": false,
+    "unmet_criteria": []
+  }
+}

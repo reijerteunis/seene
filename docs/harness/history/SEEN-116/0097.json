@@ -1,0 +1,173 @@
+{
+  "sequence": 97,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-03T05:31:03.944931+00:00",
+  "harness_version": "2",
+  "kind": "route",
+  "stage": "tdd",
+  "attempt": 7,
+  "actor": "claude:implementer",
+  "session": "f821a436574f",
+  "head": "17055774932d86e076da187b5162643a3280eb11",
+  "prev_hash": "f7c61feb6a92f0ad24efa5bdaa7a376f0567a559a2a7b015d3748a2edd07840e",
+  "data": {
+    "solution": 96,
+    "shadow": true,
+    "strongest": "opus",
+    "tiers": [
+      "haiku",
+      "sonnet",
+      "opus"
+    ],
+    "rules": [],
+    "jev": {
+      "asked": true,
+      "model": "jev-1.13.0",
+      "reason": null,
+      "answers": [
+        {
+          "key": "implementation_model#1",
+          "question": "implementation_model",
+          "type": "score",
+          "options": [
+            "haiku",
+            "sonnet",
+            "opus"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "sonnet",
+          "probabilities": {
+            "haiku": 0.02,
+            "sonnet": 0.58,
+            "opus": 0.4
+          },
+          "confidence": 0.37,
+          "score": 1.38,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_effort#1",
+          "question": "implementation_effort",
+          "type": "score",
+          "options": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "high",
+          "probabilities": {
+            "low": 0.0,
+            "medium": 0.07,
+            "high": 0.93
+          },
+          "confidence": 0.88,
+          "score": 1.92,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_model#2",
+          "question": "implementation_model",
+          "type": "score",
+          "options": [
+            "haiku",
+            "sonnet",
+            "opus"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "haiku",
+          "probabilities": {
+            "haiku": 0.6,
+            "sonnet": 0.39,
+            "opus": 0.01
+          },
+          "confidence": 0.38,
+          "score": 0.41,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_effort#2",
+          "question": "implementation_effort",
+          "type": "score",
+          "options": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "medium",
+          "probabilities": {
+            "low": 0.09,
+            "medium": 0.71,
+            "high": 0.2
+          },
+          "confidence": 0.57,
+          "score": 1.12,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        }
+      ]
+    },
+    "execution": [
+      {
+        "position": 1,
+        "name": "A test-only change is measured over the source it tests, in the gate and in CI",
+        "points": 2,
+        "files": [
+          "harness/mutation.py",
+          "harness/mutation_ci.py",
+          "harness/gates.py",
+          "harness/cli.py",
+          "harness/tests/test_mutation.py",
+          "harness/tests/test_mutation_ci.py",
+          "docs/harness/workflow.md"
+        ],
+        "red": "source_files over a slice naming only packages/core/src/fees/detect.test.ts returns nothing, so the gate advances with no measurement; select over a changed test returns None, so CI skips the job.",
+        "model": "sonnet",
+        "effort": "high",
+        "source": "jev",
+        "rule": null,
+        "reason": null,
+        "model_probability": 0.58,
+        "effort_probability": 0.93,
+        "model_passed": true,
+        "model_threshold": 0.5,
+        "implementer_task": "Work slice 1 of SEEN-116: A test-only change is measured over the source it tests, in the gate and in CI.\n\nRun it on sonnet at high effort, because Jev chose it at 0.58.\nThe model is what reaches the work: in Claude Code as the per-invocation model on the seen-implementer agent, and in Codex as the model this instruction names when you spawn it. The effort is recorded, carried and reported rather than applied, on either assistant: the generated copies do not vary by slice, because a file whose content depended on the ticket in hand was wrong on a detached HEAD, after a replan and after the receipt. Neither is yours to change.\n\nPoints: 2.\nFiles: harness/mutation.py, harness/mutation_ci.py, harness/gates.py, harness/cli.py, harness/tests/test_mutation.py, harness/tests/test_mutation_ci.py, docs/harness/workflow.md\n\nIts RED must demonstrate: source_files over a slice naming only packages/core/src/fees/detect.test.ts returns nothing, so the gate advances with no measurement; select over a changed test returns None, so CI skips the job.\n\nWrite the test first and record it with:\n  python3 harness/run.py check SEEN-116 --phase red --actor <tool>:implementer --model sonnet -- <command>\nThen write only what turns it green and record that the same way. The `--model sonnet` is not optional: a subagent inherits its parent's session id, so the log records the model of the session that spawned you and not yours, and without the declaration the tdd gate compares the wrong two names. Then stop: do not start the next slice and do not advance the stage."
+      },
+      {
+        "position": 2,
+        "name": "The report and the kpi say not measured for a run that measured nothing, and the Outcome quotes only recorded figures",
+        "points": 1,
+        "files": [
+          "harness/report.py",
+          "harness/kpi.py",
+          "harness/tests/test_kpi.py",
+          "harness/tests/test_report.py",
+          "docs/tickets/SEEN-116-property-based-and-mutation-tests-on-the-money.md"
+        ],
+        "red": "A failed measurement (null score, not_applicable false) renders as not applicable, and kpi.mutation returns an earlier attempt's measurement when the last attempt took none.",
+        "model": "haiku",
+        "effort": "medium",
+        "source": "jev",
+        "rule": null,
+        "reason": null,
+        "model_probability": 0.6,
+        "effort_probability": 0.71,
+        "model_passed": true,
+        "model_threshold": 0.5,
+        "implementer_task": "Work slice 2 of SEEN-116: The report and the kpi say not measured for a run that measured nothing, and the Outcome quotes only recorded figures.\n\nRun it on haiku at medium effort, because Jev chose it at 0.6.\nThe model is what reaches the work: in Claude Code as the per-invocation model on the seen-implementer agent, and in Codex as the model this instruction names when you spawn it. The effort is recorded, carried and reported rather than applied, on either assistant: the generated copies do not vary by slice, because a file whose content depended on the ticket in hand was wrong on a detached HEAD, after a replan and after the receipt. Neither is yours to change.\n\nPoints: 1.\nFiles: harness/report.py, harness/kpi.py, harness/tests/test_kpi.py, harness/tests/test_report.py, docs/tickets/SEEN-116-property-based-and-mutation-tests-on-the-money.md\n\nIts RED must demonstrate: A failed measurement (null score, not_applicable false) renders as not applicable, and kpi.mutation returns an earlier attempt's measurement when the last attempt took none.\n\nWrite the test first and record it with:\n  python3 harness/run.py check SEEN-116 --phase red --actor <tool>:implementer --model haiku -- <command>\nThen write only what turns it green and record that the same way. The `--model haiku` is not optional: a subagent inherits its parent's session id, so the log records the model of the session that spawned you and not yours, and without the declaration the tdd gate compares the wrong two names. Then stop: do not start the next slice and do not advance the stage."
+      }
+    ]
+  }
+}
