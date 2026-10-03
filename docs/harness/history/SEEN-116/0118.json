@@ -1,0 +1,108 @@
+{
+  "sequence": 118,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-03T06:06:06.542864+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "solution",
+  "attempt": 8,
+  "actor": "claude:implementer",
+  "session": "0af00b7dc5f2",
+  "head": "4a417fcd54037470eeac7dddc418f58e549d9fd2",
+  "prev_hash": "bbdbf74711ab26072271102df51c5a8d90a366e9e6ca4a847408560817bd0f2d",
+  "data": {
+    "from_stage": "solution",
+    "to_stage": "tdd",
+    "evidence": {
+      "mode": "code",
+      "approach": "Attempt 8 fixes F1 from the attempt 7 review (return 115, scope note 116), Ruud's decision. Attempts 6 and 7's two slices stand as delivered; this attempt adds one slice. mutation.source_files keeps a path under packages/core/src only when it is product source Stryker can mutate: a .ts file, or an entry whose last segment has no extension, which is a directory (packages/core/src itself, or a directory under it). Anything else, such as a .json schedule or a .md beside the code, is not held to the floor, exactly as mutation_ci.select already ignores it. The rule lives in one private predicate in harness/mutation.py (_mutable), applied inside source_files after under_test maps a test to its source, so the gate (gates.plan_source_files and _require_mutation) and CI (select calls source_files) read the same rule from one place. select keeps its own .ts filter, because a changed path from git diff is always a file and an extensionless changed file is not a directory; with source_files filtering too, the two now agree on every path the gate can see. patterns and command are unchanged: they only ever receive what source_files kept. F4 (the ticket's summary table says Status doing) is fixed with the attempt 8 Outcome before review; F2 and F3 are noted only (Ruud's decision, record 116).",
+      "changes": [
+        "harness/mutation.py: a _mutable(path) predicate (a .ts file, or an entry whose last segment carries no extension) applied in source_files; the docstrings of source_files and patterns say a data file under src is not product source and is not measured.",
+        "harness/tests/test_mutation.py: SourceFilesTest gains a .json under src alone (nothing), and beside a .ts file (only the .ts); a gate test that a slice naming fee.ts and schedules.json is measured over fee.ts alone and advances on a measurement of it.",
+        "docs/tickets/SEEN-116-property-based-and-mutation-tests-on-the-money.md: the attempt 8 Outcome, the summary table's Status row (F4), status review and the criteria ticked before the review gate."
+      ],
+      "migrations": [],
+      "tests_first": [
+        "python3 -m unittest harness.tests.test_mutation: source_files(['packages/core/src/fees/schedules.json'], everything_exists) returns []; source_files(['packages/core/src/fees/fee.ts', 'packages/core/src/fees/schedules.json'], everything_exists) returns ['packages/core/src/fees/fee.ts']; a tdd gate whose slice names both, with a measurement over fee.ts at or above the floor, advances. RED: today the json is returned as an entry, so the first two assertions fail and the gate refuses with the json missing from the measurement."
+      ],
+      "slices": [
+        {
+          "name": "A data file under src is not product source, in the gate as in CI",
+          "points": 1,
+          "files": [
+            "harness/mutation.py",
+            "harness/tests/test_mutation.py",
+            "docs/tickets/SEEN-116-property-based-and-mutation-tests-on-the-money.md"
+          ],
+          "red": "source_files over a slice naming packages/core/src/fees/schedules.json, alone or beside fee.ts, keeps the json as an entry, so the gate demands a measurement of a file Stryker can never mutate, while select ignores it."
+        }
+      ],
+      "alternatives": [
+        "Drop the .ts filter from select and let source_files decide alone: rejected, a changed extensionless file would then be read as a directory by CI; select's filter costs nothing and the two agree on every path a slice can name.",
+        "Refuse a slice that names a non-.ts file under src at solution: rejected, a data file beside the code it configures is a legitimate thing for a slice to change, and the floor is about mutable source, not about which files a slice may touch.",
+        "Defer F1 to a follow-up ticket: rejected by Ruud's decision at record 116."
+      ],
+      "risks": [
+        "An extensionless file under src (a LICENSE, say) is read as a directory and expands to the .ts files under a path that holds none, so the gate refuses it as missing: no such file exists under packages/core/src today, select never sends it to CI, and the refusal names the path, so it is a plan to amend rather than a silent pass.",
+        "A slice that changes only a data file under src is now held to no floor: that is the point, Stryker cannot mutate data; the tests that read the data still run in the regression."
+      ],
+      "rollback": "Revert the attempt 8 commit; source_files returns to keeping every path under src, which only re-adds the refusal F1 describes, with no data to migrate.",
+      "new_dependencies": [],
+      "tenant_tables": [
+        "none"
+      ],
+      "buyer_pii": "none",
+      "policy_gate_action": null,
+      "slice_points": 1,
+      "forecast": {
+        "available": false,
+        "observed_tickets": 7,
+        "required": 10
+      }
+    },
+    "decisions": [
+      {
+        "key": "solution_complete",
+        "question": "solution_complete",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.78,
+          "no": 0.22
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "key": "touches_billing_or_policy_gate",
+        "question": "touches_billing_or_policy_gate",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.08,
+          "no": 0.92
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

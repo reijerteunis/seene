@@ -55,6 +55,8 @@ def patterns(entries):
 
     One expansion for the gate and for CI: a .ts file is its own pattern, and
     anything else is a directory, which becomes the files under it, tests left out.
+    A data file under src (a .json, say) is not product source and is not an entry
+    here: `source_files` never lets one through, because Stryker cannot mutate it.
     """
     found = []
     for entry in entries:
@@ -91,6 +93,15 @@ def under_test(path, exists):
     return sibling if exists(sibling) else path.rsplit('/', 1)[0]
 
 
+def _mutable(path):
+    """Whether an entry is something Stryker can mutate: a .ts file or a directory.
+
+    A directory is an entry whose last segment has no extension. A data file
+    under src (schedules.json) is not product source and is not measured.
+    """
+    return path.endswith('.ts') or '.' not in path.rsplit('/', 1)[-1]
+
+
 def source_files(paths, exists):
     """The entries that name product source under packages/core/src.
 
@@ -99,14 +110,17 @@ def source_files(paths, exists):
     killing rather than what is killed, so it stands for the source it tests
     (see `under_test`): a slice that names only a test is still measured. A
     sibling the same list names counts as there, whether or not it is on disk yet.
+    A data file under src is not product source and is not measured: the filter
+    runs on the entry after a test is mapped to its source.
     """
     listed = {path for path in paths if isinstance(path, str)}
 
     def there(path):
         return path in listed or exists(path)
 
-    return sorted({under_test(path, there) for path in listed
-                   if (path == SOURCE_DIRECTORY or path.startswith(SOURCE_DIRECTORY + '/'))})
+    mapped = {under_test(path, there) for path in listed
+              if (path == SOURCE_DIRECTORY or path.startswith(SOURCE_DIRECTORY + '/'))}
+    return sorted(path for path in mapped if _mutable(path))
 
 
 def covers(entries, path):

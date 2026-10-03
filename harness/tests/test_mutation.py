@@ -125,6 +125,16 @@ class SourceFilesTest(unittest.TestCase):
         self.assertEqual(mutation.source_files(named, everything_exists),
                          ['packages/core/src/fees/detect.ts'])
 
+    def test_a_data_file_under_src_is_not_product_source(self):
+        self.assertEqual(
+            mutation.source_files(['packages/core/src/fees/schedules.json'], everything_exists),
+            [])
+
+    def test_a_data_file_beside_a_source_file_is_left_out_of_the_entries(self):
+        named = ['packages/core/src/fees/fee.ts', 'packages/core/src/fees/schedules.json']
+        self.assertEqual(mutation.source_files(named, everything_exists),
+                         ['packages/core/src/fees/fee.ts'])
+
 
 class UnderTestTest(unittest.TestCase):
 
@@ -184,6 +194,18 @@ class ATestOnlySliceIsMeasuredTest(test_stage_gates.MutationJournal):
         self.write('packages/core/src/x.ts', 'export const x = 1\n')
         with self.assertRaisesRegex(HarnessError, 'packages/core/src/x.ts'):
             self.evaluate('tdd', self.tdd(), records=self.journal(self.TEST))
+
+
+class ADataFileUnderSrcIsNotMeasuredTest(test_stage_gates.MutationJournal):
+    """A slice naming a data file beside its source is measured over the source alone, SEEN-116."""
+
+    FEES = 'packages/core/src/fees/fee.ts'
+    DATA = 'packages/core/src/fees/schedules.json'
+
+    def test_a_measurement_over_the_source_alone_lets_the_slice_through(self):
+        records = self.journal(self.FEES, self.DATA, measurement=self.mutation_record(
+            7, 90.0, files=(self.FEES,)))
+        self.evaluate('tdd', self.tdd(), records=records)
 
 
 class AKillIsARedTest(unittest.TestCase):

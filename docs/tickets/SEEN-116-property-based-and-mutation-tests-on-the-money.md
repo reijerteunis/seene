@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-089]
-status: doing
+status: review
 priority: P0
 ---
 # SEEN-116: Property-based and mutation tests on the money core, as a gate
@@ -24,7 +24,7 @@ priority: P0
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | doing |
+| Status | review |
 | Priority | P0 (correctness and speed programme, see docs/harness/workflow.md) |
 
 ## Description
@@ -33,11 +33,11 @@ A test that passes proves the code does what the test says; it does not prove th
 
 ## Acceptance criteria
 
-- [ ] fast-check is a dev dependency of packages/core, and the convention for naming the invariant a property states is written in docs/harness/workflow.md
-- [ ] StrykerJS runs on packages/core with the vitest runner and the TypeScript checker, and the mutation score is reported in kpi.json and the sprint report
-- [ ] thresholds.toml carries the mutation score floor, the tdd gate refuses to advance packages/core changes below it, and a killed mutant is accepted as RED evidence
-- [ ] CI runs incremental mutation on the changed files of a pull request in under ten minutes
-- [ ] A seeded bug in a fixture detector (wrong tolerance sign) is caught by a property and by a mutant, proven with a fixture that is not product code
+- [x] fast-check is a dev dependency of packages/core, and the convention for naming the invariant a property states is written in docs/harness/workflow.md
+- [x] StrykerJS runs on packages/core with the vitest runner and the TypeScript checker, and the mutation score is reported in kpi.json and the sprint report
+- [x] thresholds.toml carries the mutation score floor, the tdd gate refuses to advance packages/core changes below it, and a killed mutant is accepted as RED evidence
+- [x] CI runs incremental mutation on the changed files of a pull request in under ten minutes
+- [x] A seeded bug in a fixture detector (wrong tolerance sign) is caught by a property and by a mutant, proven with a fixture that is not product code
 
 ## Depends on
 
@@ -146,7 +146,18 @@ scope in note 78):
 - F2 and F5 needed nothing: F2 is the RED form decided at clarify record 6,
   and the qa check settled F5.
 
-The work took seven attempts:
+Attempt 8 fixed F1 of the attempt 7 review (return 115, scope in note 116):
+- F1 (medium): `mutation.source_files` kept any path under packages/core/src
+  whatever its extension, so a slice naming a data file such as a `.json`
+  schedule could never be measured and the gate refused it on every rerun,
+  while CI's `select` ignored the same path. It now keeps only `.ts` files and
+  extensionless directories, after a test is mapped to its source, so the gate
+  and CI agree. Slice 1, RED 120, GREEN 121. Regression 122, coverage 123.
+- F4 (low): the summary table's Status row now mirrors the frontmatter.
+- F2 and F3 (low) are noted only, Ruud's decision: F2 is the attempt 3 RED's
+  shape, and F3 (CI does not run `test:fixtures`) is left as it is.
+
+The work took eight attempts:
 - Three returns from tdd to solution:
   - the slice 1 regression at record 13;
   - the slice 2 regression at record 24;
@@ -155,5 +166,5 @@ The work took seven attempts:
 - One return from the review triage at record 47, for criterion 4. The CI
   measurement only existed after the pull request ran. It is recorded in
   attempt 4 as check 48, cited in slice 3's entry.
-- Two returns from review to solution: record 53, for attempt 4's F1 to F4
-  above, and record 77, for attempt 5's F1.
+- Three returns from review to solution: record 53, for attempt 4's F1 to F4
+  above, record 77, for attempt 5's F1, and record 115, for attempt 7's F1.

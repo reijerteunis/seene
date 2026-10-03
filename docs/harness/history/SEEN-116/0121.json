@@ -1,0 +1,32 @@
+{
+  "sequence": 121,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-03T06:06:49.699984+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 8,
+  "actor": "claude:implementer",
+  "session": "0af00b7dc5f2",
+  "head": "4a417fcd54037470eeac7dddc418f58e549d9fd2",
+  "prev_hash": "9b86e0c3427c21dcdc0f1cfc16b5a1e5f03d65d6db5233dd2814047db744bee2",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_mutation"
+    ],
+    "phase": "green",
+    "exit_code": 0,
+    "model": "claude-opus-5-5",
+    "model_declared": "sonnet",
+    "agent_declared": "seen-implementer",
+    "duration_ms": 3705,
+    "output": "\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\n----------------------------------------------------------------------\nRan 52 tests in 3.645s\n\n\u001b[32mOK\u001b[0m\n",
+    "output_sha256": "104e7f7bec2ad4bdef251b831328f541e78cdc5e2db2c5038ddbc91e7da1fcbd",
+    "output_truncated": false,
+    "before": "4d8173a9023d490d897088b7b999ab9e7e544af1a0393b4c1e7b24e481e9b6dc",
+    "after": "4d8173a9023d490d897088b7b999ab9e7e544af1a0393b4c1e7b24e481e9b6dc"
+  }
+}
