@@ -1500,9 +1500,14 @@ def _require_coverage(records, current):
             'or say in a note why the fall is right and raise the baseline deliberately')
 
 
-def plan_source_files(records):
-    """The product source under packages/core/src the accepted plan's slices name."""
-    return mutation.source_files(_the_files_the_plan_covers(records) or ())
+def plan_source_files(records, root):
+    """The product source under packages/core/src the accepted plan's slices name.
+
+    A slice that names a test stands for the source it tests, so `root` is where
+    its sibling is looked for.
+    """
+    return mutation.source_files(_the_files_the_plan_covers(records) or (),
+                                 lambda path: (root / path).is_file())
 
 
 def _require_mutation(slices, records, current, thresholds, repository):
@@ -1524,7 +1529,7 @@ def _require_mutation(slices, records, current, thresholds, repository):
         if not isinstance(slice_, dict):
             continue
         named.update(_files_a_citation_is_about(records, slice_.get('position')) or ())
-    named = mutation.source_files(named)
+    named = mutation.source_files(named, lambda path: (repository.root / path).is_file())
     if not named:
         return
     measurements = [record for record in records

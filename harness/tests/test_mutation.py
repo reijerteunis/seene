@@ -13,6 +13,7 @@ import unittest
 
 from harness import checks, mutation
 from harness.errors import HarnessError
+from harness.tests import test_stage_gates
 from harness.tests.test_lifecycle import CommandTest, clarify_evidence, solution_evidence
 
 SRC = 'packages/core/src/fee.ts'
@@ -75,19 +76,114 @@ class ScoreTest(unittest.TestCase):
         self.assertIsNone(mutation.score(mutation.counts(report(), [SRC])))
 
 
+def everything_exists(path):
+    return True
+
+
+def nothing_exists(path):
+    return False
+
+
 class SourceFilesTest(unittest.TestCase):
 
     def test_only_product_source_under_core_src_is_held_to_the_floor(self):
         named = ['harness/gates.py', SRC, 'packages/core/src/fee.test.ts',
                  'packages/core/fixtures/tolerance/detector.ts', 'packages/core/db/repository.ts',
                  'packages/connectors/src/bol.ts', 'packages/core/src/money/cents.ts']
-        self.assertEqual(mutation.source_files(named), [SRC, 'packages/core/src/money/cents.ts'])
+        self.assertEqual(mutation.source_files(named, everything_exists),
+                         [SRC, 'packages/core/src/money/cents.ts'])
 
     def test_a_directory_under_src_is_product_source_too(self):
-        self.assertEqual(mutation.source_files(['packages/core/src']), ['packages/core/src'])
+        self.assertEqual(mutation.source_files(['packages/core/src'], nothing_exists),
+                         ['packages/core/src'])
 
     def test_a_plan_naming_no_core_source_names_nothing(self):
-        self.assertEqual(mutation.source_files(['harness/gates.py', 'docs/x.md']), [])
+        self.assertEqual(mutation.source_files(['harness/gates.py', 'docs/x.md'],
+                                               everything_exists), [])
+
+    def test_a_slice_naming_only_a_test_is_measured_over_the_source_it_tests(self):
+        self.assertEqual(
+            mutation.source_files(['packages/core/src/fees/detect.test.ts'], everything_exists),
+            ['packages/core/src/fees/detect.ts'])
+
+    def test_a_test_with_no_sibling_is_measured_over_its_own_directory(self):
+        self.assertEqual(
+            mutation.source_files(['packages/core/src/fees/detect.test.ts'], nothing_exists),
+            ['packages/core/src/fees'])
+
+    def test_a_test_beside_nothing_at_the_top_of_src_is_measured_over_src(self):
+        self.assertEqual(mutation.source_files(['packages/core/src/x.test.ts'], nothing_exists),
+                         ['packages/core/src'])
+
+    def test_a_sibling_the_same_list_names_is_there_even_if_not_on_disk_yet(self):
+        named = ['packages/core/src/fees/detect.test.ts', 'packages/core/src/fees/detect.ts']
+        self.assertEqual(mutation.source_files(named, nothing_exists),
+                         ['packages/core/src/fees/detect.ts'])
+
+    def test_a_test_and_its_source_are_one_entry(self):
+        named = ['packages/core/src/fees/detect.test.ts', 'packages/core/src/fees/detect.ts']
+        self.assertEqual(mutation.source_files(named, everything_exists),
+                         ['packages/core/src/fees/detect.ts'])
+
+
+class UnderTestTest(unittest.TestCase):
+
+    def test_a_test_maps_to_its_sibling_when_there_is_one(self):
+        asked = []
+
+        def exists(path):
+            asked.append(path)
+            return True
+
+        self.assertEqual(mutation.under_test('packages/core/src/fees/detect.test.ts', exists),
+                         'packages/core/src/fees/detect.ts')
+        self.assertEqual(asked, ['packages/core/src/fees/detect.ts'])
+
+    def test_a_spec_file_is_a_test_too(self):
+        self.assertEqual(mutation.under_test('packages/core/src/fee.spec.ts', everything_exists),
+                         SRC)
+
+    def test_a_test_with_no_sibling_maps_to_its_directory(self):
+        self.assertEqual(mutation.under_test('packages/core/src/fees/detect.test.ts',
+                                             nothing_exists), 'packages/core/src/fees')
+
+    def test_a_path_that_is_not_a_test_is_returned_unchanged(self):
+        for path in (SRC, 'packages/core/src', 'harness/gates.py'):
+            self.assertEqual(mutation.under_test(path, nothing_exists), path)
+
+    def test_a_test_outside_core_src_is_not_this_functions_to_map(self):
+        path = 'packages/core/fixtures/tolerance/detector.test.ts'
+        self.assertEqual(mutation.under_test(path, everything_exists), path)
+
+
+class PatternsTest(unittest.TestCase):
+
+    def test_a_file_is_its_own_pattern_and_a_directory_is_its_files_without_tests(self):
+        self.assertEqual(mutation.patterns(['src/fee.ts', 'src/money']),
+                         ['src/fee.ts', 'src/money/**/*.ts', '!src/money/**/*.test.ts'])
+
+    def test_a_trailing_slash_does_not_double_up(self):
+        self.assertEqual(mutation.patterns(['src/']), ['src/**/*.ts', '!src/**/*.test.ts'])
+
+
+class ATestOnlySliceIsMeasuredTest(test_stage_gates.MutationJournal):
+    """A slice naming only a test is held to the floor over the source it tests, SEEN-116."""
+
+    TEST = 'packages/core/src/x.test.ts'
+
+    def test_a_slice_naming_only_a_test_is_refused_without_a_measurement(self):
+        with self.assertRaisesRegex(HarnessError, 'No mutation measurement'):
+            self.evaluate('tdd', self.tdd(), records=self.journal(self.TEST))
+
+    def test_the_measurement_of_the_directory_of_the_test_lets_it_through(self):
+        records = self.journal(self.TEST, measurement=self.mutation_record(
+            7, 90.0, files=('packages/core/src',)))
+        self.evaluate('tdd', self.tdd(), records=records)
+
+    def test_the_sibling_is_what_is_asked_for_when_it_is_there(self):
+        self.write('packages/core/src/x.ts', 'export const x = 1\n')
+        with self.assertRaisesRegex(HarnessError, 'packages/core/src/x.ts'):
+            self.evaluate('tdd', self.tdd(), records=self.journal(self.TEST))
 
 
 class AKillIsARedTest(unittest.TestCase):

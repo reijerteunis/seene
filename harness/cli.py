@@ -512,7 +512,7 @@ def mutation(repository, folder, records, args, current, rules):
     nothing.
     """
     require(current['stage'] == 'tdd', 'Mutation is measured at the tdd stage')
-    files = gates.plan_source_files(records)
+    files = gates.plan_source_files(records, repository.root)
     require(files,
             f'The accepted plan names no file under {mutation_module.SOURCE_DIRECTORY}, so there '
             'is nothing to mutate and no floor to hold')

@@ -5,7 +5,10 @@ reads the changed paths (`git diff --name-only` output) and answers with the
 value Stryker's --mutate takes, or nothing when no product file qualifies.
 
 The rules: a product .ts file under packages/core/src is selected with the
-package prefix stripped, tests left out, in the order given. A change to the
+package prefix stripped, in the order given. A changed test file is selected as
+the source it tests, its sibling when that exists and otherwise the globs of its
+directory, by the same mapping the tdd gate uses (`mutation.source_files` and
+`mutation.patterns`), so a test-only change is measured and not skipped. A change to the
 mutation config or the test setup changes what every mutant faces, so the stored
 results for unchanged files no longer describe it, and all of src is selected
 instead. Anything else, including paths outside packages/core/src, is ignored.
@@ -16,31 +19,39 @@ GITHUB_OUTPUT, and prints one human line.
 """
 
 import os
-import re
 import sys
 
+from .mutation import patterns, source_files
+
 PACKAGE_DIRECTORY = 'packages/core/'
-SOURCE_DIRECTORY = 'packages/core/src/'
 CONFIG_FILES = tuple(PACKAGE_DIRECTORY + name
                      for name in ('stryker.config.mjs', 'vitest.config.ts', 'package.json'))
 ALL_OF_SRC = 'src/**/*.ts,!src/**/*.test.ts'
-TEST_FILE = re.compile(r'\.test\.ts$')
 
 
-def select(changed_paths):
-    """The --mutate value for these changed paths, or None when nothing qualifies."""
+def select(changed_paths, exists):
+    """The --mutate value for these changed paths, or None when nothing qualifies.
+
+    `exists` answers for a repository-relative path, and is what decides whether
+    a changed test has a sibling to stand for it. Input order is kept.
+    """
     paths = [path.strip() for path in changed_paths]
     if any(path in CONFIG_FILES for path in paths):
         return ALL_OF_SRC
-    files = [path[len(PACKAGE_DIRECTORY):] for path in paths
-             if path.startswith(SOURCE_DIRECTORY) and path.endswith('.ts')
-             and not TEST_FILE.search(path)]
-    return ','.join(files) or None
+    entries = []
+    for path in paths:
+        if not path.endswith('.ts'):
+            continue
+        for entry in source_files([path], exists):
+            if entry not in entries:
+                entries.append(entry)
+    relative = [entry[len(PACKAGE_DIRECTORY):] for entry in entries]
+    return ','.join(patterns(relative)) or None
 
 
 def main():
     """Read changed paths on stdin and write the job's outputs; always exits 0."""
-    files = select(sys.stdin.read().splitlines())
+    files = select(sys.stdin.read().splitlines(), lambda path: os.path.isfile(path))
     lines = ['any=false'] if files is None else ['any=true', f'files={files}']
     with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as output:
         output.write(''.join(f'{line}\n' for line in lines))

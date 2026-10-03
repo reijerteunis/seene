@@ -47,14 +47,23 @@ def command(files):
     """
     relative = [_relative(path) for path in files]
     require(relative, f'Nothing to mutate: name a file under {SOURCE_DIRECTORY}')
-    patterns = []
-    for entry in relative:
+    return BASE_COMMAND + ('--mutate', ','.join(patterns(relative)))
+
+
+def patterns(entries):
+    """The globs Stryker's --mutate takes for these entries, relative to packages/core.
+
+    One expansion for the gate and for CI: a .ts file is its own pattern, and
+    anything else is a directory, which becomes the files under it, tests left out.
+    """
+    found = []
+    for entry in entries:
         if entry.endswith('.ts'):
-            patterns.append(entry)
+            found.append(entry)
         else:
             directory = entry.rstrip('/')
-            patterns += [f'{directory}/**/*.ts', f'!{directory}/**/*.test.ts']
-    return BASE_COMMAND + ('--mutate', ','.join(patterns))
+            found += [f'{directory}/**/*.ts', f'!{directory}/**/*.test.ts']
+    return found
 
 
 def _relative(path):
@@ -67,17 +76,37 @@ def _is_test(path):
     return path.endswith(('.test.ts', '.spec.ts'))
 
 
-def source_files(paths):
+def under_test(path, exists):
+    """The source a test file tests, or the path itself when it is not a test.
+
+    A test under packages/core/src is measured over its sibling (`x.test.ts` over
+    `x.ts`) when that exists, and otherwise over the directory the test sits in,
+    which `command` expands into the files under it. A change that names only a
+    test would otherwise name no source, and the floor would be held over nothing.
+    `exists` answers for a repository-relative path, so this stays pure.
+    """
+    if not (_is_test(path) and path.startswith(SOURCE_DIRECTORY + '/')):
+        return path
+    sibling = path.rsplit('.', 2)[0] + '.ts'
+    return sibling if exists(sibling) else path.rsplit('/', 1)[0]
+
+
+def source_files(paths, exists):
     """The entries that name product source under packages/core/src.
 
     Those are the files the floor is held over. A fixture, the database tests
-    and the harness have no mutation score to hold, and a test file is what does
-    the killing rather than what is killed.
+    and the harness have no mutation score to hold. A test file is what does the
+    killing rather than what is killed, so it stands for the source it tests
+    (see `under_test`): a slice that names only a test is still measured. A
+    sibling the same list names counts as there, whether or not it is on disk yet.
     """
-    return sorted({path for path in paths
-                   if isinstance(path, str)
-                   and (path == SOURCE_DIRECTORY or path.startswith(SOURCE_DIRECTORY + '/'))
-                   and not _is_test(path)})
+    listed = {path for path in paths if isinstance(path, str)}
+
+    def there(path):
+        return path in listed or exists(path)
+
+    return sorted({under_test(path, there) for path in listed
+                   if (path == SOURCE_DIRECTORY or path.startswith(SOURCE_DIRECTORY + '/'))})
 
 
 def covers(entries, path):
