@@ -1,0 +1,32 @@
+{
+  "sequence": 316,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-10-03T20:14:39.485316+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "review",
+  "attempt": 20,
+  "actor": "codex:reviewer",
+  "session": "c103e10e4555",
+  "head": "050ab24a9507251cdaffcf0e560bc469f7663ceb",
+  "prev_hash": "196fdaa91853b4b49b458a51778a72a61b3d4d2246cbb9d2ac8ce585edd7f10f",
+  "data": {
+    "command": [
+      "pnpm",
+      "--filter",
+      "@seen/core",
+      "test"
+    ],
+    "phase": "qa",
+    "exit_code": 0,
+    "model": "claude-opus-5-5",
+    "model_declared": null,
+    "agent_declared": null,
+    "duration_ms": 3610,
+    "output": "(node:78386) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n\n> @seen/core@0.0.0 test /Users/ruudvanengelenhoven/Development/seene/packages/core\n> vitest run\n\n(node:78403) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n\n RUN  v3.2.7 /Users/ruudvanengelenhoven/Development/seene/packages/core\n\n(node:78413) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n• turbo 2.11.3\n ✓ db/schema.test.ts (125 tests) 925ms\n(node:78438) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n ✓ db/rls.test.ts (33 tests) 649ms\n(node:78463) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n• turbo 2.11.3\n ✓ db/authorities.test.ts (10 tests) 164ms\n(node:78475) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n ✓ db/uniqueness.test.ts (15 tests) 48ms\n(node:78487) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n• turbo 2.11.3\n ✓ db/marketplaces.test.ts (9 tests) 38ms\n(node:78499) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n ✓ src/index.test.ts (3 tests) 1ms\n(node:78501) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n ✓ db/parallelism.test.ts (1 test) 1ms\n\n Test Files  7 passed (7)\n      Tests  196 passed (196)\n   Start at  22:14:36\n   Duration  3.10s (transform 132ms, setup 0ms, collect 663ms, tests 1.83s, environment 0ms, prepare 152ms)\n\n(node:78506) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n",
+    "output_sha256": "297665c864407ac5532c8516493ed2b39850e82f3a0d44628aa43c6690535c36",
+    "output_truncated": false,
+    "before": "3fd095df73e5abe0921abb7c4041aca3104e3e202a8929c251f87c3ae704f0c9",
+    "after": "3fd095df73e5abe0921abb7c4041aca3104e3e202a8929c251f87c3ae704f0c9"
+  }
+}
