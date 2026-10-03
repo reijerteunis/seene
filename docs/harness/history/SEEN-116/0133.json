@@ -1,0 +1,102 @@
+{
+  "sequence": 133,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-03T06:25:17.739290+00:00",
+  "harness_version": "2",
+  "kind": "route",
+  "stage": "tdd",
+  "attempt": 9,
+  "actor": "claude:implementer",
+  "session": "87d19570f4d9",
+  "head": "30738aa0b7cd07bb4ae4d164bb83dab1b5a8f5d0",
+  "prev_hash": "ef93dab95a9a3804fb8a2cb58dd831800ea78b929a2027e4db602d80116c5f49",
+  "data": {
+    "solution": 132,
+    "shadow": true,
+    "strongest": "opus",
+    "tiers": [
+      "haiku",
+      "sonnet",
+      "opus"
+    ],
+    "rules": [],
+    "jev": {
+      "asked": true,
+      "model": "jev-1.13.0",
+      "reason": null,
+      "answers": [
+        {
+          "key": "implementation_model#1",
+          "question": "implementation_model",
+          "type": "score",
+          "options": [
+            "haiku",
+            "sonnet",
+            "opus"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "sonnet",
+          "probabilities": {
+            "haiku": 0.39,
+            "sonnet": 0.6,
+            "opus": 0.01
+          },
+          "confidence": 0.4,
+          "score": 0.61,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "implementation_effort#1",
+          "question": "implementation_effort",
+          "type": "score",
+          "options": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "medium",
+          "probabilities": {
+            "low": 0.02,
+            "medium": 0.56,
+            "high": 0.42
+          },
+          "confidence": 0.33,
+          "score": 1.4,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        }
+      ]
+    },
+    "execution": [
+      {
+        "position": 1,
+        "name": "The kill check maps a test to its source, and tsconfig.json widens CI",
+        "points": 1,
+        "files": [
+          "harness/gates.py",
+          "harness/tests/test_stage_gates.py",
+          "harness/mutation_ci.py",
+          "harness/tests/test_mutation_ci.py",
+          "docs/tickets/SEEN-116-property-based-and-mutation-tests-on-the-money.md"
+        ],
+        "red": "A killed-mutant RED in packages/core/src/fee.ts is refused for a slice that names only packages/core/src/fee.test.ts, and select over a changed packages/core/tsconfig.json returns None instead of all of src.",
+        "model": "sonnet",
+        "effort": "medium",
+        "source": "jev",
+        "rule": null,
+        "reason": null,
+        "model_probability": 0.6,
+        "effort_probability": 0.56,
+        "model_passed": true,
+        "model_threshold": 0.5,
+        "implementer_task": "Work slice 1 of SEEN-116: The kill check maps a test to its source, and tsconfig.json widens CI.\n\nRun it on sonnet at medium effort, because Jev chose it at 0.6.\nThe model is what reaches the work: in Claude Code as the per-invocation model on the seen-implementer agent, and in Codex as the model this instruction names when you spawn it. The effort is recorded, carried and reported rather than applied, on either assistant: the generated copies do not vary by slice, because a file whose content depended on the ticket in hand was wrong on a detached HEAD, after a replan and after the receipt. Neither is yours to change.\n\nPoints: 1.\nFiles: harness/gates.py, harness/tests/test_stage_gates.py, harness/mutation_ci.py, harness/tests/test_mutation_ci.py, docs/tickets/SEEN-116-property-based-and-mutation-tests-on-the-money.md\n\nIts RED must demonstrate: A killed-mutant RED in packages/core/src/fee.ts is refused for a slice that names only packages/core/src/fee.test.ts, and select over a changed packages/core/tsconfig.json returns None instead of all of src.\n\nWrite the test first and record it with:\n  python3 harness/run.py check SEEN-116 --phase red --actor <tool>:implementer --model sonnet -- <command>\nThen write only what turns it green and record that the same way. The `--model sonnet` is not optional: a subagent inherits its parent's session id, so the log records the model of the session that spawned you and not yours, and without the declaration the tdd gate compares the wrong two names. Then stop: do not start the next slice and do not advance the stage."
+      }
+    ]
+  }
+}

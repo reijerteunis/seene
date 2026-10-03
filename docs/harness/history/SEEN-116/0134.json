@@ -1,0 +1,45 @@
+{
+  "sequence": 134,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-03T06:25:17.846748+00:00",
+  "harness_version": "2",
+  "kind": "handoff",
+  "stage": "tdd",
+  "attempt": 9,
+  "actor": "claude:implementer",
+  "session": "87d19570f4d9",
+  "head": "30738aa0b7cd07bb4ae4d164bb83dab1b5a8f5d0",
+  "prev_hash": "5581b329db016486d60fdcaf6e1a4c9591dcf6beb5cf8447e2ff55e04e776ca8",
+  "data": {
+    "pack": ".harness-drafts/SEEN-116-handoff.md",
+    "sha256": "a26fd57aab7778833bb471e1163b9b30cb33da0396b1b62e860f8e37744b3b7f",
+    "estimated_tokens": 1029,
+    "token_limit": 2000,
+    "slice": {
+      "position": 1,
+      "total": 1,
+      "done": 0,
+      "declared": false,
+      "inferred": 0,
+      "entry": {
+        "name": "The kill check maps a test to its source, and tsconfig.json widens CI",
+        "points": 1,
+        "files": [
+          "harness/gates.py",
+          "harness/tests/test_stage_gates.py",
+          "harness/mutation_ci.py",
+          "harness/tests/test_mutation_ci.py",
+          "docs/tickets/SEEN-116-property-based-and-mutation-tests-on-the-money.md"
+        ],
+        "red": "A killed-mutant RED in packages/core/src/fee.ts is refused for a slice that names only packages/core/src/fee.test.ts, and select over a changed packages/core/tsconfig.json returns None instead of all of src."
+      }
+    },
+    "auto": false,
+    "figures": {
+      "session": "87d19570f4d9",
+      "output_tokens": 8775,
+      "tool_calls": 14,
+      "unavailable": null
+    }
+  }
+}
