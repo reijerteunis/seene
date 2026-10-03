@@ -1162,6 +1162,23 @@ class NoSecondReaderTest(unittest.TestCase):
                          'else; these answer it themselves and will one day answer it '
                          'differently')
 
+    def test_only_paths_defines_a_function_named_covers(self):
+        """F2 of SEEN-116's ninth review: mutation.covers was a second, un-normalised reader.
+
+        SEEN-140 gave paths.covers the question alone, and a function of the same name
+        elsewhere is the same question asked again with a different argument order and
+        no normalisation. The syntax tree sees a def wherever it sits.
+        """
+        offenders = []
+        for module in self._modules():
+            if module.name == 'paths.py':
+                continue
+            for node in ast.walk(ast.parse(module.read_text())):
+                if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name == 'covers':
+                    offenders.append(f'{module.name}:{node.lineno}')
+        self.assertEqual(offenders, [],
+                         'harness/paths.py is the one reader of whether a plan covers a path')
+
     def test_the_instrument_can_see_a_positive_comparison(self):
         """The blind spot F1 came through, proved on source of its own shape.
 

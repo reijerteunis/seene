@@ -120,6 +120,21 @@ class SourceFilesTest(unittest.TestCase):
         self.assertEqual(mutation.source_files(named, nothing_exists),
                          ['packages/core/src/fees/detect.ts'])
 
+    def test_a_parent_directory_of_src_stands_for_all_of_src(self):
+        """The edit guard lets a slice naming packages/core edit src, so the floor covers src."""
+        self.assertEqual(mutation.source_files(['packages/core', 'harness/x.py'], nothing_exists),
+                         ['packages/core/src'])
+        self.assertEqual(mutation.source_files(['packages'], nothing_exists),
+                         ['packages/core/src'])
+
+    def test_a_dot_slash_prefixed_entry_is_read_as_the_guard_reads_it(self):
+        self.assertEqual(mutation.source_files(['./packages/core/src/fee.ts'], nothing_exists),
+                         ['packages/core/src/fee.ts'])
+
+    def test_a_trailing_slash_is_dropped(self):
+        self.assertEqual(mutation.source_files(['packages/core/src/'], nothing_exists),
+                         ['packages/core/src'])
+
     def test_a_test_and_its_source_are_one_entry(self):
         named = ['packages/core/src/fees/detect.test.ts', 'packages/core/src/fees/detect.ts']
         self.assertEqual(mutation.source_files(named, everything_exists),

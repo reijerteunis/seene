@@ -37,6 +37,10 @@ class SelectTest(unittest.TestCase):
         self.assertEqual(mutation_ci.select(['packages/core/tsconfig.json'], everything_exists),
                          ALL_OF_SRC)
 
+    def test_a_changed_root_tsconfig_selects_all_of_src(self):
+        """packages/core/tsconfig.json extends it, and the TypeScript checker reads both."""
+        self.assertEqual(mutation_ci.select(['tsconfig.base.json'], everything_exists), ALL_OF_SRC)
+
     def test_a_test_file_selects_its_source_once(self):
         paths = ['packages/core/src/fee.test.ts', 'packages/core/src/fee.ts']
         self.assertEqual(mutation_ci.select(paths, everything_exists), 'src/fee.ts')

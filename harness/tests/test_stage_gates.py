@@ -313,6 +313,11 @@ class MutationFloorTest(MutationJournal):
         with self.assertRaisesRegex(HarnessError, 'harness mutation'):
             self.evaluate('tdd', self.tdd(), records=self.journal())
 
+    def test_a_slice_naming_a_parent_of_src_with_no_measurement_is_refused(self):
+        """The guard lets packages/core edit src, so the floor holds it to a measurement."""
+        with self.assertRaisesRegex(HarnessError, 'harness mutation'):
+            self.evaluate('tdd', self.tdd(), records=self.journal('packages/core'))
+
     def test_a_slice_naming_only_harness_files_needs_no_measurement(self):
         self.evaluate('tdd', self.tdd(), records=self.journal('harness/gates.py'))
 
@@ -389,6 +394,10 @@ class AKilledMutantAsRedTest(MutationJournal):
 
     def test_a_kill_in_a_file_the_slice_names_is_a_red(self):
         self.evaluate('tdd', self.tdd(), records=self.journal(killed={self.FEE: ['3']}))
+
+    def test_a_kill_in_a_file_a_slice_names_with_a_dot_slash_prefix_is_a_red(self):
+        self.evaluate('tdd', self.tdd(), records=self.journal('./' + self.FEE,
+                                                              killed={self.FEE: ['3']}))
 
     def test_a_kill_under_a_directory_the_slice_names_is_a_red(self):
         self.evaluate('tdd', self.tdd(), records=self.journal('packages/core/src',
