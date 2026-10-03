@@ -1,0 +1,34 @@
+{
+  "sequence": 106,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-03T05:44:04.350337+00:00",
+  "harness_version": "2",
+  "kind": "handoff",
+  "stage": "tdd",
+  "attempt": 7,
+  "actor": "claude:implementer",
+  "session": "f821a436574f",
+  "head": "e0f20ea9ebdf4f9f7936182ed8516048cf28b4cd",
+  "prev_hash": "e59b4996105cdcdf235a5fab860e8c5604382408b422a44864b2ab28ce4a4c92",
+  "data": {
+    "pack": ".harness-drafts/SEEN-116-handoff.md",
+    "sha256": "90b51a11de1e80f719d4f8a622082a5188dda19ecaee8a0ca03d86dce60560dd",
+    "estimated_tokens": 1001,
+    "token_limit": 2000,
+    "slice": {
+      "position": null,
+      "total": 2,
+      "done": 2,
+      "declared": false,
+      "inferred": 2,
+      "entry": null
+    },
+    "auto": false,
+    "figures": {
+      "session": "f821a436574f",
+      "output_tokens": 66154,
+      "tool_calls": 56,
+      "unavailable": null
+    }
+  }
+}
