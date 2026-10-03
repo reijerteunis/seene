@@ -1,0 +1,36 @@
+{
+  "sequence": 60,
+  "ticket": "SEEN-112",
+  "timestamp": "2026-10-03T18:06:37.684914+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 6,
+  "actor": "claude:implementer",
+  "session": "5cd7e218d9c6",
+  "head": "ebd1d96e95b47e51c6a899b64bcafbe55c179381",
+  "prev_hash": "f9cd82910b5226b7037a34563a1cd9bd82b1a3649100179c74a0ae89bfcc19d3",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "pytest",
+      "harness/tests/test_enforcement.py",
+      "harness/tests/test_loop.py",
+      "-q",
+      "-p",
+      "no:cacheprovider"
+    ],
+    "phase": "green",
+    "exit_code": 0,
+    "model": "claude-opus-5-5",
+    "model_declared": "opus",
+    "agent_declared": null,
+    "duration_ms": 27744,
+    "output": "\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m [ 96%]\n\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m                                                                       [100%]\u001b[0m\n\u001b[32m\u001b[32m\u001b[1m66 passed\u001b[0m, \u001b[32m\u001b[1m8 subtests passed\u001b[0m\u001b[32m in 27.59s\u001b[0m\u001b[0m\n",
+    "output_sha256": "8491ac35c6d2001bb08baa4d1a518e1abe5e9b7b1531122edb16c56bc7535b01",
+    "output_truncated": false,
+    "before": "053bdab307e23736aa47e1d8e23bb22e96ba68f8d39d3d7d260b5e61c4478af3",
+    "after": "053bdab307e23736aa47e1d8e23bb22e96ba68f8d39d3d7d260b5e61c4478af3"
+  }
+}

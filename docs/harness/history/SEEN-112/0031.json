@@ -1,0 +1,16 @@
+{
+  "sequence": 31,
+  "ticket": "SEEN-112",
+  "timestamp": "2026-09-27T06:04:39.675404+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "88ef99ca4c25005d4232d91ed589a55c36855001",
+  "prev_hash": "a82cfe2050c446e2ef91396a0431f43788ff9485e4805bf72c3bf67fe42f443c",
+  "data": {
+    "text": "# The third stop, also a defect of this run, and what it taught\n\n**Named as a defect, as criterion 2 requires.** Three stops now, where a run that worked would have\nhad one. The first batch (record 4) asked what proves criterion 1 and took an answer the gate does not\nallow. The second (record 22) amended the criterion to what this ticket can carry and still named\nthings that do not exist when the triage runs. Only the third found the actual shape of the problem,\nand it was findable at the first: **a criterion cannot be evidenced before the thing it describes\nhappens.** Criterion 1 named a green `verify-delivery` and a review by `seen-reviewer`, and the review\ntriage is the gate that decides whether a reviewer is spawned at all. Reading the criterion against the\norder of the stages would have shown that at record 4, before a line was written. That is the defect,\nand it is one defect reported three times rather than three separate ones.\n\n**Two returns is this ticket's own thrashing threshold**, which is why the run stopped here instead of\ntrying a third triage: criterion 3 names a second return on the same slice as the point where a replan\nstops being a correction. The threshold held, on the ticket that wrote it, against the session that\nwrote it.\n\n**The answer, on Ruud's authority, 27 September 2026.** Criterion 1 is amended a second time, to what\na review can judge: the fixture walk, this journal's delegation, and the budget figures. What only\nexists after the review moves to the follow-up ticket, with the real-ticket proof that moved there at\nrecord 22. The reasoning is recorded rather than the convenience: the two clauses are not dropped\nbecause they are inconvenient, they are moved because no evidence for them can exist at the stage that\nwas asking.\n\n**What the two returns bought, which is the part worth keeping.** The first return was correct and\nfound a real hole: `question_open` was reading the clarify draft's list rather than a recorded decision\nbelow its threshold, and nothing read CI at all, so two of criterion 3's five conditions could not be\nreported unless a session remembered to declare them. Criterion 3 went from 0.48 to 0.66 once they\nwere detected. A triage that had waved the ticket through would have shipped a run that could not see\nred CI. The second return cost an attempt and taught the wording lesson above. Both are in the record\nas rework, and the first one earned it.\n"
+  }
+}

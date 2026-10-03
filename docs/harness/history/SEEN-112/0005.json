@@ -1,0 +1,89 @@
+{
+  "sequence": 5,
+  "ticket": "SEEN-112",
+  "timestamp": "2026-09-26T22:28:21.628895+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "8a58b1bac504f819ea87ef47623ed90952871f9d",
+  "prev_hash": "898856b4e618920c43b5b819ecb934a08bbe92be1eaface3280327e61cd7a3ab",
+  "data": {
+    "from_stage": "clarify",
+    "to_stage": "solution",
+    "evidence": {
+      "scope": "One advisor command, `harness run <ticket>`, that names the next action and its exact arguments at every stage so an assistant can take a code ticket from clarify to a green verify-delivery without stopping, with every stop named in advance and none retried, the merge never taken without a recorded authorisation, and a human-executor ticket refused before it starts; its edge is that the harness still launches no model and still does not merge.",
+      "acceptance": [
+        "Criterion 1: the run reaches a green `verify-delivery` without a stop on a code ticket with no open questions, with each slice's RED and GREEN declaring `--agent seen-implementer` and the review disclosing `subagent`. Evidence: unmet in this ticket and named as unmet in its Outcome, because no code ticket of at most 2 points is available to prove it on (SEEN-032 is the only 2-point ticket at todo and waits on SEEN-008, 5 points, not started), which Ruud settled at record 4. What this ticket evidences instead: an integration test that drives `harness run` across a fixture journal from clarify to the receipt and asserts it returns an action at every step and never an unnamed stop. The end-to-end proof runs on the first unblocked ticket of at most 2 points, on that ticket's own journal and budget figures.",
+        "Criterion 2: a ticket whose clarify record would carry an open question stops once with reason `question_open`, and the run continues when the answer is recorded as a note and `clarified` clears its threshold. Evidence: a RED asserting `harness run` returns an `ask` action carrying every question at once for a ticket with open questions, and an action rather than a stop once the note is recorded; and a second RED asserting the summary names a second question batch as a defect of the run, counted from the `stop` records rather than from prose.",
+        "Criterion 3: every stop is one of the named reasons in `[run] stops` and none is retried, each carrying the stage, the record number it points at and the one argv to resume from. Evidence: a RED per reason (`gate_refused`, `question_open`, `check_failed`, `ci_red`, `second_return`, `awaiting_authorisation`) asserting the stop names stage, record and resume argv; and a RED asserting a second call while the same stop stands reports it again and appends no second `stop` record, which is what not retrying means in a journal.",
+        "Criterion 4: the merge is never taken without authorisation. Evidence: a RED asserting `harness run` stops at `awaiting_authorisation` with a green `verify-merge` and the receipt hash in the pull request body, and offers no merge action; and a RED asserting the merge action appears only after an `authorisation` record exists for this ticket carrying who gave it, with the record's own timestamp as when. The run never invokes the merge itself.",
+        "Criterion 5: a ticket whose executor is `human` is refused at the start, naming the criteria only a person can settle. Evidence: a RED against SEEN-110's real ticket file asserting `harness run` exits non-zero before any record is written and names its criteria that wait on an interactive session, rather than starting a journal it would have to invent an answer for.",
+        "Criterion 6: whether the harness may launch a model is settled at the solution stage and recorded either way, with the line quoted. Evidence: Ruud settled it at record 4, the principle stands, and the solution record carries the decision quoting the opening of the Principles section of docs/harness/workflow.md. The run's shape follows it: `harness run` prints the action, the agent to spawn and the task text, and starts no model as a subprocess. A RED asserts no module under harness/ that the run touches calls subprocess for anything but a harness command and the checks it already runs.",
+        "Criterion 7: the run widens nothing. Evidence: a RED asserting the summary lists every criterion of the ticket with what each unmet one is waiting on, read from the ticket's boxes and the journal's evidence rather than asserted; and this ticket's own Outcome, which leaves criterion 1 unticked with what it waits on named."
+      ],
+      "decisions": [
+        "The harness does not launch a model, settled by Ruud at record 4 and quoted in full there. `harness run` is a read-only advisor over a journal it also appends its stops to: it prints the stage, the action, the exact argv, the agent to spawn and that agent's task text, and the assistant is what spawns seen-implementer and seen-reviewer. docs/harness/workflow.md is not amended. This is criterion 6 and it is settled before any code, which is what the criterion asks.",
+        "Criterion 1 is not proven in this ticket, settled by Ruud at record 4. No code ticket of at most 2 points is available: SEEN-032 is the only one still at todo and it waits on SEEN-008. The alternatives were to open a second ticket inside this one or to prove it on 5 points and record the deviation; both were declined in favour of delivering the run and naming the criterion as unmet, which is the ticket's own criterion 7 applied to itself.",
+        "The run is stopped by evidence and not by a counter: a second return on the same slice is read from the journal's `return` records, a failed check from the `check` record's exit code, red CI from what `verify-delivery` already reads, and a refusing gate from the harness error the advance raised. Nothing the run stops on is a figure the run itself keeps, so a stop survives a fresh session reading the same journal.",
+        "What only the work can settle, recorded here rather than asked: whether `harness run` can name the next action unambiguously enough at every stage for an assistant to follow it without judgement. `NEXT_COMMAND` at harness/cli.py:63-73 is prose today, with no ticket substituted and no argument list (record 3), so every stage's action has to be turned into argv, and the stages differ in how much they can be decided from records alone. The observation that settles it is the integration test in criterion 1's evidence: a fixture journal driven from clarify to receipt where every step returns an action with runnable argv, and any stage that cannot returns an `ask` rather than a guess.",
+        "Two record kinds are added, `stop` and `authorisation`, neither in journal.TRANSITIONS, on the precedent of handoff, triage and route: a stop says the run halted and an authorisation says a person allowed the merge, and neither moves the ticket. The envelope is unchanged, so HARNESS_VERSION stays at 2."
+      ],
+      "open_questions": [],
+      "changes_agent_action": false,
+      "graph_impact": [
+        "repowise risk, recorded at record 2: below typical, 25th percentile of recent commits by size and spread, and no bug-fix history in the files it touches. It scored the working tree at the time, which held only this ticket's status change, so it is a floor rather than a forecast for the plan, which will name harness/cli.py, harness/paths.py, harness/journal.py, harness/thresholds.toml and a new module beside them.",
+        "seen-scout, one brief, recorded at record 3: NEXT_COMMAND (harness/cli.py:63-73) maps a stage to one prose sentence with no ticket substituted and no argv, read by start(), build_pack() and brief(); status --brief returns the pack, the estimated tokens and that same prose; the spawn instruction for the implementer is free prose from routing.implementer_task() (harness/routing.py:272-306) carrying model, effort, files, the RED and one literal `harness check --phase red` line; the reviewer's task text is triage.reviewer_task() (harness/triage.py:678-728) carrying depth, always-read files, focus set and the shape to return; refusals raise HarnessError, with GuardRefusal kept distinct at harness/cli.py:28-37 so its exit code can differ. It did not check the exit codes themselves or whether any refusal already carries a resume command, which the solution stage reads directly.",
+        "The three kinds a record may be that do not move a ticket, read from harness/paths.py:30-39: handoff, triage and route, each its own kind, none in journal.TRANSITIONS, added without bumping HARNESS_VERSION. That is the precedent the two new kinds follow, and it is why the plan does not touch the envelope."
+      ]
+    },
+    "decisions": [
+      {
+        "key": "clarified",
+        "question": "clarified",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.86,
+          "no": 0.14
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.8,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "key": "risk",
+        "question": "risk",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "medium",
+        "probabilities": {
+          "low": 0.21,
+          "medium": 0.79,
+          "high": 0.0
+        },
+        "confidence": 0.68,
+        "score": 0.79,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

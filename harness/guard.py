@@ -10,10 +10,15 @@ Four rules and no fifth, in the order they are read: the ticket file and
 .harness-drafts/ are allowed at every stage; packages/ and apps/ are refused at
 clarify and solution; a branch that is not a ticket branch refuses an edit to
 packages/, apps/ or harness/; at tdd, a path outside the accepted slice's files
-is refused. Absence allows and says why: no journal for the branch's ticket, or
-no accepted slice plan yet. A guard that refused on absence would refuse the
-first edit of every ticket, this one included, and the gate that comes next
-already refuses that absence.
+is refused, and once every slice is done, a path outside the whole plan's files.
+A slice entry that names a directory covers the files inside it, through
+paths.covers, the one reader of that question since SEEN-140. Absence
+allows and says why: no journal for the branch's ticket, or no slice plan
+accepted at all. A guard that refused on absence would refuse the first edit of
+every ticket, this one included, and the gate that comes next already refuses
+that absence. Absence is only ever those two, never a plan already worked
+through: SEEN-112's record 42 found the two read as one, which stopped the guard
+guarding in the phase it matters most.
 """
 
 from pathlib import Path
@@ -120,21 +125,46 @@ def decide(root, records, branch, path, rules):
 
     if stage == 'tdd':
         slice_ = handoff.current_slice(records, current)
-        entry = slice_['entry'] if slice_ else None
-        # Absence: the plan exists but nothing is accepted yet, or every slice
-        # in it is already done.
-        if entry is None:
+        # Genuine absence, and the only one: no plan has been accepted at all,
+        # which is where a non-code ticket reaches tdd. There is nothing to
+        # compare a path against, so the permissive answer stands.
+        if slice_ is None:
             return _allow('no-slice-plan',
                            f'No accepted slice plan yet for {match.group("ticket")}; nothing to '
                            f'guard {relative} against')
+        entry = slice_['entry']
         # Rule 4: outside the slice this session was handed. `covers` is the one
         # reader of that question, so a plan naming a directory covers what is
         # under it here exactly as it does for the route verdict and the triage;
         # before SEEN-140 this comparison was its own, and exact.
-        if not covers(relative, entry['files']):
-            files = ', '.join(entry['files']) or 'none named'
-            return _refuse('outside-slice',
-                            f'{relative} is not one of the files slice {slice_["position"]} of '
-                            f'{slice_["total"]} names: {files}')
+        if entry is not None:
+            if not covers(relative, entry['files']):
+                files = ', '.join(entry['files']) or 'none named'
+                return _refuse('outside-slice',
+                                f'{relative} is not one of the files slice {slice_["position"]} '
+                                f'of {slice_["total"]} names: {files}')
+        else:
+            # Every slice in the plan is done, which is a different situation
+            # from having no plan and was read as the same one until SEEN-112:
+            # on SEEN-008, three slices of three done, this answered allowed for
+            # a path no slice named. It is also the state a ticket is in after a
+            # review returns it, when rework happens and a session is most
+            # likely to touch a file the plan never mentioned.
+            #
+            # The fallback is the union of every slice's files rather than the
+            # last slice's, because a review returns a ticket on a finding in
+            # whichever slice carried it, usually not the last, so rework is
+            # work on any file the plan named. A fallback to the last slice
+            # alone would refuse the edit the return asked for, and a rule a
+            # session cannot satisfy is the rule that teaches people to write
+            # through a shell instead, which is defect 2 of the same record.
+            named = [name for other in handoff.plan_of(records) for name in other['files']]
+            if not covers(relative, named):
+                files = ', '.join(dict.fromkeys(named)) or 'none named'
+                return _refuse('outside-plan',
+                                f'All {slice_["total"]} slices of {match.group("ticket")} are '
+                                f'done, and {relative} is not one of the files the plan names: '
+                                f'{files}. Rework stays inside the plan; a file outside it needs '
+                                'a return to solution and a slice that names it')
 
     return _allow('no-rule', f'No rule in this guard refuses {relative} at the {stage} stage')

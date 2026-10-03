@@ -1,0 +1,904 @@
+{
+  "sequence": 52,
+  "ticket": "SEEN-112",
+  "timestamp": "2026-09-27T12:29:49.202962+00:00",
+  "harness_version": "2",
+  "kind": "triage",
+  "stage": "review",
+  "attempt": 5,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "bee79220b456d1493255b7e77921f9b0850db9dc",
+  "prev_hash": "c93fd3cc30f12a46d9cbd7162816be12fc4850f16856e5bcdbe4594574cbd036",
+  "data": {
+    "fingerprint": "a9de77474fa542e87b0d437a0deada5bcec97aeccd51c8291f5e7d73641eb0a4",
+    "code_fingerprint": "3f3586d62631491153d0dc9584e0c7536da2bd134cfa88e411ffdaac0b525462",
+    "files": [
+      {
+        "path": ".agents/skills/seen-harness/SKILL.md",
+        "hunks": 2,
+        "added": 46,
+        "removed": 1,
+        "package": ".agents",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": ".claude/skills/seen-harness/SKILL.md",
+        "hunks": 2,
+        "added": 46,
+        "removed": 1,
+        "package": ".claude",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "docs/harness/skill.md",
+        "hunks": 2,
+        "added": 46,
+        "removed": 1,
+        "package": "docs",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "docs/harness/workflow.md",
+        "hunks": 2,
+        "added": 14,
+        "removed": 0,
+        "package": "docs",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "docs/tickets/SEEN-112-run-a-ticket-from-clarify-to-merge-in-one-go.md",
+        "hunks": 3,
+        "added": 96,
+        "removed": 8,
+        "package": "docs",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": false
+      },
+      {
+        "path": "harness/cli.py",
+        "hunks": 7,
+        "added": 142,
+        "removed": 14,
+        "package": "harness",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/coverage.py",
+        "hunks": 4,
+        "added": 77,
+        "removed": 7,
+        "package": "harness",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/guard.py",
+        "hunks": 3,
+        "added": 85,
+        "removed": 13,
+        "package": "harness",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/loop.py",
+        "hunks": 1,
+        "added": 1073,
+        "removed": 0,
+        "package": "harness",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/paths.py",
+        "hunks": 1,
+        "added": 14,
+        "removed": 1,
+        "package": "harness",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/tests/test_coverage_gate.py",
+        "hunks": 1,
+        "added": 127,
+        "removed": 0,
+        "package": "harness",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/tests/test_enforcement.py",
+        "hunks": 1,
+        "added": 145,
+        "removed": 0,
+        "package": "harness",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/tests/test_loop.py",
+        "hunks": 1,
+        "added": 929,
+        "removed": 0,
+        "package": "harness",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      },
+      {
+        "path": "harness/thresholds.toml",
+        "hunks": 1,
+        "added": 16,
+        "removed": 0,
+        "package": "harness",
+        "risk_percentile": null,
+        "coverage_delta": 0.0,
+        "named_in_solution": true
+      }
+    ],
+    "criteria": [
+      "A code ticket with no open questions runs from clarify to a green `verify-delivery` without a stop, in one orchestrating session whose own spending stays inside one slice's budget, with every slice's RED and GREEN recorded by `seen-implementer` and the review by `seen-reviewer`, proven on a real ticket of at most 2 points and evidenced by its journal and its budget figures",
+      "A ticket with an unknown a person must settle stops once, asks every question it has in a single batch, records the answer as a note, and continues to the end when `clarified` clears; a second stop for a question the first batch could have carried is reported as a defect of the run and named in its summary",
+      "Every stop is one of the named ones and none is retried: a gate that refuses, a Jev question that does not clear, a failed check, red CI, and a second return on the same slice, each reporting the stage, the record number and the one command to resume from",
+      "The merge is never taken without authorisation: the run stops at a green `verify-merge` with the receipt in the pull request body, and merges only when that was authorised for this ticket and the authorisation is in the journal with who gave it and when",
+      "A ticket whose executor is `human` is refused at the start, naming the criteria only a person can settle, rather than run into a verification it would have to invent",
+      "Whether the harness may launch a model is settled at the solution stage and recorded either way, quoting the line of `docs/harness/workflow.md` it stands on, and the run's shape follows that decision rather than the other way round",
+      "The run widens nothing: no criterion is ticked that its own evidence does not carry, and the summary lists every criterion left unmet with what each is waiting on"
+    ],
+    "deterministic": [
+      {
+        "name": "coverage",
+        "outcome": "pass",
+        "detail": "@seen/core at 100.0%, +0.0 against the baseline"
+      },
+      {
+        "name": "lint",
+        "outcome": "pass",
+        "detail": "No live marketplace host in test code"
+      },
+      {
+        "name": "gitleaks",
+        "outcome": "pass",
+        "detail": "No leak in main..HEAD"
+      },
+      {
+        "name": "fingerprint",
+        "outcome": "fail",
+        "detail": "The tree changed after check 49: it ran against d3e1d1b330a2 and this triage reads a9de77474fa5. The tests that passed are not the tests for this tree"
+      },
+      {
+        "name": "slice_files",
+        "outcome": "pass",
+        "detail": "All 14 changed files are named by the accepted slice plan, or are the ticket file the procedure itself writes"
+      },
+      {
+        "name": "red_before_green",
+        "outcome": "pass",
+        "detail": "Every slice cites a check that exited non-zero rather than one that passed. Whether it failed for the reason the slice states is not something the harness can read"
+      },
+      {
+        "name": "tests_added",
+        "outcome": "pass",
+        "detail": "Test files changed: harness/tests/test_coverage_gate.py, harness/tests/test_enforcement.py, harness/tests/test_loop.py. Whether the behaviour this slice adds has one of its own is not something a path can say"
+      },
+      {
+        "name": "acceptance_entries",
+        "outcome": "pass",
+        "detail": "The clarify record restates 7 checks against 7 criteria in the ticket. Which check answers which criterion is not something either list says"
+      },
+      {
+        "name": "pull_request",
+        "outcome": "unavailable",
+        "detail": "gh could not answer, so the pull request body was not read. It is checked again at merge, where the receipt hash has to be in it"
+      }
+    ],
+    "rules": [
+      "fingerprint did not pass, so the reviewer reads everything: The tree changed after check 49: it ran against d3e1d1b330a2 and this triage reads a9de77474fa5. The tests that passed are not the tests for this tree"
+    ],
+    "jev": {
+      "asked": true,
+      "model": "jev-1.13.0",
+      "reason": null,
+      "answers": [
+        {
+          "key": "criterion_evidenced#1",
+          "question": "criterion_evidenced",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "no",
+          "probabilities": {
+            "yes": 0.04,
+            "no": 0.96
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.6,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "criterion_evidenced#2",
+          "question": "criterion_evidenced",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "yes",
+          "probabilities": {
+            "yes": 0.72,
+            "no": 0.28
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.6,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "criterion_evidenced#3",
+          "question": "criterion_evidenced",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "yes",
+          "probabilities": {
+            "yes": 0.59,
+            "no": 0.41
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.6,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "criterion_evidenced#4",
+          "question": "criterion_evidenced",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "yes",
+          "probabilities": {
+            "yes": 0.58,
+            "no": 0.42
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.6,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "criterion_evidenced#5",
+          "question": "criterion_evidenced",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "yes",
+          "probabilities": {
+            "yes": 0.78,
+            "no": 0.22
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.6,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "criterion_evidenced#6",
+          "question": "criterion_evidenced",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "yes",
+          "probabilities": {
+            "yes": 0.85,
+            "no": 0.15
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.6,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "criterion_evidenced#7",
+          "question": "criterion_evidenced",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "yes",
+          "probabilities": {
+            "yes": 0.79,
+            "no": 0.21
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.6,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "diff_matches_solution",
+          "question": "diff_matches_solution",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "yes",
+          "probabilities": {
+            "yes": 0.72,
+            "no": 0.28
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.6,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#.agents/skills/seen-harness/SKILL.md",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "no",
+          "probabilities": {
+            "yes": 0.21,
+            "no": 0.79
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#.claude/skills/seen-harness/SKILL.md",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "no",
+          "probabilities": {
+            "yes": 0.21,
+            "no": 0.79
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#docs/harness/skill.md",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "no",
+          "probabilities": {
+            "yes": 0.25,
+            "no": 0.75
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#docs/harness/workflow.md",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "no",
+          "probabilities": {
+            "yes": 0.44,
+            "no": 0.56
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#docs/tickets/SEEN-112-run-a-ticket-from-clarify-to-merge-in-one-go.md",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "no",
+          "probabilities": {
+            "yes": 0.3,
+            "no": 0.7
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#harness/cli.py",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "yes",
+          "probabilities": {
+            "yes": 0.63,
+            "no": 0.37
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#harness/coverage.py",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "yes",
+          "probabilities": {
+            "yes": 0.6,
+            "no": 0.4
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#harness/guard.py",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "yes",
+          "probabilities": {
+            "yes": 0.75,
+            "no": 0.25
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#harness/loop.py",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "yes",
+          "probabilities": {
+            "yes": 0.87,
+            "no": 0.13
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#harness/paths.py",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "no",
+          "probabilities": {
+            "yes": 0.34,
+            "no": 0.66
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#harness/tests/test_coverage_gate.py",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "no",
+          "probabilities": {
+            "yes": 0.21,
+            "no": 0.79
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#harness/tests/test_enforcement.py",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "no",
+          "probabilities": {
+            "yes": 0.24,
+            "no": 0.76
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#harness/tests/test_loop.py",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "no",
+          "probabilities": {
+            "yes": 0.34,
+            "no": 0.66
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "reviewer_must_read#harness/thresholds.toml",
+          "question": "reviewer_must_read",
+          "type": "noul",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "no",
+          "probabilities": {
+            "yes": 0.34,
+            "no": 0.66
+          },
+          "confidence": null,
+          "score": null,
+          "threshold": 0.5,
+          "passed": false,
+          "fallback_reason": null
+        },
+        {
+          "key": "review_depth",
+          "question": "review_depth",
+          "type": "score",
+          "options": [
+            "spot",
+            "full"
+          ],
+          "source": "jev",
+          "model": "jev-1.13.0",
+          "outcome": "spot",
+          "probabilities": {
+            "spot": 0.57,
+            "full": 0.43
+          },
+          "confidence": 0.14,
+          "score": 0.43,
+          "threshold": 0.5,
+          "passed": true,
+          "fallback_reason": null
+        }
+      ]
+    },
+    "criteria_answers": [
+      {
+        "key": "criterion_evidenced#1",
+        "question": "criterion_evidenced",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.04,
+          "no": 0.96
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": false,
+        "fallback_reason": null,
+        "criterion": "A code ticket with no open questions runs from clarify to a green `verify-delivery` without a stop, in one orchestrating session whose own spending stays inside one slice's budget, with every slice's RED and GREEN recorded by `seen-implementer` and the review by `seen-reviewer`, proven on a real ticket of at most 2 points and evidenced by its journal and its budget figures"
+      },
+      {
+        "key": "criterion_evidenced#2",
+        "question": "criterion_evidenced",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.72,
+          "no": 0.28
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null,
+        "criterion": "A ticket with an unknown a person must settle stops once, asks every question it has in a single batch, records the answer as a note, and continues to the end when `clarified` clears; a second stop for a question the first batch could have carried is reported as a defect of the run and named in its summary"
+      },
+      {
+        "key": "criterion_evidenced#3",
+        "question": "criterion_evidenced",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.59,
+          "no": 0.41
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": false,
+        "fallback_reason": null,
+        "criterion": "Every stop is one of the named ones and none is retried: a gate that refuses, a Jev question that does not clear, a failed check, red CI, and a second return on the same slice, each reporting the stage, the record number and the one command to resume from"
+      },
+      {
+        "key": "criterion_evidenced#4",
+        "question": "criterion_evidenced",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.58,
+          "no": 0.42
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": false,
+        "fallback_reason": null,
+        "criterion": "The merge is never taken without authorisation: the run stops at a green `verify-merge` with the receipt in the pull request body, and merges only when that was authorised for this ticket and the authorisation is in the journal with who gave it and when"
+      },
+      {
+        "key": "criterion_evidenced#5",
+        "question": "criterion_evidenced",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.78,
+          "no": 0.22
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null,
+        "criterion": "A ticket whose executor is `human` is refused at the start, naming the criteria only a person can settle, rather than run into a verification it would have to invent"
+      },
+      {
+        "key": "criterion_evidenced#6",
+        "question": "criterion_evidenced",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.85,
+          "no": 0.15
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null,
+        "criterion": "Whether the harness may launch a model is settled at the solution stage and recorded either way, quoting the line of `docs/harness/workflow.md` it stands on, and the run's shape follows that decision rather than the other way round"
+      },
+      {
+        "key": "criterion_evidenced#7",
+        "question": "criterion_evidenced",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.79,
+          "no": 0.21
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null,
+        "criterion": "The run widens nothing: no criterion is ticked that its own evidence does not carry, and the summary lists every criterion left unmet with what each is waiting on"
+      }
+    ],
+    "review_depth": "full",
+    "reviewer_model": "opus",
+    "model_depth": "spot",
+    "focus": [
+      ".agents/skills/seen-harness/SKILL.md",
+      ".claude/skills/seen-harness/SKILL.md",
+      "docs/harness/skill.md",
+      "docs/harness/workflow.md",
+      "docs/tickets/SEEN-112-run-a-ticket-from-clarify-to-merge-in-one-go.md",
+      "harness/cli.py",
+      "harness/coverage.py",
+      "harness/guard.py",
+      "harness/loop.py",
+      "harness/paths.py",
+      "harness/tests/test_coverage_gate.py",
+      "harness/tests/test_enforcement.py",
+      "harness/tests/test_loop.py",
+      "harness/thresholds.toml"
+    ],
+    "shadow": true,
+    "shadow_source": "threshold",
+    "shadow_reason": "[review] triage_shadow is true in harness/thresholds.toml",
+    "would_exclude": [
+      ".agents/skills/seen-harness/SKILL.md",
+      ".claude/skills/seen-harness/SKILL.md",
+      "docs/harness/skill.md",
+      "docs/harness/workflow.md",
+      "docs/tickets/SEEN-112-run-a-ticket-from-clarify-to-merge-in-one-go.md",
+      "harness/paths.py",
+      "harness/tests/test_coverage_gate.py",
+      "harness/tests/test_enforcement.py",
+      "harness/tests/test_loop.py",
+      "harness/thresholds.toml"
+    ],
+    "excluded_share": 0.5138,
+    "always_read": [
+      "docs/tickets/SEEN-112-run-a-ticket-from-clarify-to-merge-in-one-go.md",
+      "docs/harness/history/SEEN-112/"
+    ],
+    "reviewer_task": "Review SEEN-112 against its acceptance criteria and its journal.\n\nDepth: full, settled by triage record 52, in shadow mode, so the focus set is the whole diff and what the narrowing would have dropped is recorded rather than acted on\n\nRun the reviewer on opus by rule: the strongest model at full depth, one tier down at spot.\n\nRead these whatever the depth, because they are what a review is against and no focus set can hold them:\n- docs/tickets/SEEN-112-run-a-ticket-from-clarify-to-merge-in-one-go.md\n- docs/harness/history/SEEN-112/\n\nOf the diff, read these 14 file(s) and no others:\n- .agents/skills/seen-harness/SKILL.md\n- .claude/skills/seen-harness/SKILL.md\n- docs/harness/skill.md\n- docs/harness/workflow.md\n- docs/tickets/SEEN-112-run-a-ticket-from-clarify-to-merge-in-one-go.md\n- harness/cli.py\n- harness/coverage.py\n- harness/guard.py\n- harness/loop.py\n- harness/paths.py\n- harness/tests/test_coverage_gate.py\n- harness/tests/test_enforcement.py\n- harness/tests/test_loop.py\n- harness/thresholds.toml\n\nAlready settled with no model, so do not spend a read confirming any of them: coverage, lint, gitleaks, slice_files.\n\nPartly settled, and the rest is yours:\n- red_before_green: it passed, but it proves the cited check exited non-zero, never that it failed for the reason the slice states, which only a reader comparing the two can judge\n- tests_added: it passed, but it proves a test file is in the change, never that the behaviour the slice adds has a test of its own, which a one-line fixture edit satisfies just as well\n- acceptance_entries: it passed, but it counts the clarify record's checks against the ticket's criteria, never that each criterion has one, because neither list names the other\n\nNot settled, so they are yours:\n- fingerprint (fail): The tree changed after check 49: it ran against d3e1d1b330a2 and this triage reads a9de77474fa5. The tests that passed are not the tests for this tree\n- pull_request (unavailable): gh could not answer, so the pull request body was not read. It is checked again at merge, where the receipt hash has to be in it\n\nReturn the review record's shape. Its `read` list must name every file you read and must cover the focus set above, which the review gate checks."
+  }
+}

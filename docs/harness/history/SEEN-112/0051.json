@@ -1,0 +1,38 @@
+{
+  "sequence": 51,
+  "ticket": "SEEN-112",
+  "timestamp": "2026-09-27T11:48:06.564430+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 5,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "9b8038d51dc9b8b8e973e530ffbd2821c4dbb9bd",
+  "prev_hash": "fbe285df70d6194d655d235114c30696844a5576b5341087429a60ace6c0e065",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": 3,
+          "behaviour": "The three defects the proof run on SEEN-008 surfaced. The guard now tells two absences apart: no plan accepted at all stays permissive with rule `no-slice-plan`, while a plan whose every slice is done guards against the union of every slice's files with rule `outside-plan`, the union rather than the last slice because a return from review points at whichever slice carried the finding and a last-slice fallback would refuse the edit the return asked for. A slice entry names a directory when it carries a trailing slash or exists on disk as one, and in both cases only when it contains a separator, matched segment-wise against `entry.rstrip('/') + '/'`, so a one-word entry cannot authorise the tree under it, a file entry still refuses a sibling, and `supabase/migrations` does not authorise `supabase/migrations-old`. And the coverage gate now reads a figure the run wrote: DEFAULT_COMMAND runs vitest through `pnpm exec` so the flags reach it, `measured` refuses a summary older than the run, and the record carries `summary_written`. The first honest figure is 100.0 against a baseline of 100.0, delta zero, honest rather than impressive because packages/core/src still holds one five-line file; no baseline was moved.",
+          "failure_reason": "`python3 -m unittest harness.tests.test_coverage_gate harness.tests.test_enforcement.GuardAfterTheLastSlice harness.tests.test_enforcement.GuardNamesADirectory` exited 1 with seven failures of fifteen tests. In the runner's words: `AssertionError: True is not false : the plan is worked out, not absent: No accepted slice plan yet for SEEN-001; nothing to guard supabase/migrations/20260927000004_trade_record.sql against`, which is SEEN-008's own answer and its `no-slice-plan` rule; `AssertionError: False is not true : the slice names the directory: supabase/migrations/20260927000004_trade_record.sql is not one of the files slice 1 of 1 names: supabase/migrations, packages/core/src/db/tables.ts`; `AssertionError: HarnessError not raised` for a summary older than the run, twice; `AssertionError: 'summary_written' not found in {...'lines': 74.0, 'baseline': None, 'delta': None}`; and `AssertionError: '--' unexpectedly found in ('pnpm', '--filter', '@seen/core', 'test', '--', '--coverage.enabled', '--coverage.reporter=json-summary')`.",
+          "red": 46,
+          "green": 47
+        }
+      ],
+      "regression": 49,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "a00943ab9615",
+      "output_tokens": 474936,
+      "tool_calls": 242,
+      "unavailable": null
+    }
+  }
+}

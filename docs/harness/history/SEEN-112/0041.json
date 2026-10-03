@@ -1,0 +1,16 @@
+{
+  "sequence": 41,
+  "ticket": "SEEN-112",
+  "timestamp": "2026-09-27T06:39:51.070468+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "tdd",
+  "attempt": 4,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "9939b11837a1876ed0990f9aac7aa00ceec25282",
+  "prev_hash": "1c3beba7835eaed3e1c53578cbf23db3805e9bd01bcfece6bb56785b9bd5c666",
+  "data": {
+    "text": "# The fourth stop, the correction it carries, and where criterion 1's proof goes\n\n**The fourth stop, and the defect is mine rather than the run's this time.** The run stopped three\ntimes over criterion 1 and I recommended an amendment twice. Both recommendations were wrong and the\ngate was right all three times, at 0.96, 0.94 and 0.90. The reason was not the wording and not missing\nevidence: criterion 1 asserts a run that reaches a green `verify-delivery` **without a stop**, and this\nticket's own journal is the counterexample, with three stops, three returns and a session more than\nthree times over the one-slice budget. The criterion said the proof belongs on a real ticket of at most\n2 points precisely because it cannot be carried by the ticket that builds the loop, and I twice\nproposed editing that away. Jev was reading the journal rather than the sentence, which is the whole\npoint of giving it the record as state.\n\n**Both amendments are withdrawn** and criterion 1 stands as written. The ticket file keeps the\nwithdrawal rather than erasing the edits: a criterion that was changed twice and put back is something\na later reader should be able to see.\n\n**Ruud's decision, 27 September 2026.** The loop is proven end to end on SEEN-008, trade-record schema\nv1 with `tenant_id` and RLS on every table, from a branch off this one, with one deviation recorded:\nSEEN-008 is 5 points and four slices rather than at most 2. Two alternatives were declined. Opening a\nsmall harness ticket that taught the review triage to tell a criterion with no evidence from one whose\nevidence lands at delivery, the review-stage sibling of what SEEN-100 did at clarify, was declined\nbecause it changes the gate that is refusing this ticket, which is the one move a ticket should be most\nsuspicious of. Parking the branch until SEEN-032 becomes workable was declined because it leaves the\nloop unused while every ticket in between is worked the old way.\n\n**What the run on SEEN-008 can and cannot prove, stated before it starts rather than after.** Criterion\n1 requires a code ticket with no open questions. SEEN-008 is a five-point schema ticket with real design\ndecisions in it, so if its clarify record raises even one question a person must settle, the run stops\nonce, asks in a single batch, resumes, and evidences criterion 2 instead. Which criterion that journal\nproves is a fact about the run and is reported from the journal afterwards, not chosen beforehand.\n"
+  }
+}

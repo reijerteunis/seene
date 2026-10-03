@@ -1,0 +1,37 @@
+{
+  "sequence": 59,
+  "ticket": "SEEN-112",
+  "timestamp": "2026-10-03T18:06:06.573011+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 6,
+  "actor": "claude:implementer",
+  "session": "5cd7e218d9c6",
+  "head": "ebd1d96e95b47e51c6a899b64bcafbe55c179381",
+  "prev_hash": "88a8f092dd8a15ed7686696448002967ebac48f750dbded49b20cb575f4cab78",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "pytest",
+      "harness/tests/test_enforcement.py",
+      "harness/tests/test_loop.py",
+      "harness/tests/test_paths.py",
+      "-q",
+      "-p",
+      "no:cacheprovider"
+    ],
+    "phase": "green",
+    "exit_code": 4,
+    "model": "claude-opus-5-5",
+    "model_declared": "opus",
+    "agent_declared": null,
+    "duration_ms": 128,
+    "output": "\u001b[31mERROR: file or directory not found: harness/tests/test_paths.py\n\u001b[0m\n\n\u001b[33m\u001b[33mno tests ran\u001b[0m\u001b[33m in 0.00s\u001b[0m\u001b[0m\n",
+    "output_sha256": "d57df15f44a6b60709b2555a8c3a6f5afc19739e215f9f47387dffd8007e581c",
+    "output_truncated": false,
+    "before": "053bdab307e23736aa47e1d8e23bb22e96ba68f8d39d3d7d260b5e61c4478af3",
+    "after": "053bdab307e23736aa47e1d8e23bb22e96ba68f8d39d3d7d260b5e61c4478af3"
+  }
+}

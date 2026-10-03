@@ -1,0 +1,35 @@
+{
+  "sequence": 58,
+  "ticket": "SEEN-112",
+  "timestamp": "2026-10-03T18:06:03.731585+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 6,
+  "actor": "claude:implementer",
+  "session": "5cd7e218d9c6",
+  "head": "ebd1d96e95b47e51c6a899b64bcafbe55c179381",
+  "prev_hash": "fe00c0a7deb5c543d6e7493fd75b2708112db10a8ed8caac316adee23d851703",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "pytest",
+      "harness/tests/test_enforcement.py::GuardNamesADirectory",
+      "-q",
+      "-p",
+      "no:cacheprovider"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "model": "claude-opus-5-5",
+    "model_declared": "opus",
+    "agent_declared": null,
+    "duration_ms": 1042,
+    "output": "\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[31m                                                                   [100%]\u001b[0m\n=================================== FAILURES ===================================\n\u001b[31m\u001b[1m_ GuardNamesADirectory.test_a_top_level_name_does_not_authorise_the_tree_under_it (path='harness/guard.py') _\u001b[0m\n\nself = <harness.tests.test_enforcement.GuardNamesADirectory testMethod=test_a_top_level_name_does_not_authorise_the_tree_under_it>\n\n    \u001b[0m\u001b[94mdef\u001b[39;49;00m\u001b[90m \u001b[39;49;00m\u001b[92mtest_a_top_level_name_does_not_authorise_the_tree_under_it\u001b[39;49;00m(\u001b[96mself\u001b[39;49;00m):\u001b[90m\u001b[39;49;00m\n    \u001b[90m    \u001b[39;49;00m\u001b[33m\"\"\"The hole this fix must not open. `harness` is a directory on disk in\u001b[39;49;00m\n    \u001b[33m    every project this harness runs in, and a one-word slice entry that\u001b[39;49;00m\n    \u001b[33m    authorised every file under it would widen every plan in the repository.\u001b[39;49;00m\n    \u001b[33m    \"\"\"\u001b[39;49;00m\u001b[90m\u001b[39;49;00m\n        \u001b[96mself\u001b[39;49;00m.plan(\u001b[96mself\u001b[39;49;00m.slice_(\u001b[33m'\u001b[39;49;00m\u001b[33mharness\u001b[39;49;00m\u001b[33m'\u001b[39;49;00m))\u001b[90m\u001b[39;49;00m\n    \u001b[90m\u001b[39;49;00m\n        \u001b[94mfor\u001b[39;49;00m path \u001b[95min\u001b[39;49;00m (\u001b[33m'\u001b[39;49;00m\u001b[33mharness/guard.py\u001b[39;49;00m\u001b[33m'\u001b[39;49;00m, \u001b[33m'\u001b[39;49;00m\u001b[33mharness/coverage.py\u001b[39;49;00m\u001b[33m'\u001b[39;49;00m):\u001b[90m\u001b[39;49;00m\n            \u001b[94mwith\u001b[39;49;00m \u001b[96mself\u001b[39;49;00m.subTest(path=path):\u001b[90m\u001b[39;49;00m\n>               \u001b[96mself\u001b[39;49;00m.assertFalse(\u001b[96mself\u001b[39;49;00m.guard(path)[\u001b[33m'\u001b[39;49;00m\u001b[33mallowed\u001b[39;49;00m\u001b[33m'\u001b[39;49;00m])\u001b[90m\u001b[39;49;00m\n\u001b[1m\u001b[31mE               AssertionError: True is not false\u001b[0m\n\n\u001b[1m\u001b[31mharness/tests/test_enforcement.py\u001b[0m:413: AssertionError\n\u001b[31m\u001b[1m_ GuardNamesADirectory.test_a_top_level_name_does_not_authorise_the_tree_under_it (path='harness/coverage.py') _\u001b[0m\n\nself = <harness.tests.test_enforcement.GuardNamesADirectory testMethod=test_a_top_level_name_does_not_authorise_the_tree_under_it>\n\n    \u001b[0m\u001b[94mdef\u001b[39;49;00m\u001b[90m \u001b[39;49;00m\u001b[92mtest_a_top_level_name_does_not_authorise_the_tree_under_it\u001b[39;49;00m(\u001b[96mself\u001b[39;49;00m):\u001b[90m\u001b[39;49;00m\n    \u001b[90m    \u001b[39;49;00m\u001b[33m\"\"\"The hole this fix must not open. `harness` is a directory on disk in\u001b[39;49;00m\n    \u001b[33m    every project this harness runs in, and a one-word slice entry that\u001b[39;49;00m\n    \u001b[33m    authorised every file under it would widen every plan in the repository.\u001b[39;49;00m\n    \u001b[33m    \"\"\"\u001b[39;49;00m\u001b[90m\u001b[39;49;00m\n        \u001b[96mself\u001b[39;49;00m.plan(\u001b[96mself\u001b[39;49;00m.slice_(\u001b[33m'\u001b[39;49;00m\u001b[33mharness\u001b[39;49;00m\u001b[33m'\u001b[39;49;00m))\u001b[90m\u001b[39;49;00m\n    \u001b[90m\u001b[39;49;00m\n        \u001b[94mfor\u001b[39;49;00m path \u001b[95min\u001b[39;49;00m (\u001b[33m'\u001b[39;49;00m\u001b[33mharness/guard.py\u001b[39;49;00m\u001b[33m'\u001b[39;49;00m, \u001b[33m'\u001b[39;49;00m\u001b[33mharness/coverage.py\u001b[39;49;00m\u001b[33m'\u001b[39;49;00m):\u001b[90m\u001b[39;49;00m\n            \u001b[94mwith\u001b[39;49;00m \u001b[96mself\u001b[39;49;00m.subTest(path=path):\u001b[90m\u001b[39;49;00m\n>               \u001b[96mself\u001b[39;49;00m.assertFalse(\u001b[96mself\u001b[39;49;00m.guard(path)[\u001b[33m'\u001b[39;49;00m\u001b[33mallowed\u001b[39;49;00m\u001b[33m'\u001b[39;49;00m])\u001b[90m\u001b[39;49;00m\n\u001b[1m\u001b[31mE               AssertionError: True is not false\u001b[0m\n\n\u001b[1m\u001b[31mharness/tests/test_enforcement.py\u001b[0m:413: AssertionError\n\u001b[36m\u001b[1m=========================== short test summary info ============================\u001b[0m\n\u001b[31mSUBFAILED(path='harness/guard.py')\u001b[0m harness/tests/test_enforcement.py::\u001b[1mGuardNamesADirectory::test_a_top_level_name_does_not_authorise_the_tree_under_it\u001b[0m - AssertionError: True is not false\n\u001b[31mSUBFAILED(path='harness/coverage.py')\u001b[0m harness/tests/test_enforcement.py::\u001b[1mGuardNamesADirectory::test_a_top_level_name_does_not_authorise_the_tree_under_it\u001b[0m - AssertionError: True is not false\n\u001b[31m\u001b[31m\u001b[1m2 failed\u001b[0m, \u001b[32m4 passed\u001b[0m\u001b[31m in 0.83s\u001b[0m\u001b[0m\n",
+    "output_sha256": "0e7b5acf42cb34791146eaf6b6c0d41dcdef247dedd0c796e1e6050eed47c1a5",
+    "output_truncated": false,
+    "before": "f7bdab32fdce8a4ef7268b501fe19bc41d86e8fdff1fe2b3f100bfda01592a56",
+    "after": "f7bdab32fdce8a4ef7268b501fe19bc41d86e8fdff1fe2b3f100bfda01592a56"
+  }
+}

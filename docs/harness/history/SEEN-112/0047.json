@@ -1,0 +1,34 @@
+{
+  "sequence": 47,
+  "ticket": "SEEN-112",
+  "timestamp": "2026-09-27T11:41:15.079659+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 5,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "9b8038d51dc9b8b8e973e530ffbd2821c4dbb9bd",
+  "prev_hash": "b2ba50541611f0ac378fbf6ab7ab1a07d7438ff762c6dc1e95a5bbc55d6ac8d2",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "harness.tests.test_coverage_gate",
+      "harness.tests.test_enforcement.GuardAfterTheLastSlice",
+      "harness.tests.test_enforcement.GuardNamesADirectory"
+    ],
+    "phase": "green",
+    "exit_code": 0,
+    "model": "claude-opus-5",
+    "model_declared": "opus",
+    "agent_declared": "seen-implementer",
+    "duration_ms": 3102,
+    "output": "...............\n----------------------------------------------------------------------\nRan 15 tests in 3.038s\n\nOK\n",
+    "output_sha256": "55e056966e5b6d3a09ad8141ae9548e2450d884f7d70a75a0d687b5106d058e9",
+    "output_truncated": false,
+    "before": "d3e1d1b330a2e0b5b61d5703ae7f5e6e74bb2c0c78b1097a3992d444b9f18315",
+    "after": "d3e1d1b330a2e0b5b61d5703ae7f5e6e74bb2c0c78b1097a3992d444b9f18315"
+  }
+}

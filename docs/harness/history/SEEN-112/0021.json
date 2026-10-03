@@ -1,0 +1,23 @@
+{
+  "sequence": 21,
+  "ticket": "SEEN-112",
+  "timestamp": "2026-09-26T23:20:36.621270+00:00",
+  "harness_version": "2",
+  "kind": "return",
+  "stage": "review",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "4a1ba103c2b6fcd19086d1ae8ae00efb55640594",
+  "prev_hash": "03c63f1953890e707ddce36ab086306b7b13eba7914e71cd0b919affeda5e57f",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "tdd",
+    "to_attempt": 2,
+    "reason": "The triage could see no evidence for: A code ticket with no open questions runs from clarify to a green `verify-delivery` without a stop, in one orchestrating session whose own spending stays inside one slice's budget, with every slice's RED and GREEN recorded by `seen-implementer` and the review by `seen-reviewer`, proven on a real ticket of at most 2 points and evidenced by its journal and its budget figures; Every stop is one of the named ones and none is retried: a gate that refuses, a Jev question that does not clear, a failed check, red CI, and a second return on the same slice, each reporting the stage, the record number and the one command to resume from. A criterion with nothing behind it is answered at the tdd stage, by writing the test or the check that proves it, rather than by a reviewer reading a diff that does not contain it",
+    "unmet_criteria": [
+      1,
+      3
+    ]
+  }
+}

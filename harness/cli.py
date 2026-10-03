@@ -41,13 +41,21 @@ class GuardRefusal(HarnessError):
 DEFAULT_ROOT = Path(__file__).resolve().parents[1]
 TICKET_COMMANDS = ('start', 'status', 'history', 'draft', 'note', 'check', 'advance',
                    'return', 'graph', 'decide', 'coverage', 'mutation', 'handoff', 'budget',
-                   'reopen', 'discard', 'verify-delivery', 'verify-merge', 'review')
+                   'reopen', 'discard', 'verify-delivery', 'verify-merge', 'review', 'run',
+                   'authorise')
 # handoff writes a record, so it is bound to the ticket's own branch like every
 # other writing command. status --brief is not here and neither is budget: a
 # command a session runs to see where it stands must not make the journal longer
 # every time it is run.
+# run is here for the one thing it writes: a stop. Asking what to do next makes
+# no record, exactly as status and budget make none, but the halt that ends a run
+# is evidence about this ticket's own work and belongs on its own branch.
+# authorise is here for the obvious reason: it records that a person allowed the
+# merge of this ticket's own branch, so it is bound to that branch like every other
+# writing command. `run --summary` is the one exception inside a writing command,
+# and read_only() below is where that is said once.
 WRITING_COMMANDS = ('start', 'note', 'check', 'advance', 'return', 'graph', 'decide', 'coverage',
-                    'mutation', 'handoff', 'reopen', 'review', 'route',
+                    'mutation', 'handoff', 'reopen', 'review', 'route', 'run', 'authorise',
                     'verify-delivery')
 BRANCH = re.compile(r'^(claude|codex)/(?P<ticket>[A-Z]+-\d+)-')
 
@@ -187,6 +195,27 @@ def build_parser():
     route = ticket_command('route', 'Decide which model and which effort implement each slice')
     route.add_argument('--actor', required=True)
 
+    loop_command = ticket_command('run', 'Say what the next action is, exactly, and where it stops')
+    # Not required, because --summary takes no actor: it reads the ticket file and
+    # the journal and writes nothing, so there is nobody to hold to it. Required in
+    # run_loop for every other use, where a stop may be written.
+    loop_command.add_argument('--actor')
+    loop_command.add_argument('--stop', help='Record the named stop the action just taken ran '
+                                             'into, when only the command that failed knows: a '
+                                             'refused gate and red CI are told to the run, and '
+                                             'the rest it reads from the journal')
+    loop_command.add_argument('--summary', action='store_true',
+                              help='List every criterion with its box state and, for each unmet '
+                                   'one, what it is waiting on. Read-only')
+
+    authorise_command = ticket_command('authorise', 'Record that a person allowed the merge')
+    authorise_command.add_argument('--merge', action='store_true',
+                                   help='The scope. The merge is the only thing a run asks '
+                                        'permission for, and it is named rather than assumed')
+    authorise_command.add_argument('--by', required=True,
+                                   help='Who gave it. The record\'s own timestamp is when')
+    authorise_command.add_argument('--actor', required=True)
+
     reopen = ticket_command('reopen', 'Void a receipt and return the ticket to tdd, before merge')
     reopen.add_argument('--reason', required=True)
     reopen.add_argument('--actor', required=True)
@@ -279,6 +308,17 @@ def require_actor(actor, rules):
     require(tool in tools and role in roles,
             f'An actor is tool:role, one of {", ".join(tools)} and one of {", ".join(roles)}, '
             f'not {actor!r}. It is a self-reported claim, so report it honestly')
+
+
+def read_only(args):
+    """A writing command being used in the one way that writes nothing.
+
+    `run --summary` only: it reads the ticket file and the journal and appends
+    nothing, so it is held to neither the actor nor the branch, for the reason
+    `status` and `budget` are not writing commands at all. Every other use of `run`
+    may write a stop, so it stays bound to the ticket's own branch.
+    """
+    return args.command == 'run' and getattr(args, 'summary', False)
 
 
 def require_branch(repository, ticket):
@@ -461,6 +501,81 @@ def budget(repository, ticket, rules):
     return dict(ticket=ticket,
                **sessions.against_budget(spent, limits['output_token_budget'],
                                          subagents=subagents))
+
+
+def run_loop(repository, folder, records, args, rules):
+    """The next action, and the stop when there is one.
+
+    Read-only in the ordinary case, for the reason status and budget are: a
+    command a session runs after every step must not make the journal longer
+    every time it is run. A stop is the exception, because "none is retried" is a
+    claim about the journal and so has to be in it.
+
+    Dispatched before the journal is read for a stage, because a run begins
+    before the first record exists: with no journal the next action is to start
+    the ticket, and a human-executor ticket is refused there rather than after a
+    record is written about it.
+    """
+    from . import loop
+    if getattr(args, 'summary', False):
+        require(not args.stop, 'A summary reports what a run did; it does not end one')
+        return loop.summary(repository, args.ticket, records, rules)
+    require_actor(args.actor, rules)
+    if getattr(args, 'stop', None):
+        return loop.halt(repository, folder, records, args.ticket, args.actor, args.stop, rules)
+    action = loop.action(repository, args.ticket, records, rules, actor=args.actor, folder=folder)
+    reason = action.get('reason')
+    if reason is None:
+        return action
+    halted = loop.halt(repository, folder, records, args.ticket, args.actor, reason, rules)
+    if action['kind'] == 'stop':
+        return halted
+    # An ask is the action and the stop is what it leaves behind: the questions are
+    # what a person answers and the stop is where the run ended. Both, because a
+    # caller that got only the stop would have to read the journal to find what it
+    # was asked, and one that got only the ask could not tell a fresh batch from the
+    # same one reported twice.
+    return dict(action, stop=halted)
+
+
+def authorise(repository, folder, records, args, rules):
+    """Record that a person allowed the merge, and what they allowed.
+
+    The receipt says what was built and `verify-merge` says it is still what is
+    about to merge. Neither says anybody wanted it merged, which is what this is:
+    the scope, who gave it, and the receipt and tip they gave it over, with the
+    record's own timestamp as when.
+
+    It runs `verify-merge` first and refuses if it does not pass, because an
+    authorisation over a tree nobody checked authorises nothing. That also fixes the
+    order: this is the one record the procedure writes after the receipt, so it is
+    written when the receipt is still the last one and `verify-merge` can be read at
+    all.
+    """
+    from . import delivery, loop
+    require(args.merge,
+            'Say what is authorised: --merge is the only scope a run asks permission for')
+    require(records, f'{args.ticket} has no journal, so there is nothing to authorise')
+    current = journal.state(records)
+    require(current['stage'] == STAGES[-1],
+            f'{args.ticket} is at {current["stage"]}; a merge is authorised after the receipt is '
+            'written, so reach the deliver stage and run verify-delivery first')
+    already = loop.authorisation(records)
+    if already is not None:
+        raise HarnessError(f'{already["data"]["by"]} already authorised this merge at record '
+                           f'{already["sequence"]}. One authorisation per delivery: if the tree '
+                           'has changed since, harness reopen is what voids it')
+    ready = delivery.verify_merge(repository, folder, records)
+    return journal.append(folder, records, kind='authorisation', stage=current['stage'],
+                          attempt=current['attempt'], actor=args.actor, head=repository.head(),
+                          ticket=args.ticket,
+                          data=dict(scope='merge',
+                                    by=args.by,
+                                    receipt_sha256=ready['receipt_sha256'],
+                                    receipt_commit=ready['receipt_commit'],
+                                    tip=ready['tip'],
+                                    pull_request=ready['pull_request'],
+                                    verified='verify-merge'))
 
 
 def draft(repository, records, args):
@@ -832,21 +947,30 @@ def stage_decisions(repository, records, args, current, rules, evidence):
     return [taken.get(name) or fresh[name] for name in jev.questions_for(stage)]
 
 
-def require_decisions_pass(stage, answers):
-    """Refuse an advance the stage's blocking questions did not allow.
+def decision_refuses(stage, answer):
+    """Whether one recorded answer blocks an advance out of this stage.
 
-    Each blocking question says which way it reads. A decision that could not be
-    taken at all blocks nothing: it is recorded as unavailable and counted later,
-    rather than standing in for a judgement.
+    One definition, because two readers need it: this gate refuses the advance on
+    it, and the run stops at question_open on it when the answer is already in the
+    journal. A second copy of which way a question reads is how the two would
+    come to disagree about the same record.
+
+    A decision that could not be taken at all blocks nothing: it is recorded as
+    unavailable and counted later, rather than standing in for a judgement.
     """
+    sense = BLOCKING.get(stage, {}).get(answer['question'])
+    if sense is None or answer.get('passed') is None:
+        return False
+    return (answer['passed'] is False) if sense == 'clears' else bool(answer['passed'])
+
+
+def require_decisions_pass(stage, answers):
+    """Refuse an advance the stage's blocking questions did not allow."""
     rules = BLOCKING.get(stage, {})
     for answer in answers:
-        sense = rules.get(answer['question'])
-        if sense is None or answer['passed'] is None:
+        if not decision_refuses(stage, answer):
             continue
-        refused = (answer['passed'] is False) if sense == 'clears' else answer['passed']
-        if not refused:
-            continue
+        sense = rules[answer['question']]
         probability = answer['probabilities'].get(
             'yes', answer['probabilities'].get(answer['outcome'], 0.0))
         # The message says what happened. Printing the rule's own word made a
@@ -1273,12 +1397,13 @@ def execute(args):
         return hook_command(repository, args, rules)
 
     require_ticket_id(args.ticket, rules)
-    if args.command in WRITING_COMMANDS:
+    writing = args.command in WRITING_COMMANDS and not read_only(args)
+    if writing:
         require_actor(args.actor, rules)
         require_branch(repository, args.ticket)
 
     folder = journal_folder(repository, args.ticket)
-    path = lock(repository.root) if args.command in WRITING_COMMANDS else None
+    path = lock(repository.root) if writing else None
     try:
         records = journal.read(folder)
         if args.command == 'start':
@@ -1293,12 +1418,16 @@ def execute(args):
             return describe(repository, args.ticket, records, folder)
         if args.command == 'draft':
             return draft(repository, records, args)
+        if args.command == 'run':
+            return run_loop(repository, folder, records, args, rules)
 
         if args.command == 'discard':
             return discard_journal(repository, folder, records, args, rules)
         if args.command == 'verify-merge':
             from . import delivery
             return delivery.verify_merge(repository, folder, records)
+        if args.command == 'authorise':
+            return authorise(repository, folder, records, args, rules)
 
         current = journal.state(records)
         if args.command == 'reopen':

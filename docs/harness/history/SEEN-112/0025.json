@@ -1,0 +1,35 @@
+{
+  "sequence": 25,
+  "ticket": "SEEN-112",
+  "timestamp": "2026-09-26T23:37:49.891358+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "4a1ba103c2b6fcd19086d1ae8ae00efb55640594",
+  "prev_hash": "a0818ad7b8f09efef1153eb9540b5cb2ae5305bc56936562152f9019e87c8b75",
+  "data": {
+    "command": [
+      "pnpm",
+      "--filter",
+      "@seen/core",
+      "test",
+      "--",
+      "--coverage.enabled",
+      "--coverage.reporter=json-summary"
+    ],
+    "phase": "coverage",
+    "exit_code": 0,
+    "model": "claude-opus-5",
+    "model_declared": "opus",
+    "agent_declared": null,
+    "duration_ms": 565,
+    "output": "\n> @seen/core@0.0.0 test /Users/ruudvanengelenhoven/Development/seene/packages/core\n> vitest run -- --coverage.enabled --coverage.reporter=json-summary\n\n\n RUN  v3.2.7 /Users/ruudvanengelenhoven/Development/seene/packages/core\n\n ✓ src/index.test.ts (3 tests) 1ms\n\n Test Files  1 passed (1)\n      Tests  3 passed (3)\n   Start at  01:37:49\n   Duration  149ms (transform 15ms, setup 0ms, collect 11ms, tests 1ms, environment 0ms, prepare 38ms)\n\n",
+    "output_sha256": "08455ff7060e82b119cafbb7459b0d542f89cf17618da601e8fe03534a629024",
+    "output_truncated": false,
+    "before": "8127ae396d7e5ec628f32af6f440525452c1f5907529a0210eb25d995ac1ebcb",
+    "after": "8127ae396d7e5ec628f32af6f440525452c1f5907529a0210eb25d995ac1ebcb"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "sequence": 24,
+  "ticket": "SEEN-112",
+  "timestamp": "2026-09-26T23:36:35.961141+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 2,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "4a1ba103c2b6fcd19086d1ae8ae00efb55640594",
+  "prev_hash": "d26dae0b32e17e01d1eda05d84fd5b67dffc8408d3d4da9c231d4ec4cbf74e87",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "pytest",
+      "harness/tests/test_loop.py",
+      "-q",
+      "-k",
+      "NamedConditions or RedCI"
+    ],
+    "phase": "green",
+    "exit_code": 0,
+    "model": "claude-opus-5",
+    "model_declared": "opus",
+    "agent_declared": "seen-implementer",
+    "duration_ms": 3720,
+    "output": "..........                                                               [100%]\n10 passed, 24 deselected in 3.59s\n",
+    "output_sha256": "fc72fa1c2ef6cc9902d4df2beb906421413a80574c54c25a81a31691b8a0da49",
+    "output_truncated": false,
+    "before": "8127ae396d7e5ec628f32af6f440525452c1f5907529a0210eb25d995ac1ebcb",
+    "after": "8127ae396d7e5ec628f32af6f440525452c1f5907529a0210eb25d995ac1ebcb"
+  }
+}

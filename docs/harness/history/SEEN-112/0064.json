@@ -1,0 +1,31 @@
+{
+  "sequence": 64,
+  "ticket": "SEEN-112",
+  "timestamp": "2026-10-03T18:14:23.659246+00:00",
+  "harness_version": "2",
+  "kind": "stop",
+  "stage": "tdd",
+  "attempt": 6,
+  "actor": "claude:implementer",
+  "session": "5cd7e218d9c6",
+  "head": "ebd1d96e95b47e51c6a899b64bcafbe55c179381",
+  "prev_hash": "9696c8e29cb3f7dab8c57931006e7c11998f960da8e4429441c1ea9d18c3f36e",
+  "data": {
+    "kind": "stop",
+    "stage": "tdd",
+    "reason": "second_return",
+    "record": 30,
+    "resume": [
+      "python3",
+      "harness/run.py",
+      "draft",
+      "SEEN-112",
+      "--stage",
+      "solution"
+    ],
+    "why": "This plan has been returned twice. A second return is thrashing rather than a correction, and what to do with it is a person's call.",
+    "questions": [],
+    "question": null,
+    "checks": []
+  }
+}

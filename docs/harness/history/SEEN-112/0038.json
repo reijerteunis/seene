@@ -1,0 +1,38 @@
+{
+  "sequence": 38,
+  "ticket": "SEEN-112",
+  "timestamp": "2026-09-27T06:26:18.449117+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "tdd",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "88ef99ca4c25005d4232d91ed589a55c36855001",
+  "prev_hash": "4996a204d8b7313a0fc6a76a9c451ffbd35f31ac9940b22a65474b089fbfb4cc",
+  "data": {
+    "from_stage": "tdd",
+    "to_stage": "review",
+    "evidence": {
+      "mode": "code",
+      "slices": [
+        {
+          "position": null,
+          "behaviour": "Attempt 3 makes the evidence the amended criterion 1 names into something a reader can check rather than prose in a note. `harness run <ticket> --summary` now reports, per slice and from the journal alone, whether the slice was delegated and to which agent, read from the `--agent` declaration on the two checks the tdd record cites; the `--model` declaration beside what the route decided, so a slice that ran on something other than its route is visible; and the session's own output tokens with the subagents' apart from them, by calling `harness budget` rather than reading the logs a second time. `citations()` takes the latest citation per slice position across every tdd advance since the plan was accepted, rather than the latest record, because a rework round cites `position: null` and a reader that took the last record would leave a reworked ticket's slices with no checks. Nothing else in the summary changed, and it is still read-only. It belongs to no single slice: it reports on both of them. One repository convention was broken and caught by an existing meta-test rather than by a review: the new test class was defined after `if __name__ == '__main__':`, so a direct run of the module would have collected nothing from it. `GuardIsLastTest` failed the first regression at record 36, the class was moved above the guard, and record 37 is the green suite.",
+          "failure_reason": "`pytest harness/tests/test_loop.py -k RunEvidence` exited 1 with five failures, in the runner's words: `KeyError: 'slices'` four times, at the three per-slice tests and the not-yet-proved one, and `KeyError: 'spending'` at the session and subagents test. The sixth test in the class, that the summary writes nothing, passed before and after: it is what criteria 2 and 7 rest on and it was not supposed to move.",
+          "red": 32,
+          "green": 33
+        }
+      ],
+      "regression": 37,
+      "coverage_delta": 0.0
+    },
+    "decisions": [],
+    "figures": {
+      "session": "a00943ab9615",
+      "output_tokens": 213083,
+      "tool_calls": 135,
+      "unavailable": null
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "sequence": 55,
+  "ticket": "SEEN-112",
+  "timestamp": "2026-09-28T21:45:59.821243+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 6,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "fe8479d5f85d62de188a09fa6f9b14913548861a",
+  "prev_hash": "fd7d6eef2b2239a4b43ca08fb9732c649c960241fe19259ab2b1900aa157e807",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "pytest",
+      "harness/tests/test_loop.py::LoopTest::test_the_loop_answers_every_stage_with_runnable_argv",
+      "-q"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "model": "claude-opus-5",
+    "model_declared": "opus",
+    "agent_declared": "seen-implementer",
+    "duration_ms": 722,
+    "output": "F                                                                        [100%]\n=================================== FAILURES ===================================\n________ LoopTest.test_the_loop_answers_every_stage_with_runnable_argv _________\n\nself = <harness.tests.test_loop.LoopTest testMethod=test_the_loop_answers_every_stage_with_runnable_argv>\n\n    def test_the_loop_answers_every_stage_with_runnable_argv(self):\n        answers = []\n    \n        def step():\n            action = self.assert_runnable(self.ask())\n            answers.append(action)\n            return action\n    \n        # Nothing started yet: the run begins by starting the ticket.\n        self.assertEqual(self.named(step()), 'start')\n        self.start()\n    \n        # Each working stage is a draft to fill in and then its gate.\n        self.assertEqual(self.named(step()), 'draft')\n        self.run_harness('draft', self.ticket_id)\n        self.assertEqual(self.named(step()), 'advance')\n        self.submit('clarify', clarify_evidence())\n    \n        self.assertEqual(self.named(step()), 'draft')\n        self.run_harness('draft', self.ticket_id)\n        self.assertEqual(self.named(step()), 'advance')\n        self.submit('solution', solution_evidence())\n    \n        # tdd: the plan is routed before a slice is worked, because the model a\n        # slice runs on is never chosen inside the session that works it.\n        self.assertEqual(self.named(step()), 'route')\n        self.run_harness('route', self.ticket_id, '--actor', 'claude:implementer')\n    \n        spawn = step()\n        self.assertEqual(spawn['kind'], 'spawn')\n        self.assertEqual(spawn['agent'], 'seen-implementer')\n        self.assertIn('Work slice 1', spawn['task'])\n        self.assertEqual(self.named(spawn), 'check')\n        self.assertIn('--agent', spawn['argv'])\n        self.assertIn('seen-implementer', spawn['argv'])\n        self.assertIn('--model', spawn['argv'])\n    \n        red = self.run_harness('check', self.ticket_id, '--phase', 'red', '--actor',\n                               'claude:implementer', '--', 'sh', '-c',\n                               'echo expected 1, got 0; exit 1')\n        green = self.run_harness('check', self.ticket_id, '--phase', 'green', '--actor',\n                                 'claude:implementer', '--', 'true')\n    \n        # The slice is proved, so what is left before the gate is the measurement\n        # and the regression.\n        self.assertEqual(self.named(step()), 'coverage')\n        self.write('packages/core/coverage/coverage-summary.json',\n                   '{\"total\": {\"lines\": {\"total\": 10, \"covered\": 9, \"skipped\": 0, \"pct\": 90.0}}}')\n        self.run_harness('coverage', self.ticket_id, '--actor', 'claude:implementer', '--', 'true')\n    \n>       regression = step()\n                     ^^^^^^\n\nharness/tests/test_loop.py:135: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \nharness/tests/test_loop.py:89: in step\n    action = self.assert_runnable(self.ask())\n                                  ^^^^^^^^^^\nharness/tests/test_loop.py:56: in ask\n    return self.run_harness('run', self.ticket_id, '--actor', 'claude:implementer', *extra)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nharness/tests/test_lifecycle.py:21: in run_harness\n    return cli.execute(cli.parse(['--root', str(self.root), *args]))\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nharness/cli.py:1331: in execute\n    return run_loop(repository, folder, records, args, rules)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nharness/cli.py:509: in run_loop\n    action = loop.action(repository, args.ticket, records, rules, actor=args.actor, folder=folder)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nharness/loop.py:566: in action\n    return _stage_action(repository, folder, ticket, records, current, rules, actor)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nharness/loop.py:585: in _stage_action\n    return _tdd(repository, ticket, records, current, rules, actor)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nharness/loop.py:646: in _tdd\n    return _before_the_tdd_gate(repository, ticket, records, current, rules, actor)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nharness/loop.py:675: in _before_the_tdd_gate\n    if _regression(records, current) is None:\n       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nrecords = [{'sequence': 1, 'ticket': 'SEEN-001', 'timestamp': '2026-09-28T21:45:59.347593+00:00', 'harness_version': '2', ...}, ...sequence': 6, 'ticket': 'SEEN-001', 'timestamp': '2026-09-28T21:45:59.599553+00:00', 'harness_version': '2', ...}, ...]\ncurrent = {'stage': 'tdd', 'attempt': 1, 'records': 7}\n\n    def _regression(records, current):\n        \"\"\"A passing regression recorded after the last green of the plan in hand.\"\"\"\n>       greens = handoff.accepted_greens(records, handoff.plan_accepted_at(records))\n                 ^^^^^^^^^^^^^^^^^^^^^^^\nE       AttributeError: module 'harness.handoff' has no attribute 'accepted_greens'\n\nharness/loop.py:695: AttributeError\n=========================== short test summary info ============================\nFAILED harness/tests/test_loop.py::LoopTest::test_the_loop_answers_every_stage_with_runnable_argv\n1 failed in 0.59s\n",
+    "output_sha256": "750a694e53452de9aae4323fa3410a6c3c18854a1cbdc93feb9c16017d4f9975",
+    "output_truncated": false,
+    "before": "bc1013241332845d326535ac088e589ff95c063175d28a5429018f125eeb2eab",
+    "after": "bc1013241332845d326535ac088e589ff95c063175d28a5429018f125eeb2eab"
+  }
+}

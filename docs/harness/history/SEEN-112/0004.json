@@ -1,0 +1,16 @@
+{
+  "sequence": 4,
+  "ticket": "SEEN-112",
+  "timestamp": "2026-09-26T22:26:24.054112+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "clarify",
+  "attempt": 1,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "8a58b1bac504f819ea87ef47623ed90952871f9d",
+  "prev_hash": "32ba735dfa361cd035af3b717edc95246421cb7d61d1d94c2059b4366663049a",
+  "data": {
+    "text": "# Ruud's answers to the clarify batch, asked once, 27 September 2026\n\nTwo questions, both material, asked in one batch and answered in one sitting.\n\n**1. May the harness launch a model?** No: the principle stands. The line it stands on is the opening\nof the Principles section of `docs/harness/workflow.md`: \"The harness is a procedure, not an\norchestrator: it runs inside the current assistant session, launches no other model, bypasses no tool\npermission, and never claims an independent review when the implementing session reviewed its own\nwork.\" So `harness run` is a read-only advisor: it prints the next action with its exact argv, the\nagent to spawn, the task text and the named stops, and the assistant is what follows it and what\nspawns `seen-implementer` and `seen-reviewer`. Nothing in the harness starts a model as a subprocess,\nand `docs/harness/workflow.md` is not amended. This is criterion 6 settled, and the solution record\ncarries it with the line quoted.\n\n**2. What proves criterion 1?** Not this ticket. Criterion 1 wants the run proven end to end on a\nreal code ticket of at most 2 points, and no such ticket is available: SEEN-032 is the only 2-point\nticket still at `todo` and it waits on SEEN-008, which is 5 points and not started. Rather than\nprove it on a ticket the criterion does not describe, or open a second ticket inside this one,\nSEEN-112 delivers the run with its own tests, and the `## Outcome` names criterion 1 as unmet and\nwhat it waits on: the first unblocked ticket of at most 2 points, where the proof runs on that\nticket's own journal and budget figures. Criteria 2 to 7 are met and evidenced here. That is the\nticket's own criterion 7 applied to itself: nothing is ticked that its evidence does not carry.\n"
+  }
+}

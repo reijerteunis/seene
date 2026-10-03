@@ -20,6 +20,50 @@ run next.
 `return` sends a ticket back to an earlier stage and counts as rework. `reopen` voids a receipt before
 the work is merged, when a defect is found after delivery. Both are recorded with a reason.
 
+## The run
+
+`python3 harness/run.py run <ticket> --actor claude:implementer` says what the next action is,
+exactly: the stage it belongs to, its kind (`command`, `spawn`, `ask`, `stop` or `merge`), the argv to
+run, the agent to spawn and that agent's task text where there is one, why this action rather than
+another, and the named stops. **It prints the action and you execute it.** The harness is a procedure
+and not an orchestrator: it runs inside the current session, launches no other model and bypasses no
+tool permission, so a run is a sequence of commands you can read, repeat by hand and hand to the next
+session. Ask it after every step. It reads the journal and writes nothing, apart from the one thing it
+must.
+
+That one thing is the stop. A run ends at one of the six named halts in `[run] stops` in
+`harness/thresholds.toml` and none of them is retried: `gate_refused`, `question_open`,
+`check_failed`, `ci_red`, `second_return` and `awaiting_authorisation`. Each stop record says the
+stage, the record it stopped on and the one command that resumes it, and at most one is written per
+reason and record, so a run asked ten times about one refused gate leaves one record saying so. A
+refused gate and red CI are the two the journal cannot see for itself: tell the run with `run
+<ticket> --stop gate_refused`.
+
+**Every question in one batch.** A clarify draft that still carries `open_questions` yields an `ask`
+action carrying all of them at once, and the run stops at `question_open` pointing at it. Answer them
+in one file, record it with `note`, then fold the answers into the draft, because the gate refuses a
+record that still carries an open question. A question already asked and answered is never asked
+again; a question no earlier batch carried is a second batch, and `run --summary` names that as a
+defect of the run. What only the work can settle is not asked at all: it belongs in `decisions` with
+the observation that will settle it.
+
+**The merge waits on a person.** At `delivered` the run's action is `verify-merge`, and once that is
+green with the receipt hash in the pull request body the run stops at `awaiting_authorisation`. Then
+`python3 harness/run.py authorise <ticket> --merge --by "Ruud" --actor claude:implementer` records who
+allowed it, over the receipt and the tip `verify-merge` read there, with the record's own timestamp as
+when. Only after that does the run offer a `merge` action, and its argv is `gh pr merge --squash`,
+because nothing in the harness merges anything and nothing ever will. Run `verify-merge` before
+authorising rather than after: the authorisation is the one record the procedure writes after the
+receipt, and that check needs the receipt to be the last one.
+
+**A ticket whose executor is a person is refused before its journal exists.** A run that started
+SEEN-110 would reach a verification whose only way forward is to invent the fact the criterion exists
+to establish. Work those with Ruud and record the outcome under `## Outcome` in the ticket file.
+
+**The summary.** `python3 harness/run.py run <ticket> --summary` takes no actor and writes nothing:
+every criterion with its box state read from the ticket file, what each unmet one is waiting on read
+from the journal, and the defects of the run so far.
+
 ## Six rules you cannot infer
 
 **Evidence lives in `.harness-drafts/`.** `draft` puts it there and `advance` reads it from there.
@@ -282,7 +326,8 @@ declared on a check that is not one of `[agents] names`. A slice citing a check 
 plan, a slice over 2 points or a plan over 4. Coverage that fell. A record or a handoff pack carrying
 the value of an environment variable. A delivery whose checks are not green on the commit it
 attests. A merge where anything but the journal, the reports, the coverage baseline or the graph
-changed after the receipt. Each refusal says what to do next.
+changed after the receipt. A `merge` action with no authorisation record behind it, and a run on a
+ticket whose executor is a person. Each refusal says what to do next.
 
 And some of it before the fact, because both assistants now run the harness's lifecycle hooks from
 one source, `harness/hooks.json`, written into their two copies by `harness sync`. Before an edit,

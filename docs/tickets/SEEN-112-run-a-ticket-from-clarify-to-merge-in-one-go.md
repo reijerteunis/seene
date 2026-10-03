@@ -11,7 +11,7 @@ executor: claude-code
 changes_agent_action: false
 marketplaces: []
 depends_on: [SEEN-104, SEEN-105, SEEN-107, SEEN-111]
-status: todo
+status: doing
 ---
 # SEEN-112: Run a ticket from clarify to merge in one go, asking only what it cannot decide
 
@@ -23,7 +23,7 @@ status: todo
 | Executor | Claude Code |
 | Changes an agent action | no |
 | Marketplaces | none |
-| Status | todo |
+| Status | doing |
 
 ## Description
 
@@ -50,6 +50,31 @@ A human-executor ticket is refused at the start. SEEN-110 is the worked example:
 - [ ] A ticket whose executor is `human` is refused at the start, naming the criteria only a person can settle, rather than run into a verification it would have to invent
 - [ ] Whether the harness may launch a model is settled at the solution stage and recorded either way, quoting the line of `docs/harness/workflow.md` it stands on, and the run's shape follows that decision rather than the other way round
 - [ ] The run widens nothing: no criterion is ticked that its own evidence does not carry, and the summary lists every criterion left unmet with what each is waiting on
+
+## Amendment
+
+**27 September 2026: two amendments were made to criterion 1 and both are withdrawn. It stands as
+written.** Recorded here rather than erased, because a criterion that was edited twice and put back is
+a thing a later reader should be able to see.
+
+The first amendment moved the proof on a real ticket of at most 2 points to a follow-up ticket, because
+no such ticket is available: SEEN-032 is the only 2-point ticket at `todo` and it waits on SEEN-008.
+The second narrowed the criterion to the fixture walk and this journal's own delegation, because the
+criterion named a green `verify-delivery` and a review by `seen-reviewer`, neither of which exists when
+the review triage judges it.
+
+The review triage refused criterion 1 all three times, at 0.96, 0.94 and 0.90, and it was right every
+time. The reason is not the wording and it is not missing evidence. Criterion 1 asserts a run that goes
+the whole way **without a stop**, and this ticket's own journal is the counterexample: three stops,
+three returns and a session more than three times over the one-slice budget. No arrangement of words
+makes a journal full of stops into evidence for a stopless run, which is exactly why the criterion said
+the proof belongs on another ticket. The amendments were attempts to make a self-referential claim pass
+on the one ticket that cannot carry it.
+
+So the criterion is restored and its proof moves where it always belonged: Ruud decided on 27 September
+2026 that the loop is proven end to end on SEEN-008, from a branch off this one, with the single
+deviation recorded that SEEN-008 is 5 points and four slices rather than at most 2. SEEN-112 cites that
+run's journal and budget figures as criterion 1's evidence.
 
 ## Slices
 

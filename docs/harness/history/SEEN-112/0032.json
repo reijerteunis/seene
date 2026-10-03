@@ -1,0 +1,35 @@
+{
+  "sequence": 32,
+  "ticket": "SEEN-112",
+  "timestamp": "2026-09-27T06:11:37.988249+00:00",
+  "harness_version": "2",
+  "kind": "check",
+  "stage": "tdd",
+  "attempt": 3,
+  "actor": "claude:implementer",
+  "session": "a00943ab9615",
+  "head": "88ef99ca4c25005d4232d91ed589a55c36855001",
+  "prev_hash": "cbf10570f18f40e8d7bb3769186b1e75426978afd244e1871861b08b37332fd1",
+  "data": {
+    "command": [
+      "python3",
+      "-m",
+      "pytest",
+      "harness/tests/test_loop.py",
+      "-q",
+      "-k",
+      "RunEvidence"
+    ],
+    "phase": "red",
+    "exit_code": 1,
+    "model": "claude-opus-5",
+    "model_declared": "opus",
+    "agent_declared": "seen-implementer",
+    "duration_ms": 2328,
+    "output": "FFFF.F                                                                   [100%]\n=================================== FAILURES ===================================\n_ RunEvidenceTest.test_a_machine_with_no_session_log_is_null_rather_than_zero __\n\nself = <harness.tests.test_loop.RunEvidenceTest testMethod=test_a_machine_with_no_session_log_is_null_rather_than_zero>\n\n    def test_a_machine_with_no_session_log_is_null_rather_than_zero(self):\n>       spending = self.summary()['spending']\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       KeyError: 'spending'\n\nharness/tests/test_loop.py:921: KeyError\n_ RunEvidenceTest.test_a_slice_nothing_has_proved_yet_says_nobody_knows_rather_than_no _\n\nself = <harness.tests.test_loop.RunEvidenceTest testMethod=test_a_slice_nothing_has_proved_yet_says_nobody_knows_rather_than_no>\n\n    def test_a_slice_nothing_has_proved_yet_says_nobody_knows_rather_than_no(self):\n        # The rule cost.py applies to tokens and sessions.py to a missing log: an\n        # absence and a no must not read alike. The route is on record before the\n        # first slice is worked, so that much is reported either way.\n>       entries = self.summary()['slices']\n                  ^^^^^^^^^^^^^^^^^^^^^^^^\nE       KeyError: 'slices'\n\nharness/tests/test_loop.py:877: KeyError\n_ RunEvidenceTest.test_each_slice_reports_what_it_ran_on_beside_what_the_route_decided _\n\nself = <harness.tests.test_loop.RunEvidenceTest testMethod=test_each_slice_reports_what_it_ran_on_beside_what_the_route_decided>\n\n    def test_each_slice_reports_what_it_ran_on_beside_what_the_route_decided(self):\n        strongest = routing.strongest(self.rules())\n        self.walk_the_slices(second=dict(model='sonnet', agent='seen-implementer'))\n>       first, second = self.summary()['slices']\n                        ^^^^^^^^^^^^^^^^^^^^^^^^\nE       KeyError: 'slices'\n\nharness/tests/test_loop.py:890: KeyError\n_ RunEvidenceTest.test_each_slice_says_whether_it_was_delegated_and_to_which_agent _\n\nself = <harness.tests.test_loop.RunEvidenceTest testMethod=test_each_slice_says_whether_it_was_delegated_and_to_which_agent>\n\n    def test_each_slice_says_whether_it_was_delegated_and_to_which_agent(self):\n        self.walk_the_slices()\n>       first, second = self.summary()['slices']\n                        ^^^^^^^^^^^^^^^^^^^^^^^^\nE       KeyError: 'slices'\n\nharness/tests/test_loop.py:860: KeyError\n_ RunEvidenceTest.test_the_summary_reports_the_session_and_the_subagents_spending_apart _\n\nself = <harness.tests.test_loop.RunEvidenceTest testMethod=test_the_summary_reports_the_session_and_the_subagents_spending_apart>\n\n    def test_the_summary_reports_the_session_and_the_subagents_spending_apart(self):\n        self.write_log(1200, tool_calls=4)\n        self.write_subagent_log('a', 'seen-implementer', 700, tool_calls=3)\n>       spending = self.summary()['spending']\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       KeyError: 'spending'\n\nharness/tests/test_loop.py:906: KeyError\n=========================== short test summary info ============================\nFAILED harness/tests/test_loop.py::RunEvidenceTest::test_a_machine_with_no_session_log_is_null_rather_than_zero\nFAILED harness/tests/test_loop.py::RunEvidenceTest::test_a_slice_nothing_has_proved_yet_says_nobody_knows_rather_than_no\nFAILED harness/tests/test_loop.py::RunEvidenceTest::test_each_slice_reports_what_it_ran_on_beside_what_the_route_decided\nFAILED harness/tests/test_loop.py::RunEvidenceTest::test_each_slice_says_whether_it_was_delegated_and_to_which_agent\nFAILED harness/tests/test_loop.py::RunEvidenceTest::test_the_summary_reports_the_session_and_the_subagents_spending_apart\n5 failed, 1 passed, 34 deselected in 2.18s\n",
+    "output_sha256": "b1d2bb310d612728d15d9720ac9c58b9dcc3e019f9747bd299090b0e9bcd267f",
+    "output_truncated": false,
+    "before": "c6e3a9479b1ba4e92242c74dabeb100a74968b920d88f86b4930f1ba6f494b0f",
+    "after": "c6e3a9479b1ba4e92242c74dabeb100a74968b920d88f86b4930f1ba6f494b0f"
+  }
+}

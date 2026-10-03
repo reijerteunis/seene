@@ -272,3 +272,19 @@ verdict stays shadow. A finding no slice's files can be compared with is charged
 for the same reason a return is, and the verdict stays shadow while any such finding sits in the \
 window: a rate taken over findings the comparison could not see is not evidence that there were \
 none, which is what evidence nobody can place already means on the triage side."""
+
+# The run, from SEEN-112. One orchestrating session takes a ticket from clarify
+# to a green verify-merge, asking the harness what the next action is after every
+# step. What matters is not the loop, which is thin, but the stopping: a run that
+# retried a refused gate or invented an answer to a question only a person can
+# settle would produce a journal that reads as if the work were done.
+[run]
+# Every way a run ends. The first five are the ticket's own named stops and each
+# one is decided by evidence in the journal rather than by a counter the loop
+# keeps; awaiting_authorisation is the ordinary end of a run, which is a stop
+# that is not a failure: the merge is outward-facing and irreversible, and it is
+# the last point at which a person can still read what was built. A reason is
+# listed here rather than written into harness/loop.py so that adding one is a
+# diff a person reviews.
+stops = ["gate_refused", "question_open", "check_failed", "ci_red", "second_return",
+         "awaiting_authorisation"]
