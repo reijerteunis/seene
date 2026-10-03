@@ -1,0 +1,16 @@
+{
+  "sequence": 112,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-03T05:53:28.541832+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "review",
+  "attempt": 7,
+  "actor": "claude:implementer",
+  "session": "21f0db056ef9",
+  "head": "a77a6a57bbe7d768d63625771266bfe0252699c1",
+  "prev_hash": "ee676b2210c13e8eed29dccb6f1a0b3891c3dec1062862b9ed6128e1ea1ee721",
+  "data": {
+    "text": "# tdd accepted at record 110, review next in a fresh session\n\nRegression 109 (exit 0, 409 s) came after GREEN 105; the tdd record cites slices\n102/103 and 104/105, regression 109, coverage delta 0.0. The ticket file is at\nstatus: review with every criterion ticked, the README row says review, and the\nOutcome now cites the attempt 7 checks (102 to 105, regression 109) with the\nattempt 6 and pre-replay checks named as superseded.\n\nNext session, which must not be this one because this session wrote records 109\nand 110: harness review triage SEEN-116, then spawn seen-reviewer with the\ntriage's task text only.\n"
+  }
+}
