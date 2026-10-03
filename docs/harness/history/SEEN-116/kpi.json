@@ -1,0 +1,84 @@
+{
+  "ticket": "SEEN-116",
+  "delivered_at": "2026-10-03T12:31:32.156910+00:00",
+  "points": null,
+  "cycle_time_seconds": 61308,
+  "stage_seconds": {
+    "clarify": 1173,
+    "solution": 17598,
+    "tdd": 36530,
+    "review": 5632,
+    "deliver": 373
+  },
+  "attempts": 10,
+  "rework": 9,
+  "red_before_green": true,
+  "coverage": {
+    "package": "@seen/core",
+    "lines": 100.0,
+    "delta": 0.0
+  },
+  "mutation": null,
+  "findings": {
+    "by_severity": {
+      "medium": 8,
+      "low": 12
+    },
+    "fixed": 20,
+    "waived": 0
+  },
+  "first_pass_ci": true,
+  "tokens": null,
+  "cost": null,
+  "escaped_defects": [],
+  "slices": {
+    "planned": 1,
+    "proven": 15
+  },
+  "sessions": 20,
+  "subagents": {
+    "briefs": 2,
+    "agents": [
+      "seen-scout"
+    ],
+    "review": "subagent",
+    "both": true
+  },
+  "review_triage": {
+    "record": 155,
+    "depth": "full",
+    "model_depth": "full",
+    "shadow": true,
+    "asked": true,
+    "rules": [
+      "fingerprint did not pass, so the reviewer reads everything: The tree changed after check 151: it ran against 7bfe06f671c2 and this triage reads a630404d76f1. The tests that passed are not the tests for this tree",
+      "slice_files did not pass, so the reviewer reads everything: Changed but named by no slice and no changes entry: .dependency-cruiser.json, .github/workflows/ci.yml, .gitignore, biome.json, docs/harness/workflow.md, docs/tickets/README.md, harness/checks.py, harness/cli.py, harness/kpi.py, harness/report.py, harness/tests/helpers.py, harness/tests/test_kpi.py, harness/tests/test_report.py, harness/tests/test_routing.py, harness/thresholds.py, harness/thresholds.toml, harness/triage.py, knip.json, packages/core/db/repository.ts, packages/core/fixtures/tolerance/detector.test.ts, packages/core/fixtures/tolerance/detector.ts, packages/core/fixtures/tolerance/seeded.ts, packages/core/fixtures/tolerance/tsconfig.json, packages/core/package.json, packages/core/stryker.config.mjs, packages/core/stryker.fixture.config.mjs, packages/core/vitest.config.ts, pnpm-lock.yaml"
+    ],
+    "files": 36,
+    "focus": 36,
+    "excluded": 0,
+    "excluded_share": 0.0,
+    "reviewer_output_tokens": null,
+    "reviewer_tokens": null
+  },
+  "execution": [
+    {
+      "position": 1,
+      "name": "One reading of a plan entry for the floor, the kill check and CI",
+      "points": 2,
+      "model": "sonnet",
+      "effort": "high",
+      "source": "jev",
+      "rule": null,
+      "ran_on": null,
+      "ran_on_tier": null,
+      "output_tokens": 6919,
+      "cost_cents": null,
+      "routed_cost_cents": 10,
+      "cost_basis": "output tokens only, at the price of the model the slice ran on: a handoff record carries the session's output tokens and tool calls and nothing about input. routed_cost_cents prices the same tokens at the model the route chose, which in shadow is a counterfactual and not a cost"
+    }
+  ],
+  "output_tokens_per_slice": null,
+  "harness_version": "2",
+  "note": null
+}
