@@ -394,6 +394,13 @@ class AKilledMutantAsRedTest(MutationJournal):
         self.evaluate('tdd', self.tdd(), records=self.journal('packages/core/src',
                                                               killed={self.FEE: ['3']}))
 
+    def test_a_kill_in_the_source_of_the_test_a_slice_names_is_a_red(self):
+        source = self.root / self.FEE
+        source.parent.mkdir(parents=True, exist_ok=True)
+        source.write_text('export const fee = 1;\n')
+        records = self.journal('packages/core/src/fee.test.ts', killed={self.FEE: ['3']})
+        self.evaluate('tdd', self.tdd(), records=records)
+
     def test_a_report_of_survivors_is_not(self):
         with self.assertRaisesRegex(HarnessError, 'did not fail'):
             self.evaluate('tdd', self.tdd(), records=self.journal(killed={}))

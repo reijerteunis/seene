@@ -33,6 +33,10 @@ class SelectTest(unittest.TestCase):
         paths = ['packages/core/src/vat.ts', 'packages/core/src/money/fee.ts']
         self.assertEqual(mutation_ci.select(paths, everything_exists), 'src/vat.ts,src/money/fee.ts')
 
+    def test_a_changed_tsconfig_selects_all_of_src(self):
+        self.assertEqual(mutation_ci.select(['packages/core/tsconfig.json'], everything_exists),
+                         ALL_OF_SRC)
+
     def test_a_test_file_selects_its_source_once(self):
         paths = ['packages/core/src/fee.test.ts', 'packages/core/src/fee.ts']
         self.assertEqual(mutation_ci.select(paths, everything_exists), 'src/fee.ts')

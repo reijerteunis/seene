@@ -1020,7 +1020,7 @@ def cited_check(records, number, phase, current, tree=None, repository=None,
             # demonstrates nothing else. `demonstrates_failure` says a mutant was
             # killed; whether it was one of this slice's is the gate's to say,
             # because only the gate knows which files the slice names.
-            _require_the_kill_is_in_the_slice(records, record, number, declared_position)
+            _require_the_kill_is_in_the_slice(records, record, number, declared_position, repository)
     else:
         require(record['data']['exit_code'] == 0,
                 f'Check {number} is cited as a {phase} but exited {record["data"]["exit_code"]}')
@@ -1038,12 +1038,14 @@ def _files_a_citation_is_about(records, position):
     return _files_the_slice_covers(records, position)
 
 
-def _require_the_kill_is_in_the_slice(records, record, number, position):
+def _require_the_kill_is_in_the_slice(records, record, number, position, repository):
     """A RED at exit 0 stands only where a mutant it killed sits in the slice's files.
 
     Stryker exits 0 whatever it killed, so a kill anywhere in the package would
     otherwise prove any slice: the RED of an unrelated file's tests would carry
-    this one's. SEEN-116.
+    this one's. A slice that names a test stands for the source it tests, the same
+    reading the floor makes (`mutation.source_files`), so a kill in that source is
+    the slice's too. SEEN-116.
     """
     killed = record['data'].get('mutants_killed') or {}
     named = _files_a_citation_is_about(records, position)
@@ -1051,10 +1053,14 @@ def _require_the_kill_is_in_the_slice(records, record, number, position):
             f'Check {number} is cited as a RED on the strength of a Killed mutant, and the plan '
             'in hand names no file for the slice it is cited for, so there is nothing to say the '
             'mutant is the slice\'s. Name the files in the slice that changes them')
-    require(any(mutation.covers(named, path) for path in killed),
+    mapped = mutation.source_files(
+        named, lambda path: repository is not None and (repository.root / path).is_file())
+    counted = [*named, *mapped]
+    require(any(mutation.covers(counted, path) for path in killed),
             f'Check {number} exited 0 and is cited as a RED because its Stryker report killed a '
             f'mutant, but every mutant it killed is in a file the slice does not name: killed in '
-            f'{", ".join(sorted(killed))}, the slice names {", ".join(named)}. A kill elsewhere '
+            f'{", ".join(sorted(killed))}, the slice names {", ".join(named)} (source it stands for: '
+            f'{", ".join(mapped) or "none"}). A kill elsewhere '
             'in the package does not show this slice\'s test can tell its behaviour is absent')
 
 
