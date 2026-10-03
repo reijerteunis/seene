@@ -1,0 +1,48 @@
+{
+  "sequence": 148,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-03T11:53:18.991844+00:00",
+  "harness_version": "2",
+  "kind": "handoff",
+  "stage": "tdd",
+  "attempt": 10,
+  "actor": "claude:implementer",
+  "session": "5a22552d6789",
+  "head": "64ab858a75b65f99d8ec913bb3b09fa820550c65",
+  "prev_hash": "31c9f7db7a65350aab49807dc51b7d091041ce35afd6f7f5fbe2da6426b8694d",
+  "data": {
+    "pack": ".harness-drafts/SEEN-116-handoff.md",
+    "sha256": "286695792aeb95047f41af0ad2d1a7dbc0f2e21836b9a03df3ba06c4802bacb3",
+    "estimated_tokens": 1097,
+    "token_limit": 2000,
+    "slice": {
+      "position": 1,
+      "total": 1,
+      "done": 0,
+      "declared": false,
+      "inferred": 0,
+      "entry": {
+        "name": "One reading of a plan entry for the floor, the kill check and CI",
+        "points": 2,
+        "files": [
+          "harness/mutation.py",
+          "harness/gates.py",
+          "harness/mutation_ci.py",
+          "harness/tests/test_mutation.py",
+          "harness/tests/test_stage_gates.py",
+          "harness/tests/test_mutation_ci.py",
+          "harness/tests/test_calibration.py",
+          "docs/tickets/SEEN-116-property-based-and-mutation-tests-on-the-money.md"
+        ],
+        "red": "Five tests fail together before any code changes. source_files returns [] for packages/core and for ./packages/core/src/fee.ts. The tdd gate advances a slice naming packages/core with no measurement. The kill check refuses a kill in fee.ts for a slice naming ./packages/core/src/fee.ts. NoSecondReaderTest finds covers defined in harness/mutation.py. select(['tsconfig.base.json']) returns None."
+      }
+    },
+    "auto": false,
+    "figures": {
+      "session": "5a22552d6789",
+      "output_tokens": 20936,
+      "tool_calls": 18,
+      "unavailable": null
+    }
+  }
+}

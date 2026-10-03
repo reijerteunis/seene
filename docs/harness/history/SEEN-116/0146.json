@@ -1,0 +1,124 @@
+{
+  "sequence": 146,
+  "ticket": "SEEN-116",
+  "timestamp": "2026-10-03T11:53:03.959618+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "solution",
+  "attempt": 10,
+  "actor": "claude:implementer",
+  "session": "5a22552d6789",
+  "head": "64ab858a75b65f99d8ec913bb3b09fa820550c65",
+  "prev_hash": "f890eee08d220298e4e131e422743abab06654de8dc3ed3fe2b3b96f59510bbe",
+  "data": {
+    "from_stage": "solution",
+    "to_stage": "tdd",
+    "evidence": {
+      "mode": "code",
+      "approach": "Attempt 10 fixes F1, F2 and F3 from the attempt 9 review (return 144), all three in this ticket by Ruud's decision. The slices of attempts 6 to 9 stand as delivered, and this attempt adds one slice. F1: mutation.source_files reads plan entries as they are written, while the edit guard (paths.covers) normalises them and accepts parent directories. As a result, a slice naming packages/core or ./packages/core/src/fee.ts may edit src and still be held to no floor. The fix gives source_files the guard's reading. Every entry goes through paths.normalise first (the ./ prefix goes, the trailing slash goes, an absolute or empty entry is dropped). An entry that is an ancestor of packages/core/src (packages, packages/core) stands for all of src, which is what the guard lets that slice edit. Entries under src keep today's mapping (a test stands for its source, a data file is not measured). Normalising inside the one function also fixes mutation_ci.select and gates.plan_source_files, which both call it. F2: SEEN-140 gives paths.covers alone the question of whether a plan entry covers a path. mutation.covers is a second, un-normalised reader of it. It is deleted, and its four callers (gates._require_the_kill_is_in_the_slice, gates._require_mutation's uncovered list, mutation.missing and mutation.counts) call paths.covers(path, entries) instead. Note the argument order: path first, then entries. A test asserts that no harness module other than paths defines a function named covers, so a third reader is caught by the suite and not by a later review. F3: mutation_ci.CONFIG_FILES gains tsconfig.base.json at the repository root, which packages/core/tsconfig.json extends and the TypeScript checker therefore reads. The CI diff already lists paths across the whole repository (ci.yml:232), so no workflow change is needed.",
+      "changes": [
+        "harness/mutation.py: source_files normalises each entry with paths.normalise and maps an ancestor of packages/core/src to packages/core/src; the listed set used for sibling existence holds the normalised entries; covers is deleted and missing and counts call paths.covers; the docstring states both readings.",
+        "harness/gates.py: _require_the_kill_is_in_the_slice and _require_mutation's uncovered list call paths.covers(path, entries) in place of mutation.covers(entries, path).",
+        "harness/mutation_ci.py: CONFIG_FILES adds tsconfig.base.json (repository root, not under the package prefix); the docstring names it.",
+        "harness/tests/test_mutation.py: SourceFilesTest gains a parent-directory case and a ./-prefixed case; any test of mutation.covers moves to the paths.covers spelling.",
+        "harness/tests/test_stage_gates.py: MutationFloorTest gains a slice naming packages/core with no measurement, refused; AKilledMutantAsRedTest gains a slice naming ./packages/core/src/fee.ts whose Stryker RED killed a mutant in packages/core/src/fee.ts, accepted.",
+        "harness/tests/test_mutation_ci.py: SelectTest gains a case that a change to tsconfig.base.json selects all of src.",
+        "harness/tests/test_calibration.py: NoSecondReaderTest gains a check, over the syntax tree of every harness module, that only harness/paths.py defines a function named covers.",
+        "docs/tickets/SEEN-116-property-based-and-mutation-tests-on-the-money.md: the attempt 10 Outcome, status review and the criteria ticked before the review gate."
+      ],
+      "migrations": [],
+      "tests_first": [
+        "python3 -m unittest harness.tests.test_mutation.SourceFilesTest: source_files(['packages/core', 'harness/x.py'], nothing_exists) == ['packages/core/src'] and source_files(['./packages/core/src/fee.ts'], nothing_exists) == ['packages/core/src/fee.ts']. RED: both return [] today.",
+        "python3 -m unittest harness.tests.test_stage_gates.MutationFloorTest: a tdd attempt whose slice names packages/core and has no mutation measurement is refused naming the harness mutation command. RED: today it advances, because source_files returns [] and _require_mutation returns early.",
+        "python3 -m unittest harness.tests.test_stage_gates.AKilledMutantAsRedTest: a slice naming ./packages/core/src/fee.ts whose RED is a Stryker check at exit 0 with mutants_killed {packages/core/src/fee.ts: ['3']} advances. RED: today it is refused with 'every mutant it killed is in a file the slice does not name'.",
+        "python3 -m unittest harness.tests.test_calibration.NoSecondReaderTest: no module under harness/ other than paths.py defines a function named covers. RED: today it finds harness/mutation.py.",
+        "python3 -m unittest harness.tests.test_mutation_ci.SelectTest: select(['tsconfig.base.json'], exists) == ALL_OF_SRC. RED: today it returns None."
+      ],
+      "slices": [
+        {
+          "name": "One reading of a plan entry for the floor, the kill check and CI",
+          "points": 2,
+          "files": [
+            "harness/mutation.py",
+            "harness/gates.py",
+            "harness/mutation_ci.py",
+            "harness/tests/test_mutation.py",
+            "harness/tests/test_stage_gates.py",
+            "harness/tests/test_mutation_ci.py",
+            "harness/tests/test_calibration.py",
+            "docs/tickets/SEEN-116-property-based-and-mutation-tests-on-the-money.md"
+          ],
+          "red": "Five tests fail together before any code changes. source_files returns [] for packages/core and for ./packages/core/src/fee.ts. The tdd gate advances a slice naming packages/core with no measurement. The kill check refuses a kill in fee.ts for a slice naming ./packages/core/src/fee.ts. NoSecondReaderTest finds covers defined in harness/mutation.py. select(['tsconfig.base.json']) returns None."
+        }
+      ],
+      "alternatives": [
+        "Normalise only at the gates.py call sites: rejected, because mutation_ci.select and plan_source_files call source_files too, and the fix belongs in the one function every caller shares.",
+        "Refuse parent-directory and ./-prefixed entries in a plan at solution: rejected, because the guard, the triage and calibration all accept them through paths.covers. Refusing them only for the floor would give one plan entry two meanings again, and changing the plan language for every ticket is wider than this ticket.",
+        "Keep mutation.covers but have it call paths.normalise: rejected, because that is still a second implementation of the question SEEN-140 settled in paths.covers, which is F2's point.",
+        "Map an ancestor of src to nothing and warn: rejected, because the guard lets that slice edit all of src, so the floor must cover what the slice may change."
+      ],
+      "risks": [
+        "A plan naming packages or packages/core is now held to a measurement over all of src, which is slower than one file. Mitigation: that is exactly the scope the guard grants such a slice, and the refusal names the command. No accepted slice in this ticket names an ancestor of src (checked across every solution record), so this ticket's own gate is unchanged.",
+        "paths.covers takes (path, entries) and mutation.covers took (entries, path), so a swapped argument would silently invert a check. Mitigation: the existing MutationFloorTest and AKilledMutantAsRedTest cases (a directory measured covers a file under it, a kill outside the slice is refused by name) cover both directions, and the full harness suite runs as the regression.",
+        "Deleting mutation.covers could break an importer outside the harness. Mitigation: codegraph lists its callers as harness/mutation.py and harness/gates.py only, and the regression run of harness/tests discovers every test module."
+      ],
+      "rollback": "Revert the attempt 10 commits on the branch. The changes are confined to harness Python and its tests, with no data, migration or workflow change, so reverting restores attempt 9's behaviour exactly.",
+      "new_dependencies": [],
+      "tenant_tables": [
+        "none"
+      ],
+      "buyer_pii": "none",
+      "policy_gate_action": null,
+      "slice_points": 2,
+      "forecast": {
+        "available": false,
+        "observed_tickets": 7,
+        "required": 10
+      }
+    },
+    "decisions": [
+      {
+        "key": "solution_complete",
+        "question": "solution_complete",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "yes",
+        "probabilities": {
+          "yes": 0.82,
+          "no": 0.18
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.6,
+        "passed": true,
+        "fallback_reason": null
+      },
+      {
+        "key": "touches_billing_or_policy_gate",
+        "question": "touches_billing_or_policy_gate",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.08,
+          "no": 0.92
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      }
+    ]
+  }
+}
