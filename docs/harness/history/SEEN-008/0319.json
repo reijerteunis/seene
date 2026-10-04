@@ -1,0 +1,67 @@
+{
+  "sequence": 319,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-10-03T20:28:24.989752+00:00",
+  "harness_version": "2",
+  "kind": "receipt",
+  "stage": "deliver",
+  "attempt": 20,
+  "actor": "claude:implementer",
+  "session": "c103e10e4555",
+  "head": "0b7f42bd2f7eabe953abe6afba844c5315269875",
+  "prev_hash": "8e2577a12dafdc3d9637df1a6b71d1f26562021bdf2f2501961e4dd35496e6af",
+  "data": {
+    "from_stage": "deliver",
+    "to_stage": "delivered",
+    "commit": "0b7f42bd2f7eabe953abe6afba844c5315269875",
+    "branch": "claude/SEEN-008-create-trade-record-schema-v1",
+    "remote": "origin",
+    "tree": "3fd095df73e5abe0921abb7c4041aca3104e3e202a8929c251f87c3ae704f0c9",
+    "pull_request": "https://github.com/reijerteunis/seene/pull/31",
+    "limits": [
+      "Pull request 31 was squash-merged on 1 October 2026 before this receipt existed, by Ruud's decision recorded at note 314; the review from the other assistant (Codex, record 318) came afterwards, on the tree that was merged, and this receipt attests that tree rather than preceding the merge.",
+      "Criterion 1 rests on regression 311 (pnpm db:reset from an empty local database, then the core, workspace and harness suites); the qa check at 316 ran the core suite only, on the same tree.",
+      "The suite measures that the schema refuses an update of a derived member, not that part 9's trigger is what refuses it, because 17 of 29 tenancy members are refused 23503 by a parent key either way.",
+      "seen.guard_authored_identifiers() runs at apply time only, so a later migration adding a table with a tenant_id gets no immutability trigger, and nothing hands that obligation forward yet.",
+      "Records 315 to 318 carry the model label claude-opus-5-5 where present although Codex wrote them: the harness reads the model from the environment Codex inherited from the Claude Code session that started it."
+    ],
+    "evidence": {
+      "remote": "origin",
+      "pull_request": "https://github.com/reijerteunis/seene/pull/31",
+      "limits": [
+        "Pull request 31 was squash-merged on 1 October 2026 before this receipt existed, by Ruud's decision recorded at note 314; the review from the other assistant (Codex, record 318) came afterwards, on the tree that was merged, and this receipt attests that tree rather than preceding the merge.",
+        "Criterion 1 rests on regression 311 (pnpm db:reset from an empty local database, then the core, workspace and harness suites); the qa check at 316 ran the core suite only, on the same tree.",
+        "The suite measures that the schema refuses an update of a derived member, not that part 9's trigger is what refuses it, because 17 of 29 tenancy members are refused 23503 by a parent key either way.",
+        "seen.guard_authored_identifiers() runs at apply time only, so a later migration adding a table with a tenant_id gets no immutability trigger, and nothing hands that obligation forward yet.",
+        "Records 315 to 318 carry the model label claude-opus-5-5 where present although Codex wrote them: the harness reads the model from the environment Codex inherited from the Claude Code session that started it."
+      ]
+    },
+    "checks": [
+      {
+        "name": "Harness tests (Python 3.12)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Knowledge graph",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Monorepo (Node 24)",
+        "conclusion": "success",
+        "runs": 1
+      },
+      {
+        "name": "Secrets and supply chain",
+        "conclusion": "success",
+        "runs": 1
+      }
+    ],
+    "coverage": {
+      "package": "@seen/core",
+      "lines": 100.0,
+      "delta": 0.0
+    }
+  }
+}

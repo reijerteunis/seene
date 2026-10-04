@@ -1,0 +1,148 @@
+{
+  "sequence": 318,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-10-03T20:24:20.979285+00:00",
+  "harness_version": "2",
+  "kind": "advance",
+  "stage": "review",
+  "attempt": 20,
+  "actor": "codex:reviewer",
+  "session": "c103e10e4555",
+  "head": "050ab24a9507251cdaffcf0e560bc469f7663ceb",
+  "prev_hash": "0166d142bbeba9691ea3052221e92e12d867e61bb581a21ad842a7e12032f8b7",
+  "data": {
+    "from_stage": "review",
+    "to_stage": "deliver",
+    "evidence": {
+      "reviewer": "codex:reviewer",
+      "independence": "independent",
+      "reviewer_session": "Independent Codex root session resuming records 315 to 317; not a subagent. This session wrote none of the implementation.",
+      "read": [
+        "docs/tickets/SEEN-008-create-trade-record-schema-v1-with-tenant-id.md",
+        "docs/tickets/SEEN-022-generate-the-audit-pdf-with-scorecard-and-line.md",
+        "docs/tickets/SEEN-027-build-the-claims-rail-with-api-assisted-and.md",
+        "docs/tickets/SEEN-032-write-append-only-audit-events-before-every.md",
+        "docs/tickets/SEEN-034-build-agent-runtime-v1-with-the-fixed-tool-set.md",
+        "docs/tickets/SEEN-040-issue-invoices-with-recovery-share-lines-from.md",
+        "docs/tickets/SEEN-041-generate-and-send-the-monthly-statement-pdf.md",
+        "docs/tickets/SEEN-062-parse-the-forwarded-mailbox-via-postmark.md",
+        "docs/tickets/SEEN-083-expire-amazon-pii-after-30-days-and-delete.md",
+        "packages/core/db/authorities.test.ts",
+        "packages/core/db/marketplaces.test.ts",
+        "packages/core/db/marketplaces.ts",
+        "packages/core/db/parallelism.test.ts",
+        "packages/core/db/repository.ts",
+        "packages/core/db/rls.test.ts",
+        "packages/core/db/schema.test.ts",
+        "packages/core/db/tables.ts",
+        "packages/core/db/uniqueness.test.ts",
+        "packages/core/package.json",
+        "packages/core/vitest.config.ts",
+        "pnpm-lock.yaml",
+        "supabase/migrations/20260927000000_trade_record_v1_tenancy_and_orders.sql",
+        "supabase/migrations/20260927000001_trade_record_v1_claims_and_agent.sql",
+        "supabase/migrations/20260927000002_trade_record_v1_commerce_and_marketplaces_seed.sql",
+        "supabase/migrations/20260927000003_trade_record_v1_read_only_client_roles.sql",
+        "supabase/migrations/20260929000000_trade_record_v1_tenant_scoped_foreign_keys.sql",
+        "supabase/migrations/20260929000001_trade_record_v1_relations_that_are_not_tables.sql",
+        "supabase/migrations/20260929000002_trade_record_v1_free_text_classification.sql",
+        "supabase/migrations/20260929000003_trade_record_v1_erased_tenant_ids.sql",
+        "supabase/migrations/20260930000000_trade_record_v1_referential_integrity.sql",
+        "supabase/migrations/20260930000001_trade_record_v1_evidence_and_billing.sql",
+        "turbo.json",
+        "docs/harness/history/SEEN-008/",
+        ".agents/skills/seen-harness/SKILL.md",
+        "/Users/ruudvanengelenhoven/.agents/skills/graphify/SKILL.md",
+        "harness/repository.py",
+        "harness/gates.py",
+        "harness/triage.py",
+        "harness/hooks.py",
+        "harness/kpi.py",
+        ".harness-drafts/SEEN-008-review-before-codex-resume.json",
+        ".harness-drafts/SEEN-008-review.json"
+      ],
+      "acceptance_evidence": [
+        "Criterion 1: regression 311 ran pnpm db:reset from an empty local database, applied the evidence-bucket migration plus all ten trade-record parts, then the core, workspace and harness suites, exit 0. git diff from its recorded HEAD 926d9da384c93dbd934759bb444d1380f41ea556 to this HEAD changes only the ticket Outcome and journal records 311 to 314. No migration or test has changed since that reset. QA 316 passed against the exact current fingerprint. This session inspected that evidence; it did not run another reset.",
+        "Criterion 2: schema.test.ts reads pg_class/pg_attribute/pg_policies for public, includes both ordinary and partitioned tables, refuses an empty inventory, checks tenant_id and relrowsecurity, and compares every permissive policy clause against the whole permitted tenancy expression. The three migration creation loops enable RLS on all 29 public tables; audit_events has separate select and insert policies. rls.test.ts also populates the catalogue-derived table set for two tenants and verifies isolation, with injected permissive-policy and partition probes. QA 316 passed 125 schema tests and 33 RLS tests.",
+        "Criterion 3: rls.test.ts ordersFor sets request.jwt.claims transaction-locally and SET LOCAL ROLE authenticated before selecting orders. Its two fixtures have different tenant ids and order ids. It requires exactly A's order for A and exactly B's for B, and zero rows for missing or unknown tenant claims. This is a database integration test of the trusted JWT claim as PostgREST presents it, not a test of token issuance or HTTP signature verification. QA 316 passed these tests. seen.current_tenant() reads the same tenant_id claim with an empty search_path.",
+        "Criterion 4: part 1 creates a non-partial unique index on (tenant_id, marketplace, external_id) for orders, shipments, returns, settlements and settlement_lines. uniqueness.test.ts checks each with a duplicate insert yielding 23505 and checks that changing tenant or marketplace permits the same external id. Part 9 binds marketplace through tenant-scoped parent keys to the catalogue. All 15 uniqueness tests passed at QA 316. The original uniqueness tests were green on their first run because slice 1 had already created the indexes; record 10 and the test itself disclose this plan defect.",
+        "Criterion 5: part 3 seeds bol, amazon, ebay, kaufland, otto and shopify into seen.marketplace_catalogue and copies the catalogue to each tenant. marketplaces.test.ts reads architecture.md through the hashed repository reader, parses all nine capability rows through parseRoutingTable and compares the database values, names and per-tenant visibility. Part 10 corrects Bol buyer_messages to assisted, matching the explicit compound-cell rule in marketplaces.ts. QA 316 passed all nine marketplace tests. The architecture document and migrations are turbo test inputs."
+      ],
+      "findings": [],
+      "checks": [
+        316
+      ],
+      "security_checklist": [
+        "Tenancy: every public table has the same tenant comparison; client roles are read-only, anon has no table grants, and tenant-owned foreign keys carry tenant_id. Part 9 prevents the authored tenant and marketplace identifiers moving by UPDATE. The service role deliberately bypasses RLS; the later API must authorise its writes.",
+        "Credentials: connections stores credential_ref rather than credential material. No secret scan was repeated: the passing gitleaks result is triage 315's evidence. The migration and test diff uses the documented fixed local development connection string.",
+        "Dependencies: pg and @types/pg additions have matching importer, package and snapshot entries in pnpm-lock.yaml. No new package was installed and no fresh vulnerability audit is claimed by this review.",
+        "Marketplace access: the tests reviewed use the local PostgreSQL client, repository readers and synthetic SQL fixtures. The no-live-marketplace lint result was already settled by triage 315 and was not rerun.",
+        "Buyer PII: the nine named columns are classified with the storage-layer-only encryption limitation and the SEEN-083 expiry obligation. This schema ticket does not deliver that future expiry job or column encryption. Writer-side obligations for audit payloads, claim events, mail digests and storage prefixes are carried in the changed downstream ticket criteria.",
+        "Audit and billing: audit_events rejects update/delete/truncate except the tenant-erasure delete, with the existence test under SECURITY DEFINER and empty search_path. Erased ids cannot be reused. Client roles cannot manufacture settlement lines or credits. Part 10 drops untyped recovery_share_lines; SEEN-040 owns invoice_claims. No billing runtime or policy-gated tool is introduced here.",
+        "Storage: evidence and statement paths are tenant-prefixed; pending_object_erasures preserves the storage worklist after tenant deletion. The migration accurately leaves object deletion to SEEN-083 and upload placement to SEEN-022, SEEN-027 and SEEN-041. This does not claim that a database path check verifies uploaded bytes."
+      ],
+      "verdict": "pass",
+      "second_reviewer": "claude:reviewer",
+      "unmet_criteria": [],
+      "review_notes": [
+        "Ruud explicitly authorised this independent review by Codex in its own session and explicitly prohibited spawning the incompatible opus-named reviewer. No subagent performed this review. The reviewer_session field is a description, not an invented harness session digest. second_reviewer names the earlier Claude reviewer documented in returns 275, 284, 292, 299 and 308 and note 314; it does not claim a newly spawned Claude review or a fresh Claude pass after the last repair.",
+        "Read scope: all 32 files in triage 315's focus were inspected through source, source sections or their diffs. The journal was inspected through a sequence/kind/check/finding index and the relevant clarification, solution, return, TDD and QA payloads. Long historical command transcripts and repeated Outcome prose were selectively read, not exhaustively replayed. Harness source excerpts were consulted only to understand fingerprint and review disclosure requirements.",
+        "Triage validity: Repository.fingerprint() exactly equals 315 and both sides of QA 316: 3fd095df73e5abe0921abb7c4041aca3104e3e202a8929c251f87c3ae704f0c9. No rerun of triage or QA was needed. The fingerprint warning about 311 is accounted for by its older ticket Outcome; git confirms the code and test tree is unchanged, and 316 covers this exact tree.",
+        "The slice_files remainder is a real limitation of the original exact-path plan, not evidence of unrelated implementation: the SQL parts follow the planned migrations directory, and the added repository/cache guards and downstream criteria correspond to the recorded review repairs. The journal and Outcome already disclose plan and harness-guard drift. No claim is made that those additions were all listed in the original solution.",
+        "The PR-body warning is literally true: PR 31's body omits the ticket id. Read-only gh pr view confirmed its title starts SEEN-008, its branch is this ticket's branch, and its state is MERGED. Its body records the prior no-receipt decision in note 314. This is not an unmet schema criterion or ambiguous ticket association. No PR was edited and this review cannot retroactively attest a pre-merge gate.",
+        "RED remainder: records 8, 11 and 14 failed for missing tables/catalogue, as planned; the uniqueness-first-pass exception was recorded at 10. Note 300 corrects the overclaim at 297 and explicitly identifies F79's missing RED. In the final round, 309 contains three distinct failures for F86, F87 and F88, 310 is green and 313 describes those failures accurately. The current AST call counter and attack fixtures, unfiltered reach calculation and explicit exemption-fixture refusal resolve those final findings. These are substantive tests of the changed behaviour, not merely changed test filenames.",
+        "Known limits remain as the Outcome declares: future migrations must invoke the authored-identifier guard; some identifier probes are also refused by mandatory parent keys; db TypeScript is outside the existing src-only typecheck; storage deletion and PII expiry belong to later tickets. These limits were not recast as new failures of SEEN-008's five criteria.",
+        "This review found no new standing finding and no unmet acceptance criterion. It relies on recorded execution at 311 and 316 and source inspection, and claims no fresh database execution in this session. QA 316's automatic model label is inaccurate for Codex, as note 317 already discloses; no model or agent metadata was fabricated to replace it."
+      ],
+      "tree": "3fd095df73e5abe0921abb7c4041aca3104e3e202a8929c251f87c3ae704f0c9"
+    },
+    "decisions": [
+      {
+        "key": "severity",
+        "question": "severity",
+        "type": "score",
+        "options": [
+          "low",
+          "medium",
+          "high",
+          "blocking"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "low",
+        "probabilities": {
+          "low": 0.58,
+          "medium": 0.1,
+          "high": 0.02,
+          "blocking": 0.3
+        },
+        "confidence": 0.0,
+        "score": 1.02,
+        "threshold": null,
+        "passed": null,
+        "fallback_reason": null
+      },
+      {
+        "key": "must_fix",
+        "question": "must_fix",
+        "type": "noul",
+        "options": [
+          "yes",
+          "no"
+        ],
+        "source": "jev",
+        "model": "jev-1.13.0",
+        "outcome": "no",
+        "probabilities": {
+          "yes": 0.26,
+          "no": 0.74
+        },
+        "confidence": null,
+        "score": null,
+        "threshold": 0.7,
+        "passed": false,
+        "fallback_reason": null
+      }
+    ]
+  }
+}

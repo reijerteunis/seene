@@ -1,0 +1,16 @@
+{
+  "sequence": 317,
+  "ticket": "SEEN-008",
+  "timestamp": "2026-10-03T20:16:05.072100+00:00",
+  "harness_version": "2",
+  "kind": "note",
+  "stage": "review",
+  "attempt": 20,
+  "actor": "codex:reviewer",
+  "session": "c103e10e4555",
+  "head": "050ab24a9507251cdaffcf0e560bc469f7663ceb",
+  "prev_hash": "2a2d9948717f7b3e91a9baacb151e61a7f58171672dcd3994fbcb9ac73c258d2",
+  "data": {
+    "text": "# SEEN-008 second review could not complete\n\nActor: codex:reviewer. This run is Codex, authorised by Ruud to perform review only.\n\n- Triage record 315 selected full review and supplied a 32-file reviewer task.\n- QA record 316 ran `pnpm --filter @seen/core test`: 7 test files and 196 tests passed. The before and after tree fingerprints were identical. The harness automatically labelled the model `claude-opus-5-5`; that is not an accurate disclosure of this Codex runner. No model was declared or metadata overridden by this session.\n- The seen-reviewer subagent was spawned with exactly record 315's reviewer task. It failed before reviewing: `The 'opus' model is not supported when using Codex with a ChatGPT account.` No findings or read attestation were produced.\n- Both `status SEEN-008 --brief --actor codex:reviewer` and `draft SEEN-008 --actor codex:reviewer` refused with `Harness: Unrecognised arguments: --actor codex:reviewer`. Their help confirms that these commands have no actor option. The user requires that option on every harness invocation, so it was not omitted.\n\nNo review findings are asserted. This is an incomplete review, not a pass. No acceptance criterion is declared unmet on the basis of the unavailable reviewer. No advance or return was attempted: the ticket remains at review, attempt 20. A supported Codex reviewer configuration and resolution of the actor-option conflict are needed to finish the requested review. No code, ticket, test or migration was edited, and no commit, push or merge was performed.\n"
+  }
+}
