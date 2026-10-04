@@ -1,0 +1,132 @@
+{
+  "ticket": "SEEN-008",
+  "delivered_at": "2026-10-03T20:28:24.989752+00:00",
+  "points": null,
+  "cycle_time_seconds": 568088,
+  "stage_seconds": {
+    "clarify": 161,
+    "solution": 125,
+    "tdd": 174651,
+    "review": 392906,
+    "deliver": 244
+  },
+  "attempts": 20,
+  "rework": 19,
+  "red_before_green": true,
+  "coverage": {
+    "package": "@seen/core",
+    "lines": 100.0,
+    "delta": 0.0
+  },
+  "findings": {
+    "by_severity": {
+      "high": 13,
+      "medium": 54,
+      "low": 19
+    },
+    "fixed": 86,
+    "waived": 0
+  },
+  "first_pass_ci": true,
+  "tokens": null,
+  "cost": null,
+  "escaped_defects": [],
+  "slices": {
+    "planned": 4,
+    "proven": 51
+  },
+  "sessions": 2,
+  "subagents": {
+    "briefs": 1,
+    "agents": [
+      "seen-scout"
+    ],
+    "review": "independent",
+    "both": false
+  },
+  "review_triage": {
+    "record": 315,
+    "depth": "full",
+    "model_depth": "full",
+    "shadow": true,
+    "asked": false,
+    "rules": [
+      "This change touches billing or the policy gate, so the review is full depth by rule",
+      "This change carries a migration, so the review is full depth by rule",
+      "fingerprint did not pass, so the reviewer reads everything: The tree changed after check 311: it ran against 3e3fe8abb278 and this triage reads 3fd095df73e5. The tests that passed are not the tests for this tree",
+      "slice_files did not pass, so the reviewer reads everything: Changed but named by no slice and no changes entry: docs/tickets/SEEN-022-generate-the-audit-pdf-with-scorecard-and-line.md, docs/tickets/SEEN-027-build-the-claims-rail-with-api-assisted-and.md, docs/tickets/SEEN-032-write-append-only-audit-events-before-every.md, docs/tickets/SEEN-034-build-agent-runtime-v1-with-the-fixed-tool-set.md, docs/tickets/SEEN-040-issue-invoices-with-recovery-share-lines-from.md, docs/tickets/SEEN-041-generate-and-send-the-monthly-statement-pdf.md, docs/tickets/SEEN-062-parse-the-forwarded-mailbox-via-postmark.md, docs/tickets/SEEN-083-expire-amazon-pii-after-30-days-and-delete.md, packages/core/db/authorities.test.ts, packages/core/db/parallelism.test.ts, packages/core/db/repository.ts, packages/core/vitest.config.ts, pnpm-lock.yaml, supabase/migrations/20260927000000_trade_record_v1_tenancy_and_orders.sql, supabase/migrations/20260927000001_trade_record_v1_claims_and_agent.sql, supabase/migrations/20260927000002_trade_record_v1_commerce_and_marketplaces_seed.sql, supabase/migrations/20260927000003_trade_record_v1_read_only_client_roles.sql, supabase/migrations/20260929000000_trade_record_v1_tenant_scoped_foreign_keys.sql, supabase/migrations/20260929000001_trade_record_v1_relations_that_are_not_tables.sql, supabase/migrations/20260929000002_trade_record_v1_free_text_classification.sql, supabase/migrations/20260929000003_trade_record_v1_erased_tenant_ids.sql, supabase/migrations/20260930000000_trade_record_v1_referential_integrity.sql, supabase/migrations/20260930000001_trade_record_v1_evidence_and_billing.sql",
+      "pull_request did not pass, so the reviewer reads everything: Pull request 31 does not name SEEN-008 in its body, so nobody reading it can tell which ticket it delivers"
+    ],
+    "files": 32,
+    "focus": 32,
+    "excluded": 0,
+    "excluded_share": 0.0,
+    "reviewer_output_tokens": null,
+    "reviewer_tokens": null
+  },
+  "execution": [
+    {
+      "position": 1,
+      "name": "Tenancy, the policy helper, orders and the settlement tables",
+      "points": 2,
+      "model": "opus",
+      "effort": "high",
+      "source": "rule",
+      "rule": "billing",
+      "ran_on": "claude-opus-5",
+      "ran_on_tier": "opus",
+      "output_tokens": 328338,
+      "cost_cents": 2463,
+      "routed_cost_cents": 2463,
+      "cost_basis": "output tokens only, at the price of the model the slice ran on: a handoff record carries the session's output tokens and tool calls and nothing about input. routed_cost_cents prices the same tokens at the model the route chose, which in shadow is a counterfactual and not a cost"
+    },
+    {
+      "position": 2,
+      "name": "Findings, claims, evidence, messaging and the agent tables",
+      "points": 2,
+      "model": "opus",
+      "effort": "high",
+      "source": "rule",
+      "rule": "billing",
+      "ran_on": "claude-opus-5",
+      "ran_on_tier": "opus",
+      "output_tokens": 343622,
+      "cost_cents": 2577,
+      "routed_cost_cents": 2577,
+      "cost_basis": "output tokens only, at the price of the model the slice ran on: a handoff record carries the session's output tokens and tool calls and nothing about input. routed_cost_cents prices the same tokens at the model the route chose, which in shadow is a counterfactual and not a cost"
+    },
+    {
+      "position": 3,
+      "name": "Commerce tables, the unique indexes and the marketplaces seed",
+      "points": 1,
+      "model": "opus",
+      "effort": "high",
+      "source": "rule",
+      "rule": "billing",
+      "ran_on": null,
+      "ran_on_tier": null,
+      "output_tokens": 36954,
+      "cost_cents": null,
+      "routed_cost_cents": 277,
+      "cost_basis": "output tokens only, at the price of the model the slice ran on: a handoff record carries the session's output tokens and tool calls and nothing about input. routed_cost_cents prices the same tokens at the model the route chose, which in shadow is a counterfactual and not a cost"
+    },
+    {
+      "position": 4,
+      "name": "The second review's three remaining findings: the cacheable guard, the blanket grant as a template, and the unowned half of the PII rule",
+      "points": 1,
+      "model": "opus",
+      "effort": "high",
+      "source": "rule",
+      "rule": "billing",
+      "ran_on": null,
+      "ran_on_tier": null,
+      "output_tokens": 3903,
+      "cost_cents": null,
+      "routed_cost_cents": 29,
+      "cost_basis": "output tokens only, at the price of the model the slice ran on: a handoff record carries the session's output tokens and tool calls and nothing about input. routed_cost_cents prices the same tokens at the model the route chose, which in shadow is a counterfactual and not a cost"
+    }
+  ],
+  "output_tokens_per_slice": null,
+  "harness_version": "2",
+  "note": null
+}
