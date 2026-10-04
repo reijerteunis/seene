@@ -65,7 +65,7 @@ Conventions: branch `claude/<id>-<slug>` (or `codex/`), commit messages `feat(<i
 | [SEEN-145](SEEN-145-count-a-review-finding-once-however-the.md) | Count a review finding once, however the record that carries it names it | E10 | 1 | Claude Code | done | SEEN-091, SEEN-107, SEEN-109 |
 | [SEEN-146](SEEN-146-assign-a-later-review-s-findings-by-maximum.md) | Match a later review's findings as a whole, so the order they are listed in never changes a count | E10 | 2 | Claude Code | done | SEEN-145 |
 | [SEEN-147](SEEN-147-a-drafter-writes-the-clarify-and-solution.md) | A drafter writes the clarify and solution records, so the orchestrator holds only the gate answers | E10 | 3 | Claude Code | todo | SEEN-105, SEEN-112 |
-| [SEEN-008](SEEN-008-create-trade-record-schema-v1-with-tenant-id.md) | Create trade-record schema v1 with tenant_id and RLS on every table | E0 | 5 | Claude Code | review | SEEN-006, SEEN-092, SEEN-094 |
+| [SEEN-008](SEEN-008-create-trade-record-schema-v1-with-tenant-id.md) | Create trade-record schema v1 with tenant_id and RLS on every table | E0 | 5 | Claude Code | done | SEEN-006, SEEN-092, SEEN-094 |
 | [SEEN-139](SEEN-139-hand-the-immutability-guard-forward-to-every.md) | Hand the immutability guard forward to every migration that adds a table | E0 | 2 | Claude Code | todo | SEEN-008 |
 | [SEEN-143](SEEN-143-compile-the-trade-record-schema-and-its-tests.md) | Compile the trade-record schema and its tests, which no compiler reads today | E0 | 3 | Claude Code | todo | SEEN-008, SEEN-114 |
 | [SEEN-009](SEEN-009-define-connector-interface-capability-matrix.md) | Define connector interface, capability matrix and credential access | E1 | 5 | Claude Code | todo | SEEN-006, SEEN-008 |
